@@ -24,6 +24,7 @@ An index of Functions, Modules, and Constants by name.
 - [`MakeLidTab()`](boardgame_toolkit.scad#module-makelidtab) Mod
 - [`MakeStripedGrid()`](boardgame_toolkit.scad#module-makestripedgrid) Mod
 - [`MakeStripedLidLabel()`](boardgame_toolkit.scad#module-makestripedlidlabel) Mod
+- [`MakeTabbedInsetLid()`](boardgame_toolkit.scad#module-maketabbedinsetlid) Mod
 - [`MakeTabs()`](boardgame_toolkit.scad#module-maketabs) Mod
 
 ## R

@@ -353,7 +353,7 @@ module MakeStripedGrid(width, length, bar_width = 1)
 //   font = the font to use for the text (default "Stencil Std:style=Bold")
 //   radius = the radius of the corners on the label section
 // Example:
-//   MakeStripedLidLabel(width = 20, length = 100, lid_height = 2, label = "Australia");
+//   MakeStripedLidLabel(width = 20, length = 80, lid_height = 2, label = "Australia");
 module MakeStripedLidLabel(width, length, lid_height, label, border = 2, offset = 4, font = "Stencil Std:style=Bold",
                            radius = 5)
 {
@@ -583,8 +583,9 @@ module MakeLidTab(length, height, lid_height = 2, prism_width = 0.75, wall_thick
 
 // Module: MakeTabs()
 // Description:
-//   Create the tabs for the box, this can be used on the lids and the box to create cutouts.  The
-//   stem of the tab will be the wall_thickness/2 and the prism width will be based on the parameter.
+//   Create the tabs for the box, this can be used on the lids and the box to create cutouts, 
+//   this just does the layout. Use the {{MakeLidTab()}} to make the tabs, it will place the children
+//   at each of the specified offsets to make the tabs.
 // Usage:
 //   MakeTabs(50, 100, wall_thickness = 2, lid_height = 2);
 // Arguments:
@@ -597,7 +598,8 @@ module MakeLidTab(length, height, lid_height = 2, prism_width = 0.75, wall_thick
 //   make_tab_length = make tabs on the length side (default true)
 //   prism_width = width of the prism to take from the side of the box (default 0.75)
 // Example:
-//   MakeTabs(50, 100);
+//   MakeTabs(50, 100) 
+//     MakeLidTab(length = 10, height = 6);
 module MakeTabs(box_width, box_length, wall_thickness = 2, lid_height = 2, tab_length = 10, make_tab_width = false,
                 make_tab_length = true, prism_width = 0.75)
 {
@@ -614,7 +616,6 @@ module MakeTabs(box_width, box_length, wall_thickness = 2, lid_height = 2, tab_l
         translate([ (box_width + tab_length) / 2, box_length, lid_height ]) rotate([ 0, 0, 180 ]) children();
     }
 }
-
 
 // Section: SlidingBox
 //   All the pieces for making sliding lids and different types of sliding lids/boxes.
@@ -775,6 +776,10 @@ module SlidingBoxLidWithLabel(width, length, lid_height, text_width, text_length
 // Description:
 //   Creates a box with a specific number of hex spaces given the rows/cols and width of the pieces.  Useful
 //   for making 18xx style boxes quickly.  Children to this are the same as children to the MakeBoxWithSlidingLid.
+//   .
+//   This will make
+//   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+//   do this with a difference after making this object.
 // Usage:
 //   MakeHexBoxWithSlidingLid(5, 7, 19, 1, 29);
 // Arguments:
@@ -830,7 +835,11 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
 // Description:
 //   Makes a box with a sliding lid, this just creates the box itself with the cutouts for the
 //   sliding lid pieces.  The children to this will be removed from inside the box and how to add
-//   in the cutouts.
+//   in the cutouts.  
+//   .
+//   This will make
+//   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+//   do this with a difference after making this object.
 // Usage:
 //   MakeBoxWithSlidingLid(50,100,20);
 // Arguments:
@@ -865,7 +874,6 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
 // Section: TabbedBox
 // Description:
 //   Creates a lid/box with tabs on the side.  This also includes inset lids, since they are used with tabs too.
-
 
 // Module: MakeInsetLid()
 // Description:
@@ -915,9 +923,72 @@ module MakeInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1
     }
 }
 
+// Module: MakeTabbedInsetLid()
+// Description:
+//   Makes an inset lid with the tabes on the side.
+// Usage:
+//   MakeTabbedInsetLid(30, 100);
+// Arguments:
+//   width = width of the box (outside width)
+//   length = length of the box (outside length)
+//   lid_height = height of the lid (default 2)
+//   wall_thickness = thickness of the walls (default 2)
+//   inset = how far to inset the lid (default 1)
+//   lid_size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
+//   make_tab_width = makes tabes on thr width (default false)
+//   make_tab_length = makes tabs on the length (default true)
+//   prism_width = width of the prism in the tab. (default 0.75)
+//   tab_length = length of the tab (default 10)
+//   tab_height = height of the tab (default 6)
+// Example:
+//   MakeTabbedInsetLid(30, 100);
+module MakeTabbedInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1,
+                          lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
+                          prism_width = 0.75, tab_length = 10, tab_height = 6)
+{
+    union()
+    {
+        MakeInsetLid(width = width, length = length, lid_height = lid_height, wall_thickness = wall_thickness,
+                     inset = inset, lid_size_spacing = lid_size_spacing)
+        {
+            if ($children > 0)
+            {
+                children(0);
+            }
+            if ($children > 1)
+            {
+                children(1);
+            }
+            if ($children > 2)
+            {
+                children(2);
+            }
+            if ($children > 3)
+            {
+                children(3);
+            }
+            if ($children > 4)
+            {
+                children(4);
+            }
+            if ($children > 5)
+            {
+                children(5);
+            }
+        }
+        MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness, lid_height = lid_height,
+                 make_tab_width = make_tab_width, make_tab_length = make_tab_length, prism_width = prism_width)
+            MakeLidTab(length = tab_length, height = tab_height, lid_height = lid_height, prism_width = prism_width,
+                       wall_thickness = wall_thickness);
+        ;
+    }
+}
+
 // Module: MakeBoxWithTabsInsetLid()
 // Description:
-//   Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.
+//   Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.  This will make
+//   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+//   do this with a difference after making this object.
 // Usage:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
 // Arguments:
@@ -937,8 +1008,8 @@ module MakeInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1
 // Example:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
 module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_height = 2, tab_height = 6, inset = 1,
-                           make_tab_width = false, make_tab_length = true, prism_width = 0.75, tab_length = 10,
-                           stackable = false, lid_size_spacing = m_piece_wiggle_room)
+                               make_tab_width = false, make_tab_length = true, prism_width = 0.75, tab_length = 10,
+                               stackable = false, lid_size_spacing = m_piece_wiggle_room)
 {
     difference()
     {
@@ -1007,7 +1078,7 @@ module MakeHexBoxWithTabsInsetLid(rows, cols, height, push_block_height, tile_wi
     echo(cols * apothem * 2 + 4);
 
     MakeBoxWithTabsInsetLid(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
-                        lid_height = lid_height) translate([ 2, 2, 2 ])
+                            lid_height = lid_height) translate([ 2, 2, 2 ])
         RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
     {
         union()

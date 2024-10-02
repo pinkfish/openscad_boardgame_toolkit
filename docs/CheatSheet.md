@@ -60,6 +60,8 @@ Constants: [`m_piece_wiggle_room`](boardgame_toolkit.scad#constant-m_piece_wiggl
 
 ><code>[MakeInsetLid](boardgame_toolkit.scad#module-makeinsetlid)(50, 100);</code>  
 
+><code>[MakeTabbedInsetLid](boardgame_toolkit.scad#module-maketabbedinsetlid)(30, 100);</code>  
+
 ><code>[MakeBoxWithTabsInsetLid](boardgame_toolkit.scad#module-makeboxwithtabsinsetlid)(width = 30, length = 100, height = 20);</code>  
 
 ><code>[MakeHexBoxWithTabsInsetLid](boardgame_toolkit.scad#module-makehexboxwithtabsinsetlid)(rows = 4, cols = 3, height = 15, push\_block\_height = 1, tile\_width = 29);</code>  

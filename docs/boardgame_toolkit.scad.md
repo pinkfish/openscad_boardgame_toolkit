@@ -42,6 +42,7 @@ To use, add the following lines to the beginning of your file:
 
 6. [Section: TabbedBox](#section-tabbedbox)
     - [`MakeInsetLid()`](#module-makeinsetlid)
+    - [`MakeTabbedInsetLid()`](#module-maketabbedinsetlid)
     - [`MakeBoxWithTabsInsetLid()`](#module-makeboxwithtabsinsetlid)
     - [`MakeHexBoxWithTabsInsetLid()`](#module-makehexboxwithtabsinsetlid)
 
@@ -348,7 +349,7 @@ grid in the background to keep the label in plave.
 <br clear="all" />
 
     include <boardgame_toolkit.scad>
-    MakeStripedLidLabel(width = 20, length = 100, lid_height = 2, label = "Australia");
+    MakeStripedLidLabel(width = 20, length = 80, lid_height = 2, label = "Australia");
 
 ---
 
@@ -493,8 +494,9 @@ Makes a lid tab, a single lid lab, to use for boxes.
 
 **Description:** 
 
-Create the tabs for the box, this can be used on the lids and the box to create cutouts.  The
-stem of the tab will be the wall_thickness/2 and the prism width will be based on the parameter.
+Create the tabs for the box, this can be used on the lids and the box to create cutouts,
+this just does the layout. Use the [`MakeLidTab()`](#module-makelidtab) to make the tabs, it will place the children
+at each of the specified offsets to make the tabs.
 
 **Arguments:** 
 
@@ -514,7 +516,8 @@ stem of the tab will be the wall_thickness/2 and the prism width will be based o
 <img align="left" alt="MakeTabs() Example 1" src="images/boardgame_toolkit/maketabs.png" width="320" height="240">
 
     include <boardgame_toolkit.scad>
-    MakeTabs(50, 100);
+    MakeTabs(50, 100)
+      MakeLidTab(length = 10, height = 6);
 
 <br clear="all" /><br/>
 
@@ -614,6 +617,10 @@ The children to this as also pulled out of the lid so can be used to build more 
 Creates a box with a specific number of hex spaces given the rows/cols and width of the pieces.  Useful
 for making 18xx style boxes quickly.  Children to this are the same as children to the MakeBoxWithSlidingLid.
 
+This will make
+sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+do this with a difference after making this object.
+
 **Arguments:** 
 
 <abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
@@ -648,6 +655,10 @@ for making 18xx style boxes quickly.  Children to this are the same as children 
 Makes a box with a sliding lid, this just creates the box itself with the cutouts for the
 sliding lid pieces.  The children to this will be removed from inside the box and how to add
 in the cutouts.
+
+This will make
+sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+do this with a difference after making this object.
 
 **Arguments:** 
 
@@ -705,6 +716,43 @@ Make a lid inset into the box with tabs on the side to close the box.  This just
 
 ---
 
+### Module: MakeTabbedInsetLid()
+
+**Usage:** 
+
+- MakeTabbedInsetLid(30, 100);
+
+**Description:** 
+
+Makes an inset lid with the tabes on the side.
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`width`              | width of the box (outside width)
+`length`             | length of the box (outside length)
+`lid_height`         | height of the lid (default 2)
+`wall_thickness`     | thickness of the walls (default 2)
+`inset`              | how far to inset the lid (default 1)
+`lid_size_spacing`   | the wiggle room in the lid generation (default [`m_piece_wiggle_room`](#constant-m_piece_wiggle_room))
+`make_tab_width`     | makes tabes on thr width (default false)
+`make_tab_length`    | makes tabs on the length (default true)
+`prism_width`        | width of the prism in the tab. (default 0.75)
+`tab_length`         | length of the tab (default 10)
+`tab_height`         | height of the tab (default 6)
+
+**Example 1:** 
+
+<img align="left" alt="MakeTabbedInsetLid() Example 1" src="images/boardgame_toolkit/maketabbedinsetlid.png" width="320" height="240">
+
+    include <boardgame_toolkit.scad>
+    MakeTabbedInsetLid(30, 100);
+
+<br clear="all" /><br/>
+
+---
+
 ### Module: MakeBoxWithTabsInsetLid()
 
 **Usage:** 
@@ -713,7 +761,9 @@ Make a lid inset into the box with tabs on the side to close the box.  This just
 
 **Description:** 
 
-Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.
+Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.  This will make
+sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
+do this with a difference after making this object.
 
 **Arguments:** 
 
