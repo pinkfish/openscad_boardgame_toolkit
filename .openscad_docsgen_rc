@@ -5,9 +5,5 @@ GenerateDocs: Files, ToC, Index, Topics, CheatSheet
 SidebarHeader:
   ## Indices
   .
-SidebarMiddle:
-  [Tutorials](Tutorials)
 PrioritizeFiles:
   boardgame_toolkit.scad
-DefineHeader(BulletList): Side Effects
-DefineHeader(Table;Headers=Anchor&nbsp;Name|Position): Extra Anchors
