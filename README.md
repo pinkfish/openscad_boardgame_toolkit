@@ -1,12 +1,20 @@
 # openscad_boardgame_toolkit
 Toolkit for use with openscad that makes designing inserts and other pieces easier for the openscad.
 
+## Description
 This will build inserts using openscad in an openscad forward way.  You use object building and connections
 rather than a large config file to build the inserts.  This allows for more flexibility in arrangements.
 
 This only works with the current dev versions of openscad since it uses the fill() method to handle some of the
 construction.
 
+## Installation
+Pre-requisite for using this toolkit is to install [BSOL2](https://github.com/BelfrySCAD/BOSL2).
+
+Copy the boardgame_toolkit.scad file into the same directory as the inserts you wish to create, you can also
+install it into the shared directory on the mac or windows to use with all flows and no need to import directly.
+
+## Examples
 Some simple apis for building a board game insert.  Shows a simple sliding box design, lid and box.
 
 ```
