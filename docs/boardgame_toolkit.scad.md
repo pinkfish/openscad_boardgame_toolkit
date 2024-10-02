@@ -43,10 +43,13 @@ To use, add the following lines to the beginning of your file:
     - [`MakeBoxWithSlidingLid()`](#module-makeboxwithslidinglid)
 
 6. [Section: TabbedBox](#section-tabbedbox)
-    - [`MakeInsetLid()`](#module-makeinsetlid)
-    - [`MakeTabbedInsetLid()`](#module-maketabbedinsetlid)
+    - [`InsetLid()`](#module-insetlid)
+    - [`InsetLidTabbed()`](#module-insetlidtabbed)
+    - [`InsetLidTabbedWithLabel()`](#module-insetlidtabbedwithlabel)
+    - [`InsetLidTabbedForHexBox()`](#module-insetlidtabbedforhexbox)
+    - [`InsetLidTabbedWithLabelForHexBox()`](#module-insetlidtabbedwithlabelforhexbox)
     - [`MakeBoxWithTabsInsetLid()`](#module-makeboxwithtabsinsetlid)
-    - [`MakeHexBoxWithTabsInsetLid()`](#module-makehexboxwithtabsinsetlid)
+    - [`MakeHexBoxWithInsetTabbedLid()`](#module-makehexboxwithinsettabbedlid)
 
 
 ### Constant: m\_piece\_wiggle\_room
@@ -570,9 +573,7 @@ to insert.
 
 **Usage:** 
 
-- SlidingBoxLidWithLabel(
--     width = 100, length = 100, lid_height = 3, text_width = 60,
--     text_length = 30, text_str = "Trains", label_rotated = false);
+- SlidingBoxLidWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 
 **Description:** 
 
@@ -623,7 +624,6 @@ This will make
 sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
 do this with a difference after making this object.
 
-See [`SlidingLidForHexBox()`](#module-slidinglidforhexbox) [`SlidingLidWithLabelForHexBox()`](#module-slidinglidwithlabelforhexbox)
 
 **Arguments:** 
 
@@ -657,7 +657,7 @@ See [`SlidingLidForHexBox()`](#module-slidinglidforhexbox) [`SlidingLidWithLabel
 **Description:** 
 
 Creates a sliding lid for use with a hex box, sets up the sizes correctly to match the
-the hex row/col set.  See [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwithslidinglid) [`SlidingLidWithLabelForHexBox()`](#module-slidinglidwithlabelforhexbox)
+the hex row/col set.
 
 **Arguments:** 
 
@@ -685,16 +685,13 @@ the hex row/col set.  See [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwiths
 
 **Usage:** 
 
-- SlidingLidWithLabelForHexBox(
--     rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
--     text_length = 30, text_str = "Trains", label_rotated = false);
+- SlidingLidWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 
 **Description:** 
 
 This is a composite method that joins together the other pieces to make a simple lid with a label and a hex grid.
 The children to this as also pulled out of the lid so can be used to build more complicated lids.
 
-See [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwithslidinglid)
 
 **Arguments:** 
 
@@ -770,11 +767,11 @@ do this with a difference after making this object.
 ## Section: TabbedBox
 
 
-### Module: MakeInsetLid()
+### Module: InsetLid()
 
 **Usage:** 
 
-- MakeInsetLid(50, 100);
+- InsetLid(50, 100);
 
 **Description:** 
 
@@ -793,20 +790,20 @@ Make a lid inset into the box with tabs on the side to close the box.  This just
 
 **Example 1:** 
 
-<img align="left" alt="MakeInsetLid() Example 1" src="images/boardgame_toolkit/makeinsetlid.png" width="320" height="240">
+<img align="left" alt="InsetLid() Example 1" src="images/boardgame_toolkit/insetlid.png" width="320" height="240">
 
     include <boardgame_toolkit.scad>
-    MakeInsetLid(50, 100);
+    InsetLid(50, 100);
 
 <br clear="all" /><br/>
 
 ---
 
-### Module: MakeTabbedInsetLid()
+### Module: InsetLidTabbed()
 
 **Usage:** 
 
-- MakeTabbedInsetLid(30, 100);
+- InsetLidTabbed(30, 100);
 
 **Description:** 
 
@@ -830,12 +827,144 @@ Makes an inset lid with the tabes on the side.
 
 **Example 1:** 
 
-<img align="left" alt="MakeTabbedInsetLid() Example 1" src="images/boardgame_toolkit/maketabbedinsetlid.png" width="320" height="240">
+<img align="left" alt="InsetLidTabbed() Example 1" src="images/boardgame_toolkit/insetlidtabbed.png" width="320" height="240">
 
     include <boardgame_toolkit.scad>
-    MakeTabbedInsetLid(30, 100);
+    InsetLidTabbed(30, 100);
 
 <br clear="all" /><br/>
+
+---
+
+### Module: InsetLidTabbedWithLabel()
+
+**Usage:** 
+
+- InsetLidTabbedWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+
+**Description:** 
+
+This is a composite method that joins together the other pieces to make a simple inset tabbed lid with
+a label and a hex grid. The children to this as also pulled out of the lid so can be used to
+build more complicated lids.
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`width`              | width of the box (outside dimension)
+`length`             | length of the box (outside dimension)
+`text_width`         | width of the text section
+`text_length`        | length of the text section
+`text_str`           | The string to write
+`lid_height`         | height of the lid (default 3)
+`lid_boundary`       | how much boundary should be around the pattern (default 10)
+`label_radius`       | radius of the rounded corner for the label section (default 12)
+`border`             | how wide the border strip on the label should be (default 2)
+`offset`             | how far inside the border the label should be (degault 4)
+`label_rotated`      | if the label should be rotated, default to false
+`tab_height`         | height of the tabs (default 6)
+`tab_length`         | length of the tabs (default 10)
+`inset`              | inset of the edge (default 1)
+`make_tab_width`     | makes tabes on thr width (default false)
+`make_tab_length`    | makes tabs on the length (default true)
+`prism_width`        | width of the prism in the tab. (default 0.75)
+
+**Example 1:** 
+
+<img align="left" alt="InsetLidTabbedWithLabel() Example 1" src="images/boardgame_toolkit/insetlidtabbedwithlabel.png" width="320" height="240">
+
+<br clear="all" />
+
+    include <boardgame_toolkit.scad>
+    InsetLidTabbedWithLabel(
+        width = 100, length = 100, lid_height = 3, text_width = 60,
+        text_length = 30, text_str = "Trains", label_rotated = false);
+
+---
+
+### Module: InsetLidTabbedForHexBox()
+
+**Usage:** 
+
+- InsetLidTabbedForHexBox(5, 7, 29);
+
+**Description:** 
+
+Creates a inset tabbed lid for use with a hex box, sets up the sizes correctly to match the
+the hex row/col set.
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`rows`               | number of rows to generate
+`cols`               | number of cols to generate
+`tile_width`         | width of the tiles
+`lid_height`         | height of the lid (defaults to 3)
+`wall_thickness`     | thickness of the walls (defaults to 2)
+`spacing`            | spacing between the hexes
+`tab_height`         | height of the tabs (default 6)
+`tab_length`         | length of the tabs (default 10)
+`inset`              | inset of the edge (default 1)
+`make_tab_width`     | makes tabes on thr width (default false)
+`make_tab_length`    | makes tabs on the length (default true)
+`prism_width`        | width of the prism in the tab. (default 0.75)
+
+**Example 1:** 
+
+<img align="left" alt="InsetLidTabbedForHexBox() Example 1" src="images/boardgame_toolkit/insetlidtabbedforhexbox.png" width="320" height="240">
+
+    include <boardgame_toolkit.scad>
+    InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
+
+<br clear="all" /><br/>
+
+---
+
+### Module: InsetLidTabbedWithLabelForHexBox()
+
+**Usage:** 
+
+- InsetLidTabbedWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+
+**Description:** 
+
+This is a composite method that joins together the other pieces to make a simple inset tabbed
+lid with a label and a hex grid. The children to this as also pulled out of the lid so can be
+used to build more complicated lids.
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`rows`               | number of rows to generate
+`cols`               | number of cols to generate
+`tile_width`         | width of the tiles
+`lid_height`         | height of the lid (defaults to 3)
+`wall_thickness`     | thickness of the walls (defaults to 2)
+`spacing`            | spacing between the hexes
+`text_width`         | width of the text section
+`text_length`        | length of the text section
+`text_str`           | The string to write
+`lid_height`         | height of the lid (default 3)
+`lid_boundary`       | how much boundary should be around the pattern (default 10)
+`label_radius`       | radius of the rounded corner for the label section (default 12)
+`border`             | how wide the border strip on the label should be (default 2)
+`offset`             | how far inside the border the label should be (degault 4)
+`label_rotated`      | if the label should be rotated (default false)
+`wall_thickness`     | how wide the walls are (default 2)
+
+**Example 1:** 
+
+<img align="left" alt="InsetLidTabbedWithLabelForHexBox() Example 1" src="images/boardgame_toolkit/insetlidtabbedwithlabelforhexbox.png" width="320" height="240">
+
+<br clear="all" />
+
+    include <boardgame_toolkit.scad>
+    InsetLidTabbedWithLabelForHexBox(
+        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
+        text_length = 30, text_str = "Trains", label_rotated = false);
 
 ---
 
@@ -880,11 +1009,11 @@ do this with a difference after making this object.
 
 ---
 
-### Module: MakeHexBoxWithTabsInsetLid()
+### Module: MakeHexBoxWithInsetTabbedLid()
 
 **Usage:** 
 
-- MakeHexBoxWithTabsInsetLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
+- MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 
 **Description:** 
 
@@ -903,12 +1032,12 @@ Makes a hex box with an inset lid, this is a useful combination box for 18xx sty
 
 **Example 1:** 
 
-<img align="left" alt="MakeHexBoxWithTabsInsetLid() Example 1" src="images/boardgame_toolkit/makehexboxwithtabsinsetlid.png" width="320" height="240">
+<img align="left" alt="MakeHexBoxWithInsetTabbedLid() Example 1" src="images/boardgame_toolkit/makehexboxwithinsettabbedlid.png" width="320" height="240">
 
 <br clear="all" />
 
     include <boardgame_toolkit.scad>
-    MakeHexBoxWithTabsInsetLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
+    MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 
 ---
 

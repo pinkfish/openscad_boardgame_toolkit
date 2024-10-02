@@ -701,9 +701,7 @@ module SlidingLid(width, length, lid_height = 3, wall_thickness = 2, lid_size_sp
 //   This is a composite method that joins together the other pieces to make a simple lid with a label and a hex grid.
 //   The children to this as also pulled out of the lid so can be used to build more complicated lids.
 // Usage:
-//    SlidingBoxLidWithLabel(
-//        width = 100, length = 100, lid_height = 3, text_width = 60,
-//        text_length = 30, text_str = "Trains", label_rotated = false);
+//    SlidingBoxLidWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
@@ -892,9 +890,7 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thicknes
 //   .
 // See also: MakeHexBoxWithSlidingLid()
 // Usage:
-//    SlidingLidWithLabelForHexBox(
-//        rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
-//        text_length = 30, text_str = "Trains", label_rotated = false);
+//    SlidingLidWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    rows = number of rows to generate
 //    cols = number of cols to generate
@@ -1132,9 +1128,7 @@ module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset =
 //   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
 //   build more complicated lids.
 // Usage:
-//    InsetLidTabbedWithLabel(
-//        width = 100, length = 100, lid_height = 3, text_width = 60,
-//        text_length = 30, text_str = "Trains", label_rotated = false);
+//    InsetLidTabbedWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
@@ -1276,9 +1270,7 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thic
 //   used to build more complicated lids.
 // See also: InsetLidTabbedForHexBox(), MakeHexBoxWithInsetTabbedLid()
 // Usage:
-//    InsetLidTabbedWithLabelForHexBox(
-//        rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
-//        text_length = 30, text_str = "Trains", label_rotated = false);
+//    InsetLidTabbedWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    rows = number of rows to generate
 //    cols = number of cols to generate

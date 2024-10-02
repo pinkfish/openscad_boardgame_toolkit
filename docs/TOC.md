@@ -41,9 +41,12 @@ Various modules to generate board game inserts.
     - [`MakeBoxWithSlidingLid()`](boardgame_toolkit.scad#module-makeboxwithslidinglid) Mod
     
 - [TabbedBox](boardgame_toolkit.scad#section-tabbedbox)  
-    - [`MakeInsetLid()`](boardgame_toolkit.scad#module-makeinsetlid) Mod
-    - [`MakeTabbedInsetLid()`](boardgame_toolkit.scad#module-maketabbedinsetlid) Mod
+    - [`InsetLid()`](boardgame_toolkit.scad#module-insetlid) Mod
+    - [`InsetLidTabbed()`](boardgame_toolkit.scad#module-insetlidtabbed) Mod
+    - [`InsetLidTabbedWithLabel()`](boardgame_toolkit.scad#module-insetlidtabbedwithlabel) Mod
+    - [`InsetLidTabbedForHexBox()`](boardgame_toolkit.scad#module-insetlidtabbedforhexbox) Mod
+    - [`InsetLidTabbedWithLabelForHexBox()`](boardgame_toolkit.scad#module-insetlidtabbedwithlabelforhexbox) Mod
     - [`MakeBoxWithTabsInsetLid()`](boardgame_toolkit.scad#module-makeboxwithtabsinsetlid) Mod
-    - [`MakeHexBoxWithTabsInsetLid()`](boardgame_toolkit.scad#module-makehexboxwithtabsinsetlid) Mod
+    - [`MakeHexBoxWithInsetTabbedLid()`](boardgame_toolkit.scad#module-makehexboxwithinsettabbedlid) Mod
     
 

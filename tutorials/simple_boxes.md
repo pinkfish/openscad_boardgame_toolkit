@@ -242,7 +242,7 @@ module TabbedHexBox()
     text_length = 20;
     translate([ 0, 3 * tile_width + 15, 0 ]) InsetLidTabbedWithLabelForHexBox(
         rows = 5, cols = 3, tile_width = tile_width, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_length = text_length, text_str = text_str, label_rotated = false);
 }
 
 TabbedHexBox();

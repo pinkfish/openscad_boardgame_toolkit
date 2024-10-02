@@ -47,29 +47,31 @@ Constants: [`m_piece_wiggle_room`](boardgame_toolkit.scad#constant-m_piece_wiggl
 
 ><code>[SlidingLid](boardgame_toolkit.scad#module-slidinglid)(width=10, length=30, lid\_height=3, wall\_thickness = 2, lid\_size\_spacing = 0.2);</code>  
 
-><code>[SlidingBoxLidWithLabel](boardgame_toolkit.scad#module-slidingboxlidwithlabel)(</code>  
-><code>    width = 100, length = 100, lid\_height = 3, text\_width = 60,</code>  
-><code>    text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
+><code>[SlidingBoxLidWithLabel](boardgame_toolkit.scad#module-slidingboxlidwithlabel)(width = 100, length = 100, lid\_height = 3, text\_width = 60, text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
 
 ><code>[MakeHexBoxWithSlidingLid](boardgame_toolkit.scad#module-makehexboxwithslidinglid)(5, 7, 19, 1, 29);</code>  
 
 ><code>[SlidingLidForHexBox](boardgame_toolkit.scad#module-slidinglidforhexbox)(5, 7, 29);</code>  
 
-><code>[SlidingLidWithLabelForHexBox](boardgame_toolkit.scad#module-slidinglidwithlabelforhexbox)(</code>  
-><code>    rows = 3, cols = 4, tile\_width = 29, lid\_height = 3, text\_width = 60,</code>  
-><code>    text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
+><code>[SlidingLidWithLabelForHexBox](boardgame_toolkit.scad#module-slidinglidwithlabelforhexbox)(rows = 3, cols = 4, tile\_width = 29, lid\_height = 3, text\_width = 60, text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
 
 ><code>[MakeBoxWithSlidingLid](boardgame_toolkit.scad#module-makeboxwithslidinglid)(50,100,20);</code>  
 
 
 ### Section: TabbedBox
 
-><code>[MakeInsetLid](boardgame_toolkit.scad#module-makeinsetlid)(50, 100);</code>  
+><code>[InsetLid](boardgame_toolkit.scad#module-insetlid)(50, 100);</code>  
 
-><code>[MakeTabbedInsetLid](boardgame_toolkit.scad#module-maketabbedinsetlid)(30, 100);</code>  
+><code>[InsetLidTabbed](boardgame_toolkit.scad#module-insetlidtabbed)(30, 100);</code>  
+
+><code>[InsetLidTabbedWithLabel](boardgame_toolkit.scad#module-insetlidtabbedwithlabel)(width = 100, length = 100, lid\_height = 3, text\_width = 60, text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
+
+><code>[InsetLidTabbedForHexBox](boardgame_toolkit.scad#module-insetlidtabbedforhexbox)(5, 7, 29);</code>  
+
+><code>[InsetLidTabbedWithLabelForHexBox](boardgame_toolkit.scad#module-insetlidtabbedwithlabelforhexbox)(rows = 3, cols = 4, tile\_width = 29, lid\_height = 3, text\_width = 60, text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
 
 ><code>[MakeBoxWithTabsInsetLid](boardgame_toolkit.scad#module-makeboxwithtabsinsetlid)(width = 30, length = 100, height = 20);</code>  
 
-><code>[MakeHexBoxWithTabsInsetLid](boardgame_toolkit.scad#module-makehexboxwithtabsinsetlid)(rows = 4, cols = 3, height = 15, push\_block\_height = 1, tile\_width = 29);</code>  
+><code>[MakeHexBoxWithInsetTabbedLid](boardgame_toolkit.scad#module-makehexboxwithinsettabbedlid)(rows = 4, cols = 3, height = 15, push\_block\_height = 1, tile\_width = 29);</code>  
 
 
