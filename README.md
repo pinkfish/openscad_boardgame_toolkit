@@ -29,4 +29,4 @@ SlidingBoxLidWithLabel(
         text_length = text_length, text_str = text_str, label_rotated = false);
 ```
 
-![example 2](https://github.com/pinkfish/openscad_boardgame_toolkit/blob/master/images/sweden_lid.png)
+![Example 2](https://github.com/pinkfish/openscad_boardgame_toolkit/blob/98951343adbd1eb39ea67898d21e884ff3710134/images/sweden_lid.png)
