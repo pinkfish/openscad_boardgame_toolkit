@@ -21,7 +21,7 @@ MakeBoxWithSlidingLid(width = card_box_width, length = eastern_us_card_box_lengt
             }
 ```
 
-![example1](https://github.com/pinkfish/openscad_boardgame_insert/blob/master/images/sweden_box.png)
+![example 1](https://github.com/pinkfish/openscad_boardgame_toolkit/blob/master/images/sweden_box.png)
 
 ```
 SlidingBoxLidWithLabel(
@@ -29,4 +29,4 @@ SlidingBoxLidWithLabel(
         text_length = text_length, text_str = text_str, label_rotated = false);
 ```
 
-![example1](https://github.com/pinkfish/openscad_boardgame_insert/blob/master/images/sweden_lid.png)
+![example 2](https://github.com/pinkfish/openscad_boardgame_toolkit/blob/master/images/sweden_lid.png)
