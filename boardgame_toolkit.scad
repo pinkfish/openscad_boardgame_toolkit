@@ -131,15 +131,15 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
     col_length = (width - spacing * (cols - 1)) / cols;
     for (x = [0:rows - 1])
         for (y = [0:cols - 1])
-            translate([ x * (row_length + spacing), y * (col_length + spacing), 0 ])
+            translate([ x * (col_length + spacing), y * (row_length + spacing), 0 ])
             {
                 if (all_sides)
                 {
-                    RoundedBoxAllSides(length = col_length, width = row_length, height = height, radius = radius);
+                    RoundedBoxAllSides(length = row_length, width = col_length, height = height, radius = radius);
                 }
                 else
                 {
-                    RoundedBoxOnLength(length = col_length, width = row_length, height = height, radius = radius);
+                    RoundedBoxOnLength(length = row_length, width = col_length, height = height, radius = radius);
                 }
             }
 }
@@ -781,7 +781,7 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_length, text_str, 
 //   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
 //   do this with a difference after making this object.
 //   .
-//   See {{SlidingLidForHexBox()}} {{SlidingLidWithLabelForHexBox()}}
+// See also: SlidingLidForHexBox(), SlidingLidWithLabelForHexBox()
 // Usage:
 //   MakeHexBoxWithSlidingLid(5, 7, 19, 1, 29);
 // Arguments:
@@ -836,7 +836,8 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
 // Module: SlidingLidForHexBox()
 // Description:
 //   Creates a sliding lid for use with a hex box, sets up the sizes correctly to match the
-//   the hex row/col set.  See {{MakeHexBoxWithSlidingLid()}} {{SlidingLidWithLabelForHexBox()}}
+//   the hex row/col set.  
+// See also: MakeHexBoxWithSlidingLid(), SlidingLidWithLabelForHexBox()
 // Usage:
 //   SlidingLidForHexBox(5, 7, 29);
 // Arguments:
@@ -889,7 +890,7 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thicknes
 //   This is a composite method that joins together the other pieces to make a simple lid with a label and a hex grid.
 //   The children to this as also pulled out of the lid so can be used to build more complicated lids.
 //   .
-//   See {{MakeHexBoxWithSlidingLid()}}
+// See also: MakeHexBoxWithSlidingLid()
 // Usage:
 //    SlidingLidWithLabelForHexBox(
 //        rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
@@ -916,8 +917,8 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thicknes
 //        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
 //        text_length = 30, text_str = "Trains", label_rotated = false);
 module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_length, text_str, lid_height = 3,
-                                       lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
-                                       label_rotated = false, wall_thickness = 2)
+                                    lid_boundary = 10, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                                    wall_thickness = 2)
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -1017,11 +1018,11 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
 // Description:
 //   Creates a lid/box with tabs on the side.  This also includes inset lids, since they are used with tabs too.
 
-// Module: MakeInsetLid()
+// Module: InsetLid()
 // Description:
 //   Make a lid inset into the box with tabs on the side to close the box.  This just does the insets around the top.
 // Usage:
-//   MakeInsetLid(50, 100);
+//   InsetLid(50, 100);
 // Arguments:
 //   width = the width of the box (outside width)
 //   length = the length of the box (outside length)
@@ -1030,9 +1031,8 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
 //   inset = how far the side is inset from the edge of the box (default 1)
 //   lid_size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
 // Example:
-//  MakeInsetLid(50, 100);
-module MakeInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1,
-                    lid_size_spacing = m_piece_wiggle_room)
+//  InsetLid(50, 100);
+module InsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1, lid_size_spacing = m_piece_wiggle_room)
 {
     internal_build_lid(width, length, lid_height, wall_thickness, lid_size_spacing = lid_size_spacing)
     {
@@ -1065,11 +1065,11 @@ module MakeInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1
     }
 }
 
-// Module: MakeTabbedInsetLid()
+// Module: InsetLidTabbed()
 // Description:
 //   Makes an inset lid with the tabes on the side.
 // Usage:
-//   MakeTabbedInsetLid(30, 100);
+//   InsetLidTabbed(30, 100);
 // Arguments:
 //   width = width of the box (outside width)
 //   length = length of the box (outside length)
@@ -1083,15 +1083,15 @@ module MakeInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1
 //   tab_length = length of the tab (default 10)
 //   tab_height = height of the tab (default 6)
 // Example:
-//   MakeTabbedInsetLid(30, 100);
-module MakeTabbedInsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1,
-                          lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
-                          prism_width = 0.75, tab_length = 10, tab_height = 6)
+//   InsetLidTabbed(30, 100);
+module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset = 1,
+                      lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
+                      prism_width = 0.75, tab_length = 10, tab_height = 6)
 {
     union()
     {
-        MakeInsetLid(width = width, length = length, lid_height = lid_height, wall_thickness = wall_thickness,
-                     inset = inset, lid_size_spacing = lid_size_spacing)
+        InsetLid(width = width, length = length, lid_height = lid_height, wall_thickness = wall_thickness,
+                 inset = inset, lid_size_spacing = lid_size_spacing)
         {
             if ($children > 0)
             {
@@ -1123,6 +1123,240 @@ module MakeTabbedInsetLid(width, length, lid_height = 2, wall_thickness = 2, ins
             MakeLidTab(length = tab_length, height = tab_height, lid_height = lid_height, prism_width = prism_width,
                        wall_thickness = wall_thickness);
         ;
+    }
+}
+
+// Module: InsetLidTabbedWithLabel()
+// Description:
+//   This is a composite method that joins together the other pieces to make a simple inset tabbed lid with
+//   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
+//   build more complicated lids.
+// Usage:
+//    InsetLidTabbedWithLabel(
+//        width = 100, length = 100, lid_height = 3, text_width = 60,
+//        text_length = 30, text_str = "Trains", label_rotated = false);
+// Arguments:
+//    width = width of the box (outside dimension)
+//    length = length of the box (outside dimension)
+//    text_width = width of the text section
+//    text_length = length of the text section
+//    text_str = The string to write
+//    lid_height = height of the lid (default 3)
+//    lid_boundary = how much boundary should be around the pattern (default 10)
+//    label_radius = radius of the rounded corner for the label section (default 12)
+//    border = how wide the border strip on the label should be (default 2)
+//    offset = how far inside the border the label should be (degault 4)
+//    label_rotated = if the label should be rotated, default to false
+//    tab_height = height of the tabs (default 6)
+//    tab_length = length of the tabs (default 10)
+//    inset = inset of the edge (default 1)
+//    make_tab_width = makes tabes on thr width (default false)
+//    make_tab_length = makes tabs on the length (default true)
+//    prism_width = width of the prism in the tab. (default 0.75)
+// Example:
+//    InsetLidTabbedWithLabel(
+//        width = 100, length = 100, lid_height = 3, text_width = 60,
+//        text_length = 30, text_str = "Trains", label_rotated = false);
+module InsetLidTabbedWithLabel(width, length, text_width, text_length, text_str, lid_height = 3, lid_boundary = 10,
+                               label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
+                               tab_height = 6, make_tab_width = false, make_tab_length = true, prism_width = 0.75 )
+{
+    InsetLidTabbed(width, length, lid_height = lid_height, tab_length = tab_length, tab_height = tab_height)
+    {
+
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshHex(width = width, length = length, lid_height = lid_height, boundary = lid_boundary, radius = 12);
+        if (label_rotated)
+        {
+            translate([ (width + text_length) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = lid_height, label = text_str,
+                                    border = border, offset = offset);
+        }
+        else
+        {
+            translate([ (width - text_width) / 2, (length - text_length) / 2, 0 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = lid_height, label = text_str,
+                                    border = border, offset = offset);
+        }
+        intersection()
+        {
+            cube([ width - border, length - border, lid_height ]);
+            translate([ (width) / 2, length - border - 3, 0 ]) SlidingLidFingernail(lid_height);
+        }
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+    }
+}
+
+// Module: InsetLidTabbedForHexBox()
+// Description:
+//   Creates a inset tabbed lid for use with a hex box, sets up the sizes correctly to match the
+//   the hex row/col set.  
+// See also: MakeHexBoxWithInsetTabbedLid(), InsetLidTabbedWithLabelForHexBox()
+// Usage:
+//   InsetLidTabbedForHexBox(5, 7, 29);
+// Arguments:
+//   rows = number of rows to generate
+//   cols = number of cols to generate
+//   tile_width = width of the tiles
+//   lid_height = height of the lid (defaults to 3)
+//   wall_thickness = thickness of the walls (defaults to 2)
+//   spacing = spacing between the hexes
+//   tab_height = height of the tabs (default 6)
+//   tab_length = length of the tabs (default 10)
+//   inset = inset of the edge (default 1)
+//   make_tab_width = makes tabes on thr width (default false)
+//   make_tab_length = makes tabs on the length (default true)
+//   prism_width = width of the prism in the tab. (default 0.75)
+// Example:
+//   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
+module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thickness = 2, spacing = 0, tab_height = 6,
+                               tab_length = 10, inset = 1, make_tab_width = false, make_tab_length = true, prism_width = 0.75)
+{
+    width = tile_width;
+    apothem = width / 2;
+    radius = apothem / cos(180 / 6);
+
+    InsetLidTabbed(width = rows * radius * 2 + wall_thickness * 2, length = cols * apothem * 2 + wall_thickness * 2,
+                   lid_height = lid_height, tab_height = tab_height, tab_length = tab_length, inset = 1)
+    {
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+    }
+}
+
+// Module: InsetLidTabbedWithLabelForHexBox()
+// Description:
+//   This is a composite method that joins together the other pieces to make a simple inset tabbed
+//   lid with a label and a hex grid. The children to this as also pulled out of the lid so can be
+//   used to build more complicated lids.
+// See also: InsetLidTabbedForHexBox(), MakeHexBoxWithInsetTabbedLid()
+// Usage:
+//    InsetLidTabbedWithLabelForHexBox(
+//        rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
+//        text_length = 30, text_str = "Trains", label_rotated = false);
+// Arguments:
+//    rows = number of rows to generate
+//    cols = number of cols to generate
+//    tile_width = width of the tiles
+//    lid_height = height of the lid (defaults to 3)
+//    wall_thickness = thickness of the walls (defaults to 2)
+//    spacing = spacing between the hexes
+//    text_width = width of the text section
+//    text_length = length of the text section
+//    text_str = The string to write
+//    lid_height = height of the lid (default 3)
+//    lid_boundary = how much boundary should be around the pattern (default 10)
+//    label_radius = radius of the rounded corner for the label section (default 12)
+//    border = how wide the border strip on the label should be (default 2)
+//    offset = how far inside the border the label should be (degault 4)
+//    label_rotated = if the label should be rotated (default false)
+//    wall_thickness = how wide the walls are (default 2)
+// Example:
+//    InsetLidTabbedWithLabelForHexBox(
+//        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
+//        text_length = 30, text_str = "Trains", label_rotated = false);
+module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text_length, text_str, lid_height = 3,
+                                        lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
+                                        label_rotated = false, wall_thickness = 2, tab_height = 6, tab_length = 10,
+                                        inset = 1)
+{
+    apothem = tile_width / 2;
+    radius = apothem / cos(180 / 6);
+    width = rows * radius * 2 + wall_thickness * 2;
+    length = cols * apothem * 2 + wall_thickness * 2;
+
+    InsetLidTabbed(width, length, lid_height = lid_height, wall_thickness = wall_thickness, tab_length = tab_length,
+                   tab_height = tab_height, inset = inset)
+    {
+
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshHex(width = width, length = length, lid_height = lid_height, boundary = lid_boundary, radius = 12);
+        if (label_rotated)
+        {
+            translate([ (width + text_length) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = lid_height, label = text_str,
+                                    border = border, offset = offset);
+        }
+        else
+        {
+            translate([ (width - text_width) / 2, (length - text_length) / 2, 0 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = lid_height, label = text_str,
+                                    border = border, offset = offset);
+        }
+        intersection()
+        {
+            cube([ width - border, length - border, lid_height ]);
+            translate([ (width) / 2, length - border - 3, 0 ]) SlidingLidFingernail(lid_height);
+        }
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
     }
 }
 
@@ -1196,11 +1430,12 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
     }
 }
 
-// Module: MakeHexBoxWithTabsInsetLid()
+// Module: MakeHexBoxWithInsetTabbedLid()
 // Description:
 //   Makes a hex box with an inset lid, this is a useful combination box for 18xx style games.
+// See also: InsetLidTabbedWithLabelForHexBox(), InsetLidTabbedForHexBox()
 // Usage:
-//   MakeHexBoxWithTabsInsetLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
+//   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 // Arguments:
 //   rows = number of rows in the box
 //   cols = number of cols in the box
@@ -1209,8 +1444,8 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
 //   tile_width = the width of the files
 //   lid_height = height of the lid (default 2)
 // Example:
-//   MakeHexBoxWithTabsInsetLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
-module MakeHexBoxWithTabsInsetLid(rows, cols, height, push_block_height, tile_width, lid_height = 2)
+//   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
+module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_width, lid_height = 2)
 {
     width = tile_width;
     apothem = width / 2;

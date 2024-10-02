@@ -1,5 +1,10 @@
 # More complicated boxes
 
+- [More complicated boxes](#more-complicated-boxes)
+  - [Box with two types of compartments](#box-with-two-types-of-compartments)
+  - [Box with finger cutouts](#box-with-finger-cutouts)
+
+
 ## Box with two types of compartments
 
 Create a sliding lid box with more complicated cutouts, a hex grid and spaces for specific sized items.  This also adds in 
