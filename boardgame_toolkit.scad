@@ -1,11 +1,3 @@
-// LibFile: boardgame_toolkit.scad
-//    This file has all the modules needed to generate varioius inserts
-//    for board games.  It makes the generation of the inserts simpler by
-//    creating a number of useful base modules for making boxes and lids
-//    of various types specific to board game inserts.  Specifically it
-//    makes tabbed lids and sliding lids easily.
-//
-
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -24,7 +16,20 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.    
  */
- 
+
+// LibFile: boardgame_toolkit.scad
+//    This file has all the modules needed to generate varioius inserts
+//    for board games.  It makes the generation of the inserts simpler by
+//    creating a number of useful base modules for making boxes and lids
+//    of various types specific to board game inserts.  Specifically it
+//    makes tabbed lids and sliding lids easily.
+//
+
+// FileSummary: Various modules to generate board game inserts.
+
+// Includes:
+//   include <boardgame_toolkit.scad>
+
 include <BOSL2/rounding.scad>
 include <BOSL2/std.scad>
 
@@ -34,6 +39,22 @@ m_piece_wiggle_room = 0.2;
 // The font to use for the lids by default.
 m_default_font = "Stencil Std:style=Bold";
 
+// Section: BuildingBlocks
+//   Building blocks to make all the rest of the items from.  This has all the basic parts of the board game
+//   toolkit for making polygons and laying them out.
+
+// Module: RoundedBoxOnLengeth()
+// Usage:
+//   RoundedBoxOnLength(100, 50, 10, 5);
+// Description:
+//   Creates a rounded box for use in the board game insert with a nice radius on two sides (length side).
+// Arguments:
+//   width = width of the cube
+//   length = of the cube 
+//   height = of the cube
+//   radius = radius of the curve on the edges
+// Example:
+//   RoundedBoxOnLength(100, 50, 10, 5);
 module RoundedBoxOnLength(width, length, height, radius)
 {
     hull()
