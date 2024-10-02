@@ -41,4 +41,6 @@ An index of Functions, Modules, and Constants by name.
 - [`SlidingBoxLidWithLabel`](boardgame_toolkit.scad#module-slidingboxlidwithlabel) Mod
 - [`SlidingLid()`](boardgame_toolkit.scad#module-slidinglid) Mod
 - [`SlidingLidFingernail()`](boardgame_toolkit.scad#module-slidinglidfingernail) Mod
+- [`SlidingLidForHexBox()`](boardgame_toolkit.scad#module-slidinglidforhexbox) Mod
+- [`SlidingLidWithLabelForHexBox()`](boardgame_toolkit.scad#module-slidinglidwithlabelforhexbox) Mod
 

@@ -38,6 +38,8 @@ To use, add the following lines to the beginning of your file:
     - [`SlidingLid()`](#module-slidinglid)
     - [`SlidingBoxLidWithLabel`](#module-slidingboxlidwithlabel)
     - [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwithslidinglid)
+    - [`SlidingLidForHexBox()`](#module-slidinglidforhexbox)
+    - [`SlidingLidWithLabelForHexBox()`](#module-slidinglidwithlabelforhexbox)
     - [`MakeBoxWithSlidingLid()`](#module-makeboxwithslidinglid)
 
 6. [Section: TabbedBox](#section-tabbedbox)
@@ -583,10 +585,10 @@ The children to this as also pulled out of the lid so can be used to build more 
 -------------------- | ------------
 `width`              | width of the box (outside dimension)
 `length`             | length of the box (outside dimension)
-`lid_height`         | height of the lid
 `text_width`         | width of the text section
 `text_length`        | length of the text section
 `text_str`           | The string to write
+`lid_height`         | height of the lid (default 3)
 `lid_boundary`       | how much boundary should be around the pattern (default 10)
 `label_radius`       | radius of the rounded corner for the label section (default 12)
 `border`             | how wide the border strip on the label should be (default 2)
@@ -615,11 +617,13 @@ The children to this as also pulled out of the lid so can be used to build more 
 **Description:** 
 
 Creates a box with a specific number of hex spaces given the rows/cols and width of the pieces.  Useful
-for making 18xx style boxes quickly.  Children to this are the same as children to the MakeBoxWithSlidingLid.
+for making 18xx style boxes quickly.  Children to this are the same as children to the [`MakeBoxWithSlidingLid()`](#module-makeboxwithslidinglid).
 
 This will make
 sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
 do this with a difference after making this object.
+
+See [`SlidingLidForHexBox()`](#module-slidinglidforhexbox) [`SlidingLidWithLabelForHexBox()`](#module-slidinglidwithlabelforhexbox)
 
 **Arguments:** 
 
@@ -641,6 +645,88 @@ do this with a difference after making this object.
 
     include <boardgame_toolkit.scad>
     MakeHexBoxWithSlidingLid(rows = 5, cols = 2, height = 10, push_block_height = 0.75, tile_width = 29);
+
+---
+
+### Module: SlidingLidForHexBox()
+
+**Usage:** 
+
+- SlidingLidForHexBox(5, 7, 29);
+
+**Description:** 
+
+Creates a sliding lid for use with a hex box, sets up the sizes correctly to match the
+the hex row/col set.  See [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwithslidinglid) [`SlidingLidWithLabelForHexBox()`](#module-slidinglidwithlabelforhexbox)
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`rows`               | number of rows to generate
+`cols`               | number of cols to generate
+`tile_width`         | width of the tiles
+`lid_height`         | height of the lid (defaults to 3)
+`wall_thickness`     | thickness of the walls (defaults to 2)
+`spacing`            | spacing between the hexes
+
+**Example 1:** 
+
+<img align="left" alt="SlidingLidForHexBox() Example 1" src="images/boardgame_toolkit/slidinglidforhexbox.png" width="320" height="240">
+
+    include <boardgame_toolkit.scad>
+    SlidingLidForHexBox(rows = 5, cols = 2, tile_width = 29);
+
+<br clear="all" /><br/>
+
+---
+
+### Module: SlidingLidWithLabelForHexBox()
+
+**Usage:** 
+
+- SlidingLidWithLabelForHexBox(
+-     rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60,
+-     text_length = 30, text_str = "Trains", label_rotated = false);
+
+**Description:** 
+
+This is a composite method that joins together the other pieces to make a simple lid with a label and a hex grid.
+The children to this as also pulled out of the lid so can be used to build more complicated lids.
+
+See [`MakeHexBoxWithSlidingLid()`](#module-makehexboxwithslidinglid)
+
+**Arguments:** 
+
+<abbr title="These args can be used by position or by name.">By&nbsp;Position</abbr> | What it does
+-------------------- | ------------
+`rows`               | number of rows to generate
+`cols`               | number of cols to generate
+`tile_width`         | width of the tiles
+`lid_height`         | height of the lid (defaults to 3)
+`wall_thickness`     | thickness of the walls (defaults to 2)
+`spacing`            | spacing between the hexes
+`text_width`         | width of the text section
+`text_length`        | length of the text section
+`text_str`           | The string to write
+`lid_height`         | height of the lid (default 3)
+`lid_boundary`       | how much boundary should be around the pattern (default 10)
+`label_radius`       | radius of the rounded corner for the label section (default 12)
+`border`             | how wide the border strip on the label should be (default 2)
+`offset`             | how far inside the border the label should be (degault 4)
+`label_rotated`      | if the label should be rotated (default false)
+`wall_thickness`     | how wide the walls are (default 2)
+
+**Example 1:** 
+
+<img align="left" alt="SlidingLidWithLabelForHexBox() Example 1" src="images/boardgame_toolkit/slidinglidwithlabelforhexbox.png" width="320" height="240">
+
+<br clear="all" />
+
+    include <boardgame_toolkit.scad>
+    SlidingLidWithLabelForHexBox(
+        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
+        text_length = 30, text_str = "Trains", label_rotated = false);
 
 ---
 

@@ -53,6 +53,12 @@ Constants: [`m_piece_wiggle_room`](boardgame_toolkit.scad#constant-m_piece_wiggl
 
 ><code>[MakeHexBoxWithSlidingLid](boardgame_toolkit.scad#module-makehexboxwithslidinglid)(5, 7, 19, 1, 29);</code>  
 
+><code>[SlidingLidForHexBox](boardgame_toolkit.scad#module-slidinglidforhexbox)(5, 7, 29);</code>  
+
+><code>[SlidingLidWithLabelForHexBox](boardgame_toolkit.scad#module-slidinglidwithlabelforhexbox)(</code>  
+><code>    rows = 3, cols = 4, tile\_width = 29, lid\_height = 3, text\_width = 60,</code>  
+><code>    text\_length = 30, text\_str = "Trains", label\_rotated = false);</code>  
+
 ><code>[MakeBoxWithSlidingLid](boardgame_toolkit.scad#module-makeboxwithslidinglid)(50,100,20);</code>  
 
 
