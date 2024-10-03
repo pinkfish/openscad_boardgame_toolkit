@@ -95,8 +95,6 @@ module HeraldBox()
     }
 }
 
-
-
 module PlayerBox()
 {
     MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)

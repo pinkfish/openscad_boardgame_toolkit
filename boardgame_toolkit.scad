@@ -42,7 +42,7 @@ m_piece_wiggle_room = 0.2;
 //   Building blocks to make all the rest of the items from.  This has all the basic parts of the board game
 //   toolkit for making polygons and laying them out.
 
-// Module: RoundedBoxOnLengeth()
+// Module: RoundedBoxOnLength()
 // Usage:
 //   RoundedBoxOnLength(100, 50, 10, 5);
 // Description:
@@ -52,20 +52,23 @@ m_piece_wiggle_room = 0.2;
 //   length = of the cube
 //   height = of the cube
 //   radius = radius of the curve on the edges
+// Topics: Recess
 // Example:
 //   RoundedBoxOnLength(30, 20, 10, 7);
+
 module RoundedBoxOnLength(width, length, height, radius)
 {
     hull()
     {
         difference()
         {
-            hull()
+            translate([ width/2, length / 2, 0 ]) hull()
             {
-                translate([ 0, radius, 0 ]) cyl(l = width, r = radius, anchor = BOTTOM + RIGHT, spin = [ 0, 90, 0 ]);
-
-                translate([ 0, length - radius, 0 ])
-                    cyl(l = width, r = radius, anchor = BOTTOM + RIGHT, spin = [ 0, 90, 0 ]);
+                ydistribute(l = length - radius * 2)
+                {
+                    xcyl(l = width, r = radius);
+                    xcyl(l = width, r = radius);
+                }
             }
             translate([ -0.5, -0.5, radius ]) cube([ width + 1, length + 1, radius + 1 ]);
         }
@@ -84,6 +87,7 @@ module RoundedBoxOnLength(width, length, height, radius)
 //   length = of the cube
 //   height = of the cube
 //   radius = radius of the curve on the edges
+// Topics: Recess
 // Example:
 //   RoundedBoxAllSides(30, 20, 10, 7);
 module RoundedBoxAllSides(width, length, height, radius)
@@ -123,6 +127,7 @@ module RoundedBoxAllSides(width, length, height, radius)
 //   cols = number of cols to generate
 //   spacing = number of mm between the spaces (default 2)
 //   all_sides = round all the sides (default false)
+// Topics: Recess, Grid
 // Example:
 //   RoundedBoxGrid(30, 20, 10, 7, rows=2, cols=1);
 module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false)
@@ -144,13 +149,6 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
             }
 }
 
-module regular_polygon(shape_edges = 4, radius = 1)
-{
-    angles = [for (i = [0:shape_edges - 1]) i * (360 / shape_edges)];
-    coords = [for (th = angles)[radius * cos(th), radius * sin(th)]];
-    polygon(coords);
-}
-
 // Module: RegularPolygon()
 // Usage:
 //   RegularPolygon(10, 5, 6);
@@ -160,16 +158,16 @@ module regular_polygon(shape_edges = 4, radius = 1)
 //   width = total width of the piece, this is equivilant to the apothem of a polygon * 2
 //   height = how high to create the item
 //   shape_edges =  number of edges for the polygon
+// Topics: Recess
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6);
 module RegularPolygon(width, height, shape_edges)
 {
+    rotate_deg = ((shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
     apothem = width / 2;
     radius = apothem / cos(180 / shape_edges);
-    rotate_deg = ((shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
 
-    rotate([ 0, 0, rotate_deg ]) linear_extrude(height = height)
-        regular_polygon(shape_edges = shape_edges, radius = radius);
+    rotate([ 0, 0, rotate_deg ]) linear_extrude(height = height) regular_ngon(n = shape_edges, or = radius);
 }
 
 // Module: RegularPolygonGrid()
@@ -185,6 +183,7 @@ module RegularPolygon(width, height, shape_edges)
 //   rows = number of rows to generate
 //   cols = number of cols to generate
 //   spacing = spacing between shapres
+// Topics: Grid
 // Example:
 //   RegularPolygonGrid(width = 10, rows = 2, cols = 1, spacing = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
@@ -227,6 +226,7 @@ module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6)
 //   rows = number of rows to generate
 //   cols = number of cols to generate
 //   spacing = spacing between shapres
+// Topics: Grid
 // Example:
 //   RegularPolygonGridDense(width = 10, rows = 3, cols = 2, spacing = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
@@ -273,6 +273,7 @@ module RegularPolygonGridDense(width, rows, cols, spacing = 2, shape_edges = 6)
 //   spacing = space between the tiles
 //   tile_width = width of the tiles
 //   push_block_height = height of the pushblock to use (default 0)
+// Topics: Recess Grid
 // Example:
 //   HexGridWithCutouts(rows = 4, cols = 3, height = 10, spacing = 0, push_block_height = 1, tile_width = 29);
 module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_height = 0, wall_thickness = 2)
@@ -318,6 +319,7 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   width = width of the grid space
 //   length = length of the grid space
 //   bar_width = width of the bars (default 1)
+// Topics: Label
 // Example:
 //   MakeStripedGrid(20, 50);
 module MakeStripedGrid(width, length, bar_width = 1)
@@ -352,6 +354,7 @@ module MakeStripedGrid(width, length, bar_width = 1)
 //   offset = how far in from the sides the text should be (default 4)
 //   font = the font to use for the text (default "Stencil Std:style=Bold")
 //   radius = the radius of the corners on the label section
+// Topics: Label
 // Example:
 //   MakeStripedLidLabel(width = 20, length = 80, lid_height = 2, label = "Australia");
 module MakeStripedLidLabel(width, length, lid_height, label, border = 2, offset = 4, font = "Stencil Std:style=Bold",
@@ -399,6 +402,7 @@ module MakeStripedLidLabel(width, length, lid_height, label, border = 2, offset 
 //   shape_thickness = how thick to generate the gaps between the hexes
 // Usage:
 //   LidMeshHex(width = 70, length = 50, lid_height = 3, boundary = 10, radius = 5, shape_thickness = 2);
+// Topics: PatternFill
 // Example:
 //   LidMeshHex(width = 100, length = 50, lid_height = 3, boundary = 10, radius = 10, shape_thickness = 2);
 module LidMeshHex(width, length, lid_height, boundary, radius, shape_thickness = 2)
@@ -414,8 +418,8 @@ module LidMeshHex(width, length, lid_height, boundary, radius, shape_thickness =
             linear_extrude(height = lid_height) RegularPolygonGridDense(
                 width = radius + 1, rows = rows, cols = cols, spacing = shape_thickness, shape_edges = 6) difference()
             {
-                regular_polygon(radius = cell_width, shape_edges = 6);
-                regular_polygon(radius = cell_width - shape_thickness, shape_edges = 6);
+                regular_ngon(or = cell_width, n = 6);
+                regular_ngon(or = cell_width - shape_thickness, n = 6);
             }
             difference()
             {
@@ -440,6 +444,7 @@ module LidMeshHex(width, length, lid_height, boundary, radius, shape_thickness =
 //   shape_width = the width to use between each shape.
 // Usage:
 //   LidMeshRepeating(50, 20, 3, 5, 10);
+// Topics: PatternFill
 // Example:
 //   LidMeshRepeating(width = 50, length = 50, lid_height = 3, boundary = 5, shape_width = 10)
 //      difference() {
@@ -528,6 +533,7 @@ module internal_build_lid(width, length, lid_thickness, wall_thickness, lid_size
 //   finger_gap = the space to make for a finger gap (default = 1.5)
 //   sphere = the size of the sphere for the inset (default 12)
 //   finger_length = the length of the finger section (default = 15)
+// Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLidFingernail(3);
 
@@ -556,6 +562,7 @@ module SlidingLidFingernail(lid_height, radius = 6, finger_gap = 1.5, sphere = 1
 //   lid_height = the height of the lid (defaults to 2)
 //   prism_width = the width of the prism (defaults to 0.75)
 //   wall_thickness = the thickness of the walls (default 2)
+// Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeLidTab(length = 5, height = 10, lid_height = 2, prism_width = 0.75, wall_thickness = 2);
 module MakeLidTab(length, height, lid_height = 2, prism_width = 0.75, wall_thickness = 2)
@@ -597,6 +604,7 @@ module MakeLidTab(length, height, lid_height = 2, prism_width = 0.75, wall_thick
 //   make_tab_width = make tabs on the width side (default false)
 //   make_tab_length = make tabs on the length side (default true)
 //   prism_width = width of the prism to take from the side of the box (default 0.75)
+// Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeTabs(50, 100)
 //     MakeLidTab(length = 10, height = 6);
@@ -635,6 +643,7 @@ module MakeTabs(box_width, box_length, wall_thickness = 2, lid_height = 2, tab_l
 //   wall_thickness = how wide the side walls are (defaults to 2)
 //   lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //   {{m_piece_wiggle_room}}
+// Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLid(width=100, length=100, lid_height=3, wall_thickness = 2)
 //     translate([ 10, 10, 0 ])
@@ -715,6 +724,7 @@ module SlidingLid(width, length, lid_height = 3, wall_thickness = 2, lid_size_sp
 //    border = how wide the border strip on the label should be (default 2)
 //    offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated, default to false
+// Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
 //        width = 100, length = 100, lid_height = 3, text_width = 60,
@@ -791,6 +801,7 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_length, text_str, 
 //   lid_height = height of the lid (defaults to 3)
 //   wall_thickness = thickness of the walls (defaults to 2)
 //   spacing = spacing between the hexes
+// Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //   MakeHexBoxWithSlidingLid(rows = 5, cols = 2, height = 10, push_block_height = 0.75, tile_width = 29);
 module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width, lid_height = 3, wall_thickness = 2,
@@ -846,6 +857,7 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
 //   lid_height = height of the lid (defaults to 3)
 //   wall_thickness = thickness of the walls (defaults to 2)
 //   spacing = spacing between the hexes
+// Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //   SlidingLidForHexBox(rows = 5, cols = 2, tile_width = 29);
 module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thickness = 2, spacing = 0)
@@ -910,6 +922,7 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thicknes
 //    offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated (default false)
 //    wall_thickness = how wide the walls are (default 2)
+// Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //    SlidingLidWithLabelForHexBox(
 //        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
@@ -989,6 +1002,7 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_len
 //   height = height of the box (outside height)
 //   wall_thickness = thickness of the walls (default 2)
 //   lid_height = height of the lid (default 3)
+// Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
 module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_height = 3)
@@ -1028,6 +1042,7 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
 //   wall_thickness = thickness of the walls (default 2)
 //   inset = how far the side is inset from the edge of the box (default 1)
 //   lid_size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
+// Topics: TabbedBox
 // Example:
 //  InsetLid(50, 100);
 module InsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1, lid_size_spacing = m_piece_wiggle_room)
@@ -1080,6 +1095,7 @@ module InsetLid(width, length, lid_height = 2, wall_thickness = 2, inset = 1, li
 //   prism_width = width of the prism in the tab. (default 0.75)
 //   tab_length = length of the tab (default 10)
 //   tab_height = height of the tab (default 6)
+// Topics: TabbedBox, TabbedLid
 // Example:
 //   InsetLidTabbed(30, 100);
 module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset = 1,
@@ -1150,6 +1166,7 @@ module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset =
 //    make_tab_width = makes tabes on thr width (default false)
 //    make_tab_length = makes tabs on the length (default true)
 //    prism_width = width of the prism in the tab. (default 0.75)
+// Topics: TabbedBox, TabbedLid
 // Example:
 //    InsetLidTabbedWithLabel(
 //        width = 100, length = 100, lid_height = 3, text_width = 60,
@@ -1227,6 +1244,7 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_length, text_str,
 //   make_tab_width = makes tabes on thr width (default false)
 //   make_tab_length = makes tabs on the length (default true)
 //   prism_width = width of the prism in the tab. (default 0.75)
+// Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
 module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thickness = 2, spacing = 0, tab_height = 6,
@@ -1293,6 +1311,7 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thic
 //    offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated (default false)
 //    wall_thickness = how wide the walls are (default 2)
+// Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //    InsetLidTabbedWithLabelForHexBox(
 //        cols = 3, rows = 4, tile_width = 29, lid_height = 3, text_width = 60,
@@ -1378,6 +1397,7 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 //   tab_length = how long the tab is (default 10)
 //   stackable = should we pull a piece out the bottom of the box to let this stack (default false)
 //   lid_size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
+// Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
 module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_height = 2, tab_height = 6, inset = 1,
@@ -1432,7 +1452,7 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
 //   Makes a hex box with an inset lid, this is a useful combination box for 18xx style games.
 // See also: InsetLidTabbedWithLabelForHexBox(), InsetLidTabbedForHexBox()
 // Usage:
-//   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
+//   MakeHexBoxWithInsetTabbedBox, TabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 // Arguments:
 //   rows = number of rows in the box
 //   cols = number of cols in the box
@@ -1440,6 +1460,7 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
 //   push_block_height = height of the push blocks
 //   tile_width = the width of the files
 //   lid_height = height of the lid (default 2)
+// Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_width, lid_height = 2)
