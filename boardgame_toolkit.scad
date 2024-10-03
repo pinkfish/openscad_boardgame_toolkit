@@ -127,19 +127,19 @@ module RoundedBoxAllSides(width, length, height, radius)
 //   RoundedBoxGrid(30, 20, 10, 7, rows=2, cols=1);
 module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false)
 {
-    row_length = (length - spacing * (rows - 1)) / rows;
-    col_length = (width - spacing * (cols - 1)) / cols;
+    row_length = (width - spacing * (rows - 1)) / rows;
+    col_length = (length - spacing * (cols - 1)) / cols;
     for (x = [0:rows - 1])
         for (y = [0:cols - 1])
-            translate([ x * (col_length + spacing), y * (row_length + spacing), 0 ])
+            translate([ x * (row_length + spacing), y * (col_length + spacing), 0 ])
             {
                 if (all_sides)
                 {
-                    RoundedBoxAllSides(length = row_length, width = col_length, height = height, radius = radius);
+                    RoundedBoxAllSides(length = col_length, width = row_length, height = height, radius = radius);
                 }
                 else
                 {
-                    RoundedBoxOnLength(length = row_length, width = col_length, height = height, radius = radius);
+                    RoundedBoxOnLength(length = col_length, width = row_length, height = height, radius = radius);
                 }
             }
 }
@@ -701,7 +701,8 @@ module SlidingLid(width, length, lid_height = 3, wall_thickness = 2, lid_size_sp
 //   This is a composite method that joins together the other pieces to make a simple lid with a label and a hex grid.
 //   The children to this as also pulled out of the lid so can be used to build more complicated lids.
 // Usage:
-//    SlidingBoxLidWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+//    SlidingBoxLidWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str =
+//    "Trains", label_rotated = false);
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
@@ -834,7 +835,7 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
 // Module: SlidingLidForHexBox()
 // Description:
 //   Creates a sliding lid for use with a hex box, sets up the sizes correctly to match the
-//   the hex row/col set.  
+//   the hex row/col set.
 // See also: MakeHexBoxWithSlidingLid(), SlidingLidWithLabelForHexBox()
 // Usage:
 //   SlidingLidForHexBox(5, 7, 29);
@@ -890,7 +891,8 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_height = 3, wall_thicknes
 //   .
 // See also: MakeHexBoxWithSlidingLid()
 // Usage:
-//    SlidingLidWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+//    SlidingLidWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length =
+//    30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    rows = number of rows to generate
 //    cols = number of cols to generate
@@ -1128,7 +1130,8 @@ module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset =
 //   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
 //   build more complicated lids.
 // Usage:
-//    InsetLidTabbedWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+//    InsetLidTabbedWithLabel(width = 100, length = 100, lid_height = 3, text_width = 60, text_length = 30, text_str =
+//    "Trains", label_rotated = false);
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
@@ -1153,7 +1156,7 @@ module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset =
 //        text_length = 30, text_str = "Trains", label_rotated = false);
 module InsetLidTabbedWithLabel(width, length, text_width, text_length, text_str, lid_height = 3, lid_boundary = 10,
                                label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
-                               tab_height = 6, make_tab_width = false, make_tab_length = true, prism_width = 0.75 )
+                               tab_height = 6, make_tab_width = false, make_tab_length = true, prism_width = 0.75)
 {
     InsetLidTabbed(width, length, lid_height = lid_height, tab_length = tab_length, tab_height = tab_height)
     {
@@ -1207,7 +1210,7 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_length, text_str,
 // Module: InsetLidTabbedForHexBox()
 // Description:
 //   Creates a inset tabbed lid for use with a hex box, sets up the sizes correctly to match the
-//   the hex row/col set.  
+//   the hex row/col set.
 // See also: MakeHexBoxWithInsetTabbedLid(), InsetLidTabbedWithLabelForHexBox()
 // Usage:
 //   InsetLidTabbedForHexBox(5, 7, 29);
@@ -1227,7 +1230,8 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_length, text_str,
 // Example:
 //   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
 module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thickness = 2, spacing = 0, tab_height = 6,
-                               tab_length = 10, inset = 1, make_tab_width = false, make_tab_length = true, prism_width = 0.75)
+                               tab_length = 10, inset = 1, make_tab_width = false, make_tab_length = true,
+                               prism_width = 0.75)
 {
     width = tile_width;
     apothem = width / 2;
@@ -1270,7 +1274,8 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_height = 3, wall_thic
 //   used to build more complicated lids.
 // See also: InsetLidTabbedForHexBox(), MakeHexBoxWithInsetTabbedLid()
 // Usage:
-//    InsetLidTabbedWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length = 30, text_str = "Trains", label_rotated = false);
+//    InsetLidTabbedWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_height = 3, text_width = 60, text_length
+//    = 30, text_str = "Trains", label_rotated = false);
 // Arguments:
 //    rows = number of rows to generate
 //    cols = number of cols to generate

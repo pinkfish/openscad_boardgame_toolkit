@@ -14,9 +14,9 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
  */
- 
+
 include <BOSL2/std.scad>
-include <boardgame_insert_openscad.scad>
+include <boardgame_toolkit.scad>
 
 box_width = 310;
 box_length = 385;
@@ -49,6 +49,7 @@ tile_width = 29;
 tile_thickness = 2;
 sweden_bonus_length = 35;
 sweden_bonus_width = 16;
+australia_switch_track_token_radius = 5;
 
 eastern_us_cards = 12 + 31 + 6 + 2;
 mexico_cards = 12 + 38 + 4;
@@ -99,7 +100,7 @@ sweden_box_width = expansion_area_box_width;
 sweden_box_length = 3 * tile_width + sweden_bonus_width + wall_thickness * 2 + inner_wall;
 
 australia_box_width = expansion_area_box_width;
-australia_box_length = 3 * tile_width + sweden_bonus_width + wall_thickness * 2 + inner_wall;
+australia_box_length = 3 * tile_width + australia_switch_track_token_radius * 2 + wall_thickness * 2 + inner_wall / 2;
 
 echo(expansion_area_box_width);
 
@@ -394,43 +395,60 @@ module AustraliaBox()
         translate([ wall_thickness, wall_thickness, wall_thickness ]) intersection()
         {
             translate([ 0, 0, -3 ]) cube([ radius * 4 * 2, tile_width * 3, top_section_height + 1 ]);
-            HexGridWithCutouts(rows = 4, cols = 3, tile_width = tile_width, spacing = 0,
-                               wall_thickness = wall_thickness, push_block_height = 0.75, height = top_section_height);
+            difference()
+            {
+
+                HexGridWithCutouts(rows = 4, cols = 3, tile_width = tile_width, spacing = 0,
+                                   wall_thickness = wall_thickness, push_block_height = 0.75,
+                                   height = top_section_height);
+                // Cut out the bottom square to put the bonus tiles in.
+                translate([ 3 * radius * 2, 2 * apothem * 2, -wall_thickness ])
+                    cube([ radius * 2, tile_width, top_section_height ]);
+            }
         }
-        // bonus bit (top)
-        translate([
-            wall_thickness * 2, australia_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
-        translate([
-            wall_thickness * 2 + (sweden_bonus_length - 10) / 2,
-            australia_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ 10, 10, 10 ]);
 
-        // bonus bit (middle)
+        // Cutouts for the bonus cards.
         translate([
-            australia_box_width - wall_thickness * 2 - sweden_bonus_length,
-            australia_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
+            (australia_box_width - wall_thickness * 2 - sweden_bonus_width),
+            wall_thickness + tile_width * 2 + wall_thickness, top_section_height - lid_height - tile_thickness * 6.4
+        ]) cube([ sweden_bonus_width, sweden_bonus_length, tile_thickness * 6.5 ]);
+        // Fingercut for the bonus cards.
         translate([
-            australia_box_width - wall_thickness * 2 - sweden_bonus_length + (sweden_bonus_length - 10) / 2,
-            australia_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ 10, 10, 10 ]);
+            (australia_box_width - wall_thickness * 2 - sweden_bonus_width) + 8,
+            wall_thickness + tile_width * 2 + wall_thickness, top_section_height / 2 + 4.3
+        ]) cyl(h = top_section_height, r = 5);
 
-        // bonus bit (bottom)
+        // For the switch track tokens.
+        for (i = [0:1:8])
+            translate([
+                wall_thickness + australia_switch_track_token_radius +
+                    (australia_switch_track_token_radius * 2 + inner_wall) * i,
+                australia_box_length - wall_thickness - australia_switch_track_token_radius,
+                top_section_height - lid_height - tile_thickness * 2.4 / 2
+            ])
+            {
+                cyl(r = australia_switch_track_token_radius, h = tile_thickness * 2.5);
+                translate([
+                    -australia_switch_track_token_radius / 2, -australia_switch_track_token_radius - 1,
+                    -(tile_thickness * 2.5) / 2
+                ])
+                    cube([
+                        australia_switch_track_token_radius, australia_switch_track_token_radius, tile_thickness * 2.5
+                    ]);
+            }
+        // Extra switch track tokens
         translate([
-            (australia_box_width - wall_thickness * 2 - sweden_bonus_length) / 2,
-            australia_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
-        translate([
-            (australia_box_width - wall_thickness * 2 - sweden_bonus_length) / 2 + (sweden_bonus_length - 10) / 2,
-            australia_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
-        ]) cube([ 10, 10, 10 ]);
+            3 * radius * 2 + australia_switch_track_token_radius + wall_thickness,
+            2 * apothem * 2 + australia_switch_track_token_radius + wall_thickness + 15,
+            top_section_height - lid_height - tile_thickness * 2.4 / 2
+        ])
+        {
+            cyl(r = australia_switch_track_token_radius, h = tile_thickness * 2.5);
+            translate([
+                -australia_switch_track_token_radius - 1, -australia_switch_track_token_radius / 2,
+                -(tile_thickness * 2.5) / 2
+            ]) cube([ australia_switch_track_token_radius, australia_switch_track_token_radius, tile_thickness * 2.5 ]);
+        }
     }
     text_str = "Australia";
     text_width = 80;

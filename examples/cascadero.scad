@@ -55,7 +55,7 @@ module SealsBox()
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMesh(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
         translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
             MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Seals", border = 2, offset = 4);
     }
@@ -72,7 +72,7 @@ module FarmerBox()
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMesh(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
         translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
             MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Farmer", border = 2, offset = 4);
     }
@@ -89,18 +89,21 @@ module HeraldBox()
     translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMesh(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
         translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
             MakeStripedLidLabel(width = 50, length = 15, lid_height = 3, label = "Herald", border = 2, offset = 4);
     }
 }
 
+
+
 module PlayerBox()
 {
     MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)
     {
+
         translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxGrid(length = player_length - wall_thickness * 2, width = first_width, height = section_height,
+            RoundedBoxGrid(width = player_width - wall_thickness * 2, length = first_width, height = section_height,
                            radius = radius, rows = 2, cols = 1, all_sides = true);
         translate([ wall_thickness, first_width + wall_thickness * 2, wall_thickness ]) RoundedBoxAllSides(
             width = player_length - wall_thickness * 2, length = player_width - first_width - wall_thickness * 3,
@@ -109,7 +112,7 @@ module PlayerBox()
     translate([ player_width + 10, 0, 0 ]) SlidingLid(player_width, player_width, lid_height = lid_thickness)
     {
         translate([ 10, 10, 0 ])
-            LidMesh(width = player_width, length = player_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = player_width, length = player_length, lid_height = 3, boundary = 10, radius = 5);
         translate([ (player_width - 20) / 2, (player_length - 60) / 2, 0 ]) rotate([ 0, 0, 90 ])
             MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Player", border = 2, offset = 4);
     }
@@ -127,7 +130,7 @@ module Cascadero()
     {
         SlidingLid(width = player_width, length = player_length, lid_height = lid_thickness)
         {
-            translate([ 10, 10.0 ]) LidMesh(width = player_width, length = player_length, lid_height = lid_thickness,
+            translate([ 10, 10.0 ]) LidMeshHex(width = player_width, length = player_length, lid_height = lid_thickness,
                                             boundary = 10, radius = 6, shape_thickness = 2);
         };
     }
@@ -136,7 +139,7 @@ module Cascadero()
     {
         SlidingLid(width = herald_width, length = top_length, lid_height = lid_thickness)
         {
-            translate([ 10, 10.0 ]) LidMesh(width = herald_width, length = top_length, lid_height = lid_thickness,
+            translate([ 10, 10.0 ]) LidMeshHex(width = herald_width, length = top_length, lid_height = lid_thickness,
                                             boundary = 10, radius = 10);
         };
     }
@@ -146,15 +149,15 @@ module Cascadero()
         SlidingLid(width = top_width, length = top_length, lid_height = lid_thickness)
         {
             translate([ 10, 10.0 ])
-                LidMesh(width = top_width, length = top_length, thickness = lid_height, boundary = 10, radius = 10);
+                LidMeshHex(width = top_width, length = top_length, thickness = lid_height, boundary = 10, radius = 10);
         };
     }
 }
 
-SealsBox();
+//SealsBox();
 
-translate([ 0, 100, 0 ]) FarmerBox();
+//translate([ 0, 100, 0 ]) FarmerBox();
 
-translate([ 0, 200, 0 ]) HeraldBox();
+//translate([ 0, 200, 0 ]) HeraldBox();
 
 translate([ 0, 300, 0 ]) PlayerBox();
