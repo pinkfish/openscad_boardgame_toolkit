@@ -2,6 +2,7 @@
 
 - [More complicated boxes](#more-complicated-boxes)
   - [Box with two types of compartments](#box-with-two-types-of-compartments)
+  - [Sliding lid by parts](#sliding-lid-by-parts)
   - [Box with finger cutouts](#box-with-finger-cutouts)
 
 
@@ -85,5 +86,94 @@ module SwedenBox()
 SwedenBox();
 ```
 
+## Sliding lid by parts
+
+Generating a sliding lid using all the component parts of the lid, the lid, the label
+the mesh and finger cutout.
+
+```openscad-3D;Big
+
+herald_width = 40;
+top_length = 100;
+
+SlidingLid(herald_width, top_length)
+{
+    translate([ 10, 10, 0 ])
+        LidMeshHex(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+    translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
+        MakeStripedLidLabel(width = 50, length = 15, lid_height = 3, label = "Herald", border = 2, offset = 4);
+    intersection()
+    {
+        cube([ herald_width - 10, top_length - 5, 3 ]);
+        translate([ (herald_width) / 2, top_length - 3, 0 ]) SlidingLidFingernail(3);
+    }
+}
+```
+
 ## Box with finger cutouts
 
+```openscad-3D;Big
+
+train_card_thickness = 2;
+player_box_width = 95.33;
+player_box_length = 185;
+player_box_height = 26.5;
+card_height = train_card_thickness * 4.5;
+wall_thickness = 2;
+lid_height = 3;
+inner_wall = 1;
+silo_piece_width = 22;
+silo_piece_height = 40;
+water_height = 27;
+water_width = 21;
+roundhouse_height = 40;
+roundhouse_total_width = 90;
+
+
+difference()
+{
+    MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height,
+                            lid_height = lid_height, wall_thickness = wall_thickness)
+    {
+        // Roundhouse section
+        translate([ wall_thickness, wall_thickness, wall_thickness ])
+            cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
+        // water towers.
+        translate([ wall_thickness, wall_thickness + roundhouse_height + inner_wall, wall_thickness ]) cube([
+            player_box_width - wall_thickness * 2 - water_width - inner_wall, silo_piece_height * 2,
+            player_box_height
+        ]);
+        // silos.
+        translate([
+            player_box_width - wall_thickness * 2 - water_width + inner_wall,
+            wall_thickness + roundhouse_height + inner_wall,
+            wall_thickness
+        ]) cube([ water_width, silo_piece_height * 2, player_box_height ]);
+        // Train cards.
+        translate([
+            wall_thickness,
+            wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
+            player_box_height - lid_height - card_height,
+        ]) cube([ player_box_width - wall_thickness * 2, train_card_length, player_box_height ]);
+        // Recessed box for crossings.
+        translate([
+            player_box_width * 1 / 8,
+            wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
+            wall_thickness,
+        ]) cube([ player_box_width * 3 / 4, crossing_length * 1.25, crossing_height ]);
+    };
+    // Finger cutout for cards
+    translate([
+        0,
+        wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2 +
+            7,
+        0
+    ]) cyl(h = player_box_height * 2 + 1, r = 10);
+}
+text_str = "Player";
+text_width = 80;
+text_length = 30;
+translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
+    width = player_box_width, length = player_box_length, lid_height = lid_height, text_width = text_width,
+    text_length = text_length, text_str = text_str, label_rotated = true);
+```

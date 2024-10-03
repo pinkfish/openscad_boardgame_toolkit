@@ -189,22 +189,27 @@ module PlayerBox()
         MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height,
                               lid_height = lid_height, wall_thickness = wall_thickness)
         {
+            // Round houses.
             translate([ wall_thickness, wall_thickness, wall_thickness ])
                 cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
+            // silos.
             translate([ wall_thickness, wall_thickness + roundhouse_height + inner_wall, wall_thickness ]) cube([
                 player_box_width - wall_thickness * 2 - water_width - inner_wall, silo_piece_height * 2,
                 player_box_height
             ]);
+            // mine section.
             translate([
                 player_box_width - wall_thickness * 2 - water_width + inner_wall,
                 wall_thickness + roundhouse_height + inner_wall,
                 wall_thickness
             ]) cube([ water_width, silo_piece_height * 2, player_box_height ]);
+            // cards.
             translate([
                 wall_thickness,
                 wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
                 player_box_height - lid_height - card_height,
             ]) cube([ player_box_width - wall_thickness * 2, train_card_length, player_box_height ]);
+            // Recessed box for crossings.
             translate([
                 player_box_width * 1 / 8,
                 wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
@@ -458,4 +463,4 @@ module AustraliaBox()
         text_length = text_length, text_str = text_str, label_rotated = false);
 }
 
-AustraliaBox();
+EmptyCityBox();
