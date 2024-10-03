@@ -118,46 +118,10 @@ module PlayerBox()
     }
 }
 
-module Cascadero()
-{
-    PlayerBox();
+SealsBox();
 
-    translate([ 0, player_length + 10, 0 ]) TopBox();
+translate([ 0, 100, 0 ]) FarmerBox();
 
-    translate([ 0, player_length * 2 + 10, 0 ]) HeraldBox();
-
-    translate([ player_width + 10, 0, 0 ])
-    {
-        SlidingLid(width = player_width, length = player_length, lid_height = lid_thickness)
-        {
-            translate([ 10, 10.0 ]) LidMeshHex(width = player_width, length = player_length, lid_height = lid_thickness,
-                                            boundary = 10, radius = 6, shape_thickness = 2);
-        };
-    }
-
-    translate([ player_width * 2 + 10, 0, 0 ])
-    {
-        SlidingLid(width = herald_width, length = top_length, lid_height = lid_thickness)
-        {
-            translate([ 10, 10.0 ]) LidMeshHex(width = herald_width, length = top_length, lid_height = lid_thickness,
-                                            boundary = 10, radius = 10);
-        };
-    }
-
-    translate([ player_width * 3 + 10, 0, 0 ])
-    {
-        SlidingLid(width = top_width, length = top_length, lid_height = lid_thickness)
-        {
-            translate([ 10, 10.0 ])
-                LidMeshHex(width = top_width, length = top_length, thickness = lid_height, boundary = 10, radius = 10);
-        };
-    }
-}
-
-//SealsBox();
-
-//translate([ 0, 100, 0 ]) FarmerBox();
-
-//translate([ 0, 200, 0 ]) HeraldBox();
+translate([ 0, 200, 0 ]) HeraldBox();
 
 translate([ 0, 300, 0 ]) PlayerBox();
