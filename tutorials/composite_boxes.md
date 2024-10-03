@@ -92,6 +92,7 @@ Generating a sliding lid using all the component parts of the lid, the lid, the 
 the mesh and finger cutout.
 
 ```openscad-3D;Big
+include <boardgame_toolkit.scad>
 
 herald_width = 40;
 top_length = 100;
@@ -99,7 +100,7 @@ top_length = 100;
 SlidingLid(herald_width, top_length)
 {
     translate([ 10, 10, 0 ])
-        LidMeshHex(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+        LidMeshHex(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 7);
     translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
         MakeStripedLidLabel(width = 50, length = 15, lid_height = 3, label = "Herald", border = 2, offset = 4);
     intersection()
@@ -112,7 +113,11 @@ SlidingLid(herald_width, top_length)
 
 ## Box with finger cutouts
 
+This is a box with fingercuts on the outside of the box using a difference as well as a card set
+with a recessed section under it.
+
 ```openscad-3D;Big
+include <boardgame_toolkit.scad>
 
 train_card_thickness = 2;
 player_box_width = 95.33;
@@ -122,12 +127,12 @@ card_height = train_card_thickness * 4.5;
 wall_thickness = 2;
 lid_height = 3;
 inner_wall = 1;
-silo_piece_width = 22;
 silo_piece_height = 40;
-water_height = 27;
 water_width = 21;
 roundhouse_height = 40;
-roundhouse_total_width = 90;
+train_card_length = 90;
+crossing_height = 14;
+crossing_length = 34;
 
 
 difference()
