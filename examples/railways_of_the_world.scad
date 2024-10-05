@@ -15,8 +15,8 @@ specific language governing permissions and limitations
 under the License.
  */
 
+include <../boardgame_toolkit.scad>
 include <BOSL2/std.scad>
-include <boardgame_toolkit.scad>
 
 box_width = 310;
 box_length = 385;
@@ -532,4 +532,7 @@ module AustraliaBox()
     }
 }
 
-SwedenBox();
+
+
+LidMeshBasic(width = 100, length = 50, lid_height = 2, boundary = 10, layout_width = 10,
+       SHAPE_TYPE_HILBERT, shape_thickness = 2, shape_width = 11);
