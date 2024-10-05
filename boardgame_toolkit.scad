@@ -668,7 +668,16 @@ module LidMeshBasic(width, length, lid_height, boundary, layout_width, shape_typ
     }
     else if (shape_type == SHAPE_TYPE_HILBERT)
     {
-        linear_extrude(height = lid_height) HilbertCurve(order = 3, size = max(width, lenght) / 2);
+        intersection()
+        {
+            difference()
+            {
+                cube([ width - boundary * 2, length - boundary * 2, lid_height ]);
+                translate([ max(width, length) / 2, max(width, length) / 2, -0.1 ]) linear_extrude(height = lid_height+1)
+                    HilbertCurve(order = 3, size = max(width, length) / 2, line_thickness = shape_thickness);
+            }
+            cube([ width - boundary * 2, length - boundary * 2, lid_height ]);
+        }
     }
     else if (shape_type == SHAPE_TYPE_NONE)
     {
@@ -1922,7 +1931,18 @@ module MakeDividerWithText(width, length, thickness, tab_height, text_str, num_t
 // Description:
 //   Space filling curves to use on the lids and other places.
 
-module HilbertCurve(order, size, line_thickness = 20, order = 3, smoothness = 32)
+// Module: HilbertCurve()
+// Description:
+//   Generates a hilbert curve for uses in board games.
+// Usage: HilbertCurve(3, 100);
+// Arguments:
+//   order = depth of recursion to use 3 is a reasonable number
+//   size = size to generate the curve, this is a square size
+//   line_thickness = how thick to generate the lines in the curve (default = 20)
+//   smoothness = how smooth to make all the curves (default 32)
+// Example:
+//   HilbertCurve(3, 100);
+module HilbertCurve(order, size, line_thickness = 20, smoothness = 32)
 {
 
     module topline(order)
