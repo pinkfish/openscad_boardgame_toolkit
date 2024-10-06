@@ -48,9 +48,8 @@ module SealsBox()
 {
     MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
-                               height = section_height, radius = 15);
+        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
+                           height = section_height, radius = 15);
     }
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
@@ -70,9 +69,8 @@ module FarmerBox()
 {
     MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
-                               height = section_height, radius = 15);
+        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
+                           height = section_height, radius = 15);
     }
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
@@ -92,9 +90,8 @@ module HeraldBox()
 {
     MakeBoxWithSlidingLid(width = herald_width, length = top_length, height = section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = herald_width - wall_thickness * 2,
-                               height = section_height, radius = 15);
+        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = herald_width - wall_thickness * 2,
+                           height = section_height, radius = 15);
     }
     translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
     {
@@ -115,10 +112,9 @@ module PlayerBox()
     MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)
     {
 
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxGrid(width = player_width - wall_thickness * 2, length = first_width, height = section_height,
-                           radius = radius, rows = 2, cols = 1, all_sides = true);
-        translate([ wall_thickness, first_width + wall_thickness * 2, wall_thickness ]) RoundedBoxAllSides(
+        RoundedBoxGrid(width = player_width - wall_thickness * 2, length = first_width, height = section_height,
+                       radius = radius, rows = 2, cols = 1, all_sides = true);
+        translate([ 0, first_width + wall_thickness, 0 ]) RoundedBoxAllSides(
             width = player_length - wall_thickness * 2, length = player_width - first_width - wall_thickness * 3,
             height = section_height, radius = radius);
     }

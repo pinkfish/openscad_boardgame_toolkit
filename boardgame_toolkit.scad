@@ -550,6 +550,7 @@ module LidMeshRepeating(width, length, lid_height, boundary, shape_width, aspect
             }
             difference()
             {
+                translate([0,0,-0.5])
                 cube([ width, length, lid_height + 1 ]);
                 cube([ width - boundary * 2, length - boundary * 2, lid_height + 1 ]);
             }
@@ -673,8 +674,9 @@ module LidMeshBasic(width, length, lid_height, boundary, layout_width, shape_typ
             difference()
             {
                 cube([ width - boundary * 2, length - boundary * 2, lid_height ]);
-                translate([ max(width, length) / 2, max(width, length) / 2, -0.1 ]) linear_extrude(height = lid_height+1)
-                    HilbertCurve(order = 3, size = max(width, length) / 2, line_thickness = shape_thickness);
+                translate([ max(width, length) / 2, max(width, length) / 2, -0.1 ])
+                    linear_extrude(height = lid_height + 1)
+                        HilbertCurve(order = 3, size = max(width, length) / 2, line_thickness = shape_thickness);
             }
             cube([ width - boundary * 2, length - boundary * 2, lid_height ]);
         }
@@ -1034,7 +1036,7 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
     radius = apothem / cos(180 / 6);
 
     MakeBoxWithSlidingLid(rows * radius * 2 + wall_thickness * 2, cols * apothem * 2 + wall_thickness * 2, height,
-                          lid_height = lid_height) translate([ wall_thickness, wall_thickness, wall_thickness ])
+                          lid_height = lid_height) 
     {
         HexGridWithCutouts(rows = rows, cols = cols, height = height, tile_width = tile_width, spacing = spacing,
                            wall_thickness = wall_thickness);
@@ -1250,7 +1252,7 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
         {
             translate([ wall_thickness, wall_thickness, -1 ])
                 cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            children();
+            translate([ wall_thickness, wall_thickness, wall_thickness ]) children();
         }
     }
 }
@@ -1625,7 +1627,8 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 // Description:
 //   Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.  This will make
 //   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
-//   do this with a difference after making this object.
+//   do this with a difference after making this object.  The children and moves so 0,0,0 is the bottom inside
+//   of the box to make for easier arithmatic.
 // Usage:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
 // Arguments:
@@ -1673,7 +1676,7 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
         {
             translate([ wall_thickness, wall_thickness, -1 ])
                 cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            children();
+            translate([ wall_thickness, wall_thickness, wall_thickness ]) children();
         }
         // Cuff off the bit on the bottom to allow for stacking.
         if (stackable)
@@ -1716,7 +1719,7 @@ module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_
     radius = apothem / cos(180 / 6);
 
     MakeBoxWithTabsInsetLid(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
-                            lid_height = lid_height) translate([ 2, 2, 2 ])
+                            lid_height = lid_height) 
         RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
     {
         union()
@@ -1734,6 +1737,166 @@ module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_
             translate([ radius + 1, apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
             translate([ -radius + 1, -apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
             translate([ -radius + 1, apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
+        }
+    }
+}
+
+// Section: SlipBox
+// Description:
+//    A box that slips over the outside of an inner box.
+
+// Module: MakeSlipBox()
+// Description:
+//    Makes the inside of the slip box, this will take a second lid that slides over the outside of the box.
+// Usage: MakeSlipBox(100, 50, 10);
+// Arguments:
+//   width = outside width of the box
+//   height = outside height of the box
+//   wall_thickness = thickness of the walls (default 2)
+//   foot = how big the foot should be around the bottom of the box (default 0)
+//   size_spacing = amount of wiggle room to put into the model when making it (default {{m_wiggle_room}})
+//   wall_height = height of the wall if not set (default height - wall_thickness*2 - size_spacing*2)
+// Example:
+//   MakeSlipBox(100, 50, 10);
+module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 0, size_spacing = m_piece_wiggle_room,
+                              wall_height = undef)
+{
+    wall_height_calc = wall_height == undef ? height - wall_thickness * 2 + size_spacing : wall_height;
+    difference()
+    {
+        union()
+        {
+            translate([ wall_thickness + size_spacing, wall_thickness + size_spacing, 0 ]) cube([
+                width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2,
+                wall_height_calc
+            ]);
+            if (foot > 0)
+            {
+                cube([ width, length, foot ]);
+            }
+        }
+        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
+        // just not the walls.
+        intersection()
+        {
+            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, -1 ])
+
+                cube([
+                    width - wall_thickness * 4 - size_spacing * 2, length - wall_thickness * 4 - size_spacing * 2,
+                    height + 2
+                ]);
+            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, wall_thickness ])
+                children();
+        }
+    }
+}
+
+// Module: SlipoverBoxLid()
+// Description:
+//   Make a box with a slip lid, a lid that slips over the outside of a box.
+// Usage: SlipBoxLid(100, 50, 10);
+// Arguments:
+//   width = width of the lid (outside width)
+//   length = of the lid (outside length)
+//   height = height of the lid (outside height)
+//   wall_thickness = how thick the walls are (default 2)
+//   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
+//   foot = size of the foot on the box.
+// Example:
+//   SlipoverBoxLid(100, 50, 10);
+module SlipoverBoxLid(width, length, height, wall_thickness = 2, size_spacing = m_piece_wiggle_room, foot = 0)
+{
+    foot_offset = foot > 0 ? foot + size_spacing : 0;
+    union()
+    {
+        translate([ 0, 0, height - foot_offset ]) internal_build_lid(width, length, wall_thickness, wall_thickness)
+        {
+            difference()
+            {
+                // Top piece
+                cube([ width, length, wall_thickness ]);
+            }
+            if ($children > 0)
+            {
+                children(0);
+            }
+            if ($children > 1)
+            {
+                children(1);
+            }
+            if ($children > 2)
+            {
+                children(2);
+            }
+            if ($children > 3)
+            {
+                children(3);
+            }
+            if ($children > 4)
+            {
+                children(4);
+            }
+            if ($children > 5)
+            {
+                children(5);
+            }
+        }
+        difference()
+        {
+            cube([ width, length, height - foot_offset ]);
+            translate([ wall_thickness, wall_thickness, -0.5 ])
+                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
+        }
+    }
+}
+
+module SlipoverLidWithLabel(width, length, height, text_width, text_length, text_str, lid_boundary = 10,
+                            wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                            foot = 0, layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
+                            shape_thickness = 2)
+{
+    SlipoverBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness, foot = foot)
+    {
+
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width, length = length, lid_height = wall_thickness, boundary = lid_boundary,
+                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
+                         shape_thickness = shape_thickness);
+        if (label_rotated)
+        {
+            translate([ (width + text_length) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = wall_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+        else
+        {
+            translate([ (width - text_width) / 2, (length - text_length) / 2, 0 ])
+                MakeStripedLidLabel(width = text_width, length = text_length, lid_height = wall_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
         }
     }
 }
@@ -1796,17 +1959,18 @@ module MakeDividerTab(tab_height, tab_length, thickness, tab_radius = 2)
 //   num_tabs = number of tabs across the top
 //   tab_position = the position number of the tab, 0..num_tabs-1
 // Example:
-//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 0, tab_radius =
-//   2);
+//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 0, tab_radius
+//   = 2);
 // Example:
-//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius =
-//   2);
+//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius
+//   = 2);
 // Example:
-//   MakeDivider(width = 80, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius =
-//   2);
+//   MakeDivider(width = 80, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius
+//   = 2);
 // Example:
 //   // Divider with a svg image in it.
-//   MakeDivider(70, 50, 1, tab_height = 5, tab_position = 0, num_tabs = 3)  translate([ 6, 5, -2 ]) mirror([ 0, 1, 0 ])
+//   MakeDivider(70, 50, 1, tab_height = 5, tab_position = 0, num_tabs = 3)  translate([ 6, 5, -2 ]) mirror([ 0, 1,
+//   0 ])
 //       linear_extrude(height = 4) offset(delta = 0.001) scale(0.04) import("svg/australia.svg");
 module MakeDivider(width, length, thickness, tab_height, num_tabs, tab_position, tab_radius = 2, num_tabs = 3,
                    tab_length = undef, hole_offset = 6)

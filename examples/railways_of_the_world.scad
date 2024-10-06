@@ -15,8 +15,8 @@ specific language governing permissions and limitations
 under the License.
  */
 
-include <boardgame_toolkit.scad>
 include <BOSL2/std.scad>
+include <boardgame_toolkit.scad>
 
 box_width = 310;
 box_length = 385;
@@ -113,7 +113,7 @@ module CardBoxEasternUS()
             MakeBoxWithSlidingLid(width = card_box_width, length = eastern_us_card_box_length,
                                   height = all_boxes_height, lid_height = lid_height, wall_thickness = wall_thickness)
             {
-                translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+                cube([
                     card_box_width - wall_thickness * 2, eastern_us_card_box_length - wall_thickness * 2,
                     all_boxes_height -
                     lid_height
@@ -152,7 +152,7 @@ module CardBox(num_cards, text_str)
             MakeBoxWithSlidingLid(width = card_box_width, length = box_length, height = all_boxes_height,
                                   lid_height = lid_height, wall_thickness = wall_thickness)
             {
-                translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+                cube([
                     card_box_width - wall_thickness * 2, box_length - wall_thickness * 2, all_boxes_height - lid_height
                 ]);
             }
@@ -199,8 +199,7 @@ module PlayerBox()
             // Round houses.
             difference()
             {
-                translate([ wall_thickness, wall_thickness, wall_thickness ])
-                    cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
+                cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
 
                 translate([ (player_box_width - wall_thickness * 2) / 2 - 7, wall_thickness * 3, 0 ])
                     linear_extrude(height = wall_thickness + 0.5) import("svg/rotw - roundhouse.svg");
@@ -208,7 +207,7 @@ module PlayerBox()
             // water tower.
             difference()
             {
-                translate([ wall_thickness, wall_thickness + roundhouse_height + inner_wall, wall_thickness ]) cube([
+                translate([ 0, roundhouse_height + inner_wall, wall_thickness ]) cube([
                     player_box_width - wall_thickness * 2 - mine_width - inner_wall, silo_piece_height * 2,
                     player_box_height
                 ]);
@@ -221,34 +220,32 @@ module PlayerBox()
             difference()
             {
                 translate([
-                    player_box_width - wall_thickness * 2 - mine_width + inner_wall,
-                    wall_thickness + roundhouse_height + inner_wall,
-                    wall_thickness
+                    player_box_width - wall_thickness * 3 - mine_width + inner_wall, roundhouse_height + inner_wall, 0
                 ]) cube([ mine_width, silo_piece_height * 2, player_box_height ]);
                 // Offset in here fixes the error in the svg file.
                 translate([
                     player_box_width - wall_thickness * 2 - mine_width + inner_wall,
-                    wall_thickness + roundhouse_height + inner_wall + silo_piece_height / 2, 0
+                    roundhouse_height + inner_wall + silo_piece_height / 2, 0
                 ]) linear_extrude(height = wall_thickness + 0.5) offset(delta = 0.001) import("svg/rotw - mine.svg");
             }
             // cards.
             translate([
-                wall_thickness,
-                wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
+                0,
+                roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
                 player_box_height - lid_height - card_height,
             ]) cube([ player_box_width - wall_thickness * 2, train_card_length, player_box_height ]);
             // Recessed box for crossings.
             difference()
             {
                 translate([
-                    player_box_width * 1 / 8,
-                    wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
-                    wall_thickness,
-                ]) cube([ player_box_width * 3 / 4, crossing_length * 1.25, crossing_height ]);
-                translate([
-                    player_box_width * 1 / 8 + player_box_width * 2 / 8,
-                    wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 12, 0.1
-                ]) linear_extrude(height = wall_thickness + 0.4) import("svg/rotw - signal.svg");
+                    player_box_width * 1 / 8, roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
+                    0
+                ]) union()
+                {
+                    cube([ player_box_width * 3 / 4, crossing_length * 1.25, crossing_height + 1 ]);
+                    translate([ 25, 5, 0 ]) linear_extrude(height = wall_thickness + 0.4)
+                        import("svg/rotw - signal.svg");
+                }
             }
         };
         translate([
@@ -271,7 +268,7 @@ module PlayerBoxTrains()
     MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = empty_city_height,
                           lid_height = lid_height, wall_thickness = wall_thickness)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+        cube([
             player_box_width - wall_thickness * 2, player_box_trains_length - 2 * wall_thickness,
             empty_city_height
         ]);
@@ -289,8 +286,7 @@ module EmptyCityBox()
     MakeBoxWithSlidingLid(width = empty_city_width, length = empty_city_length, height = empty_city_height,
                           lid_height = lid_height, wall_thickness = wall_thickness)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            cube([ empty_city_width - wall_thickness * 2, empty_city_length - 2 * wall_thickness, empty_city_height ]);
+        cube([ empty_city_width - wall_thickness * 2, empty_city_length - 2 * wall_thickness, empty_city_height ]);
     }
     text_str = "Empty City";
     text_width = 80;
@@ -312,8 +308,7 @@ module MoneyBox()
         MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height,
                               lid_height = lid_height, wall_thickness = wall_thickness)
         {
-            translate([ wall_thickness, wall_thickness, wall_thickness ])
-                cube([ money_width, money_length, empty_city_height ]);
+            cube([ money_width, money_length, empty_city_height ]);
         }
         translate([ money_section_width / 2, 1, -1 ]) cyl(h = top_section_height * 3, r = 15);
     }
@@ -344,22 +339,22 @@ module NewCityBox()
         MakeBoxWithSlidingLid(width = new_city_box_width, length = new_city_box_length, height = top_section_height,
                               lid_height = lid_height, wall_thickness = wall_thickness)
         {
-            translate([ wall_thickness + 0.5, wall_thickness, top_section_height - lid_height - tile_thickness * 4 ])
+            translate([ 0.5, 0, top_section_height - lid_height - tile_thickness * 4 - wall_thickness ])
                 RegularPolygonGrid(width = tile_width, rows = 1, cols = 4, spacing = 0)
             {
                 RegularPolygon(width = tile_width, height = tile_thickness * 4.25, shape_edges = 6);
                 cyl(r = 10, h = 20);
             }
             translate([
-                wall_thickness + 3 + tile_width / 2, wall_thickness * 2 + (tile_width + 1) * 4 + tile_width / 2 + 16,
-                top_section_height - lid_height - tile_thickness * 2.5
+                3 + tile_width / 2, wall_thickness + (tile_width + 1) * 4 + tile_width / 2 + 16,
+                top_section_height - lid_height - tile_thickness * 2.5 -
+                wall_thickness
             ])
             {
                 RegularPolygon(width = tile_width, height = top_section_height, shape_edges = 6);
                 translate([ 0, -tile_width / 2, 7 ]) ycyl(h = 12, r = 7);
             }
-            translate(
-                [ wall_thickness + 1, wall_thickness + (tile_width + 1) * 4 - 8, top_section_height - lid_height - 10 ])
+            translate([ 1, (tile_width + 1) * 4 - 8, top_section_height - lid_height - 10 - wall_thickness ])
                 rotate([ 0, 0, 22 ]) cube([ 40, 15.5, 11 ]);
         }
         translate([ new_city_box_width / 2, wall_thickness, top_section_height - 1 ])
@@ -381,7 +376,7 @@ module SwedenBox()
     MakeBoxWithSlidingLid(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
                           lid_height = lid_height, wall_thickness = wall_thickness)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) intersection()
+        intersection()
         {
             translate([ 0, 0, -3 ]) cube([ radius * 4 * 2, tile_width * 3, top_section_height + 1 ]);
             HexGridWithCutouts(rows = 4, cols = 3, tile_width = tile_width, spacing = 0,
@@ -389,20 +384,22 @@ module SwedenBox()
         }
         // bonus bit (top)
         translate([
-            wall_thickness * 2, sweden_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
+            wall_thickness, sweden_box_length - wall_thickness * 2 - sweden_bonus_width,
+            top_section_height - lid_height - tile_thickness * 2.4 -
+            wall_thickness
         ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
         translate([
-            wall_thickness * 2 + (sweden_bonus_length - 10) / 2,
-            sweden_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
+            (sweden_bonus_length - 10) / 2, sweden_box_length - wall_thickness * 2 - sweden_bonus_width - 5,
+            top_section_height - lid_height - tile_thickness * 2.4 -
+            wall_thickness
         ]) cube([ 10, 10, 10 ]);
 
         // bonus bit (middle)
         translate([
-            sweden_box_width - wall_thickness * 2 - sweden_bonus_length,
-            sweden_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
+            sweden_box_width - wall_thickness - sweden_bonus_length,
+            sweden_box_length - wall_thickness * 2 - sweden_bonus_width,
+            top_section_height - lid_height - tile_thickness * 2.4 -
+            wall_thickness
         ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
         translate([
             sweden_box_width - wall_thickness * 2 - sweden_bonus_length + (sweden_bonus_length - 10) / 2,
@@ -445,7 +442,7 @@ module AustraliaBox()
     MakeBoxWithSlidingLid(width = australia_box_width, length = australia_box_length, height = top_section_height,
                           lid_height = lid_height, wall_thickness = wall_thickness)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) intersection()
+        intersection()
         {
             translate([ 0, 0, -3 ]) cube([ radius * 4 * 2, tile_width * 3, top_section_height + 1 ]);
             difference()
@@ -462,48 +459,51 @@ module AustraliaBox()
 
         // Cutouts for the bonus cards.
         translate([
-            (australia_box_width - wall_thickness * 2 - sweden_bonus_width),
-            wall_thickness + tile_width * 2 + wall_thickness, top_section_height - lid_height - tile_thickness * 6.4
+            (australia_box_width - wall_thickness * 3 - sweden_bonus_width), tile_width * 2 + wall_thickness,
+            top_section_height - lid_height - tile_thickness * 6.4
         ]) cube([ sweden_bonus_width, sweden_bonus_length, tile_thickness * 6.5 ]);
         // Fingercut for the bonus cards.
         translate([
-            (australia_box_width - wall_thickness * 2 - sweden_bonus_width) + 8,
-            wall_thickness + tile_width * 2 + wall_thickness, top_section_height / 2 + 4.3
+            (australia_box_width - wall_thickness * 2 - sweden_bonus_width) + 8 - wall_thickness, tile_width * 2,
+            top_section_height / 2 + 4.3
         ]) cyl(h = top_section_height, r = 5);
 
         // New citites
         translate([
-            wall_thickness + radius, australia_box_length - tile_width + apothem,
-            top_section_height - lid_height - tile_thickness * 5.4
+            radius, australia_box_length - tile_width + apothem,
+            top_section_height - lid_height - tile_thickness * 5.4 -
+            wall_thickness
         ])
         {
             RegularPolygon(shape_edges = 6, width = tile_width, height = tile_thickness * 5.5);
             translate([ 0, 0, -10 ]) cylinder(r = 8, h = 15);
         }
         translate([
-            wall_thickness + radius + radius * 2, australia_box_length - tile_width + apothem,
-            top_section_height - lid_height - tile_thickness * 5.4
+            radius + radius * 2, australia_box_length - tile_width + apothem,
+            top_section_height - lid_height - tile_thickness * 5.4 -
+            wall_thickness
         ])
         {
             RegularPolygon(shape_edges = 6, width = tile_width, height = tile_thickness * 5.5);
             translate([ 0, 0, -10 ]) cylinder(r = 8, h = 15);
         }
         translate([
-            wall_thickness + radius * 2 - 6, australia_box_length - tile_width + apothem - 6,
-            top_section_height - lid_height - tile_thickness * 5.4
+            radius * 2 - 6, australia_box_length - tile_width + apothem - 6,
+            top_section_height - lid_height - tile_thickness * 5.4 -
+            wall_thickness
         ]) cube([ 12, 12, tile_thickness * 5.5 ]);
         // For the switch track tokens.
         for (i = [0:1:5])
             translate([
-                wall_thickness + australia_switch_track_token_radius +
-                    (australia_switch_track_token_radius * 2 + inner_wall) * i,
+                australia_switch_track_token_radius + (australia_switch_track_token_radius * 2 + inner_wall) * i,
                 australia_box_length - wall_thickness - australia_switch_track_token_radius - tile_width,
-                top_section_height - lid_height - tile_thickness * 2.4 / 2
+                top_section_height - lid_height - tile_thickness * 2.4 / 2 -
+                wall_thickness
             ])
             {
                 cyl(r = australia_switch_track_token_radius, h = tile_thickness * 5);
                 translate([
-                    -australia_switch_track_token_radius / 2, -australia_switch_track_token_radius - 1,
+                    -australia_switch_track_token_radius / 2, -australia_switch_track_token_radius - 1 - wall_thickness,
                     -(tile_thickness * 5) / 2
                 ])
                     cube([
@@ -511,8 +511,9 @@ module AustraliaBox()
                     ]);
             }
         // Map in the top section.
-        translate([ player_box_width - 20, player_box_length - 90, top_section_height - lid_height - 1 ]) scale(0.3)
-            linear_extrude(height = 30) difference()
+        translate(
+            [ player_box_width - 20, player_box_length - 90, top_section_height - lid_height - 1 - wall_thickness ])
+            scale(0.3) linear_extrude(height = 30) difference()
         {
             fill() import("svg/australia.svg");
             offset(-4) fill() import("svg/australia.svg");
@@ -532,5 +533,4 @@ module AustraliaBox()
     }
 }
 
-
-SwedenBox();
+PlayerBox();
