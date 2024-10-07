@@ -401,7 +401,9 @@ module MakeStripedGrid(width, length, bar_width = 1)
 //   bar_width_bottom = height of the bar (default bar_width_top)
 // Topics: Label
 // Example:
-//   Make3dStripedGrid(20, 50, 1);
+//   Make3dStripedGrid(width = 20, length = 50, height = 1);
+// Example:
+//   Make3dStripedGrid(width = 20, length = 50, height = 0.2, bar_width_bottom = 1);
 module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bottom = undef)
 {
     calc_bar_width_bottom = bar_width_bottom == undef ? bar_width_top : bar_width_bottom;
@@ -413,9 +415,9 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
     for (j = [0:x_count])
     {
 
-        translate([ j * (bar_width + dx), length/2,0 ]) rotate([ 0, 0, 45 ])
-            prismoid(size1 = [ bar_width_bottom, length * 2 ], size2 = [ bar_width_top, length * 2 ], height = height,
-                     anchor = BOTTOM + LEFT);
+        translate([ j * (bar_width + dx), length / 2, 0 ]) rotate([ 0, 0, 45 ])
+            prismoid(size1 = [ calc_bar_width_bottom, length * 2 ], size2 = [ bar_width_top, length * 2 ],
+                     height = height, anchor = BOTTOM + LEFT);
     }
 }
 

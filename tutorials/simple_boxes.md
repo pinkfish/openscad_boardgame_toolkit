@@ -35,8 +35,7 @@ module SquareBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            cube([ money_width, money_length, top_section_height ]);
+        cube([ money_width, money_length, top_section_height ]);
     }
     text_str = "Square";
     text_width = 80;
@@ -68,8 +67,9 @@ module TokensBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxAllSides(width = money_section_width - wall_thickness * 2, length = money_section_length - wall_thickness * 2, height = top_section_height, radius = 10);
+        RoundedBoxAllSides(width = money_section_width - wall_thickness * 2,
+            length = money_section_length - wall_thickness * 2, 
+            height = top_section_height, radius = 10);
     }
     text_str = "Tokens";
     text_width = 80;
@@ -106,8 +106,7 @@ module MoneyBox()
     {
         MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
         {
-            translate([ wall_thickness, wall_thickness, wall_thickness ])
-                cube([ money_width, money_length, top_section_height ]);
+            cube([ money_width, money_length, top_section_height ]);
         }
         translate([ money_section_width / 2, 1, -1 ]) cyl(h = top_section_height * 3, r = 15);
     }
@@ -167,9 +166,8 @@ module GridBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            RoundedBoxGrid(width = money_section_width, length = money_section_length, 
-                height = top_section_height, rows = 2, cols = 2, radius = 4, all_sides = true);
+        RoundedBoxGrid(width = money_section_width, length = money_section_length, 
+            height = top_section_height, rows = 2, cols = 2, radius = 4, all_sides = true);
     }
     text_str = "Grid";
     text_width = 80;
@@ -206,8 +204,7 @@ module TabbedBox()
 {
     MakeBoxWithTabsInsetLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            cube([ money_width, money_length, top_section_height ]);
+        cube([ money_width, money_length, top_section_height ]);
     }
     text_str = "Tabbed";
     text_width = 80;

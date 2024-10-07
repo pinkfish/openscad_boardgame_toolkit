@@ -35,7 +35,7 @@ module SwedenBox()
     MakeBoxWithSlidingLid(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
                           lid_height = lid_height, wall_thickness = wall_thickness)
     {
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) intersection()
+         intersection()
         {
             translate([ 0, 0, -3 ]) cube([ radius * 4 * 2, tile_width * 3, top_section_height + 1 ]);
             HexGridWithCutouts(rows = 4, cols = 3, tile_width = tile_width, spacing = 0,
@@ -43,37 +43,37 @@ module SwedenBox()
         }
         // bonus bit (top)
         translate([
-            wall_thickness * 2, sweden_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
+            wall_thickness, sweden_box_length - wall_thickness*2 - sweden_bonus_width,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
         translate([
-            wall_thickness * 2 + (sweden_bonus_length - 10) / 2,
-            sweden_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
+            wall_thickness + (sweden_bonus_length - 10) / 2,
+            sweden_box_length - wall_thickness*2 - sweden_bonus_width - 5,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ 10, 10, 10 ]);
 
         // bonus bit (middle)
         translate([
-            sweden_box_width - wall_thickness * 2 - sweden_bonus_length,
-            sweden_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
+            sweden_box_width - wall_thickness - sweden_bonus_length,
+            sweden_box_length - wall_thickness * 2 - sweden_bonus_width,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
         translate([
-            sweden_box_width - wall_thickness * 2 - sweden_bonus_length + (sweden_bonus_length - 10) / 2,
-            sweden_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
+            sweden_box_width - wall_thickness - sweden_bonus_length + (sweden_bonus_length - 10) / 2,
+            sweden_box_length - wall_thickness * 2 - sweden_bonus_width - 5,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ 10, 10, 10 ]);
 
         // bonus bit (bottom)
         translate([
-            (sweden_box_width - wall_thickness * 2 - sweden_bonus_length) / 2,
-            sweden_box_length - wall_thickness - sweden_bonus_width,
-            top_section_height - lid_height - tile_thickness * 2.4
+            (sweden_box_width - wall_thickness - sweden_bonus_length) / 2,
+            sweden_box_length - wall_thickness * 2 - sweden_bonus_width,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ sweden_bonus_length, sweden_bonus_width, tile_thickness * 2.5 ]);
         translate([
-            (sweden_box_width - wall_thickness * 2 - sweden_bonus_length) / 2 + (sweden_bonus_length - 10) / 2,
-            sweden_box_length - wall_thickness - sweden_bonus_width - 5,
-            top_section_height - lid_height - tile_thickness * 2.4
+            (sweden_box_width - wall_thickness * 3 - sweden_bonus_length) / 2 + (sweden_bonus_length - 10) / 2,
+            sweden_box_length - wall_thickness * 2 - sweden_bonus_width - 5,
+            top_section_height - lid_height - tile_thickness * 2.4 - wall_thickness
         ]) cube([ 10, 10, 10 ]);
     }
     text_str = "Sweden";
@@ -145,55 +145,54 @@ difference()
         // Round houses.
         difference()
         {
-            translate([ wall_thickness, wall_thickness, wall_thickness ])
-                cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
+           cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
 
-            translate([ (player_box_width - wall_thickness * 2) / 2 - 7, wall_thickness * 3, 0 ])
+            translate([ (player_box_width - wall_thickness * 3) / 2 - 7, wall_thickness * 2, 0 ])
                 linear_extrude(height = wall_thickness + 0.5) import("svg/rotw - roundhouse.svg");
         }
         // water tower.
         difference()
         {
-            translate([ wall_thickness, wall_thickness + roundhouse_height + inner_wall, wall_thickness ]) cube([
+            translate([ 0, roundhouse_height + inner_wall, 0 ]) cube([
                 player_box_width - wall_thickness * 2 - mine_width - inner_wall, silo_piece_height * 2,
                 player_box_height
             ]);
             translate([
-                wall_thickness + silo_piece_width,
-                wall_thickness + roundhouse_height + inner_wall + silo_piece_height / 2, 0
+                 silo_piece_width,
+                 roundhouse_height + inner_wall + silo_piece_height / 2, -wall_thickness
             ]) linear_extrude(height = wall_thickness + 0.5) import("svg/rotw - water.svg");
         }
         // mine section.
         difference()
         {
             translate([
-                player_box_width - wall_thickness * 2 - mine_width + inner_wall,
-                wall_thickness + roundhouse_height + inner_wall,
-                wall_thickness
+                player_box_width - wall_thickness * 3 - mine_width + inner_wall,
+                roundhouse_height + inner_wall,
+                0
             ]) cube([ mine_width, silo_piece_height * 2, player_box_height ]);
             // Offset in here fixes the error in the svg file.
             translate([
-                player_box_width - wall_thickness * 2 - mine_width + inner_wall,
-                wall_thickness + roundhouse_height + inner_wall + silo_piece_height / 2, 0
+                player_box_width - wall_thickness * 3 - mine_width + inner_wall,
+                roundhouse_height + inner_wall + silo_piece_height / 2, -wall_thickness
             ]) linear_extrude(height = wall_thickness + 0.5) offset(delta = 0.001) import("svg/rotw - mine.svg");
         }
         // cards.
         translate([
-            wall_thickness,
-            wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
-            player_box_height - lid_height - card_height,
+            0,
+            roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
+            player_box_height - lid_height - card_height - wall_thickness,
         ]) cube([ player_box_width - wall_thickness * 2, train_card_length, player_box_height ]);
         // Recessed box for crossings.
         difference()
         {
             translate([
-                player_box_width * 1 / 8,
-                wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
-                wall_thickness,
+                player_box_width * 1 / 8 - wall_thickness,
+                roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
+                0,
             ]) cube([ player_box_width * 3 / 4, crossing_length * 1.25, crossing_height ]);
             translate([
-                player_box_width * 1 / 8 + player_box_width * 2 / 8,
-                wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 12, 0.1
+                player_box_width * 1 / 8 + player_box_width * 2 / 8 - wall_thickness,
+                roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 12, 0.1 - wall_thickness
             ]) linear_extrude(height = wall_thickness + 0.4) import("svg/rotw - signal.svg");
         }
     };
