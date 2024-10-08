@@ -10,6 +10,7 @@
   - [Tabbed Boxes](#tabbed-boxes)
     - [Simple tabbed box](#simple-tabbed-box)
     - [Tabbed hex box](#tabbed-hex-box)
+    - [Capped box](#capped-box)
 
 
 ## Sliding boxes
@@ -244,4 +245,26 @@ module TabbedHexBox()
 
 TabbedHexBox();
 
+```
+
+
+### Capped box
+
+
+Make a lid and base for a capped box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_height = 2,
+                    lid_finger_hold_len = 14)
+    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
+                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                        radius = 5);
 ```

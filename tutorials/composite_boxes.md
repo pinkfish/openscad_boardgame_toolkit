@@ -129,6 +129,7 @@ wall_thickness = 2;
 lid_height = 3;
 inner_wall = 1;
 silo_piece_height = 40;
+silo_piece_width = 22;
 mine_width = 21;
 mine_height = 27;
 roundhouse_height = 40;
@@ -211,3 +212,4 @@ translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
     width = player_box_width, length = player_box_length, lid_height = lid_height, text_width = text_width,
     text_length = text_length, text_str = text_str, label_rotated = true);
 ```
+

@@ -56,3 +56,26 @@ SlidingBoxLidWithLabel(
         }
     };
 ```
+
+### Capped box lid with label
+
+
+Make a lid and base for a capped box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+module MakeLid(str)
+{
+    CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                        text_width = len(str) * 10 + 5, text_length = 15, text_str = str, label_rotated = true,
+                        wall_thickness = wall_thickness, lid_height = 2, lid_boundary = 5, layout_width = 5,
+                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+}
+MakeLid("Red");
+```
