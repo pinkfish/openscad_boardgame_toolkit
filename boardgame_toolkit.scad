@@ -1282,10 +1282,11 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_len
 //   height = height of the box (outside height)
 //   wall_thickness = thickness of the walls (default 2)
 //   lid_height = height of the lid (default 3)
+//   floor_thickness = thickness of the floor (default 2)
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
-module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_height = 3)
+module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_height = 3, floor_thickness = 2)
 {
     difference()
     {
@@ -1301,7 +1302,7 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_heig
         {
             translate([ wall_thickness, wall_thickness, -1 ])
                 cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, wall_thickness ]) children();
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
         }
     }
 }
@@ -1383,7 +1384,8 @@ module InsetLidTabbed(width, length, lid_height = 2, wall_thickness = 2, inset =
                       lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
                       prism_width = 0.75, tab_length = 10, tab_height = 6)
 {
-    union()
+    translate([ 0, length, lid_height ]) rotate([ 180, 0, 0 ])
+        union()
     {
         InsetLid(width = width, length = length, lid_height = lid_height, wall_thickness = wall_thickness,
                  inset = inset, lid_size_spacing = lid_size_spacing)
@@ -1689,55 +1691,52 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 //   tab_length = how long the tab is (default 10)
 //   stackable = should we pull a piece out the bottom of the box to let this stack (default false)
 //   lid_size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
+//   floor_thickness = thickness of the floor (default 2)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
 module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_height = 2, tab_height = 6, inset = 1,
                                make_tab_width = false, make_tab_length = true, prism_width = 0.75, tab_length = 10,
-                               stackable = false, lid_size_spacing = m_piece_wiggle_room)
+                               stackable = false, lid_size_spacing = m_piece_wiggle_room, floor_thickness = 2)
 {
-    translate([ 0, length, lid_height ]) rotate([ 180, 0, 0 ])
+    difference()
     {
-        difference()
+        cube([ width, length, height ]);
+        translate([ wall_thickness - inset, wall_thickness - inset, height - lid_height ]) cube([
+            width - (wall_thickness - inset + m_piece_wiggle_room) * 2,
+            length - (wall_thickness - inset + m_piece_wiggle_room) * 2, lid_height + 0.1
+        ]);
+        translate([ 0, 0, height - lid_height ])
+            MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness, lid_height = lid_height,
+                     tab_length = tab_length, prism_width = prism_width, make_tab_length = make_tab_length,
+                     make_tab_width = make_tab_width) minkowski()
         {
-            cube([ width, length, height ]);
-            translate([ wall_thickness - inset, wall_thickness - inset, height - lid_height ]) cube([
-                width - (wall_thickness - inset + m_piece_wiggle_room) * 2,
-                length - (wall_thickness - inset + m_piece_wiggle_room) * 2, lid_height + 0.1
-            ]);
-            translate([ 0, 0, height - lid_height ])
-                MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness,
-                         lid_height = lid_height, tab_length = tab_length, prism_width = prism_width,
-                         make_tab_length = make_tab_length, make_tab_width = make_tab_width) minkowski()
-            {
-                translate([ -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2 ])
-                    cube(m_piece_wiggle_room);
-                MakeLidTab(length = tab_length, height = tab_height, lid_height = lid_height, prism_width = prism_width,
-                           wall_thickness = wall_thickness);
-            }
+            translate([ -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2 ])
+                cube(m_piece_wiggle_room);
+            MakeLidTab(length = tab_length, height = tab_height, lid_height = lid_height, prism_width = prism_width,
+                       wall_thickness = wall_thickness);
+        }
 
-            // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-            // just not the walls.
-            intersection()
+        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
+        // just not the walls.
+        intersection()
+        {
+            translate([ wall_thickness, wall_thickness, -1 ])
+                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+        }
+        // Cuff off the bit on the bottom to allow for stacking.
+        if (stackable)
+        {
+            difference()
             {
-                translate([ wall_thickness, wall_thickness, -1 ])
-                    cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-                translate([ wall_thickness, wall_thickness, wall_thickness ]) children();
-            }
-            // Cuff off the bit on the bottom to allow for stacking.
-            if (stackable)
-            {
-                difference()
-                {
-                    translate([ -0.5, -0.5, -0.5 ])
-                        cube([ width + 1, length + 1, wall_thickness + 0.5 - lid_size_spacing ]);
-                    translate(
-                        [ wall_thickness - inset + lid_size_spacing, wall_thickness - inset + lid_size_spacing, -1 ])
-                        cube([
-                            width - (wall_thickness - inset + lid_size_spacing) * 2,
-                            length - (wall_thickness - inset + lid_size_spacing) * 2, wall_thickness + 2
-                        ]);
-                }
+                translate([ -0.5, -0.5, -0.5 ])
+                    cube([ width + 1, length + 1, wall_thickness + 0.5 - lid_size_spacing ]);
+                translate([ wall_thickness - inset + lid_size_spacing, wall_thickness - inset + lid_size_spacing, -1 ])
+                    cube([
+                        width - (wall_thickness - inset + lid_size_spacing) * 2,
+                        length - (wall_thickness - inset + lid_size_spacing) * 2, wall_thickness + 2
+                    ]);
             }
         }
     }
@@ -1757,17 +1756,19 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_he
 //   push_block_height = height of the push blocks
 //   tile_width = the width of the files
 //   lid_height = height of the lid (default 2)
+//   floor_thickness = thickness of the floor (default 2)
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
-module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_width, lid_height = 2)
+module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_width, lid_height = 2,
+                                    floor_thickness = 2)
 {
     width = tile_width;
     apothem = width / 2;
     radius = apothem / cos(180 / 6);
 
     MakeBoxWithTabsInsetLid(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
-                            lid_height = lid_height)
+                            lid_height = lid_height, floor_thickness = floor_thickness)
         RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
     {
         union()
@@ -1805,10 +1806,11 @@ module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_
 //   foot = how big the foot should be around the bottom of the box (default 0)
 //   size_spacing = amount of wiggle room to put into the model when making it (default {{m_piece_wiggle_room}})
 //   wall_height = height of the wall if not set (default height - wall_thickness*2 - size_spacing*2)
+//   floor_thickness = thickness of the floor (default 2)
 // Example:
 //   MakeBoxWithSlipoverLid(100, 50, 10);
 module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 0, size_spacing = m_piece_wiggle_room,
-                              wall_height = undef)
+                              wall_height = undef, floor_thickness = 2)
 {
     wall_height_calc = wall_height == undef ? height - wall_thickness * 2 + size_spacing : wall_height;
     difference()
@@ -1834,7 +1836,7 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 
                     width - wall_thickness * 4 - size_spacing * 2, length - wall_thickness * 4 - size_spacing * 2,
                     height + 2
                 ]);
-            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, wall_thickness ])
+            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, floor_thickness ])
                 children();
         }
     }
@@ -1988,6 +1990,7 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_length, text
 //    cap_height = height of the cap on the box (default 10)
 //    lid_height = thickness of the lid (default 1)
 //    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
@@ -1997,10 +2000,11 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_length, text
 //    MakeBoxWithCapLid(100, 50, 20);
 module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_height = 1, wall_thickness = 2,
                          size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef, lid_finger_hold_len = undef,
-                         finger_hold_height = 5)
+                         finger_hold_height = 5, floor_thickness = 2)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     calc_lid_finger_hold_len = lid_finger_hold_len == undef ? min(width, length) / 5 : lid_finger_hold_len;
+    calc_floor_thickness = floor_thickness == undef ? wall_thickness : floor_thickness;
     difference()
     {
 
@@ -2023,10 +2027,10 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_height = 1,
             {
                 translate([ -size_spacing, -size_spacing, 0 ])
                     cube([ width + size_spacing * 2, length + size_spacing * 2, finger_hold_height + 1 ]);
+
                 translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
                     width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    cap_height
+                    length - calc_lid_wall_thickness * 2 - size_spacing * 2, finger_hold_height + 2
                 ]);
             }
             translate([ calc_lid_finger_hold_len, 0, -0.1 ]) cuboid(
@@ -2058,9 +2062,9 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_height = 1,
         // just not the walls.
         intersection()
         {
-            translate([ wall_thickness, wall_thickness, wall_thickness ])
+            translate([ wall_thickness, wall_thickness, calc_floor_thickness ])
                 cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, wall_thickness ]) children();
+            translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
         }
     }
 }
@@ -2083,7 +2087,7 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_height = 1,
 // Example:
 //    CapBoxLid(100, 50, 20);
 module CapBoxLid(width, length, cap_height = 10, lid_height = 1, wall_thickness = 2, size_spacing = m_piece_wiggle_room,
-                 lid_wall_thickness = undef, )
+                 lid_wall_thickness = undef)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     translate([ 0, length, cap_height ]) rotate([ 180, 0, 0 ])
