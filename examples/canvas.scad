@@ -36,7 +36,7 @@ module PiecesBox()
     module MakeLid(str)
     {
         CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                           text_width = len(str) * 10 + 5, text_length = 15, text_str = str, label_rotated = true,
+                           text_width = len(str) * 9 + 5, text_length = 15, text_str = str, label_rotated = true,
                            wall_thickness = wall_thickness, lid_height = 2, lid_boundary = 5, layout_width = 5,
                            shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 1.5, shape_width = 7);
     }
@@ -105,41 +105,3 @@ module DividerPiece()
 PiecesBox();
 
 translate([ canvas_piece_box_width + 10, 0, 0 ]) DividerPiece();
-
-/*
-MakeBoxWithCapLid(canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height);
-
-translate([ canvas_piece_box_width + 10, 0, 0 ])
-    CapBoxLidWithLabel(canvas_piece_box_width, canvas_piece_box_length, text_length = 15, text_width = 50,
-                       text_str = "Frog", label_rotated = true);
-
-/*
-calc_lid_wall_thickness = 1;
-size_spacing = 0.2;
-width = 100;
-length = 200;
-height = 20;
-finger_hold_height = 5;
-calc_lid_finger_hold_len = 20;
-cap_height = 10;
-
-difference()
-{
-    cube([ width, length, finger_hold_height ]);
-    translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
-        width - calc_lid_wall_thickness * 2 - size_spacing * 2, length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-        cap_height
-    ]);
-    difference()
-    {
-        for (i = [0:1:1])
-        {
-            for (j = [0:1:1])
-            {
-                translate([ (width - calc_lid_finger_hold_len-0.1) * i, (length - calc_lid_finger_hold_len-0.1) * j,
--0.5 ]) cube([ calc_lid_finger_hold_len + 0.1, calc_lid_finger_hold_len+0.1, finger_hold_height + 1 ]);
-            }
-        }
-    }
-}
-*/
