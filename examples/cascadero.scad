@@ -54,9 +54,9 @@ module SealsBox()
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMeshHex(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Seals", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Seals", border = 2, offset = 4);
         intersection()
         {
             cube([ top_width - 10, top_length - 5, 3 ]);
@@ -75,9 +75,9 @@ module FarmerBox()
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMeshHex(width = top_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Farmer", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Farmer", border = 2, offset = 4);
         intersection()
         {
             cube([ top_width - 10, top_length - 5, 3 ]);
@@ -96,9 +96,9 @@ module HeraldBox()
     translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
     {
         translate([ 10, 10, 0 ])
-            LidMeshHex(width = herald_width, length = top_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = herald_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 50, length = 15, lid_height = 3, label = "Herald", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 50, length = 15, lid_thickness = 3, label = "Herald", border = 2, offset = 4);
         intersection()
         {
             cube([ herald_width - 10, top_length - 5, 3 ]);
@@ -118,12 +118,12 @@ module PlayerBox()
             width = player_length - wall_thickness * 2, length = player_width - first_width - wall_thickness * 3,
             height = section_height, radius = radius);
     }
-    translate([ player_width + 10, 0, 0 ]) SlidingLid(player_width, player_width, lid_height = lid_thickness)
+    translate([ player_width + 10, 0, 0 ]) SlidingLid(player_width, player_width, lid_thickness = lid_thickness)
     {
         translate([ 10, 10, 0 ])
-            LidMeshHex(width = player_width, length = player_length, lid_height = 3, boundary = 10, radius = 5);
+            LidMeshHex(width = player_width, length = player_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (player_width - 20) / 2, (player_length - 60) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_height = 3, label = "Player", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Player", border = 2, offset = 4);
         intersection()
         {
             cube([ player_width - 10, player_length - 5, 3 ]);

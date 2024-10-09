@@ -40,10 +40,10 @@ module SquareBox()
     }
     text_str = "Square";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
         width = money_section_width, length = money_section_length, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 SquareBox();
@@ -74,10 +74,10 @@ module TokensBox()
     }
     text_str = "Tokens";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
         width = money_section_width, length = money_section_length, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 TokensBox();
@@ -113,10 +113,10 @@ module MoneyBox()
     }
     text_str = "Money";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
         width = money_section_width, length = money_section_length, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 MoneyBox();
@@ -138,10 +138,10 @@ module HexBox()
     MakeHexBoxWithSlidingLid(rows = 5, cols = 3, tile_width = tile_width, height = hex_section_height, push_block_height = 1);
     text_str = "Track";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([0, 3 * tile_width + 10, 0])
         SlidingLidWithLabelForHexBox(rows = 5, cols = 3, tile_width = tile_width, 
-            text_width = text_width, text_length = text_length, text_str = text_str);
+            text_width = text_width, text_height = text_height, text_str = text_str);
 }
 
 HexBox();
@@ -172,10 +172,10 @@ module GridBox()
     }
     text_str = "Grid";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
         width = money_section_width, length = money_section_length, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 GridBox();
@@ -209,10 +209,10 @@ module TabbedBox()
     }
     text_str = "Tabbed";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) InsetLidTabbedWithLabel(
         width = money_section_width, length = money_section_length, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = true);
+        text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 TabbedBox();
@@ -237,10 +237,10 @@ module TabbedHexBox()
     MakeHexBoxWithInsetTabbedLid(rows = 5, cols = 3, tile_width = tile_width, height = top_section_height, push_block_height = 1);
     text_str = "Tabbed";
     text_width = 80;
-    text_length = 20;
+    text_height = 20;
     translate([ 0, 3 * tile_width + 15, 0 ]) InsetLidTabbedWithLabelForHexBox(
         rows = 5, cols = 3, tile_width = tile_width, text_width = text_width,
-        text_length = text_length, text_str = text_str, label_rotated = false);
+        text_height = text_height, text_str = text_str, label_rotated = false);
 }
 
 TabbedHexBox();
@@ -262,7 +262,7 @@ canvas_piece_box_height = 29;
 wall_thickness = 3;
 
 MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_height = 2,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
                     lid_finger_hold_len = 14)
     RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
                         length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,

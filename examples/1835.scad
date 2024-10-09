@@ -24,7 +24,7 @@ box_height = 50;
 
 wall_thickness = 3;
 inner_wall = 1;
-lid_height = 2;
+lid_thickness = 2;
 floor_thickness = 2;
 
 share_width = 46;
@@ -59,7 +59,7 @@ hex_box_length = max(tile_width * 5 + wall_thickness * 2, 214);
 
 money_box_width = (money_width + 0.5) * 4 + wall_thickness * 2;
 money_box_length = money_length + wall_thickness;
-money_box_height_1 = floor_thickness + lid_height + money_one_thickness + 0.5;
+money_box_height_1 = floor_thickness + lid_thickness + money_one_thickness + 0.5;
 money_box_height_2 = money_box_height_1 - 1;
 
 money_names = [ "1", "5", "10", "20", "50", "100", "200", "500" ];
@@ -81,12 +81,12 @@ middle_length = money_box_width;
 
 insert_width = middle_width - wall_thickness * 2;
 insert_length = middle_length - wall_thickness * 3 - large_marker_diamter;
-insert_height = middle_height - lid_height - floor_thickness;
+insert_height = middle_height - lid_thickness - floor_thickness;
 
 module MoneyBox1()
 {
     MakeBoxWithTabsInsetLid(width = money_box_width, length = money_box_length, height = money_box_height_1,
-                            wall_thickness = wall_thickness, lid_height = lid_height, floor_thickness = floor_thickness,
+                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
                             make_tab_length = false, make_tab_width = true) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
@@ -101,7 +101,7 @@ module MoneyBox1()
 module MoneyBox2()
 {
     MakeBoxWithTabsInsetLid(width = money_box_width, length = money_box_length, height = money_box_height_2,
-                            wall_thickness = wall_thickness, lid_height = lid_height, floor_thickness = floor_thickness,
+                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
                             make_tab_length = false, make_tab_width = true) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
@@ -118,14 +118,14 @@ module AllMoneyBoxes()
     MoneyBox1();
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
     translate([ 0, money_box_length * 2 + 20, 0 ]) InsetLidTabbedWithLabel(
-        width = money_box_width, length = money_box_length, lid_height = lid_height, text_width = 70, text_length = 20,
+        width = money_box_width, length = money_box_length, lid_thickness = lid_thickness, text_width = 70, text_height = 20,
         text_str = "Money", make_tab_length = false, make_tab_width = true);
 }
 
 module HexBox()
 {
     MakeBoxWithTabsInsetLid(width = hex_box_width, length = hex_box_length, height = hex_box_height,
-                            wall_thickness = wall_thickness, lid_height = lid_height, floor_thickness = floor_thickness)
+                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
     {
         translate([ 0, 5, 0 ])
         {
@@ -138,14 +138,14 @@ module HexBox()
         }
     }
     translate([ 0, hex_box_length + 10, 0 ])
-        InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, lid_height = lid_height,
-                                text_width = 70, text_length = 20, text_str = "Tiles");
+        InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, lid_thickness = lid_thickness,
+                                text_width = 70, text_height = 20, text_str = "Tiles");
 }
 
 module SharesBox(offset)
 {
     MakeBoxWithTabsInsetLid(width = last_section_width, length = last_section_length, height = shares_height,
-                            wall_thickness = wall_thickness, lid_height = lid_height, floor_thickness = floor_thickness)
+                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
     {
         for (i = [0:1:1])
         {
@@ -159,7 +159,7 @@ module SharesBox(offset)
                 }
                 else
                 {
-                    translate([ share_width / 2, share_length / 2, shares_height - lid_height - 2 ])
+                    translate([ share_width / 2, share_length / 2, shares_height - lid_thickness - 2 ])
                         linear_extrude(height = 1) rotate(90)
                             text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
                 }
@@ -176,7 +176,7 @@ module AllShareBoxes()
     translate([ 0, last_section_length * 3 + 30, 0 ]) SharesBox(6);
     translate([ 0, last_section_length * 4 + 40, 0 ])
         InsetLidTabbedWithLabel(width = last_section_width, length = last_section_length, text_width = 70,
-                                text_length = 20, text_str = "Shares", lid_height = lid_height, label_rotated = true);
+                                text_height = 20, text_str = "Shares", lid_thickness = lid_thickness, label_rotated = true);
 }
 
 module MiddleBox()
@@ -187,10 +187,10 @@ module MiddleBox()
     difference()
     {
         MakeBoxWithTabsInsetLid(width = middle_width, length = middle_length, height = middle_height,
-                                wall_thickness = wall_thickness, lid_height = lid_height,
+                                wall_thickness = wall_thickness, lid_thickness = lid_thickness,
                                 floor_thickness = floor_thickness)
         {
-            translate([ insert_width / 2, 11.5, middle_height - lid_height - floor_thickness ])
+            translate([ insert_width / 2, 11.5, middle_height - lid_thickness - floor_thickness ])
                 linear_extrude(height = 5) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
             translate([ 47, large_marker_diamter + wall_thickness + 15, 0 ])
                 cube([ share_width, share_length, middle_height ]);
@@ -217,12 +217,12 @@ module MiddleBox()
             translate([ wall_thickness, (i < 6 ? i : i + 1) * (token_diameter + wall_thickness * 2) + 10, 0 ])
                 translate([
                     -9, token_diameter / 2 - 1.5, middle_height - token_height - 0.5 + middle_height / 2 -
-                    lid_height
+                    lid_thickness
                 ]) resize([ 20, 8, middle_height ]) rotate([ 0, 0, 30 ]) cyl(d = 5, h = middle_height, $fn = 6);
         }
     }
     translate([ 0, middle_length + 10, 0 ])
-        InsetLidTabbedWithLabel(width = middle_width, length = middle_length, lid_height = lid_height, text_length = 20,
+        InsetLidTabbedWithLabel(width = middle_width, length = middle_length, lid_thickness = lid_thickness, text_height = 20,
                                 text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
 }
 
@@ -230,6 +230,7 @@ module InsertTray()
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
+    assert(len(token__depths) == len(labels), "Labels and tokens don't match");
     first_tray_height = insert_height;
     difference()
     {

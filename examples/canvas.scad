@@ -36,12 +36,12 @@ module PiecesBox()
     module MakeLid(str)
     {
         CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                           text_width = len(str) * 9 + 5, text_length = 15, text_str = str, label_rotated = true,
-                           wall_thickness = wall_thickness, lid_height = 2, lid_boundary = 5, layout_width = 5,
+                           text_width = len(str) * 9 + 5, text_height = 15, text_str = str, label_rotated = true,
+                           wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                            shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 1.5, shape_width = 7);
     }
     MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                      height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_height = 2,
+                      height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
                       lid_finger_hold_len = 14)
         RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
                            length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
