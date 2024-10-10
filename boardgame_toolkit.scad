@@ -496,15 +496,15 @@ module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offs
 //   shape_edges = number of edges for the shape (default 6)
 //   offset = how much to offset the shape, so you can do overlapping shapes (default 0)
 // Usage:
-//   LidMeshDense(width = 70, length = 50, lid_thickness = 3, boundary = 10, radius = 5, shape_thickness = 2, shape_edges =
-//   6);
+//   LidMeshDense(width = 70, length = 50, lid_thickness = 3, boundary = 10, radius = 5, shape_thickness = 2,
+//   shape_edges = 6);
 // Topics: PatternFill
 // Example:
-//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_thickness = 2, shape_edges
-//   = 6);
+//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_thickness = 2,
+//   shape_edges = 6);
 // Example:
-//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_thickness = 2, shape_edges
-//   = 3);
+//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_thickness = 2,
+//   shape_edges = 3);
 module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_thickness = 2, shape_edges = 6, offset = 0)
 {
     cell_width = cos(180 / shape_edges) * radius;
@@ -515,8 +515,9 @@ module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_thickn
     {
         translate([ 0, 0, -0.5 ]) union()
         {
-            linear_extrude(height = lid_thickness + 1) RegularPolygonGridDense(radius = radius, rows = rows, cols = cols,
-                                                                            shape_edges = shape_edges) difference()
+            linear_extrude(height = lid_thickness + 1)
+                RegularPolygonGridDense(radius = radius, rows = rows, cols = cols, shape_edges = shape_edges)
+                    difference()
             {
                 regular_ngon(or = radius + shape_thickness / 2 + offset, n = shape_edges);
                 regular_ngon(or = radius - shape_thickness / 2 + offset, n = shape_edges);
@@ -934,14 +935,16 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
             translate([ -lid_size_spacing, length + wall_thickness / 2 + lid_size_spacing, -lid_thickness / 2 ])
                 linear_extrude(height = lid_thickness + 10) yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
             translate([
-                width - wall_thickness - lid_size_spacing, length + wall_thickness + lid_size_spacing, -lid_thickness / 2
+                width - wall_thickness - lid_size_spacing, length + wall_thickness + lid_size_spacing,
+                -lid_thickness / 2
             ]) linear_extrude(height = lid_thickness + 10) xflip() yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
             translate([
                 lid_thickness / 2 - lid_size_spacing, length + wall_thickness / 2 + lid_size_spacing, lid_thickness -
                 lid_size_spacing
             ]) linear_extrude(height = lid_thickness + 10) yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
             translate([ width - 3.2 + lid_size_spacing, length + 1.1, lid_thickness - lid_size_spacing ])
-                linear_extrude(height = lid_thickness + 10) xflip() yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
+                linear_extrude(height = lid_thickness + 10) xflip() yflip()
+                    right_triangle([ lid_size_spacing * 2, 15 ]);
         }
         if ($children > 0)
         {
@@ -1012,14 +1015,14 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset);
         }
         intersection()
         {
@@ -1077,8 +1080,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
 // Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //   MakeHexBoxWithSlidingLid(rows = 5, cols = 2, height = 10, push_block_height = 0.75, tile_width = 29);
-module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width, lid_thickness = 3, wall_thickness = 2,
-                                spacing = 0)
+module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width, lid_thickness = 3,
+                                wall_thickness = 2, spacing = 0)
 {
     width = tile_width;
     apothem = width / 2;
@@ -1224,14 +1227,14 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset);
         }
         intersection()
         {
@@ -1416,8 +1419,8 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
         }
         MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
                  make_tab_width = make_tab_width, make_tab_length = make_tab_length, prism_width = prism_width)
-            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness, prism_width = prism_width,
-                       wall_thickness = wall_thickness);
+            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
+                       prism_width = prism_width, wall_thickness = wall_thickness);
         ;
     }
 }
@@ -1473,14 +1476,14 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
         if ($children > 0)
         {
@@ -1532,9 +1535,9 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
-module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0, tab_height = 6,
-                               tab_length = 10, inset = 1, make_tab_width = false, make_tab_length = true,
-                               prism_width = 0.75)
+module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0,
+                               tab_height = 6, tab_length = 10, inset = 1, make_tab_width = false,
+                               make_tab_length = true, prism_width = 0.75)
 {
     width = tile_width;
     apothem = width / 2;
@@ -1616,8 +1619,8 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
     width = rows * radius * 2 + wall_thickness * 2;
     length = cols * apothem * 2 + wall_thickness * 2;
 
-    InsetLidTabbed(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness, tab_length = tab_length,
-                   tab_height = tab_height, inset = inset)
+    InsetLidTabbed(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
+                   tab_length = tab_length, tab_height = tab_height, inset = inset)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
@@ -1627,14 +1630,14 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
         intersection()
         {
@@ -1706,14 +1709,14 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_th
             length - (wall_thickness - inset + m_piece_wiggle_room) * 2, lid_thickness + 0.1
         ]);
         translate([ 0, 0, height - lid_thickness ])
-            MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                     tab_length = tab_length, prism_width = prism_width, make_tab_length = make_tab_length,
-                     make_tab_width = make_tab_width) minkowski()
+            MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness,
+                     lid_thickness = lid_thickness, tab_length = tab_length, prism_width = prism_width,
+                     make_tab_length = make_tab_length, make_tab_width = make_tab_width) minkowski()
         {
             translate([ -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2 ])
                 cube(m_piece_wiggle_room);
-            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness, prism_width = prism_width,
-                       wall_thickness = wall_thickness);
+            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
+                       prism_width = prism_width, wall_thickness = wall_thickness);
         }
 
         // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
@@ -2090,15 +2093,16 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_thickness =
 // Usage: CapBoxLid(100, 50, 20);
 // Example:
 //    CapBoxLid(100, 50, 20);
-module CapBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickness = 2, size_spacing = m_piece_wiggle_room,
-                 lid_wall_thickness = undef)
+module CapBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickness = 2,
+                 size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     translate([ 0, length, cap_height ]) rotate([ 180, 0, 0 ])
     {
         union()
         {
-            translate([ 0, 0, cap_height - lid_thickness ]) internal_build_lid(width, length, lid_thickness, wall_thickness)
+            translate([ 0, 0, cap_height - lid_thickness ])
+                internal_build_lid(width, length, lid_thickness, wall_thickness)
             {
                 difference()
                 {
@@ -2173,7 +2177,8 @@ module CapBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_
                           size_spacing = m_piece_wiggle_room, lid_thickness = 1, lid_wall_thickness = undef)
 {
     CapBoxLid(width = width, length = length, cap_height = cap_height, wall_thickness = wall_thickness,
-              lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness, size_spacing = m_piece_wiggle_room)
+              lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
+              size_spacing = m_piece_wiggle_room)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
@@ -2182,15 +2187,248 @@ module CapBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
-                                    border = border, offset = offset, full_height = true);
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset, full_height = true);
         }
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+    }
+}
+
+// Section: SlidingCatch
+// Description:
+//    A lid that slides into a groove on the top and the front to catch, a bit harder
+//    to stack but makes a nice simple box and fairly sturdy rather than a sliding lid.
+//    The lid is thicker than a sliding lid box.
+
+// Module: MakeBoxWithSlidingCatchLid()
+// Topics: SlidingCatch
+// Arguments:
+//   width = outside width of the box
+//    length = inside width of the box
+//    height = outside height of the box
+//    lid_thickness = thickness of the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    top_thickness = the thickness of the all above the catch (default 2)
+// Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
+// Example:
+//    MakeBoxWithSlidingCatchLid(100, 50, 20);
+module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = 1, wall_thickness = 2,
+                                  size_spacing = m_piece_wiggle_room, top_thickness = 2, floor_thickness = 2)
+{
+    calc_sliding_len = (length - wall_thickness) / 6;
+    difference()
+    {
+
+        cube([ width, length, height ]);
+        // middle diff.
+        translate([ wall_thickness, wall_thickness, floor_thickness ])
+            cube([ width - wall_thickness * 2, length - wall_thickness * 2, height ]);
+
+        // Sliding cutouts.
+        translate([ -0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness ])
+            cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], anchor = FRONT + LEFT + BOTTOM,
+                   rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+        translate(
+            [ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness ])
+            cuboid([ width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing ],
+                   anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+        // Rounding corners.
+        translate([ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing ])
+            cuboid([ width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
+                   anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
+                   edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+
+        // Second cutout.
+        translate([
+            -0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness -
+            top_thickness
+        ]) cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], rounding = lid_thickness,
+                  anchor = FRONT + LEFT + BOTTOM, edges = [BACK + TOP]);
+        translate([ -0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness ])
+            cuboid([ width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing ],
+                   anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+        // Rounding corners.
+        translate([
+            -0.5, wall_thickness + length - calc_sliding_len - wall_thickness - size_spacing * 2,
+            height - top_thickness +
+            size_spacing
+        ]) cuboid([ width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
+                  anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
+                  edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+
+        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
+        // just not the walls.
+        intersection()
+        {
+            translate([ wall_thickness, wall_thickness, floor_thickness ])
+                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+        }
+    }
+}
+
+// Module: SlidingCatchBoxLid()
+// Topics: SlidingCatch
+// Arguments:
+//   width = outside width of the box
+//    length = inside width of the box
+//    lid_thickness = thickness of the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    top_thickness = the thickness of the all above the catch (default 2)
+// Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
+// Example:
+//    MakeBoxWithSlidingCatchLid(100, 50, 20);
+module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickness = 2,
+                          size_spacing = m_piece_wiggle_room, top_thickness = 2, fill_middle = true)
+{
+    calc_sliding_len = (length - wall_thickness) / 6;
+    calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
+
+    internal_build_lid(width, length, calc_lid_thickness, wall_thickness)
+    {
+        difference()
+        {
+            union()
+            {
+                cube([ width, length - wall_thickness, lid_thickness - size_spacing ]);
+                if (fill_middle)
+                {
+                    translate([ wall_thickness, 0, lid_thickness - 0.1 ])
+                        cuboid([ width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1 ],
+                               anchor = FRONT + LEFT + BOTTOM, rounding = top_thickness / 2, edges = TOP, $fn = 32);
+                }
+            }
+            // Front piece.
+            translate([ -1, -1, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
+            translate([ width - wall_thickness - size_spacing, -1, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
+            // Middle piece.
+            translate([ -1, calc_sliding_len * 2, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
+            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
+
+            // End piece.
+            translate([ -1, calc_sliding_len * 5, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
+            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5 ])
+                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
+        }
+        if ($children > 0)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(0);
+        }
+        if ($children > 1)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(1);
+        }
+        if ($children > 2)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(2);
+        }
+        if ($children > 3)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(3);
+        }
+        if ($children > 4)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(4);
+        }
+        if ($children > 5)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(5);
+        }
+    }
+}
+
+// Module: SlidingCatchBoxLidWithLabel()
+// Topics: SlidingCatch
+// Description:
+//    Lid for a sliding catch with a label on top of it.
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default 1)
+//    top_thickness = thickness of the top above the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
+//    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
+//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    label_radius = radius of the label corners (default 12)
+//    border= border of the item (default 2)
+//    offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default 12)
+//    shape_width = width of the shape (default layout_width)
+//    shape_thickness = how wide the pieces are (default 2)
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+// Usage: SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_boundary = 10,
+                                   wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                                   layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
+                                   shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 1,
+                                   top_thickness = 2, fill_middle = true)
+{
+    calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
+
+    SlidingCatchBoxLid(width = width, length = length, top_thickness = top_thickness, wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness, size_spacing = m_piece_wiggle_room)
+    {
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width - wall_thickness * 2 - size_spacing * 2, length = length - wall_thickness,
+                         lid_thickness = calc_lid_thickness, boundary = lid_boundary, layout_width = layout_width,
+                         shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness);
+        if (label_rotated)
+        {
+            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = calc_lid_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+        else
+        {
+            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = calc_lid_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+
         if ($children > 0)
         {
             children(0);

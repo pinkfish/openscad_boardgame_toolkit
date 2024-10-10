@@ -323,11 +323,15 @@ module PeacockBox()
 
 module ShieldBox()
 {
-    MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height, foot = 2,
-                           floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
+    difference()
     {
-        translate([ shield_width + 2, 0, 0 ]) linear_extrude(height = shield_thickness) rotate([ 0, 0, 90 ])
-            offset(delta = 0.5) ShieldOutline();
+        MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height,
+                               foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
+        {
+            translate([ shield_width + 2, 0, 0 ]) linear_extrude(height = shield_thickness) rotate([ 0, 0, 90 ])
+                offset(delta = 0.5) ShieldOutline();
+        }
+        translate([ 0, shield_box_length / 2, 1.5 + 15 ]) xcyl(r = 15, h = 10);
     }
     text_str = "Zoovadis";
     translate([ 0, shield_box_length + 10, 0 ]) SlipoverLidWithLabel(
@@ -337,3 +341,4 @@ module ShieldBox()
 }
 
 ShieldBox();
+
