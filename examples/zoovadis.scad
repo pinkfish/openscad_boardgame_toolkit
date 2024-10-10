@@ -323,22 +323,31 @@ module PeacockBox()
 
 module ShieldBox()
 {
-    difference()
+    SplitBox(width = shield_box_width, length = shield_box_length, height = shield_box_height, orient = UP, spin = 90)
     {
-        MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height,
-                               foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
+        difference()
         {
-            translate([ shield_width + 2, 0, 0 ]) linear_extrude(height = shield_thickness) rotate([ 0, 0, 90 ])
-                offset(delta = 0.5) ShieldOutline();
+            MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height,
+                                   foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
+            {
+                translate([ shield_width + 2, 0, 0 ]) linear_extrude(height = shield_thickness) rotate([ 0, 0, 90 ])
+                    offset(delta = 0.5) ShieldOutline();
+            }
+            translate([ 0, shield_box_length / 2, 1.5 + 15 ]) xcyl(r = 15, h = 10);
         }
-        translate([ 0, shield_box_length / 2, 1.5 + 15 ]) xcyl(r = 15, h = 10);
+
+        MakePuzzleJoin();
     }
     text_str = "Zoovadis";
-    translate([ 0, shield_box_length + 10, 0 ]) SlipoverLidWithLabel(
-        width = shield_box_width, length = shield_box_length, height = shield_box_height, foot = 2, text_str = text_str,
-        text_width = len(text_str) * 10 + 10, text_height = 20, shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10,
-        shape_width = 14, lid_thickness = 1.5, wall_thickness = 1.5, label_rotated = true);
+    translate([ 0, shield_box_length + 30, 0 ]) SplitBox(width = shield_box_width, length = shield_box_length,
+                                                         height = shield_box_height, orient = LEFT, spin = 90, y = [2])
+    {
+        SlipoverLidWithLabel(width = shield_box_width, length = shield_box_length, height = shield_box_height, foot = 2,
+                             text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20,
+                             shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, lid_thickness = 1.5,
+                             wall_thickness = 1.5, label_rotated = true);
+        MakePuzzleJoin();
+    }
 }
 
 ShieldBox();
-
