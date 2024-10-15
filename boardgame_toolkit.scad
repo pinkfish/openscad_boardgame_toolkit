@@ -504,10 +504,13 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
     tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
     multmatrix(m = tmat) union()
     {
-        if (height >= radius)
+        if (height >= radius + rounding_radius)
         {
-            translate([ 0, 0, radius / 2 ]) cuboid([ radius * 2, depth_of_hole, height - radius ],
-                                                   rounding = -rounding_radius, edges = [ TOP + LEFT, TOP + RIGHT ]);
+            top_height = radius * 2 - height;
+            middle_height = radius - top_height;
+            translate([ 0, 0, height ]) cuboid([ radius * 2, depth_of_hole, middle_height  ],
+                                                   rounding = -rounding_radius, edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 16, anchor = TOP);
+            translate([ 0, 0, 0 ]) ycyl(r = radius, h = depth_of_hole, $fn = 64, anchor = BOTTOM);
         }
         else
         {
@@ -524,6 +527,7 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
                                                       ],
                                                       radius, [ 0, -height + radius ]);
                     for (i = [0:1:1])
+                    {
                         mirror([ i, 0, 0 ]) union()
                         {
                             translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
@@ -547,6 +551,7 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
                                     ]);
                             }
                         }
+                    }
                     translate([ 0, -height + radius, 0 ]) cyl(r = radius, h = depth_of_hole, $fn = 64);
                 }
             }

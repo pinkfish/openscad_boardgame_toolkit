@@ -61,7 +61,7 @@ top_layer_thickness = box_height - player_box_height * 2;
 
 shield_box_height = top_layer_thickness;
 shield_box_length = box_length - 1;
-shield_box_width = shield_width + wall_thickness * 5;
+shield_box_width = shield_width + wall_thickness * 5 + 2;
 
 rest_width = box_length - player_box_length * 3 - laurel_box_length;
 laurel_box_rest = box_width - laurel_box_width - 1;
@@ -331,12 +331,17 @@ module ShieldBox()
             MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height,
                                    foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
             {
-                translate([ shield_width + 2, 0, 0 ]) linear_extrude(height = shield_thickness) rotate([ 0, 0, 90 ])
-                    offset(delta = 0.5) ShieldOutline();
-            }
-            translate([ 0, shield_box_length / 2, 1.5 + 15 ]) xcyl(r = 15, h = 10);
-        }
+                translate([ shield_width + 2, 0, shield_box_height - shield_thickness - 3.5 ])
+                    linear_extrude(height = shield_thickness + 1) rotate([ 0, 0, 90 ]) offset(delta = 0.5)
+                        ShieldOutline();
 
+                translate([ shield_width + 2, 0, shield_box_height - shield_thickness - 3.5 ])
+                    cube([ 4, shield_length + 1, shield_thickness + 1 ]);
+
+                translate([ 0, shield_box_length / 2, 0.9 ]) rotate([ 0, 0, 90 ])
+                    FingerHoleWall(radius = 8, height = shield_thickness, depth_of_hole = 12);
+            }
+        }
         MakePuzzleJoin();
     }
     text_str = "Zoovadis";
