@@ -33,7 +33,7 @@ crossing_height = 14;
 crossing_length = 34;
 
 silo_piece_width = 22;
-silo_piece_height = 40;
+silo_piece_height = 43;
 mine_height = 27;
 mine_width = 21;
 roundhouse_height = 40;
@@ -72,7 +72,7 @@ eastern_us_card_box_length =
 
 player_box_width = (box_length - card_box_width - 2) / 3;
 player_box_length = train_card_width + silo_piece_height * 2 + roundhouse_height + inner_wall * 2 + wall_thickness * 2;
-player_box_height = crossing_height + inner_wall + lid_thickness + 4 * train_card_thickness;
+player_box_height = silo_piece_width + lid_thickness * 2;
 
 top_section_height = all_boxes_height - player_box_height * 2;
 top_section_width = box_length - card_box_width - 2;
@@ -102,7 +102,8 @@ sweden_box_length = 3 * tile_width + sweden_bonus_width + wall_thickness * 2 + i
 australia_box_width = expansion_area_box_width;
 australia_box_length = 4 * tile_width + australia_switch_track_token_radius * 2 + wall_thickness * 2 + inner_wall / 2;
 
-echo(expansion_area_box_width);
+echo(player_box_length + player_box_trains_length);
+echo([player_box_length, player_box_trains_length]);
 
 module CardBoxEasternUS()
 {
@@ -111,7 +112,8 @@ module CardBoxEasternUS()
         union()
         {
             MakeBoxWithSlidingLid(width = card_box_width, length = eastern_us_card_box_length,
-                                  height = all_boxes_height, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
+                                  height = all_boxes_height, lid_thickness = lid_thickness,
+                                  wall_thickness = wall_thickness)
             {
                 cube([
                     card_box_width - wall_thickness * 2, eastern_us_card_box_length - wall_thickness * 2,
@@ -138,8 +140,8 @@ module CardBoxEasternUS()
     text_width = 80;
     text_height = 20;
     translate([ card_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = card_box_width, length = eastern_us_card_box_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = false);
+        width = card_box_width, length = eastern_us_card_box_length, lid_thickness = lid_thickness,
+        text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = false);
 }
 
 module CardBox(num_cards, text_str)
@@ -153,7 +155,8 @@ module CardBox(num_cards, text_str)
                                   lid_thickness = lid_thickness, wall_thickness = wall_thickness)
             {
                 cube([
-                    card_box_width - wall_thickness * 2, box_length - wall_thickness * 2, all_boxes_height - lid_thickness
+                    card_box_width - wall_thickness * 2, box_length - wall_thickness * 2, all_boxes_height -
+                    lid_thickness
                 ]);
             }
         }
@@ -193,8 +196,8 @@ module PlayerBox()
     card_height = train_card_thickness * 4.5;
     difference()
     {
-        MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height,
-                              lid_thickness = lid_thickness, wall_thickness = wall_thickness)
+        MakeBoxWithTabsInsetLid(width = player_box_width, length = player_box_length, height = player_box_height,
+                                lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
         {
             // Round houses.
             difference()
@@ -202,70 +205,68 @@ module PlayerBox()
                 cube([ player_box_width - wall_thickness * 2, roundhouse_height, player_box_height ]);
 
                 translate([ (player_box_width - wall_thickness * 2) / 2 - 7, wall_thickness * 3, 0 ])
-                    linear_extrude(height = wall_thickness + 0.5) import("svg/rotw - roundhouse.svg");
+                    linear_extrude(height = 0.5) import("svg/rotw - roundhouse.svg");
             }
             // water tower.
             difference()
             {
-                translate([ 0, roundhouse_height + inner_wall, wall_thickness ]) cube([
-                    player_box_width - wall_thickness * 2 - mine_width - inner_wall, silo_piece_height * 2,
+                translate([ 0, roundhouse_height + inner_wall, 0 ]) cube([
+                    player_box_width - wall_thickness * 2 - mine_width - inner_wall - 5, silo_piece_height * 2,
                     player_box_height
                 ]);
                 translate([
                     wall_thickness + silo_piece_width,
                     wall_thickness + roundhouse_height + inner_wall + silo_piece_height / 2, 0
-                ]) linear_extrude(height = wall_thickness + 0.5) import("svg/rotw - water.svg");
+                ]) linear_extrude(height = 0.5) import("svg/rotw - water.svg");
             }
             // mine section.
             difference()
             {
                 translate([
-                    player_box_width - wall_thickness * 3 - mine_width + inner_wall, roundhouse_height + inner_wall, 0
-                ]) cube([ mine_width, silo_piece_height * 2, player_box_height ]);
+                    player_box_width - wall_thickness * 3 - mine_width + inner_wall - 4, roundhouse_height + inner_wall,
+                    0
+                ]) cube([ mine_width + 4, silo_piece_height * 2, player_box_height ]);
                 // Offset in here fixes the error in the svg file.
                 translate([
                     player_box_width - wall_thickness * 2 - mine_width + inner_wall,
                     roundhouse_height + inner_wall + silo_piece_height / 2, 0
-                ]) linear_extrude(height = wall_thickness + 0.5) offset(delta = 0.001) import("svg/rotw - mine.svg");
+                ]) linear_extrude(height = 0.5) offset(delta = 0.001) import("svg/rotw - mine.svg");
             }
             // cards.
             translate([
                 0,
                 roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
                 player_box_height - lid_thickness - card_height,
-            ]) cube([ player_box_width - wall_thickness * 2, train_card_length, player_box_height ]);
+            ]) cube([ train_card_length, train_card_width, player_box_height ]);
             // Recessed box for crossings.
             difference()
             {
-                translate([
-                    player_box_width * 1 / 8, roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7,
-                    0
-                ]) union()
+                translate(
+                    [ player_box_width * 1 / 8 + 4, roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + 7, 0 ])
+                    difference()
                 {
-                    cube([ player_box_width * 3 / 4, crossing_length * 1.25, crossing_height + 1 ]);
-                    translate([ 25, 5, 0 ]) linear_extrude(height = wall_thickness + 0.4)
-                        import("svg/rotw - signal.svg");
+                    cube([ player_box_width * 3 / 4, crossing_length * 1.25, player_box_height + 1 ]);
+                    translate([ 25, 5, 0 ]) linear_extrude(height = 0.5) import("svg/rotw - signal.svg");
                 }
             }
+            translate([
+                wall_thickness * 2,
+                roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2 + 16, 0
+            ]) FingerHoleBase(radius = 10, height = player_box_height - 1 + 0.01, wall_thickness = wall_thickness * 2,
+                              spin = 270, rounding_radius = 5, floor_thickness = 1);
         };
-        translate([
-            0,
-            wall_thickness + roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2 +
-                7,
-            0
-        ]) cyl(h = player_box_height * 2 + 1, r = 10);
     }
     text_str = "Player";
     text_width = 80;
     text_height = 30;
-    translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+ //   translate([ player_box_width + 10, 0, 0 ]) InsetLidTabbedWithLabel(
+   //     width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, text_width = text_width,
+     //   text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 module PlayerBoxTrains()
 {
-    MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = empty_city_height,
+    MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = player_box_height,
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness)
     {
         cube([
@@ -277,8 +278,8 @@ module PlayerBoxTrains()
     text_width = 60;
     text_height = 20;
     translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = player_box_width, length = player_box_trains_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = false);
+        width = player_box_width, length = player_box_trains_length, lid_thickness = lid_thickness,
+        text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = false);
 }
 
 module EmptyCityBox()
@@ -291,13 +292,15 @@ module EmptyCityBox()
     text_str = "Empty City";
     text_width = 80;
     text_height = 20;
-    translate([ empty_city_width + 10, 0, 0 ]) SlidingLid(empty_city_width, empty_city_length, lid_thickness = lid_thickness)
+    translate([ empty_city_width + 10, 0, 0 ])
+        SlidingLid(empty_city_width, empty_city_length, lid_thickness = lid_thickness)
     {
         translate([ 10, 10, 0 ]) LidMeshHex(width = empty_city_width, length = empty_city_length,
                                             lid_thickness = lid_thickness, boundary = 10, radius = 12);
         translate([ (empty_city_width + text_height) / 2, (empty_city_length - text_width) / 2, 0 ])
-            rotate([ 0, 0, 90 ]) MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                                     label = text_str, border = wall_thickness, offset = 4);
+            rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = wall_thickness, offset = 4);
     }
 }
 
@@ -316,8 +319,8 @@ module MoneyBox()
     text_width = 80;
     text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = money_section_width, length = money_section_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, lid_thickness = lid_thickness,
+        text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 module HexBox()
@@ -364,8 +367,8 @@ module NewCityBox()
     text_width = 80;
     text_height = 20;
     translate([ new_city_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = new_city_box_width, length = new_city_box_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = new_city_box_width, length = new_city_box_length, lid_thickness = lid_thickness,
+        text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = true);
 }
 
 module SwedenBox()
@@ -523,10 +526,10 @@ module AustraliaBox()
     text_width = 80;
     text_height = 20;
     translate([ australia_box_width + 10, 0, 0 ])
-        SlidingBoxLidWithLabel(width = australia_box_width, length = australia_box_length, lid_thickness = lid_thickness,
-                               text_width = text_width, text_height = text_height, text_str = text_str,
-                               label_rotated = false) translate([ 44, 15, 0 ]) linear_extrude(height = lid_thickness)
-            scale(0.3) difference()
+        SlidingBoxLidWithLabel(width = australia_box_width, length = australia_box_length,
+                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                               text_str = text_str, label_rotated = false) translate([ 44, 15, 0 ])
+            linear_extrude(height = lid_thickness) scale(0.3) difference()
     {
         fill() import("svg/australia.svg");
         offset(-4) fill() import("svg/australia.svg");
@@ -534,3 +537,8 @@ module AustraliaBox()
 }
 
 PlayerBox();
+
+// FingerHoleBase(radius = 10, height = player_box_height + 1.01, wall_thickness = wall_thickness *2);
+// translate([0,50,0])
+// FingerHoleWall(radius = 10, height = 20);
+//  SlidingLid(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness);

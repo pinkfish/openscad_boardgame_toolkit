@@ -333,27 +333,32 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
     apothem = width / 2;
     radius = apothem / cos(180 / 6);
 
-    RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
+    intersection()
     {
-        union()
+        // Narrow it down to being inside the box itself.
+        translate([ 0, 0, -10 ]) cube([ rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20 ]);
+        RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
         {
-            difference()
+            union()
             {
-                RegularPolygon(width = width, height = 10 + height, shape_edges = 6);
-                RegularPolygon(width = 15, height = push_block_height, shape_edges = 6);
+                difference()
+                {
+                    RegularPolygon(width = width, height = 10 + height, shape_edges = 6);
+                    RegularPolygon(width = 15, height = push_block_height, shape_edges = 6);
+                }
+
+                translate([ 0, apothem, 0 ]) cuboid([ radius, 10, 35 ], anchor = BOT);
+
+                // Put in all the finger holes in the grid.
+                translate([ radius + 1, -apothem, -6 ])
+                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
+                translate([ radius + 1, apothem, -6 ])
+                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
+                translate([ -radius + 1, -apothem, -6 ])
+                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
+                translate([ -radius + 1, apothem, -6 ])
+                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
             }
-
-            translate([ 0, apothem, 0 ]) cuboid([ radius, 10, 35 ], anchor = BOT);
-
-            // Put in all the finger holes in the grid.
-            translate([ radius + 1, -apothem, -6 ])
-                cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ radius + 1, apothem, -6 ])
-                cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ -radius + 1, -apothem, -6 ])
-                cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ -radius + 1, apothem, -6 ])
-                cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
         }
     }
 }
@@ -476,6 +481,111 @@ module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offs
             {
                 linear_extrude(height = lid_thickness / 2) MakeStripedGrid(width = width, length = length);
             }
+        }
+    }
+}
+
+// Module FingerHole()
+// Description:
+//   Creater a finger hole cutout with nice rounded edges at the top and a cylinder of the
+//   specified radius at the bottom.
+// Arguments:
+//   radius = radius of the finger hole
+//   height = height of the finger hole
+//   anchor = anchor for the hole (default CENTER)
+//   depth_of_hole = how deep to make the cut through the wall (default 6)
+//   rounding_radious = how round to make the top in the wall (default 3)
+// Example:
+//   FingerHoleWall(10, 20)
+// Example:
+//   FingerHoleWall(10, 9)
+module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0)
+{
+    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
+    multmatrix(m = tmat) union()
+    {
+        if (height >= radius)
+        {
+            translate([ 0, 0, radius / 2 ]) cuboid([ radius * 2, depth_of_hole, height - radius ],
+                                                   rounding = -rounding_radius, edges = [ TOP + LEFT, TOP + RIGHT ]);
+        }
+        else
+        {
+            translate([ 0, 0, height ]) rotate([ 90, 0, 0 ]) intersection()
+            {
+                translate([ 0, -height / 2, 0 ])
+                    cuboid([ radius * 2 + rounding_radius * 2, height, depth_of_hole ], anchor = CENTER);
+                union()
+                {
+                    tangents = circle_circle_tangents(rounding_radius,
+                                                      [
+                                                          radius + rounding_radius,
+                                                          -rounding_radius,
+                                                      ],
+                                                      radius, [ 0, -height + radius ]);
+                    for (i = [0:1:1])
+                        mirror([ i, 0, 0 ]) union()
+                        {
+                            translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
+                                tangents[3][1], tangents[3][0], [ tangents[3][0][0] + 0.1, 0 ], [ tangents[3][1][0], 0 ]
+                            ]);
+
+                            difference()
+                            {
+                                translate([ radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5 ])
+                                    difference()
+                                {
+                                    cuboid([ rounding_radius, rounding_radius, depth_of_hole + 1 ],
+                                           anchor = BOTTOM + FRONT + RIGHT);
+                                    cyl(r = rounding_radius, h = depth_of_hole + 1, $fn = 32, anchor = BOTTOM);
+                                }
+
+                                translate([ 0, 0, -depth_of_hole / 2 - 0.5 ]) linear_extrude(height = depth_of_hole + 1)
+                                    polygon([
+                                        tangents[3][1], tangents[3][0], [ tangents[3][0][0], height - radius * 2 ],
+                                        [ tangents[3][1][0], height - radius * 2 ]
+                                    ]);
+                            }
+                        }
+                    translate([ 0, -height + radius, 0 ]) cyl(r = radius, h = depth_of_hole, $fn = 64);
+                }
+            }
+        }
+    }
+}
+
+// Module: FingerHoleBase()
+// Description:
+//    Creates a hole in the floor of the box with a rounding over at the top to allow for picking up of cards
+//    and other things.
+// Usage: FingerHoldBase(10, 20);
+// Arguments:
+//    radius = radius of the hole
+//    height = height of the wall
+//    wall_thickness = this is used as an offset to move in from the wall by this amount to cut through it (default 2)
+//    rounding_radius = rounding radius at the top of the hole (default 3)
+//    orient = orintation of the hole, from BSOL2 (default UP)
+//    spin = spin of the hole, from BSOL2 (default 0)
+//    anchor = location to anchor everything (from BSOL2)
+// Example:
+//    FingerHoleBase(10, 20);
+// Example:
+//    FingerHoleBase(10, 20, rounding_radius = 7);
+module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, floor_thickness = 2, orient = UP,
+                      spin = 0)
+{
+    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
+    multmatrix(m = tmat) union()
+    {
+        translate([ 0, -wall_thickness, height ])
+        {
+            translate([ 0, wall_thickness / 2, 0 ])
+                cyl(r = radius, h = height + floor_thickness * 2, anchor = TOP + LEFT, $fn = 64);
+            cuboid([ radius * 2, wall_thickness + 1, height + floor_thickness * 2 ], rounding = -rounding_radius,
+                   edges = [ TOP + LEFT, TOP + RIGHT ], anchor = TOP + LEFT, $fn = 32);
+            translate([ radius, -wall_thickness / 2 - 0.01, 0 ]) rotate([ 90, 90, 0 ])
+                cuboid([ height + floor_thickness * 2, radius * 2, wall_thickness ], rounding = -wall_thickness / 2,
+                       anchor = TOP + LEFT, $fn = 32, edges = [ FRONT + TOP, TOP + BACK ]);
         }
     }
 }
@@ -932,19 +1042,16 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
             }
 
             // Edge easing.
-            translate([ -lid_size_spacing, length + wall_thickness / 2 + lid_size_spacing, -lid_thickness / 2 ])
-                linear_extrude(height = lid_thickness + 10) yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
             translate([
-                width - wall_thickness - lid_size_spacing, length + wall_thickness + lid_size_spacing,
+                -lid_size_spacing, /*length + wall_thickness / 2 + lid_size_spacing*/ -lid_size_spacing,
                 -lid_thickness / 2
-            ]) linear_extrude(height = lid_thickness + 10) xflip() yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([
-                lid_thickness / 2 - lid_size_spacing, length + wall_thickness / 2 + lid_size_spacing, lid_thickness -
-                lid_size_spacing
-            ]) linear_extrude(height = lid_thickness + 10) yflip() right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([ width - 3.2 + lid_size_spacing, length + 1.1, lid_thickness - lid_size_spacing ])
-                linear_extrude(height = lid_thickness + 10) xflip() yflip()
-                    right_triangle([ lid_size_spacing * 2, 15 ]);
+            ]) linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
+            translate([ width - wall_thickness - lid_size_spacing, -lid_size_spacing, -lid_thickness / 2 ])
+                linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
+            translate([ lid_thickness / 2 - lid_size_spacing, -lid_size_spacing, lid_thickness - lid_size_spacing ])
+                linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
+            translate([ width - 3.2 + lid_size_spacing, -lid_size_spacing, lid_thickness - lid_size_spacing ])
+                linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
         }
         if ($children > 0)
         {
@@ -1274,9 +1381,7 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
 //   sliding lid pieces.  The children to this will be removed from inside the box and how to add
 //   in the cutouts.
 //   .
-//   This will make
-//   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
-//   do this with a difference after making this object.
+//   The children all start from the edge inside the wall width and up from the floor in the box.
 // Usage:
 //   MakeBoxWithSlidingLid(50,100,20);
 // Arguments:
@@ -1299,14 +1404,8 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_thic
         translate([ wall_thickness / 2, -1, height - lid_thickness ])
             cube([ width - wall_thickness, length - wall_thickness / 2 + 1, lid_thickness / 2 ]);
 
-        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-        // just not the walls.
-        intersection()
-        {
-            translate([ wall_thickness, wall_thickness, -1 ])
-                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-        }
+        // Make everything start from the bottom corner of the bopx.
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
     }
 }
 
@@ -1719,14 +1818,8 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_th
                        prism_width = prism_width, wall_thickness = wall_thickness);
         }
 
-        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-        // just not the walls.
-        intersection()
-        {
-            translate([ wall_thickness, wall_thickness, -1 ])
-                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-        }
+        // Make sure the children start from the bottom corner of the box.
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
         // Cuff off the bit on the bottom to allow for stacking.
         if (stackable)
         {
@@ -1814,8 +1907,7 @@ module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_
 module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 0, size_spacing = m_piece_wiggle_room,
                               wall_height = undef, floor_thickness = 2, lid_thickness = 2)
 {
-    wall_height_calc = wall_height == undef ? height - floor_thickness - lid_thickness + size_spacing : wall_height;
-    echo(wall_height_calc);
+    wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
     difference()
     {
         union()
@@ -1829,19 +1921,8 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 
                 cube([ width, length, foot ]);
             }
         }
-        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-        // just not the walls.
-        intersection()
-        {
-            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, -1 ])
 
-                cube([
-                    width - wall_thickness * 4 - size_spacing * 2, length - wall_thickness * 4 - size_spacing * 2,
-                    height + 2
-                ]);
-            translate([ wall_thickness * 2 + size_spacing, wall_thickness * 2 + size_spacing, floor_thickness ])
-                children();
-        }
+        translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children();
     }
 }
 
@@ -1861,50 +1942,65 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
 module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness = 2, size_spacing = m_piece_wiggle_room,
-                      foot = 0)
+                      foot = 0, finger_hole_length = false, finger_hole_width = true)
 {
     foot_offset = foot > 0 ? foot + size_spacing : 0;
     translate([ 0, length, height - foot ]) rotate([ 180, 0, 0 ])
     {
         union()
         {
-            translate([ 0, 0, height - foot_offset ]) internal_build_lid(width, length, wall_thickness, wall_thickness)
+            translate([ 0, 0, height - foot_offset - lid_thickness ])
             {
-                difference()
+                internal_build_lid(width, length, wall_thickness, wall_thickness)
                 {
                     // Top piece
                     cube([ width, length, lid_thickness ]);
-                }
-                if ($children > 0)
-                {
-                    children(0);
-                }
-                if ($children > 1)
-                {
-                    children(1);
-                }
-                if ($children > 2)
-                {
-                    children(2);
-                }
-                if ($children > 3)
-                {
-                    children(3);
-                }
-                if ($children > 4)
-                {
-                    children(4);
-                }
-                if ($children > 5)
-                {
-                    children(5);
+                    if ($children > 0)
+                    {
+                        children(0);
+                    }
+                    if ($children > 1)
+                    {
+                        children(1);
+                    }
+                    if ($children > 2)
+                    {
+                        children(2);
+                    }
+                    if ($children > 3)
+                    {
+                        children(3);
+                    }
+                    if ($children > 4)
+                    {
+                        children(4);
+                    }
+                    if ($children > 5)
+                    {
+                        children(5);
+                    }
                 }
             }
+            finger_height = min(10, (height - foot_offset - lid_thickness) / 2);
             difference()
             {
                 cube([ width, length, height - foot_offset ]);
                 translate([ wall_thickness, wall_thickness, -0.5 ])
                     cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
+                if (finger_hole_length)
+                {
+                    translate([ width / 2, 0, finger_height - 0.01 ]) mirror([ 0, 0, 1 ])
+                        FingerHoleWall(radius = 7, height = finger_height);
+                    translate([ width / 2, length, finger_height - 0.01 ]) mirror([ 0, 0, 1 ])
+                        FingerHoleWall(radius = 7, height = finger_height);
+                }
+                if (finger_hole_width)
+                {
+                    translate([ 0, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
+                        FingerHoleWall(radius = 7, height = finger_height);
+                    translate([ width, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
+                        FingerHoleWall(radius = 7, height = finger_height);
+                }
             }
         }
     }
@@ -1934,10 +2030,12 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
 module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
                             wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
                             foot = 0, layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
-                            shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 2)
+                            shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 2,
+                            finger_hole_length = false, finger_hole_width = true)
 {
     SlipoverBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness, foot = foot,
-                   lid_thickness = lid_thickness)
+                   lid_thickness = lid_thickness, finger_hole_length = finger_hole_length,
+                   finger_hole_width = finger_hole_width)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
@@ -2777,7 +2875,7 @@ module HilbertCurve(order, size, line_thickness = 20, smoothness = 32)
 //   play = the offset on the piece to add as play (default 0.1)
 //   y = specific places to do the join points at (default [ minY : ( maxY - minY ) / 10 : maxY ])
 // Example:
-//   SplitBox(100, 50, 20, spin = 90) { 
+//   SplitBox(100, 50, 20, spin = 90) {
 //        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
@@ -2786,7 +2884,7 @@ module HilbertCurve(order, size, line_thickness = 20, smoothness = 32)
 //        MakePuzzleJoin();
 //   }
 // Example:
-//   SplitBox(100, 50, 20, orient = LEFT, spin = 90) { 
+//   SplitBox(100, 50, 20, orient = LEFT, spin = 90) {
 //        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
@@ -2795,7 +2893,7 @@ module HilbertCurve(order, size, line_thickness = 20, smoothness = 32)
 //        MakePuzzleJoin();
 //   }
 // Example:
-//   SplitBox(100, 50, 20, orient = FRONT) { 
+//   SplitBox(100, 50, 20, orient = FRONT) {
 //        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
 //        foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
