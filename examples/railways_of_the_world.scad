@@ -73,6 +73,9 @@ eastern_us_card_box_length =
 player_box_width = (box_length - card_box_width - 2) / 3;
 player_box_length = train_card_width + silo_piece_height * 2 + roundhouse_height + inner_wall * 2 + wall_thickness * 2;
 player_box_height = silo_piece_width + lid_thickness * 2;
+player_box_silo_lid_hole_first = 81;
+player_box_silo_lid_hole_second = 121;
+player_box_silo_lid_hole_size = 4;
 
 top_section_height = all_boxes_height - player_box_height * 2;
 top_section_width = box_length - card_box_width - 2;
@@ -103,7 +106,7 @@ australia_box_width = expansion_area_box_width;
 australia_box_length = 4 * tile_width + australia_switch_track_token_radius * 2 + wall_thickness * 2 + inner_wall / 2;
 
 echo(player_box_length + player_box_trains_length);
-echo([player_box_length, player_box_trains_length]);
+echo([ player_box_length, player_box_trains_length ]);
 
 module CardBoxEasternUS()
 {
@@ -236,7 +239,7 @@ module PlayerBox()
             translate([
                 0,
                 roundhouse_height + inner_wall * 2 + silo_piece_height * 2,
-                player_box_height - lid_thickness - card_height,
+                player_box_height - lid_thickness - card_height-1,
             ]) cube([ train_card_length, train_card_width, player_box_height ]);
             // Recessed box for crossings.
             difference()
@@ -259,9 +262,19 @@ module PlayerBox()
     text_str = "Player";
     text_width = 80;
     text_height = 30;
- //   translate([ player_box_width + 10, 0, 0 ]) InsetLidTabbedWithLabel(
-   //     width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, text_width = text_width,
-     //   text_height = text_height, text_str = text_str, label_rotated = true);
+    translate([ player_box_width + 10, 0, 0 ])
+    {
+        difference()
+        {
+            InsetLidTabbedWithLabel(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
+                                    text_width = text_width, text_height = text_height, text_str = text_str,
+                                    label_rotated = true);
+            translate([ 6, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size,  0.5 ])
+                cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
+            translate([ 6, player_box_silo_lid_hole_second - player_box_silo_lid_hole_size, 0.5 ])
+                cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
+        }
+    }
 }
 
 module PlayerBoxTrains()

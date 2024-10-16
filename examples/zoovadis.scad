@@ -352,8 +352,11 @@ module ShieldBox()
                              text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20,
                              shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, lid_thickness = 1.5,
                              wall_thickness = 1.5, label_rotated = true, finger_hole_length = true,
-                             finger_hole_width = true);
-        MakePuzzleJoin();
+                             finger_hole_width = false);
+        union() {
+             MakePuzzleJoin();
+            translate([ 0.5, shield_box_height / 2 - 2.9, 0 ]) rotate([ 0, 0, 90 ]) trapezoid(h = 1, w1 = 0.7, w2 = 0.4);
+        }
     }
 }
 
