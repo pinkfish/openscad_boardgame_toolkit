@@ -485,7 +485,7 @@ module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offs
     }
 }
 
-// Module FingerHole()
+// Module FingerHoleWall()
 // Description:
 //   Creater a finger hole cutout with nice rounded edges at the top and a cylinder of the
 //   specified radius at the bottom.
@@ -508,8 +508,9 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
         {
             top_height = radius * 2 - height;
             middle_height = radius - top_height;
-            translate([ 0, 0, height ]) cuboid([ radius * 2, depth_of_hole, middle_height  ],
-                                                   rounding = -rounding_radius, edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 16, anchor = TOP);
+            translate([ 0, 0, height ])
+                cuboid([ radius * 2, depth_of_hole, middle_height ], rounding = -rounding_radius,
+                       edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 16, anchor = TOP);
             translate([ 0, 0, 0 ]) ycyl(r = radius, h = depth_of_hole, $fn = 64, anchor = BOTTOM);
         }
         else
@@ -562,7 +563,8 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 // Module: FingerHoleBase()
 // Description:
 //    Creates a hole in the floor of the box with a rounding over at the top to allow for picking up of cards
-//    and other things.
+//    and other things.  Center on the side of the wall and the radius of the main section is the offset to the
+//    middle.
 // Usage: FingerHoldBase(10, 20);
 // Arguments:
 //    radius = radius of the hole
@@ -582,7 +584,7 @@ module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, f
     tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
     multmatrix(m = tmat) union()
     {
-        translate([ 0, -wall_thickness, height ])
+        translate([ -rounding_radius, -wall_thickness/2, height ])
         {
             translate([ 0, wall_thickness / 2, 0 ])
                 cyl(r = radius, h = height + floor_thickness * 2, anchor = TOP + LEFT, $fn = 64);
@@ -1038,24 +1040,37 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
             // Lip and raised bit
             union()
             {
-                translate([ wall_thickness / 2, wall_thickness / 2, 0 ])
-                    cube([ width - 2 * (wall_thickness + lid_size_spacing), length - wall_thickness, lid_thickness ]);
-                translate([ 0, 0, 0 ]) cube([
-                    width - wall_thickness - lid_size_spacing, length - wall_thickness / 2, lid_thickness / 2 -
-                    lid_size_spacing
-                ]);
+                difference()
+                {
+                    translate([ wall_thickness / 2, wall_thickness / 2, 0 ]) cuboid(
+                        [ width - 2 * (wall_thickness + lid_size_spacing), length - wall_thickness, lid_thickness ],
+                        anchor = BOTTOM + FRONT + LEFT);
+                    // Top edge easing.
+                    translate([
+                        wall_thickness / 2 - lid_size_spacing, wall_thickness / 2 - lid_size_spacing,
+                        lid_thickness / 2 -
+                        lid_size_spacing
+                    ]) linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
+                    translate([
+                        width - wall_thickness * 2 + lid_size_spacing * 3.2, wall_thickness / 2 - lid_size_spacing,
+                        lid_thickness / 2 -
+                        lid_size_spacing
+                    ]) linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
+                }
+                // bottom layer.
+                translate([ 0, 0, 0 ]) cuboid(
+                    [
+                        width - wall_thickness - lid_size_spacing, length - wall_thickness / 2, lid_thickness / 2 -
+                        lid_size_spacing
+                    ],
+                    anchor = BOTTOM + FRONT + LEFT, chamfer = lid_thickness / 6,
+                    edges = [ TOP + LEFT, TOP + RIGHT, TOP + FRONT ]);
             }
 
             // Edge easing.
-            translate([
-                -lid_size_spacing, /*length + wall_thickness / 2 + lid_size_spacing*/ -lid_size_spacing,
-                -lid_thickness / 2
-            ]) linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([ width - wall_thickness - lid_size_spacing, -lid_size_spacing, -lid_thickness / 2 ])
-                linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([ lid_thickness / 2 - lid_size_spacing, -lid_size_spacing, lid_thickness - lid_size_spacing ])
+            translate([ -lid_size_spacing / 20, -lid_size_spacing, -lid_thickness / 2 ])
                 linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([ width - 3.2 + lid_size_spacing, -lid_size_spacing, lid_thickness - lid_size_spacing ])
+            translate([ width - wall_thickness - lid_size_spacing / 1.1, -lid_size_spacing, -lid_thickness / 2 ])
                 linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
         }
         if ($children > 0)
@@ -1399,17 +1414,21 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
-module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_thickness = 3, floor_thickness = 2)
+module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_thickness = 3, floor_thickness = 2,
+                             lid_size_spacing = m_piece_wiggle_room)
 {
     difference()
     {
         cube([ width, length, height ]);
-        translate([ wall_thickness, -1, height - lid_thickness ])
-            cube([ width - wall_thickness * 2, length - wall_thickness + 1, lid_thickness + 0.1 ]);
-        translate([ wall_thickness / 2, -1, height - lid_thickness ])
-            cube([ width - wall_thickness, length - wall_thickness / 2 + 1, lid_thickness / 2 ]);
+        translate([ wall_thickness, -lid_size_spacing / 2, height - lid_thickness ]) cube([
+            width - wall_thickness * 2, length - wall_thickness + lid_size_spacing, lid_thickness + lid_size_spacing / 2
+        ]);
+        translate([ wall_thickness / 2, -lid_size_spacing / 2, height - lid_thickness ])
+            cuboid([ width - wall_thickness, length - wall_thickness / 2 + lid_size_spacing * 2, lid_thickness / 2 ],
+                   anchor = BOTTOM + FRONT + LEFT, chamfer = lid_thickness / 6,
+                   edges = [ TOP + LEFT, TOP + RIGHT, TOP + BACK ]);
 
-        // Make everything start from the bottom corner of the bopx.
+        // Make everything start from the bottom corner of the box.
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
     }
 }
@@ -1438,8 +1457,12 @@ module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
 {
     internal_build_lid(width, length, lid_thickness, wall_thickness, lid_size_spacing = lid_size_spacing)
     {
-        translate([ wall_thickness - inset, wall_thickness - inset, 0 ])
-            cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness ]);
+        translate([ wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0 ])
+            cube([
+                width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
+                length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
+                lid_thickness
+            ]);
         if ($children > 0)
         {
             children(0);
@@ -1808,23 +1831,25 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_th
     difference()
     {
         cube([ width, length, height ]);
-        translate([ wall_thickness - inset, wall_thickness - inset, height - lid_thickness ]) cube([
-            width - (wall_thickness - inset + m_piece_wiggle_room) * 2,
-            length - (wall_thickness - inset + m_piece_wiggle_room) * 2, lid_thickness + 0.1
-        ]);
+        translate([
+            wall_thickness - inset + lid_size_spacing, wall_thickness - inset + lid_size_spacing, height - lid_thickness
+        ])
+            cube([
+                width - (wall_thickness - inset) * 2 - lid_size_spacing * 2,
+                length - (wall_thickness - inset) * 2 - lid_size_spacing * 2, lid_thickness + 0.1
+            ]);
         translate([ 0, 0, height - lid_thickness ])
             MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness,
                      lid_thickness = lid_thickness, tab_length = tab_length, prism_width = prism_width,
                      make_tab_length = make_tab_length, make_tab_width = make_tab_width) minkowski()
         {
-            translate([ -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2, -m_piece_wiggle_room / 2 ])
-                cube(m_piece_wiggle_room);
+            translate([ -lid_size_spacing / 2, -lid_size_spacing / 2, -lid_size_spacing / 2 ]) cube(lid_size_spacing);
             MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
                        prism_width = prism_width, wall_thickness = wall_thickness);
         }
 
         // Make sure the children start from the bottom corner of the box.
-        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+        translate([ wall_thickness + lid_size_spacing, wall_thickness + lid_size_spacing, floor_thickness ]) children();
         // Cuff off the bit on the bottom to allow for stacking.
         if (stackable)
         {
@@ -1857,11 +1882,12 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_th
 //   tile_width = the width of the files
 //   lid_thickness = height of the lid (default 2)
 //   floor_thickness = thickness of the floor (default 2)
+//   wall_thickness = the thickness of the wall (default 2)
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   MakeHexBoxWithInsetTabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
 module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_width, lid_thickness = 2,
-                                    floor_thickness = 2)
+                                    floor_thickness = 2, spacing = 0, wall_thickness = 2)
 {
     width = tile_width;
     apothem = width / 2;
@@ -1869,24 +1895,11 @@ module MakeHexBoxWithInsetTabbedLid(rows, cols, height, push_block_height, tile_
 
     MakeBoxWithTabsInsetLid(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
                             lid_thickness = lid_thickness, floor_thickness = floor_thickness)
-        RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
+
     {
-        union()
-        {
-            difference()
-            {
-                RegularPolygon(width = width, height = 10 + height, shape_edges = 6);
-                RegularPolygon(width = 15, height = push_block_height, shape_edges = 6);
-            }
-
-            translate([ 0, apothem, 0 ]) cuboid([ radius, 10, 35 ], anchor = BOT);
-
-            // Put in all the finger holes in the grid.
-            translate([ radius + 1, -apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ radius + 1, apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ -radius + 1, -apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            translate([ -radius + 1, apothem, -6 ]) cuboid([ radius + 2, 15, radius * 2 ], anchor = BOT, rounding = 3);
-        }
+        HexGridWithCutouts(rows = rows, cols = cols, height = height, tile_width = tile_width, spacing = spacing,
+                           wall_thickness = wall_thickness);
+        children();
     }
 }
 
@@ -2404,7 +2417,7 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = 1, wall
 // Module: SlidingCatchBoxLid()
 // Topics: SlidingCatch
 // Arguments:
-//   width = outside width of the box
+//    width = outside width of the box
 //    length = inside width of the box
 //    lid_thickness = thickness of the lid (default 1)
 //    wall_thickness = thickness of the walls (default 2)
@@ -2529,6 +2542,295 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
                 MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = calc_lid_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+
+        if ($children > 0)
+        {
+            children(0);
+        }
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+    }
+}
+
+// Section: MagneticLid
+// Description:
+//   Lid using magnets to hold the top and bottom together.
+
+// Module: MakeBoxWithMagneticLid
+// Description:
+//   Makes a box with holes for the round magnets in the corners.
+// Topics: MagneticLid
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    magnet_diameter = diameter of the magnet
+//    magnet_thickness = thickness of the magnet
+//    lid_thickness = thickness of the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
+// Example:
+//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1);
+module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thickness, lid_thickness = 2,
+                              magnet_border = 1.5, wall_thickness = 2, floor_thickness = 2)
+{
+    difference()
+    {
+        cube([ width, length, height - lid_thickness ]);
+        translate([
+            magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, height - lid_thickness -
+            magnet_thickness
+        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        translate([
+            width - magnet_diameter / 2 - magnet_border, magnet_diameter / 2 + magnet_border, height - lid_thickness -
+            magnet_thickness
+        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        translate([
+            width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border,
+            height - lid_thickness -
+            magnet_thickness
+        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        translate([
+            magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border, height - lid_thickness -
+            magnet_thickness
+        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+    }
+}
+
+// Module: MakeBoxWithMagneticLidInsideSpace()
+// Description:
+//   Makes the inside space template for the box so that it can used to intersect to pull out the corners
+//   for the magnet safely.
+// Usage: MakeBoxWithMagneticLidInsideSpace(100, 20, 20, 4, 1);
+// Topics: MagneticLid
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    magnet_diameter = diameter of the magnet
+//    magnet_thickness = thickness of the magnet
+//    lid_thickness = thickness of the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
+//    full_height = if the cyclinder should be the full height of the box (default true)
+//    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
+// Example:
+//    MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness =
+//    1);
+// Example:
+//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1)
+//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness =
+//      1);
+// Example:
+//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1)
+//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, 
+//      magnet_thickness = 1, full_height = false);
+module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter, magnet_thickness, lid_thickness = 2,
+                                         magnet_border = 1.5, wall_thickness = 2, floor_thickness = 2,
+                                         full_height = false)
+{
+    module make_side_cylinder(box_size)
+    {
+        union()
+        {
+            actual_height = full_height ? height - lid_thickness - floor_thickness : box_size;
+            if (full_height)
+            {
+                offset = wall_thickness;
+                translate([
+                    -offset + box_size / 2, -offset + box_size / 2, height - lid_thickness - floor_thickness -
+                    actual_height
+                ]) cyl(h = actual_height, d = box_size, anchor = BOTTOM, $fn = 32);
+            }
+            else
+            {
+                offset = wall_thickness + box_size / 2 - wall_thickness;
+                translate([
+                    -wall_thickness + box_size / 2, -wall_thickness + box_size / 2,
+                    height - lid_thickness - floor_thickness - magnet_thickness * 1.5
+                ]) cyl(h = magnet_thickness * 1.5, d = box_size, anchor = BOTTOM, $fn = 32);
+                translate([
+                    -offset + box_size / 2, -offset + box_size / 2,
+                    height - lid_thickness - floor_thickness - actual_height - magnet_thickness * 1.5
+                ]) cyl(h = actual_height + 0.01, d2 = box_size, d1 = full_height ? box_size : 0, anchor = BOTTOM,
+                       $fn = 32, shift = [ box_size / 2 - wall_thickness, box_size / 2 - wall_thickness ]);
+            }
+            side_radius = box_size / 2 - wall_thickness;
+            echo(side_radius);
+            if (side_radius > 0 && full_height)
+            {
+                difference()
+                {
+
+                    translate([
+                        -wall_thickness + box_size, -wall_thickness + box_size / 2 - side_radius,
+                        height - lid_thickness - floor_thickness -
+                        actual_height
+                    ]) prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
+                                size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
+                    translate([
+                        -wall_thickness + box_size + side_radius, -wall_thickness + box_size / 2,
+                        height - lid_thickness - floor_thickness -
+                        actual_height
+                    ]) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
+                }
+                difference()
+                {
+                    translate([
+                        -wall_thickness + box_size / 2 - side_radius, -wall_thickness + box_size,
+                        height - lid_thickness - floor_thickness -
+                        actual_height
+                    ]) prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
+                                size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
+                    translate([
+                        -wall_thickness + box_size / 2, -wall_thickness + box_size + side_radius,
+                        height - lid_thickness - floor_thickness -
+                        actual_height
+                    ]) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
+                }
+            }
+        }
+    }
+
+    difference()
+    {
+        cube([
+            width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness + 0.1
+        ]);
+        box_size = magnet_diameter + magnet_border * 2;
+        make_side_cylinder(box_size);
+        translate([ width - wall_thickness * 2, 0, 0 ]) rotate([ 0, 0, 90 ]) make_side_cylinder(box_size);
+        translate([ width - wall_thickness * 2, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 180 ])
+            make_side_cylinder(box_size);
+        translate([ 0, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 270 ]) make_side_cylinder(box_size);
+    }
+}
+
+// Module: MagneticBoxLid()
+// Topics: MagneticLid
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    lid_thickness = thickness of the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    floor_thickness = thickness of the floor (default 2)
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    top_thickness = the thickness of the all above the catch (default 2)
+// Usage: MagneticBoxLid(100, 50, 5, 1);
+// Example:
+//    MagneticBoxLid(100, 50, 5,1);
+module MagneticBoxLid(width, length, magnet_diameter, magnet_thickness, magnet_border = 1.5, lid_thickness = 1,
+                      wall_thickness = 2, top_thickness = 2)
+{
+
+    internal_build_lid(width, length, lid_thickness, wall_thickness)
+    {
+        difference()
+        {
+            cube([ width, length, lid_thickness ]);
+            translate([ magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, -1 ])
+                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+            translate([ width - magnet_diameter / 2 - magnet_border, magnet_diameter / 2 + magnet_border, -1 ])
+                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+            translate([ width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border, -1 ])
+                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+            translate([ magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border, -1 ])
+                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        }
+        if ($children > 0)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(0);
+        }
+        if ($children > 1)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(1);
+        }
+        if ($children > 2)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(2);
+        }
+        if ($children > 3)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(3);
+        }
+        if ($children > 4)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(4);
+        }
+        if ($children > 5)
+        {
+            translate([ wall_thickness, 0, 0 ]) children(5);
+        }
+    }
+}
+
+// Module: MagneticBoxLidWithLabel()
+// Topics: SlidingCatch
+// Description:
+//    Lid for a sliding catch with a label on top of it.
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default 1)
+//    top_thickness = thickness of the top above the lid (default 1)
+//    wall_thickness = thickness of the walls (default 2)
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
+//    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
+//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    label_radius = radius of the label corners (default 12)
+//    border= border of the item (default 2)
+//    offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default 12)
+//    shape_width = width of the shape (default layout_width)
+//    shape_thickness = how wide the pieces are (default 2)
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+// Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
+module MagneticBoxLidWithLabel(width, length, magnet_diameter, magnet_thickness, text_width, text_height, text_str,
+                               magnet_border = 1.5, lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
+                               label_rotated = false, layout_width = 12, shape_width = 12,
+                               shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, lid_thickness = 2)
+{
+    MagneticBoxLid(width = width, length = length, magnet_diameter = magnet_diameter,
+                   magnet_thickness = magnet_thickness, magnet_border = magnet_border, lid_thickness = lid_thickness)
+    {
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
+                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
+                         shape_thickness = shape_thickness);
+        if (label_rotated)
+        {
+            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = border, offset = offset);
+        }
+        else
+        {
+            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
                                     label = text_str, border = border, offset = offset);
         }
 

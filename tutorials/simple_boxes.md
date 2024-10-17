@@ -10,7 +10,11 @@
   - [Tabbed Boxes](#tabbed-boxes)
     - [Simple tabbed box](#simple-tabbed-box)
     - [Tabbed hex box](#tabbed-hex-box)
+  - [Other box types](#other-box-types)
     - [Capped box](#capped-box)
+    - [Slipover box](#slipover-box)
+    - [Sliding Catch box](#sliding-catch-box)
+    - [Magnetic box](#magnetic-box)
 
 
 ## Sliding boxes
@@ -103,13 +107,12 @@ top_section_height = 20;
 
 module MoneyBox()
 {
-    difference()
+    MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
-        {
-            cube([ money_width, money_length, top_section_height ]);
-        }
-        translate([ money_section_width / 2, 1, -1 ]) cyl(h = top_section_height * 3, r = 15);
+        cube([ money_width, money_length, top_section_height ]);
+        
+        translate([ money_section_width / 2 - 15, 0, top_section_height - 20 ])
+            FingerHoleBase(radius = 15, height = 20);
     }
     text_str = "Money";
     text_width = 80;
@@ -167,7 +170,7 @@ module GridBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        RoundedBoxGrid(width = money_section_width, length = money_section_length, 
+        RoundedBoxGrid(width = money_section_width-wall_thickness * 2, length = money_section_length-wall_thickness * 2, 
             height = top_section_height, rows = 2, cols = 2, radius = 4, all_sides = true);
     }
     text_str = "Grid";
@@ -247,6 +250,7 @@ TabbedHexBox();
 
 ```
 
+## Other box types
 
 ### Capped box
 
@@ -267,4 +271,71 @@ MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_leng
     RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
                         length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
                         radius = 5);
+```
+
+
+### Slipover box
+
+
+Make a lid and base for a slipover box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+MakeBoxWithSlipoverLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2)
+    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
+                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                        radius = 5);
+```
+
+### Sliding Catch box
+
+
+Make a lid and base for a sliding catch box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+MakeBoxWithSlidingCatchLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2)
+    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
+                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                        radius = 5);
+```
+
+### Magnetic box
+
+
+Make a lid and base for a magnetic box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+MakeBoxWithMagneticLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
+                    magnet_diameter = 5, magnet_thickness = 1) {
+    intersection() {
+        MakeBoxWithMagneticLidInsideSpace(width = canvas_piece_box_width, length = canvas_piece_box_length, 
+            height = canvas_piece_box_height, magnet_diameter = 5, magnet_thickness = 1);
+        RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
+                            length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                            radius = 5);
+    }
+}
 ```

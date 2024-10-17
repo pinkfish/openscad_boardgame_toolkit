@@ -61,7 +61,7 @@ top_layer_thickness = box_height - player_box_height * 2;
 
 shield_box_height = top_layer_thickness;
 shield_box_length = box_length - 1;
-shield_box_width = shield_width + wall_thickness * 5 + 2;
+shield_box_width = shield_width + wall_thickness * 5 + 4;
 
 rest_width = box_length - player_box_length * 3 - laurel_box_length;
 laurel_box_rest = box_width - laurel_box_width - 1;
@@ -360,4 +360,4 @@ module ShieldBox()
     }
 }
 
-ShieldBox();
+HyenaBox();
