@@ -44,7 +44,7 @@ single_card_thickness = ten_cards_thickness / 10;
 
 money_thickness = 10;
 money_length = 134;
-money_width = 60;
+money_width = 62;
 tile_width = 29;
 tile_thickness = 2;
 sweden_bonus_length = 35;
@@ -85,8 +85,8 @@ western_us_expansion_box_width = 41;
 hex_box_length = 207;
 hex_box_width = 172;
 
-money_section_width = money_width + wall_thickness * 2;
-money_section_length = money_length + wall_thickness * 2;
+money_section_width = money_width + 1.5 + wall_thickness * 2;
+money_section_length = money_length + 1.5 + wall_thickness * 2;
 
 new_city_box_length = hex_box_width;
 new_city_box_width = box_width - money_section_width - hex_box_length;
@@ -266,9 +266,9 @@ module PlayerBox()
             InsetLidTabbedWithLabel(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
                                     text_width = text_width, text_height = text_height, text_str = text_str,
                                     label_rotated = true);
-            translate([ 6, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5 ])
+            translate([ player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5 ])
                 cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
-            translate([ 6, player_box_silo_lid_hole_second - player_box_silo_lid_hole_size, 0.5 ])
+            translate([ player_box_width - 56, player_box_silo_lid_hole_second - player_box_silo_lid_hole_size, 0.5 ])
                 cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
         }
     }
@@ -545,10 +545,19 @@ module AustraliaBox()
     }
 }
 
+MoneyBox();
+
 // CardBoxSweden();
 
 // FingerHoleBase(radius = 10, height = player_box_height + 1.01, wall_thickness = wall_thickness *2);
 // translate([0,50,0])
 // FingerHoleWall(radius = 10, height = 20);
 
-PlayerBox();
+// PlayerBox();
+
+// MakeBoxWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
+//{
+//   cube([ 20 - 8, 60 - 4, 20 ]);
+//  cube([ 20 - 8, 60 - 4, 20 ]);
+// };
+//  link(20, 0.5, cone_gap = 1, cone_r1 = 5, cone_r2 = 2, side_offset = 1);
