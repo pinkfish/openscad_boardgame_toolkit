@@ -41,7 +41,7 @@ rhino_width = 23.3841;
 
 special_token_diameter = 30.75;
 special_token_length = 49;
-special_token_stalk_width = 15;
+special_token_stalk_width = 16;
 special_token_gap = 2;
 special_token_thickness = 4;
 special_token_angle_length = special_token_stalk_width / sqrt(2);
@@ -360,4 +360,4 @@ module ShieldBox()
     }
 }
 
-HyenaBox();
+RhinoBox();
