@@ -584,7 +584,7 @@ module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, f
     tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
     multmatrix(m = tmat) union()
     {
-        translate([ -rounding_radius, -wall_thickness/2, height ])
+        translate([ -rounding_radius, -wall_thickness / 2, height ])
         {
             translate([ 0, wall_thickness / 2, 0 ])
                 cyl(r = radius, h = height + floor_thickness * 2, anchor = TOP + LEFT, $fn = 64);
@@ -1512,7 +1512,7 @@ module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
 //   InsetLidTabbed(30, 100);
 module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
                       lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
-                      prism_width = 0.75, tab_length = 10, tab_height = 6)
+                      prism_width = 0.75, tab_length = 10, tab_height = 8)
 {
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
     {
@@ -1589,7 +1589,7 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
                                label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
-                               tab_height = 6, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
+                               tab_height = 8, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
                                layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
                                shape_thickness = 2)
 {
@@ -1663,7 +1663,7 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
 // Example:
 //   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
 module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0,
-                               tab_height = 6, tab_length = 10, inset = 1, make_tab_width = false,
+                               tab_height = 8, tab_length = 10, inset = 1, make_tab_width = false,
                                make_tab_length = true, prism_width = 0.75)
 {
     width = tile_width;
@@ -1737,7 +1737,7 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_t
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str, lid_thickness = 3,
                                         lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
-                                        label_rotated = false, wall_thickness = 2, tab_height = 6, tab_length = 10,
+                                        label_rotated = false, wall_thickness = 2, tab_height = 8, tab_length = 10,
                                         inset = 1, layout_width = 12, shape_width = 12,
                                         shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2)
 {
@@ -1824,20 +1824,15 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithTabsInsetLid(width = 30, length = 100, height = 20);
-module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_thickness = 2, tab_height = 6, inset = 1,
+module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_thickness = 2, tab_height = 8, inset = 1,
                                make_tab_width = false, make_tab_length = true, prism_width = 0.75, tab_length = 10,
                                stackable = false, lid_size_spacing = m_piece_wiggle_room, floor_thickness = 2)
 {
     difference()
     {
         cube([ width, length, height ]);
-        translate([
-            wall_thickness - inset + lid_size_spacing, wall_thickness - inset + lid_size_spacing, height - lid_thickness
-        ])
-            cube([
-                width - (wall_thickness - inset) * 2 - lid_size_spacing * 2,
-                length - (wall_thickness - inset) * 2 - lid_size_spacing * 2, lid_thickness + 0.1
-            ]);
+        translate([ wall_thickness - inset, wall_thickness - inset, height - lid_thickness ])
+            cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1 ]);
         translate([ 0, 0, height - lid_thickness ])
             MakeTabs(box_width = width, box_length = length, wall_thickness = wall_thickness,
                      lid_thickness = lid_thickness, tab_length = tab_length, prism_width = prism_width,
@@ -1849,7 +1844,7 @@ module MakeBoxWithTabsInsetLid(width, length, height, wall_thickness = 2, lid_th
         }
 
         // Make sure the children start from the bottom corner of the box.
-        translate([ wall_thickness + lid_size_spacing, wall_thickness + lid_size_spacing, floor_thickness ]) children();
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
         // Cuff off the bit on the bottom to allow for stacking.
         if (stackable)
         {
@@ -2642,7 +2637,7 @@ module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thi
 //      1);
 // Example:
 //    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1)
-//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, 
+//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5,
 //      magnet_thickness = 1, full_height = false);
 module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter, magnet_thickness, lid_thickness = 2,
                                          magnet_border = 1.5, wall_thickness = 2, floor_thickness = 2,
@@ -3317,4 +3312,165 @@ module MakePuzzleJoin(height = 10, width = 10, base = 5, stem = 6)
             circle(d = width); // looks clumsy but renders better
         }
     }
+}
+
+// Section: Hinges
+// Description:
+//    Types of hinges to make.
+
+// Module: HingeCone()
+// Description:
+//   Makes the hinge cone for use in hinges, this makes a 45 degree cone with an inner/outer that
+//   can be joined with other pieces to make a hinge.
+// Topics: Hinges
+// Usage: HingeCone(6, 0.5)
+// Arguments:
+//   r = radius of the cone
+//   offset = how far inside the cone to leave space
+// Example:
+//   HingeCone(6, 0.5);
+module HingeCone(r, offset)
+{
+    difference()
+    {
+        cylinder(h = r, r1 = r, r2 = 0);
+        translate([ 0, 0, -0.01 ]) cylinder(h = r - offset, r1 = r - offset, r2 = 0);
+    }
+}
+
+// Module: HingeLine()
+// Description:
+//    Makes a hinge setup in a straight line, has pieces that stick out each side wide enough to hook onto
+//    edges within 0.5 of the side.
+// Topics: Hinges
+// Arguments:
+//    length = length of the line to hinge
+//    diameter = diameter of the hinge itself
+//    offset = how much of a space to leave on the conical holes for the hinge
+//    spin = how much to rotate one of the legs (default 0)
+// Example:
+//    HingeLine(length = 60, diameter = 6, offset = 0.5);
+module HingeLine(length, diameter, offset, spin = 90)
+{
+    rotate([ 0, 270, 0 ]) translate([ 0, 0, -length / 2 ])
+    {
+        num = length / diameter;
+        spacing = length / num;
+        echo([ diameter, num, spacing ]);
+        difference()
+        {
+            cylinder(r = diameter / 2, h = length, $fn = 32);
+            for (i = [1:1:num - 1])
+            {
+                translate([ 0, 0, spacing * i ]) mirror([ 0, 0, i % 2 ])
+                    HingeCone(diameter / 2 - 0.01, offset, $fn = 32);
+                if (i % 2 == 1)
+                {
+                    difference()
+                    {
+                        translate([ 0, 0, spacing * i + diameter - diameter - 0.02 ])
+                            cylinder(r = diameter, h = diameter + 0.04, $fn = 32);
+                        translate([ 0, 0, spacing * i + diameter - diameter - 0.03 ])
+                            cylinder(r = diameter / 2 - offset, h = diameter + 0.06, $fn = 32);
+                    }
+                }
+            }
+        }
+        for (i = [0:1:num - 1])
+        {
+            if (i % 2 == 1)
+            {
+                rotate([ 0, 0, spin ]) union()
+                {
+                    translate([ 0, 0, spacing * i + offset / 2 ]) cylinder(r = diameter / 2, h = diameter - offset);
+                    translate([ 0, 0, spacing * i + diameter - diameter / 2 ]) union()
+                    {
+
+                        rotate([ 0, 90, 0 ])
+                            prismoid(size1 = [ diameter - offset, diameter ], size2 = [ diameter - offset, diameter ],
+                                     h = diameter / 2 + offset * 2 + 0.01);
+                        translate([ diameter / 2 + offset, 0, 0 ])
+                            cuboid([ offset * 2, diameter, diameter + offset * 3 ], chamfer = offset * 2,
+                                   edges = [ TOP + LEFT, BOTTOM + LEFT ]);
+                    }
+                }
+            }
+            else
+            {
+                union()
+                {
+                    translate([ -diameter / 2 - offset * 3 / 2, 0, spacing * i + diameter / 2 ])
+                        cuboid([ 1, diameter, diameter + offset * 3 ], chamfer = offset * 2,
+                               edges = [ TOP + RIGHT, BOTTOM + RIGHT ]);
+                    difference()
+                    {
+                        translate([ -diameter / 2 - offset, -diameter / 2, spacing * i ])
+                            cube([ diameter / 2 + offset, diameter, diameter ]);
+                        translate([ 0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2 ])
+                            cylinder(d = diameter - 0.02, h = diameter * 4, $fn = 32);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Module: InsetHinge()
+// Description:
+//   Create a hinge that works and moves in the middle.  Centers the pices back on the line with the
+//   middle being the length/2, width2/2 and the diameter/2, the legs stick down a little to make it
+//   easier to join onto other parts of the system.
+// Topics: Hinges
+// Arguments:
+//   length = length of the hinge (outside)
+//   width = width of the middle pice (outside)
+//   diameter = diameter of the round piece in the middle.
+//   offset = how much to offset the middle sections, 0.5 is usually good for this
+// Usage: InsetHinge(100, 20, 6, 0.5);
+// Example:
+//   InsetHinge(length = 100, width = 20, diameter = 6, offset = 0.5);
+module InsetHinge(length, width, diameter, offset)
+{
+    translate([ 0, -width / 2, 0 ])
+    {
+        translate([ 0, width / 2, 0 ]) cuboid([ length, width - diameter * 2 - offset * 2 / 2, diameter ]);
+        translate([ 0, diameter / 2, 0 ]) HingeLine(length = length, diameter = diameter, offset = offset, spin = 90);
+        translate([ 0, width - diameter / 2, 0 ]) mirror([ 0, 1, 0 ])
+            HingeLine(length = length, diameter = diameter, offset = offset, spin = 90);
+    }
+}
+
+module MakeBoxWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = 2, floor_thickness = 2,
+                             hinge_offset = 0.5, gap = 1, side_gap = 3)
+{
+    hinge_width = hinge_diameter * 2 + gap;
+    hinge_length = length - side_gap * 2;
+    difference()
+    {
+        union()
+        {
+            difference()
+            {
+                cube([ width, length, height / 2 ]);
+                if ($children > 0)
+                {
+                    translate([ wall_thickness, wall_thickness, floor_thickness ]) children(0);
+                }
+            }
+
+            translate([ width + gap, 0, 0 ]) difference()
+            {
+                cube([ width, length, height / 2 ]);
+                if ($children > 1)
+                {
+                    translate([ hinge_diameter, wall_thickness, floor_thickness ]) children(0);
+                }
+            }
+        }
+        translate([ width - hinge_diameter - 0.01, side_gap, height / 2 - hinge_diameter - hinge_offset ])
+            cube([ hinge_width + 0.02, hinge_length, hinge_diameter + 5 ]);
+    }
+    translate([ width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 ]) rotate([ 0, 0, 90 ])
+        InsetHinge(length = hinge_length, width = hinge_diameter * 2 + gap, offset = hinge_offset,
+                   diameter = hinge_diameter);
 }
