@@ -327,6 +327,7 @@ canvas_piece_box_length = 73;
 canvas_piece_box_height = 29;
 wall_thickness = 3;
 
+
 MakeBoxWithMagneticLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
                     magnet_diameter = 5, magnet_thickness = 1) {

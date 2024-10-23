@@ -197,7 +197,7 @@ module CardBoxSweden()
 module PlayerBox()
 {
     card_height = train_card_thickness * 4.5;
-    MakeBoxWithTabsInsetLid(width = player_box_width, length = player_box_length, height = player_box_height,
+    MakeBoxWithInsetLidTabbed(width = player_box_width, length = player_box_length, height = player_box_height,
                             lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
     {
         // Round houses.
@@ -545,7 +545,10 @@ module AustraliaBox()
     }
 }
 
-//MoneyBox();
+//InsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, rabbit_depth = 1.5);
+
+MakeBoxWithInsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, height = 20, rabbit_depth = 1.5);
+// MoneyBox();
 
 // CardBoxSweden();
 
@@ -553,11 +556,11 @@ module AustraliaBox()
 // translate([0,50,0])
 // FingerHoleWall(radius = 10, height = 20);
 
-PlayerBox();
-
-// MakeBoxWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
-//{
-//   cube([ 20 - 8, 60 - 4, 20 ]);
-//  cube([ 20 - 8, 60 - 4, 20 ]);
-// };
+ // PlayerBox();
+/*
+MakeBoxAndLidWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
+{
+    cube([ 20 - 8, 60 - 4, 20 ]);
+    cube([ 20 - 8, 60 - 4, 20 ]);
+};*/
 //  link(20, 0.5, cone_gap = 1, cone_r1 = 5, cone_r2 = 2, side_offset = 1);
