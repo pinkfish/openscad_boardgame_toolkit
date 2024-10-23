@@ -545,7 +545,7 @@ module AustraliaBox()
     }
 }
 
-MoneyBox();
+//MoneyBox();
 
 // CardBoxSweden();
 
@@ -553,7 +553,7 @@ MoneyBox();
 // translate([0,50,0])
 // FingerHoleWall(radius = 10, height = 20);
 
-// PlayerBox();
+PlayerBox();
 
 // MakeBoxWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
 //{
