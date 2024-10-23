@@ -21,7 +21,7 @@ under the License.
 //    This file has all the shared label pieces for the system.
 
 // FileSummary: Shared label pieces.
-// FileGroup: Basic
+// FileGroup: Basics
 
 // Includes:
 //   include <boardgame_toolkit.scad>

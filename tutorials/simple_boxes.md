@@ -10,11 +10,12 @@
   - [Tabbed Boxes](#tabbed-boxes)
     - [Simple tabbed box](#simple-tabbed-box)
     - [Tabbed hex box](#tabbed-hex-box)
-  - [Other box types](#other-box-types)
-    - [Capped box](#capped-box)
-    - [Slipover box](#slipover-box)
-    - [Sliding Catch box](#sliding-catch-box)
-    - [Magnetic box](#magnetic-box)
+  - [Capped box](#capped-box)
+  - [Slipover box](#slipover-box)
+  - [Sliding Catch box](#sliding-catch-box)
+  - [Magnetic box](#magnetic-box)
+  - [Rabbit Clip box](#rabbit-clip-box)
+  - [Hinge box](#hinge-box)
 
 
 ## Sliding boxes
@@ -206,7 +207,7 @@ top_section_height = 20;
 
 module TabbedBox()
 {
-    MakeBoxWithTabsInsetLid(width = money_section_width, length = money_section_length, height = top_section_height)
+    MakeBoxWithInsetLidTabbed(width = money_section_width, length = money_section_length, height = top_section_height)
     {
         cube([ money_width, money_length, top_section_height ]);
     }
@@ -237,7 +238,7 @@ top_section_height = 20;
 
 module TabbedHexBox()
 {
-    MakeHexBoxWithInsetTabbedLid(rows = 5, cols = 3, tile_width = tile_width, height = top_section_height, push_block_height = 1);
+    MakeHexBoxWithInsetLidTabbed(rows = 5, cols = 3, tile_width = tile_width, height = top_section_height, push_block_height = 1);
     text_str = "Tabbed";
     text_width = 80;
     text_height = 20;
@@ -250,9 +251,7 @@ TabbedHexBox();
 
 ```
 
-## Other box types
-
-### Capped box
+## Capped box
 
 
 Make a lid and base for a capped box.
@@ -274,7 +273,7 @@ MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_leng
 ```
 
 
-### Slipover box
+## Slipover box
 
 
 Make a lid and base for a slipover box.
@@ -294,7 +293,7 @@ MakeBoxWithSlipoverLid(width = canvas_piece_box_width, length = canvas_piece_box
                         radius = 5);
 ```
 
-### Sliding Catch box
+## Sliding Catch box
 
 
 Make a lid and base for a sliding catch box.
@@ -314,7 +313,7 @@ MakeBoxWithSlidingCatchLid(width = canvas_piece_box_width, length = canvas_piece
                         radius = 5);
 ```
 
-### Magnetic box
+## Magnetic box
 
 
 Make a lid and base for a magnetic box.
@@ -338,5 +337,53 @@ MakeBoxWithMagneticLid(width = canvas_piece_box_width, length = canvas_piece_box
                             length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
                             radius = 5);
     }
+}
+```
+
+## Rabbit Clip box
+
+
+Make a lid and base for a rabbit clip box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+
+MakeBoxWithInsetLidRabbitClip(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2) {
+    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
+                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                        radius = 5);
+}
+```
+
+## Hinge box
+
+Make a box with a hinge in it, the hinge and box are in the same print, this is a print in place
+box.
+
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+
+MakeBoxAndLidWithInsetHinge(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                    height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2) {
+    // Box section.
+    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 4,
+                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+                        radius = 5);
+    // Lid section.
+    cube([canvas_piece_box_width - wall_thickness * 4,canvas_piece_box_length - wall_thickness * 2,canvas_piece_box_height]);
 }
 ```

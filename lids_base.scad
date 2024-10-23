@@ -21,7 +21,7 @@ under the License.
 //    This file has all the shared lid pieces for making lids.
 
 // FileSummary: Shared lid pieces for making lids.
-// FileGroup: Basic
+// FileGroup: Basics
 
 // Includes:
 //   include <boardgame_toolkit.scad>

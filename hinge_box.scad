@@ -229,7 +229,8 @@ module InsetHinge(length, width, diameter, offset)
 // Examples:
 //   MakeBoxAndLidWithInsetHinge(100, 50, 20);
 module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = 2, floor_thickness = 2,
-                                   hinge_offset = 0.5, gap = 1, side_gap = 3, print_layer_height = 0.2)
+                                   hinge_offset = 0.5, gap = 1, side_gap = 3, print_layer_height = 0.2,
+                                   lid_thickness = 2)
 {
     hinge_width = hinge_diameter * 2 + gap;
     hinge_length = length - side_gap * 2;
@@ -251,7 +252,7 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
                 cube([ width, length, height / 2 ]);
                 if ($children > 1)
                 {
-                    translate([ hinge_diameter, wall_thickness, floor_thickness ]) children(0);
+                    translate([ hinge_diameter, wall_thickness, lid_thickness ]) children(0);
                 }
             }
         }

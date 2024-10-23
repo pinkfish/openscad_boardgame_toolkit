@@ -91,7 +91,7 @@ money_section_length = money_length + 1.5 + wall_thickness * 2;
 new_city_box_length = hex_box_width;
 new_city_box_width = box_width - money_section_width - hex_box_length;
 
-empty_city_width = 50;
+empty_city_width = 47;
 empty_city_length = (player_box_width * 3) / 2 - 0.5;
 empty_city_height = player_box_height * 2;
 
@@ -198,7 +198,7 @@ module PlayerBox()
 {
     card_height = train_card_thickness * 4.5;
     MakeBoxWithInsetLidTabbed(width = player_box_width, length = player_box_length, height = player_box_height,
-                            lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
+                              lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
     {
         // Round houses.
         difference()
@@ -277,7 +277,7 @@ module PlayerBox()
 module PlayerBoxTrains()
 {
     MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = player_box_height,
-                          lid_thickness = lid_thickness, wall_thickness = wall_thickness)
+                          lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
     {
         cube([
             player_box_width - wall_thickness * 2, player_box_trains_length - 2 * wall_thickness,
@@ -545,10 +545,12 @@ module AustraliaBox()
     }
 }
 
-//InsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, rabbit_depth = 1.5);
+// InsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, rabbit_depth
+// = 1.5);
 
-MakeBoxWithInsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, height = 20, rabbit_depth = 1.5);
-// MoneyBox();
+// MakeBoxWithInsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
+// height = 20, rabbit_depth = 1.5);
+//  MoneyBox();
 
 // CardBoxSweden();
 
@@ -556,7 +558,9 @@ MakeBoxWithInsetLidRabbitClip(width = player_box_width, length = player_box_leng
 // translate([0,50,0])
 // FingerHoleWall(radius = 10, height = 20);
 
- // PlayerBox();
+// PlayerBox();
+
+PlayerBoxTrains();
 /*
 MakeBoxAndLidWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
 {

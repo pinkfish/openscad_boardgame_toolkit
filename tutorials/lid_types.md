@@ -57,7 +57,7 @@ SlidingBoxLidWithLabel(
     };
 ```
 
-### Capped box lid with label
+## Capped box lid with label
 
 
 Make a lid and base for a capped box.
@@ -80,7 +80,7 @@ module MakeLid(str)
 MakeLid("Red");
 ```
 
-### Slipover box lid with label
+## Slipover box lid with label
 
 Make a lid and base for a slipover box.
 
@@ -104,7 +104,7 @@ MakeLid("Red");
 ```
 
 
-### Magnetic box lid with label
+## Magnetic box lid with label
 
 
 Make a lid with label with a magnetic lid.
@@ -127,7 +127,7 @@ module MakeLid(str)
 MakeLid("Red");
 ```
 
-### Sliding catch box lid with label
+## Sliding catch box lid with label
 
 
 Make a lid with label with a sliding catch lid.
@@ -143,6 +143,30 @@ wall_thickness = 3;
 module MakeLid(str)
 {
     SlidingCatchBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                        text_width = len(str) * 10 + 5, text_height = 15, text_str = str, 
+                        label_rotated = true, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
+                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+}
+MakeLid("Red");
+```
+
+### Rabbit Clip lid
+
+
+Make a lid and base for a rabbit clip box.
+
+```openscad-3D;Med
+include <boardgame_toolkit.scad>
+
+canvas_piece_box_width = 41;
+canvas_piece_box_length = 73;
+canvas_piece_box_height = 29;
+wall_thickness = 3;
+
+
+module MakeLid(str)
+{
+    InsetLidRabbitWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
                         text_width = len(str) * 10 + 5, text_height = 15, text_str = str, 
                         label_rotated = true, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
