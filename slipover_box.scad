@@ -176,7 +176,7 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
 //   lid_thickness = how thick the lid is (default 2)
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
-//      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14);
+//      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
 module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
                             wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
                             foot = 0, layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
