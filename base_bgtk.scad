@@ -31,8 +31,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-assert(version_num() >= 20190500, "boardgame_toolkit requires OpenSCAD version 2019.05 or later.");
-
 // Constant: m_piece_wiggle_room
 // Description:
 //   How many mm to use as gaps for when things join.

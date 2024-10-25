@@ -26,11 +26,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-assert(version_num() >= 20190500, "boardgame_toolkit requires OpenSCAD version 2019.05 or later.");
-
-include <BOSL2/rounding.scad>
-include <BOSL2/std.scad>
-include <base_bgtk.scad>
 
 // Section: Labels
 //   Building blocks for making labels.

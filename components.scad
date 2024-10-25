@@ -31,12 +31,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-assert(version_num() >= 20190500, "boardgame_toolkit requires OpenSCAD version 2019.05 or later.");
-
-include <BOSL2/rounding.scad>
-include <BOSL2/std.scad>
-include <base_bgtk.scad>
-
 // Section: Components
 //   Building blocks to make all the rest of the items from.  This has all the basic parts of the board game
 //   toolkit for making polygons and laying them out.

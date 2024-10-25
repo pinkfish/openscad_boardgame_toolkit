@@ -32,7 +32,11 @@ under the License.
 
 assert(version_num() >= 20190500, "boardgame_toolkit requires OpenSCAD version 2019.05 or later.");
 
+include <BOSL2/std.scad>
+include <BOSL2/joiners.scad>
+
 // shared pieces.
+include <base_bgtk.scad>
 include <components.scad>
 include <labels.scad>
 include <lids_base.scad>

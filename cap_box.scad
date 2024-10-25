@@ -26,15 +26,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-assert(version_num() >= 20190500, "boardgame_toolkit requires OpenSCAD version 2019.05 or later.");
-
-include <BOSL2/rounding.scad>
-include <BOSL2/std.scad>
-include <base_bgtk.scad>
-include <components.scad>
-include <labels.scad>
-include <lids_base.scad>
-
 // Section: CapLid
 // Description:
 //    Cap lid to go on insets, this is a smaller lid that fits onto the top of the box. It only covers
@@ -117,14 +108,8 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_thickness =
                 ],
                 rounding = 3, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
         }
-        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-        // just not the walls.
-        intersection()
-        {
-            translate([ wall_thickness, wall_thickness, calc_floor_thickness ])
-                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
-        }
+        // Put the children in the box.
+        translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
     }
 }
 

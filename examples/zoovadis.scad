@@ -4,10 +4,11 @@ include <boardgame_toolkit.scad>
 box_width = 216;
 box_length = 307;
 box_width_with_insert = 185;
-box_height = 52;
+box_height = 65;
 wall_thickness = 2;
 inner_wall = 1;
 lid_thickness = 2;
+board_plus_rules_height = 9;
 
 shield_width = 100;
 shield_thickness = 14;
@@ -47,26 +48,26 @@ special_token_gap = 2;
 special_token_thickness = 4;
 special_token_angle_length = special_token_stalk_width / sqrt(2);
 
-player_box_length = animal_max_length + wall_thickness * 4 + 8.5;
+player_box_length = animal_max_length + wall_thickness * 4 + 8.25;
 player_box_width = box_width - 1;
 player_box_height = animal_thickness + wall_thickness * 2 + 1;
 player_box_wall_height = animal_thickness * 3 / 4 + wall_thickness;
 
 laurel_box_height = max(laurel_diameter + wall_thickness * 2 + 1, player_box_height * 2);
-laurel_box_length = box_length - (player_box_length * 4);
+laurel_box_length = box_length - (player_box_length * 4) - 1;
 laurel_wall_height = laurel_box_height - laurel_diameter / 2 - lid_thickness;
 
-top_layer_thickness = box_height - player_box_height * 2;
+top_layer_thickness = box_height - player_box_height * 2 - board_plus_rules_height;
 
-shield_box_height = top_layer_thickness;
+shield_box_height = shield_thickness + wall_thickness * 2 + 0.5;
 shield_box_length = box_length - 1;
 shield_box_width = shield_width + wall_thickness * 5 + 4;
 
+filler_box_width = box_width - 1 - shield_box_width;
+filler_box_length = (box_length - 1) / 2;
+filler_box_height = shield_box_height;
+
 rest_width = box_length - player_box_length * 3 - laurel_box_length;
-echo([
-    player_box_length * 4, (box_length - (player_box_length * 4)), box_width / laurel_diameter,
-    (laurel_box_length - 6) / 4
-]);
 
 module SpecialToken(num = 1)
 {
@@ -175,15 +176,13 @@ module AnimalOutlines()
     translate([ 245, 0, 0 ]) Outline() TigerOutline();
 }
 
-module LaurelsBox(num_laurels, num_rows = 5)
+module LaurelsBox(num_laurels, num_rows = 5, generate_lid = true)
 {
     wall_thickness = 1.5;
     laurel_box_width = laurel_diameter * num_rows + wall_thickness * 4 + 0.5 * (num_rows - 1);
     middle_width = num_laurels * laurel_thickness + 1;
     middle_offset = laurel_box_length - middle_width - wall_thickness * 4;
     laurel_bottom_offset = laurel_box_height - laurel_diameter - lid_thickness * 2 - 0.5;
-
-    echo([ num_rows, laurel_box_width, laurel_box_length ]);
 
     MakeBoxWithSlipoverLid(width = laurel_box_width, length = laurel_box_length, height = laurel_box_height,
                            wall_height = laurel_wall_height, foot = 2, wall_thickness = wall_thickness,
@@ -209,18 +208,22 @@ module LaurelsBox(num_laurels, num_rows = 5)
     text_width = 60;
     text_height = 20;
 
-    translate([ laurel_box_width + 10, 0, 0 ])
-        SlipoverLidWithLabel(width = laurel_box_width, length = laurel_box_length, height = laurel_box_height,
-                             text_width = text_width, text_height = text_height, text_str = text_str, foot = 2,
-                             wall_thickness = wall_thickness, lid_thickness = lid_thickness);
+    if (generate_lid)
+    {
+        translate([ laurel_box_width + 10, 0, 0 ])
+            SlipoverLidWithLabel(width = laurel_box_width, length = laurel_box_length, height = laurel_box_height,
+                                 text_width = text_width, text_height = text_height, text_str = text_str, foot = 2,
+                                 wall_thickness = wall_thickness, lid_thickness = lid_thickness);
+    }
 }
 
-module BothLaurelBoxes()
+module BothLaurelBoxes(generate_lid = true, offset = 20)
 {
-    laurel_box_width = laurel_diameter * 5 + wall_thickness * 4 + inner_wall * (5 - 1);
+    laurel_box_width = laurel_diameter * 5 + wall_thickness * 4 + 0.5 * (5 - 1);
 
-    LaurelsBox(num_laurels = 12, num_rows = 5);
-    translate([ laurel_box_width * 2 + 20, 0, 0 ]) LaurelsBox(num_laurels = 14, num_rows = 3);
+    LaurelsBox(num_laurels = 12, num_rows = 5, generate_lid = generate_lid);
+    translate([ offset > 0 ? laurel_box_width * 2 + offset : laurel_box_width, 0, 0 ])
+        LaurelsBox(num_laurels = 14, num_rows = 3, generate_lid = generate_lid);
 }
 
 module AnimalBoxWithFingerholes(width)
@@ -229,7 +232,7 @@ module AnimalBoxWithFingerholes(width)
     translate([ width / 2, 0, 12 ]) sphere(d = 15);
 }
 
-module AnimalBox(text_str, animal_width)
+module AnimalBox(text_str, animal_width, generate_lid = true)
 {
 
     module SpecialTokenFingers()
@@ -267,57 +270,60 @@ module AnimalBox(text_str, animal_width)
             ]) FingerHoleWall(radius = 7, height = special_token_thickness * 1.3 + 0.01, depth_of_hole = 12);
         }
     }
-    translate([ 0, player_box_length + 10, 0 ]) SlipoverLidWithLabel(
-        width = player_box_width, length = player_box_length, height = player_box_height, foot = 2, text_str = text_str,
-        text_width = len(text_str) * 10 + 10, text_height = 20, shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10,
-        shape_width = 14, finger_hole_length = true, finger_hole_width = false);
+    if (generate_lid)
+    {
+        translate([ 0, player_box_length + 10, 0 ]) SlipoverLidWithLabel(
+            width = player_box_width, length = player_box_length, height = player_box_height, foot = 2,
+            text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20, shape_type = SHAPE_TYPE_CIRCLE,
+            layout_width = 10, shape_width = 14, finger_hole_length = true, finger_hole_width = false);
+    }
 }
 
-module MarmosetBox()
+module MarmosetBox(generate_lid = true)
 {
-    AnimalBox("Marmoset", animal_width = rhino_width + 4.2) translate([ 0, 3, 0 ])
+    AnimalBox("Marmoset", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = marmoset_width) offset(delta = 0.5) MarmosetOutline();
 }
 
-module IbisBox()
+module IbisBox(generate_lid = true)
 {
-    AnimalBox("Ibis", animal_width = rhino_width + 4.2) translate([ 0, 3, 0 ])
+    AnimalBox("Ibis", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = ibis_width) offset(delta = 0.5) IbisOutline();
 }
 
-module RhinoBox()
+module RhinoBox(generate_lid = true)
 {
-    AnimalBox("Rhino", animal_width = rhino_width + 4.2) translate([ 0, 3, 0 ])
+    AnimalBox("Rhino", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = rhino_width - 2) offset(delta = 0.5) RhinoOutline();
 }
 
-module CrocodileBox()
+module CrocodileBox(generate_lid = true)
 {
-    AnimalBox("Crocodile", animal_width = rhino_width + 3.6) translate([ 0, 1, 0 ])
+    AnimalBox("Crocodile", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = crocodile_width + 10) offset(delta = 0.5) CrocodileOutline();
 }
 
-module HyenaBox()
+module HyenaBox(generate_lid = true)
 {
-    AnimalBox("Hyena", animal_width = rhino_width + 3.6) translate([ 0, 1, 0 ])
+    AnimalBox("Hyena", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = hyena_width) offset(delta = 0.5) HyenaOutline();
 }
 
-module ArmadiloBox()
+module ArmadiloBox(generate_lid = true)
 {
-    AnimalBox("Armadilo", animal_width = rhino_width + 3.6) translate([ 0, 1, 0 ])
+    AnimalBox("Armadilo", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = armadilli_width - 3) offset(delta = 0.5) AramdiloOutline();
 }
 
-module TigerBox()
+module TigerBox(generate_lid = true)
 {
-    AnimalBox("Tiger", animal_width = rhino_width + 3.6) translate([ 0, 1, 0 ])
+    AnimalBox("Tiger", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = tiger_width) offset(delta = 0.5) TigerOutline();
 }
 
-module PeacockBox()
+module PeacockBox(generate_lid = true)
 {
-    AnimalBox("Peacock", animal_width = rhino_width + 3.6)
+    AnimalBox("Peacock", animal_width = rhino_width + 3.6, generate_lid = generate_lid)
     {
         translate([ 0, 1, 0 ]) AnimalBoxWithFingerholes(width = peacock_width - 3) PeacockOutline();
         translate([ player_box_width - 25, 28, player_box_wall_height - laurel_thickness - 1.8 ]) union()
@@ -328,44 +334,81 @@ module PeacockBox()
     }
 }
 
-module ShieldBox()
+module ShieldBoxInternal()
+{
+    MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height, foot = 2,
+                           floor_thickness = wall_thickness, lid_thickness = wall_thickness, wall_thickness = 1.5)
+    {
+        translate([ shield_width + 2, 0, shield_box_height - shield_thickness - wall_thickness * 2 - 0.5 ])
+            linear_extrude(height = shield_thickness + 1) rotate([ 0, 0, 90 ]) offset(delta = 0.5) ShieldOutline();
+
+        translate([ shield_width + 2, 0, shield_box_height - shield_thickness - wall_thickness * 2 - 0.5 ])
+            cube([ 4, shield_length + 1, shield_thickness + 1 ]);
+
+        translate([ 0, shield_box_length / 2, 0.9 ]) rotate([ 0, 0, 90 ])
+            FingerHoleWall(radius = 8, height = shield_thickness, depth_of_hole = 12);
+    }
+}
+
+module ShieldBox(generate_lid = true)
 {
     SplitBox(width = shield_box_width, length = shield_box_length, height = shield_box_height, orient = UP, spin = 90)
     {
-        difference()
-        {
-            MakeBoxWithSlipoverLid(width = shield_box_width, length = shield_box_length, height = shield_box_height,
-                                   foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
-            {
-                translate([ shield_width + 2, 0, shield_box_height - shield_thickness - 3.5 ])
-                    linear_extrude(height = shield_thickness + 1) rotate([ 0, 0, 90 ]) offset(delta = 0.5)
-                        ShieldOutline();
-
-                translate([ shield_width + 2, 0, shield_box_height - shield_thickness - 3.5 ])
-                    cube([ 4, shield_length + 1, shield_thickness + 1 ]);
-
-                translate([ 0, shield_box_length / 2, 0.9 ]) rotate([ 0, 0, 90 ])
-                    FingerHoleWall(radius = 8, height = shield_thickness, depth_of_hole = 12);
-            }
-        }
+        ShieldBoxInternal();
         MakePuzzleJoin();
     }
-    text_str = "Zoovadis";
-    translate([ 0, shield_box_length + 30, 0 ]) SplitBox(width = shield_box_width, length = shield_box_length,
-                                                         height = shield_box_height, orient = LEFT, spin = 90, y = [2])
+    if (generate_lid)
     {
-        SlipoverLidWithLabel(width = shield_box_width, length = shield_box_length, height = shield_box_height, foot = 2,
-                             text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20,
-                             shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, lid_thickness = 1.5,
-                             wall_thickness = 1.5, label_rotated = true, finger_hole_length = true,
-                             finger_hole_width = false);
-        union()
+        text_str = "Zoovadis";
+        translate([ 0, shield_box_length + 30, 0 ])
+            SplitBox(width = shield_box_width, length = shield_box_length, height = shield_box_height, orient = LEFT,
+                     spin = 90, y = [2])
         {
-            MakePuzzleJoin();
-            translate([ 0.5, shield_box_height / 2 - 2.9, 0 ]) rotate([ 0, 0, 90 ])
-                trapezoid(h = 1, w1 = 0.7, w2 = 0.4);
+            SlipoverLidWithLabel(width = shield_box_width, length = shield_box_length, height = shield_box_height,
+                                 foot = 2, text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20,
+                                 shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14,
+                                 lid_thickness = 1.5, wall_thickness = 1.5, label_rotated = true,
+                                 finger_hole_length = true, finger_hole_width = false);
+            union()
+            {
+                MakePuzzleJoin();
+                translate([ 0.5, shield_box_height / 2 - 2.9, 0 ]) rotate([ 0, 0, 90 ])
+                    trapezoid(h = 1, w1 = 0.7, w2 = 0.4);
+            }
         }
     }
 }
 
-BothLaurelBoxes();
+module FillerBox()
+{
+    difference()
+    {
+        cube([ filler_box_width, filler_box_length, filler_box_height ]);
+        translate([ wall_thickness, wall_thickness, wall_thickness ])
+            cube([ filler_box_width - wall_thickness * 2, filler_box_length - wall_thickness * 2, filler_box_height ]);
+    }
+}
+
+module BoxLayout()
+{
+    cube([ box_width, box_length, board_plus_rules_height ]);
+    cube([ 1, box_length, box_height ]);
+    translate([ 0, 0, board_plus_rules_height ])
+    {
+        BothLaurelBoxes(offset = 0, generate_lid = false);
+        translate([ shield_box_width, 0, laurel_box_height ]) FillerBox();
+        translate([ shield_box_width, filler_box_length, laurel_box_height ]) FillerBox();
+        translate([ 0, laurel_box_length, 0 ]) PeacockBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length, 0 ]) HyenaBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length * 2, 0 ]) TigerBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length * 3, 0 ]) ArmadiloBox(generate_lid = false);
+        translate([ 0, laurel_box_length, player_box_height ]) PeacockBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length, player_box_height ]) HyenaBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length * 2, player_box_height ]) TigerBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length * 3, player_box_height ])
+            ArmadiloBox(generate_lid = false);
+        translate([ 0, 0, player_box_height * 2 ]) ShieldBoxInternal();
+    }
+}
+
+BoxLayout();

@@ -106,7 +106,10 @@ australia_box_width = expansion_area_box_width;
 australia_box_length = 4 * tile_width + australia_switch_track_token_radius * 2 + wall_thickness * 2 + inner_wall / 2;
 
 echo(player_box_length + player_box_trains_length);
-echo([ player_box_length, player_box_trains_length, top_section_height, empty_city_width, player_box_trains_length ]);
+echo([
+    player_box_length, player_box_trains_length, top_section_height, empty_city_width, player_box_trains_length,
+    empty_city_height
+]);
 
 module CardBoxEasternUS()
 {
@@ -545,6 +548,60 @@ module AustraliaBox()
     }
 }
 
+module EmptyCityModel()
+{
+    cyl(h = 6, d = 27, anchor = BOTTOM);
+    cyl(h = 48, d = 3.5, anchor = BOTTOM);
+    translate([ 0, 3.5, 20 ]) ycyl(h = 3, d = 15, anchor = TOP + BACK);
+    translate([ 0, 3.5, 34 ]) cuboid([ 20, 3, 5.5 ], anchor = TOP + BACK);
+    translate([ 0, 5.5, 48 ]) cuboid([ 6, 5, 10 ], anchor = TOP + BACK, rounding = 1);
+    translate([ 0, 4.5, 50 ]) difference()
+    {
+        cuboid([ 12.5, 3, 7 ], anchor = TOP + BACK, rounding = 4, edges = [ BOTTOM + RIGHT, BOTTOM + LEFT ]);
+        translate([ 0, 0.5, -3 ]) ycyl(d = 11, h = 4, anchor = BOTTOM + BACK);
+    }
+}
+
+module MirrorEmptyCity()
+{
+    translate([ 0, 0, 50 ]) mirror([ 0, 0, 1 ]) EmptyCityModel();
+}
+
+module EmptyCityPair()
+{
+    translate([ 7.5, 0, 0 ]) EmptyCityModel();
+    translate([ -7.5, 0, 7 ]) MirrorEmptyCity();
+}
+
+translate([12,0,10])
+rotate([ 0, 35, 0 ]) EmptyCityModel();
+
+/*
+translate([ 0, 0, 3 ]) EmptyCityPair();
+translate([ 0, 0, 62 ]) EmptyCityPair();
+translate([ 0, 0, 121 ]) EmptyCityPair();
+translate([ 0, 0, 180 ]) EmptyCityPair();
+
+translate([0,20,260])
+rotate([ 0, 180, 0 ])
+{
+    translate([ 0, 0, 3 ]) EmptyCityPair();
+    translate([ 0, 0, 62 ]) EmptyCityPair();
+    translate([ 0, 0, 121 ]) EmptyCityPair();
+    translate([ 0, 0, 180 ]) EmptyCityPair();
+}
+
+translate([0,40,0]) {
+translate([ 0, 0, 3 ]) EmptyCityPair();
+translate([ 0, 0, 62 ]) EmptyCityPair();
+translate([ 0, 0, 121 ]) EmptyCityPair();
+translate([ 0, 0, 180 ]) EmptyCityPair();
+}
+*/
+// translate([ 0, 0, 239 ]) EmptyCityPair();
+
+translate([ 0, 0, 0 ]) cube([ empty_city_width, 3, empty_city_length * 2 ]);
+
 // InsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, rabbit_depth
 // = 1.5);
 
@@ -560,7 +617,7 @@ module AustraliaBox()
 
 // PlayerBox();
 
-PlayerBoxTrains();
+// PlayerBoxTrains();
 /*
 MakeBoxAndLidWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20, height = 20)
 {
