@@ -31,7 +31,7 @@ under the License.
 //    Cap lid to go on insets, this is a smaller lid that fits onto the top of the box. It only covers
 //    the top few mms and has some cut outs on the side to make removal easier.
 
-// Module: MakeCapLidBox()
+// Module: MakeBoxWithCapLid()
 // Topics: CapLid
 // Arguments:
 //   width = outside width of the box

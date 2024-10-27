@@ -315,7 +315,119 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
     }
 }
 
+// Module FingerHoleWall()
+// Description:
+//   Creater a finger hole cutout with nice rounded edges at the top and a cylinder of the
+//   specified radius at the bottom.
+// Topics: FingerHole
+// Arguments:
+//   radius = radius of the finger hole
+//   height = height of the finger hole
+//   anchor = anchor for the hole (default CENTER)
+//   depth_of_hole = how deep to make the cut through the wall (default 6)
+//   rounding_radious = how round to make the top in the wall (default 3)
+// Example:
+//   FingerHoleWall(10, 20)
+// Example:
+//   FingerHoleWall(10, 9)
+module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0)
+{
+    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
+    multmatrix(m = tmat) union()
+    {
+        if (height >= radius + rounding_radius)
+        {
+            top_height = radius * 2 - height;
+            middle_height = radius - top_height;
+            translate([ 0, 0, height ])
+                cuboid([ radius * 2, depth_of_hole, middle_height ], rounding = -rounding_radius,
+                       edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 16, anchor = TOP);
+            translate([ 0, 0, 0 ]) ycyl(r = radius, h = depth_of_hole, $fn = 64, anchor = BOTTOM);
+        }
+        else
+        {
+            translate([ 0, 0, height ]) rotate([ 90, 0, 0 ]) intersection()
+            {
+                translate([ 0, -height / 2, 0 ])
+                    cuboid([ radius * 2 + rounding_radius * 2, height, depth_of_hole ], anchor = CENTER);
+                union()
+                {
+                    tangents = circle_circle_tangents(rounding_radius,
+                                                      [
+                                                          radius + rounding_radius,
+                                                          -rounding_radius,
+                                                      ],
+                                                      radius, [ 0, -height + radius ]);
+                    for (i = [0:1:1])
+                    {
+                        mirror([ i, 0, 0 ]) union()
+                        {
+                            translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
+                                tangents[3][1], tangents[3][0], [ tangents[3][0][0] + 0.1, 0 ], [ tangents[3][1][0], 0 ]
+                            ]);
 
+                            difference()
+                            {
+                                translate([ radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5 ])
+                                    difference()
+                                {
+                                    cuboid([ rounding_radius, rounding_radius, depth_of_hole + 1 ],
+                                           anchor = BOTTOM + FRONT + RIGHT);
+                                    cyl(r = rounding_radius, h = depth_of_hole + 1, $fn = 32, anchor = BOTTOM);
+                                }
+
+                                translate([ 0, 0, -depth_of_hole / 2 - 0.5 ]) linear_extrude(height = depth_of_hole + 1)
+                                    polygon([
+                                        tangents[3][1], tangents[3][0], [ tangents[3][0][0], height - radius * 2 ],
+                                        [ tangents[3][1][0], height - radius * 2 ]
+                                    ]);
+                            }
+                        }
+                    }
+                    translate([ 0, -height + radius, 0 ]) cyl(r = radius, h = depth_of_hole, $fn = 64);
+                }
+            }
+        }
+    }
+}
+
+// Module: FingerHoleBase()
+// Description:
+//    Creates a hole in the floor of the box with a rounding over at the top to allow for picking up of cards
+//    and other things.  Center on the side of the wall and the radius of the main section is the offset to the
+//    middle.
+// Usage: FingerHoldBase(10, 20);
+// Topics: FingerHole
+// Arguments:
+//    radius = radius of the hole
+//    height = height of the wall
+//    wall_thickness = this is used as an offset to move in from the wall by this amount to cut through it (default 2)
+//    rounding_radius = rounding radius at the top of the hole (default 3)
+//    orient = orintation of the hole, from BSOL2 (default UP)
+//    spin = spin of the hole, from BSOL2 (default 0)
+//    anchor = location to anchor everything (from BSOL2)
+// Example:
+//    FingerHoleBase(10, 20);
+// Example:
+//    FingerHoleBase(10, 20, rounding_radius = 7);
+module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, floor_thickness = 2, orient = UP,
+                      spin = 0)
+{
+    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
+    multmatrix(m = tmat) union()
+    {
+        translate([ -rounding_radius, -wall_thickness / 2, height ])
+        {
+            translate([ 0, wall_thickness / 2, 0 ])
+                cyl(r = radius, h = height + floor_thickness * 2, anchor = TOP + LEFT, $fn = 64);
+            cuboid([ radius * 2, wall_thickness + 1, height + floor_thickness * 2 ], rounding = -rounding_radius,
+                   edges = [ TOP + LEFT, TOP + RIGHT ], anchor = TOP + LEFT, $fn = 32);
+            translate([ radius, -wall_thickness / 2 - 0.01, 0 ]) rotate([ 90, 90, 0 ])
+                cuboid([ height + floor_thickness * 2, radius * 2, wall_thickness ], rounding = -wall_thickness / 2,
+                       anchor = TOP + LEFT, $fn = 32, edges = [ FRONT + TOP, TOP + BACK ]);
+        }
+    }
+}
 
 // Section: Curves
 // Description:

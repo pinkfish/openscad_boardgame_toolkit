@@ -22,7 +22,7 @@ box_length = 298;
 box_width = 216;
 box_height = 50;
 
-wall_thickness = 3;
+wall_thickness = 2;
 inner_wall = 1;
 lid_thickness = 2;
 floor_thickness = 2;
@@ -41,9 +41,10 @@ company_card_length = 200;
 company_card_lenght = 131;
 token_diameter = 6;
 token_thickness = 2;
-large_marker_diamter = 20;
+large_marker_diameter = 20;
 large_marker_length = 41;
 tile_width = 40;
+tile_radius = tile_width / 2 / cos(180 / 6);
 train_tile_thickness_10 = 6;
 board_thickness = 15;
 
@@ -51,14 +52,14 @@ num_train_cards = 33;
 num_shares = 68;
 num_private_railroad = 6;
 
-main_height = 50 - board_thickness;
+main_height = box_height - board_thickness;
 
-hex_box_width = 144;
+hex_box_width = tile_radius * 6 + wall_thickness * 2;
 hex_box_height = main_height / 4;
-hex_box_length = max(tile_width * 5 + wall_thickness * 2, 214);
+hex_box_length = box_width - 1;
 
-money_box_width = (money_width + 0.5) * 4 + wall_thickness * 2;
-money_box_length = money_length + wall_thickness;
+money_box_width = box_width - 1;
+money_box_length = money_length + wall_thickness * 2;
 money_box_height_1 = floor_thickness + lid_thickness + money_one_thickness + 0.5;
 money_box_height_2 = money_box_height_1 - 1;
 
@@ -68,10 +69,12 @@ share_names = [
     "Preußische Eisenbahn", "Mecklenburg-Schwerin", "Oldenburgische"
 ];
 
-last_section_width = box_length - hex_box_width - money_box_length - 2;
-last_section_length = share_length * 2 + wall_thickness * 2;
+shares_box_width = box_length - hex_box_width - money_box_length - 1;
+shares_box_length = share_length * 2 + 2 * 2;
 
-last_section_first_player = box_width - last_section_length - 1;
+first_player_box_length = box_width - shares_box_length - 1;
+first_player_box_width = shares_box_width;
+first_player_box_height = large_marker_diameter + 4;
 
 shares_height = main_height / 4;
 
@@ -80,14 +83,18 @@ middle_width = money_box_length;
 middle_length = money_box_width;
 
 insert_width = middle_width - wall_thickness * 2;
-insert_length = middle_length - wall_thickness * 3 - large_marker_diamter;
+insert_length = middle_length - wall_thickness * 3 - large_marker_diameter;
 insert_height = middle_height - lid_thickness - floor_thickness;
+
+spacer_box_width = first_player_box_width;
+spacer_box_length = first_player_box_length;
+spacer_box_height = main_height - first_player_box_height;
 
 module MoneyBox1()
 {
-    MakeBoxWithTabsInsetLid(width = money_box_width, length = money_box_length, height = money_box_height_1,
-                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
-                            make_tab_length = false, make_tab_width = true) for (i = [0:1:3])
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1,
+                      wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+                      floor_thickness = floor_thickness) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
         {
@@ -100,9 +107,9 @@ module MoneyBox1()
 
 module MoneyBox2()
 {
-    MakeBoxWithTabsInsetLid(width = money_box_width, length = money_box_length, height = money_box_height_2,
-                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
-                            make_tab_length = false, make_tab_width = true) for (i = [0:1:3])
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2,
+                      wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+                      floor_thickness = floor_thickness) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
         {
@@ -113,19 +120,23 @@ module MoneyBox2()
     }
 }
 
-module AllMoneyBoxes()
+module AllMoneyBoxes(generate_lid = true)
 {
     MoneyBox1();
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
-    translate([ 0, money_box_length * 2 + 20, 0 ]) InsetLidTabbedWithLabel(
-        width = money_box_width, length = money_box_length, lid_thickness = lid_thickness, text_width = 70, text_height = 20,
-        text_str = "Money", make_tab_length = false, make_tab_width = true);
+    if (generate_lid)
+    {
+        translate([ 0, money_box_length * 2 + 20, 0 ])
+            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, lid_thickness = lid_thickness,
+                               text_width = 70, wall_thickness = wall_thickness, text_height = 20, text_str = "Money");
+    }
 }
 
-module HexBox()
+module HexBox(generate_lid = true)
 {
-    MakeBoxWithTabsInsetLid(width = hex_box_width, length = hex_box_length, height = hex_box_height,
-                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
+    MakeBoxWithInsetLidTabbed(width = hex_box_width, length = hex_box_length, height = hex_box_height,
+                              wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+                              floor_thickness = floor_thickness)
     {
         translate([ 0, 5, 0 ])
         {
@@ -137,21 +148,25 @@ module HexBox()
             }
         }
     }
-    translate([ 0, hex_box_length + 10, 0 ])
-        InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, lid_thickness = lid_thickness,
-                                text_width = 70, text_height = 20, text_str = "Tiles");
+    if (generate_lid)
+    {
+        translate([ 0, hex_box_length + 10, 0 ])
+            InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, lid_thickness = lid_thickness,
+                                    text_width = 70, text_height = 20, text_str = "Tiles");
+    }
 }
 
 module SharesBox(offset)
 {
-    MakeBoxWithTabsInsetLid(width = last_section_width, length = last_section_length, height = shares_height,
-                            wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
+    MakeBoxWithSlipoverLid(width = shares_box_width, length = shares_box_length, height = shares_height,
+                           wall_thickness = 1.5, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
+                           foot = 2)
     {
         for (i = [0:1:1])
         {
-            translate([ 0, (share_length + 4.5) * i, 0 ])
+            translate([ 0, (share_length + 0.5) * i, 0 ])
             {
-                if (i + offset < len(share_names))
+                if (i + offset + 1 < len(share_names))
                 {
                     cube([ share_width, share_length, main_height ]);
                     translate([ share_width / 2, share_length / 2, -0.4 ]) linear_extrude(height = 1) rotate(90)
@@ -159,130 +174,182 @@ module SharesBox(offset)
                 }
                 else
                 {
-                    translate([ share_width / 2, share_length / 2, shares_height - lid_thickness - 2 ])
-                        linear_extrude(height = 1) rotate(90)
+                    translate([ share_width / 2, share_length / 2, shares_height - lid_thickness * 2 - 2 ])
+                        linear_extrude(height = 20) rotate(90)
                             text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
                 }
             }
         }
-    };
+        FingerHoleWall(radius = 15, height = main_height - lid_thickness - floor_thickness);
+    }
 }
 
-module AllShareBoxes()
+module AllShareBoxes(generate_lid = true)
 {
     SharesBox(0);
-    translate([ 0, last_section_length + 10, 0 ]) SharesBox(2);
-    translate([ 0, last_section_length * 2 + 20, 0 ]) SharesBox(4);
-    translate([ 0, last_section_length * 3 + 30, 0 ]) SharesBox(6);
-    translate([ 0, last_section_length * 4 + 40, 0 ])
-        InsetLidTabbedWithLabel(width = last_section_width, length = last_section_length, text_width = 70,
-                                text_height = 20, text_str = "Shares", lid_thickness = lid_thickness, label_rotated = true);
+    translate([ 0, shares_box_length + 10, 0 ]) SharesBox(2);
+    translate([ 0, shares_box_length * 2 + 20, 0 ]) SharesBox(4);
+    translate([ 0, shares_box_length * 3 + 30, 0 ]) SharesBox(6);
+    if (generate_lid)
+    {
+        translate([ 0, shares_box_length * 4 + 40, 0 ])
+            SlipoverLidWithLabel(width = shares_box_width, length = shares_box_length, text_width = 70,
+                                 text_height = 20, text_str = "Shares", lid_thickness = lid_thickness,
+                                 label_rotated = true, wall_thickness = 1.5, height = shares_height);
+    }
 }
 
-module MiddleBox()
+module MiddleBox(generate_lid = true)
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
-
-    difference()
+    MakeBoxWithCapLid(width = middle_width, length = middle_length, height = middle_height,
+                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
     {
-        MakeBoxWithTabsInsetLid(width = middle_width, length = middle_length, height = middle_height,
-                                wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                                floor_thickness = floor_thickness)
+        translate([ insert_width / 2, 11.5, middle_height - lid_thickness - floor_thickness ])
+            linear_extrude(height = 5) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
+        translate([ 47, first_player_box_height + wall_thickness + 15, 0 ])
         {
-            translate([ insert_width / 2, 11.5, middle_height - lid_thickness - floor_thickness ])
-                linear_extrude(height = 5) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
-            translate([ 47, large_marker_diamter + wall_thickness + 15, 0 ])
-                cube([ share_width, share_length, middle_height ]);
-            translate([ 47, large_marker_diamter + wall_thickness + share_length + wall_thickness + 30, 0 ])
-                cube([ share_width, share_length, middle_height ]);
-            translate([ 0, 20, 0 ]) for (i = [0:1:len(token_depths) - 1])
-            {
-                token_height = token_depths[i] * token_thickness;
+            cube([ share_width + 0.5, share_length + 0.5, middle_height ]);
+            translate([ share_width / 2, share_length / 2, -0.5 ]) linear_extrude(height = 1) rotate(90)
+                text("Trains", font = "Stencil Std:style=Bold", anchor = CENTER, size = 10);
+            translate([ share_width / 2, 0, 0 ]) cyl(r = 15, h = middle_height * 2);
+        }
+        private_company_cards = share_thickness_twenty * 10 / 20 + 1;
+        translate([
+            47, first_player_box_height + wall_thickness + share_length + wall_thickness + 30,
+            middle_height - floor_thickness - lid_thickness -
+            private_company_cards
+        ])
+        {
+            cube([ share_width, share_length, private_company_cards ]);
+            translate([ share_width / 2, share_length / 2, -0.5 ]) linear_extrude(height = 1) rotate(90)
+                text("Private", font = "Stencil Std:style=Bold", anchor = CENTER, size = 10);
+            translate([ share_width / 2, share_length, 24 ]) cyl(r = 15, h = 50, rounding = 9);
+        }
+        translate([ 0, 0, 0 ]) for (i = [0:1:len(token_depths) - 1])
+        {
+            token_num = token_depths[i];
 
-                translate([ 0, (i < 6 ? i : i + 1) * (token_diameter + wall_thickness * 2) + 10, 0 ])
+            translate([ 0, (i < 4 ? i : i + 1) * (token_diameter + wall_thickness * 2 + 4) + 5, 0 ])
+            {
+                for (j = [0:1:token_num - 1])
                 {
                     translate([
-                        token_diameter / 2, token_diameter / 2, token_height / 2 + insert_height - token_height - 0.45
-                    ]) cyl(d = token_diameter, h = token_height + 1, $fn = 32);
-                    translate([ 7, 3, insert_height - 1 ]) linear_extrude(height = 2)
-                        text(labels[i], font = "Stencil Std:style=Bold", anchor = LEFT, size = 4);
+                        token_diameter / 2 + j * (token_diameter + 5), token_diameter / 2 + 3,
+                        token_thickness / 2 + insert_height - token_thickness - 0.45
+                    ])
+                    {
+                        cyl(d = token_diameter, h = token_thickness + 1, $fn = 32);
+                        translate([ token_diameter / 2, 0, 7 ]) sphere(r = 7);
+                    }
                 }
-            }
-        }
-        translate([ 0, 24.5, 0 ]) for (i = [0:1:len(token_depths) - 1])
-        {
-            token_height = token_depths[i] * token_thickness;
-
-            translate([ wall_thickness, (i < 6 ? i : i + 1) * (token_diameter + wall_thickness * 2) + 10, 0 ])
-                translate([
-                    -9, token_diameter / 2 - 1.5, middle_height - token_height - 0.5 + middle_height / 2 -
-                    lid_thickness
-                ]) resize([ 20, 8, middle_height ]) rotate([ 0, 0, 30 ]) cyl(d = 5, h = middle_height, $fn = 6);
-        }
-    }
-    translate([ 0, middle_length + 10, 0 ])
-        InsetLidTabbedWithLabel(width = middle_width, length = middle_length, lid_thickness = lid_thickness, text_height = 20,
-                                text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
-}
-
-module InsertTray()
-{
-    token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
-    labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
-    assert(len(token__depths) == len(labels), "Labels and tokens don't match");
-    first_tray_height = insert_height;
-    difference()
-    {
-        cube([ insert_width, insert_length, first_tray_height ]);
-        translate([ wall_thickness, wall_thickness, floor_thickness ])
-            cube([ insert_width - 29, insert_length - wall_thickness * 2, insert_height ]);
-        for (i = [0:1:len(token_depths) - 1])
-        {
-            token_height = token_depths[i] * token_thickness;
-            translate([ 69, i * (token_diameter + wall_thickness * 2) + 10, 0 ])
-            {
-                translate(
-                    [ token_diameter / 2, token_diameter / 2, token_height / 2 + insert_height - token_height - 0.45 ])
-                    cyl(d = token_diameter, h = token_height + 1, $fn = 32);
-                translate([ -1, token_diameter / 2 - 1.5, insert_height - token_height - 0.45 ])
-                    cube([ 5, token_diameter - 3, first_tray_height ]);
-                translate([ 7, 3, insert_height - 1 ]) linear_extrude(height = 2)
+                translate([ 2, -1, insert_height - 1 ]) linear_extrude(height = 2)
                     text(labels[i], font = "Stencil Std:style=Bold", anchor = LEFT, size = 4);
             }
         }
     }
-}
 
-module LastSectionFirstPlayer()
-{
-    MakeBoxWithCapLid(width = last_section_width, length = last_section_first_player, height = main_height,
-                      floor_thickness = floor_thickness)
+    if (generate_lid)
     {
-        translate([ 3, 30, 14 ])
-        {
-            xcyl(d = large_marker_diamter, h = large_marker_length, anchor = BOTTOM + LEFT + FRONT, $fn = 64);
-            translate([ 0, -3, large_marker_diamter / 2 - 2 ])
-                cuboid([ large_marker_length, large_marker_diamter, large_marker_diamter / 2 ],
-                       anchor = BOTTOM + LEFT + FRONT);
-        }
-        translate([ last_section_width / 2 - 1, 21, 20 ])
-        {
-            translate([ 0, -3, 5 ]) cyl(r = 10, h = large_marker_diamter, anchor = BOTTOM + FRONT);
-            sphere(r = 10, anchor = BOTTOM + FRONT, $fn = 64);
-        }
-        translate([ last_section_width / 2 - 1, 39, 20 ])
-        {
-            translate([ 0, -3, 5 ]) cyl(r = 10, h = large_marker_diamter, anchor = BOTTOM + FRONT);
-            sphere(r = 10, anchor = BOTTOM + FRONT, $fn = 64);
-        }
+        translate([ 0, middle_length + 10, 0 ]) CapBoxLidWithLabel(
+            width = middle_width, length = middle_length, lid_thickness = lid_thickness, text_height = 20,
+            wall_thickness = wall_thickness, text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
     }
 }
 
-MiddleBox();
+module SpacerBox()
+{
+    difference()
+    {
+        cube([ spacer_box_width, spacer_box_length, spacer_box_height ]);
+        translate([ wall_thickness, wall_thickness, wall_thickness ])
+            cube([ spacer_box_width - wall_thickness * 2, spacer_box_length - wall_thickness * 2, spacer_box_height ]);
+    }
+}
 
-translate([ middle_width + 10, 0, 0 ]) AllShareBoxes();
+module LastSectionFirstPlayer(generate_lid = true)
+{
+    MakeBoxWithSlipoverLid(width = first_player_box_width, length = first_player_box_length,
+                           height = first_player_box_height, floor_thickness = floor_thickness, wall_thickness = 3,
+                           foot = 2)
+    {
+        translate([ -1, 30, 14 ])
+        {
+            xcyl(d = large_marker_diameter, h = large_marker_length, anchor = BOTTOM + LEFT + FRONT, $fn = 64);
+            translate([ 0, -3, large_marker_diameter / 2 - 2 ])
+                cuboid([ large_marker_length, large_marker_diameter, large_marker_diameter / 2 ],
+                       anchor = BOTTOM + LEFT + FRONT);
+        }
+        translate([ first_player_box_width / 2 - 4.5, 21, 20 ])
+        {
+            translate([ 0, -3, 5 ]) cyl(r = 10, h = large_marker_diameter, anchor = BOTTOM + FRONT);
+            sphere(r = 10, anchor = BOTTOM + FRONT, $fn = 64);
+        }
+        translate([ first_player_box_width / 2 - 4.5, 39, 20 ])
+        {
+            translate([ 0, -3, 5 ]) cyl(r = 10, h = large_marker_diameter, anchor = BOTTOM + FRONT);
+            sphere(r = 10, anchor = BOTTOM + FRONT, $fn = 64);
+        }
+    }
+    if (generate_lid)
+    {
+        SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length,
+                       height = first_player_box_height, wall_thickness = 3, foot = 2);
+    }
+}
 
-translate([ middle_width + last_section_width + last_section_width + 30, 0, 0 ]) AllMoneyBoxes();
+module BoxLayout()
+{
+    cube([ box_width, box_length, board_thickness ]);
+    cube([ 1, box_length, box_height ]);
+    translate([ 0, 0, board_thickness ])
+    {
+        MoneyBox1();
+        translate([ 0, 0, money_box_height_1 ]) MoneyBox2();
+        translate([ 0, middle_width, money_box_height_1 + money_box_height_2 ]) rotate([ 0, 0, -90 ])
+            MiddleBox(generate_lid = false);
+        translate([ 0, money_box_length + hex_box_width, 0 ]) rotate([ 0, 0, -90 ]) HexBox(generate_lid = false);
+        translate([ 0, money_box_length + hex_box_width, hex_box_height ]) rotate([ 0, 0, -90 ])
+            HexBox(generate_lid = false);
+        translate([ 0, money_box_length + hex_box_width, hex_box_height * 2 ]) rotate([ 0, 0, -90 ])
+            HexBox(generate_lid = false);
+        translate([ 0, money_box_length + hex_box_width, hex_box_height * 3 ]) rotate([ 0, 0, -90 ])
+            HexBox(generate_lid = false);
+        translate([ 0, money_box_length + hex_box_width + shares_box_width, 0 ]) rotate([ 0, 0, -90 ]) SharesBox(0);
+        translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height ]) rotate([ 0, 0, -90 ])
+            SharesBox(2);
+        translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height * 2 ]) rotate([ 0, 0, -90 ])
+            SharesBox(4);
+        translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height * 3 ]) rotate([ 0, 0, -90 ])
+            SharesBox(6);
+        translate([ shares_box_length, money_box_length + hex_box_width + first_player_box_width, 0 ])
+            rotate([ 0, 0, -90 ]) LastSectionFirstPlayer(generate_lid = false);
+        translate(
+            [ shares_box_length, money_box_length + hex_box_width + first_player_box_width, first_player_box_height ])
+            rotate([ 0, 0, -90 ]) SpacerBox();
+    }
+}
 
-translate([ middle_width + last_section_width + last_section_width + money_box_width + 40, 0, 0 ]) HexBox();
+module PrintLayout()
+{
+
+    MiddleBox();
+
+    translate([ middle_width + 10, 0, 0 ]) AllShareBoxes();
+
+    translate([ middle_width + shares_box_width + shares_box_width + 30, 0, 0 ]) AllMoneyBoxes();
+
+    translate([ middle_width + shares_box_width + shares_box_width + money_box_width + 40, 0, 0 ]) HexBox();
+
+    translate([ middle_width + shares_box_width + shares_box_width + money_box_width + hex_box_width + 50, 0, 0 ])
+        LastSectionFirstPlayer();
+
+    translate([
+        middle_width + shares_box_width + shares_box_width + money_box_width + hex_box_width + shares_box_width + 60, 0,
+        0
+    ]) SpacerBox();
+}
+
+// echo([ shares_box_width, shares_box_length, hex_box_length, hex_box_width, middle_height ]);
+PrintLayout();
