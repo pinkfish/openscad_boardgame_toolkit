@@ -110,7 +110,7 @@ sweden_box_length = 3 * tile_width + sweden_bonus_width + wall_thickness * 2 + i
 australia_box_width = expansion_area_box_width;
 australia_box_length = 4 * tile_width + australia_switch_track_token_radius * 2 + wall_thickness * 2 + inner_wall / 2;
 
-echo([ top_section_height, new_city_box_width, new_city_box_length ]);
+echo([ top_section_height, new_city_box_width, new_city_box_length, box_width - money_section_length*2 ]);
 
 module CardBoxEasternUS(generate_lid = true)
 {
@@ -401,7 +401,7 @@ module NewCityBox(generate_lid = true)
         text_width = 80;
         text_height = 20;
         translate([ new_city_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = new_city_box_width, length = new_city_box_length, lid_thickness = lid_thickness,
+            width = new_city_box_width, length = new_city_box_length, height = top_section_height, lid_thickness = lid_thickness,
             text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = true);
     }
 }

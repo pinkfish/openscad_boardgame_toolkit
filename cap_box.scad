@@ -31,6 +31,42 @@ under the License.
 //    Cap lid to go on insets, this is a smaller lid that fits onto the top of the box. It only covers
 //    the top few mms and has some cut outs on the side to make removal easier.
 
+// Function: CapBoxDefaultCapHeight()
+// Description:
+//   Works out the default value for the cap box height.
+// Arguments:
+//   height = the height of the box.
+function CapBoxDefaultCapHeight(height) = min(10, height / 2);
+
+// Function: CapBoxDefaultFingerHoldHeight()
+// Description:
+//   Works out the default value for the cap box finger hold height.
+// Arguments:
+//   height = the height of the box.
+function CapBoxDefaultFingerHoldHeight(height) = min(5, height / 4);
+
+// Function: CapBoxDefaultFingerHoldLen()
+// Description:
+//   Works out the default value for the cap box finger hold length.
+// Arguments:
+//   height = the height of the box.
+function CapBoxDefaultFingerHoldLen(width, length) = min(width, length) / 5;
+
+// Function: CapBoxDefaultLidWallThickness()
+// Description:
+//   Works out the default value for the cap box wall thickness.
+// Arguments:
+//   wall_thickness = the wall thickness of the box.
+function CapBoxDefaultLidWallThickness(wall_thickness) = wall_thickness / 2;
+
+// Function:CapBoxDefaultLidFingerHoldRounding()
+// Description:
+//   Works out the default value for the cap box rounding piece on the edge.
+// Arguments:
+//   cap_height = the current cap height
+function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height /2);
+
+
 // Module: MakeBoxWithCapLid()
 // Topics: CapLid
 // Arguments:
@@ -48,65 +84,74 @@ under the License.
 // Usage: MakeBoxWithCapLid(100, 50, 20);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 20);
-module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_thickness = 1, wall_thickness = 2,
+// Example:
+//    MakeBoxWithCapLid(100, 50, 10, lid_finger_hold_len = 4);
+// Example:
+//    MakeBoxWithCapLid(100, 50, 5, cap_height = 2, finger_hold_height = 1);
+module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thickness = 1, wall_thickness = 2,
                          size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef, lid_finger_hold_len = undef,
                          finger_hold_height = 5, floor_thickness = 2)
 {
-    calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
-    calc_lid_finger_hold_len = lid_finger_hold_len == undef ? min(width, length) / 5 : lid_finger_hold_len;
+    calc_lid_wall_thickness =
+        lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
+    calc_lid_finger_hold_len =
+        lid_finger_hold_len == undef ? CapBoxDefaultFingerHoldLen(width, length) : lid_finger_hold_len;
     calc_floor_thickness = floor_thickness == undef ? wall_thickness : floor_thickness;
+    calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
+    calc_finger_hold_height = finger_hold_height == undef ? CapBoxDefaultFingerHoldHeight(height) : finger_hold_height;
+    calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
     difference()
     {
 
         cube([ width, length, height - lid_thickness - size_spacing ]);
         // lid diff.
-        translate([ 0, 0, height - cap_height ]) difference()
+        translate([ 0, 0, height - calc_cap_height ]) difference()
         {
             translate([ -size_spacing, -size_spacing, 0 ])
-                cube([ width + size_spacing * 2, length + size_spacing * 2, cap_height ]);
+                cube([ width + size_spacing * 2, length + size_spacing * 2, calc_cap_height ]);
             translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
                 width - calc_lid_wall_thickness * 2 - size_spacing * 2,
                 length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                cap_height
+                calc_cap_height
             ]);
         }
         // finger cutouts.
-        translate([ 0, 0, height - cap_height - finger_hold_height ]) difference()
+        translate([ 0, 0, height - calc_cap_height - calc_finger_hold_height ]) difference()
         {
             difference()
             {
                 translate([ -size_spacing, -size_spacing, 0 ])
-                    cube([ width + size_spacing * 2, length + size_spacing * 2, finger_hold_height + 1 ]);
+                    cube([ width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1 ]);
 
                 translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
                     width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    length - calc_lid_wall_thickness * 2 - size_spacing * 2, finger_hold_height + 2
+                    length - calc_lid_wall_thickness * 2 - size_spacing * 2, calc_finger_hold_height + 2
                 ]);
             }
             translate([ calc_lid_finger_hold_len, 0, -0.1 ]) cuboid(
                 [
                     width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness - calc_lid_wall_thickness,
-                    finger_hold_height + 0.2
+                    calc_finger_hold_height + 0.2
                 ],
-                rounding = 3, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1 ]) cuboid(
                 [
                     width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness - calc_lid_wall_thickness,
-                    finger_hold_height + 0.2
+                    calc_finger_hold_height + 0.2
                 ],
-                rounding = 3, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ 0, calc_lid_finger_hold_len, -0.1 ]) cuboid(
                 [
                     wall_thickness - calc_lid_wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1,
-                    finger_hold_height + 0.2
+                    calc_finger_hold_height + 0.2
                 ],
-                rounding = 3, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1 ]) cuboid(
                 [
                     wall_thickness - calc_lid_wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1,
-                    finger_hold_height + 0.2
+                    calc_finger_hold_height + 0.2
                 ],
-                rounding = 3, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
         }
         // Put the children in the box.
         translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
@@ -118,8 +163,9 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_thickness =
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
 // Arguments:
-//   width = outside width of the box
+//    width = outside width of the box
 //    length = inside width of the box
+//    height = outside height of the box
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default 1)
 //    wall_thickness = thickness of the walls (default 2)
@@ -128,16 +174,21 @@ module MakeBoxWithCapLid(width, length, height, cap_height = 10, lid_thickness =
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 // Usage: CapBoxLid(100, 50, 20);
 // Example:
-//    CapBoxLid(100, 50, 20);
-module CapBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickness = 2,
+//    CapBoxLid(100, 50, 30);
+// Example:
+//    CapBoxLid(100, 50, 10);
+// Example:
+//    CapBoxLid(100, 50, 10, cap_height = 3);
+module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, wall_thickness = 2,
                  size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
-    translate([ 0, length, cap_height ]) rotate([ 180, 0, 0 ])
+    calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
+    translate([ 0, length, calc_cap_height ]) rotate([ 180, 0, 0 ])
     {
         union()
         {
-            translate([ 0, 0, cap_height - lid_thickness ])
+            translate([ 0, 0, calc_cap_height - lid_thickness ])
                 internal_build_lid(width, length, lid_thickness, wall_thickness)
             {
                 difference()
@@ -172,9 +223,9 @@ module CapBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickne
             }
             difference()
             {
-                cube([ width, length, cap_height ]);
-                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ])
-                    cube([ width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, cap_height + 1 ]);
+                cube([ width, length, calc_cap_height ]);
+                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) cube(
+                    [ width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1 ]);
             }
         }
     }
@@ -205,13 +256,14 @@ module CapBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickne
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 // Usage: CapBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
-module CapBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_boundary = 10, wall_thickness = 2,
-                          label_radius = 12, border = 2, offset = 4, label_rotated = false, cap_height = 10,
-                          layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2,
-                          size_spacing = m_piece_wiggle_room, lid_thickness = 1, lid_wall_thickness = undef)
+//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
+module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
+                          wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                          cap_height = undef, layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
+                          shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 1,
+                          lid_wall_thickness = undef)
 {
-    CapBoxLid(width = width, length = length, cap_height = cap_height, wall_thickness = wall_thickness,
+    CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
               size_spacing = m_piece_wiggle_room)
     {

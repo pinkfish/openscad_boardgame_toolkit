@@ -72,7 +72,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+    CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, height = canvas_piece_box_height,
                         text_width = len(str) * 10 + 5, text_height = 15, text_str = str, label_rotated = true,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);

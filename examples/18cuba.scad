@@ -380,7 +380,7 @@ module LargeTokensToPrint(generate_lid = true)
     {
         translate([ rest_section_width * 2 + 20, 0, 0 ])
             SlipoverBoxLid(length = train_box_length, width = rest_section_width, height = rest_height,
-                           lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness);
+                           lid_thickness = 0.75, foot = 2, wall_thickness = wall_thickness);
     }
 }
 
@@ -406,7 +406,18 @@ module BoxLayout()
     }
 }
 
-BoxLayout();
+module PrintLayout()
+{
+    MoneyBox(offset = 0);
+    translate([ 0, money_box_length + 10 ]) MoneyBox(offset = 4);
+    translate([ 0, money_box_length * 2 + 20 ]) SharesBox(offset = 0);
+    translate([ 0, money_box_length * 2 + train_box_length + 30 ]) SharesBox(offset = 0);
+    translate([ 0, money_box_length * 2 + train_box_length * 2 + 40 ]) SharesBox(offset = 5);
+    translate([ 0, money_box_length * 2 + train_box_length * 3 + 50 ]) LastBox();
+    translate([ 0, money_box_length * 2 + train_box_length * 4 + 60 ]) LargeTokensToPrint();
+}
+
+PrintLayout();
 
 // Outline() scale(0.05) WagonOutline();
 // Outline() scale(0.3) TrainOutline();

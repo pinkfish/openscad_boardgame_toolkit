@@ -268,9 +268,10 @@ module MiddleBox(generate_lid = true)
 
     if (generate_lid)
     {
-        translate([ 0, middle_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = middle_width, length = middle_length, lid_thickness = lid_thickness, text_height = 20,
-            wall_thickness = wall_thickness, text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
+        translate([ 0, middle_length + 10, 0 ])
+            CapBoxLidWithLabel(width = middle_width, length = middle_length, height = middle_height,
+                               lid_thickness = lid_thickness, text_height = 20, wall_thickness = wall_thickness,
+                               text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
     }
 }
 
