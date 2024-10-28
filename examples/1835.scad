@@ -70,7 +70,7 @@ share_names = [
 ];
 
 shares_box_width = box_length - hex_box_width - money_box_length - 1;
-shares_box_length = share_length * 2 + 2 * 2;
+shares_box_length = share_length * 2 + 3 * 2;
 
 first_player_box_length = box_width - shares_box_length - 1;
 first_player_box_width = shares_box_width;
@@ -96,11 +96,16 @@ module MoneyBox1()
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness,
                       floor_thickness = floor_thickness) for (i = [0:1:3])
     {
-        translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
+        translate([ (money_width + inner_wall) * i, 0, 0 ])
         {
-            cube([ money_width, money_length, money_box_height_1 ]);
-            translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
-                text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
+            difference()
+            {
+                cube([ money_width, money_length, money_box_height_1 ]);
+                translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
+                    text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
+            }
+            translate([ money_width / 2 - 7, 1.2, 0 ])
+                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
         }
     }
 }
@@ -111,11 +116,16 @@ module MoneyBox2()
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness,
                       floor_thickness = floor_thickness) for (i = [0:1:3])
     {
-        translate([ (money_width + inner_wall) * i, 0, 0 ]) difference()
+        translate([ (money_width + inner_wall) * i, 0, 0 ])
         {
-            cube([ money_width, money_length, money_box_height_2 ]);
-            translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
-                text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
+            difference()
+            {
+                cube([ money_width, money_length, money_box_height_2 ]);
+                translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
+                    text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
+            }
+            translate([ money_width / 2 - 7, 1.2, 0 ])
+                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
         }
     }
 }
@@ -180,7 +190,13 @@ module SharesBox(offset)
                 }
             }
         }
-        FingerHoleWall(radius = 15, height = main_height - lid_thickness - floor_thickness);
+        translate([ -1, share_length / 2 + 5, 0 ])
+            FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
+        if (offset != 6)
+        {
+            translate([ -1, share_length / 2 + share_length + 5.5, 0 ])
+                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
+        }
     }
 }
 
@@ -294,8 +310,9 @@ module LastSectionFirstPlayer(generate_lid = true)
     }
     if (generate_lid)
     {
-        SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length,
-                       height = first_player_box_height, wall_thickness = 3, foot = 2);
+        translate([ 0, first_player_box_length + 10, 0 ])
+            SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length,
+                           height = first_player_box_height, wall_thickness = 3, foot = 2);
     }
 }
 
@@ -351,5 +368,6 @@ module PrintLayout()
     ]) SpacerBox();
 }
 
-// echo([ shares_box_width, shares_box_length, hex_box_length, hex_box_width, middle_height ]);
+// PrintLayout();
+
 PrintLayout();

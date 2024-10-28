@@ -64,7 +64,7 @@ total_board_thickness = 26;
 money_width = 46;
 money_length = 90;
 
-rest_height = 68 - box_hexes - total_board_thickness;
+rest_height = box_height - box_hexes - total_board_thickness;
 inner_wall = 2;
 wall_thickness = 1.5;
 lid_thickness = 2;
@@ -72,7 +72,7 @@ floor_thickness = 2;
 
 echo(rest_height);
 
-money_box_length = box_width - 1; //(money_width + inner_wall) * len(money_types) / 2 + 1.5 * 4;
+money_box_length = box_width - 1;
 money_box_width = money_length + wall_thickness * 4;
 money_box_height = rest_height / 2;
 
@@ -112,33 +112,44 @@ module Outline(height = 5, outline = 1.5, offset = 0.5)
     }
 }
 
-module MoneyBox(offset = 0)
+module MoneyBox(offset = 0, generate_lid = true)
 {
     MakeBoxWithSlipoverLid(length = money_box_length, width = money_box_width, height = money_box_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness)
     {
         for (i = [0:1:3])
         {
-            translate([ 0, i * (money_width + inner_wall) + 12, 0 ])
-                cube([ money_length, money_width, money_box_height ]);
+            translate([ -0.2, i * (money_width + inner_wall + 0.5) + 12, 0 ])
+            {
+                cube([ money_length + 0.5, money_width + 0.5, money_box_height ]);
+                translate([ -1, money_width / 2 + 7, 0 ])
+                    FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+            }
             translate([ money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.3 ])
                 linear_extrude(height = 2) text(money_types[i + offset], size = 10, anchor = CENTER);
         }
     }
-    translate([ money_box_width + 10, 0, 0 ])
-        SlipoverLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height,
-                             text_width = 70, text_height = 20, text_str = "18Cuba", label_rotated = true);
+    if (generate_lid)
+    {
+        translate([ money_box_width + 10, 0, 0 ])
+            SlipoverLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height,
+                                 text_width = 70, text_height = 20, text_str = "18Cuba", label_rotated = true);
+    }
 }
 
-module TrainBox()
+module TrainBox(generate_lid = true)
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
     {
         for (i = [0:1:4])
         {
-            translate([ 0, i * (train_card_width + inner_wall + 2), 0 ])
-                cube([ train_card_length, train_card_width, train_box_height ]);
+            translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+            {
+                cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
+                translate([ -1, train_card_width / 2 + 7, 0 ])
+                    FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+            }
             if (i < 3)
             {
                 translate([
@@ -155,33 +166,43 @@ module TrainBox()
             }
         }
     }
-    translate([ train_box_width + 10, 0, 0 ])
-        SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                             lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Trains",
-                             label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    if (generate_lid)
+    {
+        translate([ train_box_width + 10, 0, 0 ])
+            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                                 lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Trains",
+                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    }
 }
 
-module SharesBox(offset = 0)
+module SharesBox(offset = 0, generate_lid = true)
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
     {
         for (i = [0:1:4])
         {
-            translate([ 0, i * (train_card_width + inner_wall + 2), 0 ])
-                cube([ train_card_length, train_card_width, train_box_height ]);
+            translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+            {
+                cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
+                translate([ -1, train_card_width / 2 + 7, 0 ])
+                    FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+            }
             translate(
-                [ train_card_length / 2 - 2, i * (train_card_width + inner_wall + 2) + train_card_width / 2, -0.3 ])
-                linear_extrude(height = 2) text(company_names[i + offset], size = 4.7, anchor = CENTER);
+                [ train_card_length / 2 - 2 + 5, i * (train_card_width + inner_wall + 2) + train_card_width / 2, -0.3 ])
+                linear_extrude(height = 2) text(company_names[i + offset], size = 4, anchor = CENTER);
         }
     }
-    translate([ train_box_width + 10, 0, 0 ])
-        SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                             lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Shares",
-                             label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    if (generate_lid)
+    {
+        translate([ train_box_width + 10, 0, 0 ])
+            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                                 lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Shares",
+                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    }
 }
 
-module LastBox()
+module LastBox(generate_lid = true)
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -194,15 +215,15 @@ module LastBox()
             // Cylinder for tokens.
             translate([
                 2.3, train_card_width + 4 + (token_diameter + 1) * i, train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             translate([
                 24.2, train_card_width + 4 + (token_diameter + 1) * i, train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             last_i = i > 7 ? i + 1 : i;
             translate([
                 46.2, train_card_width + 4 + (token_diameter + 1) * last_i,
                 train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             // finger holes for tokens.
             translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5 ]) xcyl(r = 6, h = 10, $fn = 32);
             translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 15.2 ]) cuboid([ 12, 12, 12 ]);
@@ -233,15 +254,84 @@ module LastBox()
         ]) ycyl(d = 10, h = 10, $fn = 32);
     }
 
-    translate([ train_box_width + 10, 0, 0 ])
-        SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                             lid_thickness = 1, text_width = 130, text_height = 20, text_str = "Machine/Minor",
-                             label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    if (generate_lid)
+    {
+        translate([ train_box_width + 10, 0, 0 ])
+            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                                 lid_thickness = 1, text_width = 130, text_height = 20, text_str = "Machine/Minor",
+                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+    }
 }
 
-module LargeTokens()
+module InsideTokenTray()
 {
     wall_height = 0.75 + token_big_thickness;
+
+    rest_section_height = rest_height - wall_height - 0.70 - 0.5;
+
+    difference()
+    {
+        cube([
+            rest_section_width - wall_thickness * 2 - m_piece_wiggle_room * 2,
+            train_box_length - wall_thickness * 2 - m_piece_wiggle_room * 2,
+            rest_section_height
+        ]);
+        translate([ 0, 0, 0.75 ])
+        {
+            for (i = [0:1:4])
+            {
+                // Cylinder for tokens.
+                translate([
+                    2.3, 4 + (token_diameter + 3) * i,
+                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
+                ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 11.2 : 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
+                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
+                if (i != 1 && i != 4)
+                {
+                    translate([ 24.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
+                        cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
+                            $fn = 64);
+                    translate([ 46.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
+                        cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
+                            $fn = 64);
+                    // finger indent for the middle secxtion
+                    translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
+                    translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
+                }
+                translate([
+                    65.8, 4 + (token_diameter + 3) * i,
+                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
+                ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                // finger holes for tokens.
+                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) xcyl(r = 6, h = 10, $fn = 32);
+                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
+            }
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 1.2 ]) linear_extrude(height = 2)
+                text("Ferrocarril Central", size = 3.2, anchor = CENTER);
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 1.2 ]) linear_extrude(height = 2)
+                text("Yellow", size = 3.2, anchor = CENTER);
+            translate([
+                32, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2 - token_diameter + 1,
+                rest_section_height - token_big_thickness - 0.2
+            ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+            translate(
+                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height - 4.4 ])
+                ycyl(r = 6, h = 10, $fn = 32);
+            translate(
+                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height + 1.7 ])
+                cuboid([ 12, 12, 12 ]);
+
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 8, rest_section_height - 1.2 ]) linear_extrude(height = 2)
+                rotate(90) text("18 Cuba", size = 15, anchor = CENTER);
+        }
+    }
+}
+
+module LargeTokensBox()
+{
+    wall_height = 0.75 + token_big_thickness;
+
     MakeBoxWithSlipoverLid(length = train_box_length, width = rest_section_width, height = rest_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness,
                            wall_height = wall_height)
@@ -250,12 +340,12 @@ module LargeTokens()
         {
             // Cylinder for tokens.
             translate([ 2.3, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             translate([ 24.2, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             last_i = i > 7 ? i : i;
             translate([ 66.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             translate([ 46.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ])
                 cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             // finger holes for tokens.
@@ -275,67 +365,48 @@ module LargeTokens()
             }
         }
     }
-    echo([ rest_height, wall_height, rest_height - wall_height - 0.75 ]);
+}
 
-    rest_section_height = rest_height - wall_height - 0.70;
+module LargeTokensToPrint(generate_lid = true)
+{
+    LargeTokensBox();
 
     translate([ rest_section_width + 10, 0, 0 ]) difference()
     {
-        cube([
-            rest_section_width - wall_thickness * 4 - m_piece_wiggle_room * 2,
-            train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2,
-            rest_section_height
-        ]);
-        translate([ 0, 0, 0.75 ])
-        {
-            for (i = [0:1:4])
-            {
-                // Cylinder for tokens.
-                translate([
-                    2.3, 4 + (token_diameter + 3) * i,
-                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.5
-                ]) cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 11.2 : 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
-                if (i != 1 && i != 4)
-                {
-                    translate([ 24.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.5 ])
-                        cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                    translate([ 46.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.5 ])
-                        cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                    // finger indent for the middle secxtion
-                    translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
-                    translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
-                }
-                translate([
-                    65.8, 4 + (token_diameter + 3) * i,
-                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.5
-                ]) cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                // finger holes for tokens.
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
-            }
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 2, rest_section_height - 1.2 ]) linear_extrude(height = 2)
-                text("Ferrocarril Central", size = 3.2, anchor = CENTER);
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 1.2 ]) linear_extrude(height = 2)
-                text("Yellow", size = 3.2, anchor = CENTER);
-            translate([
-                32, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2 - token_diameter + 1,
-                rest_section_height - token_big_thickness - 0.5
-            ]) cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            translate(
-                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height - 4.4 ])
-                ycyl(r = 6, h = 10, $fn = 32);
-            translate(
-                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height + 1.7 ])
-                cuboid([ 12, 12, 12 ]);
-        }
+        InsideTokenTray();
     }
 
-    translate([ rest_section_width * 2 + 20, 0, 0 ])
+    if (generate_lid)
+    {
+        translate([ rest_section_width * 2 + 20, 0, 0 ])
+            SlipoverBoxLid(length = train_box_length, width = rest_section_width, height = rest_height,
+                           lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness);
+    }
 }
 
-LargeTokens();
+module BoxLayout()
+{
+    cube([ 1, box_length, box_height ]);
+    cube([ box_width, box_length, total_board_thickness + box_hexes ]);
+    translate([ 0, 0, total_board_thickness + box_hexes ])
+    {
+        translate([ money_box_length, 0, 0 ]) rotate([ 0, 0, 90 ]) MoneyBox(offset = 0, generate_lid = false);
+        translate([ money_box_length, 0, money_box_height ]) rotate([ 0, 0, 90 ])
+            MoneyBox(offset = 4, generate_lid = false);
+        translate([ money_box_length, money_box_width, 0 ]) rotate([ 0, 0, 90 ]) TrainBox(generate_lid = false);
+        translate([ money_box_length, money_box_width, train_box_height ]) rotate([ 0, 0, 90 ])
+            SharesBox(offset = 0, generate_lid = false);
+        translate([ money_box_length, money_box_width + train_box_width, 0 ]) rotate([ 0, 0, 90 ])
+            SharesBox(offset = 5, generate_lid = false);
+        translate([ money_box_length, money_box_width + train_box_width, train_box_height ]) rotate([ 0, 0, 90 ])
+            LastBox(generate_lid = false);
+        translate([ money_box_length, money_box_width + train_box_width * 2, 0 ]) rotate([ 0, 0, 90 ]) LargeTokensBox();
+        translate([ money_box_length, money_box_width + train_box_width * 2 + 2, 0.75 + token_big_thickness ])
+            rotate([ 0, 0, 90 ]) InsideTokenTray();
+    }
+}
+
+BoxLayout();
 
 // Outline() scale(0.05) WagonOutline();
 // Outline() scale(0.3) TrainOutline();
