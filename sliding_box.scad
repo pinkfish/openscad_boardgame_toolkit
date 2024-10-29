@@ -1,4 +1,5 @@
 
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -133,6 +134,7 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //    text_height = length of the text section
 //    text_str = The string to write
 //    lid_thickness = height of the lid (default 3)
+//    wall_thickness = thickness of the walls (default 2)
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    label_radius = radius of the rounded corner for the label section (default 12)
 //    border = how wide the border strip on the label should be (default 2)
@@ -142,6 +144,8 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //    shape_width = with of the shape in the grid (default 12)
 //    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
 //    shape_thickness = thickness of the shape in the mesh (default 2)
+//    lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
+//    {{m_piece_wiggle_room}}
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
@@ -149,9 +153,11 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
                               shape_width = 12, border = 2, offset = 4, label_rotated = false, layout_width = 12,
-                              shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2)
+                              shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, wall_thickness = 2,
+                              lid_size_spacing = m_piece_wiggle_room)
 {
-    SlidingLid(width, length, lid_thickness = lid_thickness)
+    SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
+               lid_size_spacing = lid_size_spacing)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
