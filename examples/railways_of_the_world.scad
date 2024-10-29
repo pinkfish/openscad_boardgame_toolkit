@@ -274,12 +274,13 @@ module PlayerBox(generate_lid = true)
         card_height + player_marker_thickness + lid_thickness * 2 + 1, player_box_height, card_box_length,
         player_box_length
     ]);
-    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_small_height)
+    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_small_height,
+                      lid_thickness = 1.7)
     {
         translate([
             (player_box_width - wall_thickness * 2) / 2,
             (player_box_length - wall_thickness * 2) / 2,
-            player_box_small_height - lid_thickness * 2 - card_height,
+            player_box_small_height - lid_thickness * 2 - card_height - 0.5,
         ]) cuboid([ train_card_length, train_card_width, player_box_small_height ], anchor = BOTTOM);
 
         translate([ 0, player_box_length / 2 + 9.5, 0 ])
@@ -299,7 +300,7 @@ module PlayerBox(generate_lid = true)
     {
         translate([ player_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_small_height,
-                               text_width = 70, text_height = 15, text_str = "Player");
+                               text_width = 70, text_height = 15, text_str = "Player", lid_thickness = 1.7);
     }
 }
 
@@ -912,10 +913,10 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
     }
 }
 
-PrintLayout(generate_lid = true);
-// BondBox(generate_lid = false);
+// PrintLayout(generate_lid = true);
+//  BondBox(generate_lid = false);
 
-// PlayerBox();
+PlayerBox();
 
 // translate([ 12, 0, 10 ]) rotate([ 0, 35, 0 ]) EmptyCityModel();
 
