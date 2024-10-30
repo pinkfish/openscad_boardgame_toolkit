@@ -49,7 +49,8 @@ module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thi
 {
     difference()
     {
-        cube([ width, length, height - lid_thickness ]);
+        cuboid([ width, length, height - lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         translate([
             magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, height - lid_thickness -
             magnet_thickness

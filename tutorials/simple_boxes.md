@@ -364,6 +364,7 @@ MakeBoxWithInsetLidRabbitClip(width = canvas_piece_box_width, length = canvas_pi
 
 ## Hinge box
 
+
 Make a box with a hinge in it, the hinge and box are in the same print, this is a print in place
 box.
 

@@ -27,7 +27,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-
 // Section: TabbedBox
 // Description:
 //   Creates a lid/box with tabs on the side.  This also includes inset lids, since they are used with tabs too.
@@ -44,20 +43,26 @@ under the License.
 //   lid_thickness = height of the lid (default 2)
 //   wall_thickness = thickness of the walls (default 2)
 //   inset = how far the side is inset from the edge of the box (default 1)
+//   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //   lid_size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
 // Topics: TabbedBox
 // Example:
 //  InsetLid(50, 100);
-module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1, lid_size_spacing = m_piece_wiggle_room)
+module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1, lid_size_spacing = m_piece_wiggle_room,
+                lid_rounding = undef)
 {
+    calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
     internal_build_lid(width, length, lid_thickness, wall_thickness, lid_size_spacing = lid_size_spacing)
     {
         translate([ wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0 ])
-            cube([
-                width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
-                length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
-                lid_thickness
-            ]);
+            cuboid(
+                [
+                    width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
+                    length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
+                    lid_thickness
+                ],
+                anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
+                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         if ($children > 0)
         {
             children(0);
@@ -102,17 +107,18 @@ module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
 //   prism_width = width of the prism in the tab. (default 0.75)
 //   tab_length = length of the tab (default 10)
 //   tab_height = height of the tab (default 6)
+//   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   InsetLidTabbed(30, 100);
 module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
                       lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
-                      prism_width = 0.75, tab_length = 10, tab_height = 8)
+                      prism_width = 0.75, tab_length = 10, tab_height = 8, lid_rounding = undef)
 {
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
     {
         InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, lid_size_spacing = lid_size_spacing)
+                 inset = inset, lid_size_spacing = lid_size_spacing, lid_rounding = lid_rounding)
         {
             if ($children > 0)
             {
@@ -177,6 +183,7 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 //    shape_width = with of the shape in the grid (default 12)
 //    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
 //    shape_thickness = thickness of the shape in the mesh (default 2)
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //    InsetLidTabbedWithLabel(
@@ -186,9 +193,10 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
                                label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
                                tab_height = 8, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
                                layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
-                               shape_thickness = 2)
+                               shape_thickness = 2, lid_rounding = undef)
 {
-    InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height)
+    InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
+                   lid_rounding = lid_rounding)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
@@ -254,19 +262,21 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
 //   make_tab_width = makes tabes on thr width (default false)
 //   make_tab_length = makes tabs on the length (default true)
 //   prism_width = width of the prism in the tab. (default 0.75)
+//   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
 module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0,
                                tab_height = 8, tab_length = 10, inset = 1, make_tab_width = false,
-                               make_tab_length = true, prism_width = 0.75)
+                               make_tab_length = true, prism_width = 0.75, lid_rounding = undef)
 {
     width = tile_width;
     apothem = width / 2;
     radius = apothem / cos(180 / 6);
 
     InsetLidTabbed(width = rows * radius * 2 + wall_thickness * 2, length = cols * apothem * 2 + wall_thickness * 2,
-                   lid_thickness = lid_thickness, tab_height = tab_height, tab_length = tab_length, inset = 1)
+                   lid_thickness = lid_thickness, tab_height = tab_height, tab_length = tab_length, inset = inset,
+                   lid_rounding = lid_rounding)
     {
         if ($children > 0)
         {
@@ -325,6 +335,7 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_t
 //    shape_width = with of the shape in the grid (default 12)
 //    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
 //    shape_thickness = thickness of the shape in the mesh (default 2)
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
 //    InsetLidTabbedWithLabelForHexBox(
@@ -334,7 +345,7 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
                                         lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
                                         label_rotated = false, wall_thickness = 2, tab_height = 8, tab_length = 10,
                                         inset = 1, layout_width = 12, shape_width = 12,
-                                        shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2)
+                                        shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, lid_rounding = undef)
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -342,7 +353,7 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
     length = cols * apothem * 2 + wall_thickness * 2;
 
     InsetLidTabbed(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                   tab_length = tab_length, tab_height = tab_height, inset = inset)
+                   tab_length = tab_length, tab_height = tab_height, inset = inset, lid_rounding = lid_rounding)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
@@ -426,7 +437,8 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
 {
     difference()
     {
-        cube([ width, length, height ]);
+        cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         translate([ wall_thickness - inset, wall_thickness - inset, height - lid_thickness ])
             cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1 ]);
         translate([ 0, 0, height - lid_thickness ])
@@ -478,18 +490,20 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
 //   rabbit_snap = how deep the inner depth should be for the snap curve (default 0.25)
 //   rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //   rabbit_depth = extrustion depth of the rabbit (default 1.5)
+//   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: RabbitClipBox
 // Example:
 //   InsetLidRabbitClip(30, 100);
 module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
                           lid_size_spacing = m_piece_wiggle_room, make_rabbit_width = false, make_rabbit_length = true,
                           rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
-                          rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5)
+                          rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5,
+                          lid_rounding = undef)
 {
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
     {
         InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, lid_size_spacing = lid_size_spacing)
+                 inset = inset, lid_size_spacing = lid_size_spacing, lid_rounding = lid_rounding)
         {
             if ($children > 0)
             {
@@ -559,6 +573,7 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //    shape_width = with of the shape in the grid (default 12)
 //    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
 //    shape_thickness = thickness of the shape in the mesh (default 2)
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: RabbitClipBox
 // Example:
 //    InsetLidRabbitWithLabel(
@@ -569,13 +584,14 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
                                make_rabbit_width = false, make_rabbit_length = true, rabbit_width = 7,
                                rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
                                rabbit_snap = 0.25, rabbit_offset = 3, layout_width = 12, shape_width = 12,
-                               shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, rabbit_depth = 1.5)
+                               shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, rabbit_depth = 1.5,
+                               lid_rounding = undef)
 {
     InsetLidRabbitClip(width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
                        make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width,
                        rabbit_length = rabbit_length, rabbit_lock = rabbit_lock, rabbit_offset = rabbit_offset,
                        rabbit_thickness = rabbit_thickness, rabbit_compression = rabbit_compression,
-                       rabbit_depth = rabbit_depth)
+                       rabbit_depth = rabbit_depth, lid_rounding = lid_rounding)
     {
 
         translate([ lid_boundary, lid_boundary, 0 ])
@@ -711,7 +727,7 @@ module MakeHexBoxWithInsetLidTabbed(rows, cols, height, push_block_height, tile_
     radius = apothem / cos(180 / 6);
 
     MakeBoxWithInsetLidTabbed(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
-                            lid_thickness = lid_thickness, floor_thickness = floor_thickness)
+                              lid_thickness = lid_thickness, floor_thickness = floor_thickness)
 
     {
         HexGridWithCutouts(rows = rows, cols = cols, height = height, tile_width = tile_width, spacing = spacing,

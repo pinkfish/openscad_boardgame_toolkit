@@ -231,7 +231,8 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
         {
             difference()
             {
-                cube([ width, length, height / 2 ]);
+                cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 0)
                 {
                     translate([ wall_thickness, wall_thickness, floor_thickness ]) children(0);
@@ -240,7 +241,8 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
 
             translate([ width + gap, 0, 0 ]) difference()
             {
-                cube([ width, length, height / 2 ]);
+                cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 1)
                 {
                     translate([ hinge_diameter, wall_thickness, lid_thickness ]) children(0);

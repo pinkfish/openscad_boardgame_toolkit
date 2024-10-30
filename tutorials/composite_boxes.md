@@ -214,6 +214,7 @@ translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
 
 This creates a box with a magnetic lid for hexes.
 
+
 ```openscad-3D;Big
 hex_box_length = 207;
 hex_box_width = 172;

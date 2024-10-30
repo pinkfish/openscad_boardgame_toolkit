@@ -59,7 +59,6 @@ SlidingBoxLidWithLabel(
 
 ## Capped box lid with label
 
-
 Make a lid and base for a capped box.
 
 ```openscad-3D;Med
@@ -81,6 +80,7 @@ MakeLid("Red");
 ```
 
 ## Slipover box lid with label
+
 
 Make a lid and base for a slipover box.
 

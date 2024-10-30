@@ -70,8 +70,18 @@ aphid_thickness = 9;
 plastic_clip_width = 9;
 plastic_clip_length = 22;
 plastic_clip_height = 5.5;
-major_worker_width = 10;
-major_worker_len = 14.5;
+major_worker_width = 15;
+major_worker_len = 25;
+
+spider_length = 35;
+spider_width = 34;
+ladybird_length = 37;
+ladybird_width = 26;
+mantis_width = 34;
+mantis_length = 39;
+fungus_width = 31;
+fungus_length = 34;
+major_token_thickness = 10;
 
 num_mm_cards = 36 + 5 + 8;
 num_major_workers = 10;
@@ -118,7 +128,8 @@ predator_box_length = minions_of_the_meadow_box_length;
 
 echo([
     tile_thickness * (tile_num_standard + tile_num_start) + 4, tile_box_height, food_token_box_width, aphid_box_height,
-    box_height - thickness_to_stuff, (num_mm_cards + total_cards) * twenty_sleeved_cards_thickness / 20, predator_box_height
+    box_height - thickness_to_stuff, (num_mm_cards + total_cards) * twenty_sleeved_cards_thickness / 20,
+    predator_box_height
 ]);
 
 module GreatTunnel()
@@ -146,7 +157,32 @@ module LeafOutline()
 
 module MajorWorkerOutline()
 {
-    resize([ major_worker_width, major_worker_len ]) import("svg/mota - major worker.svg");
+    translate([ -major_worker_width / 2, -major_worker_len / 2 ]) resize([ major_worker_width, major_worker_len ])
+        import("svg/mota - major worker.svg");
+}
+
+module SpiderOutline()
+{
+    translate([ -spider_width / 2, -spider_length / 2 ]) resize([ spider_width, spider_length ])
+        import("svg/mota - spider.svg");
+}
+
+module LadybirdOutline()
+{
+    translate([ ladybird_width / 2, -ladybird_length / 2 ]) resize([ ladybird_width, ladybird_length ]) rotate(90)
+        import("svg/mota - ladybird.svg");
+}
+
+module FugusOutline()
+{
+    translate([ fungus_width / 2, -fungus_length / 2 ]) resize([ fungus_width, fungus_length ]) rotate(90)
+        import("svg/mota - mushroom.svg");
+}
+
+module MantisOutline()
+{
+    translate([ mantis_width / 2, -mantis_length / 2 ]) resize([ mantis_width, mantis_length ]) rotate(90)
+        import("svg/mota - mantis.svg");
 }
 
 module TileBox()
@@ -319,38 +355,50 @@ module PlayerBox()
     MakeBoxWithCapLid(player_box_width, player_box_length, player_box_height, wall_thickness = wall_thickness,
                       lid_thickness = lid_thickness)
     {
+        // Cubes
         translate([ 0, 0, player_box_height - lid_thickness * 2 - player_cube ])
             cube([ player_cube * 10 + 1, player_cube * 3 + 1, player_cube + 1 ]);
         translate([ player_cube * 2, player_cube * 3 + 0.5, player_box_height - lid_thickness * 2 - player_cube ])
             cube([ player_cube * 6 + 1, player_cube + 1, player_cube + 1 ]);
+        // Player marker.
         translate([
-            player_token_diameter / 2, player_cube * 4 + 0.5, player_box_height - lid_thickness * 2 -
+            player_box_width - player_token_diameter / 2 - wall_thickness * 2, player_cube * 4 + 0.5,
+            player_box_height - lid_thickness * 2 -
             player_token_thickness
         ])
         {
+            player_angle = 30;
+
             cylinder(d = player_token_diameter, h = player_token_thickness, anchor = BOTTOM);
-            translate([ player_token_diameter / 4 + 1.5, player_token_diameter / 4 + 1.5, 9 ]) sphere(r = 8);
+            translate(
+                [ player_token_diameter / 2 * sin(player_angle), player_token_diameter / 2 * cos(player_angle), 5 ])
+                sphere(r = 5);
         }
+        // Major worker.
         translate([
-            5.3, player_box_length - wall_thickness * 2 - major_worker_len,
-            player_box_height - lid_thickness * 2 - aphid_thickness + 15
-        ]) sphere(r = 9);
-        translate([
-            0, player_box_length - wall_thickness * 2 - major_worker_len, player_box_height - lid_thickness * 2 -
-            aphid_thickness
-        ]) linear_extrude(height = 60) offset(delta = 0.5) MajorWorkerOutline();
+            major_worker_width / 2, player_cube * 3 + 3 + major_worker_len / 2, player_box_height - lid_thickness * 2 -
+            major_token_thickness
+        ])
+        {
+            mirror([ 0, 1, 0 ]) linear_extrude(height = 60) offset(delta = 0.5) MajorWorkerOutline();
+            translate([ -2, major_worker_len / 2 - 1, 16 ]) sphere(r = 9);
+        }
+        // Major worker tokens
         for (i = [0:1:2])
         {
             translate([
                 player_box_width - wall_thickness * 2 - major_worker_token_diameter / 2 -
-                    (major_worker_token_diameter + 1) * i,
+                    (major_worker_token_diameter + 1) * i - 4,
                 player_box_length - wall_thickness * 2 - major_worker_token_diameter / 2,
                 player_box_height - lid_thickness * 2 -
                 tile_thickness
             ])
             {
+                angle = (i == 0) ? 55 : 135;
                 cylinder(d = major_worker_token_diameter, h = tile_thickness + 1, anchor = BOTTOM);
-                translate([ 0, -major_worker_token_diameter / 2, 9 ]) sphere(r = 9);
+                translate(
+                    [ major_worker_token_diameter / 2 * sin(angle), major_worker_token_diameter / 2 * cos(angle), 8.5 ])
+                    sphere(r = 8.5);
             }
         }
     }
@@ -361,6 +409,38 @@ module PredatorBox()
     MakeBoxWithCapLid(predator_box_width, predator_box_length, predator_box_height, wall_thickness = wall_thickness,
                       lid_thickness = lid_thickness)
     {
+        translate([
+            spider_width / 2 + wall_thickness, (predator_box_length - wall_thickness * 2) / 2,
+            predator_box_height - lid_thickness * 2 -
+            major_token_thickness
+        ])
+        {
+            linear_extrude(height = 60) offset(delta = 0.5) SpiderOutline();
+            translate([ 2, -spider_length / 2, 15 ]) sphere(r = 10);
+        }
+        translate([ (predator_box_width - wall_thickness * 2) / 2, mantis_length / 2, 0 ])
+        {
+            linear_extrude(height = 60) offset(delta = 0.5) MantisOutline();
+            translate([ mantis_width / 2, -mantis_length * 1 / 8, 15 ]) sphere(r = 10);
+        }
+        translate([
+            predator_box_width - ladybird_width / 2 - wall_thickness * 4,
+            (predator_box_length - wall_thickness * 2) / 2, 0
+        ])
+        {
+            linear_extrude(height = 60) offset(delta = 0.5) LadybirdOutline();
+            translate([ -ladybird_width / 8 + 2, -ladybird_length / 2 + 5, 15 ]) sphere(r = 10);
+        }
+
+        translate([
+            (predator_box_width - wall_thickness * 2) / 2, predator_box_length - fungus_width / 2 - wall_thickness * 4,
+            predator_box_height - lid_thickness * 2 -
+            major_token_thickness
+        ])
+        {
+            translate([ 0, 0, 0 ]) linear_extrude(height = 60) rotate(90) offset(delta = 0.5) FugusOutline();
+            translate([ 3, -fungus_width / 2, 15 ]) sphere(r = 10);
+        }
     }
 }
 

@@ -48,7 +48,7 @@ special_token_gap = 2;
 special_token_thickness = 4;
 special_token_angle_length = special_token_stalk_width / sqrt(2);
 
-player_box_length = animal_max_length + wall_thickness * 4 + 8.25;
+player_box_length = animal_max_length + wall_thickness * 4 + 7.75;
 player_box_width = box_width - 1;
 player_box_height = animal_thickness + wall_thickness * 2 + 1;
 player_box_wall_height = animal_thickness * 3 / 4 + wall_thickness;
@@ -245,7 +245,7 @@ module AnimalBox(text_str, animal_width, generate_lid = true)
     {
         for (i = [0:1:5])
         {
-            translate([ (animal_width + wall_thickness) * i, 7, 0 ]) children(0);
+            translate([ (animal_width + wall_thickness) * i, 3.5, 0 ]) children(0);
         }
         if ($children > 1)
         {
@@ -253,7 +253,7 @@ module AnimalBox(text_str, animal_width, generate_lid = true)
         }
         else
         {
-            translate([ player_box_width - 25, 35, player_box_wall_height - special_token_thickness * 2 + 0.5 ])
+            translate([ player_box_width - 25, 34, player_box_wall_height - special_token_thickness * 2 + 0.5 ])
                 SpecialTokenFingers();
         }
 
@@ -411,4 +411,4 @@ module BoxLayout()
     }
 }
 
-ArmadiloBox();
+RhinoBox();

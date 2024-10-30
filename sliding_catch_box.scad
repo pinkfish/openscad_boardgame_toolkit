@@ -53,7 +53,8 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = 1, wall
     difference()
     {
 
-        cube([ width, length, height ]);
+        cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         // middle diff.
         translate([ wall_thickness, wall_thickness, floor_thickness ])
             cube([ width - wall_thickness * 2, length - wall_thickness * 2, height ]);

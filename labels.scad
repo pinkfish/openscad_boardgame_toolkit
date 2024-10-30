@@ -26,7 +26,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-
 // Section: Labels
 //   Building blocks for making labels.
 
@@ -73,12 +72,12 @@ module MakeStripedGrid(width, length, bar_width = 1)
 //   Make3dStripedGrid(width = 20, length = 50, height = 1);
 // Example:
 //   Make3dStripedGrid(width = 20, length = 50, height = 0.2, bar_width_bottom = 1);
-module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bottom = undef)
+module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bottom = undef, spacing = 0)
 {
     calc_bar_width_bottom = bar_width_bottom == undef ? bar_width_top : bar_width_bottom;
     bar_width = max(bar_width_top, calc_bar_width_bottom);
 
-    dx = bar_width * 2;
+    dx = bar_width * 2 + spacing;
     x_count = (width + length) / (bar_width + dx);
 
     for (j = [0:x_count])

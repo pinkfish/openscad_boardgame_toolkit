@@ -26,7 +26,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-
 // Section: SlipBox
 // Description:
 //    A box that slips over the outside of an inner box.
@@ -54,13 +53,17 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 
     {
         union()
         {
-            translate([ wall_thickness + size_spacing, wall_thickness + size_spacing, 0 ]) cube([
-                width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2,
-                wall_height_calc
-            ]);
+            translate([ wall_thickness + size_spacing, wall_thickness + size_spacing, 0 ]) cuboid(
+                [
+                    width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2,
+                    wall_height_calc
+                ],
+                anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             if (foot > 0)
             {
-                cube([ width, length, foot ]);
+                cuboid([ width, length, foot ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             }
         }
 
@@ -96,7 +99,8 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
                 internal_build_lid(width, length, wall_thickness, wall_thickness)
                 {
                     // Top piece
-                    cube([ width, length, lid_thickness ]);
+                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                     if ($children > 0)
                     {
                         children(0);
@@ -126,7 +130,8 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
             finger_height = min(10, (height - foot_offset - lid_thickness) / 2);
             difference()
             {
-                cube([ width, length, height - foot_offset ]);
+                cuboid([ width, length, height - foot_offset ], anchor = BOTTOM + FRONT + LEFT,
+                       rounding = wall_thickness, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 translate([ wall_thickness, wall_thickness, -0.5 ])
                     cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
                 if (finger_hole_length)

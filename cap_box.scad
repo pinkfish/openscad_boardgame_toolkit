@@ -64,8 +64,7 @@ function CapBoxDefaultLidWallThickness(wall_thickness) = wall_thickness / 2;
 //   Works out the default value for the cap box rounding piece on the edge.
 // Arguments:
 //   cap_height = the current cap height
-function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height /2);
-
+function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2);
 
 // Module: MakeBoxWithCapLid()
 // Topics: CapLid
@@ -103,17 +102,22 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
     difference()
     {
 
-        cube([ width, length, height - lid_thickness - size_spacing ]);
+        cuboid([ width, length, height - lid_thickness - size_spacing ], anchor = BOTTOM + FRONT + LEFT,
+               rounding = wall_thickness, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         // lid diff.
         translate([ 0, 0, height - calc_cap_height ]) difference()
         {
             translate([ -size_spacing, -size_spacing, 0 ])
-                cube([ width + size_spacing * 2, length + size_spacing * 2, calc_cap_height ]);
-            translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
-                width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                calc_cap_height
-            ]);
+                cuboid([ width + size_spacing * 2, length + size_spacing * 2, calc_cap_height ],
+                       anchor = BOTTOM + FRONT + LEFT);
+            translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cuboid(
+                [
+                    width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                    length - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                    calc_cap_height
+                ],
+                anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
+                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         }
         // finger cutouts.
         translate([ 0, 0, height - calc_cap_height - calc_finger_hold_height ]) difference()
@@ -121,37 +125,45 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
             difference()
             {
                 translate([ -size_spacing, -size_spacing, 0 ])
-                    cube([ width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1 ]);
+                    cuboid([ width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1 ],
+                           anchor = BOTTOM + FRONT + LEFT);
 
-                translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cube([
-                    width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    length - calc_lid_wall_thickness * 2 - size_spacing * 2, calc_finger_hold_height + 2
-                ]);
+                translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cuboid(
+                    [
+                        width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                        length - calc_lid_wall_thickness * 2 - size_spacing * 2, calc_finger_hold_height + 2
+                    ],
+                    anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
+                    edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             }
             translate([ calc_lid_finger_hold_len, 0, -0.1 ]) cuboid(
                 [
                     width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness - calc_lid_wall_thickness,
                     calc_finger_hold_height + 0.2
                 ],
-                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ],
+                anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1 ]) cuboid(
                 [
                     width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness - calc_lid_wall_thickness,
                     calc_finger_hold_height + 0.2
                 ],
-                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ],
+                anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ 0, calc_lid_finger_hold_len, -0.1 ]) cuboid(
                 [
                     wall_thickness - calc_lid_wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1,
                     calc_finger_hold_height + 0.2
                 ],
-                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ],
+                anchor = BOTTOM + LEFT + FRONT, $fn = 32);
             translate([ width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1 ]) cuboid(
                 [
                     wall_thickness - calc_lid_wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1,
                     calc_finger_hold_height + 0.2
                 ],
-                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ], anchor = BOTTOM + LEFT + FRONT, $fn = 32);
+                rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ],
+                anchor = BOTTOM + LEFT + FRONT, $fn = 32);
         }
         // Put the children in the box.
         translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
@@ -194,7 +206,9 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, w
                 difference()
                 {
                     // Top piece
-                    cube([ width, length, lid_thickness ]);
+                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
+                           rounding = wall_thickness / 2,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 }
                 if ($children > 0)
                 {
@@ -223,7 +237,9 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, w
             }
             difference()
             {
-                cube([ width, length, calc_cap_height ]);
+                cuboid([ width, length, calc_cap_height ], anchor = BOTTOM + FRONT + LEFT,
+                       rounding = calc_lid_wall_thickness / 2,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) cube(
                     [ width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1 ]);
             }
