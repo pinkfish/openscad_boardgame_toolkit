@@ -55,7 +55,7 @@ module RoundedBoxOnLength(width, length, height, radius)
     {
         difference()
         {
-            translate([ width / 2, length / 2, 0 ]) hull()
+            translate([ width / 2, length / 2, radius ]) hull()
             {
                 ydistribute(l = length - radius * 2)
                 {

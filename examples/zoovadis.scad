@@ -411,4 +411,4 @@ module BoxLayout()
     }
 }
 
-RhinoBox();
+IbisBox();
