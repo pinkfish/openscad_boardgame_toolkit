@@ -410,21 +410,19 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 //    FingerHoleBase(10, 20);
 // Example:
 //    FingerHoleBase(10, 20, rounding_radius = 7);
-module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, floor_thickness = 2, orient = UP,
-                      spin = 0)
+module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = 2, orient = UP, spin = 0)
 {
     tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
     multmatrix(m = tmat) union()
     {
-        translate([ -rounding_radius, -wall_thickness / 2, height ])
+        translate([ -radius, -wall_thickness / 2, height ])
         {
-            translate([ 0, wall_thickness / 2, 0 ])
-                cyl(r = radius, h = height + floor_thickness * 2, anchor = TOP + LEFT, $fn = 64);
-            cuboid([ radius * 2, wall_thickness + 1, height + floor_thickness * 2 ], rounding = -rounding_radius,
+            translate([ 0, wall_thickness / 2, 0 ]) cyl(r = radius, h = height, anchor = TOP + LEFT, $fn = 64);
+            cuboid([ radius * 2, wall_thickness + 1, height ], rounding = -rounding_radius,
                    edges = [ TOP + LEFT, TOP + RIGHT ], anchor = TOP + LEFT, $fn = 32);
             translate([ radius, -wall_thickness / 2 - 0.01, 0 ]) rotate([ 90, 90, 0 ])
-                cuboid([ height + floor_thickness * 2, radius * 2, wall_thickness ], rounding = -wall_thickness / 2,
-                       anchor = TOP + LEFT, $fn = 32, edges = [ FRONT + TOP, TOP + BACK ]);
+                cuboid([ height, radius * 2, wall_thickness ], rounding = -wall_thickness / 2, anchor = TOP + LEFT,
+                       $fn = 32, edges = [ FRONT + TOP, TOP + BACK ]);
         }
     }
 }

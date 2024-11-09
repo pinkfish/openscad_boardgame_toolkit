@@ -54,7 +54,7 @@ player_box_height = animal_thickness + wall_thickness * 2 + 1;
 player_box_wall_height = animal_thickness * 3 / 4 + wall_thickness;
 
 laurel_box_height = max(laurel_diameter + wall_thickness * 2 + 1, player_box_height * 2);
-laurel_box_length = box_length - (player_box_length * 4) - 1;
+laurel_box_length = box_length - (player_box_length * 4) - 3;
 laurel_wall_height = laurel_box_height - laurel_diameter / 2 - lid_thickness;
 
 top_layer_thickness = box_height - player_box_height * 2 - board_plus_rules_height;
@@ -272,7 +272,7 @@ module AnimalBox(text_str, animal_width, generate_lid = true)
     }
     if (generate_lid)
     {
-        translate([ 0, player_box_length + 10, 0 ]) SlipoverLidWithLabel(
+        translate([ player_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
             width = player_box_width, length = player_box_length, height = player_box_height, foot = 2,
             text_str = text_str, text_width = len(text_str) * 10 + 10, text_height = 20, shape_type = SHAPE_TYPE_CIRCLE,
             layout_width = 10, shape_width = 14, finger_hole_length = true, finger_hole_width = false);
@@ -360,7 +360,7 @@ module ShieldBox(generate_lid = true)
     if (generate_lid)
     {
         text_str = "Zoovadis";
-        translate([ 0, shield_box_length + 30, 0 ])
+        translate([ shield_box_width + 30, 0, 0 ])
             SplitBox(width = shield_box_width, length = shield_box_length, height = shield_box_height, orient = LEFT,
                      spin = 90, y = [2])
         {
@@ -403,12 +403,48 @@ module BoxLayout()
         translate([ 0, laurel_box_length + player_box_length * 2, 0 ]) TigerBox(generate_lid = false);
         translate([ 0, laurel_box_length + player_box_length * 3, 0 ]) ArmadiloBox(generate_lid = false);
         translate([ 0, laurel_box_length, player_box_height ]) PeacockBox(generate_lid = false);
-        translate([ 0, laurel_box_length + player_box_length, player_box_height ]) HyenaBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length, player_box_height ]) MarmosetBox(generate_lid = false);
         translate([ 0, laurel_box_length + player_box_length * 2, player_box_height ]) TigerBox(generate_lid = false);
-        translate([ 0, laurel_box_length + player_box_length * 3, player_box_height ])
-            ArmadiloBox(generate_lid = false);
+        translate([ 0, laurel_box_length + player_box_length * 3, player_box_height ]) RhinoBox(generate_lid = false);
         translate([ 0, 0, player_box_height * 2 ]) ShieldBoxInternal();
     }
 }
 
-IbisBox();
+module PrintLayout()
+{
+    BothLaurelBoxes();
+    translate([ 0, laurel_box_length + 10, 0 ])
+    {
+        FillerBox();
+        translate([ 0, filler_box_length + 10, 0 ])
+        {
+            PeacockBox();
+            translate([ 0, player_box_length + 10, 0 ])
+            {
+                HyenaBox();
+                translate([ 0, player_box_length + 10, 0 ])
+                {
+                    ArmadiloBox();
+                    translate([ 0, player_box_length + 10, 0 ])
+                    {
+                        MarmosetBox();
+                        translate([ 0, player_box_length + 10, 0 ])
+                        {
+                            TigerBox();
+                            translate([ 0, player_box_length + 10, 0 ])
+                            {
+                                RhinoBox();
+                                translate([ 0, player_box_length + 10, 0 ])
+                                {
+                                    ShieldBox();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+PrintLayout();

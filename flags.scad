@@ -30,6 +30,35 @@ under the License.
 // Description:
 //    Flags of the world to use where all good flags are used in openscad.
 
+// Module: FlagBackgroundAndBorder()
+// Description:
+//    Makes a background to the flag with the specified border.  The first child is used to subtract
+//    from the background while the second child renders the inside of the flag.
+// Arguments:
+//    background= generate the background (default true)
+//    border = size of border to generate (default 0)
+module FlagBackgroundAndBorder(background_color, background = true, border = 0)
+{
+    if (border > 0)
+    {
+        difference()
+        {
+            cuboid([ length + border, length / 2 + border, height ], anchor = BOTTOM);
+            translate([ 0, 0, -0.5 ]) cuboid([ length - 0.02, length / 2 - 0.02, height + 1 ], anchor = BOTTOM);
+        }
+    }
+    if (background)
+    {
+        color(background_color) difference()
+        {
+            translate([ -length / 4, 0, 0 ])
+                Make3dStripedGrid(width = length, length = length / 2, height = height, spacing = 1.5);
+            translate([ 0, 0, -0.5 ]) children(0);
+        }
+    }
+    children(1);
+}
+
 // Module: StAndrewsCross()
 // Description:
 //   Flag of the St Andrews Cross to use for anything.
@@ -293,29 +322,82 @@ module SwedenFlag(length, height, background = true, border = 0)
         cuboid([ length, line_horiz, height ], anchor = BOTTOM);
         translate([ -length * 3 / 16, 0, 0 ]) cuboid([ line_vert, width, height ], anchor = BOTTOM);
     }
-    if (border > 0)
+    FlagBackgroundAndBorder("blue", background = background, border = border)
+    {
+        CrossBit(height + 2);
+        color("yellow") CrossBit(height);
+    }
+}
+
+module UnitedStatesFlag(length, white_height, red_height, background = true, border = 0)
+{
+    width = length / 1.9;
+    top_bit_width = width * 7 / 16;
+    top_bit_length = length * 2 / 5;
+    star_offset_width = top_bit_width / 10;
+    star_offset_length = top_bit_length / 12;
+    stripe = width / 13;
+    star = stripe * 4 / 5;
+    module StarSection(white_height)
+    {
+        for (i = [0:1:4])
+        {
+            for (j = [0:1:8])
+            {
+                color("white") translate(
+                    [ star_offset_width * j, star_offset_length * i + (j % 2 == 1 ? star_offset_length : 0), 0 ])
+                    linear_extrude(height = white_height) star(5, star / 2);
+            }
+        }
+        for (j = [0:1:8])
+        {
+            if (j % 2 == 0)
+            {
+                color("white") translate([ star_offset_width * j, star_offset_length * 5, 0 ])
+                    linear_extrude(height = white_height) star(5, star / 2);
+            }
+        }
+    }
+    module Stripes(white_height, red_height)
     {
         difference()
         {
-            cuboid([ length + border, length / 2 + border, height ], anchor = BOTTOM);
-            translate([ 0, 0, -0.5 ]) cuboid([ length - 0.02, length / 2 - 0.02, height + 1 ], anchor = BOTTOM);
+            union()
+            {
+                for (i = [0:1:5])
+                {
+                    translate([ stripe * 2 * i, 0, 0 ]) color("red")
+                        cuboid([ stripe, length, red_height ], anchor = BOTTOM);
+                    translate([ stripe * 2 * i + stripe, 0, 0 ]) color("white")
+                        cuboid([ stripe, length, white_height ], anchor = BOTTOM);
+                }
+                translate([ stripe * 2 * 6, 0, 0 ]) color("red")
+                    cuboid([ stripe, length, red_height ], anchor = BOTTOM);
+            }
+            translate([ 0, 0, -1 ]) cuboid(
+                [ top_bit_width + 0.01, top_bit_length + 0.01, max(white_height, red_height) + 2 ], anchor = BOTTOM);
         }
     }
-    if (background)
+    module MainFlag(white_height, red_height)
     {
-        color("blue") difference()
-        {
-            translate([ -length / 4, 0, 0 ])
-                Make3dStripedGrid(width = length, length = length / 2, height = height, spacing = 1.5);
-            translate([ 0, 0, -0.5 ]) CrossBit(height + 2);
-        }
+        Stripes(white_height = white_height, red_height = red_height);
+        StarSection(white_height = white_height);
     }
-    color("yellow") CrossBit(height);
+    FlagBackgroundAndBorder("blue", background = background, border = border)
+    {
+        CrossBit(height + 2);
+        color("yellow") CrossBit(height);
+    }
 }
 
 module PortugeseFlag(length, height, background = true, border = 0)
 {
     width = length * 2 / 3;
+
+    module Quina()
+    {
+        import("svg/portugal.svg", id = "quina");
+    }
     module Shield(length, height)
     {
         width_shield = length / 5;
@@ -327,17 +409,82 @@ module PortugeseFlag(length, height, background = true, border = 0)
         }
     }
 
-    module BlueDotsShield(length, height, blue_dot_height)
+    module WhiteDots(length, height)
     {
-        width_shield = length / 20;
-        length_shield = length * 7 / 120;
-        // blue
-        color("#003399") translate([ 0, -(length_shield - width_shield) / 2, 0 ])
+        cyl(d = length / 5, h = height, anchor = BOTTOM);
+        translate([ length / 2, length / 2, 0 ]) cyl(d = length / 5, h = height, anchor = BOTTOM);
+        translate([ -length / 2, length / 2, 0 ]) cyl(d = length / 5, h = height, anchor = BOTTOM);
+        translate([ length / 2, -length / 2, 0 ]) cyl(d = length / 5, h = height, anchor = BOTTOM);
+        translate([ -length / 2, -length / 2, 0 ]) cyl(d = length / 5, h = height, anchor = BOTTOM);
+    }
+
+    module BlueDotsShield(width, height, white_dot_height)
+    {
+        width_shield = width;
+        length_shield = width * 7 / 6;
+        translate([ 0, -(length_shield - width_shield) / 2, 0 ])
         {
-            cuboid([ width_shield, length_shield / 2, height ], anchor = BOTTOM + FRONT);
-            cyl(d = width_shield, h = height, anchor = BOTTOM);
+            // blue
+            color("#003399")
+            {
+                difference()
+                {
+                    union()
+                    {
+                        cuboid([ width_shield, length_shield / 2, height ], anchor = BOTTOM + FRONT);
+                        cyl(d = width_shield, h = height, anchor = BOTTOM);
+                    }
+                    translate([ 0, 0, -0.5 ]) WhiteDots(width_shield / 2, height + 1);
+                }
+            }
+            color("white") WhiteDots(width_shield / 2, white_dot_height);
         }
     }
+
+    module AllBlueShields(length, height, white_dot_height)
+    {
+        outer_shield = length / 10;
+        inner_layout = outer_shield * 3 / 4;
+        shield_width = length / 40;
+        BlueDotsShield(shield_width, height, white_dot_height);
+        translate([ inner_layout / 2, 0, 0 ]) BlueDotsShield(shield_width, height, white_dot_height);
+        translate([ -inner_layout / 2, 0, 0 ]) BlueDotsShield(shield_width, height, white_dot_height);
+        translate([ 0, inner_layout / 2, 0 ]) BlueDotsShield(shield_width, height, white_dot_height);
+        translate([ 0, -inner_layout / 2, 0 ]) BlueDotsShield(shield_width, height, white_dot_height);
+    }
+
+    module Castle()
+    {
+        portugal_castle_width = 18.744;
+        portugal_castle_length = 20.264;
+        resize(portugal_castle_width, portugal_castle_length) import("svg/portugal_castle.svg");
+        //        bezpath_curve(MakePath(190.19,154.43,[[0.13493,5.521],[4.0524-6.828],[4.0806-6.8474],[0.0282-0.0185],[4.2314,1.4076],[4.2173,6.8986],
+        //        [-8.2978-0.0512]]));
+        /*
+                    <path
+               d="m186.81,147.69-0.68172,6.3447,4.1406,0.009c0.0397-5.2493,3.9739-6.1225,4.0691-6.1031,0.0891-0.005,3.9889,1.1606,4.0929,6.1031h4.1511l-0.74962-6.3932-15.022,0.0379v0.002z"/>
+                    <path
+               d="m185.85,154.06h16.946c0.35717,0,0.64908,0.35277,0.64908,0.78404,0,0.43039-0.29191,0.78141-0.64908,0.78141h-16.946c-0.35717,0-0.64908-0.35102-0.64908-0.78141,0-0.43127,0.29191-0.78404,0.64908-0.78404z"/>
+                    <path
+               d="m192.01,154.03c0.0185-3.3126,2.2621-4.2501,2.2736-4.2483,0.00088,0,2.3423,0.96661,2.3609,4.2483h-4.6344"/>
+                    <path
+               d="m186.21,145.05h16.245c0.34218,0,0.62263,0.31839,0.62263,0.70468,0,0.38717-0.28045,0.70467-0.62263,0.70467h-16.245c-0.34218,0-0.62263-0.31573-0.62263-0.70467,0-0.38629,0.28045-0.70468,0.62263-0.70468z"/>
+                    <path
+               d="m186.55,146.47h15.538c0.32719,0,0.59529,0.31662,0.59529,0.70379,0,0.38805-0.2681,0.70467-0.59529,0.70467h-15.538c-0.32719,0-0.59529-0.31662-0.59529-0.70467,0-0.38717,0.2681-0.70379,0.59529-0.70379z"/>
+                    <path
+               d="m191.57,135.88,1.2267,0.002v0.87136h0.89513v-0.89076l1.2567,0.004v0.88723h0.89778v-0.89076h1.2576l-0.002,2.0117c0,0.31574-0.25398,0.52035-0.54854,0.52035h-4.4113c-0.29633,0-0.56972-0.23724-0.5706-0.52652l-0.003-1.9879h0.00088z"/>
+                    <path d="m196.19,138.57,0.27691,6.4514-4.3028-0.0159,0.28486-6.4523,3.741,0.0168"/>
+                    <path id="cp1" d="m190.94,141.56,0.13141,3.4775-4.1256,0.002,0.11641-3.4793h3.8786-0.00089z"/>
+                    <use xlink:href="#cp1" x="10.609"/>
+                    <path id="cp2"
+               d="m186.3,139.04,1.1994,0.003v0.87224h0.8775v-0.89253l1.2294,0.004v0.889h0.87926v-0.89253l1.2302,0.002-0.002,2.0117c0,0.31398-0.2487,0.51859-0.5362,0.51859h-4.3169c-0.28926,0-0.55824-0.23548-0.55913-0.52564l-0.003-1.9888h0.00088z"/>
+                    <use xlink:href="#cp2" x="10.609"/>
+                    <path fill="#000" stroke="none"
+               d="m193.9,140.61c-0.0265-0.62706,0.87661-0.63411,0.86603,0v1.5364h-0.866v-1.536"/> <path id="cp3"
+           fill="#000" stroke="none" d="m188.57,142.84c-0.003-0.6059,0.83693-0.61824,0.82635,0v1.1871h-0.826v-1.187"/>
+           <use xlink:href="#cp3" x="10.641"/>*/
+    }
+
     if (border > 0)
     {
         difference()
@@ -388,7 +535,13 @@ module PortugeseFlag(length, height, background = true, border = 0)
         }
         color("white")
         {
-            Shield(length * 4 / 7, height);
+            difference()
+            {
+                Shield(length * 4 / 7, height);
+                translate([ 0, 0, -0.5 ]) AllBlueShields(length, height + 1, height + 4);
+            }
         }
+        AllBlueShields(length, height, height);
+        Castle();
     }
 }

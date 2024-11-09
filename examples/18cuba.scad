@@ -122,7 +122,7 @@ module MoneyBox(offset = 0, generate_lid = true)
             translate([ -0.2, i * (money_width + inner_wall + 0.5) + 12, 0 ])
             {
                 cube([ money_length + 0.5, money_width + 0.5, money_box_height ]);
-                translate([ -1, money_width / 2 + 7, 0 ])
+                translate([ -1, money_width / 2, 0 ])
                     FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
             }
             translate([ money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.3 ])
@@ -147,7 +147,7 @@ module TrainBox(generate_lid = true)
             translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
             {
                 cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
-                translate([ -1, train_card_width / 2 + 7, 0 ])
+                translate([ -1, train_card_width / 2, 0 ])
                     FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
             }
             if (i < 3)
@@ -185,7 +185,7 @@ module SharesBox(offset = 0, generate_lid = true)
             translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
             {
                 cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
-                translate([ -1, train_card_width / 2 + 7, 0 ])
+                translate([ -1, train_card_width / 2, 0 ])
                     FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
             }
             translate(
@@ -417,7 +417,4 @@ module PrintLayout()
     translate([ 0, money_box_length * 2 + train_box_length * 4 + 60 ]) LargeTokensToPrint();
 }
 
-PrintLayout();
-
-// Outline() scale(0.05) WagonOutline();
-// Outline() scale(0.3) TrainOutline();
+BoxLayout();

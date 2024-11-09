@@ -65,7 +65,7 @@ major_worker_token_diameter = 24;
 flood_token_diameter = 16;
 aphid_diameter = 9;
 aphid_length = 10.5;
-aphid_bump_width = 3;
+aphid_bump_width = 4;
 aphid_thickness = 9;
 plastic_clip_width = 9;
 plastic_clip_length = 22;
@@ -76,9 +76,9 @@ major_worker_len = 25;
 spider_length = 35;
 spider_width = 34;
 ladybird_length = 37;
-ladybird_width = 26;
-centipede_width = 34;
-centipede_length = 39;
+ladybird_width = 22;
+centipede_width = 39;
+centipede_length = 34;
 mantis_length = 29;
 mantis_width = 37;
 fungus_width = 31;
@@ -310,7 +310,7 @@ module CardBox(generate_lid = true)
                       lid_thickness = lid_thickness)
     {
         translate([ 0.5, 0.5, 0 ]) cube([ sleeved_card_width, sleeved_card_length, card_box_length ]);
-        translate([ sleeved_card_width / 2 - 10, 0, card_box_height - 40 ]) FingerHoleBase(radius = 15, height = 40);
+        translate([ sleeved_card_width / 2, 0, card_box_height - 40 ]) FingerHoleBase(radius = 15, height = 40);
     }
     if (generate_lid)
     {
@@ -328,7 +328,7 @@ module MinionsOfTheMeadowCardBox(generate_lid = true)
     {
         translate([ 0.5, 0.5, 0 ])
             cube([ sleeved_card_width, sleeved_card_length, minions_of_the_meadow_card_box_height ]);
-        translate([ sleeved_card_width / 2 - 10, 0, minions_of_the_meadow_card_box_height - 40 ])
+        translate([ sleeved_card_width / 2, 0, minions_of_the_meadow_card_box_height - 40 ])
             FingerHoleBase(radius = 15, height = 40);
     }
     if (generate_lid)
@@ -581,4 +581,45 @@ module PrintLayout()
     }
 }
 
-BoxLayout();
+module TestBox()
+{
+    difference()
+    {
+        cube([ 140, 100, 6 ]);
+        translate([ 2 + aphid_length / 2, 2 + aphid_diameter / 2, 1 ])
+        {
+            Aphid(10);
+            translate([ centipede_length / 2, centipede_width / 2, 0 ])
+            {
+                linear_extrude(height = 60) offset(delta = 0.5) CentipedeOutline();
+                translate([ centipede_length / 2 + 12, -5, 0 ])
+                {
+                    linear_extrude(height = 60) offset(delta = 0.5) MantisOutline();
+                    translate([ centipede_length / 2 + 19, 5, 0 ])
+                    {
+                        linear_extrude(height = 60) offset(delta = 0.5) SpiderOutline();
+                        translate([ centipede_length / 2 + 12, 5, 0 ])
+                        {
+                            linear_extrude(height = 60) offset(delta = 0.5) FugusOutline();
+                            translate([ centipede_length / 2 + 12, 5, 0 ])
+                            {
+                                linear_extrude(height = 60) offset(delta = 0.5) MajorWorkerOutline();
+                                translate([ centipede_length / 2 + 22, 5, 0 ])
+                                {
+                                    linear_extrude(height = 60) offset(delta = 0.5) LeafOutline();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        translate([ 8 + ladybird_width / 2, 12 + ladybird_length / 2 + centipede_length, 1 ])
+        {
+            linear_extrude(height = 60) LadybirdOutline();
+        }
+    }
+}
+
+// BoxLayout();
+TestBox();

@@ -104,7 +104,7 @@ module MoneyBox1()
                 translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
                     text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
             }
-            translate([ money_width / 2 - 7, 1.2, 0 ])
+            translate([ money_width / 2, 1.2, 0 ])
                 FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
         }
     }
@@ -124,7 +124,7 @@ module MoneyBox2()
                 translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
                     text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
             }
-            translate([ money_width / 2 - 7, 1.2, 0 ])
+            translate([ money_width / 2, 1.2, 0 ])
                 FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
         }
     }
@@ -190,11 +190,11 @@ module SharesBox(offset)
                 }
             }
         }
-        translate([ -1, share_length / 2 + 5, 0 ])
+        translate([ -1, share_length / 2  0 ])
             FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
         if (offset != 6)
         {
-            translate([ -1, share_length / 2 + share_length + 5.5, 0 ])
+            translate([ -1, share_length / 2 + share_length, 0 ])
                 FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
         }
     }

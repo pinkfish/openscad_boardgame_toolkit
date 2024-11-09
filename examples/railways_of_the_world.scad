@@ -50,14 +50,14 @@ money_width = 62;
 tile_width = 29;
 tile_radius = tile_width / 2 / cos(180 / 6);
 tile_thickness = 2;
-sweden_bonus_length = 35;
-sweden_bonus_width = 16;
-australia_switch_track_token_radius = 8;
+sweden_bonus_length = 35.5;
+sweden_bonus_width = 16.5;
+australia_switch_track_token_radius = 8.5;
 player_marker_diameter = 15.5;
 player_marker_thickness = 5;
 
 eastern_us_cards = 12 + 31 + 6 + 2;
-mexico_cards = 12 + 38 + 4;
+mexico_cards = 12 + 38 + 5 + 4;
 europe_cards = 10 + 29 + 5;
 western_us_cards = 12 + 38 + 6;
 great_britan_cards = 10 + 27 + 5;
@@ -277,7 +277,7 @@ module PlayerBoxWithPlasticExtras(generate_lid = true)
         }
         translate([
             wall_thickness - 0.3,
-            roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2 + 16, 0
+            roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2, 0
         ]) FingerHoleBase(radius = 10, height = player_box_height - 1 + 0.01, wall_thickness = wall_thickness * 2,
                           spin = 270, rounding_radius = 5, floor_thickness = 1);
     };
@@ -323,8 +323,7 @@ module PlayerBox(generate_lid = true)
             player_box_small_height - lid_thickness * 2 - card_height,
         ]) cuboid([ train_card_length, train_card_width, player_box_small_height ], anchor = BOTTOM);
 
-        translate([ 0, player_box_length / 2 + 9.5, 0 ])
-            FingerHoleBase(radius = 14, height = player_box_height, spin = 270);
+        translate([ 0, player_box_length / 2, 0 ]) FingerHoleBase(radius = 14, height = player_box_height, spin = 270);
 
         translate([
             (player_box_width - wall_thickness * 2) / 2,
@@ -397,8 +396,7 @@ module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0)
     {
         cube([ money_width + extra_width, money_length + extra_length, empty_city_height ]);
 
-        translate([ money_section_width / 2 - 15, 0, top_section_height - 20 ])
-            FingerHoleBase(radius = 15, height = 20);
+        translate([ money_section_width / 2, 0, top_section_height - 20 ]) FingerHoleBase(radius = 15, height = 20);
     }
     if (generate_lid)
     {
@@ -455,7 +453,10 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0)
             }
         }
         translate([ tile_radius * 7, 12, top_section_height - lid_thickness - 10 - wall_thickness ])
-            cube([ 15.5, 40, 11 ]);
+        {
+            cube([ 15.5, 41, 11 ]);
+            translate([ 7.75, 0, 3 ]) sphere(r = 8, anchor = BOTTOM);
+        }
     }
     if (generate_lid)
     {
@@ -465,7 +466,7 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0)
         translate([ new_city_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
                                height = top_section_height, lid_thickness = lid_thickness, text_width = text_width,
-                               text_height = text_height, text_str = text_str, label_rotated = true);
+                               text_height = text_height, text_str = text_str, label_rotated = false);
     }
 }
 
@@ -477,12 +478,8 @@ module SwedenBox(generate_lid = true)
     MakeBoxWithCapLid(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
                       lid_thickness = lid_thickness, wall_thickness = wall_thickness)
     {
-        intersection()
-        {
-            translate([ 0, 0, -3 ]) cube([ radius * 5 * 2, tile_width * 3, top_section_height + 1 ]);
-            HexGridWithCutouts(rows = 5, cols = 3, tile_width = tile_width, spacing = 0,
+            HexGridWithCutouts(rows = 6, cols = 3, tile_width = tile_width, spacing = 0,
                                wall_thickness = wall_thickness, push_block_height = 0.75, height = top_section_height);
-        }
         // bonus bit (top)
         for (i = [0:1:2])
         {
@@ -542,18 +539,33 @@ module AustraliaBox(generate_lid = true)
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
 
+    module NewCityHex(depth)
+    {
+        rotate([ 0, 0, 30 ]) RegularPolygon(shape_edges = 6, width = tile_width, height = depth);
+        translate([ -apothem / 2, tile_radius * 3 / 4, 0 ]) sphere(r = 8, anchor = BOTTOM);
+        translate([ apothem / 2, -tile_radius * 3 / 4, 0 ]) sphere(r = 8, anchor = BOTTOM);
+        translate([ -apothem + 2, 0, -0.5 ]) linear_extrude(height = 2)
+            text("New City", font = "Stencil Std:style=Bold", size = 4);
+    }
+
     MakeBoxWithCapLid(width = australia_box_width, length = australia_box_length, height = top_section_height,
-                      lid_thickness = lid_thickness, wall_thickness = wall_thickness)
+                      lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = lid_thickness)
     {
         intersection()
         {
-            translate([ 0, 0, -3 ]) cube([ radius * 4 * 2, tile_width * 3, top_section_height + 1 ]);
+            translate([ 0, 0, -3 ]) cube([ radius * 5 * 2, tile_width * 4, top_section_height + 1 ]);
             difference()
             {
-
-                HexGridWithCutouts(rows = 4, cols = 3, tile_width = tile_width, spacing = 0,
-                                   wall_thickness = wall_thickness, push_block_height = 0.75,
-                                   height = top_section_height);
+                difference()
+                {
+                    HexGridWithCutouts(rows = 5, cols = 4, tile_width = tile_width, spacing = 0,
+                                       wall_thickness = wall_thickness, push_block_height = 0.75,
+                                       height = top_section_height);
+                    translate([ radius * 2, tile_width * 3, -3 ])
+                        cube([ radius * 3 * 2, tile_width, top_section_height + 4 ]);
+                    translate([ radius * 2 * 4, tile_width * 1, -3 ])
+                        cube([ radius * 2, tile_width * 3, top_section_height + 4 ]);
+                }
             }
         }
 
@@ -561,65 +573,70 @@ module AustraliaBox(generate_lid = true)
         for (i = [0:1:1])
         {
             translate([
-                (australia_box_width - wall_thickness * 2 - sweden_bonus_width), (sweden_bonus_length + 7) * i,
-                top_section_height - lid_thickness * 2 - tile_thickness * 3.4
-            ]) cube([ sweden_bonus_width, sweden_bonus_length, tile_thickness * 4.5 ]);
+                (australia_box_width - wall_thickness * 2 - sweden_bonus_width), (sweden_bonus_length + 57) * i + 5,
+                top_section_height - lid_thickness * 2 - tile_thickness * 4.4
+            ])
+            {
+                cube([ sweden_bonus_width, sweden_bonus_length, tile_thickness * 4.5 ]);
 
-            // Fingercut for the bonus tiles.
-            translate([
-                (australia_box_width - wall_thickness * 2 - sweden_bonus_width) + 8 - wall_thickness,
-                (sweden_bonus_length) * (i + 1) + 7 * i, top_section_height - lid_thickness * 2
-            ]) sphere(r = 6.5);
+                translate([ sweden_bonus_width, sweden_bonus_length / 2, 0 ]) xcyl(r = 10, anchor = BOTTOM, h = 10);
+            }
         }
 
         // New city tiles.
-        for (i = [0:1:3])
+
+        translate([
+            australia_box_width - wall_thickness * 2 - sweden_bonus_width - apothem - 1,
+            apothem * 3 + wall_thickness + 2, top_section_height - lid_thickness * 2 - tile_thickness * 3.3
+        ])
         {
-            num_tiles = i <= 1 ? 3.3 : 2.3;
-            translate([
-                australia_box_width - wall_thickness * 2 - sweden_bonus_width - apothem - 2,
-                apothem + wall_thickness + (tile_radius) * 2 * i,
-                top_section_height - lid_thickness - tile_thickness * num_tiles -
-                wall_thickness
-            ])
-            {
-                rotate([ 0, 0, 30 ])
-                    RegularPolygon(shape_edges = 6, width = tile_width, height = tile_thickness * num_tiles);
-                translate([ apothem / 2, tile_radius * 3 / 4, 3.3 * tile_thickness ]) sphere(r = 3.3 * tile_thickness);
-                translate([ -apothem / 2, -tile_radius * 3 / 4, 3.3 * tile_thickness ])
-                    sphere(r = 3.3 * tile_thickness);
-                translate([ -apothem + 2, 0, -0.5 ]) linear_extrude(height = 2)
-                    text("New City", font = "Stencil Std:style=Bold", size = 4);
-            }
+            translate([ 0, 0, 0 ]) NewCityHex(tile_thickness * 3.3);
+            translate([ -apothem - 0.5, tile_radius * 3 / 2 + (tile_radius - apothem) / 2, 0 ])
+                NewCityHex(tile_thickness * 3.3);
+            translate([ 0, tile_radius * 3 + 2, tile_thickness ]) NewCityHex(tile_thickness * 2.3);
+            translate([ apothem + 0.5, tile_radius * 3 / 2 + (tile_radius - apothem) / 2, tile_thickness ])
+                NewCityHex(tile_thickness * 2.3);
         }
 
         // Commonweath of Australia tile.
         translate([
-            australia_box_width - wall_thickness * 2 - tile_width * 2 - wall_thickness * 3,
-            australia_box_length - tile_radius - wall_thickness * 3,
-            top_section_height - lid_thickness - tile_thickness * 1.4 -
-            wall_thickness
+            australia_box_width - wall_thickness * 2 - tile_width * 2 - wall_thickness * 3 + 3,
+            australia_box_length - tile_radius - wall_thickness * 3 - 1,
+            top_section_height - lid_thickness * 2 - tile_thickness * 1.4
         ])
         {
             rotate([ 0, 0, 30 ]) RegularPolygon(shape_edges = 6, width = tile_width, height = tile_thickness * 15);
-            translate([ apothem / 2, tile_radius * 3 / 4, 3.4 * tile_thickness ]) sphere(r = 3.4 * tile_thickness);
-            translate([ -apothem / 2, -tile_radius * 3 / 4, 3.4 * tile_thickness ]) sphere(r = 3.4 * tile_thickness);
+            translate([ apothem / 2, tile_radius * 3 / 4, 0 ]) sphere(r = 9, anchor = BOTTOM);
+            translate([ -apothem / 2, -tile_radius * 3 / 4, 0 ]) sphere(r = 9, anchor = BOTTOM);
         }
 
         // For the switch track tokens.
-        for (i = [0:1:5])
+        for (i = [0:1:4])
+        {
             translate([
-                australia_switch_track_token_radius + (australia_switch_track_token_radius * 2 + inner_wall) * i,
-                australia_box_length - wall_thickness - australia_switch_track_token_radius - tile_width,
-                top_section_height - lid_thickness - tile_thickness * 2.4 / 2 -
-                wall_thickness
+                tile_radius * 2 + 1 + australia_switch_track_token_radius +
+                    (australia_switch_track_token_radius * 2 + inner_wall) * i,
+                australia_box_length - wall_thickness - australia_switch_track_token_radius - tile_width - 5,
+                top_section_height - lid_thickness * 2 - tile_thickness * 2.2
             ])
             {
-                cyl(r = australia_switch_track_token_radius, h = tile_thickness * 5);
-                translate([ 0, -australia_switch_track_token_radius, 1 ]) sphere(r = 6);
+                cyl(r = australia_switch_track_token_radius, h = tile_thickness * 2.4, anchor = BOTTOM);
+                translate([ 0, australia_switch_track_token_radius, 1 ]) sphere(r = 6, anchor = BOTTOM);
             }
+            translate([
+                tile_radius * 2 + 1 + australia_switch_track_token_radius +
+                    (australia_switch_track_token_radius * 2 + inner_wall) * i,
+                australia_box_length - wall_thickness * 2 - australia_switch_track_token_radius - 2,
+                top_section_height - lid_thickness * 2 - tile_thickness * 2.2
+            ])
+            {
+                cyl(r = australia_switch_track_token_radius, h = tile_thickness * 2.4, anchor = BOTTOM);
+                translate([ 0, -australia_switch_track_token_radius, 1 ]) sphere(r = 6, anchor = BOTTOM);
+            }
+        }
+
         // Map in the top section.
-        translate([ 19, australia_box_length - 35, top_section_height - lid_thickness * 2 - 1 ]) scale(0.25)
+        translate([ 5, australia_box_length - 26, top_section_height - lid_thickness * 2 - 1 ]) scale(0.17)
             linear_extrude(height = 100) difference()
         {
             fill() import("svg/australia.svg");
@@ -674,16 +691,23 @@ module SpacerNoPlasticPlayerBoxSide()
 {
     difference()
     {
-        cube([
-            box_width - empty_city_width - player_box_trains_length - 2, spacer_plastic_side_length,
-            all_boxes_height
-        ]);
+        cuboid(
+            [
+                box_width - empty_city_width - player_box_trains_length - 2, spacer_plastic_side_length,
+                all_boxes_height
+            ],
+            rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+            anchor = BOTTOM + FRONT + LEFT, $fn = 16);
         translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
             box_width - empty_city_width - player_box_trains_length - 2 - wall_thickness * 2,
             spacer_plastic_side_length - wall_thickness * 2,
             all_boxes_height
         ]);
-        translate([ 0, -1, all_boxes_height - top_section_height ]) cube([ 89.5, 120, top_section_height + 1 ]);
+        translate([ -1, -1, all_boxes_height - top_section_height ])
+            cuboid([ 90.5, 120, top_section_height + 1 ], anchor = BOTTOM + FRONT + LEFT, $fn = 16, rounding = 1);
+        translate([ -1, -1, all_boxes_height - top_section_height + 4.01 ])
+            cuboid([ 90.5, 125, top_section_height + 1 - 5 ], anchor = BOTTOM + FRONT + LEFT, $fn = 16, rounding = -2,
+                   edges = [TOP + RIGHT]);
     }
 }
 
@@ -696,7 +720,9 @@ module SpacerNoPlasticPlayerBoxFront()
 {
     difference()
     {
-        cube([ spacer_front_width, box_length - card_box_width - spacer_plastic_side_length, all_boxes_height ]);
+        cuboid([ spacer_front_width, box_length - card_box_width - spacer_plastic_side_length, all_boxes_height ],
+               rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+               anchor = BOTTOM + FRONT + LEFT, $fn = 16);
         translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
             spacer_front_width - wall_thickness * 2,
             box_length - card_box_width - spacer_plastic_side_length - wall_thickness * 2,
@@ -710,7 +736,9 @@ module SpacerNoPlasticPlayerBoxTop()
     spacer_width = box_width - sweden_box_width - spacer_front_width;
     difference()
     {
-        cube([ spacer_width, box_length - card_box_width - spacer_plastic_side_length, top_section_height ]);
+        cuboid([ spacer_width, box_length - card_box_width - spacer_plastic_side_length, top_section_height ],
+               rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+               anchor = BOTTOM + FRONT + LEFT, $fn = 16);
         translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
             spacer_width - wall_thickness * 2,
             box_length - card_box_width - spacer_plastic_side_length - wall_thickness * 2,
@@ -932,64 +960,8 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
     }
 }
 
-// PrintLayout(generate_lid = true);
-//  BondBox(generate_lid = false);
+// PrintLayout(generate_lid = true);ß
 
-BoxLayout();
+SpacerNoPlasticPlayerBoxTop();
 
-// PortugeseFlag(100, 4, border = 0.5);
-
-// AustralianFlag(100, 4, 2);
-
-// translate([ 12, 0, 10 ]) rotate([ 0, 35, 0 ]) EmptyCityModel();
-
-/*
-                        translate([ 0, 0, 3 ]) EmptyCityPair();
-                        translate([ 0, 0, 62 ]) EmptyCityPair();
-                        translate([ 0, 0, 121 ]) EmptyCityPair();
-                        translate([ 0, 0, 180 ]) EmptyCityPair();
-
-                        translate([0,20,260])
-                        rotate([ 0, 180, 0 ])
-                        {
-                            translate([ 0, 0, 3 ]) EmptyCityPair();
-                            translate([ 0, 0, 62 ]) EmptyCityPair();
-                            translate([ 0, 0, 121 ]) EmptyCityPair();
-                            translate([ 0, 0, 180 ]) EmptyCityPair();
-                        }
-
-                        translate([0,40,0]) {
-                        translate([ 0, 0, 3 ]) EmptyCityPair();
-                        translate([ 0, 0, 62 ]) EmptyCityPair();
-                        translate([ 0, 0, 121 ]) EmptyCityPair();
-                        translate([ 0, 0, 180 ]) EmptyCityPair();
-                        }
-                        */
-// translate([ 0, 0, 239 ]) EmptyCityPair();
-
-// translate([ 0, 0, 0 ]) cube([ empty_city_width, 3, empty_city_length * 2 ]);
-
-// InsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
-// rabbit_depth = 1.5);
-
-// MakeBoxWithInsetLidRabbitClip(width = player_box_width, length = player_box_length, lid_thickness =
-// lid_thickness, height = 20, rabbit_depth = 1.5);
-//  MoneyBox();
-
-// CardBoxSweden();
-
-// FingerHoleBase(radius = 10, height = player_box_height + 1.01, wall_thickness = wall_thickness *2);
-// translate([0,50,0])
-// FingerHoleWall(radius = 10, height = 20);
-
-// PlayerBox();
-
-// PlayerBoxTrains();
-/*
-                        MakeBoxAndLidWithInsetHinge(length = 60, hinge_diameter = 6, hinge_offset = 0.5, width = 20,
-               height = 20)
-                        {
-                            cube([ 20 - 8, 60 - 4, 20 ]);
-                            cube([ 20 - 8, 60 - 4, 20 ]);
-                        };*/
-//  link(20, 0.5, cone_gap = 1, cone_r1 = 5, cone_r2 = 2, side_offset = 1);
+// BoxLayout();
