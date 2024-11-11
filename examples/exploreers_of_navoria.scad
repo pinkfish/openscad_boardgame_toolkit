@@ -86,8 +86,8 @@ trading_post_castle_inset_up = 2;
 trading_post_castle_crenelation_height = 4;
 
 king_marker = 20.5;
-favour_marker_width = 22.5;
-favour_marker_length = 25.5;
+favour_marker_width = 23.5;
+favour_marker_length = 26.5;
 favour_base_width = 16;
 
 explorer_marker_height = 21.5;
@@ -99,7 +99,7 @@ explorer_hat_yellow_top = 18;
 explorer_hat_yellow_bottom = 13.3;
 explorer_hat_yellow_top_flat = 6;
 explorer_hat_yellow_lower_flat = 9.5;
-explorer_marker_top_diameter = 12;
+explorer_marker_top_diameter = 12.5;
 explorer_hat_black_width = 9.75;
 explorer_hat_black_height = 7;
 explorer_hat_black_top_height = 15.5;
@@ -387,12 +387,12 @@ module ExplorerMarkerGreen(height)
                         cyl(d = 3, h = height + 1, anchor = BOTTOM + BACK, $fn = 16);
                     }
                 }
-                translate([ -explorer_marker_top_diameter / 2 - 1.4, explorer_hat_green_top_right + 2.9, 0 ])
+                translate([ -explorer_marker_top_diameter / 2 - 1.8, explorer_hat_green_top_right + 3.7, 0 ])
                 {
                     difference()
                     {
-                        translate([ 1, -2.0, 0 ]) cuboid([ 1.5, 1.6, height + 1 ], anchor = BOTTOM + BACK);
-                        cyl(d = 3, h = height + 1, anchor = BOTTOM + BACK, $fn = 16);
+                        translate([ 1, -1.6, 0 ]) cuboid([ 2, 2.1, height + 1 ], anchor = BOTTOM + BACK);
+                        cyl(d = 4, h = height + 1, anchor = BOTTOM + BACK, $fn = 16);
                     }
                 }
             }
@@ -558,15 +558,20 @@ module PlayerBoxOneBase(generate_lid = true)
     MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
     {
-        inner_box_width = player_box_width - wall_thickness * 2;
+        inner_box_width = player_box_width - wall_thickness;
+        inner_box_length = player_box_length - wall_thickness;
+        inner_box_height = player_box_height - lid_thickness * 2;
+        translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) RoundedBoxAllSides(
+            width = inner_box_width - wall_thickness * 2, length = inner_box_length + wall_thickness * 2 + 2,
+            height = player_box_height, radius = wall_thickness);
         marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
         // king marker
         translate([ (inner_box_width - king_marker) / 2, 0, marker_depth ])
+        {
             cuboid([ king_marker, king_marker, marker_thickness + 1 ], anchor = BOTTOM + LEFT + FRONT);
-        translate([ (inner_box_width - king_marker) / 2, king_marker / 2, marker_thickness / 2 ])
-            sphere(r = 6, anchor = BOTTOM);
-        translate([ (inner_box_width - king_marker) / 2 + king_marker, king_marker / 2, marker_thickness / 2 ])
-            sphere(r = 6, anchor = BOTTOM);
+            translate([ king_marker, king_marker / 2, marker_thickness / 2 - 1 ]) sphere(r = 8, anchor = BOTTOM);
+            translate([ 0, king_marker / 2, marker_thickness / 2 - 1 ]) sphere(r = 8, anchor = BOTTOM);
+        }
 
         // bird marker
         translate([
@@ -575,31 +580,40 @@ module PlayerBoxOneBase(generate_lid = true)
         ])
         {
             BirdTurnOrder(marker_thickness + 1);
-            translate([ bird_length / 2, 0, marker_thickness / 2 ]) sphere(r = 6, anchor = BOTTOM);
-            translate([ -bird_length / 2, 0, marker_thickness / 2 ]) sphere(r = 6, anchor = BOTTOM);
+            translate([ bird_length / 2, 0, marker_thickness / 2 - 1 ]) sphere(r = 8, anchor = BOTTOM);
+            translate([ -bird_length / 2, 0, marker_thickness / 2 - 1 ]) sphere(r = 8, anchor = BOTTOM);
         }
 
         width = trading_post_castle_height * 2 + 18;
         translate([
             (inner_box_width - width) / 2 + trading_post_castle_height / 2,
-            bird_diameter + king_marker + trading_post_castle_width / 2 - 0.5,
+            bird_diameter + king_marker + trading_post_castle_width / 2,
             marker_depth
         ])
         {
-            for (i = [0:1:4])
+            for (i = [0:1:3])
             {
-                translate([ 3, (trading_post_castle_width + 0.5) * i, 0 ]) children(0);
-                translate(
-                    [ trading_post_castle_height - 4, (trading_post_castle_width + 0.5) * i, marker_thickness / 2 ])
-                    sphere(r = 6, anchor = BOTTOM);
+                translate([ 2, (trading_post_castle_width + 0.75) * i, 0 ])
+                {
+                    children(0);
+                    translate([ trading_post_castle_height / 2, 0, marker_thickness / 2 - 1 ])
+                        sphere(r = 8, anchor = BOTTOM);
+                }
             }
             for (i = [0:1:3])
             {
-                translate([ trading_post_castle_height + 18, (trading_post_castle_width + 0.5) * i, 0 ]) children(1);
-                translate(
-                    [ trading_post_castle_height + 11, (trading_post_castle_width + 0.5) * i, marker_thickness / 2 ])
-                    sphere(r = 6, anchor = BOTTOM);
+                translate([ trading_post_castle_height + 13, (trading_post_castle_width + 0.75) * i, 0 ])
+                {
+                    children(1);
+                    translate([ -trading_post_castle_height / 2, 0 * i, marker_thickness / 2 - 1 ])
+                        sphere(r = 8, anchor = BOTTOM);
+                }
             }
+        }
+        translate([ inner_box_width / 2 - 1.5, inner_box_length - trading_post_castle_width / 2 - wall_thickness, 0 ])
+        {
+            rotate([ 0, 0, 90 ]) children(1);
+            translate([ 0, -trading_post_castle_height / 2, marker_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
         }
     }
     if (generate_lid)
@@ -655,24 +669,28 @@ module PlayerBoxTwoBase(generate_lid = true)
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
     {
         marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
+        inner_box_height = player_box_height - lid_thickness * 2;
+        inner_box_length = player_box_length - wall_thickness * 2;
         inner_box_width = player_box_width - wall_thickness * 2;
+        translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) RoundedBoxAllSides(
+            width = inner_box_width - wall_thickness, length = inner_box_length + wall_thickness * 2 + 2,
+            height = player_box_height, radius = wall_thickness);
         translate([ 0, 0, marker_depth ])
         {
             // favour.
-            translate([ (inner_box_width - favour_marker_width * 2 - 2) / 2, favour_marker_length / 2, 0 ])
+            translate([ (inner_box_width - favour_marker_width * 2 - 1.5) / 2, favour_marker_length / 2 + 1, 0 ])
             {
                 for (i = [0:1:1])
                 {
-                    translate([ favour_marker_width / 2, (favour_marker_length + 5.5) * i, 0 ])
+                    translate([ favour_marker_width / 2, (favour_marker_length + 7) * i, 0 ])
                     {
                         rotate([ 0, 0, 180 ]) FavourMarker(height = marker_thickness + 1);
-                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 7, anchor = BOTTOM);
+                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 9, anchor = BOTTOM);
                     }
-                    translate(
-                        [ favour_marker_width / 2 + favour_marker_width + 2, (favour_marker_length + 5.5) * i, 0 ])
+                    translate([ favour_marker_width / 2 + favour_marker_width + 1.5, (favour_marker_length + 7) * i, 0 ])
                     {
                         rotate([ 0, 0, 180 ]) FavourMarker(height = marker_thickness + 1);
-                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 7, anchor = BOTTOM);
+                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 9, anchor = BOTTOM);
                     }
                 }
             }
@@ -684,10 +702,12 @@ module PlayerBoxTwoBase(generate_lid = true)
             {
                 for (i = [0:1:2])
                 {
-                    translate([ explorer_marker_height / 2, (explorer_base_width + 3) * i, 0 ])
+                    translate([ explorer_marker_height / 2, (explorer_base_width + 2) * i, 0 ])
                     {
                         children(0);
                         translate([ explorer_marker_height / 2, 0, marker_thickness / 2 ])
+                            sphere(r = 8, anchor = BOTTOM);
+                        translate([ -explorer_marker_height / 2, 0, marker_thickness / 2 ])
                             sphere(r = 8, anchor = BOTTOM);
                     }
                 }
@@ -833,7 +853,7 @@ module BoxLayout()
         translate([ player_box_width, favour_box_length, 0 ]) BagBox();
     }
     translate([ box_width - player_layout_width, 0, box_height - player_layout_thickness * player_layout_num ])
-       cube([ player_layout_width, box_length, player_layout_thickness * player_layout_num ]);
+        cube([ player_layout_width, box_length, player_layout_thickness * player_layout_num ]);
 }
 
 module PrintLayout()
@@ -933,4 +953,4 @@ module TestBox()
     }
 }
 
-  StuffBox();
+PlayerBoxYellowTwo();

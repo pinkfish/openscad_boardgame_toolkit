@@ -37,10 +37,12 @@ riverfolk_glass_thickness = 9;
 
 player_token_thickness = 9;
 
-round_thing_width = 29;
-round_thing_length = 15;
-round_thing_curve_width = 6.5;
-round_thing_cap_width = 12;
+round_winter_thing_width = 29;
+round_winter_thing_length = 15;
+round_winter_thing_curve_width = 7;
+round_winter_thing_cap_width = 12;
+round_winter_thing_diameter = 50;
+round_winter_thing_top_round = 10;
 
 // Sleeved card size.
 card_width = 68.5;
@@ -172,6 +174,7 @@ item_box_length = card_box_length;
 item_box_width = quarter_width;
 item_box_height = tile_thickness * 3 + 1 + lid_thickness * 2;
 item_box_middle_height = tile_thickness * 2 + 1 + lid_thickness * 2;
+item_box_winter_height = tile_thickness * 2 + 1 + lid_thickness * 2;
 
 echo([ card_box_width, card_box_length, erie_box_top_height ]);
 
@@ -365,6 +368,51 @@ module LizardCharacter(height)
                edges = [ FRONT + RIGHT, BACK + RIGHT ]);
 }
 
+module WinterToken(height)
+{
+    translate([ -round_winter_thing_length / 2, 0, 0 ])
+    {
+        union()
+        {
+            translate([ round_winter_thing_length - round_winter_thing_cap_width / 2, 0, 0 ])
+                cyl(d = round_winter_thing_cap_width, h = height, anchor = BOTTOM);
+            difference()
+            {
+                intersection()
+                {
+                    translate([ -round_winter_thing_diameter / 2 + round_winter_thing_top_round, 0, 0 ]) difference()
+                    {
+                        cyl(d = round_winter_thing_diameter, h = height, anchor = BOTTOM);
+                        translate([ 0, 0, -0.5 ])
+                            cyl(d = round_winter_thing_diameter - round_winter_thing_curve_width * 2, h = height + 2,
+                                anchor = BOTTOM);
+                    }
+                    cuboid([ round_winter_thing_length, round_winter_thing_width, height ], anchor = LEFT + BOTTOM);
+                }
+                translate([
+                    round_winter_thing_curve_width * 3 / 7 + 0.25,
+                    round_winter_thing_width - round_winter_thing_curve_width * 2.5 - 0.5, -0.5
+                ]) rotate([ 0, 0, 30 ]) difference()
+                {
+                    cuboid([ round_winter_thing_curve_width + 2, round_winter_thing_curve_width, height + 1 ],
+                           anchor = FRONT + BOTTOM);
+                    cyl(d = round_winter_thing_curve_width, h = height + 1, $fn = 64, anchor = BOTTOM);
+                }
+
+                translate([
+                    round_winter_thing_curve_width * 3 / 7 + 0.25,
+                    -round_winter_thing_width + round_winter_thing_curve_width * 2.5 + 0.5, -0.5
+                ]) rotate([ 0, 0, 150 ]) difference()
+                {
+                    cuboid([ round_winter_thing_curve_width + 2, round_winter_thing_curve_width, height + 1 ],
+                           anchor = FRONT + BOTTOM);
+                    cyl(d = round_winter_thing_curve_width, h = height + 1, $fn = 64, anchor = BOTTOM);
+                }
+            }
+        }
+    }
+}
+
 module CardBox(generate_lid = true)
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height,
@@ -482,27 +530,58 @@ module VagabondBox(generate_lid = true)
         inner_length = vagabond_box_length - wall_thickness * 2;
         translate([
             vagabond_width / 2, vagabond_length / 2,
-            inner_height - player_token_thickness - 0.5 + (player_token_thickness + tile_thickness * 2) / 2 -
-            tile_thickness
-        ]) rotate([ 0, 0, 180 ]) VagabondCharacter(height = player_token_thickness + 1 + tile_thickness * 2);
-        translate([
-            inner_width - vagabond_width / 2, vagabond_length / 2,
             inner_height - player_token_thickness - 0.5 + (player_token_thickness + tile_thickness) / 2 -
             tile_thickness
-        ]) rotate([ 0, 0, 180 ]) VagabondCharacter(height = player_token_thickness + 1 + tile_thickness);
+        ])
+        {
+            rotate([ 0, 0, 180 ]) VagabondCharacter(height = player_token_thickness + 1 + tile_thickness);
+            translate([
+                vagabond_width / 2, vagabond_length / 8,
+                player_token_thickness / 2 - (player_token_thickness + tile_thickness) / 2
+            ]) cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
+        translate([
+            inner_width - vagabond_length / 2, vagabond_width / 2,
+            inner_height - player_token_thickness - 0.5 + (player_token_thickness + tile_thickness) / 2 -
+            tile_thickness
+        ])
+        {
+            rotate([ 0, 0, 180 ]) VagabondCharacter(height = player_token_thickness + 1 + tile_thickness);
+            translate([
+                -vagabond_width / 2, vagabond_length / 8,
+                player_token_thickness / 2 - (player_token_thickness + tile_thickness) / 2
+            ]) cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
 
         // Score marker.
-        translate([ inner_width / 2 - square_tile_size / 2, 8, inner_height - tile_thickness * 2 - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ]);
+        translate([ inner_width / 2 - square_tile_size - 0.5, 3, inner_height - tile_thickness - 0.5 ])
+        {
+            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
+            translate([ square_tile_size / 2, square_tile_size, 0 ])
+                cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
+        translate([ inner_width / 2 + 0.5, 3, inner_height - tile_thickness - 0.5 ])
+        {
+            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
+            translate([ square_tile_size / 2, square_tile_size, 0 ])
+                cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
 
         // Relationship markers.
         translate([
             inner_width - square_tile_size, inner_length - square_tile_size,
             inner_height - tile_thickness * vagabond_relationship_num / 2 - 0.5
-        ]) cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num / 2 + 1 ]);
+        ])
+        {
+            cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num / 2 + 1 ]);
+            translate([ square_tile_size / 2, 0, 0 ]) cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
         translate(
             [ 0, inner_length - square_tile_size, inner_height - tile_thickness * vagabond_relationship_num / 2 - 0.5 ])
+        {
             cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num / 2 + 1 ]);
+            translate([ square_tile_size / 2, 0, 0 ]) cyl(r = 6, h = box_height, anchor = BOTTOM, rounding = 5.5);
+        }
     }
 }
 
@@ -761,6 +840,20 @@ module ItemsBoxMiddle()
     }
 }
 
+module ItemsBoxWinter()
+{
+    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
+                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    {
+        inner_height = item_box_winter_height - lid_thickness * 2;
+        inner_width = item_box_width - wall_thickness * 2;
+        for (i=[0:1:5]) {
+        translate([ round_winter_thing_width / 2, round_winter_thing_length / 2 + round_winter_thing_length*i, 0 ]) rotate([ 0, 0, 90 ])
+            WinterToken(tile_thickness * 2 + 1);
+        }
+    }
+}
+
 module BoxLayout()
 {
     cube([ box_width, box_length, board_thickness ]);
@@ -770,6 +863,7 @@ module BoxLayout()
         CardBox(generate_lid = false);
         translate([ card_box_width, 0, 0 ]) ItemsBoxBottom();
         translate([ card_box_width, 0, item_box_height ]) ItemsBoxMiddle();
+        translate([ card_box_width, 0, item_box_height + item_box_middle_height ]) ItemsBoxWinter();
         translate([ 0, card_box_length, 0 ]) MarquisBoxBottom(generate_lid = false);
         translate([ marquis_box_width, card_box_length, 0 ]) AllianceBoxBottom(generate_lid = false);
         translate([ marquis_box_width, card_box_length, alliance_box_height ]) AllianceBoxTop(generate_lid = false);
@@ -785,3 +879,5 @@ module BoxLayout()
 }
 
 BoxLayout();
+
+// WinterToken(5);
