@@ -20,7 +20,7 @@ include <boardgame_toolkit.scad>
 
 default_lid_shape_type = SHAPE_TYPE_CLOUD;
 default_lid_shape_thickness = 1;
-default_lid_shape_width = 12.75;
+default_lid_shape_width = 13;
 default_lid_layout_width = 12;
 default_lid_aspect_ratio = 1.5;
 

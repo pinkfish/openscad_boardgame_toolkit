@@ -40,16 +40,16 @@ under the License.
 // Arguments:
 //   width = the width of the box (outside width)
 //   length = the length of the box (outside length)
-//   lid_thickness = height of the lid (default 2)
-//   wall_thickness = thickness of the walls (default 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   inset = how far the side is inset from the edge of the box (default 1)
 //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //   lid_size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
 // Topics: TabbedBox
 // Example:
 //  InsetLid(50, 100);
-module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1, lid_size_spacing = m_piece_wiggle_room,
-                lid_rounding = undef)
+module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                inset = 1, lid_size_spacing = m_piece_wiggle_room, lid_rounding = undef)
 {
     calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
     internal_build_lid(width, length, lid_thickness, wall_thickness, lid_size_spacing = lid_size_spacing)
@@ -98,8 +98,8 @@ module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
 // Arguments:
 //   width = width of the box (outside width)
 //   length = length of the box (outside length)
-//   lid_thickness = height of the lid (default 2)
-//   wall_thickness = thickness of the walls (default 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   inset = how far to inset the lid (default 1)
 //   lid_size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
 //   make_tab_width = makes tabes on thr width (default false)
@@ -111,8 +111,8 @@ module InsetLid(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   InsetLidTabbed(30, 100);
-module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
-                      lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
+module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                      inset = 1, lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
                       prism_width = 0.75, tab_length = 10, tab_height = 8, lid_rounding = undef)
 {
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
@@ -167,7 +167,7 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 //    text_width = width of the text section
 //    text_height = length of the text section
 //    text_str = The string to write
-//    lid_thickness = height of the lid (default 3)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    label_radius = radius of the rounded corner for the label section (default 12)
 //    border = how wide the border strip on the label should be (default 2)
@@ -189,11 +189,11 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 //    InsetLidTabbedWithLabel(
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
-module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
-                               label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
-                               tab_height = 8, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
-                               layout_width = undef, shape_width = undef, shape_type = undef, aspect_ratio = undef,
-                               shape_thickness = undef, lid_rounding = undef)
+module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
+                               lid_boundary = 10, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                               tab_length = 10, tab_height = 8, make_tab_width = false, make_tab_length = true,
+                               prism_width = 0.75, layout_width = undef, shape_width = undef, shape_type = undef,
+                               aspect_ratio = undef, shape_thickness = undef, lid_rounding = undef)
 {
     InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
                    lid_rounding = lid_rounding)

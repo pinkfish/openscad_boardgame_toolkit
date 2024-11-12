@@ -38,16 +38,16 @@ under the License.
 //   width = outside width of the box
 //    length = inside width of the box
 //    height = outside height of the box
-//    lid_thickness = thickness of the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
-//    floor_thickness = thickness of the floor (default 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
 // Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
 // Example:
 //    MakeBoxWithSlidingCatchLid(100, 50, 20);
-module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = 1, wall_thickness = 2,
-                                  size_spacing = m_piece_wiggle_room, top_thickness = 2, floor_thickness = 2)
+module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                                  size_spacing = m_piece_wiggle_room, top_thickness = 2, floor_thickness = default_floor_thickness)
 {
     calc_sliding_len = (length - wall_thickness) / 6;
     difference()
@@ -107,16 +107,16 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = 1, wall
 // Arguments:
 //    width = outside width of the box
 //    length = inside width of the box
-//    lid_thickness = thickness of the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
-//    floor_thickness = thickness of the floor (default 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
 // Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
 // Example:
 //    MakeBoxWithSlidingCatchLid(100, 50, 20);
-module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = 1, wall_thickness = 2,
-                          size_spacing = m_piece_wiggle_room, top_thickness = 2, fill_middle = true)
+module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = default_lid_thickness,
+                          wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
+                          top_thickness = 2, fill_middle = true)
 {
     calc_sliding_len = (length - wall_thickness) / 6;
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
@@ -187,9 +187,9 @@ module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = 1, wal
 //    width = outside width of the box
 //    length = inside width of the box
 //    lid_boundary = boundary around the outside for the lid (default 10)
-//    lid_thickness = thickness of the lid (default 1)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    top_thickness = thickness of the top above the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
@@ -206,10 +206,10 @@ module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = 1, wal
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_boundary = 10,
-                                   wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                                   layout_width = undef, shape_width = undef, shape_type = undef,
+                                   wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4,
+                                   label_rotated = false, layout_width = undef, shape_width = undef, shape_type = undef,
                                    shape_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
-                                   lid_thickness = 1, top_thickness = 2, fill_middle = true)
+                                   lid_thickness = default_lid_thickness, top_thickness = 2, fill_middle = true)
 {
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 

@@ -426,13 +426,13 @@ module SlidingLidFingernail(lid_thickness, radius = 6, finger_gap = 1.5, sphere 
 // Arguments:
 //   length = the length of the tab
 //   height = the height of the tab
-//   lid_thickness = the height of the lid (defaults to 2)
+//   lid_thickness = the height of the lid (defaults to {{default_lid_thickess}})
 //   prism_width = the width of the prism (defaults to 0.75)
 //   wall_thickness = the thickness of the walls (default 2)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeLidTab(length = 5, height = 10, lid_thickness = 2, prism_width = 0.75, wall_thickness = 2);
-module MakeLidTab(length, height, lid_thickness = 2, prism_width = 0.75, wall_thickness = 2)
+module MakeLidTab(length, height, lid_thickness = default_lid_thickness, prism_width = 0.75, wall_thickness = 2)
 {
     mirror([ 0, 0, 1 ])
     {
@@ -465,7 +465,7 @@ module MakeLidTab(length, height, lid_thickness = 2, prism_width = 0.75, wall_th
 // Arguments:
 //   box_width = width of the box (outside size)
 //   box_length = length of the box (outside size)
-//   lid_thickness = the height of the lid (default = 2)
+//   lid_thickness = the height of the lid (default = default_lid_thickness)
 //   tab_length = how long the tab is (default = 10)
 //   make_tab_width = make tabs on the width side (default false)
 //   make_tab_length = make tabs on the length side (default true)
@@ -473,7 +473,7 @@ module MakeLidTab(length, height, lid_thickness = 2, prism_width = 0.75, wall_th
 // Example:
 //   MakeTabs(50, 100)
 //     MakeLidTab(length = 10, height = 6);
-module MakeTabs(box_width, box_length, lid_thickness = 2, tab_length = 10, make_tab_width = false,
+module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, tab_length = 10, make_tab_width = false,
                 make_tab_length = true)
 {
 

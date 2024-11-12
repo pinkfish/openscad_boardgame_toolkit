@@ -217,11 +217,14 @@ module InsetHinge(length, width, diameter, offset)
 //   width = outside with of the box
 //   length = outside length of the box
 //   height = outside height of the box
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 // Examples:
 //   MakeBoxAndLidWithInsetHinge(100, 50, 20);
-module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = 2, floor_thickness = 2,
-                                   hinge_offset = 0.5, gap = 1, side_gap = 3, print_layer_height = 0.2,
-                                   lid_thickness = 2)
+module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = default_wall_thickness,
+                                   floor_thickness = default_floor_thickness, hinge_offset = 0.5, gap = 1, side_gap = 3,
+                                   print_layer_height = 0.2, lid_thickness = default_lid_thickness)
 {
     hinge_width = hinge_diameter * 2 + gap;
     hinge_length = length - side_gap * 2;

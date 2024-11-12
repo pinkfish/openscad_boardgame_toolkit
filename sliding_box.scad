@@ -10,6 +10,14 @@
 
 
 
+
+
+
+
+
+
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -52,8 +60,8 @@ under the License.
 // Arguments:
 //   width = the width of the box itself
 //   length = the length of the box itself
-//   lid_thickness = the height of the lid (defaults to 3)
-//   wall_thickness = how wide the side walls are (defaults to 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //   {{m_piece_wiggle_room}}
 // Topics: SlidingBox, SlidingLid
@@ -61,7 +69,8 @@ under the License.
 //   SlidingLid(width=100, length=100, lid_thickness=3, wall_thickness = 2)
 //     translate([ 10, 10, 0 ])
 //       LidMeshHex(width = 100, length = 100, lid_thickness = 3, boundary = 10, radius = 12);
-module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size_spacing = m_piece_wiggle_room)
+module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                  lid_size_spacing = m_piece_wiggle_room)
 {
     internal_build_lid(width, length, lid_thickness, wall_thickness)
     {
@@ -144,8 +153,9 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //    text_width = width of the text section
 //    text_height = length of the text section
 //    text_str = The string to write
-//    lid_thickness = height of the lid (default 3)
-//    wall_thickness = thickness of the walls (default 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    label_radius = radius of the rounded corner for the label section (default 12)
 //    border = how wide the border strip on the label should be (default 2)
@@ -162,9 +172,10 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //    SlidingBoxLidWithLabel(
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
-module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
-                              shape_width = undef, border = 2, offset = 4, label_rotated = false, layout_width = undef,
-                              shape_type = undef, shape_thickness = undef, wall_thickness = 2, aspect_ratio = undef,
+module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
+                              lid_boundary = 10, shape_width = undef, border = 2, offset = 4, label_rotated = false,
+                              layout_width = undef, shape_type = undef, shape_thickness = undef,
+                              wall_thickness = default_wall_thickness, aspect_ratio = undef,
                               lid_size_spacing = m_piece_wiggle_room)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
@@ -237,14 +248,15 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
 //   cols = number of cols to generate
 //   height = height of the box itsdle (outside height)
 //   push_block_height = height of the raised bit in the middle to make removing easier
-//   lid_thickness = height of the lid (defaults to 3)
-//   wall_thickness = thickness of the walls (defaults to 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   spacing = spacing between the hexes
 // Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //   MakeHexBoxWithSlidingLid(rows = 5, cols = 2, height = 10, push_block_height = 0.75, tile_width = 29);
-module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width, lid_thickness = 3,
-                                wall_thickness = 2, spacing = 0)
+module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width,
+                                lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                                spacing = 0)
 {
     width = tile_width;
     apothem = width / 2;
@@ -293,13 +305,14 @@ module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_widt
 //   rows = number of rows to generate
 //   cols = number of cols to generate
 //   tile_width = width of the tiles
-//   lid_thickness = height of the lid (defaults to 3)
-//   wall_thickness = thickness of the walls (defaults to 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   spacing = spacing between the hexes
 // Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //   SlidingLidForHexBox(rows = 5, cols = 2, tile_width = 29);
-module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0)
+module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = default_lid_thickness,
+                           wall_thickness = default_wall_thickness, spacing = 0)
 {
     width = tile_width;
     apothem = width / 2;
@@ -348,8 +361,8 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thick
 //    rows = number of rows to generate
 //    cols = number of cols to generate
 //    tile_width = width of the tiles
-//    lid_thickness = height of the lid (defaults to 3)
-//    wall_thickness = thickness of the walls (defaults to 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    spacing = spacing between the hexes
 //    text_width = width of the text section
 //    text_height = length of the text section
@@ -370,10 +383,11 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thick
 //    SlidingLidWithLabelForHexBox(
 //        cols = 3, rows = 4, tile_width = 29, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
-module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str, lid_thickness = 3,
-                                    lid_boundary = 10, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                                    wall_thickness = 2, layout_width = undef, shape_width = undef, shape_type = undef,
-                                    shape_thickness = undef, aspect_ratio = undef)
+module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str,
+                                    lid_thickness = default_lid_thickness, lid_boundary = 10, label_radius = 12,
+                                    border = 2, offset = 4, label_rotated = false,
+                                    wall_thickness = default_wall_thickness, layout_width = undef, shape_width = undef,
+                                    shape_type = undef, shape_thickness = undef, aspect_ratio = undef)
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -441,16 +455,17 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
 // Usage:
 //   MakeBoxWithSlidingLid(50,100,20);
 // Arguments:
-//   width = width of the box (outside width)
-//   length = length of the box (outside length)
-//   height = height of the box (outside height)
-//   wall_thickness = thickness of the walls (default 2)
-//   lid_thickness = height of the lid (default 3)
-//   floor_thickness = thickness of the floor (default 2)
+//    width = width of the box (outside width)
+//    length = length of the box (outside length)
+//    height = height of the box (outside height)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
-module MakeBoxWithSlidingLid(width, length, height, wall_thickness = 2, lid_thickness = 3, floor_thickness = 2,
+module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wall_thickness,
+                             lid_thickness = default_lid_thickness, floor_thickness = default_floor_thickness,
                              lid_size_spacing = m_piece_wiggle_room)
 {
     difference()

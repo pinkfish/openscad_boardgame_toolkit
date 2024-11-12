@@ -36,17 +36,19 @@ under the License.
 //    Makes the inside of the slip box, this will take a second lid that slides over the outside of the box.
 // Usage: MakeBoxWithSlipoverLid(100, 50, 10);
 // Arguments:
-//   width = outside width of the box
-//   height = outside height of the box
-//   wall_thickness = thickness of the walls (default 2)
-//   foot = how big the foot should be around the bottom of the box (default 0)
-//   size_spacing = amount of wiggle room to put into the model when making it (default {{m_piece_wiggle_room}})
-//   wall_height = height of the wall if not set (default height - wall_thickness*2 - size_spacing*2)
-//   floor_thickness = thickness of the floor (default 2)
+//    width = outside width of the box
+//    height = outside height of the box
+//    foot = how big the foot should be around the bottom of the box (default 0)
+//    size_spacing = amount of wiggle room to put into the model when making it (default {{m_piece_wiggle_room}})
+//    wall_height = height of the wall if not set (default height - wall_thickness*2 - size_spacing*2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 // Example:
 //   MakeBoxWithSlipoverLid(100, 50, 10);
-module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 0, size_spacing = m_piece_wiggle_room,
-                              wall_height = undef, floor_thickness = 2, lid_thickness = 2)
+module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wall_thickness, foot = 0,
+                              size_spacing = m_piece_wiggle_room, wall_height = undef,
+                              floor_thickness = default_floor_thickness, lid_thickness = default_lid_thickness)
 {
     wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
     difference()
@@ -80,14 +82,16 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = 2, foot = 
 //   width = width of the lid (outside width)
 //   length = of the lid (outside length)
 //   height = height of the lid (outside height)
-//   lid_thickness = how thick the lid is (default 2)
-//   wall_thickness = how thick the walls are (default 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
-module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness = 2, size_spacing = m_piece_wiggle_room,
-                      foot = 0, finger_hole_length = false, finger_hole_width = true)
+module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickness,
+                      wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room, foot = 0,
+                      finger_hole_length = false, finger_hole_width = true)
 {
     foot_offset = foot > 0 ? foot + size_spacing : 0;
     translate([ 0, length, height - foot ]) rotate([ 180, 0, 0 ])
@@ -160,7 +164,8 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
 //   width = width of the lid (outside width)
 //   length = of the lid (outside length)
 //   height = height of the lid (outside height)
-//   wall_thickness = how thick the walls are (default 2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   label_radius = radius of the label corners (default 12)
@@ -171,15 +176,15 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
 //   shape_width = width of the shape (default {{default_lid_shape_width}})
 //   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//   lid_thickness = how thick the lid is (default 2)
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
 module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
-                            wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                            foot = 0, layout_width = undef, shape_width = undef, shape_type = undef,
-                            shape_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
-                            lid_thickness = 2, finger_hole_length = false, finger_hole_width = true)
+                            wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4,
+                            label_rotated = false, foot = 0, layout_width = undef, shape_width = undef,
+                            shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
+                            size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
+                            finger_hole_length = false, finger_hole_width = true)
 {
     SlipoverBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness, foot = foot,
                    lid_thickness = lid_thickness, finger_hole_length = finger_hole_length,

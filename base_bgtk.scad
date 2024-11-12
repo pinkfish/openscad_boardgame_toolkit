@@ -36,6 +36,16 @@ under the License.
 //   How many mm to use as gaps for when things join.
 m_piece_wiggle_room = 0.2;
 
+// Constant: default_lid_thickness
+// Description: The default lid thickness for all boxes.
+default_lid_thickness = 2;
+// Constant: default_wall_thickness
+// Description: The default wall thickness for all boxes.
+default_wall_thickness = 2;
+// Constant: default_floor_thickness
+// Description: The default lid thickness for all boxes.
+default_floor_thickness = 2;
+
 // Constant: SHAPE_TYPE_DENSE_HEX
 // Description:
 //   Creates a shape with a dense hexes, so they overlap.

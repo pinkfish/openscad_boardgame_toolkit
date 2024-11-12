@@ -73,9 +73,9 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    length = inside width of the box
 //    height = outside height of the box
 //    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
-//    floor_thickness = thickness of the floor (default wall_thickness)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
@@ -87,9 +87,10 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    MakeBoxWithCapLid(100, 50, 10, lid_finger_hold_len = 4);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 5, cap_height = 2, finger_hold_height = 1);
-module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thickness = 1, wall_thickness = 2,
-                         size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef, lid_finger_hold_len = undef,
-                         finger_hold_height = 5, floor_thickness = 2)
+module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
+                         wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
+                         lid_wall_thickness = undef, lid_finger_hold_len = undef, finger_hold_height = 5,
+                         floor_thickness = default_floor_thickness)
 {
     calc_lid_wall_thickness =
         lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
@@ -179,8 +180,8 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    length = inside width of the box
 //    height = outside height of the box
 //    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
@@ -191,8 +192,9 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    CapBoxLid(100, 50, 10);
 // Example:
 //    CapBoxLid(100, 50, 10, cap_height = 3);
-module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, wall_thickness = 2,
-                 size_spacing = m_piece_wiggle_room, lid_wall_thickness = undef)
+module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
+                 wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
+                 lid_wall_thickness = undef)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
@@ -257,8 +259,8 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, w
 //    height = outside height of the box
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default 1)
-//    wall_thickness = thickness of the walls (default 2)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
@@ -275,16 +277,16 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = 1, w
 // Example:
 //    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
 module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
-                          wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                          wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4, label_rotated = false,
                           cap_height = undef, layout_width = undef, shape_width = undef, shape_type = undef,
-                          shape_thickness = undef, size_spacing = m_piece_wiggle_room, lid_thickness = 1,
+                          shape_thickness = undef, size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                           lid_wall_thickness = undef, aspect_ratio = 1.0)
 {
     CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
               size_spacing = m_piece_wiggle_room)
     {
-            echo([shape_width]);
+        echo([shape_width]);
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
