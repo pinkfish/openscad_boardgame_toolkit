@@ -23,13 +23,16 @@ default_lid_shape_thickness = 1;
 default_lid_shape_width = 13;
 default_lid_layout_width = 12;
 default_lid_aspect_ratio = 1.5;
+default_wall_thickness = 3;
+default_lid_thickness = 2;
+default_floor_thickness = 2;
 
 box_width = 211;
 box_length = 268;
 box_height = 68;
 board_thickness = 12;
-lid_thickness = 2;
-wall_thickness = 3;
+lid_thickness = default_lid_thickness;
+wall_thickness = default_wall_thickness;
 
 player_layout_thickness = 2;
 player_layout_num = 4;
@@ -561,8 +564,7 @@ module ExplorerMarkerPurple(height)
 
 module PlayerBoxOneBase(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height)
     {
         inner_box_width = player_box_width - wall_thickness;
         inner_box_length = player_box_length - wall_thickness;
@@ -627,8 +629,7 @@ module PlayerBoxOneBase(generate_lid = true)
         translate([ player_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Player", label_rotated = true);
+                               text_width = 50, text_height = 15, text_str = "Player", label_rotated = true);
         }
     }
 }
@@ -671,8 +672,7 @@ module PlayerBoxBlackOne(generate_lid = true)
 
 module PlayerBoxTwoBase(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height)
     {
         marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
         inner_box_height = player_box_height - lid_thickness * 2;
@@ -730,8 +730,7 @@ module PlayerBoxTwoBase(generate_lid = true)
         translate([ player_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Player", label_rotated = true);
+                               text_width = 50, text_height = 15, text_str = "Player", label_rotated = true);
         }
     }
 }
@@ -774,8 +773,7 @@ module PlayerBoxBlackTwo(generate_lid = true)
 
 module FavourBox(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = favour_box_width, length = favour_box_length, height = favour_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = favour_box_width, length = favour_box_length, height = favour_box_height)
     {
         translate([ favour_tile_length / 2, favour_tile_width / 2, 0 ])
         {
@@ -795,16 +793,14 @@ module FavourBox(generate_lid = true)
         translate([ favour_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = favour_box_width, length = favour_box_length, height = favour_box_height,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Favours", label_rotated = true);
+                               text_width = 50, text_height = 15, text_str = "Favours", label_rotated = true);
         }
     }
 }
 
 module StuffBox(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height)
     {
         RoundedBoxAllSides(width = stuff_box_width - wall_thickness * 2, length = stuff_box_length - wall_thickness * 2,
                            height = stuff_box_height, radius = 10);
@@ -814,18 +810,15 @@ module StuffBox(generate_lid = true)
         translate([ stuff_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Swords", label_rotated = true);
+                               text_width = 50, text_height = 15, text_str = "Swords", label_rotated = true);
             translate([ stuff_box_width + 10, 0, 0 ])
             {
                 CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                                   wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                                   text_height = 15, text_str = "Apples", label_rotated = true);
+                                   text_width = 50, text_height = 15, text_str = "Apples", label_rotated = true);
                 translate([ stuff_box_width + 10, 0, 0 ])
                 {
                     CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                                       text_height = 15, text_str = "Crystals", label_rotated = true);
+                                       text_width = 50, text_height = 15, text_str = "Crystals", label_rotated = true);
                 }
             }
         }
