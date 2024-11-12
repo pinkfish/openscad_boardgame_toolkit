@@ -18,12 +18,16 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_lid_thickness = 2;
+default_floor_thickness = 2;
+default_wall_thickness = 3;
+
 box_length = 278;
 box_width = 214;
 box_height = 67;
 board_thickness = 28;
-wall_thickness = 3;
-lid_thickness = 2;
+wall_thickness = default_wall_thickness;
+lid_thickness = default_lid_thickness;
 inner_thickness = 1;
 
 square_tile_size = 18;
@@ -415,8 +419,7 @@ module WinterToken(height)
 
 module CardBox(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {
         inner_width = card_box_width - wall_thickness * 2;
         middle = card_width * 2 + 3;
@@ -434,8 +437,7 @@ module CardBox(generate_lid = true)
 
 module MarquisBoxBottom(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height)
     {
         inner_width = marquis_box_width - wall_thickness * 2;
         len = player_token_thickness * 8 + 1;
@@ -471,8 +473,7 @@ module MarquisBoxTop(generate_lid = true)
         translate([ square_tile_size + 1, 0, 0 ])
             cube([ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ]);
     }
-    MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
     {
         inner_width = marquis_box_width - wall_thickness * 2;
         inner_length = marquis_box_length - wall_thickness * 2;
@@ -522,8 +523,7 @@ module MarquisBoxTop(generate_lid = true)
 
 module VagabondBox(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height)
     {
         inner_height = vagabond_box_height - lid_thickness * 2;
         inner_width = vagabond_box_width - wall_thickness * 2;
@@ -587,8 +587,7 @@ module VagabondBox(generate_lid = true)
 
 module ErieBoxBottom(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = erie_box_width, length = erie_box_length, height = erie_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = erie_box_width, length = erie_box_length, height = erie_box_height)
     {
         inner_height = erie_box_height - lid_thickness * 2;
         inner_width = erie_box_width - wall_thickness * 2;
@@ -634,8 +633,7 @@ module ErieBoxTop(generate_lid = true)
 
 module AllianceBoxBottom(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height)
     {
         inner_height = alliance_box_height - lid_thickness * 2;
         inner_width = alliance_box_width - wall_thickness * 2;
@@ -661,8 +659,7 @@ module AllianceBoxBottom(generate_lid = true)
 
 module AllianceBoxTop(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height)
     {
         inner_height = alliance_box_top_height - lid_thickness * 2;
         inner_width = alliance_box_width - wall_thickness * 2;
@@ -691,8 +688,7 @@ module AllianceBoxTop(generate_lid = true)
 
 module RiverfolkBoxBottom(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_height)
     {
         inner_height = riverfolk_box_height - lid_thickness * 2;
         inner_width = riverfolk_box_width - wall_thickness * 2;
@@ -713,8 +709,7 @@ module RiverfolkBoxBottom(generate_lid = true)
 
 module RiverfolkBoxTop(generate_lid = true)
 {
-    MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_top_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_top_height)
     {
         inner_height = riverfolk_box_top_height - lid_thickness * 2;
         inner_width = riverfolk_box_width - wall_thickness * 2;
@@ -753,8 +748,7 @@ module RiverfolkBoxTop(generate_lid = true)
 
 module ItemsBoxBottom()
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_height)
     {
         inner_height = item_box_height - lid_thickness * 2;
         inner_width = item_box_width - wall_thickness * 2;
@@ -797,8 +791,7 @@ module ItemsBoxBottom()
 
 module ItemsBoxMiddle()
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_middle_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_middle_height)
     {
         inner_height = item_box_middle_height - lid_thickness * 2;
         inner_width = item_box_width - wall_thickness * 2;
@@ -842,8 +835,7 @@ module ItemsBoxMiddle()
 
 module ItemsBoxWinter()
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height)
     {
         inner_height = item_box_winter_height - lid_thickness * 2;
         inner_width = item_box_width - wall_thickness * 2;
