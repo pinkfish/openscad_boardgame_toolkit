@@ -179,10 +179,10 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 //    make_tab_width = makes tabes on thr width (default false)
 //    make_tab_length = makes tabs on the length (default true)
 //    prism_width = width of the prism in the tab. (default 0.75)
-//    layout_width = space in the grid for the layout (default 12)
-//    shape_width = with of the shape in the grid (default 12)
-//    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
-//    shape_thickness = thickness of the shape in the mesh (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid
 // Example:
@@ -192,8 +192,8 @@ module InsetLidTabbed(width, length, lid_thickness = 2, wall_thickness = 2, inse
 module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
                                label_radius = 12, border = 2, offset = 4, label_rotated = false, tab_length = 10,
                                tab_height = 8, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
-                               layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
-                               shape_thickness = 2, lid_rounding = undef)
+                               layout_width = undef, shape_width = undef, shape_type = undef, aspect_ratio = undef,
+                               shape_thickness = undef, lid_rounding = undef)
 {
     InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
                    lid_rounding = lid_rounding)
@@ -202,7 +202,7 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
@@ -331,10 +331,10 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_t
 //    offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated (default false)
 //    wall_thickness = how wide the walls are (default 2)
-//    layout_width = space in the grid for the layout (default 12)
-//    shape_width = with of the shape in the grid (default 12)
-//    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
-//    shape_thickness = thickness of the shape in the mesh (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: TabbedBox, TabbedLid, Hex
 // Example:
@@ -344,8 +344,8 @@ module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_t
 module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str, lid_thickness = 3,
                                         lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
                                         label_rotated = false, wall_thickness = 2, tab_height = 8, tab_length = 10,
-                                        inset = 1, layout_width = 12, shape_width = 12,
-                                        shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, lid_rounding = undef)
+                                        inset = 1, layout_width = undef, shape_width = undef, shape_type = undef,
+                                        shape_thickness = undef, aspect_ratio = undef, lid_rounding = undef)
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -359,7 +359,7 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
@@ -569,10 +569,10 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //    rabbit_snap = how deep the inner depth should be for the snap curve (default 0.25)
 //    rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //    rabbit_depth = extrustion depth of the rabbit (default 1.5)
-//    layout_width = space in the grid for the layout (default 12)
-//    shape_width = with of the shape in the grid (default 12)
-//    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
-//    shape_thickness = thickness of the shape in the mesh (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 // Topics: RabbitClipBox
 // Example:
@@ -583,8 +583,8 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
                                label_radius = 12, border = 2, offset = 4, label_rotated = false,
                                make_rabbit_width = false, make_rabbit_length = true, rabbit_width = 7,
                                rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
-                               rabbit_snap = 0.25, rabbit_offset = 3, layout_width = 12, shape_width = 12,
-                               shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, rabbit_depth = 1.5,
+                               rabbit_snap = 0.25, rabbit_offset = 3, layout_width = undef, shape_width = undef,
+                               shape_type = undef, shape_thickness = undef, aspect_ratio = undef, rabbit_depth = 1.5,
                                lid_rounding = undef)
 {
     InsetLidRabbitClip(width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
@@ -597,7 +597,7 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])

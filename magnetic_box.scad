@@ -256,17 +256,18 @@ module MagneticBoxLid(width, length, magnet_diameter, magnet_thickness, magnet_b
 //    border= border of the item (default 2)
 //    offset = offset in from the edge for the label (default 4)
 //    label_rotated = if the label is rotated (default false)
-//    layout_width = the width of the layout pieces (default 12)
-//    shape_width = width of the shape (default layout_width)
-//    shape_thickness = how wide the pieces are (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 // Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
 module MagneticBoxLidWithLabel(width, length, magnet_diameter, magnet_thickness, text_width, text_height, text_str,
                                magnet_border = 1.5, lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
-                               label_rotated = false, layout_width = 12, shape_width = 12,
-                               shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, lid_thickness = 2)
+                               label_rotated = false, layout_width = undef, shape_width = undef,
+                               shape_type = undef, shape_thickness = undef, aspect_ratio = undef, lid_thickness = 2)
 {
     MagneticBoxLid(width = width, length = length, magnet_diameter = magnet_diameter,
                    magnet_thickness = magnet_thickness, magnet_border = magnet_border, lid_thickness = lid_thickness)
@@ -274,7 +275,7 @@ module MagneticBoxLidWithLabel(width, length, magnet_diameter, magnet_thickness,
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])

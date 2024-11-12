@@ -8,6 +8,8 @@
 
 
 
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -149,10 +151,10 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //    border = how wide the border strip on the label should be (default 2)
 //    offset = how far inside the border the label should be (default 4)
 //    label_rotated = if the label should be rotated (default false)
-//    layout_width = space in the grid for the layout (default 12)
-//    shape_width = with of the shape in the grid (default 12)
-//    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
-//    shape_thickness = thickness of the shape in the mesh (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //    {{m_piece_wiggle_room}}
 // Topics: SlidingBox, SlidingLid
@@ -161,8 +163,8 @@ module SlidingLid(width, length, lid_thickness = 3, wall_thickness = 2, lid_size
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
-                              shape_width = 12, border = 2, offset = 4, label_rotated = false, layout_width = 12,
-                              shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, wall_thickness = 2,
+                              shape_width = undef, border = 2, offset = 4, label_rotated = false, layout_width = undef,
+                              shape_type = undef, shape_thickness = undef, wall_thickness = 2, aspect_ratio = undef,
                               lid_size_spacing = m_piece_wiggle_room)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
@@ -172,7 +174,7 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
@@ -359,10 +361,10 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thick
 //    offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated (default false)
 //    wall_thickness = how wide the walls are (default 2)
-//    layout_width = space in the grid for the layout (default 12)
-//    shape_width = with of the shape in the grid (default 12)
-//    shape_type = type of the shape to generate on the lid (default SHAPE_TYPE_DENSE_HEX)
-//    shape_thickness = thickness of the shape in the mesh (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 // Topics: SlidingBox, SlidingLid, Hex
 // Example:
 //    SlidingLidWithLabelForHexBox(
@@ -370,8 +372,8 @@ module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thick
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str, lid_thickness = 3,
                                     lid_boundary = 10, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                                    wall_thickness = 2, layout_width = 12, shape_width = 12,
-                                    shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2)
+                                    wall_thickness = 2, layout_width = undef, shape_width = undef, shape_type = undef,
+                                    shape_thickness = undef, aspect_ratio = undef)
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -384,7 +386,7 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = undef);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])

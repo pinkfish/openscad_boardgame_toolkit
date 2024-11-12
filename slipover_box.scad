@@ -167,18 +167,19 @@ module SlipoverBoxLid(width, length, height, lid_thickness = 2, wall_thickness =
 //   border= border of the item (default 2)
 //   offset = offset in from the edge for the label (default 4)
 //   label_rotated = if the label is rotated (default false)
-//   layout_width = the width of the layout pieces (default 12)
-//   shape_width = width of the shape (default layout_width)
-//   shape_thickness = how wide the pieces are (default 2)
+//   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//   shape_width = width of the shape (default {{default_lid_shape_width}})
+//   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //   lid_thickness = how thick the lid is (default 2)
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
 module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
                             wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                            foot = 0, layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
-                            shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 2,
-                            finger_hole_length = false, finger_hole_width = true)
+                            foot = 0, layout_width = undef, shape_width = undef, shape_type = undef,
+                            shape_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
+                            lid_thickness = 2, finger_hole_length = false, finger_hole_width = true)
 {
     SlipoverBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness, foot = foot,
                    lid_thickness = lid_thickness, finger_hole_length = finger_hole_length,
@@ -188,7 +189,7 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness);
+                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])

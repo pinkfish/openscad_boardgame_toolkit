@@ -197,18 +197,19 @@ module SlidingCatchBoxLid(width, length, cap_height = 10, lid_thickness = 1, wal
 //    border= border of the item (default 2)
 //    offset = offset in from the edge for the label (default 4)
 //    label_rotated = if the label is rotated (default false)
-//    layout_width = the width of the layout pieces (default 12)
-//    shape_width = width of the shape (default layout_width)
-//    shape_thickness = how wide the pieces are (default 2)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 // Usage: SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_boundary = 10,
                                    wall_thickness = 2, label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                                   layout_width = 12, shape_width = 12, shape_type = SHAPE_TYPE_DENSE_HEX,
-                                   shape_thickness = 2, size_spacing = m_piece_wiggle_room, lid_thickness = 1,
-                                   top_thickness = 2, fill_middle = true)
+                                   layout_width = undef, shape_width = undef, shape_type = undef,
+                                   shape_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
+                                   lid_thickness = 1, top_thickness = 2, fill_middle = true)
 {
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
@@ -218,7 +219,8 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width - wall_thickness * 2 - size_spacing * 2, length = length - wall_thickness,
                          lid_thickness = calc_lid_thickness, boundary = lid_boundary, layout_width = layout_width,
-                         shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness);
+                         shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                         aspect_ratio = aspect_ratio);
         if (label_rotated)
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])

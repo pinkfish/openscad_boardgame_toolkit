@@ -29,6 +29,51 @@ under the License.
 // Section: Lid
 //   Building blocks for making various kinds of lids and labels.
 
+// Constant: default_lid_shape_width
+// Description: Set this at the top of the file to change the default shape width of the box lid.
+default_lid_shape_width = 12;
+// Constant: default_lid_layout_width
+// Description: Set this at the top of the file to change the default layout width of the box lid.
+default_lid_layout_width = 12;
+// Constant: default_lid_aspect_ratio
+// Description: Set this at the top of the file to change the default aspect ratio of the box lid.
+default_lid_aspect_ratio = 1.0;
+// Constant: default_lid_shape_thickness
+// Description: Set this at the top of the file to change the default shape_thickness of the box lid.
+default_lid_shape_thickness = 2;
+// Constant: default_lid_shape_type
+// Description: Set this at the top of the file to change the default shape type of the box lid.
+default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
+
+// Function: DefaultValue()
+// Description:
+//    Figures out the value, uses the input if it is not undefined, default if it is undefined.
+// Arguments:
+//    input = input value to check, only used if not undefined
+//    default = default value to use, only used if the input is undefined.
+function DefaultValue(input, default) = input == undef ? default : input;
+
+// Module: CloudShape()
+// Description:
+//   Makes a cloud object.  This object was made by Twanne on thingiverse:
+//   https://www.thingiverse.com/thing:641665/files
+// Arguments:
+//   width = The width of the cloud. This also determine the height, because the height is half the width.
+//   height = Height of the object.
+//   line_width = width of the outside line (0 if no line)
+// Example:
+//   CloudShape(100);
+module CloudShape(width)
+{
+    union()
+    {
+        translate([ width * .37, width * .25, 0 ]) circle(r = width * .25, $fn = 16);
+        translate([ width * .15, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
+        translate([ width * .65, width * .22, 0 ]) circle(r = width * .2, $fn = 16);
+        translate([ width * .85, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
+    }
+}
+
 // Module: LidMeshDense()
 // Description:
 //   Make a hex mesh for the lid.  This makes a nice pattern for use on the lids.
@@ -192,10 +237,18 @@ module LidMeshRepeating(width, length, lid_thickness, boundary, shape_width, asp
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
 //       SHAPE_TYPE_ROUNDED_SQUARE, shape_thickness = 2, shape_width = 11);
+// Example:
+//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
+//       SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = 11);
 module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_type, shape_width, shape_thickness,
                     aspect_ratio = 1.0)
 {
-    if (shape_type == SHAPE_TYPE_NONE)
+    calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
+    calc_shape_type = DefaultValue(shape_type, default_lid_shape_type);
+    calc_shape_width = DefaultValue(shape_width, default_lid_shape_width);
+    calc_shape_thickness = DefaultValue(shape_thickness, default_lid_shape_thickness);
+    calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
+    if (calc_shape_type == SHAPE_TYPE_NONE)
     {
         // Don't do anything.
     }
@@ -203,70 +256,55 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_
     {
         // Thin border around the pattern to stick it on.
 
-        if (shape_type == SHAPE_TYPE_DENSE_HEX)
+        if (calc_shape_type == SHAPE_TYPE_DENSE_HEX)
         {
-            if (shape_width == undef)
-            {
-                LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             radius = layout_width / 2, shape_thickness = shape_thickness, shape_edges = 6,
-                             offset = shape_width - layout_width);
-            }
-            else
-            {
-                LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             radius = layout_width / 2, shape_thickness = shape_thickness, shape_edges = 6,
-                             offset = shape_width - layout_width);
-            }
+            LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
+                         radius = calc_layout_width / 2, shape_thickness = calc_shape_thickness, shape_edges = 6,
+                         offset = calc_shape_width - calc_layout_width);
         }
-        else if (shape_type == SHAPE_TYPE_DENSE_TRIANGLE)
+        else if (calc_shape_type == SHAPE_TYPE_DENSE_TRIANGLE)
         {
-            if (shape_width == undef)
-            {
-                LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             radius = layout_width / 2, shape_thickness = 2, shape_edges = 3,
-                             offset = shape_width - layout_width);
-            }
-            else
-            {
-                LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             radius = layout_width / 2, shape_thickness = layout_width - shape_width, shape_edges = 3,
-                             offset = shape_width - layout_width);
-            }
+            LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
+                         radius = calc_layout_width / 2, shape_thickness = calc_layout_width - calc_shape_width,
+                         shape_edges = 3, offset = calc_shape_width - calc_layout_width);
         }
-        else if (shape_type == SHAPE_TYPE_CIRCLE)
+        else if (calc_shape_type == SHAPE_TYPE_CIRCLE)
         {
             LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             shape_width = layout_width, shape_edges = 4, aspect_ratio = aspect_ratio) difference()
-            {
-                circle(r = shape_width / 2);
-                circle(r = (shape_width - shape_thickness) / 2);
-            }
-        }
-        else if (shape_type == SHAPE_TYPE_TRIANGLE || shape_type == SHAPE_TYPE_HEX ||
-                 shape_type == SHAPE_TYPE_OCTOGON || shape_type == SHAPE_TYPE_SQUARE)
-        {
-            shape_edges = shape_type == SHAPE_TYPE_TRIANGLE
-                              ? 3
-                              : (shape_type == SHAPE_TYPE_HEX ? 6 : (shape_type == SHAPE_TYPE_SQUARE ? 4 : 8));
-            LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             shape_width = layout_width, shape_edges = shape_edges, aspect_ratio = aspect_ratio)
+                             shape_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio)
                 difference()
             {
-                regular_ngon(r = shape_width / 2, n = shape_edges);
-                regular_ngon(r = (shape_width - shape_thickness) / 2, n = shape_edges);
+                circle(r = calc_shape_width / 2);
+                circle(r = (calc_shape_width - calc_shape_thickness) / 2);
             }
         }
-        else if (shape_type == SHAPE_TYPE_ROUNDED_SQUARE)
+        else if (calc_shape_type == SHAPE_TYPE_TRIANGLE || calc_shape_type == SHAPE_TYPE_HEX ||
+                 calc_shape_type == SHAPE_TYPE_OCTOGON || calc_shape_type == SHAPE_TYPE_SQUARE)
+        {
+            shape_edges =
+                calc_shape_type == SHAPE_TYPE_TRIANGLE
+                    ? 3
+                    : (calc_shape_type == SHAPE_TYPE_HEX ? 6 : (calc_shape_type == SHAPE_TYPE_SQUARE ? 4 : 8));
+            LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
+                             shape_width = calc_layout_width, shape_edges = shape_edges,
+                             aspect_ratio = calc_aspect_ratio) difference()
+            {
+                regular_ngon(r = calc_shape_width / 2, n = shape_edges);
+                regular_ngon(r = (calc_shape_width - calc_shape_thickness) / 2, n = shape_edges);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_ROUNDED_SQUARE)
         {
             LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             shape_width = layout_width, shape_edges = 4, aspect_ratio = aspect_ratio) difference()
+                             shape_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio)
+                difference()
             {
-                rect([ shape_width, shape_width ], rounding = 3, corner_flip = true, $fn = 16);
-                rect([ shape_width - shape_thickness, shape_width - shape_thickness ], rounding = 3, corner_flip = true,
-                     $fn = 16);
+                rect([ calc_shape_width, calc_shape_width ], rounding = 3, corner_flip = true, $fn = 16);
+                rect([ calc_shape_width - calc_shape_thickness, calc_shape_width - calc_shape_thickness ], rounding = 3,
+                     corner_flip = true, $fn = 16);
             }
         }
-        else if (shape_type == SHAPE_TYPE_HILBERT)
+        else if (calc_shape_type == SHAPE_TYPE_HILBERT)
         {
             intersection()
             {
@@ -274,10 +312,27 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_
                 {
                     cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
                     translate([ max(width, length) / 2, max(width, length) / 2, -0.1 ])
-                        linear_extrude(height = lid_thickness + 1)
-                            HilbertCurve(order = 3, size = max(width, length) / 2, line_thickness = shape_thickness);
+                        linear_extrude(height = lid_thickness + 1) HilbertCurve(
+                            order = 3, size = max(width, length) / 2, line_thickness = calc_shape_thickness);
                 }
                 cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_CLOUD)
+        {
+            LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
+                             shape_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio)
+                translate([ -calc_shape_width / 2, -calc_shape_width / 2, 0 ]) difference()
+            {
+                resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
+                {
+                    CloudShape(width = calc_shape_width);
+                }
+                offset(delta = -calc_shape_thickness)
+                    resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
+                {
+                    CloudShape(width = calc_shape_width);
+                }
             }
         }
         else

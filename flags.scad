@@ -35,9 +35,11 @@ under the License.
 //    Makes a background to the flag with the specified border.  The first child is used to subtract
 //    from the background while the second child renders the inside of the flag.
 // Arguments:
+// .  length = length of the background
+//    height = height of the background
 //    background= generate the background (default true)
 //    border = size of border to generate (default 0)
-module FlagBackgroundAndBorder(background_color, background = true, border = 0)
+module FlagBackgroundAndBorder(length, height, background_color, background = true, border = 0)
 {
     if (border > 0)
     {
@@ -322,13 +324,29 @@ module SwedenFlag(length, height, background = true, border = 0)
         cuboid([ length, line_horiz, height ], anchor = BOTTOM);
         translate([ -length * 3 / 16, 0, 0 ]) cuboid([ line_vert, width, height ], anchor = BOTTOM);
     }
-    FlagBackgroundAndBorder("blue", background = background, border = border)
+    FlagBackgroundAndBorder(length, height, "blue", background = background, border = border)
     {
         CrossBit(height + 2);
         color("yellow") CrossBit(height);
     }
 }
 
+// Module: UnitedStatesFlag()
+// Description:
+//   Flag of the united states to use for anything.
+// Arguments:
+//   length = length of the flag
+//   white_height = height of the white parts
+//   red_height = height of the red parts
+// . border = border to put on the flag (this goes outside the length) (default 0)
+//   background = put in a blue background with stripes (default true)
+// Topics: Flags
+// Example:
+//   UnitedStatesFlag(100, 4, 2);
+// Example:
+//   UnitedStatesFlag(100, 4, 2, border = 1);
+// Example:
+//   UnitedStatesFlag(100, 4, 2, background = false);
 module UnitedStatesFlag(length, white_height, red_height, background = true, border = 0)
 {
     width = length / 1.9;
@@ -340,21 +358,26 @@ module UnitedStatesFlag(length, white_height, red_height, background = true, bor
     star = stripe * 4 / 5;
     module StarSection(white_height)
     {
-        for (i = [0:1:4])
+        FlagBackgroundAndBorder(top_bit_length, max(red_height, white_height), "blue", background = background,
+                                border = border)
         {
+
+            for (i = [0:1:4])
+            {
+                for (j = [0:1:8])
+                {
+                    color("white") translate(
+                        [ star_offset_width * j, star_offset_length * i + (j % 2 == 1 ? star_offset_length : 0), 0 ])
+                        linear_extrude(height = white_height) star(5, star / 2);
+                }
+            }
             for (j = [0:1:8])
             {
-                color("white") translate(
-                    [ star_offset_width * j, star_offset_length * i + (j % 2 == 1 ? star_offset_length : 0), 0 ])
-                    linear_extrude(height = white_height) star(5, star / 2);
-            }
-        }
-        for (j = [0:1:8])
-        {
-            if (j % 2 == 0)
-            {
-                color("white") translate([ star_offset_width * j, star_offset_length * 5, 0 ])
-                    linear_extrude(height = white_height) star(5, star / 2);
+                if (j % 2 == 0)
+                {
+                    color("white") translate([ star_offset_width * j, star_offset_length * 5, 0 ])
+                        linear_extrude(height = white_height) star(5, star / 2);
+                }
             }
         }
     }
@@ -382,11 +405,6 @@ module UnitedStatesFlag(length, white_height, red_height, background = true, bor
     {
         Stripes(white_height = white_height, red_height = red_height);
         StarSection(white_height = white_height);
-    }
-    FlagBackgroundAndBorder("blue", background = background, border = border)
-    {
-        CrossBit(height + 2);
-        color("yellow") CrossBit(height);
     }
 }
 

@@ -76,3 +76,7 @@ SHAPE_TYPE_ROUNDED_SQUARE = 9;
 // Description:
 //   Layout a nice hilbert curve.
 SHAPE_TYPE_HILBERT = 10;
+// Constant: SHAPE_TYPE_CLOUD
+// Description:
+//   Makes a nice cloud shape.
+SHAPE_TYPE_CLOUD = 11;

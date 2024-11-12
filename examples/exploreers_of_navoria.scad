@@ -18,6 +18,12 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_lid_shape_type = SHAPE_TYPE_CLOUD;
+default_lid_shape_thickness = 1;
+default_lid_shape_width = 12.75;
+default_lid_layout_width = 12;
+default_lid_aspect_ratio = 1.5;
+
 box_width = 211;
 box_length = 268;
 box_height = 68;
@@ -95,10 +101,10 @@ explorer_base_width = 17.5;
 explorer_hat_width = 18.5;
 explorer_hat_green_top_left = 17.75;
 explorer_hat_green_top_right = 14.75;
-explorer_hat_yellow_top = 18;
+explorer_hat_yellow_top = 18.5;
 explorer_hat_yellow_bottom = 13.3;
 explorer_hat_yellow_top_flat = 6;
-explorer_hat_yellow_lower_flat = 9.5;
+explorer_hat_yellow_lower_flat = 10;
 explorer_marker_top_diameter = 12.5;
 explorer_hat_black_width = 9.75;
 explorer_hat_black_height = 7;
@@ -424,7 +430,7 @@ module ExplorerMarkerYellow(height)
             // Left side
             translate([ explorer_hat_width / 2 - 1.5, explorer_hat_yellow_bottom + 1.5, 0 ])
                 cyl(d = 3, anchor = BOTTOM + BACK, h = height, $fn = 32);
-            translate([ explorer_hat_width / 2 - 1, explorer_hat_yellow_bottom + 2, 0 ])
+            translate([ explorer_hat_width / 2 - 1, explorer_hat_yellow_bottom + 2.5, 0 ])
                 cyl(d = 2, anchor = BOTTOM + BACK, h = height, $fn = 32);
             translate([ explorer_hat_yellow_lower_flat / 2 - 0.2, explorer_hat_yellow_top, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 32);
@@ -438,9 +444,9 @@ module ExplorerMarkerYellow(height)
             // Right side
             translate([ -explorer_hat_width / 2 + 1.5, explorer_hat_yellow_bottom + 1.5, 0 ])
                 cyl(d = 3, anchor = BOTTOM + BACK, h = height, $fn = 32);
-            translate([ -explorer_hat_width / 2 + 1, explorer_hat_yellow_bottom + 2, 0 ])
+            translate([ -explorer_hat_width / 2 + 1, explorer_hat_yellow_bottom + 2.5, 0 ])
                 cyl(d = 2, anchor = BOTTOM + BACK, h = height, $fn = 32);
-            translate([ -explorer_hat_yellow_lower_flat / 2 + 0.5, explorer_hat_yellow_top, 0 ])
+            translate([ -explorer_hat_yellow_lower_flat / 2 + 0.2, explorer_hat_yellow_top, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 32);
             translate([ -explorer_hat_yellow_lower_flat / 2 + 1.5, explorer_hat_yellow_bottom - 1, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 32);
@@ -622,7 +628,7 @@ module PlayerBoxOneBase(generate_lid = true)
         {
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
                                wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Player");
+                               text_height = 15, text_str = "Player", label_rotated = true);
         }
     }
 }
@@ -686,11 +692,16 @@ module PlayerBoxTwoBase(generate_lid = true)
                     {
                         rotate([ 0, 0, 180 ]) FavourMarker(height = marker_thickness + 1);
                         translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 9, anchor = BOTTOM);
+                        translate([ 0, -favour_marker_length / 2 + 3, marker_thickness / 2 ])
+                            sphere(r = 9, anchor = BOTTOM);
                     }
-                    translate([ favour_marker_width / 2 + favour_marker_width + 1.5, (favour_marker_length + 7) * i, 0 ])
+                    translate(
+                        [ favour_marker_width / 2 + favour_marker_width + 1.5, (favour_marker_length + 7) * i, 0 ])
                     {
                         rotate([ 0, 0, 180 ]) FavourMarker(height = marker_thickness + 1);
                         translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) sphere(r = 9, anchor = BOTTOM);
+                        translate([ 0, -favour_marker_length / 2 + 2, marker_thickness / 2 ])
+                            sphere(r = 9, anchor = BOTTOM);
                     }
                 }
             }
@@ -720,7 +731,7 @@ module PlayerBoxTwoBase(generate_lid = true)
         {
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
                                wall_thickness = wall_thickness, lid_thickness = lid_thickness, text_width = 50,
-                               text_height = 15, text_str = "Player");
+                               text_height = 15, text_str = "Player", label_rotated = true);
         }
     }
 }
