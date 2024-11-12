@@ -70,7 +70,7 @@ bird_diameter_base = 6;
 bird_lump_length = 23;
 bird_lump_second_length = 21.75;
 
-trading_post_mushroom_width = 17;
+trading_post_mushroom_width = 17.5;
 trading_post_mushroom_height = 16;
 trading_post_mushroom_inset_side = 2;
 trading_post_mushroom_inset_up = 3;
@@ -433,7 +433,7 @@ module ExplorerMarkerYellow(height)
             // Left side
             translate([ explorer_hat_width / 2 - 1.5, explorer_hat_yellow_bottom + 1.5, 0 ])
                 cyl(d = 3, anchor = BOTTOM + BACK, h = height, $fn = 32);
-            translate([ explorer_hat_width / 2 - 1, explorer_hat_yellow_bottom + 2.5, 0 ])
+            translate([ explorer_hat_width / 2 - 1, explorer_hat_yellow_bottom + 3, 0 ])
                 cyl(d = 2, anchor = BOTTOM + BACK, h = height, $fn = 32);
             translate([ explorer_hat_yellow_lower_flat / 2 - 0.2, explorer_hat_yellow_top, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 32);
@@ -447,7 +447,7 @@ module ExplorerMarkerYellow(height)
             // Right side
             translate([ -explorer_hat_width / 2 + 1.5, explorer_hat_yellow_bottom + 1.5, 0 ])
                 cyl(d = 3, anchor = BOTTOM + BACK, h = height, $fn = 32);
-            translate([ -explorer_hat_width / 2 + 1, explorer_hat_yellow_bottom + 2.5, 0 ])
+            translate([ -explorer_hat_width / 2 + 1, explorer_hat_yellow_bottom + 3, 0 ])
                 cyl(d = 2, anchor = BOTTOM + BACK, h = height, $fn = 32);
             translate([ -explorer_hat_yellow_lower_flat / 2 + 0.2, explorer_hat_yellow_top, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 32);
@@ -957,4 +957,4 @@ module TestBox()
     }
 }
 
-PlayerBoxYellowTwo();
+PlayerBoxYellowOne();
