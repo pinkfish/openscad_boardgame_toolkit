@@ -46,6 +46,14 @@ default_wall_thickness = 2;
 // Description: The default lid thickness for all boxes.
 default_floor_thickness = 2;
 
+// Function: DefaultValue()
+// Description:
+//    Figures out the value, uses the input if it is not undefined, default if it is undefined.
+// Arguments:
+//    input = input value to check, only used if not undefined
+//    default = default value to use, only used if the input is undefined.
+function DefaultValue(input, default) = input == undef ? default : input;
+
 // Constant: SHAPE_TYPE_DENSE_HEX
 // Description:
 //   Creates a shape with a dense hexes, so they overlap.

@@ -571,7 +571,7 @@ module PlayerBoxOneBase(generate_lid = true)
         inner_box_height = player_box_height - lid_thickness * 2;
         translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) RoundedBoxAllSides(
             width = inner_box_width - wall_thickness * 2, length = inner_box_length + wall_thickness * 2 + 2,
-            height = player_box_height, radius = wall_thickness);
+            height = player_box_height, radius = wall_thickness, $fn = 64);
         marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
         // king marker
         translate([ (inner_box_width - king_marker) / 2, 0, marker_depth ])
@@ -680,7 +680,7 @@ module PlayerBoxTwoBase(generate_lid = true)
         inner_box_width = player_box_width - wall_thickness * 2;
         translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) RoundedBoxAllSides(
             width = inner_box_width - wall_thickness, length = inner_box_length + wall_thickness * 2 + 2,
-            height = player_box_height, radius = wall_thickness);
+            height = player_box_height, radius = wall_thickness, $fn = 64);
         translate([ 0, 0, marker_depth ])
         {
             // favour.
@@ -957,4 +957,4 @@ module TestBox()
     }
 }
 
-PlayerBoxYellowOne();
+PlayerBoxBlackTwo();

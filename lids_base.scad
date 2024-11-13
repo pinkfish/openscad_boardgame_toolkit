@@ -45,14 +45,6 @@ default_lid_shape_thickness = 2;
 // Description: Set this at the top of the file to change the default shape type of the box lid.
 default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
 
-// Function: DefaultValue()
-// Description:
-//    Figures out the value, uses the input if it is not undefined, default if it is undefined.
-// Arguments:
-//    input = input value to check, only used if not undefined
-//    default = default value to use, only used if the input is undefined.
-function DefaultValue(input, default) = input == undef ? default : input;
-
 // Module: CloudShape()
 // Description:
 //   Makes a cloud object.  This object was made by Twanne on thingiverse:
@@ -328,8 +320,7 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_
                 {
                     CloudShape(width = calc_shape_width);
                 }
-                offset(delta = -calc_shape_thickness)
-                    resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
+                offset(delta = -calc_shape_thickness) resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
                 {
                     CloudShape(width = calc_shape_width);
                 }
@@ -426,7 +417,7 @@ module SlidingLidFingernail(lid_thickness, radius = 6, finger_gap = 1.5, sphere 
 // Arguments:
 //   length = the length of the tab
 //   height = the height of the tab
-//   lid_thickness = the height of the lid (defaults to {{default_lid_thickess}})
+//   lid_thickness = the height of the lid (defaults to {{default_lid_thickness}})
 //   prism_width = the width of the prism (defaults to 0.75)
 //   wall_thickness = the thickness of the walls (default 2)
 // Topics: TabbedBox, TabbedLid
