@@ -29,7 +29,6 @@ under the License.
 // Section: Shapes
 //    Shapes to use in boxes and stuff.
 
-
 // Module: DifferenceWithOffset()
 // Description:
 //   Helper function that does an offset with the size inside the difference of the object
@@ -166,6 +165,65 @@ module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef,
         Crossbow2d(length = length, width = width, handle_width = calc_handle_width, bow_width = bow_width,
                    outer_circle = outer_circle);
     DifferenceWithOffset(offset = -line_width) rect([ calc_handle_width, length ]);
+}
+
+// Module: Sledgehammer2d()
+// Description:
+//    An outline of a 2d crossbow shape.
+// Arguments:
+//    length = length of the cross bpw.
+//    width = width of the cross bow
+//    handle_width = width of the handle bit (default width/4)
+//    head_lenght = length of the head (default length/3.5)
+//    rounding_head = rounding amoubnt on the head (default 2)
+//    rounding_handle = rounding amount on the handle (default 1)
+// Example:
+//    Sledgehammer2d(70, 50);
+module Sledgehammer2d(length, width, handle_width = undef, head_length = undef, rounding_head = 2, rounding_handle = 1)
+{
+    calc_hammer_handle_width = DefaultValue(handle_width, width / 4);
+    calc_hammer_head_length = DefaultValue(head_length, length / 3.5);
+    rect([ calc_hammer_handle_width, length ], rounding = rounding_handle);
+    translate([ 0, length / 2 - calc_hammer_head_length / 2 ])
+        rect([ width, calc_hammer_head_length ], rounding = rounding_head);
+}
+
+// Module: Sledgehammer2dOutline()
+// Description:
+//    An outline of a 2d crossbow shape.
+// Arguments:
+//    length = length of the cross bpw.
+//    width = width of the cross bow
+//    handle_width = width of the handle bit (default width/4)
+//    head_lenght = length of the head (default length/3.5)
+//    rounding_head = rounding amoubnt on the head (default 2)
+//    rounding_handle = rounding amount on the handle (default 1)
+//    line_width = width of the lione (default 1)
+//    strap_width = width of the strap outline(default line_width*4)
+// Example:
+//    Sledgehammer2dOutline(70, 50);
+module Sledgehammer2dOutline(length, width, handle_width = undef, head_length = undef, rounding_head = 2,
+                             rounding_handle = 1, line_width = 1, strap_width = undef)
+{
+    calc_hammer_handle_width = DefaultValue(handle_width, width / 4);
+    calc_hammer_head_length = DefaultValue(head_length, length / 3.5);
+    calc_strap_width = DefaultValue(strap_width, line_width * 4);
+    DifferenceWithOffset(offset = -line_width) Sledgehammer2d(
+        length = length, width = width, handle_width = calc_hammer_handle_width, head_length = calc_hammer_head_length);
+    translate([ 0, length / 2 - calc_hammer_head_length / 2 ]) DifferenceWithOffset(offset = -line_width)
+        rect([ width, calc_hammer_head_length ], rounding = rounding_head);
+    DifferenceWithOffset(offset = -line_width) polygon([
+        [ calc_hammer_handle_width / 2, length / 2 - calc_hammer_head_length ],
+        [ calc_hammer_handle_width / 2 + calc_strap_width, length / 2 - calc_hammer_head_length ],
+        [ -calc_hammer_handle_width / 2, length / 2 ],
+        [ -calc_hammer_handle_width / 2 - calc_strap_width, length / 2 ],
+    ]);
+    DifferenceWithOffset(offset = -line_width) mirror([ 1, 0 ]) polygon([
+        [ calc_hammer_handle_width / 2, length / 2 - calc_hammer_head_length ],
+        [ calc_hammer_handle_width / 2 + calc_strap_width, length / 2 - calc_hammer_head_length ],
+        [ -calc_hammer_handle_width / 2, length / 2 ],
+        [ -calc_hammer_handle_width / 2 - calc_strap_width, length / 2 ],
+    ]);
 }
 
 module Shoe2d()

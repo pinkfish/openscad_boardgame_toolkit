@@ -1013,6 +1013,6 @@ module BoxLayout()
     }
 }
 
-Crossbow2dOutline(70, 50);
+Sledgehammer2dOutline(70, 50);
 
 // WinterToken(5);
