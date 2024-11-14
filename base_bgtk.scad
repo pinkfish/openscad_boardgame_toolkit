@@ -46,6 +46,10 @@ default_wall_thickness = 2;
 // Description: The default lid thickness for all boxes.
 default_floor_thickness = 2;
 
+// Constant: default_label_font
+// Description: The default font to use for labels
+default_label_font = "Stencil Std:style=Bold";
+
 // Function: DefaultValue()
 // Description:
 //    Figures out the value, uses the input if it is not undefined, default if it is undefined.

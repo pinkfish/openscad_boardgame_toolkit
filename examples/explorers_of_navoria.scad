@@ -34,6 +34,9 @@ board_thickness = 12;
 lid_thickness = default_lid_thickness;
 wall_thickness = default_wall_thickness;
 
+card_width = 68;
+card_length = 92;
+
 player_layout_thickness = 2;
 player_layout_num = 4;
 player_layout_width = 147;
@@ -75,7 +78,7 @@ trading_post_mushroom_height = 16;
 trading_post_mushroom_inset_side = 2;
 trading_post_mushroom_inset_up = 3;
 
-trading_post_triangle_width = 17;
+trading_post_triangle_width = 17.5;
 trading_post_triangle_height = 16;
 trading_post_triangle_inset_side = 2;
 trading_post_triangle_inset_up = 3;
@@ -130,7 +133,12 @@ stuff_box_height = box_height - board_thickness - favour_box_height - 1 - player
 stuff_box_width = favour_box_width / 3;
 stuff_box_length = favour_box_length;
 
-bag_box_length = box_length - stuff_box_length - 2;
+card_box_width = box_width - player_box_width - 2;
+card_box_length = card_width + wall_thickness * 2 + 0.5;
+card_box_height =
+    box_height - board_thickness - player_layout_thickness - 1 - player_layout_thickness * player_layout_num;
+
+bag_box_length = box_length - stuff_box_length - 2 - card_box_length;
 bag_box_width = box_width - player_box_width - 2;
 bag_box_height =
     box_height - board_thickness - player_layout_thickness - 1 - player_layout_thickness * player_layout_num;
@@ -536,6 +544,7 @@ module ExplorerMarkerPurple(height)
             }
         }
 
+        // Hat
         hull()
         {
             translate([ explorer_hat_purple_top_width / 2 - 0.5, explorer_marker_height, 0 ])
@@ -547,7 +556,7 @@ module ExplorerMarkerPurple(height)
             translate([ -explorer_hat_purple_bottom_width / 2 + 0.5, explorer_hat_purple_top_height, 0 ])
                 cyl(d = 1, anchor = BOTTOM + BACK, h = height, $fn = 16);
         }
-
+        // Arms
         hull()
         {
             translate([ explorer_hat_width / 2 - 0.5, explorer_hat_purple_top_height, 0 ])
@@ -825,6 +834,33 @@ module StuffBox(generate_lid = true)
     }
 }
 
+module CardBox(generate_lid = true)
+{
+
+    MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
+    {
+        inner_width = card_box_width - wall_thickness * 2;
+        inner_length = card_box_length - wall_thickness * 2;
+        inner_height = card_box_height - lid_thickness * 2;
+        cube([ card_length + 2, inner_length, card_box_height ]);
+        translate([ 0, inner_length / 2, -lid_thickness - 0.01 ]) FingerHoleBase(radius = 20, height = card_box_height);
+        translate([ inner_width - (inner_width - card_length - 2) / 2, inner_length / 2, inner_height - 1 ])
+            linear_extrude(card_box_height) rotate(270)
+                text("NavoriA", size = 13, font = "Marker Felt:style=Regular", valign = "center", halign = "center");
+        translate([ inner_width - (inner_width - card_length - 2) / 2+11, inner_length / 2, inner_height - 1 ])
+            linear_extrude(card_box_height) rotate(270)
+                text("Explorers of", size = 5, font = "Marker Felt:style=Regular", valign = "center", halign = "center");
+    }
+    if (generate_lid)
+    {
+        translate([ card_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
+                               text_width = 50, text_height = 15, text_str = "Cards", label_rotated = true);
+        }
+    }
+}
+
 module BagBox()
 {
     translate([ bag_box_width / 2, bag_box_length / 2, 0 ]) difference()
@@ -854,7 +890,8 @@ module BoxLayout()
         translate([ player_box_width, 0, favour_box_height ]) StuffBox(generate_lid = false);
         translate([ player_box_width + stuff_box_width, 0, favour_box_height ]) StuffBox(generate_lid = false);
         translate([ player_box_width + stuff_box_width * 2, 0, favour_box_height ]) StuffBox(generate_lid = false);
-        translate([ player_box_width, favour_box_length, 0 ]) BagBox();
+        translate([ player_box_width, favour_box_length, 0 ]) CardBox(generate_lid = false);
+        translate([ player_box_width, favour_box_length + card_box_length, 0 ]) BagBox();
     }
     translate([ box_width - player_layout_width, 0, box_height - player_layout_thickness * player_layout_num ])
         cube([ player_layout_width, box_length, player_layout_thickness * player_layout_num ]);
@@ -957,4 +994,4 @@ module TestBox()
     }
 }
 
-PlayerBoxBlackTwo();
+AustraliaMap2d(365.040);

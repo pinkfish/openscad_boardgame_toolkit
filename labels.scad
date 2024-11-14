@@ -102,7 +102,7 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   label = the text of the label
 //   border = how wide the border is around the label (default 2)
 //   offset = how far in from the sides the text should be (default 4)
-//   font = the font to use for the text (default "Stencil Std:style=Bold")
+//   font = the font to use for the text (default {{default_label_font}})
 //   radius = the radius of the corners on the label section (default 5)
 //   full_height = full height of the lid (default false)
 // Topics: Label
@@ -110,7 +110,7 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia");
 // Example:
 //   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true);
-module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = "Stencil Std:style=Bold",
+module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
                            radius = 5, full_height = false)
 {
     intersection()

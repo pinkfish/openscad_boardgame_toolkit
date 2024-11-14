@@ -160,7 +160,7 @@ module MakeDivider(width, length, thickness, tab_height, num_tabs, tab_position,
 //   text_str = the text string to use
 //   text_offset = how far from the sides of the tab to put the text
 //   text_height = how hight the text is, (default tab_height - text_offset)
-//   font = the font to use (default "Stencil Std:style=Bold")
+//   font = the font to use (default {{default_label_font}})
 // Example:
 //   MakeDividerWithText(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 0,
 //   text_str = "Frog");
@@ -172,7 +172,7 @@ module MakeDivider(width, length, thickness, tab_height, num_tabs, tab_position,
 //   text_str = "Croak", text_depth=0.5);
 module MakeDividerWithText(width, length, thickness, tab_height, text_str, num_tabs, tab_position, tab_radius = 2,
                            num_tabs = 3, tab_length = undef, text_offset = 2, text_height = undef, text_depth = undef,
-                           font = "Stencil Std:style=Bold")
+                           font = default_label_font)
 {
     assert(tab_position >= 0 && tab_position < num_tabs, "Tab position must be lower than num_tabs");
     tab_length_calc = tab_length == undef ? (width - tab_radius * num_tabs) / num_tabs : tab_length;
