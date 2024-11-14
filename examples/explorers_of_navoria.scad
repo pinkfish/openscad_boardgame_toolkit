@@ -994,4 +994,4 @@ module TestBox()
     }
 }
 
-AustraliaMap2d(365.040);
+BoxLayout();

@@ -386,6 +386,75 @@ module Torch2dOutline(length, width, handle_width = undef, head_length = undef, 
     }
 }
 
+// Module: Teapot2d()
+// Description:
+//    An nice 2d teapor shape.
+// Arguments:
+//    length = length of the teapot
+//    width = width of the teapot
+//    top_width = top width of the teapot (default width*6/10)
+//    top_length = length to the top part of the teapot.
+//    top_circle_diameter = circle of the top part of the teapot
+//    handle_rounding = rounding amount to use int he top handle
+//    handle_width = width of the top handle
+//    spout_length = length of the spout
+//    side_handle_length = length of the side handle
+//    side_handle_rounding = rounding of the bottom part of the handle
+// Example:
+//    Teapot2d(100, 70);
+module Teapot2d(length, width, top_width = undef, top_length = undef, top_circle_diameter = undef,
+                handle_rounding = undef, handle_width = undef, spout_length = undef, side_handle_length = undef,
+                side_handle_rounding = undef)
+{
+    calc_top_width = DefaultValue(top_width, width * 6 / 10);
+    calc_top_length = DefaultValue(top_length, length * 7 / 10);
+    calc_top_circle_diameter = DefaultValue(top_circle_diameter, calc_top_width * 8 / 10);
+    calc_handle_rounding = DefaultValue(handle_rounding, width / 15);
+    calc_handle_width = DefaultValue(handle_width, width / 30);
+    calc_spout_length = DefaultValue(spout_length, length / 5);
+    calc_side_handle_length = DefaultValue(side_handle_length, length / 3);
+    calc_side_handle_rounding = DefaultValue(side_handle_rounding, width * 4 / 10);
+    union()
+    {
+        // Base
+        polygon([
+            [ length / 2, width / 2 ],
+            [ length / 2 - calc_top_length, calc_top_width / 2 ],
+            [ length / 2 - calc_top_length, -calc_top_width / 2 ],
+            [ length / 2, -width / 2 ],
+        ]);
+        // Spout
+        polygon([
+            [ length / 2 - calc_top_length, calc_top_width / 2 ],
+            [ length / 2 - calc_top_length, width / 2 ],
+            [ length / 2 - calc_top_length + calc_spout_length, calc_top_width / 2 ],
+
+        ]);
+        // Top bit
+        translate([ length / 2 - calc_top_length, 0 ]) circle(d = calc_top_circle_diameter);
+        diff_top = length - calc_top_length - calc_top_circle_diameter / 2;
+        // Handle
+        translate([ -length / 2 + diff_top, 0 ])
+        {
+            DifferenceWithOffset(offset = -calc_handle_width)
+                rect([ diff_top * 2, diff_top * 2 ], rounding = calc_handle_rounding);
+        }
+        // Back Handle.
+        DifferenceWithOffset(offset = -calc_handle_width) hull()
+        {
+            side_diameter = width / 20;
+            translate([ side_diameter / 2, side_diameter / 2 ])
+            {
+                translate([ length / 2 - calc_top_length, -calc_top_width / 2 ]) circle(d = side_diameter);
+                translate([ length / 2 - calc_top_length, -width / 2 ]) circle(d = side_diameter);
+            }
+            translate([ -calc_side_handle_rounding / 2, calc_side_handle_rounding / 2 ])
+                translate([ length / 2 - calc_top_length + calc_side_handle_length, -width / 2 ])
+                    circle(d = calc_side_handle_rounding);
+        }
+    }
+}
+
 // Constant: australia_map_length
 // Description: The length of the australian svg map
 australia_map_length = 365.040;
