@@ -286,7 +286,6 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
               size_spacing = m_piece_wiggle_room)
     {
-        echo([shape_width]);
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,

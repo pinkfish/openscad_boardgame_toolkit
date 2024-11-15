@@ -586,3 +586,31 @@ module RockWall2d(size, num_rows = 10, num_cols = 40, spacing = undef)
         }
     }
 }
+
+// Module: D20Outline2d()
+// Description:
+//   Makes a nice d20 outline for some dice.
+// Arguments:
+//   size = size of the die image
+//   offset = the size of the walls
+// Example(2D):
+//    D20Outline2d(10, 0.5);
+module D20Outline2d(size, offset)
+{
+    r = size / 2 - offset / 2;
+    union()
+    {
+        points = [for (i = [0:1:5])([ r * cos(360 * i / 6), r * sin(360 * i / 6) ])];
+        r_triangle = r / 5 * 3;
+        points_triangle = [for (i = [0:1:2])([ r_triangle * cos(360 * i / 3), r_triangle * sin(360 * i / 3) ])];
+        echo(points);
+        echo(points_triangle);
+        stroke([ points[0], points[5], points_triangle[0], points[0] ], width = offset);
+        stroke([ points[0], points[1], points_triangle[0], points[1] ], width = offset);
+        stroke([ points[1], points[2], points_triangle[1], points[1] ], width = offset);
+        stroke([ points[2], points[3], points_triangle[1], points[2] ], width = offset);
+        stroke([ points[3], points[4], points_triangle[2], points[3] ], width = offset);
+        stroke([ points[4], points[5], points_triangle[2], points[4] ], width = offset);
+        stroke([ points_triangle[0], points_triangle[1], points_triangle[2], points_triangle[0] ], width = offset);
+    }
+}

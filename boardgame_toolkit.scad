@@ -59,4 +59,5 @@ include <slipover_box.scad>
 // extra stuff
 include <flags.scad>
 include <shapes.scad>
+include <shapes3d.scad>
 
