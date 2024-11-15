@@ -437,9 +437,9 @@ module CardBox(generate_lid = true)
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {
-        inner_width = card_box_width - wall_thickness * 2;
+        $inner_width = card_box_width - wall_thickness * 2;
         middle = card_width * 2 + 3;
-        translate([ (inner_width - middle) / 2, 0, 0 ])
+        translate([ ($inner_width - middle) / 2, 0, 0 ])
         {
             cube([ card_width, card_length, card_box_height ]);
             translate([ card_width + 3, 0, 0 ]) cube([ card_width, card_length, card_box_height ]);
@@ -455,10 +455,9 @@ module MarquisBoxBottom(generate_lid = true)
 {
     MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height)
     {
-        inner_width = marquis_box_width - wall_thickness * 2;
         len = player_token_thickness * 8 + 1;
         // Put a bunch of places in for the marquis items
-        translate([ (inner_width - len) / 2, 0, 0 ])
+        translate([ ($inner_width - len) / 2, 0, 0 ])
         {
             translate([ len / 2, marquis_width / 2, marquis_length / 2 + 1 ]) rotate([ 90, 0, 90 ])
                 MarquisCharacter(height = len);
@@ -467,7 +466,7 @@ module MarquisBoxBottom(generate_lid = true)
             translate([ len / 2, marquis_width / 2 + marquis_width + 1, marquis_length / 2 + 1 ]) rotate([ 90, 0, 90 ])
                 MarquisCharacter(height = len);
         }
-        translate([ (inner_width - len - player_token_thickness) / 2, 0, 0 ])
+        translate([ ($inner_width - len - player_token_thickness) / 2, 0, 0 ])
         {
             translate([
                 (len + player_token_thickness) / 2, marquis_width / 2 + marquis_width * 2 + 2, marquis_length / 2 + 1
@@ -477,7 +476,7 @@ module MarquisBoxBottom(generate_lid = true)
             ]) cuboid([ len + player_token_thickness, marquis_width, marquis_length ]);
         }
         translate([ 0, 0, marquis_length / 2 ])
-            RoundedBoxAllSides(inner_width, marquis_box_length - wall_thickness * 2, marquis_length, 7);
+            RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, marquis_length, 7);
     }
 }
 
@@ -491,45 +490,41 @@ module MarquisBoxTop(generate_lid = true)
     }
     MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
     {
-        inner_width = marquis_box_width - wall_thickness * 2;
-        inner_length = marquis_box_length - wall_thickness * 2;
-        inner_height = marquis_box_top_height - lid_thickness * 2;
-
         // Wood markers.
         translate([
-            round_tile_diameter / 2, round_tile_diameter / 2, inner_height - tile_thickness * marquis_wood_token_num / 2
+            round_tile_diameter / 2, round_tile_diameter / 2, $inner_height - tile_thickness * marquis_wood_token_num / 2
         ]) cyl(d = round_tile_diameter, h = tile_thickness * marquis_wood_token_num / 2, anchor = BOTTOM);
         translate([
             round_tile_diameter / 2 + round_tile_diameter + 2, round_tile_diameter / 2,
-            inner_height - tile_thickness * marquis_wood_token_num / 2
+            $inner_height - tile_thickness * marquis_wood_token_num / 2
         ]) cyl(d = round_tile_diameter, h = tile_thickness * marquis_wood_token_num / 2, anchor = BOTTOM);
 
         // Keep token
         translate([
             round_tile_diameter / 2 + round_tile_diameter * 2 + 2, round_tile_diameter / 2 * 6 / 4,
-            inner_height - tile_thickness - 0.5
+            $inner_height - tile_thickness - 0.5
         ]) cyl(d = round_tile_diameter, h = tile_thickness + 1, anchor = BOTTOM);
 
         // Score marker.
         translate(
-            [ round_tile_diameter * 2 + 2, inner_length - 5 - square_tile_size, inner_height - tile_thickness - 0.5 ])
+            [ round_tile_diameter * 2 + 2, $inner_length - 5 - square_tile_size, $inner_height - tile_thickness - 0.5 ])
             cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
 
         // Buildings.
         translate(
-            [ 0, inner_length - square_tile_size, inner_height - tile_thickness * marquis_building_token_num / 2 ])
+            [ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * marquis_building_token_num / 2 ])
         {
             BuildingSpots();
         }
         translate([
-            inner_width - square_tile_size * 2 - 1, inner_length - square_tile_size,
-            inner_height - tile_thickness * marquis_building_token_num / 2
+            $inner_width - square_tile_size * 2 - 1, $inner_length - square_tile_size,
+            $inner_height - tile_thickness * marquis_building_token_num / 2
         ])
         {
             BuildingSpots();
         }
         translate([
-            inner_width - square_tile_size * 2 - 1, 0, inner_height - tile_thickness * marquis_building_token_num / 2
+            $inner_width - square_tile_size * 2 - 1, 0, $inner_height - tile_thickness * marquis_building_token_num / 2
         ])
         {
             BuildingSpots();
@@ -541,12 +536,9 @@ module VagabondBox(generate_lid = true)
 {
     MakeBoxWithCapLid(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height)
     {
-        inner_height = vagabond_box_height - lid_thickness * 2;
-        inner_width = vagabond_box_width - wall_thickness * 2;
-        inner_length = vagabond_box_length - wall_thickness * 2;
         translate([
             vagabond_width / 2, vagabond_length / 2,
-            inner_height - player_token_thickness - 0.5 + (player_token_thickness + 1) / 2
+            $inner_height - player_token_thickness - 0.5 + (player_token_thickness + 1) / 2
         ])
         {
             rotate([ 0, 0, 180 ]) VagabondCharacter(height = player_token_thickness + 1);
@@ -555,7 +547,7 @@ module VagabondBox(generate_lid = true)
         }
 
         // Score marker.
-        translate([ inner_width - square_tile_size * 5 / 4, 3, inner_height - tile_thickness - 0.5 ])
+        translate([ $inner_width - square_tile_size * 5 / 4, 3, $inner_height - tile_thickness - 0.5 ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
             translate([ square_tile_size, square_tile_size / 2, 0 ])
@@ -564,15 +556,15 @@ module VagabondBox(generate_lid = true)
 
         // Relationship markers.
         translate([
-            inner_width - square_tile_size, inner_length - square_tile_size,
-            inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
+            $inner_width - square_tile_size, $inner_length - square_tile_size,
+            $inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
         ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num_each / 2 + 1 ]);
             translate([ -5, square_tile_size / 2, 0 ]) xcyl(r = 7, h = vagabond_box_height, anchor = BOTTOM);
         }
         translate([
-            0, inner_length - square_tile_size, inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
+            0, $inner_length - square_tile_size, $inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
         ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num_each / 2 + 1 ]);
@@ -584,18 +576,16 @@ module ErieBoxBottom(generate_lid = true)
 {
     MakeBoxWithCapLid(width = erie_box_width, length = erie_box_length, height = erie_box_height)
     {
-        inner_height = erie_box_height - lid_thickness * 2;
-        inner_width = erie_box_width - wall_thickness * 2;
         len = player_token_thickness * 10 + 1;
 
-        translate([ (inner_width - len) / 2, 0, 0 ])
+        translate([ ($inner_width - len) / 2, 0, 0 ])
         {
-            translate([ len / 2, erie_length / 2 + 2, inner_height - erie_width / 2 - 0.5 ])
+            translate([ len / 2, erie_length / 2 + 2, $inner_height - erie_width / 2 - 0.5 ])
             {
                 rotate([ 0, 270, 0 ]) ErieCharacter(height = len);
                 translate([ 0, 0, 5 + erie_width / 2 ]) cuboid([ len, erie_length, erie_width / 2 ], anchor = TOP);
             }
-            translate([ len / 2, erie_length / 2 + erie_length + 4, inner_height - erie_width / 2 - 0.5 ])
+            translate([ len / 2, erie_length / 2 + erie_length + 4, $inner_height - erie_width / 2 - 0.5 ])
             {
                 rotate([ 0, 270, 0 ]) ErieCharacter(height = len);
                 translate([ 0, 0, 5 + erie_width / 2 ]) cuboid([ len, erie_length, erie_width / 2 ], anchor = TOP);
@@ -608,19 +598,15 @@ module ErieBoxTop(generate_lid = true)
     MakeBoxWithCapLid(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
     {
-        inner_length = erie_box_length - wall_thickness * 2;
-        inner_width = erie_box_width - wall_thickness * 2;
-        inner_height = erie_box_top_height - lid_thickness * 2;
-
         // Score marker.
-        translate([ 0, inner_length - square_tile_size, inner_height - tile_thickness - 0.5 ])
+        translate([ 0, $inner_length - square_tile_size, $inner_height - tile_thickness - 0.5 ])
             cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
 
         // Roosts.
         for (i = [0:1:1])
         {
             num_tiles = 3 + i;
-            translate([ (square_tile_size + 1) * i, 0, inner_height - num_tiles * tile_thickness - 0.5 ])
+            translate([ (square_tile_size + 1) * i, 0, $inner_height - num_tiles * tile_thickness - 0.5 ])
                 cube([ square_tile_size, square_tile_size, tile_thickness * num_tiles + 1 ]);
         }
     }
@@ -630,19 +616,17 @@ module AllianceBoxBottom(generate_lid = true)
 {
     MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height)
     {
-        inner_height = alliance_box_height - lid_thickness * 2;
-        inner_width = alliance_box_width - wall_thickness * 2;
         len = player_token_thickness * 5 + 1;
 
-        translate([ (inner_width - len) / 2, 1.5, 0 ])
+        translate([ ($inner_width - len) / 2, 1.5, 0 ])
         {
-            translate([ len / 2, alliance_length / 2 + 2, inner_height - alliance_width / 2 ])
+            translate([ len / 2, alliance_length / 2 + 2, $inner_height - alliance_width / 2 ])
             {
                 rotate([ 0, 270, 0 ]) AllianceCharacter(height = len);
                 translate([ 0, 0, alliance_width / 2 ])
                     cuboid([ len, alliance_length, alliance_width / 2 + 4.5 ], anchor = TOP);
             }
-            translate([ len / 2, alliance_length / 2 + 2 + alliance_length + 4, inner_height - alliance_width / 2 ])
+            translate([ len / 2, alliance_length / 2 + 2 + alliance_length + 4, $inner_height - alliance_width / 2 ])
             {
                 rotate([ 0, 270, 0 ]) AllianceCharacter(height = len);
                 translate([ 0, 0, alliance_width / 2 ])
@@ -656,27 +640,23 @@ module AllianceBoxTop(generate_lid = true)
 {
     MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height)
     {
-        inner_height = alliance_box_top_height - lid_thickness * 2;
-        inner_width = alliance_box_width - wall_thickness * 2;
-        inner_length = alliance_box_length - wall_thickness * 2;
-
         // Score marker.
-        translate([ 0, 0, inner_height - tile_thickness - 0.5 ])
+        translate([ 0, 0, $inner_height - tile_thickness - 0.5 ])
             cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
 
         // Sympathy tokens.
         translate([
-            inner_width - round_tile_diameter / 2, round_tile_diameter / 2,
-            inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
+            $inner_width - round_tile_diameter / 2, round_tile_diameter / 2,
+            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
         ]) cyl(d = round_tile_diameter, h = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, anchor = BOTTOM);
         translate([
-            inner_width - round_tile_diameter / 2, round_tile_diameter / 2 + round_tile_diameter + 1,
-            inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
+            $inner_width - round_tile_diameter / 2, round_tile_diameter / 2 + round_tile_diameter + 1,
+            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
         ]) cyl(d = round_tile_diameter, h = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, anchor = BOTTOM);
 
         // Bases.
         translate(
-            [ 0, inner_length - square_tile_size, inner_height - tile_thickness * woodland_alliance_base_num - 0.5 ])
+            [ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * woodland_alliance_base_num - 0.5 ])
             cube([ square_tile_size, square_tile_size, tile_thickness * woodland_alliance_base_num + 1 ]);
     }
 }
@@ -685,13 +665,10 @@ module RiverfolkBoxBottom(generate_lid = true)
 {
     MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_height)
     {
-        inner_height = riverfolk_box_height - lid_thickness * 2;
-        inner_width = riverfolk_box_width - wall_thickness * 2;
-        inner_length = riverfolk_box_length - wall_thickness * 2;
         len = player_token_thickness * 5 + 1;
         translate([ 0, 0, 0 ]) for (i = [0:1:2])
         {
-            translate([ len / 2, riverfolk_width / 2 + (riverfolk_width + 1) * i, inner_height - riverfolk_length / 2 ])
+            translate([ len / 2, riverfolk_width / 2 + (riverfolk_width + 1) * i, $inner_height - riverfolk_length / 2 ])
             {
                 rotate([ 90, 0, 90 ]) RiverfolkCharacter(height = len + 1);
                 translate([ 0, 0, riverfolk_length / 2 ])
@@ -705,12 +682,8 @@ module RiverfolkBoxTop(generate_lid = true)
 {
     MakeBoxWithCapLid(width = riverfolk_box_top_width, length = riverfolk_box_length, height = riverfolk_box_top_height)
     {
-        inner_height = riverfolk_box_top_height - lid_thickness * 2;
-        inner_width = riverfolk_box_top_width - wall_thickness * 2;
-        inner_length = riverfolk_box_length - wall_thickness * 2;
-
         // Score marker.
-        translate([ 0, 0, inner_height - tile_thickness - 0.5 ])
+        translate([ 0, 0, $inner_height - tile_thickness - 0.5 ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
             translate([ square_tile_size, square_tile_size / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
@@ -720,17 +693,17 @@ module RiverfolkBoxTop(generate_lid = true)
         for (i = [0:1:2])
         {
             translate([
-                inner_width - round_tile_diameter / 2 - (round_tile_diameter + 2) * i - 2, round_tile_diameter / 2 + 2,
-                inner_height - tile_thickness * 5 + 0.5
+                $inner_width - round_tile_diameter / 2 - (round_tile_diameter + 2) * i - 2, round_tile_diameter / 2 + 2,
+                $inner_height - tile_thickness * 5 + 0.5
             ]) cyl(d = round_tile_diameter + 0.5, h = tile_thickness * 5 + 1, anchor = BOTTOM);
         }
 
         // glass things.
-        translate([ (inner_width - (riverfolk_glass_diameter + 10) * 3) / 2, 0, 0 ]) for (i = [0:1:2])
+        translate([ ($inner_width - (riverfolk_glass_diameter + 10) * 3) / 2, 0, 0 ]) for (i = [0:1:2])
         {
             translate([
                 2 + riverfolk_glass_diameter / 2 + (riverfolk_glass_diameter + 10) * i,
-                inner_length - riverfolk_glass_diameter / 2 - 2, inner_height - riverfolk_glass_thickness - 0.5
+                $inner_length - riverfolk_glass_diameter / 2 - 2, $inner_height - riverfolk_glass_thickness - 0.5
             ])
             {
                 cyl(d = riverfolk_glass_diameter, h = riverfolk_glass_thickness + 1, anchor = BOTTOM);
@@ -747,9 +720,6 @@ module LizardBoxBottom(generate_lid = true)
 {
     MakeBoxWithCapLid(width = lizard_box_width, length = lizard_box_length, height = lizard_box_height)
     {
-        inner_height = lizard_box_height - lid_thickness * 2;
-        inner_width = lizard_box_width - wall_thickness * 2;
-        inner_length = lizard_box_length - wall_thickness * 2;
         //  Put a bunch of places in for the lizard items
         for (j = [0:1:4])
         {
@@ -765,7 +735,7 @@ module LizardBoxBottom(generate_lid = true)
             }
         }
         translate([ 0, 0, lizard_length / 2 ])
-            RoundedBoxAllSides(inner_width, lizard_box_length - wall_thickness * 2, lizard_length, 7);
+            RoundedBoxAllSides($inner_width, lizard_box_length - wall_thickness * 2, lizard_length, 7);
     }
 }
 
@@ -773,25 +743,21 @@ module LizardBoxTop(generate_lid = true)
 {
     MakeBoxWithCapLid(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height)
     {
-        inner_height = lizard_box_top_height - lid_thickness * 2;
-        inner_width = lizard_box_top_width - wall_thickness * 2;
-        inner_length = lizard_box_length - wall_thickness * 2;
-
         // Garden markers.
         for (i = [0:1:1])
         {
             translate([
                 square_tile_size / 2 + (square_tile_size + 5) * i + 3, square_tile_size / 2 + 2,
-                inner_height - tile_thickness * 5 - 0.5
+                $inner_height - tile_thickness * 5 - 0.5
             ]) cuboid([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ], anchor = BOTTOM);
         }
         translate([
-            square_tile_size / 2 + (square_tile_size + 5) * 1 + 3, inner_length - square_tile_size + 2,
-            inner_height - tile_thickness * 5 - 0.5
+            square_tile_size / 2 + (square_tile_size + 5) * 1 + 3, $inner_length - square_tile_size + 2,
+            $inner_height - tile_thickness * 5 - 0.5
         ]) cuboid([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ], anchor = BOTTOM);
 
         // Score marker.
-        translate([ 0, inner_length - square_tile_size, inner_height - tile_thickness * 2 - 0.5 ])
+        translate([ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * 2 - 0.5 ])
             cube([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ]);
     }
 }
@@ -801,8 +767,6 @@ module ItemsBoxBottom(generate_lid = true)
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_height,
                       finger_hold_height = 3)
     {
-        inner_height = item_box_height - lid_thickness * 2;
-        inner_width = item_box_width - wall_thickness * 2;
         depths = [
             "torch", 2, "boot",          3, "coins", 1, "crossbow", 2, "sword", 3,
             "bag",   1, "hammer/teapot", 2, "ruins", 3, "ruins",    3, "ruins", 2
@@ -811,7 +775,7 @@ module ItemsBoxBottom(generate_lid = true)
         {
             if (depths[i * 4 + 1] != 0)
             {
-                translate([ 0, (square_tile_size + 1) * i, inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
+                translate([ 0, (square_tile_size + 1) * i, $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
                 {
                     cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ]);
                     translate([ square_tile_size, square_tile_size / 2, 0 ])
@@ -828,8 +792,8 @@ module ItemsBoxBottom(generate_lid = true)
             if (depths[i * 4 + 3] != 0)
             {
                 translate([
-                    inner_width - square_tile_size, (square_tile_size + 1) * i,
-                    inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
+                    $inner_width - square_tile_size, (square_tile_size + 1) * i,
+                    $inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
                 ])
                 {
                     cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ]);
@@ -981,9 +945,9 @@ module ItemsBoxWinter(generate_lid = true)
 
 module DiceBox(generate_lid = true)
 {
-    inner_height = dice_box_height - lid_thickness * 2;
-    inner_width = dice_box_width - wall_thickness * 2;
-    inner_length = dice_box_length - wall_thickness * 2;
+    $inner_height = dice_box_height - lid_thickness * 2;
+    $inner_width = dice_box_width - wall_thickness * 2;
+    $inner_length = dice_box_length - wall_thickness * 2;
     MakeBoxWithCapLid(width = dice_box_width, length = dice_box_length, height = dice_box_height)
     {
         translate([ dice_width / 2 + 3, dice_width / 2 + 3, dice_width / 2 ])
@@ -992,13 +956,13 @@ module DiceBox(generate_lid = true)
             translate([ 0, 0, dice_width / 2 ]) cyl(d = dice_length, h = dice_box_height);
         }
 
-        translate([ inner_width - dice_width / 2 - 3, inner_length - dice_width / 2 - 3, dice_width / 2 ])
+        translate([ $inner_width - dice_width / 2 - 3, $inner_length - dice_width / 2 - 3, dice_width / 2 ])
         {
             Dodecahedron(dice_width);
             translate([ 0, 0, dice_width / 2 ]) cyl(d = dice_length, h = dice_box_height);
         }
         translate([ 0, 0, dice_width / 2 ])
-            RoundedBoxAllSides(width = inner_width, length = inner_length, height = dice_box_height, radius = 10);
+            RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = dice_box_height, radius = 10);
     }
     if (generate_lid)
     {
@@ -1049,8 +1013,8 @@ module ItemsBoxExtras(generate_lid = true)
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_extras_height,
                       finger_hold_height = 3)
     {
-        inner_height = item_box_extras_height - lid_thickness * 2;
-        inner_width = item_box_width - wall_thickness * 2;
+        $inner_height = item_box_extras_height - lid_thickness * 2;
+        $inner_width = item_box_width - wall_thickness * 2;
         // 12 craftable items (2× bag, 2× boot, 1× crossbow, 1× hammer, 2× sword, 2× teapot, 2× coins)
         depths = [
             [ "A/B", 2, "round", 1 ],
@@ -1068,7 +1032,7 @@ module ItemsBoxExtras(generate_lid = true)
             {
                 translate([
                     0, (slightly_larger_round_tile_diameter + 3.6) * i + 1,
-                    inner_height - tile_thickness * depths[i * 2][1] - 0.5
+                    $inner_height - tile_thickness * depths[i * 2][1] - 0.5
                 ])
                 {
                     RenderItem(depths[i * 2]);
@@ -1077,9 +1041,9 @@ module ItemsBoxExtras(generate_lid = true)
             if (depths[i * 2 + 1][1] != 0)
             {
                 translate([
-                    inner_width - slightly_larger_round_tile_diameter,
+                    $inner_width - slightly_larger_round_tile_diameter,
                     (slightly_larger_round_tile_diameter + 3.6) * i + 1,
-                    inner_height - tile_thickness * depths[i * 2 + 1][1] - 0.5
+                    $inner_height - tile_thickness * depths[i * 2 + 1][1] - 0.5
                 ])
                 {
                     RenderItem(depths[i * 2 + 1]);
