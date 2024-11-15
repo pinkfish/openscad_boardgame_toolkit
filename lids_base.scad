@@ -41,9 +41,40 @@ default_lid_aspect_ratio = 1.0;
 // Constant: default_lid_shape_thickness
 // Description: Set this at the top of the file to change the default shape_thickness of the box lid.
 default_lid_shape_thickness = 2;
+// Constant: default_lid_shape_rounding
+// Description: Set this at the top of the file to change the default rounding of the box lid.
+default_lid_shape_rounding = 0;
 // Constant: default_lid_shape_type
 // Description: Set this at the top of the file to change the default shape type of the box lid.
 default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
+// Constant: default_lid_supershape_m1
+// Description: Set this at the top of the file to change the default supershape m1 element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_m1 = 4;
+// Constant: default_lid_supershape_m2
+// Description: Set this at the top of the file to change the default supershape m]2 element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_m2 = 4;
+// Constant: default_lid_supershape_n1
+// Description: Set this at the top of the file to change the default supershape n1 element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_n1 = 1;
+// Constant: default_lid_supershape_n2
+// Description: Set this at the top of the file to change the default supershape n2 element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_n2 = 1;
+// Constant: default_lid_supershape_n3
+// Description: Set this at the top of the file to change the default supershape n3 element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_n3 = 1;
+// Constant: default_lid_supershape_a
+// Description: Set this at the top of the file to change the default supershape a element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_a = 1;
+// Constant: default_lid_supershape_b
+// Description: Set this at the top of the file to change the default supershape b element
+// for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
+default_lid_supershape_b = 1;
 
 // Module: CloudShape()
 // Description:
@@ -88,7 +119,8 @@ module CloudShape(width)
 // Example:
 //   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_thickness = 2,
 //   shape_edges = 3);
-module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_thickness = 2, shape_edges = 6, offset = 0)
+module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_thickness = 2, shape_edges = 6, offset = 0,
+                    rounding = 0)
 {
     cell_width = cos(180 / shape_edges) * radius;
     rows = width / cell_width;
@@ -102,8 +134,8 @@ module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_thickn
                 RegularPolygonGridDense(radius = radius, rows = rows, cols = cols, shape_edges = shape_edges)
                     difference()
             {
-                regular_ngon(or = radius + shape_thickness / 2 + offset, n = shape_edges);
-                regular_ngon(or = radius - shape_thickness / 2 + offset, n = shape_edges);
+                regular_ngon(or = radius + shape_thickness / 2 + offset, n = shape_edges, rounding = rounding);
+                regular_ngon(or = radius - shape_thickness / 2 + offset, n = shape_edges, rounding = rounding);
             }
 
             difference()
@@ -227,19 +259,37 @@ module LidMeshRepeating(width, length, lid_thickness, boundary, shape_width, asp
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
 //       SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
 // Example:
+//   default_lid_shape_rounding = 3;
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
-//       SHAPE_TYPE_ROUNDED_SQUARE, shape_thickness = 2, shape_width = 11);
+//       SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
 //       SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = 11);
+// Example(2D,Med):
+//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
+//       SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2);
+// Example(2D,Big):
+//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10,
+//       SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12, 
+//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_type, shape_width, shape_thickness,
-                    aspect_ratio = 1.0)
+                    aspect_ratio = 1.0, rounding = undef, supershape_m1 = undef, supershape_m2 = undef,
+                    supershape_n1 = undef, supershape_n2 = undef, supershape_n3 = undef, supershape_a = undef,
+                    supershape_b = undef)
 {
     calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
     calc_shape_type = DefaultValue(shape_type, default_lid_shape_type);
     calc_shape_width = DefaultValue(shape_width, default_lid_shape_width);
     calc_shape_thickness = DefaultValue(shape_thickness, default_lid_shape_thickness);
     calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
+    calc_rounding = DefaultValue(rounding, default_lid_shape_rounding);
+    calc_supershape_m1 = DefaultValue(supershape_m1, default_lid_supershape_m1);
+    calc_supershape_m2 = DefaultValue(supershape_m2, default_lid_supershape_m2);
+    calc_supershape_n1 = DefaultValue(supershape_n1, default_lid_supershape_n1);
+    calc_supershape_n2 = DefaultValue(supershape_n2, default_lid_supershape_n2);
+    calc_supershape_n3 = DefaultValue(supershape_n3, default_lid_supershape_n3);
+    calc_supershape_a = DefaultValue(supershape_a, default_lid_supershape_a);
+    calc_supershape_b = DefaultValue(supershape_b, default_lid_supershape_b);
     if (calc_shape_type == SHAPE_TYPE_NONE)
     {
         // Don't do anything.
@@ -252,13 +302,13 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_
         {
             LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
                          radius = calc_layout_width / 2, shape_thickness = calc_shape_thickness, shape_edges = 6,
-                         offset = calc_shape_width - calc_layout_width);
+                         offset = calc_shape_width - calc_layout_width, rounding = calc_rounding);
         }
         else if (calc_shape_type == SHAPE_TYPE_DENSE_TRIANGLE)
         {
             LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
                          radius = calc_layout_width / 2, shape_thickness = calc_layout_width - calc_shape_width,
-                         shape_edges = 3, offset = calc_shape_width - calc_layout_width);
+                         shape_edges = 3, offset = calc_shape_width - calc_layout_width, rounding = calc_rounding);
         }
         else if (calc_shape_type == SHAPE_TYPE_CIRCLE)
         {
@@ -281,19 +331,20 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, shape_
                              shape_width = calc_layout_width, shape_edges = shape_edges,
                              aspect_ratio = calc_aspect_ratio) difference()
             {
-                regular_ngon(r = calc_shape_width / 2, n = shape_edges);
-                regular_ngon(r = (calc_shape_width - calc_shape_thickness) / 2, n = shape_edges);
+                regular_ngon(r = calc_shape_width / 2, n = shape_edges, rounding = calc_rounding);
+                regular_ngon(r = (calc_shape_width - calc_shape_thickness) / 2, n = shape_edges,
+                             rounding = calc_rounding);
             }
         }
-        else if (calc_shape_type == SHAPE_TYPE_ROUNDED_SQUARE)
+        else if (calc_shape_type == SHAPE_TYPE_SUPERSHAPE)
         {
             LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                             shape_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio)
-                difference()
+                             shape_width = calc_layout_width, shape_edges = 4,
+                             aspect_ratio = calc_aspect_ratio) difference()
             {
-                rect([ calc_shape_width, calc_shape_width ], rounding = 3, corner_flip = true, $fn = 16);
-                rect([ calc_shape_width - calc_shape_thickness, calc_shape_width - calc_shape_thickness ], rounding = 3,
-                     corner_flip = true, $fn = 16);
+                DifferenceWithOffset(offset = -calc_shape_thickness) supershape(
+                    d = calc_shape_width, m1 = calc_supershape_m1, m2 = calc_supershape_m2, n1 = calc_supershape_n1,
+                    n2 = calc_supershape_n2, n3 = calc_supershape_n3, a = calc_supershape_a, b = calc_supershape_b);
             }
         }
         else if (calc_shape_type == SHAPE_TYPE_HILBERT)

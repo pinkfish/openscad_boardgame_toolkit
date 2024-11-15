@@ -90,10 +90,10 @@ SHAPE_TYPE_NONE = 7;
 // Description:
 //   Layout a nice set of squares.
 SHAPE_TYPE_SQUARE = 8;
-// Constant: SHAPE_TYPE_ROUNDED_SQUARE
+// Constant: SHAPE_TYPE_SUPERSHAPE
 // Description:
-//   Layout a nice set of rounded squares.
-SHAPE_TYPE_ROUNDED_SQUARE = 9;
+//   Makes a nice [Superformula](https://en.wikipedia.org/wiki/Superformula) shape.
+SHAPE_TYPE_SUPERSHAPE = 9;
 // Constant: SHAPE_TYPE_HILBERT
 // Description:
 //   Layout a nice hilbert curve.
@@ -102,3 +102,18 @@ SHAPE_TYPE_HILBERT = 10;
 // Description:
 //   Makes a nice cloud shape.
 SHAPE_TYPE_CLOUD = 11;
+
+// Module: DifferenceWithOffset()
+// Description:
+//   Helper function that does an offset with the size inside the difference of the object
+//   makes it easier for constructing outlines.
+// Arguments:
+//   offset = how much of an offset, -ve is inside the shape, +ve is outside the shape.
+module DifferenceWithOffset(offset)
+{
+    difference()
+    {
+        children();
+        offset(delta = offset) children();
+    }
+}

@@ -29,21 +29,6 @@ under the License.
 // Section: Shapes
 //    Shapes to use in boxes and stuff.
 
-// Module: DifferenceWithOffset()
-// Description:
-//   Helper function that does an offset with the size inside the difference of the object
-//   makes it easier for constructing outlines.
-// Arguments:
-//   offset = how much of an offset, -ve is inside the shape, +ve is outside the shape.
-module DifferenceWithOffset(offset)
-{
-    difference()
-    {
-        children();
-        offset(delta = offset) children();
-    }
-}
-
 // Module: Sword2d()
 // Description:
 //    2d shape of a sword.
@@ -55,24 +40,26 @@ module DifferenceWithOffset(offset)
 //    hilt_pos = position on the blade where the hilt starts (default length / 7)
 //    blade_rounding = how much rounding on the end of the blade (default 1)
 //    hilt_rounding = how much rounding on the hilt (default 1)
-// Example:
+// Example(2D):
 //    Sword2d(100, 20);
-module Sword2d(length, width, blade_width = undef, hilt_length = undef, hilt_pos = undef, hilt_rounding = 1,
-               blade_rounding = 1)
+module Sword2d(length, width, blade_width = undef, hilt_length = undef, hilt_pos = undef, hilt_rounding = undef,
+               blade_rounding = undef)
 {
     calc_hilt_length = DefaultValue(hilt_length, length / 15);
     calc_hilt_pos = DefaultValue(hilt_pos, length / 7);
     calc_blade_width = DefaultValue(blade_width, width / 3);
+    calc_hilt_rounding = DefaultValue(hilt_rounding, length / 40);
+    calc_blade_rounding = DefaultValue(hilt_rounding, width / 8);
     union()
     {
         difference()
         {
-            rect([ length, calc_blade_width ], rounding = [ 0, blade_rounding, blade_rounding, 0 ]);
+            rect([ length, calc_blade_width ], rounding = [ 0, calc_blade_rounding, calc_blade_rounding, 0 ]);
             translate([ length / 2, width / 2 ]) right_triangle([ length / 3, width / 2 ], spin = 180);
             mirror([ 0, 1 ]) translate([ length / 2, width / 2 ]) right_triangle([ length / 3, width / 2 ], spin = 180);
         }
         translate([ -length / 2 + calc_hilt_pos + calc_hilt_length / 2, 0 ])
-            rect([ calc_hilt_length, width ], rounding = hilt_rounding);
+            rect([ calc_hilt_length, width ], rounding = calc_hilt_rounding);
     }
 }
 // Module: Sword2dOutline()
@@ -87,21 +74,22 @@ module Sword2d(length, width, blade_width = undef, hilt_length = undef, hilt_pos
 //    blade_rounding = how much rounding on the end of the blade (default 1)
 //    hilt_rounding = how much rounding on the hilt (default 1)
 //    line_width = how wide the line is (default 1)
-// Example:
+// Example(2D):
 //    Sword2dOutline(100, 20);
-module Sword2dOutline(length, width, blade_width = undef, hilt_length = undef, hilt_pos = undef, hilt_rounding = 1,
-                      blade_rounding = 1, line_width = 1)
+module Sword2dOutline(length, width, blade_width = undef, hilt_length = undef, hilt_pos = undef, hilt_rounding = undef,
+                      blade_rounding = undef, line_width = 1)
 {
     calc_hilt_length = DefaultValue(hilt_length, length / 15);
     calc_hilt_pos = DefaultValue(hilt_pos, length / 7);
     calc_blade_width = DefaultValue(blade_width, width / 3);
+    calc_hilt_rounding = DefaultValue(hilt_rounding, length / 40);
     union()
     {
         DifferenceWithOffset(offset = -line_width)
             Sword2d(length, width, blade_width = calc_blade_width, hilt_length = calc_hilt_length,
-                    hilt_pos = calc_hilt_pos, hilt_rounding = hilt_rounding, blade_rounding = blade_rounding);
+                    hilt_pos = calc_hilt_pos, hilt_rounding = calc_hilt_rounding, blade_rounding = blade_rounding);
         translate([ -length / 2 + calc_hilt_pos + calc_hilt_length / 2, 0 ]) DifferenceWithOffset(offset = -line_width)
-            rect([ calc_hilt_length, width ], rounding = hilt_rounding);
+            rect([ calc_hilt_length, width ], rounding = calc_hilt_rounding);
         difference()
         {
             translate(
@@ -122,7 +110,7 @@ module Sword2dOutline(length, width, blade_width = undef, hilt_length = undef, h
 //    handle_width = width of the handle bit (default width/8)
 //    bow_width = width of the bow section of the bow (default width/4)
 //    outer_circle = how big of a circle with the crossbow to draw (default width*2)
-// Example:
+// Example(2D):
 //    Crossbow2d(70, 50);
 module Crossbow2d(length, width, handle_width = undef, bow_width = undef, outer_circle = undef)
 {
@@ -134,11 +122,14 @@ module Crossbow2d(length, width, handle_width = undef, bow_width = undef, outer_
         rect([ width, length ]);
         union()
         {
-            translate([ 0, calc_outer_circle / 2 - length / 2 ]) difference()
+            translate([ 0, calc_outer_circle / 2 - length / 2 ])
             {
-                circle(d = calc_outer_circle);
-                circle(d = calc_outer_circle - calc_bow_width);
-                translate([ calc_outer_circle / 2, 0 ]) square(calc_outer_circle);
+                difference()
+                {
+                    circle(d = calc_outer_circle);
+                    circle(d = calc_outer_circle - calc_bow_width);
+                    translate([ -calc_outer_circle, 0 ]) square(calc_outer_circle * 2);
+                }
             }
             rect([ calc_handle_width, length ]);
         }
@@ -155,7 +146,7 @@ module Crossbow2d(length, width, handle_width = undef, bow_width = undef, outer_
 //    bow_width = width of the bow section of the bow (default width/4)
 //    outer_circle = how big of a circle with the crossbow to draw (default width*2)
 //    line_width = width of the line to display (default 1)
-// Example:
+// Example(2D):
 //    Crossbow2dOutline(70, 50);
 module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef, outer_circle = undef, line_width = 1)
 {
@@ -175,17 +166,20 @@ module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef,
 //    width = width of the cross bow
 //    handle_width = width of the handle bit (default width/4)
 //    head_lenght = length of the head (default length/3.5)
-//    rounding_head = rounding amoubnt on the head (default 2)
-//    rounding_handle = rounding amount on the handle (default 1)
-// Example:
+//    rounding_head = rounding amoubnt on the head (default width/5)
+//    rounding_handle = rounding amount on the handle (default width/10)
+// Example(2D):
 //    Sledgehammer2d(70, 50);
-module Sledgehammer2d(length, width, handle_width = undef, head_length = undef, rounding_head = 2, rounding_handle = 1)
+module Sledgehammer2d(length, width, handle_width = undef, head_length = undef, rounding_head = undef,
+                      rounding_handle = undef)
 {
     calc_hammer_handle_width = DefaultValue(handle_width, width / 4);
     calc_hammer_head_length = DefaultValue(head_length, length / 3.5);
-    rect([ calc_hammer_handle_width, length ], rounding = rounding_handle);
+    calc_rounding_handle = DefaultValue(rounding_handle, width / 10);
+    calc_rounding_head = DefaultValue(rounding_head, width / 5);
+    rect([ calc_hammer_handle_width, length ], rounding = calc_rounding_handle);
     translate([ 0, length / 2 - calc_hammer_head_length / 2 ])
-        rect([ width, calc_hammer_head_length ], rounding = rounding_head);
+        rect([ width, calc_hammer_head_length ], rounding = calc_rounding_head);
 }
 
 // Module: Sledgehammer2dOutline()
@@ -200,7 +194,7 @@ module Sledgehammer2d(length, width, handle_width = undef, head_length = undef, 
 //    rounding_handle = rounding amount on the handle (default 1)
 //    line_width = width of the lione (default 1)
 //    strap_width = width of the strap outline(default line_width*4)
-// Example:
+// Example(2D):
 //    Sledgehammer2dOutline(70, 50);
 module Sledgehammer2dOutline(length, width, handle_width = undef, head_length = undef, rounding_head = 2,
                              rounding_handle = 1, line_width = 1, strap_width = undef)
@@ -234,7 +228,7 @@ module Sledgehammer2dOutline(length, width, handle_width = undef, head_length = 
 //    leg_length = length of the leg bit of the shoe (default size/3)
 //    sole_height = height of the sole base of the shoe (default size/20)
 //    base_width = height of the base part of the shoe (default size/3)
-// Example:
+// Example(2D):
 //    Shoe2d(50);
 module Shoe2d(size, leg_length = undef, base_width = undef, sole_height = undef)
 {
@@ -267,7 +261,7 @@ module Shoe2d(size, leg_length = undef, base_width = undef, sole_height = undef)
 //    sole_height = height of the sole base of the shoe (default size/20)
 //    base_width = height of the base part of the shoe (default size/3)
 //    line_width = width of the outline line (default 1)
-// Example:
+// Example(2D):
 //    Shoe2dOutline(50);
 module Shoe2dOutline(size, leg_length = undef, base_width = undef, sole_height = undef, line_width = 1)
 {
@@ -284,7 +278,7 @@ module Shoe2dOutline(size, leg_length = undef, base_width = undef, sole_height =
 //    main_round_diameter = round diameter of the middle bulge bit (default size/2)
 //    neck_width = width of the neck of the bag (default size/6)
 //    rope_length = length of the rope (default size/4)
-// Example:
+// Example(2D):
 //    Bag2d(50);
 module Bag2d(size, base_round_diameter = undef, main_round_diameter = undef, neck_width = undef, rope_length = undef)
 {
@@ -328,7 +322,7 @@ module Bag2d(size, base_round_diameter = undef, main_round_diameter = undef, nec
 //    main_round_diameter = round diameter of the middle bulge bit (default size/2)
 //    neck_width = width of the neck of the bag (default size/6)
 //    line_width = width of the line to use for the outline
-// Example:
+// Example(2D):
 //    Bag2d(50);
 module Bag2dOutline(size, base_round_diameter = undef, main_round_diameter = undef, neck_width = undef,
                     rope_length = undef, line_width = 1)
@@ -345,7 +339,7 @@ module Bag2dOutline(size, base_round_diameter = undef, main_round_diameter = und
 //    size = size of the torch
 //    handle_width = the width of the handle (default width/2)
 //    head_length = length of the head (default length/7)
-// Example:
+// Example(2D):
 //    Torch2d(100, 20);
 module Torch2d(length, width, handle_width = undef, head_length = undef)
 {
@@ -369,7 +363,7 @@ module Torch2d(length, width, handle_width = undef, head_length = undef)
 //    handle_width = the width of the handle (default width/2)
 //    head_length = length of the head (default length/7)
 //    line_width = width of the line (default 1)
-// Example:
+// Example(2D):
 //    Torch2dOutline(100, 20);
 module Torch2dOutline(length, width, handle_width = undef, head_length = undef, line_width = 1)
 {
@@ -400,7 +394,7 @@ module Torch2dOutline(length, width, handle_width = undef, head_length = undef, 
 //    spout_length = length of the spout
 //    side_handle_length = length of the side handle
 //    side_handle_rounding = rounding of the bottom part of the handle
-// Example:
+// Example(2D):
 //    Teapot2d(100, 70);
 module Teapot2d(length, width, top_width = undef, top_length = undef, top_circle_diameter = undef,
                 handle_rounding = undef, handle_width = undef, spout_length = undef, side_handle_length = undef,
@@ -455,6 +449,57 @@ module Teapot2d(length, width, top_width = undef, top_length = undef, top_circle
     }
 }
 
+// Module: Coin2d()
+// Description:
+//   A simple coin icon to use in things.
+// Arguments:
+//   size = the size of the coin
+//   text = text to put in the coin (default 1)
+//   text_size = size of the text to use (dewfault size/2)
+// Example(2D):
+//   Coin2d(50);
+// Example(2D):
+//   Coin2d(50, text = "5");
+module Coin2d(size, text = "1", text_size = undef)
+{
+    calc_text_size = DefaultValue(text_size, size / 2);
+    difference()
+    {
+        supershape(m1 = 20, n1 = 19, n2 = 4, n3 = 5, a = 2.7, d = size);
+
+        DifferenceWithOffset(offset = -size / 30)
+            supershape(m1 = 10, n1 = 19, n2 = 4, n3 = 5, a = 2.7, d = size * 3 / 4);
+
+        rotate(90) text(text = text, font = "Stencil Std:style=Bold", size = calc_text_size, halign = "center",
+                        valign = "center");
+    }
+}
+
+// Module: CoinPile2d()
+// Description:
+//   Makes a coin pile to use in other places.
+// Arguments:
+//   size = size of the pile
+//   coin_num = number of coins in the pile (default 5)
+//   rounding = how much to round the coins (default (size * 3 / 4) / (calc_coin_num * 2))
+// Example(2D):
+//   CoinPile2d(50);
+// Example(2D):
+//   CoinPile2d(50, coin_num=3);
+// Example(2D):
+//   CoinPile2d(50, coin_num=10);
+module CoinPile2d(size, rounding = undef, coin_num = undef)
+{
+    calc_coin_num = DefaultValue(coin_num, 5);
+    calc_rounding = DefaultValue(rounding, (size * 3 / 4) / (calc_coin_num * 2));
+    coin_width = (size * 3 / 4) / calc_coin_num;
+    for (i = [0:1:calc_coin_num - 1])
+    {
+        translate([ size / 2 - coin_width * i, 0 ]) rect([ coin_width, size ], rounding = calc_rounding);
+    }
+    translate([ -size / 2 + size / 8, 0 ]) rotate(15) rect([ coin_width, size ], rounding = calc_rounding);
+}
+
 // Constant: australia_map_length
 // Description: The length of the australian svg map
 australia_map_length = 365.040;
@@ -471,9 +516,73 @@ function AustraliaMapWidth(length) = length * (australia_map_width / australia_m
 //    a map of australia
 // Arguments:
 //    length = length of the map
-// Example:
+// Example(2D):
 //    AustraliaMap2d(100);
 module AustraliaMap2d(length)
 {
     resize([ length, AustraliaMapWidth(length) ]) import("svg/australia.svg");
+}
+
+// Module: Rock2d()
+// Description:
+//  Makes a rock shape to use in walls and things.
+// Arguments:
+//    width = width of the rock
+//    length = length of the rock
+//    rounding = rounding on the edge of the rock (default min(width,lenght)/5)
+// Example(2D);
+//    Rock2d(50, 20);
+module Rock2d(length, width, rounding = undef)
+{
+    calc_rounding = min(length, width) / 5;
+    rect([ length, width ], rounding = calc_rounding);
+}
+
+// Constant: ruins_2d_length
+// Description: The length of the ruins svg
+ruins_2d_length = 100;
+// Constant: ruins_2d_width
+// Description: The length of the ruins svg
+ruins_2d_width = 62.921;
+
+// Function: Ruins2dWidth()
+// Description: Works out the width of the map from the length.
+function Ruins2dWidth(length) = length * (ruins_2d_width / ruins_2d_length);
+
+// Module: Ruins2d()
+// Description:
+//    Makes a small ruins image to use in stuff.
+// Example(2D):
+//    Ruins2d(50);
+module Ruins2d(size)
+{
+    // offset helps fix the shape not closed issue.
+    translate([ -size / 2, -Ruins2dWidth(size) / 2 ]) resize([ size, Ruins2dWidth(size) ]) offset(delta = 0.01)
+        import("svg/ruins.svg");
+}
+
+// Module: RockWall2d()
+// Description:
+//   Makes a nice rock wall
+// Arguments:
+//   size = size of the rock wall
+//   num_rows = number of rows (default 10)
+//   num_cols = numer of cols (default 40)
+// Example(2D):
+//    RockWall2d(50);
+module RockWall2d(size, num_rows = 10, num_cols = 40, spacing = undef)
+{
+    calc_rock_length = size / num_rows;
+    calc_rock_width = size / num_cols;
+    calc_spacing = DefaultValue(spacing, size / 200);
+    for (j = [0:1:num_rows - 1])
+    {
+        for (i = [0:1:num_cols - 1])
+        {
+            translate([
+                -size / 2 + (i % 2) * calc_rock_length / 2 + calc_rock_length * j,
+                -size / 2 + calc_rock_width * i + calc_rock_width / 2
+            ]) Rock2d(calc_rock_length - calc_spacing, calc_rock_width - calc_spacing);
+        }
+    }
 }

@@ -73,13 +73,13 @@ plastic_clip_height = 5.5;
 major_worker_width = 15;
 major_worker_len = 25;
 
-spider_length = 35;
-spider_width = 34;
-ladybird_length = 37;
+spider_length = 35.5;
+spider_width = 34.5;
+ladybird_length = 38;
 ladybird_width = 22;
 centipede_width = 39;
-centipede_length = 34;
-mantis_length = 29;
+centipede_length = 35;
+mantis_length = 32;
 mantis_width = 37;
 fungus_width = 31;
 fungus_length = 34;
@@ -154,43 +154,43 @@ module GreatTunnel()
 
 module LeafOutline()
 {
-    resize([ leaf_len, leaf_width ]) import("svg/mota - leaf.svg");
+    offset(delta = 0.5) resize([ leaf_len, leaf_width ]) import("svg/mota - leaf.svg");
 }
 
 module MajorWorkerOutline()
 {
-    translate([ -major_worker_width / 2, -major_worker_len / 2 ]) resize([ major_worker_width, major_worker_len ])
-        import("svg/mota - major worker.svg");
+    translate([ -major_worker_width / 2, -major_worker_len / 2 ]) offset(delta = 0.5)
+        resize([ major_worker_width, major_worker_len ]) import("svg/mota - major worker.svg");
 }
 
 module SpiderOutline()
 {
-    translate([ -spider_width / 2, -spider_length / 2 ]) resize([ spider_width, spider_length ])
+    translate([ -spider_width / 2, -spider_length / 2 ]) offset(delta = 0.5) resize([ spider_width, spider_length ])
         import("svg/mota - spider.svg");
 }
 
 module LadybirdOutline()
 {
-    translate([ ladybird_width / 2, -ladybird_length / 2 ]) resize([ ladybird_width, ladybird_length ]) rotate(90)
-        import("svg/mota - ladybird.svg");
+    translate([ ladybird_width / 2, -ladybird_length / 2 ]) offset(delta = 0.5)
+        resize([ ladybird_width, ladybird_length ]) rotate(90) import("svg/mota - ladybird.svg");
 }
 
 module FugusOutline()
 {
-    translate([ fungus_width / 2, -fungus_length / 2 ]) resize([ fungus_width, fungus_length ]) rotate(90)
-        import("svg/mota - mushroom.svg");
+    translate([ fungus_width / 2, -fungus_length / 2 ]) offset(delta = 0.5) resize([ fungus_width, fungus_length ])
+        rotate(90) import("svg/mota - mushroom.svg");
 }
 
 module MantisOutline()
 {
-    translate([ -mantis_width / 2, -mantis_length / 2 ]) resize([ mantis_width, mantis_length ])
+    translate([ -mantis_width / 2, -mantis_length / 2 ]) offset(delta = 0.5) resize([ mantis_width, mantis_length ])
         import("svg/mota - mantis.svg");
 }
 
 module CentipedeOutline()
 {
-    translate([ centipede_width / 2, -centipede_length / 2 ]) resize([ centipede_width, centipede_length ]) rotate(90)
-        import("svg/mota - centipede.svg");
+    translate([ centipede_width / 2, -centipede_length / 2 ]) offset(delta = 0.5)
+        resize([ centipede_width, centipede_length ]) rotate(90) import("svg/mota - centipede.svg");
 }
 
 module TileBox(generate_lid = true)
@@ -259,7 +259,7 @@ module FoodTokenBox(generate_lid = true)
             translate([ 0, day_night_token / 2, 18.4 ]) sphere(r = 20);
         }
         translate([ 55, 53, food_token_box_height - tile_thickness - lid_thickness * 2 - 0.5 ]) rotate([ 0, 0, 70 ])
-            linear_extrude(height = 20) offset(delta = 0.5) LeafOutline();
+            linear_extrude(height = 20) LeafOutline();
         translate([ 55, 53, food_token_box_height - tile_thickness - lid_thickness * 2 + 1.5 ])
             translate([ 0, day_night_token / 2, 18.4 ]) sphere(r = 20);
     }
@@ -433,7 +433,7 @@ module PlayerBox(generate_lid = true)
             major_token_thickness
         ])
         {
-            mirror([ 0, 1, 0 ]) linear_extrude(height = 60) offset(delta = 0.5) MajorWorkerOutline();
+            mirror([ 0, 1, 0 ]) linear_extrude(height = 60) MajorWorkerOutline();
             translate([ -2, major_worker_len / 2 - 1, 16 ]) sphere(r = 9);
         }
         // Major worker tokens
@@ -474,12 +474,12 @@ module PredatorBox(generate_lid = true)
             major_token_thickness
         ])
         {
-            linear_extrude(height = 60) offset(delta = 0.5) SpiderOutline();
+            linear_extrude(height = 60) SpiderOutline();
             translate([ 2, -spider_length / 2, 15 ]) sphere(r = 10);
         }
         translate([ (predator_box_width - wall_thickness * 2) / 2, mantis_length / 2, 0 ])
         {
-            linear_extrude(height = 60) offset(delta = 0.5) MantisOutline();
+            linear_extrude(height = 60) MantisOutline();
             translate([ -mantis_width / 2 + 7, -mantis_length * 1 / 8, 15 ]) sphere(r = 10);
         }
         translate([
@@ -487,7 +487,7 @@ module PredatorBox(generate_lid = true)
             (predator_box_length - wall_thickness * 2) * 2 / 5, 0
         ])
         {
-            linear_extrude(height = 60) offset(delta = 0.5) LadybirdOutline();
+            linear_extrude(height = 60) LadybirdOutline();
             translate([ -ladybird_width / 8 + 2, -ladybird_length / 2 + 5, 15 ]) sphere(r = 10);
         }
 
@@ -497,7 +497,7 @@ module PredatorBox(generate_lid = true)
             major_token_thickness
         ])
         {
-            translate([ 0, 0, 0 ]) linear_extrude(height = 60) rotate(90) offset(delta = 0.5) FugusOutline();
+            translate([ 0, 0, 0 ]) linear_extrude(height = 60) rotate(90) FugusOutline();
             translate([ fungus_length / 6 + 1, 0, 15 ]) sphere(r = 10);
         }
 
@@ -507,7 +507,7 @@ module PredatorBox(generate_lid = true)
             major_token_thickness
         ])
         {
-            translate([ 0, 0, 0 ]) linear_extrude(height = 60) rotate(90) offset(delta = 0.5) CentipedeOutline();
+            translate([ 0, 0, 0 ]) linear_extrude(height = 60) rotate(90) CentipedeOutline();
             translate([ 0, -centipede_width / 2, 15 ]) sphere(r = 10);
         }
     }
@@ -585,29 +585,24 @@ module TestBox()
 {
     difference()
     {
-        cube([ 140, 100, 6 ]);
+        cube([ 140, 100, 4 ]);
         translate([ 2 + aphid_length / 2, 2 + aphid_diameter / 2, 1 ])
         {
             Aphid(10);
             translate([ centipede_length / 2, centipede_width / 2, 0 ])
             {
-                linear_extrude(height = 60) offset(delta = 0.5) CentipedeOutline();
+                linear_extrude(height = 60) CentipedeOutline();
                 translate([ centipede_length / 2 + 12, -5, 0 ])
                 {
-                    linear_extrude(height = 60) offset(delta = 0.5) MantisOutline();
+                    linear_extrude(height = 60) MantisOutline();
                     translate([ centipede_length / 2 + 19, 5, 0 ])
                     {
-                        linear_extrude(height = 60) offset(delta = 0.5) SpiderOutline();
+                        linear_extrude(height = 60) SpiderOutline();
                         translate([ centipede_length / 2 + 12, 5, 0 ])
                         {
-                            linear_extrude(height = 60) offset(delta = 0.5) FugusOutline();
+                            linear_extrude(height = 60) FugusOutline();
                             translate([ centipede_length / 2 + 12, 5, 0 ])
                             {
-                                linear_extrude(height = 60) offset(delta = 0.5) MajorWorkerOutline();
-                                translate([ centipede_length / 2 + 22, 5, 0 ])
-                                {
-                                    linear_extrude(height = 60) offset(delta = 0.5) LeafOutline();
-                                }
                             }
                         }
                     }
@@ -617,6 +612,15 @@ module TestBox()
         translate([ 8 + ladybird_width / 2, 12 + ladybird_length / 2 + centipede_length, 1 ])
         {
             linear_extrude(height = 60) LadybirdOutline();
+
+            translate([ 10+ ladybird_width / 2, 0, 1 ])
+            {
+                linear_extrude(height = 60) MajorWorkerOutline();
+                translate([ major_worker_len / 2 + 5, 5, 0 ])
+                {
+                    linear_extrude(height = 60) LeafOutline();
+                }
+            }
         }
     }
 }
