@@ -32,7 +32,9 @@ under the License.
 
 // Module: MakeBoxWithMagneticLid
 // Description:
-//   Makes a box with holes for the round magnets in the corners.
+//   Makes a box with holes for the round magnets in the corners. Inside the children of the box you can use the
+//    $inner_height , $inner_width, $inner_length = length variables to
+//    deal with the box sizes.
 // Topics: MagneticLid
 // Arguments:
 //    width = outside width of the box
@@ -69,6 +71,9 @@ module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thi
             magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border, height - lid_thickness -
             magnet_thickness
         ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
     }
 }

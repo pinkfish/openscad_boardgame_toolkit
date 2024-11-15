@@ -409,7 +409,9 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 //   Makes a box with an inset lid.  Handles all the various pieces for making this with tabs.  This will make
 //   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
 //   do this with a difference after making this object.  The children and moves so 0,0,0 is the bottom inside
-//   of the box to make for easier arithmatic.
+//   of the box to make for easier arithmatic.  Inside the children of the box you can use the
+//    $inner_height , $inner_width, $inner_length = length variables to
+//    deal with the box sizes.
 // Usage:
 //   MakeBoxWithInsetLidTabbed(width = 30, length = 100, height = 20);
 // Arguments:
@@ -451,6 +453,9 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
         }
 
         // Make sure the children start from the bottom corner of the box.
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
         // Cuff off the bit on the bottom to allow for stacking.
         if (stackable)
@@ -641,6 +646,9 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
 // Description:
 //   Makes a box with an inset lid.  Handles all the various pieces for making this with rabbit clips.
 //   The children are moved so 0,0,0 is the bottom inside of the box to make for easier arithmatic.
+//   Inside the children of the box you can use the
+//   $inner_height , $inner_width, $inner_length = length variables to
+//   deal with the box sizes.
 // Usage:
 //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
 // Arguments:
@@ -696,6 +704,9 @@ module MakeBoxWithInsetLidRabbitClip(width, length, height, wall_thickness = 2, 
         }
 
         // Make sure the children start from the bottom corner of the box.
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
     }
 }

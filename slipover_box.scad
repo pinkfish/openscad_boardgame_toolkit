@@ -33,7 +33,11 @@ under the License.
 // Module: MakeBoxWithSlipoverLid()
 // Topics: SlipoverBox
 // Description:
-//    Makes the inside of the slip box, this will take a second lid that slides over the outside of the box.
+//   Makes the inside of the slip box, this will take a second lid that slides over the outside of the box.
+//   .
+//   Inside the children of the box you can use the
+//   $inner_height , $inner_width, $inner_length = length variables to
+//   deal with the box sizes.
 // Usage: MakeBoxWithSlipoverLid(100, 50, 10);
 // Arguments:
 //    width = outside width of the box
@@ -69,6 +73,9 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
             }
         }
 
+        $inner_width = width - wall_thickness * 4;
+        $inner_length = length - wall_thickness * 4;
+        $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children();
     }
 }

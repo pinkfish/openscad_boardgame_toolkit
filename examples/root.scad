@@ -45,12 +45,12 @@ riverfolk_glass_thickness = 9;
 
 player_token_thickness = 9;
 
-round_winter_thing_width = 29;
-round_winter_thing_length = 15;
-round_winter_thing_curve_width = 7;
-round_winter_thing_cap_width = 12;
+round_winter_thing_width = 29.5;
+round_winter_thing_length = 15.5;
+round_winter_thing_curve_width = 7.5;
+round_winter_thing_cap_width = 12.5;
 round_winter_thing_diameter = 50;
-round_winter_thing_top_round = 10;
+round_winter_thing_top_round = 10.5;
 
 // Sleeved card size.
 card_width = 68.5;
@@ -911,8 +911,6 @@ module ItemsBoxMiddle(generate_lid = true)
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_middle_height,
                       finger_hold_height = 3, cap_height = 5)
     {
-        inner_height = item_box_middle_height - lid_thickness * 2;
-        inner_width = item_box_width - wall_thickness * 2;
         // 12 craftable items (2× bag, 2× boot, 1× crossbow, 1× hammer, 2× sword, 2× teapot, 2× coins)
         depths = [
             "bag",    2, "boot",  2, "crossbow", 1, "hammer", 1, "sword", 2,
@@ -922,7 +920,7 @@ module ItemsBoxMiddle(generate_lid = true)
         {
             if (depths[i * 4 + 1] != 0)
             {
-                translate([ 0, (square_tile_size + 01) * i, inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
+                translate([ 0, (square_tile_size + 01) * i, $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
                 {
                     cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ]);
                     translate([ square_tile_size, square_tile_size / 2, 0 ])
@@ -933,8 +931,8 @@ module ItemsBoxMiddle(generate_lid = true)
             if (depths[i * 4 + 3] != 0)
             {
                 translate([
-                    inner_width - square_tile_size, (square_tile_size + 1) * i,
-                    inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
+                    $inner_width - square_tile_size, (square_tile_size + 1) * i,
+                    $inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
                 ])
                 {
                     cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ]);
@@ -961,12 +959,14 @@ module ItemsBoxWinter(generate_lid = true)
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
                       finger_hold_height = 3)
     {
-        inner_height = item_box_winter_height - lid_thickness * 2;
-        inner_width = item_box_width - wall_thickness * 2;
         for (i = [0:1:5])
         {
-            translate([ inner_width / 2, round_winter_thing_length / 2 + (round_winter_thing_length + 1) * i, 0 ])
+            translate([ $inner_width / 2, round_winter_thing_length / 2 + (round_winter_thing_length + 1) * i, 0 ])
+            {
                 rotate([ 0, 0, 90 ]) WinterToken(tile_thickness * 2 + 1);
+                translate([ round_winter_thing_width/2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+                translate([ -round_winter_thing_width/2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+            }
         }
     }
     if (generate_lid)
@@ -974,7 +974,7 @@ module ItemsBoxWinter(generate_lid = true)
         translate([ item_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = item_box_width, length = item_box_length, height = item_box_winter_height,
-                               text_width = 70, text_height = 20, text_str = "Items", label_rotated = true);
+                               text_width = 70, text_height = 20, text_str = "Winter", label_rotated = true);
         }
     }
 }
@@ -1046,7 +1046,8 @@ module ItemsBoxExtras(generate_lid = true)
                 text(text = item[0], font = "Stencil Std:style=Bold", size = 2.5, halign = "center", valign = "center");
     }
 
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_extras_height)
+    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_extras_height,
+                      finger_hold_height = 3)
     {
         inner_height = item_box_extras_height - lid_thickness * 2;
         inner_width = item_box_width - wall_thickness * 2;
@@ -1066,7 +1067,7 @@ module ItemsBoxExtras(generate_lid = true)
             if (depths[i * 2][1] != 0)
             {
                 translate([
-                    0, (slightly_larger_round_tile_diameter + 0.6) * i,
+                    0, (slightly_larger_round_tile_diameter + 3.6) * i + 1,
                     inner_height - tile_thickness * depths[i * 2][1] - 0.5
                 ])
                 {
@@ -1076,7 +1077,8 @@ module ItemsBoxExtras(generate_lid = true)
             if (depths[i * 2 + 1][1] != 0)
             {
                 translate([
-                    inner_width - slightly_larger_round_tile_diameter, (slightly_larger_round_tile_diameter + 0.6) * i,
+                    inner_width - slightly_larger_round_tile_diameter,
+                    (slightly_larger_round_tile_diameter + 3.6) * i + 1,
                     inner_height - tile_thickness * depths[i * 2 + 1][1] - 0.5
                 ])
                 {
@@ -1128,7 +1130,7 @@ module BoxLayout()
     }
 }
 
-DiceBox();
+ItemsBoxExtras(generate_lid = false);
 
 /*
 

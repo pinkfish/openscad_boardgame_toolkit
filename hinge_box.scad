@@ -210,16 +210,18 @@ module InsetHinge(length, width, diameter, offset)
 // Description:
 //   Makes a box with an inset hinge on the side, this is a print in place box with a hinge that will
 //   make lid hinge onto the top, it is the same height on both sides, child 1 is in the base, child 2
-//   is in the lid and child 3+ are lid pieces.
+//   is in the lid and child 3+ are lid pieces.  Inside the children of the box you can use the
+//    $inner_height , $inner_width, $inner_length = length variables to
+//    deal with the box sizes.
 // Usage: MakeBoxAndLidWithInsetHinge(100, 50, 20);
 // Topics: Hinges, HingeBox
 // Arguments:
 //   width = outside with of the box
 //   length = outside length of the box
 //   height = outside height of the box
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 // Examples:
 //   MakeBoxAndLidWithInsetHinge(100, 50, 20);
 module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = default_wall_thickness,
@@ -238,6 +240,9 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
                        edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 0)
                 {
+                    $inner_width = width - wall_thickness - hinge_width;
+                    $inner_height = height / 2 - floor_thickness;
+                    $inner_length = length - wall_thickness * 2;
                     translate([ wall_thickness, wall_thickness, floor_thickness ]) children(0);
                 }
             }
@@ -248,7 +253,10 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
                        edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 1)
                 {
-                    translate([ hinge_diameter, wall_thickness, lid_thickness ]) children(0);
+                    $inner_width = width - wall_thickness - hinge_width;
+                    $inner_height = height / 2 - lid_thickness;
+                    $inner_length = length - wall_thickness * 2;
+                    translate([ hinge_width, wall_thickness, lid_thickness ]) children(1);
                 }
             }
         }
@@ -256,6 +264,5 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
             cube([ hinge_width + 0.02, hinge_length, hinge_diameter + 5 ]);
     }
     translate([ width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 ]) rotate([ 0, 0, 90 ])
-        InsetHinge(length = hinge_length, width = hinge_diameter * 2 + gap, offset = hinge_offset,
-                   diameter = hinge_diameter);
+        InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, diameter = hinge_diameter);
 }

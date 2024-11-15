@@ -34,20 +34,27 @@ under the License.
 
 // Module: MakeBoxWithSlidingCatchLid()
 // Topics: SlidingCatch
+// Description:
+//   Creates a box with a sliding catch lid on the top.
+//   .
+//   Inside the children of the box you can use the
+//   $inner_height , $inner_width, $inner_length = length variables to
+//   deal with the box sizes.
 // Arguments:
 //   width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    top_thickness = the thickness of the all above the catch (default 2)
+//   length = inside width of the box
+//   height = outside height of the box
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   top_thickness = the thickness of the all above the catch (default 2)
 // Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
 // Example:
 //    MakeBoxWithSlidingCatchLid(100, 50, 20);
-module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                                  size_spacing = m_piece_wiggle_room, top_thickness = 2, floor_thickness = default_floor_thickness)
+module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default_lid_thickness,
+                                  wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
+                                  top_thickness = 2, floor_thickness = default_floor_thickness)
 {
     calc_sliding_len = (length - wall_thickness) / 6;
     difference()
@@ -93,6 +100,9 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default
 
         // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
         // just not the walls.
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
         intersection()
         {
             translate([ wall_thickness, wall_thickness, floor_thickness ])

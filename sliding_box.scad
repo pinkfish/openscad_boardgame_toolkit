@@ -18,6 +18,8 @@
 
 
 
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -452,6 +454,10 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
 //   in the cutouts.
 //   .
 //   The children all start from the edge inside the wall width and up from the floor in the box.
+//   .
+//   Inside the children of the box you can use the
+//   $inner_height , $inner_width, $inner_length = length variables to
+//   deal with the box sizes.
 // Usage:
 //   MakeBoxWithSlidingLid(50,100,20);
 // Arguments:
@@ -484,6 +490,9 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wal
                    edges = [ TOP + LEFT, TOP + RIGHT, TOP + BACK ]);
 
         // Make everything start from the bottom corner of the box.
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
     }
 }
