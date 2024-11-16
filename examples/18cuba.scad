@@ -112,7 +112,7 @@ module Outline(height = 5, outline = 1.5, offset = 0.5)
     }
 }
 
-module MoneyBox(offset = 0, generate_lid = true)  // `make` me
+module MoneyBox(offset = 0, generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(length = money_box_length, width = money_box_width, height = money_box_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness)
@@ -137,7 +137,7 @@ module MoneyBox(offset = 0, generate_lid = true)  // `make` me
     }
 }
 
-module TrainBox(generate_lid = true)  // `make` me
+module TrainBox(generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -417,4 +417,7 @@ module PrintLayout()
     translate([ 0, money_box_length * 2 + train_box_length * 4 + 60 ]) LargeTokensToPrint();
 }
 
-BoxLayout();
+if ($FROM_MAKE != 1)
+{
+    BoxLayout();
+}

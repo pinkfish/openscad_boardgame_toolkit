@@ -625,5 +625,7 @@ module TestBox()
     }
 }
 
-// BoxLayout();
-TestBox();
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
+}

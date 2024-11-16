@@ -1094,16 +1094,7 @@ module BoxLayout()
     }
 }
 
-ItemsBoxExtras(generate_lid = false);
-
-/*
-
-difference() {
-regular_ngon(d = 20, n = 6);
-regular_ngon(d = 18, n = 6);
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
 }
-
-difference() {
-regular_ngon(d = 20/5*3, n = 3);
-//regular_ngon(d = 20/5*2-2, n = 3);
-}*/

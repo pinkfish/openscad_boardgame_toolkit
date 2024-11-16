@@ -30,7 +30,7 @@ all: $(TARGETS)
 
 %.scad: Makefile
 	echo $(shell echo $@ | sed -e 's/__.*$$//')
-	printf 'include <BOSL2/std.scad>\ninclude <boardgame_toolkit.scad>\nuse <../$(shell echo $@ | sed -e 's/__.*$$//;s/^output.//').scad>\n$(shell echo $@ | sed -e 's/^.*__//;s/\.scad//;s/output.//')();' > $@
+	printf 'include <../$(shell echo $@ | sed -e 's/__.*$$//;s/^output.//').scad>\n$(shell echo $@ | sed -e 's/^.*__//;s/\.scad//;s/output.//')();' > $@
 
 %.stl: %.scad
-	$(SCAD) -m make -o $@ -d $@.deps $<
+	$(SCAD) -m make -o $@ -d $@.deps $< -D FROM_MAKE=1

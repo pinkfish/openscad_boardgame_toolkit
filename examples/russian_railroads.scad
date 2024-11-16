@@ -563,6 +563,7 @@ module TestBox()
     }
 }
 
-TrackBox(generate_lid = false);
-
-// EngineerTile(2);
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
+}

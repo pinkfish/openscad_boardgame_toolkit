@@ -103,6 +103,9 @@ module DividerPiece() // `make` me
     }
 }
 
-PiecesBox();
+if (FROM_MAKE != 1)
+{
+    PiecesBox();
 
-translate([ canvas_piece_box_width + 10, 0, 0 ]) DividerPiece();
+    translate([ canvas_piece_box_width + 10, 0, 0 ]) DividerPiece();
+}

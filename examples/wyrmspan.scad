@@ -241,4 +241,7 @@ module BoxLayout()
     translate([ dragon_card_box_width + cave_card_box_width, player_box_length + eggs_box_length, 0 ]) ProvidedEggBox();
 }
 
-BoxLayout();
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
+}

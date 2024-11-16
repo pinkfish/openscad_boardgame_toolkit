@@ -953,8 +953,7 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
     }
 }
 
-// PrintLayout(generate_lid = true);ß
-
-SpacerNoPlasticPlayerBoxTop();
-
-// BoxLayout();
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
+}

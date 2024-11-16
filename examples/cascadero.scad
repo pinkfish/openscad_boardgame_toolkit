@@ -132,10 +132,15 @@ module PlayerBox() // `make` me
     }
 }
 
-SealsBox();
+if (FROM_MAKE != 1)
+{
+    BoxLayout();
 
-translate([ 0, 100, 0 ]) FarmerBox();
+    SealsBox();
 
-translate([ 0, 200, 0 ]) HeraldBox();
+    translate([ 0, 100, 0 ]) FarmerBox();
 
-translate([ 0, 300, 0 ]) PlayerBox();
+    translate([ 0, 200, 0 ]) HeraldBox();
+
+    translate([ 0, 300, 0 ]) PlayerBox();
+}

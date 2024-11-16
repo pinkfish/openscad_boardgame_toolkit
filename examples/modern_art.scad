@@ -76,4 +76,7 @@ module TokensBox(generate_lid = true) // `make` me
     }
 }
 
-TokensBox();
+if (FROM_MAKE != 1)
+{
+    TokensBox();
+}

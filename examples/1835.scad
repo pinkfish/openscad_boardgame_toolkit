@@ -369,6 +369,7 @@ module PrintLayout()
     ]) SpacerBox();
 }
 
-// PrintLayout();
-
-PrintLayout();
+if ($FROM_MAKE != 1)
+{
+    PrintLayout();
+}

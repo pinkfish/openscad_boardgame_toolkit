@@ -272,9 +272,10 @@ module TicketBox(generate_lid = true) // make me
         text_str = "Isle of Trains";
         text_width = 80;
         text_height = 15;
-        translate([ ticket_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = ticket_box_width, length = ticket_box_length, height = ticket_box_height, lid_thickness = lid_thickness,
-            text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = true);
+        translate([ ticket_box_width + 10, 0, 0 ])
+            CapBoxLidWithLabel(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
+                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                               text_str = text_str, label_rotated = true);
     }
 }
 
@@ -322,4 +323,7 @@ module PrintLayout()
     }
 }
 
-PrintLayout();
+if (FROM_MAKE != 1)
+{
+    PrintLayout();
+}
