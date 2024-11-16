@@ -145,7 +145,7 @@ module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_h
     }
 }
 
-module CardBoxEasternUS(generate_lid = true)
+module CardBoxEasternUS(generate_lid = true) // `make` me
 {
     translate([ eastern_us_card_box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
     {
@@ -190,7 +190,7 @@ module CardBoxEasternUS(generate_lid = true)
     CardBox(eastern_us_cards, "Eastern US", generate_lid = generate_lid);
 }*/
 
-module CardBoxAustralia(generate_lid = true)
+module CardBoxAustralia(generate_lid = true) // `make` me
 {
     CardBox(australia_cards, "Australia", generate_lid = generate_lid, text_width = 45, text_height = 14)
     {
@@ -201,22 +201,22 @@ module CardBoxAustralia(generate_lid = true)
     }
 }
 
-module CardBoxMexico(generate_lid = true)
+module CardBoxMexico(generate_lid = true) // `make` me
 {
     CardBox(mexico_cards, "Mexico", generate_lid = generate_lid);
 }
 
-module CardBoxSweden(generate_lid = true)
+module CardBoxSweden(generate_lid = true) // `make` me
 {
     CardBox(sweden_cards, "Sweden", generate_lid = generate_lid);
 }
 
-module CardBoxPortugal(generate_lid = true)
+module CardBoxPortugal(generate_lid = true) // `make` me
 {
     CardBox(portugal_cards, "Portugal", generate_lid = generate_lid);
 }
 
-module PlayerBoxWithPlasticExtras(generate_lid = true)
+module PlayerBoxWithPlasticExtras(generate_lid = true) // `make` me
 {
     card_height = train_card_thickness * 4 + 0.5;
     MakeBoxWithInsetLidTabbed(width = player_box_width, length = player_box_plastic_extra_length,
@@ -299,7 +299,7 @@ module PlayerBoxWithPlasticExtras(generate_lid = true)
     }
 }
 
-module PlayerBox(generate_lid = true)
+module PlayerBox(generate_lid = true) // `make` me
 {
     card_height = train_card_thickness * 4 + 1;
     lid_thickness = 1.7;
@@ -358,7 +358,7 @@ module PlayerBoxTrains(generate_lid = true)
     }
 }
 
-module EmptyCityBox(generate_lid = true)
+module EmptyCityBox(generate_lid = true) // `make` me
 {
     MakeBoxWithSlidingLid(width = empty_city_width, length = empty_city_length, height = empty_city_height,
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness)
@@ -383,7 +383,7 @@ module EmptyCityBox(generate_lid = true)
     }
 }
 
-module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0)
+module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0) // `make` me
 {
     MakeBoxWithSlidingLid(width = money_section_width + extra_width, length = money_section_length + extra_length,
                           height = top_section_height, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
@@ -404,7 +404,7 @@ module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0)
     }
 }
 
-module HexBox(generate_lid = true, extra_height = 0)
+module HexBox(generate_lid = true, extra_height = 0) // `make` me
 {
     MakeBoxWithCapLid(width = hex_box_width, length = hex_box_length, height = top_section_height + extra_height)
     {
@@ -422,7 +422,7 @@ module HexBox(generate_lid = true, extra_height = 0)
     }
 }
 
-module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0)
+module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0) // `make` me
 {
     MakeBoxWithCapLid(width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
                       height = top_section_height, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
@@ -463,7 +463,7 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0)
     }
 }
 
-module SwedenBox(generate_lid = true)
+module SwedenBox(generate_lid = true) // `make` me
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -527,7 +527,7 @@ module SwedenBox(generate_lid = true)
     }
 }
 
-module AustraliaBox(generate_lid = true)
+module AustraliaBox(generate_lid = true) // `make` me
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -680,7 +680,7 @@ module EmptyCityPair()
 
 spacer_plastic_side_length = box_length - card_box_width - player_box_width - hex_box_width - 1 - new_city_extra_width;
 
-module SpacerNoPlasticPlayerBoxSide()
+module SpacerNoPlasticPlayerBoxSide() // `make` me
 {
     difference()
     {
@@ -709,7 +709,7 @@ spacer_front_width = box_width -
                       new_city_extra_length * 2) -
                      2;
 
-module SpacerNoPlasticPlayerBoxFront()
+module SpacerNoPlasticPlayerBoxFront() // `make` me
 {
     difference()
     {
@@ -724,7 +724,7 @@ module SpacerNoPlasticPlayerBoxFront()
     }
 }
 
-module SpacerNoPlasticPlayerBoxTop()
+module SpacerNoPlasticPlayerBoxTop() // `make` me
 {
     spacer_width = box_width - sweden_box_width - spacer_front_width;
     difference()

@@ -130,7 +130,7 @@ module MoneyBox2()
     }
 }
 
-module AllMoneyBoxes(generate_lid = true)
+module AllMoneyBoxes(generate_lid = true)  // `make` me
 {
     MoneyBox1();
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
@@ -142,7 +142,7 @@ module AllMoneyBoxes(generate_lid = true)
     }
 }
 
-module HexBox(generate_lid = true)
+module HexBox(generate_lid = true) // `make` me
 {
     MakeBoxWithInsetLidTabbed(width = hex_box_width, length = hex_box_length, height = hex_box_height,
                               wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -200,7 +200,7 @@ module SharesBox(offset)
     }
 }
 
-module AllShareBoxes(generate_lid = true)
+module AllShareBoxes(generate_lid = true) // `make` me
 {
     SharesBox(0);
     translate([ 0, shares_box_length + 10, 0 ]) SharesBox(2);
@@ -215,7 +215,7 @@ module AllShareBoxes(generate_lid = true)
     }
 }
 
-module MiddleBox(generate_lid = true)
+module MiddleBox(generate_lid = true) // `make` me
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
@@ -275,7 +275,7 @@ module MiddleBox(generate_lid = true)
     }
 }
 
-module SpacerBox()
+module SpacerBox() // `make` me
 {
     difference()
     {
@@ -285,7 +285,7 @@ module SpacerBox()
     }
 }
 
-module LastSectionFirstPlayer(generate_lid = true)
+module LastSectionFirstPlayer(generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(width = first_player_box_width, length = first_player_box_length,
                            height = first_player_box_height, floor_thickness = floor_thickness, wall_thickness = 3,

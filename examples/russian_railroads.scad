@@ -194,7 +194,7 @@ module EngineerTile(height)
     }
 }
 
-module PlayerBox(generate_lid = true)
+module PlayerBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -279,7 +279,7 @@ module PlayerBox(generate_lid = true)
     }
 }
 
-module ExtraTokensBox(generate_lid = true)
+module ExtraTokensBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = extra_tokens_box_width, length = extra_tokens_box_length,
                       height = extra_tokens_box_height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -383,7 +383,7 @@ module ExtraTokensBox(generate_lid = true)
     }
 }
 
-module MoneyBox(generate_lid = true)
+module MoneyBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -399,7 +399,7 @@ module MoneyBox(generate_lid = true)
     }
 }
 
-module TrainBox(generate_lid = true)
+module TrainBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = train_box_width, length = train_box_length, height = train_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -429,7 +429,7 @@ module TrainBox(generate_lid = true)
     }
 }
 
-module EngineerBox(generate_lid = true)
+module EngineerBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = engineer_box_width, length = engineer_box_length, height = engineer_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -450,7 +450,7 @@ module EngineerBox(generate_lid = true)
     }
 }
 
-module TrackBox(generate_lid = true)
+module TrackBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = track_box_width, length = track_box_length, height = track_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)

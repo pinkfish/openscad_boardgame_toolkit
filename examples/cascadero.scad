@@ -44,7 +44,7 @@ $fn = 180;
 first_width = 40;
 radius = 10;
 
-module SealsBox()
+module SealsBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
     {
@@ -65,7 +65,7 @@ module SealsBox()
     }
 }
 
-module FarmerBox()
+module FarmerBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
     {
@@ -86,7 +86,7 @@ module FarmerBox()
     }
 }
 
-module HeraldBox()
+module HeraldBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = herald_width, length = top_length, height = section_height)
     {
@@ -107,7 +107,7 @@ module HeraldBox()
     }
 }
 
-module PlayerBox()
+module PlayerBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)
     {

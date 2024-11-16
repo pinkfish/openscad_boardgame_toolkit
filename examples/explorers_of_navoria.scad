@@ -643,7 +643,7 @@ module PlayerBoxOneBase(generate_lid = true)
     }
 }
 
-module PlayerBoxGreenOne(generate_lid = true)
+module PlayerBoxGreenOne(generate_lid = true) // `make` me
 {
     PlayerBoxOneBase(generate_lid = generate_lid)
     {
@@ -652,7 +652,7 @@ module PlayerBoxGreenOne(generate_lid = true)
     }
 }
 
-module PlayerBoxYellowOne(generate_lid = true)
+module PlayerBoxYellowOne(generate_lid = true) // `make` me
 {
     PlayerBoxOneBase(generate_lid = generate_lid)
     {
@@ -661,7 +661,7 @@ module PlayerBoxYellowOne(generate_lid = true)
     }
 }
 
-module PlayerBoxPurpleOne(generate_lid = true)
+module PlayerBoxPurpleOne(generate_lid = true) // `make` me
 {
     PlayerBoxOneBase(generate_lid = generate_lid)
     {
@@ -670,7 +670,7 @@ module PlayerBoxPurpleOne(generate_lid = true)
     }
 }
 
-module PlayerBoxBlackOne(generate_lid = true)
+module PlayerBoxBlackOne(generate_lid = true) // `make` me
 {
     PlayerBoxOneBase(generate_lid = generate_lid)
     {
@@ -744,7 +744,7 @@ module PlayerBoxTwoBase(generate_lid = true)
     }
 }
 
-module PlayerBoxGreenTwo(generate_lid = true)
+module PlayerBoxGreenTwo(generate_lid = true) // `make` me
 {
     PlayerBoxTwoBase(generate_lid = generate_lid)
     {
@@ -753,7 +753,7 @@ module PlayerBoxGreenTwo(generate_lid = true)
     }
 }
 
-module PlayerBoxYellowTwo(generate_lid = true)
+module PlayerBoxYellowTwo(generate_lid = true) // `make` me
 {
     PlayerBoxTwoBase(generate_lid = generate_lid)
     {
@@ -762,7 +762,7 @@ module PlayerBoxYellowTwo(generate_lid = true)
     }
 }
 
-module PlayerBoxPurpleTwo(generate_lid = true)
+module PlayerBoxPurpleTwo(generate_lid = true) // `make` me
 {
     PlayerBoxTwoBase(generate_lid = generate_lid)
     {
@@ -771,7 +771,7 @@ module PlayerBoxPurpleTwo(generate_lid = true)
     }
 }
 
-module PlayerBoxBlackTwo(generate_lid = true)
+module PlayerBoxBlackTwo(generate_lid = true) // `make` me
 {
     PlayerBoxTwoBase(generate_lid = generate_lid)
     {
@@ -780,7 +780,7 @@ module PlayerBoxBlackTwo(generate_lid = true)
     }
 }
 
-module FavourBox(generate_lid = true)
+module FavourBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = favour_box_width, length = favour_box_length, height = favour_box_height)
     {
@@ -807,7 +807,7 @@ module FavourBox(generate_lid = true)
     }
 }
 
-module StuffBox(generate_lid = true)
+module StuffBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height)
     {
@@ -834,7 +834,7 @@ module StuffBox(generate_lid = true)
     }
 }
 
-module CardBox(generate_lid = true)
+module CardBox(generate_lid = true) // `make` me
 {
 
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
@@ -861,7 +861,7 @@ module CardBox(generate_lid = true)
     }
 }
 
-module BagBox()
+module BagBox() // `make` me
 {
     translate([ bag_box_width / 2, bag_box_length / 2, 0 ]) difference()
     {

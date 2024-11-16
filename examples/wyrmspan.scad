@@ -79,7 +79,7 @@ coin_box_length = box_width - dragon_card_box_length - player_box_length - 1;
 coin_box_width = dragon_card_box_width;
 coin_box_height = dragon_card_box_height / 2;
 
-module PlayerBox(generate_lid = true)
+module PlayerBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -94,7 +94,7 @@ module PlayerBox(generate_lid = true)
     }
 }
 
-module FoodBox(generate_lid = true)
+module FoodBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = food_box_width, length = food_box_length, height = food_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -111,7 +111,7 @@ module FoodBox(generate_lid = true)
     }
 }
 
-module DragonCardBox(generate_lid = true)
+module DragonCardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = dragon_card_box_width, length = dragon_card_box_length, height = dragon_card_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -137,7 +137,7 @@ module ProvidedEggBox()
     cube([ eggs_box_width, eggs_box_length, eggs_box_height ]);
 }
 
-module CaveCardBox(generate_lid = true)
+module CaveCardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = cave_card_box_width, length = cave_card_box_length, height = cave_card_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -189,7 +189,7 @@ module CaveCardBox(generate_lid = true)
     }
 }
 
-module CoinBox(generate_lid = true)
+module CoinBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = coin_box_width, length = coin_box_length, height = coin_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -205,7 +205,7 @@ module CoinBox(generate_lid = true)
     }
 }
 
-module BonusBox(generate_lid = true)
+module BonusBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = coin_box_width, length = coin_box_length, height = coin_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)

@@ -277,7 +277,7 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
                           wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4,
                           label_rotated = false, cap_height = undef, layout_width = undef, shape_width = undef,
                           shape_type = undef, shape_thickness = undef, size_spacing = m_piece_wiggle_room,
-                          lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0)
+                          lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0, font = undef)
 {
     CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
@@ -291,13 +291,13 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
         {
             translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
                 MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
+                                    label = text_str, border = border, offset = offset, full_height = true, font = font);
         }
         else
         {
             translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
                 MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
+                                    label = text_str, border = border, offset = offset, full_height = true, font = font);
         }
         if ($children > 0)
         {

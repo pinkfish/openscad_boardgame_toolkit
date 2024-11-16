@@ -31,7 +31,7 @@ divider_total_width = 73 + 50 + 73;
 divider_upright_length = 45;
 divider_upright_diff = 73;
 
-module PiecesBox()
+module PiecesBox() // `make` me
 {
     module MakeLid(str)
     {
@@ -55,7 +55,7 @@ module PiecesBox()
     translate([ 0, (canvas_piece_box_length + 10) * 6, 0 ]) MakeLid("Palette");
 }
 
-module DividerPiece()
+module DividerPiece() // `make` me
 {
     union()
     {

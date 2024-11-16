@@ -112,7 +112,7 @@ module Outline(height = 5, outline = 1.5, offset = 0.5)
     }
 }
 
-module MoneyBox(offset = 0, generate_lid = true)
+module MoneyBox(offset = 0, generate_lid = true)  // `make` me
 {
     MakeBoxWithSlipoverLid(length = money_box_length, width = money_box_width, height = money_box_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness)
@@ -137,7 +137,7 @@ module MoneyBox(offset = 0, generate_lid = true)
     }
 }
 
-module TrainBox(generate_lid = true)
+module TrainBox(generate_lid = true)  // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -175,7 +175,7 @@ module TrainBox(generate_lid = true)
     }
 }
 
-module SharesBox(offset = 0, generate_lid = true)
+module SharesBox(offset = 0, generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -202,7 +202,7 @@ module SharesBox(offset = 0, generate_lid = true)
     }
 }
 
-module LastBox(generate_lid = true)
+module LastBox(generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -367,7 +367,7 @@ module LargeTokensBox()
     }
 }
 
-module LargeTokensToPrint(generate_lid = true)
+module LargeTokensToPrint(generate_lid = true) // `make` me
 {
     LargeTokensBox();
 

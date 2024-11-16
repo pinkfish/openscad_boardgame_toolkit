@@ -433,7 +433,7 @@ module WinterToken(height)
     }
 }
 
-module CardBox(generate_lid = true)
+module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {
@@ -451,7 +451,7 @@ module CardBox(generate_lid = true)
     }
 }
 
-module MarquisBoxBottom(generate_lid = true)
+module MarquisBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height)
     {
@@ -480,7 +480,7 @@ module MarquisBoxBottom(generate_lid = true)
     }
 }
 
-module MarquisBoxTop(generate_lid = true)
+module MarquisBoxTop(generate_lid = true) // `make` me
 {
     module BuildingSpots()
     {
@@ -532,7 +532,7 @@ module MarquisBoxTop(generate_lid = true)
     }
 }
 
-module VagabondBox(generate_lid = true)
+module VagabondBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height)
     {
@@ -572,7 +572,7 @@ module VagabondBox(generate_lid = true)
     }
 }
 
-module ErieBoxBottom(generate_lid = true)
+module ErieBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = erie_box_width, length = erie_box_length, height = erie_box_height)
     {
@@ -593,7 +593,7 @@ module ErieBoxBottom(generate_lid = true)
         }
     }
 }
-module ErieBoxTop(generate_lid = true)
+module ErieBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -612,7 +612,7 @@ module ErieBoxTop(generate_lid = true)
     }
 }
 
-module AllianceBoxBottom(generate_lid = true)
+module AllianceBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height)
     {
@@ -636,7 +636,7 @@ module AllianceBoxBottom(generate_lid = true)
     }
 }
 
-module AllianceBoxTop(generate_lid = true)
+module AllianceBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height)
     {
@@ -661,7 +661,7 @@ module AllianceBoxTop(generate_lid = true)
     }
 }
 
-module RiverfolkBoxBottom(generate_lid = true)
+module RiverfolkBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_height)
     {
@@ -678,7 +678,7 @@ module RiverfolkBoxBottom(generate_lid = true)
     }
 }
 
-module RiverfolkBoxTop(generate_lid = true)
+module RiverfolkBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = riverfolk_box_top_width, length = riverfolk_box_length, height = riverfolk_box_top_height)
     {
@@ -716,7 +716,7 @@ module RiverfolkBoxTop(generate_lid = true)
     }
 }
 
-module LizardBoxBottom(generate_lid = true)
+module LizardBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = lizard_box_width, length = lizard_box_length, height = lizard_box_height)
     {
@@ -739,7 +739,7 @@ module LizardBoxBottom(generate_lid = true)
     }
 }
 
-module LizardBoxTop(generate_lid = true)
+module LizardBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height)
     {
@@ -762,7 +762,7 @@ module LizardBoxTop(generate_lid = true)
     }
 }
 
-module ItemsBoxBottom(generate_lid = true)
+module ItemsBoxBottom(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_height,
                       finger_hold_height = 3)
@@ -870,7 +870,7 @@ module GenerateIcon(icon)
     }
 }
 
-module ItemsBoxMiddle(generate_lid = true)
+module ItemsBoxMiddle(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_middle_height,
                       finger_hold_height = 3, cap_height = 5)
@@ -918,7 +918,7 @@ module ItemsBoxMiddle(generate_lid = true)
     }
 }
 
-module ItemsBoxWinter(generate_lid = true)
+module ItemsBoxWinter(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
                       finger_hold_height = 3)
@@ -943,7 +943,7 @@ module ItemsBoxWinter(generate_lid = true)
     }
 }
 
-module DiceBox(generate_lid = true)
+module DiceBox(generate_lid = true) // `make` me
 {
     $inner_height = dice_box_height - lid_thickness * 2;
     $inner_width = dice_box_width - wall_thickness * 2;
@@ -983,7 +983,7 @@ module DiceBox(generate_lid = true)
     }
 }
 
-module ItemsBoxExtras(generate_lid = true)
+module ItemsBoxExtras(generate_lid = true) // `make` me
 {
     module RenderItem(item)
     {

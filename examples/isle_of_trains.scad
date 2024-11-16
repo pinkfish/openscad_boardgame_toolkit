@@ -84,7 +84,7 @@ function TileRadius(width) = width / 2 / cos(180 / 6);
 
 echo([ card_box_width, ticket_tile_width ]);
 
-module DestinationBox(generate_lid = true)
+module DestinationBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = destination_box_width, length = destination_box_length, height = destination_box_height,
                       wall_thickness = wall_thickness, lid_thickness = 2)
@@ -138,7 +138,7 @@ module DestinationBox(generate_lid = true)
     }
 }
 
-module VictoryBox(generate_lid = true)
+module VictoryBox(generate_lid = true) // `make` me
 {
     lid_thickness = 1;
     MakeBoxWithCapLid(width = victory_box_width, length = victory_box_length, height = victory_box_height,
@@ -235,7 +235,7 @@ module VictoryBox(generate_lid = true)
     }
 }
 
-module CardBox(generate_lid = true)
+module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height,
                       wall_thickness = wall_thickness)
@@ -254,7 +254,7 @@ module CardBox(generate_lid = true)
     }
 }
 
-module TicketBox(generate_lid = true)
+module TicketBox(generate_lid = true) // make me
 {
     MakeBoxWithCapLid(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -278,7 +278,7 @@ module TicketBox(generate_lid = true)
     }
 }
 
-module MiddleBox()
+module MiddleBox() // 'make' me
 {
     difference()
     {

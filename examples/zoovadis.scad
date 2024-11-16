@@ -217,7 +217,7 @@ module LaurelsBox(num_laurels, num_rows = 5, generate_lid = true)
     }
 }
 
-module BothLaurelBoxes(generate_lid = true, offset = 20)
+module BothLaurelBoxes(generate_lid = true, offset = 20) // `make` me
 {
     laurel_box_width = laurel_diameter * 5 + wall_thickness * 4 + 0.5 * (5 - 1);
 
@@ -232,7 +232,7 @@ module AnimalBoxWithFingerholes(width)
     translate([ width / 2, 0, 12 ]) sphere(d = 15);
 }
 
-module AnimalBox(text_str, animal_width, generate_lid = true)
+module AnimalBox(text_str, animal_width, generate_lid = true) // `make` me
 {
 
     module SpecialTokenFingers()
@@ -279,49 +279,49 @@ module AnimalBox(text_str, animal_width, generate_lid = true)
     }
 }
 
-module MarmosetBox(generate_lid = true)
+module MarmosetBox(generate_lid = true) // `make` me
 {
     AnimalBox("Marmoset", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = marmoset_width) offset(delta = 0.5) MarmosetOutline();
 }
 
-module IbisBox(generate_lid = true)
+module IbisBox(generate_lid = true) // `make` me
 {
     AnimalBox("Ibis", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = ibis_width) offset(delta = 0.5) IbisOutline();
 }
 
-module RhinoBox(generate_lid = true)
+module RhinoBox(generate_lid = true) // `make` me
 {
     AnimalBox("Rhino", animal_width = rhino_width + 4.2, generate_lid = generate_lid) translate([ 0, 3, 0 ])
         AnimalBoxWithFingerholes(width = rhino_width - 2) offset(delta = 0.5) RhinoOutline();
 }
 
-module CrocodileBox(generate_lid = true)
+module CrocodileBox(generate_lid = true) // `make` me
 {
     AnimalBox("Crocodile", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = crocodile_width + 10) offset(delta = 0.5) CrocodileOutline();
 }
 
-module HyenaBox(generate_lid = true)
+module HyenaBox(generate_lid = true) // `make` me
 {
     AnimalBox("Hyena", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = hyena_width) offset(delta = 0.5) HyenaOutline();
 }
 
-module ArmadiloBox(generate_lid = true)
+module ArmadiloBox(generate_lid = true) // `make` me
 {
     AnimalBox("Armadilo", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = armadilli_width - 3) offset(delta = 0.5) AramdiloOutline();
 }
 
-module TigerBox(generate_lid = true)
+module TigerBox(generate_lid = true) // `make` me
 {
     AnimalBox("Tiger", animal_width = rhino_width + 3.6, generate_lid = generate_lid) translate([ 0, 1, 0 ])
         AnimalBoxWithFingerholes(width = tiger_width) offset(delta = 0.5) TigerOutline();
 }
 
-module PeacockBox(generate_lid = true)
+module PeacockBox(generate_lid = true) // `make` me
 {
     AnimalBox("Peacock", animal_width = rhino_width + 3.6, generate_lid = generate_lid)
     {
@@ -350,7 +350,7 @@ module ShieldBoxInternal()
     }
 }
 
-module ShieldBox(generate_lid = true)
+module ShieldBox(generate_lid = true) // `make` me
 {
     SplitBox(width = shield_box_width, length = shield_box_length, height = shield_box_height, orient = UP, spin = 90)
     {
@@ -379,7 +379,7 @@ module ShieldBox(generate_lid = true)
     }
 }
 
-module FillerBox()
+module FillerBox() // `make` me
 {
     difference()
     {
