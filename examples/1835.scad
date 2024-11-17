@@ -127,12 +127,17 @@ module MoneyBox2()
 
 module AllMoneyBoxes(generate_lid = true) // `make` me
 {
+    echo([ money_box_length, money_box_height_1, money_box_height_2, money_box_width, inner_wall ]);
     MoneyBox1();
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
     if (generate_lid)
     {
-        translate([ 0, money_box_length * 2 + 20, 0 ]) CapBoxLidWithLabel(
-            width = money_box_width, length = money_box_length, text_width = 70, text_height = 20, text_str = "Money");
+        translate([ 0, money_box_length * 2 + 20, 0 ])
+            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_1,
+                               text_width = 70, text_height = 20, text_str = "Money");
+        translate([ 0, money_box_length * 3 + 20, 0 ])
+            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_2,
+                               text_width = 70, text_height = 20, text_str = "Money");
     }
 }
 
@@ -357,5 +362,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    PrintLayout();
+    AllMoneyBoxes();
 }
