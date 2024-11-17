@@ -1,2 +1,0 @@
-include <../zoovadis.scad>
-AnimalBox();

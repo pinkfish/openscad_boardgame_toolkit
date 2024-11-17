@@ -232,7 +232,7 @@ module AnimalBoxWithFingerholes(width)
     translate([ width / 2, 0, 12 ]) sphere(d = 15);
 }
 
-module AnimalBox(text_str, animal_width, generate_lid = true) // `make` me
+module AnimalBox(text_str, animal_width, generate_lid = true)
 {
 
     module SpecialTokenFingers()

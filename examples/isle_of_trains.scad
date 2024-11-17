@@ -57,7 +57,7 @@ num_track_tiles = 2;
 num_destination_tiles = 6;
 num_ticket_tiles = 9;
 
-num_victory_tokens = [ 12, 6, 3, 3 ];
+num_victory_tokens = [ 12, 6, 4, 4 ];
 
 destination_box_width = box_width - 1;
 destination_box_length = destination_tile_width + track_tile_width + 1 + wall_thickness * 2;
@@ -148,18 +148,16 @@ module VictoryBox(generate_lid = true) // `make` me
         one_radius = TileRadius(victory_hex_one_width + 0.5);
         translate([ 3.5, 0, 0 ])
         {
-            one_bit_height = (num_victory_tokens[0] * token_thickness) + 1;
+            one_bit_height = (num_victory_tokens[0] * token_thickness) + 2;
             translate([
-                one_radius, (victory_box_length - one_bit_height - wall_thickness * 2) / 2 + one_bit_height,
-                victory_box_height - lid_thickness * 2 - victory_hex_one_width / 2 - 0.4
+                one_radius, ($inner_length - one_bit_height) / 2 + one_bit_height,
+                $inner_height - victory_hex_one_width / 2 - 0.4
             ]) rotate([ 90, 0, 0 ])
                 RegularPolygon(width = victory_hex_one_width + 0.5, height = one_bit_height, shape_edges = 6);
-            translate([
-                0, (victory_box_length - one_bit_height - wall_thickness * 2) / 2,
-                victory_box_height - lid_thickness * 2 - victory_hex_one_width / 2 - 0.4
-            ]) cuboid([ one_radius * 2, one_bit_height, victory_hex_one_width / 2 + 0.25 ],
-                      anchor = BOTTOM + FRONT + LEFT, rounding = -4, edges = [ TOP + LEFT, TOP + RIGHT ]);
-            translate([ one_radius, 2, victory_box_height - lid_thickness * 2 - 8 ])
+            translate([ 0, ($inner_length - one_bit_height) / 2, $inner_height - victory_hex_one_width / 2 - 0.4 ])
+                cuboid([ one_radius * 2, one_bit_height, victory_hex_one_width / 2 + 0.25 ],
+                       anchor = BOTTOM + FRONT + LEFT, rounding = -4, edges = [ TOP + LEFT, TOP + RIGHT ]);
+            translate([ one_radius, 2, $inner_height - 8 ])
                 FingerHoleWall(radius = 10, height = 8, depth_of_hole = victory_box_width);
         }
         // Three tokens.
@@ -168,16 +166,14 @@ module VictoryBox(generate_lid = true) // `make` me
             three_bit_height = (num_victory_tokens[1] * token_thickness) + 1;
             three_radius = TileRadius(victory_hex_three_width + 0.5);
             translate([
-                three_radius, (victory_box_length - three_bit_height - wall_thickness * 2) / 2 + three_bit_height,
-                victory_box_height - lid_thickness * 2 - victory_hex_three_width / 2 - 0.4
+                three_radius, ($inner_length - three_bit_height) / 2 + three_bit_height,
+                $inner_height - victory_hex_three_width / 2 - 0.4
             ]) rotate([ 90, 0, 0 ])
                 RegularPolygon(width = victory_hex_three_width + 0.5, height = three_bit_height, shape_edges = 6);
-            translate([
-                0, (victory_box_length - three_bit_height - wall_thickness * 2) / 2,
-                victory_box_height - lid_thickness * 2 - victory_hex_three_width / 2 - 0.4
-            ]) cuboid([ three_radius * 2, three_bit_height, victory_hex_three_width / 2 + 0.25 ],
-                      anchor = BOTTOM + FRONT + LEFT, rounding = -4, edges = [ TOP + LEFT, TOP + RIGHT ]);
-            translate([ three_radius, 2, victory_box_height - lid_thickness * 2 - 8 ])
+            translate([ 0, ($inner_length - three_bit_height) / 2, $inner_height - victory_hex_three_width / 2 - 0.4 ])
+                cuboid([ three_radius * 2, three_bit_height, victory_hex_three_width / 2 + 0.25 ],
+                       anchor = BOTTOM + FRONT + LEFT, rounding = -4, edges = [ TOP + LEFT, TOP + RIGHT ]);
+            translate([ three_radius, 2, $inner_height - 8 ])
                 FingerHoleWall(radius = 10, height = 8, depth_of_hole = victory_box_width);
         }
         // ten token
@@ -185,9 +181,7 @@ module VictoryBox(generate_lid = true) // `make` me
         ten_radius = TileRadius(victory_hex_ten_width + 0.5);
         translate([
             victory_box_width - victory_hex_ten_width,
-            (victory_box_length - wall_thickness * 2 - victory_hex_ten_width - 0.5) / 2 + victory_hex_ten_width / 2 +
-                0.25,
-            victory_box_height - lid_thickness * 2 -
+            ($inner_length - victory_hex_ten_width - 0.5) / 2 + victory_hex_ten_width / 2 + 0.25, $inner_height -
             ten_bit_height
         ])
         {
@@ -206,9 +200,7 @@ module VictoryBox(generate_lid = true) // `make` me
         five_radius = TileRadius(victory_hex_five_width + 0.5);
         translate([
             victory_box_width - five_radius * 2 - ten_radius * 2 - 1,
-            (victory_box_length - wall_thickness * 2 - victory_hex_five_width - 0.5) / 2 + victory_hex_five_width / 2 +
-                0.25,
-            victory_box_height - lid_thickness * 2 -
+            ($inner_length - victory_hex_five_width - 0.5) / 2 + victory_hex_five_width / 2 + 0.25, $inner_height -
             five_bit_height
         ])
         {
@@ -254,18 +246,27 @@ module CardBox(generate_lid = true) // `make` me
     }
 }
 
-module TicketBox(generate_lid = true) // make me
+module TicketBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness)
+                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
     {
         translate([
-            (ticket_box_width - token_thickness * num_ticket_tiles + 0.5 - wall_thickness * 2) / 2,
-            (ticket_box_length - wall_thickness * 2 - ticket_tile_length) / 2,
-            ticket_box_height - ticket_tile_width - lid_thickness * 2 - 0.5
-        ]) cube([ token_thickness * num_ticket_tiles + 0.5, ticket_tile_length, ticket_tile_width + 1 ]);
-        translate([ 0, ticket_box_length / 2, ticket_box_height - lid_thickness * 2 - ticket_tile_width / 2 ])
-            FingerHoleWall(radius = 10, height = ticket_tile_width / 2, spin = 90, depth_of_hole = 200);
+            ($inner_width - token_thickness * num_ticket_tiles + 0.5) / 2, $inner_length - ticket_tile_length - 2,
+            $inner_height - ticket_tile_width - 0.5
+        ])
+        {
+            cube([ token_thickness * num_ticket_tiles + 0.5, ticket_tile_length, ticket_tile_width + 1 ]);
+
+            translate([ 0, ticket_tile_length / 2, $inner_height - 17 ])
+                FingerHoleWall(radius = 10, height = ticket_tile_width / 2, spin = 90, depth_of_hole = 200);
+        }
+        translate([ $inner_width / 2, train_token_length / 2 + 7, $inner_height - train_token_thickness + 4.5 ])
+        {
+            cuboid([ train_token_width, train_token_length, train_token_thickness + 1 ]);
+            translate([ 0, train_token_length / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
+            translate([ 0, -train_token_length / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
+        }
     }
     if (generate_lid)
     {
@@ -279,7 +280,7 @@ module TicketBox(generate_lid = true) // make me
     }
 }
 
-module MiddleBox() // 'make' me
+module MiddleBox() // `make` me
 {
     difference()
     {
@@ -325,5 +326,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    VictoryBox();
+    TicketBox();
 }
