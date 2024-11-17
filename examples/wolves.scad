@@ -52,6 +52,7 @@ knowledge_cards = 18;
 community_needs_token_num = 18;
 
 unmet_needs_size = 26;
+unmet_needs_num = 18;
 
 status_rank_size = 40;
 
@@ -159,9 +160,10 @@ module UnmetNeedsBox(generate_lid = true) // `make` me
     {
         for (i = [0:1:2])
         {
-            translate([ i * (unmet_needs_size + 4) + 4, 12, $inner_height - token_thickness * 3 - 0.5 ])
+            translate(
+                [ i * (unmet_needs_size + 4) + 4, 12, $inner_height - token_thickness * unmet_needs_num / 3 - 0.5 ])
             {
-                cube([ unmet_needs_size, unmet_needs_size, token_thickness * 3 + 1 ]);
+                cube([ unmet_needs_size, unmet_needs_size, token_thickness * unmet_needs_num / 3 + 1 ]);
                 translate([ unmet_needs_size / 2, unmet_needs_size, 0 ]) sphere(r = 12, anchor = BOTTOM);
                 translate([ unmet_needs_size / 2, 0, 0 ]) sphere(r = 12, anchor = BOTTOM);
             }
@@ -267,7 +269,6 @@ module BoxLayout()
             translate([ side_box_width + player_box_width, i * resources_box_length, 0 ])
                 ResourcesBox(generate_lid = false);
         }
-        // translate([ side_box_width + player_box_width + resources_box_width, 0, 0 ]) SideBox();
     }
 }
 
