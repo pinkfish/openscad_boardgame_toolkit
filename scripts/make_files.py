@@ -28,7 +28,7 @@ with open("generate.makefile", "w") as mfile:
     for d in data:
         # Frog
         mfile.write("output/{0}__{1}.stl: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
-        mfile.write("    $(SCAD) -m make -o $@ -d $@.deps $< -D FROM_MAKE=1\n\n")
+        mfile.write("\t$(SCAD) -m make -o $@ -d $@.deps $< -D FROM_MAKE=1\n\n")
         # Create the scad file.
         with open("output/{0}__{1}.scad".format(d.basename, d.module), "w") as f:
             f.write("include <../{0}.scad>\n".format(d.basename))
