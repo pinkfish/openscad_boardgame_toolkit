@@ -417,7 +417,7 @@ module PrintLayout()
     translate([ 0, money_box_length * 2 + train_box_length * 4 + 60 ]) LargeTokensToPrint();
 }
 
-if ($FROM_MAKE != 1)
+if (FROM_MAKE != 1)
 {
     BoxLayout();
 }

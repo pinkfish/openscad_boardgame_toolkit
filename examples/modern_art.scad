@@ -78,5 +78,5 @@ module TokensBox(generate_lid = true) // `make` me
 
 if (FROM_MAKE != 1)
 {
-    TokensBox();
+    CardBox();
 }

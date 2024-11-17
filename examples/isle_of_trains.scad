@@ -325,5 +325,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    PrintLayout();
+    VictoryBox();
 }

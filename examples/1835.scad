@@ -130,7 +130,7 @@ module MoneyBox2()
     }
 }
 
-module AllMoneyBoxes(generate_lid = true)  // `make` me
+module AllMoneyBoxes(generate_lid = true) // `make` me
 {
     MoneyBox1();
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
@@ -190,7 +190,7 @@ module SharesBox(offset)
                 }
             }
         }
-        translate([ -1, share_length / 2  0 ])
+        translate([ -1, share_length / 2, 0 ])
             FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
         if (offset != 6)
         {
@@ -369,7 +369,7 @@ module PrintLayout()
     ]) SpacerBox();
 }
 
-if ($FROM_MAKE != 1)
+if (FROM_MAKE != 1)
 {
     PrintLayout();
 }

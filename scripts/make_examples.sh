@@ -7,10 +7,11 @@ cd $TOP_LEVEL
 
 cd examples
 
-for file in *.scad; do
-  filename_without_ext="${file%.*}"
-   echo $filename_without_ext
-   sed -e "/^module [a-zA-Z0-9_-]*\(.*\).*`make`.me$$/!d;s/^module *//;s/\(.*\)(.*).*$$/${filename_without_ext}_\1/"  $file
-done
+#for file in *.scad; do
+#   filename_without_ext="${file%.*}"
+#   awk -f parse_mods.awk BASEFILE=${filename_without_ext} ${file}
+#done
+
+python ../scripts/make_files.py
 
 # s/module //\;s/(.*).*/.stl/
