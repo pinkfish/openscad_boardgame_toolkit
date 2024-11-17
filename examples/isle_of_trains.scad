@@ -40,8 +40,8 @@ track_tile_length = 90 + 0.5;
 ticket_tile_width = 30;
 ticket_tile_length = 80;
 
-train_token_length = 29;
-train_token_width = 17;
+train_token_length = 31;
+train_token_width = 17.5;
 train_token_thickness = 10;
 
 victory_hex_one_width = 18;
@@ -55,7 +55,7 @@ ten_card_thickness = (total_card_thickness * 10 / (num_island_cards + num_train_
 
 num_track_tiles = 2;
 num_destination_tiles = 6;
-num_ticket_tiles = 9;
+num_ticket_tiles = 10;
 
 num_victory_tokens = [ 12, 6, 4, 4 ];
 
@@ -261,11 +261,11 @@ module TicketBox(generate_lid = true) // `make` me
             translate([ 0, ticket_tile_length / 2, $inner_height - 17 ])
                 FingerHoleWall(radius = 10, height = ticket_tile_width / 2, spin = 90, depth_of_hole = 200);
         }
-        translate([ $inner_width / 2, train_token_length / 2 + 7, $inner_height - train_token_thickness + 4.5 ])
+        translate([ $inner_width / 2, train_token_length / 2 + 7, $inner_height - train_token_thickness - 0.5 ])
         {
-            cuboid([ train_token_width, train_token_length, train_token_thickness + 1 ]);
-            translate([ 0, train_token_length / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
-            translate([ 0, -train_token_length / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
+            cuboid([ train_token_width, train_token_length, train_token_thickness + 1 ], anchor = BOTTOM);
+            translate([ 0, train_token_length / 2, 0 ]) sphere(r = 9, anchor = BOTTOM);
+            translate([ 0, -train_token_length / 2, 0 ]) sphere(r = 9, anchor = BOTTOM);
         }
     }
     if (generate_lid)

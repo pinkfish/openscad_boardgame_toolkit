@@ -2,6 +2,7 @@
 
 import glob
 import re
+import os.path
 
 class ScadFile:
    def __init__(self, filename:str, module:str, basename:str):
@@ -32,10 +33,11 @@ with open("generate.makefile", "w") as mfile:
         # Create the scad file.
         scad_script = "include <../{0}.scad>\n{1}();".format(d.basename, d.module)
         file_data = ""
-        with open('data.txt', 'r') as file:
-            file_data = file.read()
+        if os.path.exists('output/{0}__{1}.scad'):
+            with open('output/{0}__{1}.scad', 'r') as file:
+                file_data = file.read()
         # Only write the file if it is different.
         if file_data != scad_script:
             with open("output/{0}__{1}.scad".format(d.basename, d.module), "w") as f:
-                f.write(file_data)
+                f.write(scad_script)
                 f.close()
