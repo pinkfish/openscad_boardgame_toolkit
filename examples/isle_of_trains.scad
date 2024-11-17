@@ -40,7 +40,7 @@ track_tile_length = 90 + 0.5;
 ticket_tile_width = 30;
 ticket_tile_length = 80;
 
-train_token_length = 31;
+train_token_length = 31.5;
 train_token_width = 17.5;
 train_token_thickness = 10;
 
@@ -65,10 +65,9 @@ destination_box_height = token_thickness * num_destination_tiles + 0.5 + lid_thi
 
 victory_box_width = destination_box_width;
 victory_box_length = destination_box_length;
-victory_box_height = box_height - destination_box_height;
+victory_box_height = box_height - destination_box_height - 0.5;
 
-card_box_width = box_width - wall_thickness * 4 - num_ticket_tiles * token_thickness -
-                 1.5; // card_length + wall_thickness * 2 + 0.5;
+card_box_width = card_length + wall_thickness*2+3;
 card_box_length = card_width + wall_thickness * 2 + 0.5;
 card_box_height = box_height - 1;
 
@@ -300,7 +299,7 @@ module BoxLayout()
     translate([ 0, 0, destination_box_height ]) VictoryBox(generate_lid = false);
     translate([ 0, destination_box_length + middle_box_length, 0 ]) CardBox(generate_lid = false);
     translate([ 0, destination_box_length, 0 ]) MiddleBox();
-    translate([ middle_box_width, destination_box_length, 0 ]) TicketBox();
+    translate([ middle_box_width, destination_box_length, 0 ]) TicketBox(generate_lid = false);
 }
 
 module PrintLayout()
