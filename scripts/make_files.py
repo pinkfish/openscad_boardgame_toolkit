@@ -17,7 +17,7 @@ for fname in onlyfiles:
            line = line.strip()
            x = re.search("^module *([a-zA-Z_-]*)\(.*\).*`make` me", line)
            if x:
-               fdata = re.search(".*/(.*)\.scad", fname)
+               fdata = re.search(".*/(.*).scad", fname)
                # Search and replace.
                data.append(ScadFile(fname, x.group(1), fdata.group(1)))
 
