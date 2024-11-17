@@ -22,10 +22,11 @@ box_length = 298;
 box_width = 216;
 box_height = 50;
 
-wall_thickness = 2;
+default_wall_thickness = 2;
+default_lid_thickness = 2;
+default_floor_thickness = 2;
+
 inner_wall = 1;
-lid_thickness = 2;
-floor_thickness = 2;
 
 share_width = 46;
 share_length = 66;
@@ -54,13 +55,13 @@ num_private_railroad = 6;
 
 main_height = box_height - board_thickness;
 
-hex_box_width = tile_radius * 6 + wall_thickness * 2;
+hex_box_width = tile_radius * 6 + default_wall_thickness * 2;
 hex_box_height = main_height / 4;
 hex_box_length = box_width - 1;
 
 money_box_width = box_width - 1;
-money_box_length = money_length + wall_thickness * 2;
-money_box_height_1 = floor_thickness + lid_thickness + money_one_thickness + 0.5;
+money_box_length = money_length + default_wall_thickness * 2;
+money_box_height_1 = default_floor_thickness + default_lid_thickness + money_one_thickness + 0.5;
 money_box_height_2 = money_box_height_1 - 1;
 
 money_names = [ "1", "5", "10", "20", "50", "100", "200", "500" ];
@@ -82,9 +83,9 @@ middle_height = main_height - money_box_height_1 - money_box_height_2;
 middle_width = money_box_length;
 middle_length = money_box_width;
 
-insert_width = middle_width - wall_thickness * 2;
-insert_length = middle_length - wall_thickness * 3 - large_marker_diameter;
-insert_height = middle_height - lid_thickness - floor_thickness;
+insert_width = middle_width - default_wall_thickness * 2;
+insert_length = middle_length - default_wall_thickness * 3 - large_marker_diameter;
+insert_height = middle_height - default_lid_thickness - default_floor_thickness;
 
 spacer_box_width = first_player_box_width;
 spacer_box_length = first_player_box_length;
@@ -92,9 +93,7 @@ spacer_box_height = main_height - first_player_box_height;
 
 module MoneyBox1()
 {
-    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                      floor_thickness = floor_thickness) for (i = [0:1:3])
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ])
         {
@@ -104,17 +103,14 @@ module MoneyBox1()
                 translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
                     text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
             }
-            translate([ money_width / 2, 1.2, 0 ])
-                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
+            translate([ money_width / 2, 1.2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
         }
     }
 }
 
 module MoneyBox2()
 {
-    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                      floor_thickness = floor_thickness) for (i = [0:1:3])
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2) for (i = [0:1:3])
     {
         translate([ (money_width + inner_wall) * i, 0, 0 ])
         {
@@ -124,8 +120,7 @@ module MoneyBox2()
                 translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
                     text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
             }
-            translate([ money_width / 2, 1.2, 0 ])
-                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 0);
+            translate([ money_width / 2, 1.2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
         }
     }
 }
@@ -136,17 +131,14 @@ module AllMoneyBoxes(generate_lid = true) // `make` me
     translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
     if (generate_lid)
     {
-        translate([ 0, money_box_length * 2 + 20, 0 ])
-            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, lid_thickness = lid_thickness,
-                               text_width = 70, wall_thickness = wall_thickness, text_height = 20, text_str = "Money");
+        translate([ 0, money_box_length * 2 + 20, 0 ]) CapBoxLidWithLabel(
+            width = money_box_width, length = money_box_length, text_width = 70, text_height = 20, text_str = "Money");
     }
 }
 
 module HexBox(generate_lid = true) // `make` me
 {
-    MakeBoxWithInsetLidTabbed(width = hex_box_width, length = hex_box_length, height = hex_box_height,
-                              wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                              floor_thickness = floor_thickness)
+    MakeBoxWithInsetLidTabbed(width = hex_box_width, length = hex_box_length, height = hex_box_height)
     {
         translate([ 0, 5, 0 ])
         {
@@ -160,17 +152,15 @@ module HexBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ 0, hex_box_length + 10, 0 ])
-            InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, lid_thickness = lid_thickness,
-                                    text_width = 70, text_height = 20, text_str = "Tiles");
+        translate([ 0, hex_box_length + 10, 0 ]) InsetLidTabbedWithLabel(
+            width = hex_box_width, length = hex_box_length, text_width = 70, text_height = 20, text_str = "Tiles");
     }
 }
 
 module SharesBox(offset)
 {
     MakeBoxWithSlipoverLid(width = shares_box_width, length = shares_box_length, height = shares_height,
-                           wall_thickness = 1.5, lid_thickness = lid_thickness, floor_thickness = floor_thickness,
-                           foot = 2)
+                           wall_thickness = 1.5, foot = 2)
     {
         for (i = [0:1:1])
         {
@@ -184,18 +174,16 @@ module SharesBox(offset)
                 }
                 else
                 {
-                    translate([ share_width / 2, share_length / 2, shares_height - lid_thickness * 2 - 2 ])
-                        linear_extrude(height = 20) rotate(90)
-                            text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
+                    translate([ share_width / 2, share_length / 2, $inner_height - 2 ]) linear_extrude(height = 20)
+                        rotate(90) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
                 }
             }
         }
-        translate([ -1, share_length / 2, 0 ])
-            FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
+        translate([ -1, share_length / 2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 270);
         if (offset != 6)
         {
             translate([ -1, share_length / 2 + share_length, 0 ])
-                FingerHoleBase(radius = 10, height = main_height - lid_thickness - floor_thickness, spin = 270);
+                FingerHoleBase(radius = 10, height = $inner_height, spin = 270);
         }
     }
 }
@@ -208,10 +196,9 @@ module AllShareBoxes(generate_lid = true) // `make` me
     translate([ 0, shares_box_length * 3 + 30, 0 ]) SharesBox(6);
     if (generate_lid)
     {
-        translate([ 0, shares_box_length * 4 + 40, 0 ])
-            SlipoverLidWithLabel(width = shares_box_width, length = shares_box_length, text_width = 70,
-                                 text_height = 20, text_str = "Shares", lid_thickness = lid_thickness,
-                                 label_rotated = true, wall_thickness = 1.5, height = shares_height);
+        translate([ 0, shares_box_length * 4 + 40, 0 ]) SlipoverLidWithLabel(
+            width = shares_box_width, length = shares_box_length, text_width = 70, text_height = 20,
+            text_str = "Shares", label_rotated = true, wall_thickness = 1.5, height = shares_height);
     }
 }
 
@@ -219,12 +206,11 @@ module MiddleBox(generate_lid = true) // `make` me
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
-    MakeBoxWithCapLid(width = middle_width, length = middle_length, height = middle_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = floor_thickness)
+    MakeBoxWithCapLid(width = middle_width, length = middle_length, height = middle_height)
     {
-        translate([ insert_width / 2, 11.5, middle_height - lid_thickness - floor_thickness ])
-            linear_extrude(height = 5) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
-        translate([ 47, first_player_box_height + wall_thickness + 15, 0 ])
+        translate([ insert_width / 2, 11.5, $inner_height ]) linear_extrude(height = 5)
+            text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
+        translate([ 47, first_player_box_height + default_wall_thickness + 15, 0 ])
         {
             cube([ share_width + 0.5, share_length + 0.5, middle_height ]);
             translate([ share_width / 2, share_length / 2, -0.5 ]) linear_extrude(height = 1) rotate(90)
@@ -233,8 +219,8 @@ module MiddleBox(generate_lid = true) // `make` me
         }
         private_company_cards = share_thickness_twenty * 10 / 20 + 1;
         translate([
-            47, first_player_box_height + wall_thickness + share_length + wall_thickness + 30,
-            middle_height - floor_thickness - lid_thickness -
+            47, first_player_box_height + default_wall_thickness + share_length + default_wall_thickness + 30,
+            $inner_height -
             private_company_cards
         ])
         {
@@ -247,7 +233,7 @@ module MiddleBox(generate_lid = true) // `make` me
         {
             token_num = token_depths[i];
 
-            translate([ 0, (i < 4 ? i : i + 1) * (token_diameter + wall_thickness * 2 + 4) + 5, 0 ])
+            translate([ 0, (i < 4 ? i : i + 1) * (token_diameter + default_wall_thickness * 2 + 4) + 5, 0 ])
             {
                 for (j = [0:1:token_num - 1])
                 {
@@ -269,8 +255,7 @@ module MiddleBox(generate_lid = true) // `make` me
     if (generate_lid)
     {
         translate([ 0, middle_length + 10, 0 ])
-            CapBoxLidWithLabel(width = middle_width, length = middle_length, height = middle_height,
-                               lid_thickness = lid_thickness, text_height = 20, wall_thickness = wall_thickness,
+            CapBoxLidWithLabel(width = middle_width, length = middle_length, height = middle_height, text_height = 20,
                                text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
     }
 }
@@ -280,16 +265,17 @@ module SpacerBox() // `make` me
     difference()
     {
         cube([ spacer_box_width, spacer_box_length, spacer_box_height ]);
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
-            cube([ spacer_box_width - wall_thickness * 2, spacer_box_length - wall_thickness * 2, spacer_box_height ]);
+        translate([ default_wall_thickness, default_wall_thickness, default_wall_thickness ]) cube([
+            spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
+            spacer_box_height
+        ]);
     }
 }
 
 module LastSectionFirstPlayer(generate_lid = true) // `make` me
 {
     MakeBoxWithSlipoverLid(width = first_player_box_width, length = first_player_box_length,
-                           height = first_player_box_height, floor_thickness = floor_thickness, wall_thickness = 3,
-                           foot = 2)
+                           height = first_player_box_height, wall_thickness = 3, foot = 2)
     {
         translate([ -1, 30, 14 ])
         {
