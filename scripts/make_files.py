@@ -4,7 +4,7 @@ import glob
 import re
 
 class ScadFile:
-   def __init__(self, filename, module, basename):
+   def __init__(self, filename:str, module:str, basename:str):
        self.filename = filename
        self.module = module
        self.basename = basename
@@ -30,7 +30,12 @@ with open("generate.makefile", "w") as mfile:
         mfile.write("output/{0}__{1}.stl: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
         mfile.write("\t$(SCAD) -m make -o $@ -d $@.deps $< -D FROM_MAKE=1\n\n")
         # Create the scad file.
-        with open("output/{0}__{1}.scad".format(d.basename, d.module), "w") as f:
-            f.write("include <../{0}.scad>\n".format(d.basename))
-            f.write("{0}();".format(d.module))
-            f.close()
+        scad_script = "include <../{0}.scad>\n{1}();".format(d.basename, d.module)
+        file_data = ""
+        with open('data.txt', 'r') as file:
+            file_data = file.read()
+        # Only write the file if it is different.
+        if file_data != scad_script:
+            with open("output/{0}__{1}.scad".format(d.basename, d.module), "w") as f:
+                f.write(file_data)
+                f.close()
