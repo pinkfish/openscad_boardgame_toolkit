@@ -67,7 +67,7 @@ victory_box_width = destination_box_width;
 victory_box_length = destination_box_length;
 victory_box_height = box_height - destination_box_height - 0.5;
 
-card_box_width = card_length + wall_thickness*2+3;
+card_box_width = card_length + wall_thickness * 2 + 3;
 card_box_length = card_width + wall_thickness * 2 + 0.5;
 card_box_height = box_height - 1;
 
@@ -325,5 +325,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    TicketBox();
+    RegularPolygon(width = 20, height = 10, shape_edges = 6, finger_holes = [ 1, 0 ]);
 }

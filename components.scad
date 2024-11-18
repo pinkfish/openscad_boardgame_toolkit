@@ -151,16 +151,63 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
 //   width = total width of the piece, this is equivilant to the apothem of a polygon * 2
 //   height = how high to create the item
 //   shape_edges =  number of edges for the polygon
+//   finger_holes = finger holes to put on the specific edges, from 0-shapeedges
+//   finger_hole_height = height of the finger holes
+//   finger_hole_radius = the radius of the finger holes
 // Topics: Recess
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6);
-module RegularPolygon(width, height, shape_edges)
+// Example:
+//   RegularPolygon(10, 5, shape_edges = 6, finger_holes = [0, 3]);
+module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef)
 {
     rotate_deg = ((shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
     apothem = width / 2;
     radius = apothem / cos(180 / shape_edges);
 
+    side_length = 2 * apothem * tan(180 / shape_edges);
+
+    calc_finger_hole_radius = DefaultValue(finger_hole_radius, side_length * 9 / 10);
+
     rotate([ 0, 0, rotate_deg ]) linear_extrude(height = height) regular_ngon(n = shape_edges, or = radius);
+    degree = 360 / shape_edges;
+    for (i = [0:1:len(finger_holes) - 1])
+    {
+        x = width / 2 * cos(degree * finger_holes[i] + rotate_deg + degree / 2);
+        y = width / 2 * sin(degree * finger_holes[i] + rotate_deg + degree / 2);
+        translate([ x, y, finger_hole_height ])
+        {
+            cyl(r = calc_finger_hole_radius, h = max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
+                rounding = calc_finger_hole_radius, anchor = BOTTOM);
+        }
+    }
+}
+
+// Module: CircleWithIndents()
+// Description:
+//    Makes a nice cylinder with finger holes bits at the spexific angles.
+// Arguments:
+//    radius = radius of the circle
+//    height = of the cylinder
+//    finger_holes = finger holes at the specified degrees.
+//    finger_hole_height = how much to move it up from the bottom
+//    finger_hole_radius = the radius to use for the finger holes
+// Examples:
+//    CylinderWithIndents(15, 10, finger_holes = [30, 210]);
+module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef)
+{
+    cyl(r = radius, h = height, anchor = BOTTOM);
+    calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
+    for (i = [0:1:len(finger_holes) - 1])
+    {
+        x = radius * cos(finger_holes[i]);
+        y = radius * sin(finger_holes[i]);
+        translate([ x, y, finger_hole_height ])
+        {
+            cyl(r = calc_finger_hole_radius, h = height + calc_finger_hole_radius, anchor = BOTTOM,
+                rounding = calc_finger_hole_radius);
+        }
+    }
 }
 
 // Module: RegularPolygonGrid()
@@ -401,11 +448,10 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 // Arguments:
 //    radius = radius of the hole
 //    height = height of the wall
-//    wall_thickness = this is used as an offset to move in from the wall by this amount to cut through it (default 2)
-//    rounding_radius = rounding radius at the top of the hole (default 3)
-//    orient = orintation of the hole, from BSOL2 (default UP)
-//    spin = spin of the hole, from BSOL2 (default 0)
-//    anchor = location to anchor everything (from BSOL2)
+//    wall_thickness = this is used as an offset to move in from the wall by this amount to cut through it (default
+//    2) rounding_radius = rounding radius at the top of the hole (default 3) orient = orintation of the hole, from
+//    BSOL2 (default UP) spin = spin of the hole, from BSOL2 (default 0) anchor = location to anchor everything
+//    (from BSOL2)
 // Example:
 //    FingerHoleBase(10, 20);
 // Example:
