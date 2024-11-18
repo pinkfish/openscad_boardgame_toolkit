@@ -70,7 +70,7 @@ meeple_middle_width = 11;
 meeple_arm_width = 6;
 meeple_leg_v_top = 4;
 
-wold_head_width = 16;
+wolf_head_width = 16;
 wolf_head_length = 18.5;
 
 player_box_length = (box_width - 2) / 3;
@@ -160,12 +160,14 @@ module UnmetNeedsBox(generate_lid = true) // `make` me
     {
         for (i = [0:1:2])
         {
-            translate(
-                [ i * (unmet_needs_size + 4) + 4, 12, $inner_height - token_thickness * unmet_needs_num / 3 - 0.5 ])
+            translate([
+                i * (unmet_needs_size + 4) + 4 + unmet_needs_size / 2, 12 + unmet_needs_size / 2,
+                $inner_height - token_thickness * unmet_needs_num / 3 - 0.5
+            ])
             {
-                cube([ unmet_needs_size, unmet_needs_size, token_thickness * unmet_needs_num / 3 + 1 ]);
-                translate([ unmet_needs_size / 2, unmet_needs_size, 0 ]) sphere(r = 12, anchor = BOTTOM);
-                translate([ unmet_needs_size / 2, 0, 0 ]) sphere(r = 12, anchor = BOTTOM);
+                CuboidWithIndentsBottom(
+                    [ unmet_needs_size, unmet_needs_size, token_thickness * unmet_needs_num / 3 + 1 ],
+                    finger_holes = [ 2, 6 ], finger_hole_radius = 12);
             }
         }
         translate([ 4, $inner_length - unmet_needs_size * 3, $inner_height - token_thickness * 3 - 0.5 ])
@@ -189,25 +191,29 @@ module ExtraCardsBox(generate_lid = false) // `make` me
             FingerHoleBase(radius = 10, height = player_box_height, spin = 270);
 
         translate([
-            status_rank_size / 2 + 4, $inner_length - status_rank_size / 2 - 10, $inner_height - token_thickness * 3 - 1
+            status_rank_size / 2 + 4, $inner_length - status_rank_size / 2 - 4, $inner_height - token_thickness * 3 - 1
         ])
         {
-            cyl(d = status_rank_size, anchor = BOTTOM, h = $inner_height);
-            translate([ sqrt(2) / 2 * status_rank_size / 2, sqrt(2) / 2 * status_rank_size / 2, 0 ])
-                sphere(r = 10, anchor = BOTTOM);
-            translate([ -sqrt(2) / 2 * status_rank_size / 2, -sqrt(2) / 2 * status_rank_size / 2, 0 ])
-                sphere(r = 10, anchor = BOTTOM);
+            CylinderWithIndents(radius = status_rank_size / 2, height = $inner_height, finger_holes = [ 45, 225 ],
+                                finger_hole_radius = 10);
         }
         translate([
-            $inner_width - status_rank_size / 2 - 4, $inner_length - status_rank_size / 2 - 10,
+            $inner_width - status_rank_size / 2 - 4, $inner_length - status_rank_size / 2 - 4,
             $inner_height - token_thickness * 3 - 1
         ])
         {
-            cyl(d = status_rank_size, anchor = BOTTOM, h = $inner_height);
-            translate([ sqrt(2) / 2 * status_rank_size / 2, sqrt(2) / 2 * status_rank_size / 2, 0 ])
-                sphere(r = 10, anchor = BOTTOM);
-            translate([ -sqrt(2) / 2 * status_rank_size / 2, -sqrt(2) / 2 * status_rank_size / 2, 0 ])
-                sphere(r = 10, anchor = BOTTOM);
+            CylinderWithIndents(radius = status_rank_size / 2, height = $inner_height, finger_holes = [ 45, 225 ],
+                                finger_hole_radius = 10);
+        }
+        // Start token.
+        translate(
+            [ $inner_width / 2, card_width + wolf_head_width / 2 + 2, $inner_height - wood_token_thickness - 0.5 ])
+            CuboidWithIndentsBottom(size = [ wolf_head_length, wolf_head_width, wood_token_thickness + 1 ],
+                                    finger_holes = [ 0, 4 ], finger_hole_radius = 10,
+                                    finger_hole_height = wood_token_thickness / 2)
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 4)
+                text("Wolf", size = 4, valign = "center", halign = "center");
         }
     }
     if (generate_lid)
@@ -274,5 +280,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    BoxLayout();
+    ExtraCardsBox(generate_lid = false);
 }

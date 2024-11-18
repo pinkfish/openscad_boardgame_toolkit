@@ -181,6 +181,7 @@ module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole
                 rounding = calc_finger_hole_radius, anchor = BOTTOM);
         }
     }
+    children();
 }
 
 // Module: CircleWithIndents()
@@ -208,6 +209,38 @@ module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height
                 rounding = calc_finger_hole_radius);
         }
     }
+    children();
+}
+
+// Module: CuboidWithIndentsBottom()
+// Description:
+//    Makes a nice cuboid with finger holes bits at the specific sides, this anchors to the bottom.
+//    The holes are at:
+//    [top=0, topright=1, right=2, bottomright=3, bottom=4,
+//       bottomleft=5, left=6, topleft=7 ]
+// Arguments:
+//    size = size of the cuboid
+//    finger_holes = finger holes at the specified places
+//    finger_hole_height = how much to move it up from the bottom finger_hole_radius =
+//    the radius to use for the finger holes
+// Examples:
+//    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [1, 5]);
+// Examples:
+//    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [0, 4]);
+module CuboidWithIndentsBottom(size, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef, rounding = undef,
+                         edges = undef)
+{
+    cuboid(size, anchor = BOTTOM, rounding = rounding, edges = edges);
+    calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
+    mult = [ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ], [ 0, -1 ], [ 1, -1 ] ];
+    for (i = [0:1:len(finger_holes) - 1])
+    {
+        data = mult[finger_holes[i]];
+        translate([ size[0] / 2 * data[0], size[1] / 2 * data[1], finger_hole_height ])
+            cyl(r = calc_finger_hole_radius, h = size[2] + calc_finger_hole_radius*2, anchor = BOTTOM,
+                rounding = calc_finger_hole_radius);
+    }
+    children();
 }
 
 // Module: RegularPolygonGrid()

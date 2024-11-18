@@ -118,11 +118,9 @@ module DestinationBox(generate_lid = true) // `make` me
             destination_box_height - token_thickness * num_track_tiles - 0.5 - lid_thickness * 2
         ])
         {
-            cube([ track_tile_length, track_tile_width, token_thickness * num_destination_tiles + 1 ]);
-            translate([ 0, track_tile_width / 2, token_thickness * num_destination_tiles + 0.5 ])
-                sphere(r = token_thickness * num_destination_tiles + 0.5);
-            translate([ track_tile_length, track_tile_width / 2, token_thickness * num_destination_tiles + 0.5 ])
-                sphere(r = token_thickness * num_destination_tiles + 0.5);
+            translate([ track_tile_length / 2, track_tile_width / 2, 0 ]) CuboidWithIndentsBottom(
+                [ track_tile_length, track_tile_width, token_thickness * num_destination_tiles + 1 ],
+                finger_holes = [ 0, 4 ], finger_hole_radius = token_thickness * num_destination_tiles + 0.5);
         }
     }
     if (generate_lid)
@@ -184,15 +182,8 @@ module VictoryBox(generate_lid = true) // `make` me
             ten_bit_height
         ])
         {
-            RegularPolygon(width = victory_hex_ten_width + 0.5, height = ten_bit_height + 0.5, shape_edges = 6);
-            translate([
-                ten_radius + (ten_radius - victory_hex_ten_width) / 2, victory_hex_ten_width * 1 / 4,
-                ten_bit_height
-            ]) sphere(ten_bit_height);
-            translate([
-                -ten_radius - (ten_radius - victory_hex_ten_width) / 2, -victory_hex_ten_width * 1 / 4,
-                ten_bit_height
-            ]) sphere(ten_bit_height);
+            RegularPolygon(width = victory_hex_five_width + 0.5, height = ten_bit_height + 0.5, shape_edges = 6,
+                           finger_hole_radius = ten_bit_height, finger_holes = [ 3, 6 ]);
         }
         // five token
         five_bit_height = token_thickness * num_victory_tokens[2] + 0.5;
@@ -203,15 +194,8 @@ module VictoryBox(generate_lid = true) // `make` me
             five_bit_height
         ])
         {
-            RegularPolygon(width = victory_hex_five_width + 0.5, height = five_bit_height + 0.5, shape_edges = 6);
-            translate([
-                five_radius + (five_radius - victory_hex_five_width) / 2, victory_hex_five_width * 1 / 4,
-                five_bit_height
-            ]) sphere(five_bit_height);
-            translate([
-                -five_radius - (five_radius - victory_hex_five_width) / 2, -victory_hex_five_width * 1 / 4,
-                five_bit_height
-            ]) sphere(five_bit_height);
+            RegularPolygon(width = victory_hex_five_width + 0.5, height = five_bit_height + 0.5, shape_edges = 6,
+                           finger_hole_radius = five_bit_height, finger_holes = [ 3, 6 ]);
         }
     }
     if (generate_lid)
@@ -262,9 +246,8 @@ module TicketBox(generate_lid = true) // `make` me
         }
         translate([ $inner_width / 2, train_token_length / 2 + 7, $inner_height - train_token_thickness - 0.5 ])
         {
-            cuboid([ train_token_width, train_token_length, train_token_thickness + 1 ], anchor = BOTTOM);
-            translate([ 0, train_token_length / 2, 0 ]) sphere(r = 9, anchor = BOTTOM);
-            translate([ 0, -train_token_length / 2, 0 ]) sphere(r = 9, anchor = BOTTOM);
+            CuboidWithIndentsBottom([ train_token_width, train_token_length, train_token_thickness + 1 ],
+                                    finger_holes = [ 2, 6 ], finger_hole_radius = 9);
         }
     }
     if (generate_lid)
@@ -325,5 +308,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    RegularPolygon(width = 20, height = 10, shape_edges = 6, finger_holes = [ 1, 0 ]);
+    DestinationBox(generate_lid = false);
 }
