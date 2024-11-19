@@ -205,7 +205,7 @@ module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height
         y = radius * sin(finger_holes[i]);
         translate([ x, y, finger_hole_height ])
         {
-            cyl(r = calc_finger_hole_radius, h = height + calc_finger_hole_radius, anchor = BOTTOM,
+            cyl(r = calc_finger_hole_radius, h = height + calc_finger_hole_radius * 2, anchor = BOTTOM,
                 rounding = calc_finger_hole_radius);
         }
     }
@@ -227,8 +227,8 @@ module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [1, 5]);
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [0, 4]);
-module CuboidWithIndentsBottom(size, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef, rounding = undef,
-                         edges = undef)
+module CuboidWithIndentsBottom(size, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef,
+                               rounding = undef, edges = undef)
 {
     cuboid(size, anchor = BOTTOM, rounding = rounding, edges = edges);
     calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
@@ -237,7 +237,7 @@ module CuboidWithIndentsBottom(size, finger_holes = [], finger_hole_height = 0, 
     {
         data = mult[finger_holes[i]];
         translate([ size[0] / 2 * data[0], size[1] / 2 * data[1], finger_hole_height ])
-            cyl(r = calc_finger_hole_radius, h = size[2] + calc_finger_hole_radius*2, anchor = BOTTOM,
+            cyl(r = calc_finger_hole_radius, h = size[2] + calc_finger_hole_radius * 2, anchor = BOTTOM,
                 rounding = calc_finger_hole_radius);
     }
     children();

@@ -492,7 +492,8 @@ module MarquisBoxTop(generate_lid = true) // `make` me
     {
         // Wood markers.
         translate([
-            round_tile_diameter / 2, round_tile_diameter / 2, $inner_height - tile_thickness * marquis_wood_token_num / 2
+            round_tile_diameter / 2, round_tile_diameter / 2,
+            $inner_height - tile_thickness * marquis_wood_token_num / 2
         ]) cyl(d = round_tile_diameter, h = tile_thickness * marquis_wood_token_num / 2, anchor = BOTTOM);
         translate([
             round_tile_diameter / 2 + round_tile_diameter + 2, round_tile_diameter / 2,
@@ -564,7 +565,8 @@ module VagabondBox(generate_lid = true) // `make` me
             translate([ -5, square_tile_size / 2, 0 ]) xcyl(r = 7, h = vagabond_box_height, anchor = BOTTOM);
         }
         translate([
-            0, $inner_length - square_tile_size, $inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
+            0, $inner_length - square_tile_size,
+            $inner_height - tile_thickness * vagabond_relationship_num_each / 2 - 0.5
         ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num_each / 2 + 1 ]);
@@ -668,7 +670,8 @@ module RiverfolkBoxBottom(generate_lid = true) // `make` me
         len = player_token_thickness * 5 + 1;
         translate([ 0, 0, 0 ]) for (i = [0:1:2])
         {
-            translate([ len / 2, riverfolk_width / 2 + (riverfolk_width + 1) * i, $inner_height - riverfolk_length / 2 ])
+            translate(
+                [ len / 2, riverfolk_width / 2 + (riverfolk_width + 1) * i, $inner_height - riverfolk_length / 2 ])
             {
                 rotate([ 90, 0, 90 ]) RiverfolkCharacter(height = len + 1);
                 translate([ 0, 0, riverfolk_length / 2 ])
@@ -928,8 +931,8 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
             translate([ $inner_width / 2, round_winter_thing_length / 2 + (round_winter_thing_length + 1) * i, 0 ])
             {
                 rotate([ 0, 0, 90 ]) WinterToken(tile_thickness * 2 + 1);
-                translate([ round_winter_thing_width/2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ -round_winter_thing_width/2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+                translate([ round_winter_thing_width / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+                translate([ -round_winter_thing_width / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
             }
         }
     }
@@ -991,18 +994,17 @@ module ItemsBoxExtras(generate_lid = true) // `make` me
         {
             translate([ slightly_larger_round_tile_diameter / 2, slightly_larger_round_tile_diameter / 2, 0 ])
             {
-                cuboid([ larger_square_tile_, larger_square_tile_, tile_thickness * item[1] + 1 ], anchor = BOTTOM);
-                translate([ larger_square_tile_ / 2 * item[3], 0, 0 ])
-                    cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
+                CuboidWithIndentsBottom([ larger_square_tile_, larger_square_tile_, tile_thickness * item[1] + 1 ],
+                                        finger_hole_radius = 6, finger_holes = [item[3] == 1 ? 0 : 4]);
             }
         }
         else
         {
             translate([ slightly_larger_round_tile_diameter / 2, slightly_larger_round_tile_diameter / 2, 0 ])
             {
-                cyl(d = slightly_larger_round_tile_diameter, h = tile_thickness * item[1] + 1, anchor = BOTTOM);
-                translate([ slightly_larger_round_tile_diameter / 2 * item[3], 0, 0 ])
-                    cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
+                CylinderWithIndents(radius = slightly_larger_round_tile_diameter / 2,
+                                    height = tile_thickness * item[1] + 1, finger_hole_radius = 6,
+                                    finger_holes = [item[3] == 1 ? 0 : 180]);
             }
         }
         translate([ (slightly_larger_round_tile_diameter) / 2, slightly_larger_round_tile_diameter / 2, -0.5 ])
@@ -1096,5 +1098,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    BoxLayout();
+    ItemsBoxExtras(generate_lid = false);
 }
