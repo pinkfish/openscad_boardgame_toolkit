@@ -15,6 +15,7 @@ specific language governing permissions and limitations
 under the License.
  */
 
+include <BOSL2/beziers.scad>
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
@@ -450,6 +451,72 @@ module MarquisEyes2d()
     }
 }
 
+module AllianceEyes2d()
+{
+    translate([ -6, 0, 0 ]) SideEye2d(0);
+    translate([ 6, 0, 0 ]) SideEye2d(0);
+}
+
+module ErieEyes2d()
+{
+    translate([ -6, 6.5 ]) rotate(30) rect([ 10, 1.5 ]);
+    translate([ -6, 0, 0 ]) SideEye2d(270);
+}
+
+module VagabondEyes2d()
+{
+    module OneEye(angle)
+    {
+        translate([ -6, 0, 0 ]) SideEye2d(angle);
+        {
+            translate([ -1.5, -2 ]) rotate(65) difference()
+            {
+                translate([ 0, -5 ]) difference()
+                {
+                    round2d(1) difference()
+                    {
+
+                        rect([ 10, 20 ]);
+                        translate([ 0, -13 ]) circle(d = 20);
+                    }
+                    translate([ 0, 10 ]) circle(d = 10);
+                }
+            }
+        }
+    }
+    translate([ 12, 0, 0 ]) OneEye(180);
+    translate([ -12, 0, 0 ]) mirror([ 1, 0 ]) OneEye(0);
+}
+
+module RiverfolkEyes2d()
+{
+    translate([ 6, 0, 0 ]) SideEye2d(90);
+    translate([ -6, 0, 0 ]) SideEye2d(90);
+    translate([ 0, -4, 0 ])
+    {
+        translate([ 1, 0.6 ]) rotate(30) rect([ 4, 1 ]);
+        translate([ -1, 0.6 ]) rotate(150) rect([ 4, 1 ]);
+        circle(d = 3);
+    }
+}
+
+module LizardEyes2d()
+{
+    translate([ 6, 0, 0 ]) HalfEye2d(270);
+    module BezSection(len)
+    {
+        bez = [ [ 0, len / 2 ], [ -len, 0 ], [ -len * 2, -len ], [ -len * 3, len / 2 ] ];
+        path = bezier_points(bez, [0:0.05:1]);
+        stroke(path);
+    }
+    translate([ -2, 0.5 ])
+    {
+        BezSection(len = 2);
+        translate([ -6, 0 ]) BezSection(len = 2);
+        translate([ -12, 0 ]) BezSection(len = 2);
+    }
+}
+
 module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
@@ -473,6 +540,21 @@ module CardBox(generate_lid = true) // `make` me
             CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
                                text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
         }
+    }
+}
+
+module CapBoxLidWithEyes(width, length, height)
+{
+    CapBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness,
+              lid_thickness = default_lid_thickness, lid_wall_thickness = default_wall_thickness,
+              size_spacing = m_piece_wiggle_room)
+    {
+        translate([ 10, 10, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
+                         layout_width = default_lid_layout_width, shape_type = default_lid_shape_type,
+                         shape_width = default_lid_shape_width, shape_thickness = default_lid_shape_thickness,
+                         aspect_ratio = default_lid_aspect_ratio);
+        translate([ width / 2, length / 2, 0 ]) children();
     }
 }
 
@@ -507,8 +589,10 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
     {
         translate([ marquis_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height,
-                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
+            CapBoxLidWithEyes(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height)
+            {
+                translate([ 0, 10, 0 ]) linear_extrude(height = default_lid_thickness) scale(2) MarquisEyes2d();
+            }
         }
     }
 }
@@ -579,8 +663,10 @@ module MarquisBoxTop(generate_lid = true) // `make` me
     {
         translate([ marquis_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height,
-                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
+            CapBoxLidWithEyes(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
+            {
+                translate([ 0, 10, 0 ]) linear_extrude(height = default_lid_thickness) scale(2) MarquisEyes2d();
+            }
         }
     }
 }
@@ -628,8 +714,10 @@ module VagabondBox(generate_lid = true) // `make` me
     {
         translate([ vagabond_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height,
-                               text_width = 70, text_height = 20, text_str = "Vagabond", label_rotated = true);
+            CapBoxLidWithEyes(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) VagabondEyes2d();
+            }
         }
     }
 }
@@ -658,8 +746,10 @@ module ErieBoxBottom(generate_lid = true) // `make` me
     {
         translate([ erie_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = erie_box_width, length = erie_box_length, height = erie_box_height,
-                               text_width = 70, text_height = 20, text_str = "Erie", label_rotated = true);
+            CapBoxLidWithEyes(width = erie_box_width, length = erie_box_length, height = erie_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(2) ErieEyes2d();
+            }
         }
     }
 }
@@ -689,8 +779,10 @@ module ErieBoxTop(generate_lid = true) // `make` me
     {
         translate([ erie_box_top_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
-                               text_width = 70, text_height = 20, text_str = "Erie", label_rotated = true);
+            CapBoxLidWithEyes(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(2) ErieEyes2d();
+            }
         }
     }
 }
@@ -721,8 +813,10 @@ module AllianceBoxBottom(generate_lid = true) // `make` me
     {
         translate([ alliance_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height,
-                               text_width = 70, text_height = 20, text_str = "Alliance", label_rotated = true);
+            CapBoxLidWithEyes(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(1.5) AllianceEyes2d();
+            }
         }
     }
 }
@@ -763,9 +857,11 @@ module AllianceBoxTop(generate_lid = true) // `make` me
     {
         translate([ alliance_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = alliance_box_width, length = alliance_box_length,
-                               height = alliance_box_top_height, text_width = 70, text_height = 20,
-                               text_str = "Alliance", label_rotated = true);
+            CapBoxLidWithEyes(width = alliance_box_width, length = alliance_box_length,
+                              height = alliance_box_top_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(1.5) AllianceEyes2d();
+            }
         }
     }
 }
@@ -790,9 +886,10 @@ module RiverfolkBoxBottom(generate_lid = true) // `make` me
     {
         translate([ riverfolk_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = riverfolk_box_width, length = riverfolk_box_length,
-                               height = riverfolk_box_height, text_width = 70, text_height = 20, text_str = "Riverfolk",
-                               label_rotated = true);
+            CapBoxLidWithEyes(width = riverfolk_box_width, length = riverfolk_box_length, height = riverfolk_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(1.5) RiverfolkEyes2d();
+            }
         }
     }
 }
@@ -835,9 +932,11 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
     {
         translate([ riverfolk_box_top_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = riverfolk_box_top_width, length = riverfolk_box_length,
-                               height = riverfolk_box_height, text_width = 70, text_height = 20, text_str = "Riverfolk",
-                               label_rotated = true);
+            CapBoxLidWithEyes(width = riverfolk_box_top_width, length = riverfolk_box_length,
+                              height = riverfolk_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(1.5) RiverfolkEyes2d();
+            }
         }
     }
 }
@@ -867,8 +966,10 @@ module LizardBoxBottom(generate_lid = true) // `make` me
     {
         translate([ lizard_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = lizard_box_width, length = lizard_box_length, height = lizard_box_height,
-                               text_width = 70, text_height = 20, text_str = "Lizard", label_rotated = true);
+            CapBoxLidWithEyes(width = lizard_box_width, length = lizard_box_length, height = lizard_box_height)
+            {
+                linear_extrude(height = default_lid_thickness) scale(2.5) LizardEyes2d();
+            }
         }
     }
 }
@@ -902,8 +1003,10 @@ module LizardBoxTop(generate_lid = true) // `make` me
     {
         translate([ lizard_box_top_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height,
-                               text_width = 70, text_height = 20, text_str = "Lizard", label_rotated = true);
+            CapBoxLidWithEyes(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height)
+            {
+                linear_extrude(height = default_lid_thickness) LizardEyes2d();
+            }
         }
     }
 }
@@ -1250,5 +1353,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    SideEye2d(0);
+    LizardBoxTop();
 }
