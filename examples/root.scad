@@ -449,6 +449,14 @@ module CardBox(generate_lid = true) // `make` me
                 FingerHoleBase(radius = 15, height = card_box_height);
         }
     }
+    if (generate_lid)
+    {
+        translate([ marquis_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
+                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
+        }
+    }
 }
 
 module MarquisBoxBottom(generate_lid = true) // `make` me
@@ -478,15 +486,29 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
         translate([ 0, 0, marquis_length / 2 ])
             RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, marquis_length, 7);
     }
+    if (generate_lid)
+    {
+        translate([ marquis_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = marquis_box_width, length = marquis_box_length, height = marquis_box_height,
+                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
+        }
+    }
 }
 
 module MarquisBoxTop(generate_lid = true) // `make` me
 {
-    module BuildingSpots()
+    module BuildingSpots(finger_holes)
     {
-        cube([ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ]);
-        translate([ square_tile_size + 1, 0, 0 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ]);
+        translate([ square_tile_size / 2, square_tile_size / 2, 0 ])
+        {
+            CuboidWithIndentsBottom(
+                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ],
+                finger_hole_radius = 7, finger_holes = finger_holes);
+            translate([ square_tile_size + 1, 0, 0 ]) CuboidWithIndentsBottom(
+                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ],
+                finger_hole_radius = 7, finger_holes = finger_holes);
+        }
     }
     MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
     {
@@ -494,41 +516,54 @@ module MarquisBoxTop(generate_lid = true) // `make` me
         translate([
             round_tile_diameter / 2, round_tile_diameter / 2,
             $inner_height - tile_thickness * marquis_wood_token_num / 2
-        ]) cyl(d = round_tile_diameter, h = tile_thickness * marquis_wood_token_num / 2, anchor = BOTTOM);
+        ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness * marquis_wood_token_num / 2,
+                               finger_hole_radius = 7, finger_holes = [110]);
         translate([
             round_tile_diameter / 2 + round_tile_diameter + 2, round_tile_diameter / 2,
             $inner_height - tile_thickness * marquis_wood_token_num / 2
-        ]) cyl(d = round_tile_diameter, h = tile_thickness * marquis_wood_token_num / 2, anchor = BOTTOM);
+        ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness * marquis_wood_token_num / 2,
+                               finger_hole_radius = 7, finger_holes = [110]);
 
         // Keep token
         translate([
             round_tile_diameter / 2 + round_tile_diameter * 2 + 2, round_tile_diameter / 2 * 6 / 4,
             $inner_height - tile_thickness - 0.5
-        ]) cyl(d = round_tile_diameter, h = tile_thickness + 1, anchor = BOTTOM);
+        ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness + 1, finger_hole_radius = 10,
+                               finger_holes = [135]);
 
         // Score marker.
-        translate(
-            [ round_tile_diameter * 2 + 2, $inner_length - 5 - square_tile_size, $inner_height - tile_thickness - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
+        translate([
+            round_tile_diameter * 2 + 2 + square_tile_size / 2, $inner_length - 5 - square_tile_size / 2,
+            $inner_height - tile_thickness - 0.5
+        ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 9.5,
+                                   finger_holes = [2]);
 
         // Buildings.
         translate(
             [ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * marquis_building_token_num / 2 ])
         {
-            BuildingSpots();
+            BuildingSpots(finger_holes = [6]);
         }
         translate([
             $inner_width - square_tile_size * 2 - 1, $inner_length - square_tile_size,
             $inner_height - tile_thickness * marquis_building_token_num / 2
         ])
         {
-            BuildingSpots();
+            BuildingSpots(finger_holes = [6]);
         }
         translate([
             $inner_width - square_tile_size * 2 - 1, 0, $inner_height - tile_thickness * marquis_building_token_num / 2
         ])
         {
-            BuildingSpots();
+            BuildingSpots(finger_holes = [2]);
+        }
+    }
+    if (generate_lid)
+    {
+        translate([ marquis_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height,
+                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
         }
     }
 }
@@ -548,11 +583,11 @@ module VagabondBox(generate_lid = true) // `make` me
         }
 
         // Score marker.
-        translate([ $inner_width - square_tile_size * 5 / 4, 3, $inner_height - tile_thickness - 0.5 ])
+        translate(
+            [ $inner_width - square_tile_size * 2 / 4, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
         {
-            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
-            translate([ square_tile_size, square_tile_size / 2, 0 ])
-                cyl(r = 7, h = box_height, anchor = BOTTOM, rounding = 5.5);
+            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 10,
+                                    finger_holes = [2]);
         }
 
         // Relationship markers.
@@ -570,6 +605,14 @@ module VagabondBox(generate_lid = true) // `make` me
         ])
         {
             cube([ square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num_each / 2 + 1 ]);
+        }
+    }
+    if (generate_lid)
+    {
+        translate([ vagabond_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height,
+                               text_width = 70, text_height = 20, text_str = "Vagabond", label_rotated = true);
         }
     }
 }
@@ -594,22 +637,43 @@ module ErieBoxBottom(generate_lid = true) // `make` me
             }
         }
     }
+    if (generate_lid)
+    {
+        translate([ erie_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = erie_box_width, length = erie_box_length, height = erie_box_height,
+                               text_width = 70, text_height = 20, text_str = "Erie", label_rotated = true);
+        }
+    }
 }
+
 module ErieBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
     {
         // Score marker.
-        translate([ 0, $inner_length - square_tile_size, $inner_height - tile_thickness - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
+        translate([ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
+            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 8,
+                                    finger_holes = [6]);
 
         // Roosts.
         for (i = [0:1:1])
         {
             num_tiles = 3 + i;
-            translate([ (square_tile_size + 1) * i, 0, $inner_height - num_tiles * tile_thickness - 0.5 ])
-                cube([ square_tile_size, square_tile_size, tile_thickness * num_tiles + 1 ]);
+            translate([
+                (square_tile_size + 1) * i + square_tile_size / 2, square_tile_size / 2,
+                $inner_height - num_tiles * tile_thickness - 0.5
+            ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * num_tiles + 1 ],
+                                       finger_hole_radius = 8, finger_holes = [2]);
+        }
+    }
+    if (generate_lid)
+    {
+        translate([ erie_box_top_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
+                               text_width = 70, text_height = 20, text_str = "Erie", label_rotated = true);
         }
     }
 }
@@ -636,6 +700,14 @@ module AllianceBoxBottom(generate_lid = true) // `make` me
             }
         }
     }
+    if (generate_lid)
+    {
+        translate([ alliance_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = alliance_box_width, length = alliance_box_length, height = alliance_box_height,
+                               text_width = 70, text_height = 20, text_str = "Alliance", label_rotated = true);
+        }
+    }
 }
 
 module AllianceBoxTop(generate_lid = true) // `make` me
@@ -643,23 +715,41 @@ module AllianceBoxTop(generate_lid = true) // `make` me
     MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height)
     {
         // Score marker.
-        translate([ 0, 0, $inner_height - tile_thickness - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
+        translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
+            CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
+                                    finger_hole_radius = 10, finger_holes = [0]);
 
         // Sympathy tokens.
         translate([
-            $inner_width - round_tile_diameter / 2, round_tile_diameter / 2,
+            $inner_width - round_tile_diameter / 2, round_tile_diameter / 2 + 1,
             $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
-        ]) cyl(d = round_tile_diameter, h = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, anchor = BOTTOM);
+        ]) CylinderWithIndents(radius = round_tile_diameter / 2,
+                               height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
+                               finger_holes = [135]);
         translate([
-            $inner_width - round_tile_diameter / 2, round_tile_diameter / 2 + round_tile_diameter + 1,
+            $inner_width - round_tile_diameter / 2, $inner_length - round_tile_diameter / 2 - 1,
             $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
-        ]) cyl(d = round_tile_diameter, h = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, anchor = BOTTOM);
+        ]) CylinderWithIndents(radius = round_tile_diameter / 2,
+                               height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
+                               finger_holes = [225]);
 
         // Bases.
-        translate(
-            [ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * woodland_alliance_base_num - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness * woodland_alliance_base_num + 1 ]);
+        translate([
+            square_tile_size / 2, $inner_length - square_tile_size / 2,
+            $inner_height - tile_thickness * woodland_alliance_base_num - 0.5
+        ])
+            CuboidWithIndentsBottom(
+                [ square_tile_size, square_tile_size, tile_thickness * woodland_alliance_base_num + 1 ],
+                finger_hole_radius = 7, finger_holes = [0]);
+    }
+    if (generate_lid)
+    {
+        translate([ alliance_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = alliance_box_width, length = alliance_box_length,
+                               height = alliance_box_top_height, text_width = 70, text_height = 20,
+                               text_str = "Alliance", label_rotated = true);
+        }
     }
 }
 
@@ -679,6 +769,15 @@ module RiverfolkBoxBottom(generate_lid = true) // `make` me
             }
         }
     }
+    if (generate_lid)
+    {
+        translate([ riverfolk_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = riverfolk_box_width, length = riverfolk_box_length,
+                               height = riverfolk_box_height, text_width = 70, text_height = 20, text_str = "Riverfolk",
+                               label_rotated = true);
+        }
+    }
 }
 
 module RiverfolkBoxTop(generate_lid = true) // `make` me
@@ -686,10 +785,10 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
     MakeBoxWithCapLid(width = riverfolk_box_top_width, length = riverfolk_box_length, height = riverfolk_box_top_height)
     {
         // Score marker.
-        translate([ 0, 0, $inner_height - tile_thickness - 0.5 ])
+        translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
         {
-            cube([ square_tile_size, square_tile_size, tile_thickness + 1 ]);
-            translate([ square_tile_size, square_tile_size / 2, 0 ]) sphere(r = 10, anchor = BOTTOM);
+            CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
+                                    finger_hole_radius = 10, finger_holes = [2]);
         }
 
         // trading posts.
@@ -698,7 +797,8 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
             translate([
                 $inner_width - round_tile_diameter / 2 - (round_tile_diameter + 2) * i - 2, round_tile_diameter / 2 + 2,
                 $inner_height - tile_thickness * 5 + 0.5
-            ]) cyl(d = round_tile_diameter + 0.5, h = tile_thickness * 5 + 1, anchor = BOTTOM);
+            ]) CylinderWithIndents(radius = (round_tile_diameter + 0.5) / 2, height = tile_thickness * 5 + 1,
+                                   finger_hole_radius = 8, finger_holes = [90]);
         }
 
         // glass things.
@@ -709,12 +809,18 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
                 $inner_length - riverfolk_glass_diameter / 2 - 2, $inner_height - riverfolk_glass_thickness - 0.5
             ])
             {
-                cyl(d = riverfolk_glass_diameter, h = riverfolk_glass_thickness + 1, anchor = BOTTOM);
-                translate([ riverfolk_glass_diameter / 2, 0, riverfolk_glass_thickness / 2 ])
-                    sphere(r = 8, anchor = BOTTOM);
-                translate([ -riverfolk_glass_diameter / 2, 0, riverfolk_glass_thickness / 2 ])
-                    sphere(r = 8, anchor = BOTTOM);
+                CylinderWithIndents(radius = riverfolk_glass_diameter / 2, height = riverfolk_glass_thickness + 1,
+                                    finger_hole_radius = 8, finger_holes = [ 0, 180 ]);
             }
+        }
+    }
+    if (generate_lid)
+    {
+        translate([ riverfolk_box_top_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = riverfolk_box_top_width, length = riverfolk_box_length,
+                               height = riverfolk_box_height, text_width = 70, text_height = 20, text_str = "Riverfolk",
+                               label_rotated = true);
         }
     }
 }
@@ -740,6 +846,14 @@ module LizardBoxBottom(generate_lid = true) // `make` me
         translate([ 0, 0, lizard_length / 2 ])
             RoundedBoxAllSides($inner_width, lizard_box_length - wall_thickness * 2, lizard_length, 7);
     }
+    if (generate_lid)
+    {
+        translate([ lizard_box_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = lizard_box_width, length = lizard_box_length, height = lizard_box_height,
+                               text_width = 70, text_height = 20, text_str = "Lizard", label_rotated = true);
+        }
+    }
 }
 
 module LizardBoxTop(generate_lid = true) // `make` me
@@ -752,16 +866,28 @@ module LizardBoxTop(generate_lid = true) // `make` me
             translate([
                 square_tile_size / 2 + (square_tile_size + 5) * i + 3, square_tile_size / 2 + 2,
                 $inner_height - tile_thickness * 5 - 0.5
-            ]) cuboid([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ], anchor = BOTTOM);
+            ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ],
+                                       finger_hole_radius = 8, finger_holes = [2]);
         }
         translate([
             square_tile_size / 2 + (square_tile_size + 5) * 1 + 3, $inner_length - square_tile_size + 2,
             $inner_height - tile_thickness * 5 - 0.5
-        ]) cuboid([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ], anchor = BOTTOM);
+        ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ],
+                                   finger_hole_radius = 8, finger_holes = [6]);
 
         // Score marker.
-        translate([ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * 2 - 0.5 ])
-            cube([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ]);
+        translate(
+            [ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness * 2 - 0.5 ])
+            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ],
+                                    finger_hole_radius = 8, finger_holes = [6]);
+    }
+    if (generate_lid)
+    {
+        translate([ lizard_box_top_width + 10, 0, 0 ])
+        {
+            CapBoxLidWithLabel(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height,
+                               text_width = 70, text_height = 20, text_str = "Lizard", label_rotated = true);
+        }
     }
 }
 
@@ -778,12 +904,15 @@ module ItemsBoxBottom(generate_lid = true) // `make` me
         {
             if (depths[i * 4 + 1] != 0)
             {
-                translate([ 0, (square_tile_size + 1) * i, $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
+                translate([
+                    square_tile_size / 2, (square_tile_size + 1) * i + square_tile_size / 2,
+                    $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5
+                ])
                 {
-                    cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ]);
-                    translate([ square_tile_size, square_tile_size / 2, 0 ])
-                        cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
-                    translate([ (square_tile_size) / 2, square_tile_size / 2, -0.5 ])
+                    CuboidWithIndentsBottom(
+                        [ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ],
+                        finger_hole_radius = 6, finger_holes = [0]);
+                    translate([ 0, 0, -0.5 ])
                     {
                         GenerateIcon(depths[i * 4]);
                         translate([ square_tile_size * 4 / 10, 0, 0 ]) linear_extrude(height = 2) rotate(90)
@@ -795,14 +924,15 @@ module ItemsBoxBottom(generate_lid = true) // `make` me
             if (depths[i * 4 + 3] != 0)
             {
                 translate([
-                    $inner_width - square_tile_size, (square_tile_size + 1) * i,
+                    $inner_width - square_tile_size + square_tile_size / 2,
+                    (square_tile_size + 1) * i + square_tile_size / 2,
                     $inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
                 ])
                 {
-                    cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ]);
-                    translate([ 0, square_tile_size / 2, 0 ])
-                        cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
-                    translate([ (square_tile_size) / 2, square_tile_size / 2, -0.5 ])
+                    CuboidWithIndentsBottom(
+                        [ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ],
+                        finger_hole_radius = 6, finger_holes = [4]);
+                    translate([ 0, 0, -0.5 ])
                     {
                         GenerateIcon(depths[i * 4 + 2]);
                         translate([ square_tile_size * 4 / 10, 0, 0 ]) linear_extrude(height = 2) rotate(90)
@@ -823,52 +953,52 @@ module ItemsBoxBottom(generate_lid = true) // `make` me
     }
 }
 
-module GenerateIcon(icon)
+module GenerateIcon(icon, height = 2)
 {
     if (icon == "bag")
     {
-        linear_extrude(height = 2) Bag2d(10);
+        linear_extrude(height = height) Bag2d(10);
     }
     else if (icon == "boot")
     {
-        linear_extrude(height = 2) Shoe2d(10);
+        linear_extrude(height = height) Shoe2d(10);
     }
     else if (icon == "torch")
     {
-        linear_extrude(height = 2) Torch2d(10, 3);
+        linear_extrude(height = height) Torch2d(10, 3);
     }
     else if (icon == "crossbow")
     {
-        linear_extrude(height = 2) Crossbow2d(10, 8);
+        linear_extrude(height = height) Crossbow2d(10, 8);
     }
     else if (icon == "hammer/teapot")
     {
-        translate([ 0, -5, 0 ]) linear_extrude(height = 2) rotate(90) Sledgehammer2d(10, 5);
-        translate([ 0, 3, 0 ]) linear_extrude(height = 2) Teapot2d(10, 8);
+        translate([ 0, -5, 0 ]) linear_extrude(height = height) rotate(90) Sledgehammer2d(10, 5);
+        translate([ 0, 3, 0 ]) linear_extrude(height = height) Teapot2d(10, 8);
     }
     else if (icon == "hammer")
     {
-        linear_extrude(height = 2) Sledgehammer2d(10, 5);
+        linear_extrude(height = height) Sledgehammer2d(10, 5);
     }
     else if (icon == "sword")
     {
-        linear_extrude(height = 2) Sword2d(10, 5);
+        linear_extrude(height = height) Sword2d(10, 5);
     }
     else if (icon == "teapot")
     {
-        linear_extrude(height = 2) Teapot2d(10, 8);
+        linear_extrude(height = height) Teapot2d(10, 8);
     }
     else if (icon == "coins")
     {
-        linear_extrude(height = 2) CoinPile2d(10);
+        linear_extrude(height = height) CoinPile2d(10);
     }
     else if (icon == "ruins")
     {
-        linear_extrude(height = 2) rotate(90) Ruins2d(10);
+        linear_extrude(height = height) rotate(90) Ruins2d(10);
     }
     else if (icon == "n/a")
     {
-        linear_extrude(height = 2) rotate(90)
+        linear_extrude(height = height) rotate(90)
             text(text = icon, font = "Stencil Std:style=Bold", size = 2.5, halign = "center", valign = "center");
     }
 }
@@ -887,25 +1017,30 @@ module ItemsBoxMiddle(generate_lid = true) // `make` me
         {
             if (depths[i * 4 + 1] != 0)
             {
-                translate([ 0, (square_tile_size + 01) * i, $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5 ])
+                translate([
+                    square_tile_size / 2, (square_tile_size + 01) * i + square_tile_size / 2,
+                    $inner_height - tile_thickness * depths[i * 4 + 1] - 0.5
+                ])
                 {
-                    cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ]);
-                    translate([ square_tile_size, square_tile_size / 2, 0 ])
-                        cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
-                    translate([ (square_tile_size) / 2, square_tile_size / 2, -0.5 ]) GenerateIcon(depths[i * 4]);
+                    CuboidWithIndentsBottom(
+                        [ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 1] + 1 ],
+                        finger_hole_radius = 6, finger_holes = [0]);
+
+                    translate([ 0, 0, -0.5 ]) GenerateIcon(depths[i * 4]);
                 }
             }
             if (depths[i * 4 + 3] != 0)
             {
                 translate([
-                    $inner_width - square_tile_size, (square_tile_size + 1) * i,
+                    $inner_width - square_tile_size + square_tile_size / 2,
+                    (square_tile_size + 1) * i + square_tile_size / 2,
                     $inner_height - tile_thickness * depths[i * 4 + 3] - 0.5
                 ])
                 {
-                    cube([ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ]);
-                    translate([ 0, square_tile_size / 2, 0 ])
-                        cyl(r = 6, anchor = BOTTOM, h = item_box_height, rounding = 5, $fn = 32);
-                    translate([ (square_tile_size) / 2, square_tile_size / 2, -0.5 ]) GenerateIcon(depths[i * 4 + 2]);
+                    CuboidWithIndentsBottom(
+                        [ square_tile_size, square_tile_size, tile_thickness * depths[i * 4 + 3] + 1 ],
+                        finger_hole_radius = 6, finger_holes = [4]);
+                    translate([ 0, 0, -0.5 ]) GenerateIcon(depths[i * 4 + 2]);
                 }
             }
         }
@@ -1098,5 +1233,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    ItemsBoxExtras(generate_lid = false);
+    MarquisBoxTop(generate_lid = false);
 }
