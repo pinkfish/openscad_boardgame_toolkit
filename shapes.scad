@@ -614,3 +614,60 @@ module D20Outline2d(size, offset)
         stroke([ points_triangle[0], points_triangle[1], points_triangle[2], points_triangle[0] ], width = offset);
     }
 }
+
+// Module: HalfEye2d()
+// Description:
+//   Makes a single eye for use in various things where eyes are needed.  This is a half eye on an angle.
+// Arguments:
+//   angle = angle the eye is on
+//   outer_size = size of the outside circle.
+//   inner_size = size of the inside circle
+//   pupil_size = size of the pupil
+// Example:
+//   HalfEye2d(30);
+// Example:
+//   HalfEye2d(60);
+module HalfEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5)
+{
+    difference()
+    {
+        union()
+        {
+            difference()
+            {
+                circle(d = outer_size);
+                circle(d = inner_size);
+            }
+            circle(d = pupil_size);
+        }
+        translate([ outer_size * cos(angle), outer_size * sin(angle) ]) rotate(angle)
+            rect([ outer_size * 2, outer_size * 2 ]);
+    }
+    rotate(angle + 90) rect([ outer_size, (outer_size - inner_size) / 2 ]);
+}
+
+// Module: SideEye2d()
+// Description:
+//   Makes a single eye for use in various things where eyes are needed.  This is a half eye on an angle.
+// Arguments:
+//   angle = angle the pupil is at
+//   outer_size = size of the outside circle.
+//   inner_size = size of the inside circle
+//   pupil_size = size of the pupil
+// Example:
+//   SideEye2d(30);
+// Example:
+//   SideEye2d(90);
+module SideEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5)
+{
+    difference()
+    {
+        circle(d = outer_size);
+        circle(d = inner_size);
+    }
+    intersection()
+    {
+        translate([ outer_size/3 * cos(angle), outer_size/3 * sin(angle) ])  circle(d = pupil_size);
+        circle(d = outer_size);
+    }
+}

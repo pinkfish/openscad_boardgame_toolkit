@@ -433,6 +433,23 @@ module WinterToken(height)
     }
 }
 
+module MarquisEyes2d()
+{
+    translate([ -6, 0, 0 ]) HalfEye2d(60);
+    translate([ 6, 0, 0 ]) mirror([ 1, 0 ]) HalfEye2d(60);
+    // Nose.
+    translate([ 0, -4, 0 ])
+    {
+        circle(d = 3);
+        translate([ 0, -2 ])
+        {
+            rect([ 1, 3 ]);
+            translate([ -3, -1.5 ]) ring(r1 = 2.5, r2 = 3, angle = [ 360, 180 ], n = 32);
+            translate([ 3, -1.5 ]) mirror([ 1, 0 ]) ring(r1 = 2.5, r2 = 3, angle = [ 360, 180 ], n = 32);
+        }
+    }
+}
+
 module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
@@ -1233,5 +1250,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MarquisBoxTop(generate_lid = false);
+    SideEye2d(0);
 }
