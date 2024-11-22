@@ -92,7 +92,7 @@ marquis_ear_flat_middle = 2;
 marquis_ear_base_width = 13;
 marquis_eye_bulge_top_length = 16;
 marquis_bulge_radius = 5;
-alliance_length = 19;
+alliance_length = 19.5;
 alliance_width = 19;
 alliance_middle_width = 14;
 alliance_middle_length = 9;
@@ -546,8 +546,7 @@ module CardBox(generate_lid = true) // `make` me
 module CapBoxLidWithEyes(width, length, height)
 {
     CapBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness,
-              lid_thickness = default_lid_thickness, lid_wall_thickness = default_wall_thickness,
-              size_spacing = m_piece_wiggle_room)
+              lid_thickness = default_lid_thickness, size_spacing = m_piece_wiggle_room)
     {
         translate([ 10, 10, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
@@ -797,13 +796,14 @@ module AllianceBoxBottom(generate_lid = true) // `make` me
 
         translate([ ($inner_width - len) / 2, 3.5, 0 ])
         {
-            translate([ len / 2, alliance_length / 2 + 2, $inner_height - alliance_width / 2 ])
+            translate([ len / 2, alliance_length / 2 + 1.5, $inner_height - alliance_width / 2 - 0.5 ])
             {
                 rotate([ 0, 270, 0 ]) AllianceCharacter(height = len);
                 translate([ 0, 0, alliance_width / 2 ])
                     cuboid([ len, alliance_length, alliance_width / 2 + 4.5 ], anchor = TOP);
             }
-            translate([ len / 2, alliance_length / 2 + 2 + alliance_length + 4, $inner_height - alliance_width / 2 ])
+            translate(
+                [ len / 2, alliance_length / 2 + 2 + alliance_length + 4, $inner_height - alliance_width / 2 - 0.5 ])
             {
                 rotate([ 0, 270, 0 ]) AllianceCharacter(height = len);
                 translate([ 0, 0, alliance_width / 2 ])
@@ -877,8 +877,9 @@ module RiverfolkBoxBottom(generate_lid = true) // `make` me
         len = player_token_thickness * 5 + 1;
         translate([ 0, 0, 0 ]) for (i = [0:1:2])
         {
-            translate(
-                [ len / 2, riverfolk_width / 2 + (riverfolk_width + 2) * i, $inner_height - riverfolk_length / 2 ])
+            translate([
+                len / 2, riverfolk_width / 2 + (riverfolk_width + 2) * i, $inner_height - riverfolk_length / 2 - 0.5
+            ])
             {
                 rotate([ 90, 0, 90 ]) RiverfolkCharacter(height = len + 1);
                 translate([ 0, 0, riverfolk_length / 2 ])
