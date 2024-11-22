@@ -245,8 +245,8 @@ module MarquisCharacter(height)
     {
         hull()
         {
-            translate([ marquis_ear_flat_middle / 2 - 1, -marquis_length / 2 + marquis_ear_length + 1, 0 ])
-                cyl(r = 1, h = height);
+            translate([ marquis_ear_flat_middle / 2 + 0.25, -marquis_length / 2 + marquis_ear_length + 0.5, 0 ])
+                cyl(r = 0.25, h = height);
             translate([ marquis_ear_width / 2 - 1, -marquis_length / 2 + 1, 0 ]) cyl(r = 1, h = height);
             translate([ marquis_ear_base_width / 2 - 1, marquis_length / 2 - marquis_eye_bulge_top_length, 0 ])
                 cyl(r = 1, h = height);
@@ -266,8 +266,8 @@ module MarquisCharacter(height)
                      len_offset = marquis_length / 2 - marquis_eye_bulge_top_length, height = height);
         CylBothWidth(width_offset = maarquis_middle_width / 2, len_offset = marquis_length / 2 - marquis_middle_length,
                      height = height);
-        CylBothWidth(width_offset = marquis_ear_flat_middle / 2,
-                     len_offset = -marquis_length / 2 + marquis_ear_length + 1, height = height);
+        CylBothWidth(width_offset = marquis_ear_flat_middle / 2 + 2,
+                     len_offset = -marquis_length / 2 + marquis_ear_length + 1.5, height = height);
     }
     // Ears
     Ear();
@@ -837,13 +837,13 @@ module AllianceBoxTop(generate_lid = true) // `make` me
         // Sympathy tokens.
         translate([
             $inner_width - round_tile_diameter / 2, round_tile_diameter / 2 + 1,
-            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
+            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 - 0.5
         ]) CylinderWithIndents(radius = round_tile_diameter / 2,
                                height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
                                finger_holes = [135]);
         translate([
             $inner_width - round_tile_diameter / 2, $inner_length - round_tile_diameter / 2 - 1,
-            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 + 0.5
+            $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 - 0.5
         ]) CylinderWithIndents(radius = round_tile_diameter / 2,
                                height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
                                finger_holes = [225]);
@@ -1360,5 +1360,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    AllianceBoxBottom();
+    MarquisBoxBottom();
 }
