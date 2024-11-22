@@ -86,7 +86,7 @@ marquis_length = 22;
 marquis_width = 16;
 maarquis_middle_width = 14;
 marquis_middle_length = 10;
-marquis_ear_width = 9;
+marquis_ear_width = 10;
 marquis_ear_length = 3;
 marquis_ear_flat_middle = 2;
 marquis_ear_base_width = 13;
@@ -252,32 +252,35 @@ module MarquisCharacter(height)
                 cyl(r = 1, h = height);
         }
     }
-    // Base
-    hull()
+    union()
     {
-        CylBothWidth(width_offset = marquis_width / 2, len_offset = marquis_length / 2 - 1, height = height);
-        CylBothWidth(width_offset = maarquis_middle_width / 2, len_offset = marquis_length / 2 - marquis_middle_length,
-                     height = height);
+        // Base
+        hull()
+        {
+            CylBothWidth(width_offset = marquis_width / 2, len_offset = marquis_length / 2 - 1, height = height);
+            CylBothWidth(width_offset = maarquis_middle_width / 2,
+                         len_offset = marquis_length / 2 - marquis_middle_length, height = height);
+        }
+        // Top
+        hull()
+        {
+            CylBothWidth(width_offset = marquis_ear_base_width / 2,
+                         len_offset = marquis_length / 2 - marquis_eye_bulge_top_length, height = height);
+            CylBothWidth(width_offset = maarquis_middle_width / 2,
+                         len_offset = marquis_length / 2 - marquis_middle_length, height = height);
+            CylBothWidth(width_offset = marquis_ear_flat_middle / 2 + 2,
+                         len_offset = -marquis_length / 2 + marquis_ear_length, height = height);
+        }
+        // Ears
+        Ear();
+        mirror([ 1, 0, 0 ]) Ear();
+        translate(
+            [ (marquis_width) / 2, marquis_length / 2 - (marquis_eye_bulge_top_length + marquis_middle_length) / 2, 0 ])
+            cyl(r = marquis_bulge_radius, anchor = RIGHT, h = height);
+        translate([
+            -(marquis_width) / 2, marquis_length / 2 - (marquis_eye_bulge_top_length + marquis_middle_length) / 2, 0
+        ]) cyl(r = marquis_bulge_radius, anchor = LEFT, h = height);
     }
-    // Top
-    hull()
-    {
-        CylBothWidth(width_offset = marquis_ear_base_width / 2,
-                     len_offset = marquis_length / 2 - marquis_eye_bulge_top_length, height = height);
-        CylBothWidth(width_offset = maarquis_middle_width / 2, len_offset = marquis_length / 2 - marquis_middle_length,
-                     height = height);
-        CylBothWidth(width_offset = marquis_ear_flat_middle / 2 + 2,
-                     len_offset = -marquis_length / 2 + marquis_ear_length + 1.5, height = height);
-    }
-    // Ears
-    Ear();
-    mirror([ 1, 0, 0 ]) Ear();
-    translate(
-        [ (marquis_width) / 2, marquis_length / 2 - (marquis_eye_bulge_top_length + marquis_middle_length) / 2, 0 ])
-        cyl(r = marquis_bulge_radius, anchor = RIGHT, h = height);
-    translate(
-        [ -(marquis_width) / 2, marquis_length / 2 - (marquis_eye_bulge_top_length + marquis_middle_length) / 2, 0 ])
-        cyl(r = marquis_bulge_radius, anchor = LEFT, h = height);
 }
 
 module ErieCharacter(height)
@@ -572,14 +575,14 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
             translate([ len / 2, marquis_width / 2 + marquis_width + 2, marquis_length / 2 + 1 ]) rotate([ 90, 0, 90 ])
                 MarquisCharacter(height = len);
         }
+        // Second smaller marquis bits
         translate([ ($inner_width - len - player_token_thickness) / 2, 1, 0 ])
         {
-            translate([
-                (len + player_token_thickness) / 2, marquis_width / 2 + marquis_width * 2 + 3, marquis_length / 2 + 1
-            ]) rotate([ 90, 0, 90 ]) MarquisCharacter(height = len + player_token_thickness);
-            translate([
-                (len + player_token_thickness) / 2, marquis_width / 2 + marquis_width * 2 + 2, marquis_length / 2 + 10
-            ]) cuboid([ len + player_token_thickness, marquis_width, marquis_length ]);
+            second_len = len + player_token_thickness;
+            translate([ second_len / 2, marquis_width / 2 + marquis_width * 2 + 3, marquis_length / 2 + 1 ])
+                rotate([ 90, 0, 90 ]) MarquisCharacter(height = second_len);
+            translate([ second_len / 2, marquis_width / 2 + marquis_width * 2 + 3, marquis_length / 2 + 10 ])
+                cuboid([ second_len, marquis_width, marquis_length ]);
         }
         translate([ 0, 0, marquis_length / 2 ])
             RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, marquis_length, 7);
@@ -1360,5 +1363,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MarquisBoxBottom();
+    MarquisBoxBottom(generate_lid = false);
 }
