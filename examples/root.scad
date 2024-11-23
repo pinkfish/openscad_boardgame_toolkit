@@ -603,16 +603,44 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
 
 module MarquisBoxTop(generate_lid = true) // `make` me
 {
-    module BuildingSpots(finger_holes)
+    module BuildingSpots(finger_holes, icon)
     {
         translate([ square_tile_size / 2, square_tile_size / 2, 0 ])
         {
             CuboidWithIndentsBottom(
                 [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 + 1 ],
-                finger_hole_radius = 7, finger_holes = finger_holes);
+                finger_hole_radius = 7, finger_holes = finger_holes)
+            {
+                if (icon == "anvil")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Anvil2d(size = 10, with_hammer = true);
+                }
+                else if (icon == "saw")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) SawBlade2d(size = 10, $fn=32);
+                }
+                else if (icon == "handshake")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Handshake2d(size = 10);
+                }
+            }
             translate([ square_tile_size + 1, 0, 0 ]) CuboidWithIndentsBottom(
                 [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 + 1 ],
-                finger_hole_radius = 7, finger_holes = finger_holes);
+                finger_hole_radius = 7, finger_holes = finger_holes)
+            {
+                if (icon == "anvil")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Anvil2d(size = 10, with_hammer = true);
+                }
+                else if (icon == "saw")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) SawBlade2d(size = 10);
+                }
+                else if (icon == "handshake")
+                {
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Handshake2d(size = 10);
+                }
+            }
         }
     }
     MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
@@ -648,21 +676,21 @@ module MarquisBoxTop(generate_lid = true) // `make` me
             0, $inner_length - square_tile_size, $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
         ])
         {
-            BuildingSpots(finger_holes = [6]);
+            BuildingSpots(finger_holes = [6], "anvil");
         }
         translate([
             $inner_width - square_tile_size * 2 - 1, $inner_length - square_tile_size,
             $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
         ])
         {
-            BuildingSpots(finger_holes = [6]);
+            BuildingSpots(finger_holes = [6], "saw");
         }
         translate([
             $inner_width - square_tile_size * 2 - 1, 0,
             $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
         ])
         {
-            BuildingSpots(finger_holes = [2]);
+            BuildingSpots(finger_holes = [2], "handshake");
         }
     }
     if (generate_lid)
@@ -1367,5 +1395,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-   Handshake2d(size = 10);
+    MarquisBoxTop(false);
 }

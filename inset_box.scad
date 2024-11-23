@@ -275,7 +275,7 @@ module InsetLidTabbedWithLabelAndCustomShape(width, length, text_width, text_hei
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
-                               lid_boundary = 10, label_radius = 12, label_border = 2, label_rotated = false,
+                               lid_boundary = 10, label_radius = 5, label_border = 2, label_rotated = false,
                                tab_length = 10, tab_height = 8, make_tab_width = false, make_tab_length = true,
                                prism_width = 0.75, layout_width = undef, shape_width = undef, shape_type = undef,
                                aspect_ratio = undef, shape_thickness = undef, lid_rounding = undef, font = undef,
@@ -594,7 +594,7 @@ module InsetLidRabbitClipWithLabelAndCustomShape(width, length, text_width, text
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module InsetLidRabbitClipWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3,
-                                   lid_boundary = 10, label_radius = 12, label_border = 2, label_offset = 4,
+                                   lid_boundary = 10, label_radius = 5, label_border = 2, label_offset = 4,
                                    label_rotated = false, make_rabbit_width = false, make_rabbit_length = true,
                                    rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
                                    rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, layout_width = undef,

@@ -716,10 +716,49 @@ module Handshake2d(size)
 //    Makes a nice 2d anvil.
 // Arguments:
 //    size = size of the anvil
+//    with_hammer = show a hammer on the anvil and spark too
 // Example(2D):
 //   Anvil2d(30);
-module Anvil2d()
+// Example(2D):
+//   Anvil2d(30, with_hammer = true);
+module Anvil2d(size, with_hammer = false)
 {
+    new_height = with_hammer ? size : size * 10 / 18;
+    resize([ size, new_height ]) translate([ 4, with_hammer ? -8.5 : -4.5 ])
+    {
+        rect([ 10, 1 ]);
+        translate([ 0, 1.7 ]) rect([ 8, 1.5 ]);
+        translate([ 0, 3.3 ]) rect([ 10, 1 ]);
+        translate([ 0, 6.8 ]) rect([ 10, 6 ]);
+        translate([ -8, 6.8 ]) intersection()
+        {
+            rect([ 10, 6 ]);
+            translate([ 6, 8 ]) circle(12, $fn = 64);
+        }
+        if (with_hammer)
+        {
+            translate([ -10, 12 ]) rotate(30) rect([ 5, 1 ]);
+            translate([ -8, 13.3 ]) rotate(-60) rect([ 4, 3 ], rounding = 0.5);
+            hull()
+            {
+                translate([ -4, 11 ]) circle(d = 0.5);
+                translate([ -3, 11 ]) circle(d = 0.5);
+                translate([ 3, 16.5 ]) circle(d = 1);
+            }
+            hull()
+            {
+                translate([ -2, 11 ]) circle(d = 0.5);
+                translate([ -3, 11 ]) circle(d = 0.5);
+                translate([ 4, 14.5 ]) circle(d = 1);
+            }
+            hull()
+            {
+                translate([ -1, 11 ]) circle(d = 0.5);
+                translate([ -2, 11 ]) circle(d = 0.5);
+                translate([ 4, 12 ]) circle(d = 1);
+            }
+        }
+    }
 }
 
 // Module: HalfEye2d()
