@@ -182,6 +182,8 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
+//    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 // Usage: CapBoxLid(100, 50, 20);
 // Example:
 //    CapBoxLid(100, 50, 30);
@@ -191,22 +193,24 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    CapBoxLid(100, 50, 10, cap_height = 3);
 module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
                  wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
-                 lid_wall_thickness = undef)
+                 lid_wall_thickness = undef, lid_rounding = undef, lid_inner_rounding = undef)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
+    calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness / 2);
+    calc_lid_inner_rounding = DefaultValue(lid_rounding, calc_lid_wall_thickness / 2);
     translate([ 0, length, calc_cap_height ]) rotate([ 180, 0, 0 ])
     {
         union()
         {
             translate([ 0, 0, calc_cap_height - lid_thickness ])
-                internal_build_lid(width, length, lid_thickness, wall_thickness)
+                internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = size_spacing)
             {
                 difference()
                 {
                     // Top piece
                     cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
-                           rounding = wall_thickness / 2,
+                           rounding = calc_lid_rounding,
                            edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 }
                 if ($children > 0)
@@ -246,6 +250,93 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
     }
 }
 
+// Module: CapBoxLidWithLabelAndCustomShape()
+// Topics: CapBox
+// Description:
+//    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
+//    child as the shape for repeating on the lid.
+// Arguments:
+//    width = outside width of the box
+//    length = inside width of the box
+//    height = outside height of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    cap_height = height of the cap on the box (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
+//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    label_radius = radius of the label corners (default 5)
+//    label_border= border of the item (default 2)
+//    label_offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+// Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog") {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
+                                        wall_thickness = default_wall_thickness, label_radius = 5, label_border = 2,
+                                        label_offset = 4, label_rotated = false, cap_height = undef,
+                                        layout_width = undef, size_spacing = m_piece_wiggle_room,
+                                        lid_thickness = default_lid_thickness, lid_wall_thickness = undef,
+                                        aspect_ratio = 1.0, font = undef, lid_rounding = undef,
+                                        lid_inner_rounding = undef, label_border = 2)
+{
+    CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
+              lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
+              size_spacing = m_piece_wiggle_room, lid_rounding = lid_rounding, lid_inner_rounding = lid_inner_rounding)
+    {
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
+                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+        {
+            if ($children > 0)
+            {
+                children(0);
+            }
+            else
+            {
+                square([ 10, 10 ]);
+            }
+        }
+        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+        // Don't include the first child since is it used for the lid shape.
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
+        }
+    }
+}
+
 // Module: CapBoxLidWithLabel()
 // Topics: CapBox
 // Description:
@@ -261,9 +352,9 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    label_radius = radius of the label corners (default 12)
+//    label_radius = radius of the label corners (default 5)
 //    border= border of the item (default 2)
-//    offset = offset in from the edge for the label (default 4)
+//    label_offset = offset in from the edge for the label (default 4)
 //    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
@@ -273,32 +364,30 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
 // Usage: CapBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
+//    default_lid_shape_thickness = 1;
+//    default_lid_shape_width = 13;
+//    default_lid_layout_width = 10;
+//    CapBoxLidWithLabel(120, 70, 30, text_width = 70, text_height = 20, text_str = "Cards");
 module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
-                          wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4,
+                          wall_thickness = default_wall_thickness, label_radius = 5, label_border = 2, label_offset = 4,
                           label_rotated = false, cap_height = undef, layout_width = undef, shape_width = undef,
                           shape_type = undef, shape_thickness = undef, size_spacing = m_piece_wiggle_room,
-                          lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0, font = undef)
+                          lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0,
+                          font = undef, lid_rounding = undef, lid_inner_rounding = undef, shape_rounding = undef)
 {
-    CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
-              lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
-              size_spacing = m_piece_wiggle_room)
+    CapBoxLidWithLabelAndCustomShape(
+        width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
+        lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness, font = font, text_str = text_str,
+        text_width = text_width, text_height = text_height, label_radius = label_radius, label_rotated = label_rotated,
+        layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
+        label_border = label_border, label_offset = label_offset, lid_rounding = undef, lid_inner_rounding = undef)
     {
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
-        {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true, font = font);
-        }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true, font = font);
-        }
+        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
         if ($children > 0)
         {
             children(0);

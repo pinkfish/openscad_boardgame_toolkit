@@ -20,6 +20,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -58,23 +88,27 @@ under the License.
 //   wiggle room to add in a buffer and also does a small amount of angling on the ends to make them easier
 //   to insert.
 // Usage:
-//   SlidingLid(width=10, length=30, lid_thickness=3, wall_thickness = 2, lid_size_spacing = 0.2);
+//   SlidingLid(width=10, length=30, lid_thickness=3, wall_thickness = 2, size_spacing = 0.2);
 // Arguments:
 //   width = the width of the box itself
 //   length = the length of the box itself
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
+//   size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //   {{m_piece_wiggle_room}}
 // Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLid(width=100, length=100, lid_thickness=3, wall_thickness = 2)
 //     translate([ 10, 10, 0 ])
 //       LidMeshHex(width = 100, length = 100, lid_thickness = 3, boundary = 10, radius = 12);
-module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                  lid_size_spacing = m_piece_wiggle_room)
+module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, size_spacing = m_piece_wiggle_room,
+                  lid_rounding = undef, lid_chamfer = undef)
 {
-    internal_build_lid(width, length, lid_thickness, wall_thickness)
+    calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
+    calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+    calc_lid_rounding = DefaultValue(lid_rounding, calc_wall_thickness / 2);
+    calc_lid_chamfer = DefaultValue(lid_chamfer, calc_wall_thickness / 6);
+    internal_build_lid(width, length, calc_lid_thickness, calc_wall_thickness)
     {
         difference()
         {
@@ -83,37 +117,42 @@ module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thi
             {
                 difference()
                 {
-                    translate([ wall_thickness / 2, wall_thickness / 2, 0 ]) cuboid(
-                        [ width - 2 * (wall_thickness + lid_size_spacing), length - wall_thickness, lid_thickness ],
-                        anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness / 2,
+                    translate([ calc_wall_thickness / 2, calc_wall_thickness / 2, 0 ]) cuboid(
+                        [
+                            width - 2 * (calc_wall_thickness + size_spacing), length - calc_wall_thickness,
+                            calc_lid_thickness
+                        ],
+                        anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
                         edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                     // Top edge easing.
                     translate([
-                        wall_thickness / 2 - lid_size_spacing, wall_thickness / 2 - lid_size_spacing,
-                        lid_thickness / 2 -
-                        lid_size_spacing
-                    ]) linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
+                        calc_wall_thickness / 2 - size_spacing, calc_wall_thickness / 2 - size_spacing,
+                        calc_lid_thickness / 2 -
+                        size_spacing
+                    ]) linear_extrude(height = calc_lid_thickness + 10) right_triangle([ size_spacing * 2, 15 ]);
                     translate([
-                        width - wall_thickness * 2 + lid_size_spacing * 3.2, wall_thickness / 2 - lid_size_spacing,
-                        lid_thickness / 2 -
-                        lid_size_spacing
-                    ]) linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
+                        width - calc_wall_thickness * 2 + size_spacing * 3.2, calc_wall_thickness / 2 - size_spacing,
+                        calc_lid_thickness / 2 -
+                        size_spacing
+                    ]) linear_extrude(height = calc_lid_thickness + 10) xflip()
+                        right_triangle([ size_spacing * 2, 15 ]);
                 }
                 // bottom layer.
                 translate([ 0, 0, 0 ]) cuboid(
                     [
-                        width - wall_thickness - lid_size_spacing, length - wall_thickness / 2, lid_thickness / 2 -
-                        lid_size_spacing
+                        width - calc_wall_thickness - size_spacing, length - calc_wall_thickness / 2,
+                        calc_lid_thickness / 2 -
+                        size_spacing
                     ],
-                    anchor = BOTTOM + FRONT + LEFT, chamfer = lid_thickness / 6,
+                    anchor = BOTTOM + FRONT + LEFT, chamfer = calc_lid_chamfer,
                     edges = [ TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT ]);
             }
 
             // Edge easing.
-            translate([ -lid_size_spacing / 20, -lid_size_spacing, -lid_thickness / 2 ])
-                linear_extrude(height = lid_thickness + 10) right_triangle([ lid_size_spacing * 2, 15 ]);
-            translate([ width - wall_thickness - lid_size_spacing / 1.1, -lid_size_spacing, -lid_thickness / 2 ])
-                linear_extrude(height = lid_thickness + 10) xflip() right_triangle([ lid_size_spacing * 2, 15 ]);
+            translate([ -size_spacing / 20, -size_spacing, -calc_lid_thickness / 2 ])
+                linear_extrude(height = calc_lid_thickness + 10) right_triangle([ size_spacing * 2, 15 ]);
+            translate([ width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2 ])
+                linear_extrude(height = calc_lid_thickness + 10) xflip() right_triangle([ size_spacing * 2, 15 ]);
         }
         if ($children > 0)
         {
@@ -138,6 +177,94 @@ module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thi
         if ($children > 5)
         {
             children(5);
+        }
+    }
+}
+
+// Module: SlidingBoxLidWithLabelAndCustomShape()
+// Topics: SlidingBox, SlidingLid
+// Description:
+//    Lid for a sliding lid box.  This uses the first
+//    child as the shape for repeating on the lid.
+// Arguments:
+//    width = outside width of the box
+//    length = outside length of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    label_radius = radius of the label corners (default 5)
+//    label_border = border of the item (default 2)
+//    label_offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+// Usage: SlidingBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    SlidingBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
+                                            label_radius = 5, label_border = 2, label_offset = 4, label_rotated = false,
+                                            layout_width = undef, size_spacing = m_piece_wiggle_room,
+                                            lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
+                                            lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef)
+{
+    SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
+               lid_rounding = lid_rounding, size_spacing = size_spacing, lid_chamfer = lid_chamfer)
+    {
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
+                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+        {
+            if ($children > 0)
+            {
+                children(0);
+            }
+            else
+            {
+                square([ 10, 10 ]);
+            }
+        }
+        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+
+        // Fingernail pull
+        intersection()
+        {
+            cube([ width - label_border, length - label_border, lid_thickness ]);
+            translate([ (width) / 2, length - label_border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+        }
+
+        // Don't include the first child since is it used for the lid shape.
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
         }
     }
 }
@@ -160,14 +287,15 @@ module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thi
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    label_radius = radius of the rounded corner for the label section (default 12)
-//    border = how wide the border strip on the label should be (default 2)
-//    offset = how far inside the border the label should be (default 4)
+//    label_border = how wide the border strip on the label should be (default 2)
+//    label_offset = how far inside the border the label should be (default 4)
 //    label_rotated = if the label should be rotated (default false)
+//    label_radius = radius of the label bit (default 5)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//    lid_size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
+//    size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //    {{m_piece_wiggle_room}}
 // Topics: SlidingBox, SlidingLid
 // Example:
@@ -175,40 +303,22 @@ module SlidingLid(width, length, lid_thickness = default_lid_thickness, wall_thi
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
-                              lid_boundary = 10, shape_width = undef, border = 2, offset = 4, label_rotated = false,
-                              layout_width = undef, shape_type = undef, shape_thickness = undef,
-                              wall_thickness = default_wall_thickness, aspect_ratio = undef,
-                              lid_size_spacing = m_piece_wiggle_room)
+                              lid_boundary = 10, shape_width = undef, label_border = 2, label_offset = 4,
+                              label_rotated = false, layout_width = undef, shape_type = undef, shape_thickness = undef,
+                              wall_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
+                              lid_chamfer = undef, lid_rounding = undef, font = undef, label_radius = 5,
+                              shape_rounding = undef)
 {
-    SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-               lid_size_spacing = lid_size_spacing)
+    SlidingBoxLidWithLabelAndCustomShape(
+        width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness, font = font,
+        text_str = text_str, text_width = text_width, text_height = text_height, label_radius = label_radius,
+        label_rotated = label_rotated, layout_width = layout_width, size_spacing = size_spacing,
+        aspect_ratio = aspect_ratio, lid_chamfer = lid_chamfer, lid_rounding = lid_rounding,
+        lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset)
     {
+        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
 
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
-        {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset);
-        }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset);
-        }
-        intersection()
-        {
-            cube([ width - border, length - border, lid_thickness ]);
-            translate([ (width) / 2, length - border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
-        }
-        if ($children > 0)
-        {
-            children(0);
-        }
         if ($children > 1)
         {
             children(1);
@@ -229,220 +339,9 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         {
             children(5);
         }
-    }
-}
-
-// Module: MakeHexBoxWithSlidingLid()
-// Description:
-//   Creates a box with a specific number of hex spaces given the rows/cols and width of the pieces.  Useful
-//   for making 18xx style boxes quickly.  Children to this are the same as children to the
-//   {{MakeBoxWithSlidingLid()}}.
-//   .
-//   This will make
-//   sure the cutouts are only inside the box and in the floor, if you want to cut out the sides of the box
-//   do this with a difference after making this object.
-//   .
-// See also: SlidingLidForHexBox(), SlidingLidWithLabelForHexBox()
-// Usage:
-//   MakeHexBoxWithSlidingLid(5, 7, 19, 1, 29);
-// Arguments:
-//   rows = number of rows to generate
-//   cols = number of cols to generate
-//   height = height of the box itsdle (outside height)
-//   push_block_height = height of the raised bit in the middle to make removing easier
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   spacing = spacing between the hexes
-// Topics: SlidingBox, SlidingLid, Hex
-// Example:
-//   MakeHexBoxWithSlidingLid(rows = 5, cols = 2, height = 10, push_block_height = 0.75, tile_width = 29);
-module MakeHexBoxWithSlidingLid(rows, cols, height, push_block_height, tile_width,
-                                lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                                spacing = 0)
-{
-    width = tile_width;
-    apothem = width / 2;
-    radius = apothem / cos(180 / 6);
-
-    MakeBoxWithSlidingLid(rows * radius * 2 + wall_thickness * 2, cols * apothem * 2 + wall_thickness * 2, height,
-                          lid_thickness = lid_thickness)
-    {
-        HexGridWithCutouts(rows = rows, cols = cols, height = height, tile_width = tile_width, spacing = spacing,
-                           wall_thickness = wall_thickness);
-        if ($children > 0)
+        if ($children > 6)
         {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-    }
-}
-
-// Module: SlidingLidForHexBox()
-// Description:
-//   Creates a sliding lid for use with a hex box, sets up the sizes correctly to match the
-//   the hex row/col set.
-// See also: MakeHexBoxWithSlidingLid(), SlidingLidWithLabelForHexBox()
-// Usage:
-//   SlidingLidForHexBox(5, 7, 29);
-// Arguments:
-//   rows = number of rows to generate
-//   cols = number of cols to generate
-//   tile_width = width of the tiles
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   spacing = spacing between the hexes
-// Topics: SlidingBox, SlidingLid, Hex
-// Example:
-//   SlidingLidForHexBox(rows = 5, cols = 2, tile_width = 29);
-module SlidingLidForHexBox(rows, cols, tile_width, lid_thickness = default_lid_thickness,
-                           wall_thickness = default_wall_thickness, spacing = 0)
-{
-    width = tile_width;
-    apothem = width / 2;
-    radius = apothem / cos(180 / 6);
-
-    SlidingLid(width = rows * radius * 2 + wall_thickness * 2, length = cols * apothem * 2 + wall_thickness * 2,
-               lid_thickness = lid_thickness)
-    {
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-    }
-}
-
-// Module: SlidingLidWithLabelForHexBox()
-// Description:
-//   This is a composite method that joins together the other pieces to make a simple lid with a label and a hex
-//   grid. The children to this as also pulled out of the lid so can be used to build more complicated lids.
-//   .
-// See also: MakeHexBoxWithSlidingLid()
-// Usage:
-//    SlidingLidWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_thickness = 3, text_width = 60, text_height
-//    = 30, text_str = "Trains", label_rotated = false);
-// Arguments:
-//    rows = number of rows to generate
-//    cols = number of cols to generate
-//    tile_width = width of the tiles
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    spacing = spacing between the hexes
-//    text_width = width of the text section
-//    text_height = length of the text section
-//    text_str = The string to write
-//    lid_thickness = height of the lid (default 3)
-//    lid_boundary = how much boundary should be around the pattern (default 10)
-//    label_radius = radius of the rounded corner for the label section (default 12)
-//    border = how wide the border strip on the label should be (default 2)
-//    offset = how far inside the border the label should be (degault 4)
-//    label_rotated = if the label should be rotated (default false)
-//    wall_thickness = how wide the walls are (default 2)
-//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-// Topics: SlidingBox, SlidingLid, Hex
-// Example:
-//    SlidingLidWithLabelForHexBox(
-//        cols = 3, rows = 4, tile_width = 29, lid_thickness = 3, text_width = 60,
-//        text_height = 30, text_str = "Trains", label_rotated = false);
-module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str,
-                                    lid_thickness = default_lid_thickness, lid_boundary = 10, label_radius = 12,
-                                    border = 2, offset = 4, label_rotated = false,
-                                    wall_thickness = default_wall_thickness, layout_width = undef, shape_width = undef,
-                                    shape_type = undef, shape_thickness = undef, aspect_ratio = undef)
-{
-    apothem = tile_width / 2;
-    radius = apothem / cos(180 / 6);
-    width = rows * radius * 2 + wall_thickness * 2;
-    length = cols * apothem * 2 + wall_thickness * 2;
-
-    SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
-    {
-
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = undef);
-        if (label_rotated)
-        {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset);
-        }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset);
-        }
-        intersection()
-        {
-            cube([ width - border, length - border, lid_thickness ]);
-            translate([ (width) / 2, length - border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
-        }
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
+            children(6);
         }
     }
 }
@@ -472,20 +371,17 @@ module SlidingLidWithLabelForHexBox(rows, cols, tile_width, text_width, text_hei
 //   MakeBoxWithSlidingLid(50, 100, 20);
 module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wall_thickness,
                              lid_thickness = default_lid_thickness, floor_thickness = default_floor_thickness,
-                             lid_size_spacing = m_piece_wiggle_room)
+                             size_spacing = m_piece_wiggle_room)
 {
     difference()
     {
         cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-        translate([ wall_thickness, -lid_size_spacing / 2, height - lid_thickness ]) cuboid(
-            [
-                width - wall_thickness * 2, length - wall_thickness + lid_size_spacing,
-                lid_thickness + lid_size_spacing / 2
-            ],
+        translate([ wall_thickness, -size_spacing / 2, height - lid_thickness ]) cuboid(
+            [ width - wall_thickness * 2, length - wall_thickness + size_spacing, lid_thickness + size_spacing / 2 ],
             anchor = BOTTOM + FRONT + LEFT, );
-        translate([ wall_thickness / 2, -lid_size_spacing / 2, height - lid_thickness ])
-            cuboid([ width - wall_thickness, length - wall_thickness / 2 + lid_size_spacing * 2, lid_thickness / 2 ],
+        translate([ wall_thickness / 2, -size_spacing / 2, height - lid_thickness ])
+            cuboid([ width - wall_thickness, length - wall_thickness / 2 + size_spacing * 2, lid_thickness / 2 ],
                    anchor = BOTTOM + FRONT + LEFT, chamfer = lid_thickness / 6,
                    edges = [ TOP + LEFT, TOP + RIGHT, TOP + BACK ]);
 

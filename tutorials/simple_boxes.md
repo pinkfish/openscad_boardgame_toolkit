@@ -5,11 +5,9 @@
     - [Simple box](#simple-box)
     - [Simple box, rounded cutout](#simple-box-rounded-cutout)
     - [Simple Box with finger cutout](#simple-box-with-finger-cutout)
-    - [Hex box sliding lid](#hex-box-sliding-lid)
     - [Simple box with 2x2 compartments](#simple-box-with-2x2-compartments)
   - [Tabbed Boxes](#tabbed-boxes)
     - [Simple tabbed box](#simple-tabbed-box)
-    - [Tabbed hex box](#tabbed-hex-box)
   - [Capped box](#capped-box)
   - [Slipover box](#slipover-box)
   - [Sliding Catch box](#sliding-catch-box)
@@ -127,30 +125,6 @@ MoneyBox();
 
 ```
 
-### Hex box sliding lid
-
-This creates a hex box bounded by the size of the hexes themselves.
-
-```openscad-3D;Big
-include <boardgame_toolkit.scad>
-
-hex_section_height = 20;
-tile_width = 29;
-
-module HexBox()
-{
-    MakeHexBoxWithSlidingLid(rows = 5, cols = 3, tile_width = tile_width, height = hex_section_height, push_block_height = 1);
-    text_str = "Track";
-    text_width = 80;
-    text_height = 20;
-    translate([0, 3 * tile_width + 10, 0])
-        SlidingLidWithLabelForHexBox(rows = 5, cols = 3, tile_width = tile_width, 
-            text_width = text_width, text_height = text_height, text_str = text_str);
-}
-
-HexBox();
-```
-
 ### Simple box with 2x2 compartments
 
 Creates a box with a 2x2 grid compartments.
@@ -223,33 +197,6 @@ TabbedBox();
 
 ```
 
-### Tabbed hex box
-
-Create a tabbed hex box with a cut of the entire inside of the box.   This also makes the matching tabbed
-lid.
-
-```openscad-3D;Med
-include <boardgame_toolkit.scad>
-
-wall_thickness = 2;
-tile_width = 29;
-
-top_section_height = 20;
-
-module TabbedHexBox()
-{
-    MakeHexBoxWithInsetLidTabbed(rows = 5, cols = 3, tile_width = tile_width, height = top_section_height, push_block_height = 1);
-    text_str = "Tabbed";
-    text_width = 80;
-    text_height = 20;
-    translate([ 0, 3 * tile_width + 15, 0 ]) InsetLidTabbedWithLabelForHexBox(
-        rows = 5, cols = 3, tile_width = tile_width, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = false);
-}
-
-TabbedHexBox();
-
-```
 
 ## Capped box
 

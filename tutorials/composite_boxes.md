@@ -220,8 +220,6 @@ hex_box_length = 207;
 hex_box_width = 172;
 top_section_height = 13;
 tile_width = 29;
-apothem = tile_width / 2;
-radius = apothem / cos(180 / 6);
 
 MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = top_section_height, push_block_height = 0.75,
                             tile_width = tile_width, magnet_diameter = 5, magnet_thickness = 1) {
@@ -235,7 +233,7 @@ MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = 
 text_str = "Tracks";
 text_width = 80;
 text_height = 20;
-translate([ 6.5 * tile_width, 0, 0 ])
-    SlidingLidWithLabelForHexBox(rows = 5, cols = 7, tile_width = tile_width, text_width = text_width,
+translate([ hex_box_width+10, 0, 0 ])
+    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, tile_width = tile_width, text_width = text_width,
                                     text_height = text_height, text_str = text_str);
 ```

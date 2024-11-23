@@ -538,10 +538,10 @@ module CardBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ marquis_box_width + 10, 0, 0 ])
+        translate([ card_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 70, text_height = 20, text_str = "Marquis", label_rotated = true);
+                               text_width = 70, text_height = 20, text_str = "Cards", label_rotated = false);
         }
     }
 }
@@ -553,9 +553,11 @@ module CapBoxLidWithEyes(width, length, height)
     {
         translate([ 10, 10, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
-                         layout_width = default_lid_layout_width, shape_type = default_lid_shape_type,
-                         shape_width = default_lid_shape_width, shape_thickness = default_lid_shape_thickness,
-                         aspect_ratio = default_lid_aspect_ratio);
+                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
+        {
+            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
+        }
         translate([ width / 2, length / 2, 0 ]) children();
     }
 }
@@ -566,7 +568,7 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
     {
         len = player_token_thickness * 8 + 1;
         // Put a bunch of places in for the marquis items
-        translate([ ($inner_width - len) / 2, 1, 0 ])
+        translate([ ($inner_width - len) / 2, 1, -0.75 ])
         {
             translate([ len / 2, marquis_width / 2 + 1, marquis_length / 2 + 1 ]) rotate([ 90, 0, 90 ])
                 MarquisCharacter(height = len);
@@ -576,7 +578,7 @@ module MarquisBoxBottom(generate_lid = true) // `make` me
                 MarquisCharacter(height = len);
         }
         // Second smaller marquis bits
-        translate([ ($inner_width - len - player_token_thickness) / 2, 1, 0 ])
+        translate([ ($inner_width - len - player_token_thickness) / 2, 1, -0.75 ])
         {
             second_len = len + player_token_thickness;
             translate([ second_len / 2, marquis_width / 2 + marquis_width * 2 + 3, marquis_length / 2 + 1 ])
@@ -606,10 +608,10 @@ module MarquisBoxTop(generate_lid = true) // `make` me
         translate([ square_tile_size / 2, square_tile_size / 2, 0 ])
         {
             CuboidWithIndentsBottom(
-                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ],
+                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 + 1 ],
                 finger_hole_radius = 7, finger_holes = finger_holes);
             translate([ square_tile_size + 1, 0, 0 ]) CuboidWithIndentsBottom(
-                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 ],
+                [ square_tile_size, square_tile_size, tile_thickness * marquis_building_token_num / 2 + 1 ],
                 finger_hole_radius = 7, finger_holes = finger_holes);
         }
     }
@@ -642,20 +644,22 @@ module MarquisBoxTop(generate_lid = true) // `make` me
                                    finger_holes = [2]);
 
         // Buildings.
-        translate(
-            [ 0, $inner_length - square_tile_size, $inner_height - tile_thickness * marquis_building_token_num / 2 ])
-        {
-            BuildingSpots(finger_holes = [6]);
-        }
         translate([
-            $inner_width - square_tile_size * 2 - 1, $inner_length - square_tile_size,
-            $inner_height - tile_thickness * marquis_building_token_num / 2
+            0, $inner_length - square_tile_size, $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
         ])
         {
             BuildingSpots(finger_holes = [6]);
         }
         translate([
-            $inner_width - square_tile_size * 2 - 1, 0, $inner_height - tile_thickness * marquis_building_token_num / 2
+            $inner_width - square_tile_size * 2 - 1, $inner_length - square_tile_size,
+            $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
+        ])
+        {
+            BuildingSpots(finger_holes = [6]);
+        }
+        translate([
+            $inner_width - square_tile_size * 2 - 1, 0,
+            $inner_height - tile_thickness * marquis_building_token_num / 2 - 0.5
         ])
         {
             BuildingSpots(finger_holes = [2]);
@@ -1363,5 +1367,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MarquisBoxBottom(generate_lid = false);
+   Handshake2d(size = 10);
 }

@@ -113,6 +113,7 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
                            radius = 5, full_height = false)
 {
+    calc_font = DefaultValue(font, default_label_font);
     intersection()
     {
         cuboid(size = [ width, length, lid_thickness ], rounding = radius, edges = "Z", anchor = FRONT + LEFT + BOTTOM);
@@ -132,7 +133,7 @@ module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offs
                 // Edge box.
                 translate([ offset, offset, 0 ]) resize([ width - offset * 2, length - offset * 2, 0 ], auto = true)
                 {
-                    text(text = str(label), font = font, size = 10, spacing = 1, halign = "left", valign = "bottom");
+                    text(text = str(label), font = calc_font, size = 10, spacing = 1, halign = "left", valign = "bottom");
                 }
             }
             if (full_height)

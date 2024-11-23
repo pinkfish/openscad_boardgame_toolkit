@@ -94,23 +94,26 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
+//   lid_rounding = how much to round the lid (default wall_thickness)
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
 module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickness,
                       wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room, foot = 0,
-                      finger_hole_length = false, finger_hole_width = true)
+                      finger_hole_length = false, finger_hole_width = true, lid_rounding = undef)
 {
     foot_offset = foot > 0 ? foot + size_spacing : 0;
+    calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
     translate([ 0, length, height - foot ]) rotate([ 180, 0, 0 ])
     {
         union()
         {
             translate([ 0, 0, height - foot_offset - lid_thickness ])
             {
-                internal_build_lid(width, length, wall_thickness, wall_thickness)
+                internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = size_spacing)
                 {
                     // Top piece
-                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
+                           rounding = calc_lid_rounding,
                            edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                     if ($children > 0)
                     {
@@ -142,7 +145,8 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
             difference()
             {
                 cuboid([ width, length, height - foot_offset ], anchor = BOTTOM + FRONT + LEFT,
-                       rounding = wall_thickness, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                       rounding = calc_lid_rounding,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 translate([ wall_thickness, wall_thickness, -0.5 ])
                     cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
                 if (finger_hole_length)
@@ -164,60 +168,69 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
     }
 }
 
-// Module: SlipoverLidWithLabel()
+// Module: SlipoverLidWithLabelAndCustomShape()
 // Topics: SlipoverBox
-// Usage: SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset", shape_type =
-// SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14) Arguments:
-//   width = width of the lid (outside width)
-//   length = of the lid (outside length)
-//   height = height of the lid (outside height)
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
-//   foot = size of the foot on the box.
-//   label_radius = radius of the label corners (default 12)
-//   border= border of the item (default 2)
-//   offset = offset in from the edge for the label (default 4)
-//   label_rotated = if the label is rotated (default false)
-//   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//   shape_width = width of the shape (default {{default_lid_shape_width}})
-//   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+// Description:
+//    Lid for a slipover box.  This uses the first
+//    child as the shape for repeating on the lid.
+// Arguments:
+//    width = outside width of the box
+//    length = outside length of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    label_radius = radius of the label corners (default 5)
+//    label_border = border of the item (default 2)
+//    label_offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+// Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
-//   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
-//      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
-module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
-                            wall_thickness = default_wall_thickness, label_radius = 12, border = 2, offset = 4,
-                            label_rotated = false, foot = 0, layout_width = undef, shape_width = undef,
-                            shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
-                            size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
-                            finger_hole_length = false, finger_hole_width = true)
+//    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog") {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
+                                          label_radius = 5, label_border = 2, label_offset = 4, label_rotated = false,
+                                          layout_width = undef, size_spacing = m_piece_wiggle_room,
+                                          lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
+                                          lid_rounding = undef, wall_thickness = default_wall_thickness, foot = 0,
+                                          finger_hole_length = false, finger_hole_width = true)
 {
-    SlipoverBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness, foot = foot,
-                   lid_thickness = lid_thickness, finger_hole_length = finger_hole_length,
-                   finger_hole_width = finger_hole_width)
+    SlipoverBoxLid(width, length, height, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
+                   lid_rounding = lid_rounding, size_spacing = size_spacing, foot = foot,
+                   finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width)
     {
-
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio)
         {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
+            if ($children > 0)
+            {
+                children(0);
+            }
+            else
+            {
+                square([ 10, 10 ]);
+            }
         }
-        else
+        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+
+        // Fingernail pull
+        intersection()
         {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
+            cube([ width - label_border, length - label_border, lid_thickness ]);
+            translate([ (width) / 2, length - label_border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
         }
-        if ($children > 0)
-        {
-            children(0);
-        }
+
+        // Don't include the first child since is it used for the lid shape.
         if ($children > 1)
         {
             children(1);
@@ -237,6 +250,78 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         if ($children > 5)
         {
             children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
+        }
+    }
+}
+
+// Module: SlipoverLidWithLabel()
+// Topics: SlipoverBox
+// Usage: SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset", shape_type =
+// SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14) Arguments:
+//   width = width of the lid (outside width)
+//   length = of the lid (outside length)
+//   height = height of the lid (outside height)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
+//   foot = size of the foot on the box.
+//   label_radius = radius of the label corners (default 5)
+//   border= border of the item (default 2)
+//   offset = offset in from the edge for the label (default 4)
+//   label_rotated = if the label is rotated (default false)
+//   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//   shape_width = width of the shape (default {{default_lid_shape_width}})
+//   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+// Example:
+//   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
+//      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
+module SlipoverLidWithLabel(width, length, height, text_width, text_height, text_str, lid_boundary = 10,
+                            wall_thickness = default_wall_thickness, label_radius = 5, label_border = 2,
+                            label_offset = 4, label_rotated = false, foot = 0, layout_width = undef,
+                            shape_width = undef, shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
+                            size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
+                            finger_hole_length = false, finger_hole_width = true, font = undef, lid_rounding = undef,
+                            shape_rounding = default_lid_shape_rounding)
+{
+    SlipoverLidWithLabelAndCustomShape(
+        width = width, length = length, height = height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+        font = font, text_str = text_str, text_width = text_width, text_height = text_height,
+        label_radius = label_radius, label_rotated = label_rotated, layout_width = layout_width,
+        size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
+        lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
+        finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot)
+    {
+        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
         }
     }
 }

@@ -603,8 +603,6 @@ module D20Outline2d(size, offset)
         points = [for (i = [0:1:5])([ r * cos(360 * i / 6), r * sin(360 * i / 6) ])];
         r_triangle = r / 5 * 3;
         points_triangle = [for (i = [0:1:2])([ r_triangle * cos(360 * i / 3), r_triangle * sin(360 * i / 3) ])];
-        echo(points);
-        echo(points_triangle);
         stroke([ points[0], points[5], points_triangle[0], points[0] ], width = offset);
         stroke([ points[0], points[1], points_triangle[0], points[1] ], width = offset);
         stroke([ points[1], points[2], points_triangle[1], points[1] ], width = offset);
@@ -613,6 +611,115 @@ module D20Outline2d(size, offset)
         stroke([ points[4], points[5], points_triangle[2], points[4] ], width = offset);
         stroke([ points_triangle[0], points_triangle[1], points_triangle[2], points_triangle[0] ], width = offset);
     }
+}
+
+// Module: SawBlade2d()
+// Description:
+//   Makes a nice 2d saw blade.
+// Arguments:
+//   size = size of the saw blade
+//   inner_spindle_size = size of the inside spindle (default size/10)
+// Example(2D):
+//    SawBlade2d(50);
+module SawBlade2d(size, inner_spindle_size = undef)
+{
+    calc_inner_spindle_size = DefaultValue(inner_spindle_size, size / 10);
+    difference()
+    {
+        resize([ size, size ]) supershape(m1 = 20, n1 = 20, n2 = 9, n3 = 6);
+        circle(r = calc_inner_spindle_size);
+    }
+}
+
+// Module: SawBlade2dOutline()
+// Description:
+//   Makes a nice 2d saw blade.
+// Arguments:
+//   size = size of the saw blade
+//   inner_spindle_size = size of the inside spindle (default size/10)
+// Example(2D):
+//    SawBlade2d(50);
+module SawBlade2dOutline(size, inner_spindle_size = undef, outer_width = 1)
+{
+    module OuterBlade()
+    {
+        resize([ size, size ]) supershape(m1 = 20, n1 = 20, n2 = 9, n3 = 6);
+    }
+    calc_inner_spindle_size = DefaultValue(inner_spindle_size, size / 10);
+    difference()
+    {
+        OuterBlade();
+        hull() offset(-outer_width) OuterBlade();
+    }
+    circle(r = calc_inner_spindle_size);
+}
+
+// Module: Handshake2d()
+// Description:
+//   Creates two hands shaking hands.
+// Arguments:
+//   size = size of the hands.
+// Example(2D):
+//   Handshake2d(30);
+module Handshake2d(size)
+{
+    module Thumb()
+    {
+        translate([ 38, 3 ]) rotate(220) stroke(egg(15, 5, 4, 60), closed = true);
+    }
+    module Finger()
+    {
+        rotate(230) stroke(egg(12, 4, 5, 60), closed = true);
+    }
+    resize([ size, size * 60 / 80 ]) translate([ -40, 0 ])
+    {
+        difference()
+        {
+            union()
+            {
+                polygon(points = [ [ 0, 0 ], [ 0, 30 ], [ 40, 5 ], [ 40, -25 ] ]);
+                translate([ 80, 0 ]) mirror([ 1, 0 ]) polygon(points = [ [ 0, 0 ], [ 0, 30 ], [ 40, 5 ], [ 40, -25 ] ]);
+                hull()
+                {
+                    translate([ 34, -17 ]) circle(r = 5);
+                    translate([ 44, -25 ]) circle(r = 5);
+                }
+                translate([ 50, -20 ]) circle(r = 5);
+                translate([ 57, -15 ]) circle(r = 5);
+                translate([ 35, 5 ]) circle(r = 5);
+            }
+            Thumb();
+
+            path = bezier_points([ [ 44, 5 ], [ 48, 6 ], [ 64, -15 ] ], [0:0.2:1]);
+            stroke(path);
+            translate([ 35, -20 ]) Finger();
+            translate([ 30, -17 ]) Finger();
+            translate([ 25, -14 ]) Finger();
+        }
+        offset(-1) hull() Thumb();
+        translate([ 35, -20 ]) offset(-1) hull() Finger();
+        difference()
+        {
+            translate([ 30, -17 ]) offset(-1) hull() Finger();
+            translate([ 35, -20 ]) Finger();
+        }
+        difference()
+        {
+            translate([ 25, -14 ]) offset(-1) hull() Finger();
+            translate([ 30, -17 ]) Finger();
+        }
+    }
+}
+
+// Module: Anvil2d()
+// Description:
+//    Makes a nice 2d anvil.
+// Arguments:
+//    size = size of the anvil
+// Example(2D):
+//   Anvil2d(30);
+module Anvil2d()
+{
 }
 
 // Module: HalfEye2d()
@@ -667,7 +774,156 @@ module SideEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5)
     }
     intersection()
     {
-        translate([ outer_size/3 * cos(angle), outer_size/3 * sin(angle) ])  circle(d = pupil_size);
+        translate([ outer_size / 3 * cos(angle), outer_size / 3 * sin(angle) ]) circle(d = pupil_size);
         circle(d = outer_size);
+    }
+}
+
+// Module: CloudShape2d()
+// Description:
+//   Makes a cloud object.  This object was made by Twanne on thingiverse:
+//   https://www.thingiverse.com/thing:641665/files
+// Arguments:
+//   width = The width of the cloud. This also determine the height, because the height is half the width.
+//   height = Height of the object.
+//   line_width = width of the outside line (0 if no line)
+// Example:
+//   CloudShape2d(100);
+module CloudShape2d(width)
+{
+    union()
+    {
+        translate([ width * .37, width * .25, 0 ]) circle(r = width * .25, $fn = 16);
+        translate([ width * .15, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
+        translate([ width * .65, width * .22, 0 ]) circle(r = width * .2, $fn = 16);
+        translate([ width * .85, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
+    }
+}
+
+// Module: ShapeByType()
+// Description:
+//   Creates shapes by a specific type to use in the lids.  This is pulled out so the shape creation
+//   layout are handled independantly.
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = 10);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = 10);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = 10);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+// Example:
+//   default_lid_shape_rounding = 3;
+//   ShapeByType(shape_type= SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+// Example:
+//   ShapeByType(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = 11);
+// Example(2D,Med):
+//   ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2);
+// Example(2D,Big):
+//   ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+module ShapeByType(shape_type, shape_width, shape_thickness, shape_aspect_ratio = 1.0, rounding = undef,
+                   supershape_m1 = undef, supershape_m2 = undef, supershape_n1 = undef, supershape_n2 = undef,
+                   supershape_n3 = undef, supershape_a = undef, supershape_b = undef)
+{
+    calc_shape_type = DefaultValue(shape_type, default_lid_shape_type);
+    calc_shape_width = DefaultValue(shape_width, default_lid_shape_width);
+    calc_shape_thickness = DefaultValue(shape_thickness, default_lid_shape_thickness);
+    calc_aspect_ratio = DefaultValue(shape_aspect_ratio, default_lid_aspect_ratio);
+    calc_rounding = DefaultValue(rounding, default_lid_shape_rounding);
+    calc_supershape_m1 = DefaultValue(supershape_m1, default_lid_supershape_m1);
+    calc_supershape_m2 = DefaultValue(supershape_m2, default_lid_supershape_m2);
+    calc_supershape_n1 = DefaultValue(supershape_n1, default_lid_supershape_n1);
+    calc_supershape_n2 = DefaultValue(supershape_n2, default_lid_supershape_n2);
+    calc_supershape_n3 = DefaultValue(supershape_n3, default_lid_supershape_n3);
+    calc_supershape_a = DefaultValue(supershape_a, default_lid_supershape_a);
+    calc_supershape_b = DefaultValue(supershape_b, default_lid_supershape_b);
+    if (calc_shape_type == SHAPE_TYPE_NONE)
+    {
+        // Don't do anything.
+    }
+    else
+    {
+        // Thin border around the pattern to stick it on.
+
+        if (calc_shape_type == SHAPE_TYPE_DENSE_HEX)
+        {
+            difference()
+            {
+                regular_ngon(or = calc_shape_width / 2 + calc_shape_thickness / 2, n = 6, rounding = calc_rounding);
+                regular_ngon(or = calc_shape_width / 2 - calc_shape_thickness / 2, n = 6, rounding = calc_rounding);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_DENSE_TRIANGLE)
+        {
+            difference()
+            {
+                regular_ngon(or = calc_shape_width / 2 + calc_shape_thickness / 2, n = 3, rounding = calc_rounding);
+                regular_ngon(or = calc_shape_width / 2 - calc_shape_thickness / 2, n = 3, rounding = calc_rounding);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_CIRCLE)
+        {
+            difference()
+            {
+                circle(r = calc_shape_width / 2);
+                circle(r = (calc_shape_width - calc_shape_thickness) / 2);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_TRIANGLE || calc_shape_type == SHAPE_TYPE_HEX ||
+                 calc_shape_type == SHAPE_TYPE_OCTOGON || calc_shape_type == SHAPE_TYPE_SQUARE)
+        {
+            shape_edges =
+                calc_shape_type == SHAPE_TYPE_TRIANGLE
+                    ? 3
+                    : (calc_shape_type == SHAPE_TYPE_HEX ? 6 : (calc_shape_type == SHAPE_TYPE_SQUARE ? 4 : 8));
+            difference()
+            {
+                regular_ngon(r = calc_shape_width / 2, n = shape_edges, rounding = calc_rounding);
+                regular_ngon(r = (calc_shape_width - calc_shape_thickness) / 2, n = shape_edges,
+                             rounding = calc_rounding);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_SUPERSHAPE)
+        {
+            difference()
+            {
+                DifferenceWithOffset(offset = -calc_shape_thickness) supershape(
+                    d = calc_shape_width, m1 = calc_supershape_m1, m2 = calc_supershape_m2, n1 = calc_supershape_n1,
+                    n2 = calc_supershape_n2, n3 = calc_supershape_n3, a = calc_supershape_a, b = calc_supershape_b);
+            }
+        }
+        else if (calc_shape_type == SHAPE_TYPE_CLOUD)
+        {
+            translate([ -calc_shape_width / 2, -calc_shape_width / 2 ]) difference()
+            {
+                resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
+                {
+                    CloudShape2d(width = calc_shape_width);
+                }
+                offset(delta = -calc_shape_thickness) resize([ calc_shape_width * calc_aspect_ratio, calc_shape_width ])
+                {
+                    CloudShape2d(width = calc_shape_width);
+                }
+            }
+        }
+        else
+        {
+            assert(false, "Invalid shape type");
+        }
     }
 }

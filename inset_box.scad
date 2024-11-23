@@ -44,25 +44,21 @@ under the License.
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   inset = how far the side is inset from the edge of the box (default 1)
 //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-//   lid_size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
+//   size_spacing = how much wiggle room to give in the model (default {{m_piece_wiggle_room}})
 // Topics: TabbedBox
 // Example:
 //  InsetLid(50, 100);
 module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                inset = 1, lid_size_spacing = m_piece_wiggle_room, lid_rounding = undef)
+                inset = 1, size_spacing = m_piece_wiggle_room, lid_rounding = undef)
 {
     calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
-    internal_build_lid(width, length, lid_thickness, wall_thickness, lid_size_spacing = lid_size_spacing)
+    $inner_width = width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
+    $inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
+    internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = size_spacing)
     {
         translate([ wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0 ])
-            cuboid(
-                [
-                    width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
-                    length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2,
-                    lid_thickness
-                ],
-                anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
-                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+            cuboid([ $inner_width, $inner_length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
+                   rounding = calc_lid_rounding, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         if ($children > 0)
         {
             children(0);
@@ -101,7 +97,7 @@ module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thick
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   inset = how far to inset the lid (default 1)
-//   lid_size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
+//   size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
 //   make_tab_width = makes tabes on thr width (default false)
 //   make_tab_length = makes tabs on the length (default true)
 //   prism_width = width of the prism in the tab. (default 0.75)
@@ -112,13 +108,13 @@ module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thick
 // Example:
 //   InsetLidTabbed(30, 100);
 module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                      inset = 1, lid_size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
+                      inset = 1, size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
                       prism_width = 0.75, tab_length = 10, tab_height = 8, lid_rounding = undef)
 {
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
     {
         InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, lid_size_spacing = lid_size_spacing, lid_rounding = lid_rounding)
+                 inset = inset, size_spacing = size_spacing, lid_rounding = lid_rounding)
         {
             if ($children > 0)
             {
@@ -153,6 +149,95 @@ module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall
     }
 }
 
+// Module: InsetLidTabbedWithLabelAndCustomShape()
+// Topics: TabbedBox, TabbedLid
+// Description:
+//    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
+//    child as the shape for repeating on the lid.
+// Arguments:
+//    width = outside width of the box
+//    length = outside length of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    label_radius = radius of the label corners (default 5)
+//    label_border = border of the item (default 2)
+//    label_offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    tab_height = height of the tabs (default 6)
+//    tab_length = length of the tabs (default 10)
+//    inset = inset of the edge (default 1)
+//    make_tab_width = makes tabes on thr width (default false)
+//    make_tab_length = makes tabs on the length (default true)
+//    prism_width = width of the prism in the tab. (default 0.75)
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+// Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Example:
+//    InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module InsetLidTabbedWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
+                                             label_radius = 5, label_border = 2, label_offset = 4,
+                                             label_rotated = false, cap_height = undef, layout_width = undef,
+                                             size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
+                                             aspect_ratio = 1.0, font = undef, lid_rounding = undef, tab_length = 10,
+                                             tab_height = 8, make_tab_width = false, make_tab_length = true,
+                                             prism_width = 0.75)
+{
+    InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
+                   lid_rounding = lid_rounding, prism_width = prism_width, make_tab_length = make_tab_length,
+                   make_tab_width = make_tab_width, size_spacing = size_spacing)
+    {
+        translate([ lid_boundary, lid_boundary, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
+                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+        {
+            if ($children > 0)
+            {
+                children(0);
+            }
+            else
+            {
+                square([ 10, 10 ]);
+            }
+        }
+        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+        // Don't include the first child since is it used for the lid shape.
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
+        }
+    }
+}
+
 // Module: InsetLidTabbedWithLabel()
 // Description:
 //   This is a composite method that joins together the other pieces to make a simple inset tabbed lid with
@@ -170,8 +255,8 @@ module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    label_radius = radius of the rounded corner for the label section (default 12)
-//    border = how wide the border strip on the label should be (default 2)
-//    offset = how far inside the border the label should be (degault 4)
+//    label_border = how wide the border strip on the label should be (default 2)
+//    label_offset = how far inside the border the label should be (degault 4)
 //    label_rotated = if the label should be rotated, default to false
 //    tab_height = height of the tabs (default 6)
 //    tab_length = length of the tabs (default 10)
@@ -190,193 +275,22 @@ module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
 module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
-                               lid_boundary = 10, label_radius = 12, border = 2, offset = 4, label_rotated = false,
+                               lid_boundary = 10, label_radius = 12, label_border = 2, label_rotated = false,
                                tab_length = 10, tab_height = 8, make_tab_width = false, make_tab_length = true,
                                prism_width = 0.75, layout_width = undef, shape_width = undef, shape_type = undef,
-                               aspect_ratio = undef, shape_thickness = undef, lid_rounding = undef)
+                               aspect_ratio = undef, shape_thickness = undef, lid_rounding = undef, font = undef,
+                               size_spacing = m_piece_wiggle_room, label_offset = 4, shape_rounding = undef)
 {
-    InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
-                   lid_rounding = lid_rounding)
+    InsetLidTabbedWithLabelAndCustomShape(
+        width = width, length = length, lid_thickness = lid_thickness, tab_length = tab_length,
+        prism_width = prism_width, tab_height = tab_height, make_tab_width = make_tab_width,
+        make_tab_length = make_tab_length, font = font, text_str = text_str, text_width = text_width,
+        text_height = text_height, label_radius = label_radius, label_rotated = label_rotated,
+        layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
+        label_border = label_border, label_offset = label_offset)
     {
-
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
-        {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
-        }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
-        }
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-    }
-}
-
-// Module: InsetLidTabbedForHexBox()
-// Description:
-//   Creates a inset tabbed lid for use with a hex box, sets up the sizes correctly to match the
-//   the hex row/col set.
-// See also: MakeHexBoxWithInsetTabbedLid(), InsetLidTabbedWithLabelForHexBox()
-// Usage:
-//   InsetLidTabbedForHexBox(5, 7, 29);
-// Arguments:
-//   rows = number of rows to generate
-//   cols = number of cols to generate
-//   tile_width = width of the tiles
-//   lid_thickness = height of the lid (defaults to 3)
-//   wall_thickness = thickness of the walls (defaults to 2)
-//   spacing = spacing between the hexes
-//   tab_height = height of the tabs (default 6)
-//   tab_length = length of the tabs (default 10)
-//   inset = inset of the edge (default 1)
-//   make_tab_width = makes tabes on thr width (default false)
-//   make_tab_length = makes tabs on the length (default true)
-//   prism_width = width of the prism in the tab. (default 0.75)
-//   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-// Topics: TabbedBox, TabbedLid, Hex
-// Example:
-//   InsetLidTabbedForHexBox(rows = 5, cols = 2, tile_width = 29);
-module InsetLidTabbedForHexBox(rows, cols, tile_width, lid_thickness = 3, wall_thickness = 2, spacing = 0,
-                               tab_height = 8, tab_length = 10, inset = 1, make_tab_width = false,
-                               make_tab_length = true, prism_width = 0.75, lid_rounding = undef)
-{
-    width = tile_width;
-    apothem = width / 2;
-    radius = apothem / cos(180 / 6);
-
-    InsetLidTabbed(width = rows * radius * 2 + wall_thickness * 2, length = cols * apothem * 2 + wall_thickness * 2,
-                   lid_thickness = lid_thickness, tab_height = tab_height, tab_length = tab_length, inset = inset,
-                   lid_rounding = lid_rounding)
-    {
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-    }
-}
-
-// Module: InsetLidTabbedWithLabelForHexBox()
-// Description:
-//   This is a composite method that joins together the other pieces to make a simple inset tabbed
-//   lid with a label and a hex grid. The children to this as also pulled out of the lid so can be
-//   used to build more complicated lids.
-// See also: InsetLidTabbedForHexBox(), MakeHexBoxWithInsetTabbedLid()
-// Usage:
-//    InsetLidTabbedWithLabelForHexBox(rows = 3, cols = 4, tile_width = 29, lid_thickness = 3, text_width = 60,
-//    text_height = 30, text_str = "Trains", label_rotated = false);
-// Arguments:
-//    rows = number of rows to generate
-//    cols = number of cols to generate
-//    tile_width = width of the tiles
-//    lid_thickness = height of the lid (defaults to 3)
-//    wall_thickness = thickness of the walls (defaults to 2)
-//    spacing = spacing between the hexes
-//    text_width = width of the text section
-//    text_height = length of the text section
-//    text_str = The string to write
-//    lid_thickness = height of the lid (default 3)
-//    lid_boundary = how much boundary should be around the pattern (default 10)
-//    label_radius = radius of the rounded corner for the label section (default 12)
-//    border = how wide the border strip on the label should be (default 2)
-//    offset = how far inside the border the label should be (degault 4)
-//    label_rotated = if the label should be rotated (default false)
-//    wall_thickness = how wide the walls are (default 2)
-//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-// Topics: TabbedBox, TabbedLid, Hex
-// Example:
-//    InsetLidTabbedWithLabelForHexBox(
-//        cols = 3, rows = 4, tile_width = 29, lid_thickness = 3, text_width = 60,
-//        text_height = 30, text_str = "Trains", label_rotated = false);
-module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text_height, text_str, lid_thickness = 3,
-                                        lid_boundary = 10, label_radius = 12, border = 2, offset = 4,
-                                        label_rotated = false, wall_thickness = 2, tab_height = 8, tab_length = 10,
-                                        inset = 1, layout_width = undef, shape_width = undef, shape_type = undef,
-                                        shape_thickness = undef, aspect_ratio = undef, lid_rounding = undef)
-{
-    apothem = tile_width / 2;
-    radius = apothem / cos(180 / 6);
-    width = rows * radius * 2 + wall_thickness * 2;
-    length = cols * apothem * 2 + wall_thickness * 2;
-
-    InsetLidTabbed(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                   tab_length = tab_length, tab_height = tab_height, inset = inset, lid_rounding = lid_rounding)
-    {
-
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
-        {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
-        }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
-        }
-        intersection()
-        {
-            cube([ width - border, length - border, lid_thickness ]);
-            translate([ (width) / 2, length - border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
-        }
+        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
         if ($children > 0)
         {
             children(0);
@@ -427,14 +341,14 @@ module InsetLidTabbedWithLabelForHexBox(rows, cols, tile_width, text_width, text
 //   prism_width = width of the prism to generate (default 0.75)
 //   tab_length = how long the tab is (default 10)
 //   stackable = should we pull a piece out the bottom of the box to let this stack (default false)
-//   lid_size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
+//   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
 //   floor_thickness = thickness of the floor (default 2)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithInsetLidTabbed(width = 30, length = 100, height = 20);
 module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_thickness = 2, tab_height = 8,
                                  inset = 1, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
-                                 tab_length = 10, stackable = false, lid_size_spacing = m_piece_wiggle_room,
+                                 tab_length = 10, stackable = false, size_spacing = m_piece_wiggle_room,
                                  floor_thickness = 2, tab_offset = 0.45)
 {
     difference()
@@ -462,13 +376,11 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
         {
             difference()
             {
-                translate([ -0.5, -0.5, -0.5 ])
-                    cube([ width + 1, length + 1, wall_thickness + 0.5 - lid_size_spacing ]);
-                translate([ wall_thickness - inset + lid_size_spacing, wall_thickness - inset + lid_size_spacing, -1 ])
-                    cube([
-                        width - (wall_thickness - inset + lid_size_spacing) * 2,
-                        length - (wall_thickness - inset + lid_size_spacing) * 2, wall_thickness + 2
-                    ]);
+                translate([ -0.5, -0.5, -0.5 ]) cube([ width + 1, length + 1, wall_thickness + 0.5 - size_spacing ]);
+                translate([ wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1 ]) cube([
+                    width - (wall_thickness - inset + size_spacing) * 2,
+                    length - (wall_thickness - inset + size_spacing) * 2, wall_thickness + 2
+                ]);
             }
         }
     }
@@ -485,7 +397,7 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
 //   lid_thickness = height of the lid (default 2)
 //   wall_thickness = thickness of the walls (default 2)
 //   inset = how far to inset the lid (default 1)
-//   lid_size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
+//   size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
 //   make_rabbit_width = makes tabes on thr width (default false)
 //   make_rabbit_length = makes tabs on the length (default true)
 //   rabbit_length = length of the rabbit piece (downwards direction) (default 6)
@@ -500,7 +412,7 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
 // Example:
 //   InsetLidRabbitClip(30, 100);
 module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
-                          lid_size_spacing = m_piece_wiggle_room, make_rabbit_width = false, make_rabbit_length = true,
+                          size_spacing = m_piece_wiggle_room, make_rabbit_width = false, make_rabbit_length = true,
                           rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
                           rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5,
                           lid_rounding = undef)
@@ -508,7 +420,7 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
     translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
     {
         InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, lid_size_spacing = lid_size_spacing, lid_rounding = lid_rounding)
+                 inset = inset, size_spacing = size_spacing, lid_rounding = lid_rounding)
         {
             if ($children > 0)
             {
@@ -545,26 +457,26 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
     }
 }
 
-// Module: InsetLidRabbitWithLabel()
+// Module: InsetLidRabbitClipWithLabelAndCustomShape()
+// Topics: RabbitClipBox
 // Description:
-//   This is a composite method that joins together the other pieces to make a simple inset tabbed lid with
-//   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
-//   build more complicated lids.
-// Usage:
-//    InsetLidRabbitWithLabel(width = 100, length = 100, lid_thickness = 3, text_width = 60, text_height = 30, text_str
-//    = "Trains", label_rotated = false);
+//    Lid for an inset lid with a rabbit clip.  This handles the first child as the pattern for the
+//    lid and the following items as children to the lid itself.
 // Arguments:
-//    width = width of the box (outside dimension)
-//    length = length of the box (outside dimension)
-//    text_width = width of the text section
-//    text_height = length of the text section
-//    text_str = The string to write
-//    lid_thickness = height of the lid (default 3)
-//    lid_boundary = how much boundary should be around the pattern (default 10)
-//    label_radius = radius of the rounded corner for the label section (default 12)
-//    border = how wide the border strip on the label should be (default 2)
-//    offset = how far inside the border the label should be (degault 4)
-//    label_rotated = if the label should be rotated, default to false
+//    width = outside width of the box
+//    length = inside width of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    label_radius = radius of the label corners (default 5)
+//    label_border = border of the item (default 2)
+//    label_offset = offset in from the edge for the label (default 4)
+//    label_rotated = if the label is rotated (default false)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    make_rabbit_width = makes tabes on thr width (default false)
 //    make_rabbit_length = makes tabs on the length (default true)
 //    rabbit_length = length of the rabbit piece (downwards direction) (default 6)
@@ -574,51 +486,46 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //    rabbit_snap = how deep the inner depth should be for the snap curve (default 0.25)
 //    rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //    rabbit_depth = extrustion depth of the rabbit (default 1.5)
-//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-// Topics: RabbitClipBox
+// Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
-//    InsetLidRabbitWithLabel(
-//        width = 100, length = 100, lid_thickness = 3, text_width = 60,
-//        text_height = 30, text_str = "Trains", label_rotated = false);
-module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3, lid_boundary = 10,
-                               label_radius = 12, border = 2, offset = 4, label_rotated = false,
-                               make_rabbit_width = false, make_rabbit_length = true, rabbit_width = 7,
-                               rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
-                               rabbit_snap = 0.25, rabbit_offset = 3, layout_width = undef, shape_width = undef,
-                               shape_type = undef, shape_thickness = undef, aspect_ratio = undef, rabbit_depth = 1.5,
-                               lid_rounding = undef)
+//    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module InsetLidRabbitClipWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
+                                                 label_radius = 5, label_border = 2, label_offset = 4,
+                                                 label_rotated = false, cap_height = undef, layout_width = undef,
+                                                 size_spacing = m_piece_wiggle_room,
+                                                 lid_thickness = default_lid_thickness, aspect_ratio = 1.0,
+                                                 font = undef, lid_rounding = undef, make_rabbit_width = false,
+                                                 make_rabbit_length = true, rabbit_width = 7, rabbit_length = 6,
+                                                 rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
+                                                 rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5, )
 {
     InsetLidRabbitClip(width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
                        make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width,
                        rabbit_length = rabbit_length, rabbit_lock = rabbit_lock, rabbit_offset = rabbit_offset,
                        rabbit_thickness = rabbit_thickness, rabbit_compression = rabbit_compression,
-                       rabbit_depth = rabbit_depth, lid_rounding = lid_rounding)
+                       rabbit_depth = rabbit_depth, lid_rounding = lid_rounding, size_spacing = size_spacing)
     {
-
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, shape_type = shape_type, shape_width = shape_width,
-                         shape_thickness = shape_thickness, aspect_ratio = aspect_ratio);
-        if (label_rotated)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio)
         {
-            translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
+            if ($children > 0)
+            {
+                children(0);
+            }
+            else
+            {
+                square([ 10, 10 ]);
+            }
         }
-        else
-        {
-            translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                    label = text_str, border = border, offset = offset, full_height = true);
-        }
-        if ($children > 0)
-        {
-            children(0);
-        }
+        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+        // Don't include the first child since is it used for the lid shape.
         if ($children > 1)
         {
             children(1);
@@ -636,6 +543,97 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
             children(4);
         }
         if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
+        {
+            children(6);
+        }
+    }
+}
+
+// Module: InsetLidRabbitClipWithLabel()
+// Description:
+//   This is a composite method that joins together the other pieces to make a simple inset tabbed lid with
+//   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
+//   build more complicated lids.
+// Usage:
+//    InsetLidRabbitClipWithLabel(width = 100, length = 100, lid_thickness = 3, text_width = 60, text_height = 30,
+//    text_str = "Trains", label_rotated = false);
+// Arguments:
+//    width = width of the box (outside dimension)
+//    length = length of the box (outside dimension)
+//    text_width = width of the text section
+//    text_height = length of the text section
+//    text_str = The string to write
+//    lid_thickness = height of the lid (default 3)
+//    lid_boundary = how much boundary should be around the pattern (default 10)
+//    label_radius = radius of the rounded corner for the label section (default 12)
+//    label_border = how wide the border strip on the label should be (default 2)
+//    label_offset = how far inside the border the label should be (degault 4)
+//    label_rotated = if the label should be rotated, default to false
+//    make_rabbit_width = makes tabes on thr width (default false)
+//    make_rabbit_length = makes tabs on the length (default true)
+//    rabbit_length = length of the rabbit piece (downwards direction) (default 6)
+//    rabbit_width = width of the rabbit piece (crosswise direction) (default 7)
+//    rabbit_lock = if the rabbit should habe a locking piece on it (default false)
+//    rabbit_compression = how much sideway give on the rabbit (default 0.1)
+//    rabbit_snap = how deep the inner depth should be for the snap curve (default 0.25)
+//    rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
+//    rabbit_depth = extrustion depth of the rabbit (default 1.5)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    size_spacing = how much wiggle room around the piece (default {{m_piece_wiggle_room}})
+// Topics: RabbitClipBox
+// Example:
+//    InsetLidRabbitClipWithLabel(
+//        width = 100, length = 100, lid_thickness = 3, text_width = 60,
+//        text_height = 30, text_str = "Trains", label_rotated = false);
+module InsetLidRabbitClipWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3,
+                                   lid_boundary = 10, label_radius = 12, label_border = 2, label_offset = 4,
+                                   label_rotated = false, make_rabbit_width = false, make_rabbit_length = true,
+                                   rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
+                                   rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, layout_width = undef,
+                                   shape_width = undef, shape_type = undef, shape_thickness = undef,
+                                   aspect_ratio = undef, rabbit_depth = 1.5, lid_rounding = undef, font = undef,
+                                   size_spacing = m_piece_wiggle_room, shape_rounding = undef)
+{
+    InsetLidRabbitClipWithLabelAndCustomShape(
+        width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
+        make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width, rabbit_length = rabbit_length,
+        rabbit_lock = rabbit_lock, rabbit_offset = rabbit_offset, rabbit_thickness = rabbit_thickness,
+        rabbit_compression = rabbit_compression, rabbit_depth = rabbit_depth, lid_rounding = lid_rounding, font = font,
+        text_str = text_str, text_width = text_width, text_height = text_height, label_radius = label_radius,
+        label_rotated = label_rotated, layout_width = layout_width, size_spacing = size_spacing,
+        aspect_ratio = aspect_ratio, label_border = label_border, label_offset = label_offset)
+    {
+        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+        if ($children > 1)
+        {
+            children(1);
+        }
+        if ($children > 2)
+        {
+            children(2);
+        }
+        if ($children > 3)
+        {
+            children(3);
+        }
+        if ($children > 4)
+        {
+            children(4);
+        }
+        if ($children > 5)
+        {
+            children(5);
+        }
+        if ($children > 6)
         {
             children(5);
         }
@@ -668,7 +666,7 @@ module InsetLidRabbitWithLabel(width, length, text_width, text_height, text_str,
 //   rabbit_snap = how deep the inner depth should be for the snap curve (default 0.25)
 //   rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //   rabbit_depth = extrustion depth of the rabbit (default 1.5)
-//   lid_size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
+//   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
 //   floor_thickness = thickness of the floor (default 2)
 // Topics: RabbitClipBox
 // Example:
@@ -677,7 +675,7 @@ module MakeBoxWithInsetLidRabbitClip(width, length, height, wall_thickness = 2, 
                                      floor_thickness = 2, inset = 1, make_rabbit_width = false,
                                      make_rabbit_length = true, rabbit_width = 6, rabbit_length = 7, rabbit_offset = 3,
                                      rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
-                                     rabbit_snap = 0.25, lid_size_spacing = m_piece_wiggle_room, rabbit_depth = 1.5)
+                                     rabbit_snap = 0.25, size_spacing = m_piece_wiggle_room, rabbit_depth = 1.5)
 {
     difference()
     {
@@ -690,17 +688,15 @@ module MakeBoxWithInsetLidRabbitClip(width, length, height, wall_thickness = 2, 
                      make_tab_width = make_rabbit_width) union()
         {
             translate([
-                (rabbit_length + rabbit_offset + lid_size_spacing * 2) / 2, wall_thickness / 2 - 0.01,
-                -lid_thickness / 2
+                (rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness / 2
             ])
-                cuboid([
-                    rabbit_length + rabbit_offset + lid_size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01
-                ]);
-            translate([
-                (rabbit_length + rabbit_offset + lid_size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness
-            ]) rabbit_clip(type = "socket", length = rabbit_length, width = rabbit_width, snap = rabbit_snap,
-                           thickness = rabbit_thickness, depth = rabbit_depth + 0.01, compression = rabbit_compression,
-                           lock = rabbit_lock);
+                cuboid(
+                    [ rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01 ]);
+            translate(
+                [ (rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness ])
+                rabbit_clip(type = "socket", length = rabbit_length, width = rabbit_width, snap = rabbit_snap,
+                            thickness = rabbit_thickness, depth = rabbit_depth + 0.01, compression = rabbit_compression,
+                            lock = rabbit_lock);
         }
 
         // Make sure the children start from the bottom corner of the box.
@@ -708,41 +704,5 @@ module MakeBoxWithInsetLidRabbitClip(width, length, height, wall_thickness = 2, 
         $inner_length = length - wall_thickness * 2;
         $inner_height = height - lid_thickness - floor_thickness;
         translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-    }
-}
-
-// Module: MakeHexBoxWithInsetLidTabbed()
-// Description:
-//   Makes a hex box with an inset lid, this is a useful combination box for 18xx style games.
-// See also: InsetLidTabbedWithLabelForHexBox(), InsetLidTabbedForHexBox()
-// Usage:
-//   MakeHexBoxWithInsetTabbedBox, TabbedLid(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width =
-//   29);
-// Arguments:
-//   rows = number of rows in the box
-//   cols = number of cols in the box
-//   height = height of the box (outside height)
-//   push_block_height = height of the push blocks
-//   tile_width = the width of the files
-//   lid_thickness = height of the lid (default 2)
-//   floor_thickness = thickness of the floor (default 2)
-//   wall_thickness = the thickness of the wall (default 2)
-// Topics: TabbedBox, TabbedLid, Hex
-// Example:
-//   MakeHexBoxWithInsetLidTabbed(rows = 4, cols = 3, height = 15, push_block_height = 1, tile_width = 29);
-module MakeHexBoxWithInsetLidTabbed(rows, cols, height, push_block_height, tile_width, lid_thickness = 2,
-                                    floor_thickness = 2, spacing = 0, wall_thickness = 2)
-{
-    width = tile_width;
-    apothem = width / 2;
-    radius = apothem / cos(180 / 6);
-
-    MakeBoxWithInsetLidTabbed(rows * radius * 2 + 4, cols * apothem * 2 + 4, height, stackable = true,
-                              lid_thickness = lid_thickness, floor_thickness = floor_thickness)
-
-    {
-        HexGridWithCutouts(rows = rows, cols = cols, height = height, tile_width = tile_width, spacing = spacing,
-                           wall_thickness = wall_thickness);
-        children();
     }
 }
