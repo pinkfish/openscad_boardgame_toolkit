@@ -520,6 +520,40 @@ module LizardEyes2d()
     }
 }
 
+module Keep2d(size)
+{
+    union()
+    {
+        tower_width = size / 4;
+        tower_length = size / 4;
+        roof_overhang = size / 16;
+        roof_height = size / 4;
+        for (i = [0:1:3])
+        {
+            translate([ (i % 2) * 1, -size / 2 + tower_width * i ])
+            {
+                translate([ 0, roof_overhang * 2 ])
+                {
+                    rect([ tower_width, tower_length - roof_overhang ]);
+                    polygon([
+                        [ -tower_width / 2, tower_length / 2 ], [ -tower_width / 2 - roof_height, 0 ],
+                        [ -tower_width / 2, -tower_length / 2 ]
+                    ]);
+                }
+            }
+        }
+        translate([ size / 16, -size / 2 + tower_width ]) rect([ tower_width / 2, tower_length ]);
+        translate([ size / 8, -size / 2 + tower_width * 2 ]) rect([ tower_width / 2, tower_length ]);
+        translate([ size / 16, -size / 2 + tower_width * 3 ]) rect([ tower_width / 2, tower_length ]);
+        translate([ size / 2 - tower_width, -tower_width * 3 / 4 ]) difference()
+        {
+            rect([ tower_width, tower_length ]);
+            circle(d = tower_width * 5 / 8, $fn = 32);
+            translate([ tower_width / 2, 0 ]) rect([ tower_width, tower_length * 5 / 8 ]);
+        }
+    }
+}
+
 module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
@@ -617,7 +651,7 @@ module MarquisBoxTop(generate_lid = true) // `make` me
                 }
                 else if (icon == "saw")
                 {
-                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) SawBlade2d(size = 10, $fn=32);
+                    translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) SawBlade2d(size = 10, $fn = 32);
                 }
                 else if (icon == "handshake")
                 {
@@ -650,26 +684,38 @@ module MarquisBoxTop(generate_lid = true) // `make` me
             round_tile_diameter / 2, round_tile_diameter / 2,
             $inner_height - tile_thickness * marquis_wood_token_num / 2
         ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness * marquis_wood_token_num / 2,
-                               finger_hole_radius = 7, finger_holes = [110]);
+                               finger_hole_radius = 7, finger_holes = [110])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 5) SingleLog2d(15);
+        }
         translate([
             round_tile_diameter / 2 + round_tile_diameter + 2, round_tile_diameter / 2,
             $inner_height - tile_thickness * marquis_wood_token_num / 2
         ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness * marquis_wood_token_num / 2,
-                               finger_hole_radius = 7, finger_holes = [110]);
+                               finger_hole_radius = 7, finger_holes = [110])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 5) SingleLog2d(15);
+        }
 
         // Keep token
         translate([
             round_tile_diameter / 2 + round_tile_diameter * 2 + 2, round_tile_diameter / 2 * 6 / 4,
             $inner_height - tile_thickness - 0.5
         ]) CylinderWithIndents(radius = round_tile_diameter / 2, height = tile_thickness + 1, finger_hole_radius = 10,
-                               finger_holes = [135]);
+                               finger_holes = [135])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) rotate(-90) Keep2d(15);
+        }
 
         // Score marker.
         translate([
             round_tile_diameter * 2 + 2 + square_tile_size / 2, $inner_length - 5 - square_tile_size / 2,
             $inner_height - tile_thickness - 0.5
         ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 9.5,
-                                   finger_holes = [2]);
+                                   finger_holes = [2])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
+        }
 
         // Buildings.
         translate([
@@ -724,7 +770,10 @@ module VagabondBox(generate_lid = true) // `make` me
             [ $inner_width - square_tile_size * 2 / 4, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
         {
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 10,
-                                    finger_holes = [2]);
+                                    finger_holes = [2])
+            {
+                translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+            }
         }
 
         // Relationship markers.
@@ -798,7 +847,10 @@ module ErieBoxTop(generate_lid = true) // `make` me
         // Score marker.
         translate([ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 8,
-                                    finger_holes = [6]);
+                                    finger_holes = [6])
+        {
+            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+        }
 
         // Roosts.
         for (i = [0:1:1])
@@ -867,7 +919,10 @@ module AllianceBoxTop(generate_lid = true) // `make` me
         // Score marker.
         translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
             CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
-                                    finger_hole_radius = 10, finger_holes = [0]);
+                                    finger_hole_radius = 10, finger_holes = [0])
+        {
+            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+        }
 
         // Sympathy tokens.
         translate([
@@ -944,7 +999,10 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
         translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
         {
             CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
-                                    finger_hole_radius = 10, finger_holes = [2]);
+                                    finger_hole_radius = 10, finger_holes = [2])
+            {
+                translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+            }
         }
 
         // trading posts.
@@ -1039,7 +1097,10 @@ module LizardBoxTop(generate_lid = true) // `make` me
         translate(
             [ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness * 2 - 0.5 ])
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ],
-                                    finger_hole_radius = 8, finger_holes = [6]);
+                                    finger_hole_radius = 8, finger_holes = [6])
+        {
+            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+        }
     }
     if (generate_lid)
     {
@@ -1395,5 +1456,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MarquisBoxTop(false);
+    MarquisBoxTop();
 }

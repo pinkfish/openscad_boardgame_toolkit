@@ -711,6 +711,59 @@ module Handshake2d(size)
     }
 }
 
+// Module: LaurelWreath2d()
+// Description:
+//   Makes a laurel wreathe for use all over the place
+// Arguments:
+//   size = size of the laurel
+module LaurelWreath2d(size)
+{
+    module LeafHalf()
+    {
+        hull()
+        {
+            translate([ 0, 0.125 ]) circle(d = 0.25);
+            translate([ 11, 23 ]) circle(d = 8, $fn = 64);
+            translate([ 14, 48 ]) circle(d = 8, $fn = 64);
+            translate([ 0, 98.125 ]) circle(d = 0.25);
+        }
+    }
+    module Leaf()
+    {
+        translate([ 0, -50 ])
+        {
+            LeafHalf();
+            mirror([ 1, 0 ]) LeafHalf();
+        }
+    }
+    module TwoLeafs()
+    {
+        rotate(270) translate([ 0, -25 ])
+        {
+            translate([ 0, 50 ]) rotate(60) mirror([ 0, 1 ]) Leaf();
+            rotate(-60) Leaf();
+        }
+    }
+    module HalfLaurel()
+    {
+        translate([ -150, 0 ]) rotate(-50)
+        {
+            nleafs = 10;
+            for (angle = [30:140 / nleafs:160 - 1])
+                rotate([ 0, 0, angle - (angle - 30) / 180 * 80 ]) translate([ 300 + (angle / 180) * 600, 0, 0 ])
+                    rotate(-30) TwoLeafs();
+        }
+    }
+    basic_height = 859.35;
+    basic_length = 1021.31;
+    scale = size / basic_length;
+    resize([ size, scale * basic_height ]) translate([ 0, -230 ])
+    {
+        HalfLaurel();
+        mirror([ 1, 0 ]) HalfLaurel();
+    }
+}
+
 // Module: Anvil2d()
 // Description:
 //    Makes a nice 2d anvil.
@@ -836,6 +889,81 @@ module CloudShape2d(width)
         translate([ width * .15, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
         translate([ width * .65, width * .22, 0 ]) circle(r = width * .2, $fn = 16);
         translate([ width * .85, width * .2, 0 ]) circle(r = width * .15, $fn = 16);
+    }
+}
+
+// Module: SingleLog2d()
+// Description:
+//   A single log image.
+// Arguments:
+//   size = size of the log
+//   line_width= width of the line
+// Example(2D):
+//   SingleLog2d(15);
+module SingleLog2d(size, line_width = 1)
+{
+    // 35.00 25.00
+    resize([ size, size / 35 * 25 ]) translate([ -10, -5 ])
+    {
+        DifferenceWithOffset(offset = -line_width) circle(d = size);
+        difference()
+        {
+            DifferenceWithOffset(offset = -line_width / 2) circle(d = size * 7 / 10);
+            translate([ size * 5 / 7, -size * 4 / 7 ]) rect([ size, size ]);
+            translate([ -size * 3 / 5, -size * 4 / 7 ]) rect([ size, size ]);
+        }
+        difference()
+        {
+            DifferenceWithOffset(offset = -line_width / 2) circle(d = size * 4 / 10);
+            translate([ -size / 2, size / 2 ]) rect([ size, size ]);
+            translate([ -size * 4 / 7, -size * 4 / 7 ]) rect([ size, size ]);
+        }
+        DifferenceWithOffset(offset = -line_width) hull()
+        {
+            circle(d = size);
+            translate([ 20, 10 ]) circle(d = size);
+        }
+        polygon([ [ 8, 0.5 ], [ 8, -0.5 ], [ 26, 9 ], [ 26, 10 ] ]);
+        polygon([ [ 4, 7.5 ], [ 4, 6.5 ], [ 22.5, 15.7 ], [ 21, 16 ] ]);
+        polygon([ [ 7, 3 ], [ 7, 4 ], [ 25, 13 ], [ 25, 12 ] ]);
+    }
+}
+
+// Module: Tower2d()
+// Description:
+//    Make a single keep tower for use in gams and stuff.
+// Arguments:
+//    size = size of the tower
+// Example(2D):
+//    Tower2d(20)
+module Tower2d(size)
+{
+    translate([ 0, -size/4 ])
+    {
+        top_size = size / 8;
+        // bottom of top.
+        translate([ -size / 2 + top_size * 3 / 2, 0 ]) hull()
+        {
+            translate([ 0, size / 2 - top_size / 2 ]) circle(r = top_size / 2);
+            translate([ 0, top_size / 2 ]) circle(r = top_size / 2);
+        }
+        // Crown bits.
+        crown_length = size / 2 / 5;
+        for (i = [0:2:5])
+        {
+            hull()
+            {
+                translate([ -size / 2 + top_size / 2, size / 2 - top_size / 2 - crown_length * i ])
+                    circle(r = top_size / 2);
+                translate([ -size / 2 + top_size / 2 + top_size, size / 2 - top_size / 2 - crown_length * i ])
+                    circle(r = top_size / 2);
+            }
+        }
+        // Side tower.
+        polygon([
+            [ -size / 2 + top_size, top_size / 2 ], [ size / 2, top_size / 2 ], [ size / 2, size / 2 - top_size / 2 ],
+            [ -size / 2 + top_size, size / 2 - top_size / 2 ]
+        ]);
     }
 }
 
