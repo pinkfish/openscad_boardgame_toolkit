@@ -554,6 +554,33 @@ module Keep2d(size)
     }
 }
 
+module ErieTree2d(size)
+{
+    hull()
+    {
+        translate([ size / 2 - 1, -size / 2 + 1 ]) circle(r = 1);
+        translate([ 0, -2 * size / 12 ]) circle(r = 0.25);
+    }
+
+    translate([ 0, size * 2 / 6 / 2 ]) rotate(180) Leaf2d(size * 4 / 6);
+    translate([ -size * 3 / 6 / 2, size * 1 / 6 / 2 ]) rotate(225) Leaf2d(size * 4 / 6);
+    translate([ -size * 3 / 6 / 2, -size * 7 / 12 / 2 ]) rotate(300) Leaf2d(size * 13 / 24);
+}
+
+module AllianceCamp2d(size)
+{
+    difference()
+    {
+        rect([ size, size ]);
+        top_edge = size / 15;
+        for (i = [0:2:14])
+        {
+            translate([ size / 2 - top_edge / 2 + 0.01, size / 2 - top_edge / 2 - top_edge * i ])
+                rect([ top_edge, top_edge ]);
+        }
+    }
+}
+
 module CardBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
@@ -772,7 +799,7 @@ module VagabondBox(generate_lid = true) // `make` me
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 10,
                                     finger_holes = [2])
             {
-                translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+                translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
             }
         }
 
@@ -849,7 +876,7 @@ module ErieBoxTop(generate_lid = true) // `make` me
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness + 1 ], finger_hole_radius = 8,
                                     finger_holes = [6])
         {
-            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
         }
 
         // Roosts.
@@ -860,7 +887,10 @@ module ErieBoxTop(generate_lid = true) // `make` me
                 (square_tile_size + 1) * i + square_tile_size / 2, square_tile_size / 2,
                 $inner_height - num_tiles * tile_thickness - 0.5
             ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * num_tiles + 1 ],
-                                       finger_hole_radius = 8, finger_holes = [2]);
+                                       finger_hole_radius = 8, finger_holes = [2])
+            {
+                translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) ErieTree2d(15);
+            }
         }
     }
     if (generate_lid)
@@ -921,7 +951,7 @@ module AllianceBoxTop(generate_lid = true) // `make` me
             CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
                                     finger_hole_radius = 10, finger_holes = [0])
         {
-            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
         }
 
         // Sympathy tokens.
@@ -930,13 +960,19 @@ module AllianceBoxTop(generate_lid = true) // `make` me
             $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 - 0.5
         ]) CylinderWithIndents(radius = round_tile_diameter / 2,
                                height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
-                               finger_holes = [135]);
+                               finger_holes = [135])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Fist2d(12);
+        }
         translate([
             $inner_width - round_tile_diameter / 2, $inner_length - round_tile_diameter / 2 - 1,
             $inner_height - tile_thickness * woodland_aliance_sympathy_num / 2 - 0.5
         ]) CylinderWithIndents(radius = round_tile_diameter / 2,
                                height = tile_thickness * woodland_aliance_sympathy_num / 2 + 1, finger_hole_radius = 8,
-                               finger_holes = [225]);
+                               finger_holes = [225])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Fist2d(12);
+        }
 
         // Bases.
         translate([
@@ -945,7 +981,10 @@ module AllianceBoxTop(generate_lid = true) // `make` me
         ])
             CuboidWithIndentsBottom(
                 [ square_tile_size, square_tile_size, tile_thickness * woodland_alliance_base_num + 1 ],
-                finger_hole_radius = 7, finger_holes = [0]);
+                finger_hole_radius = 7, finger_holes = [0])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) AllianceCamp2d(12);
+        }
     }
     if (generate_lid)
     {
@@ -1001,7 +1040,7 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
             CuboidWithIndentsBottom(size = [ square_tile_size, square_tile_size, tile_thickness + 1 ],
                                     finger_hole_radius = 10, finger_holes = [2])
             {
-                translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+                translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
             }
         }
 
@@ -1099,7 +1138,7 @@ module LizardBoxTop(generate_lid = true) // `make` me
             CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ],
                                     finger_hole_radius = 8, finger_holes = [6])
         {
-            translate([ 0, 0, -0.5 ]) LaurelWreath2d(15);
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
         }
     }
     if (generate_lid)
@@ -1456,5 +1495,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MarquisBoxTop();
+    AllianceBoxTop();
 }
