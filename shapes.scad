@@ -1531,6 +1531,21 @@ module Tower2d(size)
     }
 }
 
+// Module Sign2d()
+// Description:
+//   Makes a sign shape to use for stuff.
+// Arguments:
+//   size = size of the sign
+module Sign2d(size)
+{
+    difference()
+    {
+        rect([ size / 10, size * 3 / 4 ]);
+        translate([ 0, size * 1.5 / 4 - size / 4 - size / 20 ]) rect([ size, size / 2 ]);
+    }
+    DifferenceWithOffset(-1) translate([ 0, size * 1.5 / 4 - size / 4 - size / 20 ]) rect([ size, size / 2 ]);
+}
+
 // Module: ShapeByType()
 // Description:
 //   Creates shapes by a specific type to use in the lids.  This is pulled out so the shape creation
