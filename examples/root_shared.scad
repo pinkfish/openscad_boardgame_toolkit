@@ -20,7 +20,7 @@ box_data = [
     [ "marquis", "length", 22 ], [ "marquis", "width", 16 ], [ "erie", "length", 22 ], [ "erie", "width", 18 ],
     [ "alliance", "length", 19.5 ], [ "alliance", "width", 19 ], [ "lizard", "length", 20 ], [ "lizard", "width", 18 ],
     [ "riverfolk", "length", 20 ], [ "riverfolk", "width", 16 ], [ "winter", "width", 29.5 ],
-    [ "winter", "length", 15.5 ], ["token", "thickness", 9]
+    [ "winter", "length", 15.5 ], [ "token", "thickness", 9 ], [ "vagabond", "length", 22 ], [ "vagabond", "width", 21 ]
 
 ];
 
@@ -45,8 +45,6 @@ ten_cards_thickness = 6;
 single_card_thickness = ten_cards_thickness / 10;
 
 // Player token sizes
-vagabond_length = 22;
-vagabond_width = 21;
 vagabond_ear_base_width = 14;
 vagabond_ear_top_width = 9;
 vagabond_ear_top_length = 4;
@@ -137,10 +135,13 @@ module VagabondCharacter(height)
     {
         hull()
         {
-            translate([ vagabond_ear_base_width / 2 - 1, vagabond_length / 2 - vagabond_cheek_top_length - 1, 0 ])
+            translate([
+                vagabond_ear_base_width / 2 - 1, boxData("vagabond", "length") / 2 - vagabond_cheek_top_length - 1, 0
+            ]) cyl(r = 1, h = height);
+            translate([ vagabond_ear_top_width / 2 - 1, -boxData("vagabond", "length") / 2 + 1, 0 ])
                 cyl(r = 1, h = height);
-            translate([ vagabond_ear_top_width / 2 - 1, -vagabond_length / 2 + 1, 0 ]) cyl(r = 1, h = height);
-            translate([ 0, -vagabond_length / 2 + vagabond_ear_top_length + 1, 0 ]) cyl(r = 1, h = height);
+            translate([ 0, -boxData("vagabond", "length") / 2 + vagabond_ear_top_length + 1, 0 ])
+                cyl(r = 1, h = height);
         }
     }
     union()
@@ -148,16 +149,21 @@ module VagabondCharacter(height)
         // bottom
         hull()
         {
-            CylBothWidth(vagabond_base_width / 2 - 1, vagabond_length / 2 - 1, height);
-            CylBothWidth(vagabond_middle_width / 2 - 1, vagabond_length / 2 - vagagond_middle_length - 1, height);
+            CylBothWidth(vagabond_base_width / 2 - 1, boxData("vagabond", "length") / 2 - 1, height);
+            CylBothWidth(vagabond_middle_width / 2 - 1, boxData("vagabond", "length") / 2 - vagagond_middle_length - 1,
+                         height);
         }
         // middle cheeks.
         hull()
         {
-            CylBothWidth(vagabond_middle_width / 2 - 1, vagabond_length / 2 - vagagond_middle_length - 1, height);
-            CylBothWidth(vagabond_width / 2 - 1, vagabond_length / 2 - vagabond_cheek_middle_length - 1, height);
-            CylBothWidth(vagabond_ear_base_width / 2, vagabond_length / 2 - vagabond_cheek_top_length - 1, height);
-            translate([ 0, -vagabond_length / 2 + vagabond_ear_top_length + 1, 0 ]) cyl(r = 1, h = height);
+            CylBothWidth(vagabond_middle_width / 2 - 1, boxData("vagabond", "length") / 2 - vagagond_middle_length - 1,
+                         height);
+            CylBothWidth(boxData("vagabond", "width") / 2 - 1,
+                         boxData("vagabond", "length") / 2 - vagabond_cheek_middle_length - 1, height);
+            CylBothWidth(vagabond_ear_base_width / 2, boxData("vagabond", "length") / 2 - vagabond_cheek_top_length - 1,
+                         height);
+            translate([ 0, -boxData("vagabond", "length") / 2 + vagabond_ear_top_length + 1, 0 ])
+                cyl(r = 1, h = height);
         }
         // Ears.
         Ear();
@@ -528,5 +534,109 @@ module AllianceCamp2d(size)
             translate([ size / 2 - top_edge / 2 + 0.01, size / 2 - top_edge / 2 - top_edge * i ])
                 rect([ top_edge, top_edge ]);
         }
+    }
+}
+
+module CapBoxLidWithEyes(width, length, height, lid_thickness = default_lid_thickness,
+                         wall_thickness = default_wall_thickness)
+{
+    CapBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness,
+              lid_thickness = lid_thickness, size_spacing = m_piece_wiggle_room)
+    {
+        translate([ 10, 10, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
+                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
+        {
+            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
+        }
+        translate([ width / 2, length / 2, 0 ]) children();
+    }
+}
+
+module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness)
+{
+    SlidingLid(width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+               size_spacing = m_piece_wiggle_room)
+    {
+        translate([ 10, 10, 0 ])
+            LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
+                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
+        {
+            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
+        }
+        translate([ width / 2, length / 2, 0 ]) children();
+    }
+}
+
+module Rabbit2d(size)
+{
+    module OneEar()
+    {
+        hull()
+        {
+            translate([ -size / 2 + size / 6, size / 2 - size / 6 ]) circle(size / 6);
+            translate([ size / 4, size / 4 ]) circle(size / 6);
+        }
+    }
+    resize([ size, size / 1.5 ]) translate([ -size / 4, 0 ]) difference()
+    {
+        union()
+        {
+            OneEar();
+            mirror([ 0, 1 ]) OneEar();
+            translate([ size / 2, 0 ]) circle(size / 2);
+        }
+        translate([ size / 3, size / 6 ]) circle(size / 12);
+        translate([ size / 3, -size / 6 ]) circle(size / 12);
+    }
+}
+
+module Mouse2d(size)
+{
+    ear_size = size * 4 / 17;
+    difference()
+    {
+        union()
+        {
+
+            translate([ -size / 2 + size / 5, size / 2 - ear_size ]) circle(ear_size);
+            translate([ -size / 2 + size / 5, -size / 2 + ear_size ]) circle(ear_size);
+            translate([ size / 2 - size * 3 / 8, 0 ]) circle(size * 3 / 8);
+        }
+        translate([ size / 12, size / 6 ]) circle(size / 12);
+        translate([ size / 12, -size / 6 ]) circle(size / 12);
+    }
+}
+
+module Fox2d(size)
+{
+    module OneEar()
+    {
+        egg(size / 2, size / 30, size * 7 / 40, size);
+    }
+    difference()
+    {
+        union()
+        {
+            // Base of head.
+            polygon([
+                [ size / 2, 0 ],
+                [ 0, size / 2 ],
+                [ size / 24, size / 2 - size / 6 ],
+                [ -size / 12, size / 2 - size / 24 ],
+                [ -size / 24, size / 2 - size / 12 * 3 ],
+
+                [ -size / 24, -size / 2 + size / 12 * 3 ],
+                [ -size / 12, -size / 2 + size / 24 ],
+                [ size / 24, -size / 2 + size / 6 ],
+                [ 0, -size / 2 ],
+            ]);
+            translate([ -size / 8, size / 6 ]) OneEar();
+            translate([ -size / 8, -size / 6 ]) OneEar();
+        }
+        translate([ size / 6, size / 10 ]) circle(size / 24);
+        translate([ size / 6, -size / 10 ]) circle(size / 24);
     }
 }

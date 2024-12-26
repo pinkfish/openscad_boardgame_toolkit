@@ -29,6 +29,8 @@ default_lid_shape_thickness = 1;
 default_lid_shape_width = 13;
 default_lid_layout_width = 10;
 
+sliding_lid_thickness = 3;
+
 wall_thickness = default_wall_thickness;
 lid_thickness = default_lid_thickness;
 inner_thickness = 1;
@@ -69,7 +71,7 @@ vagabond_box_width = quarter_width;
 lizard_box_width = quarter_width * 2;
 lizard_box_length = marquis_box_length;
 lizard_box_height = boxData("lizard", "length") + lid_thickness * 2 + 0.5;
-lizard_box_top_width = quarter_width;
+lizard_box_top_width = quarter_width * 2;
 lizard_box_top_height = boxData("box", "height") - lizard_box_height - boxData("board", "thickness");
 
 item_box_length = wall_thickness * 2 + (square_tile_size + 1) * 5;
@@ -109,22 +111,6 @@ module CardBox(generate_lid = true) // `make` me
             CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
                                text_width = 70, text_height = 20, text_str = "Cards", label_rotated = false);
         }
-    }
-}
-
-module CapBoxLidWithEyes(width, length, height)
-{
-    CapBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness,
-              lid_thickness = default_lid_thickness, size_spacing = m_piece_wiggle_room)
-    {
-        translate([ 10, 10, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
-                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
-        {
-            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
-                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
-        }
-        translate([ width / 2, length / 2, 0 ]) children();
     }
 }
 
@@ -631,6 +617,8 @@ module LizardBoxBottom(generate_lid = true) // `make` me
                 ])
                 {
                     rotate([ 90, 0, 0 ]) LizardCharacter(height = boxData("token", "thickness") + 0.5);
+                    translate([ 0, 0, 4.5 ])
+                        cuboid([ boxData("lizard", "width"), boxData("token", "thickness") + 0.5, 20 ]);
                 }
             }
         }
@@ -651,35 +639,69 @@ module LizardBoxBottom(generate_lid = true) // `make` me
 
 module LizardBoxTop(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height)
+    MakeBoxWithSlidingLid(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height,
+                          lid_thickness = sliding_lid_thickness)
     {
         // Garden markers.
         for (i = [0:1:1])
         {
             translate([
-                square_tile_size / 2 + (square_tile_size + 5) * i + 3, square_tile_size / 2 + 2,
+                square_tile_size / 2 + (square_tile_size + 10) * i + 3, square_tile_size / 2 ,
                 $inner_height - tile_thickness * 5 - 0.5
             ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ],
                                        finger_hole_radius = 8, finger_holes = [2])
             {
-                translate([ 0, 0, -0.5 ]) linear_extrude(height = 2)
-                    text("Garden", valign = "center", halign = "center", size = 3);
+                translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) if (i == 0)
+                {
+                    Fox2d(10);
+                }
+                else
+                {
+                    Rabbit2d(10);
+                }
             }
         }
         translate([
-            square_tile_size / 2 + (square_tile_size + 5) * 1 + 3, $inner_length - square_tile_size + 2,
+            square_tile_size / 2 + (square_tile_size + 10) * 1 + 3, $inner_length - square_tile_size / 2,
             $inner_height - tile_thickness * 5 - 0.5
         ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 5 + 1 ],
                                    finger_hole_radius = 8, finger_holes = [6])
         {
-            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2)
-                text("Garden", valign = "center", halign = "center", size = 3);
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) Mouse2d(10);
+        }
+
+        // no go marker
+        translate([
+            $inner_width - square_tile_size / 2, $inner_length - square_tile_size / 2,
+            $inner_height - tile_thickness * 1 - 0.5
+        ]) CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 1 + 1 ],
+                                   finger_hole_radius = 8, finger_holes = [6])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) union()
+            {
+                difference()
+                {
+                    circle(d = 15);
+                    circle(d = 13);
+                }
+                rotate(45) rect([ 2, 14.5 ]);
+                rotate(-45) rect([ 2, 14.5 ]);
+            }
+        }
+
+        // lizard marker
+        translate(
+            [ $inner_width - square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness * 2 - 0.5 ])
+            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ],
+                                    finger_hole_radius = 8, finger_holes = [2])
+        {
+            translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) scale(0.5) LizardEyes2d();
         }
 
         // Score marker.
         translate(
-            [ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness * 2 - 0.5 ])
-            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 2 + 1 ],
+            [ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness * 1 - 0.5 ])
+            CuboidWithIndentsBottom([ square_tile_size, square_tile_size, tile_thickness * 1 + 1 ],
                                     finger_hole_radius = 8, finger_holes = [6])
         {
             translate([ 0, 0, -0.5 ]) linear_extrude(height = 2) LaurelWreath2d(15);
@@ -689,9 +711,10 @@ module LizardBoxTop(generate_lid = true) // `make` me
     {
         translate([ lizard_box_top_width + 10, 0, 0 ])
         {
-            CapBoxLidWithEyes(width = lizard_box_top_width, length = lizard_box_length, height = lizard_box_top_height)
+            SlidingLidWithEyes(width = lizard_box_top_width, length = lizard_box_length,
+                               lid_thickness = sliding_lid_thickness)
             {
-                linear_extrude(height = default_lid_thickness) LizardEyes2d();
+                linear_extrude(height = default_lid_thickness) scale(2) LizardEyes2d();
             }
         }
     }
@@ -869,11 +892,11 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
     {
         for (i = [0:1:5])
         {
-            translate([ $inner_width / 2, round_winter_thing_length / 2 + (round_winter_thing_length + 1) * i, 0 ])
+            translate([ $inner_width / 2, boxData("winter", "length") / 2 + (boxData("winter", "length") + 1) * i, 0 ])
             {
                 rotate([ 0, 0, 90 ]) WinterToken(tile_thickness * 2 + 1);
-                translate([ round_winter_thing_width / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ -round_winter_thing_width / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+                translate([ boxData("winter", "width") / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
+                translate([ -boxData("winter", "width") / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
             }
         }
     }
@@ -1039,5 +1062,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    AllianceBoxBottom();
+    LizardBoxTop();
 }

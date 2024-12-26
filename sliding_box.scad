@@ -50,6 +50,16 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -117,30 +127,29 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
             {
                 difference()
                 {
-                    translate([ calc_wall_thickness / 2, calc_wall_thickness / 2, 0 ]) cuboid(
-                        [
-                            width - 2 * (calc_wall_thickness + size_spacing), length - calc_wall_thickness,
-                            calc_lid_thickness
-                        ],
-                        anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
-                        edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                    lid_width = width - 2 * (calc_wall_thickness + size_spacing);
+                    lid_length = length - calc_wall_thickness;
+                    translate([ calc_wall_thickness / 2+size_spacing, calc_wall_thickness / 2, 0 ])
+                        cuboid([ lid_width, lid_length, calc_lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
+                               rounding = calc_lid_rounding,
+                               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                     // Top edge easing.
                     translate([
                         calc_wall_thickness / 2 - size_spacing, calc_wall_thickness / 2 - size_spacing,
                         calc_lid_thickness / 2 -
                         size_spacing
-                    ]) linear_extrude(height = calc_lid_thickness + 10) right_triangle([ size_spacing * 2, 15 ]);
+                    ]) linear_extrude(height = calc_lid_thickness + 10) right_triangle([ size_spacing * 4, 15 ]);
                     translate([
-                        width - calc_wall_thickness * 2 + size_spacing * 3.2, calc_wall_thickness / 2 - size_spacing,
+                        width - calc_wall_thickness * 2 + size_spacing * 7.5, calc_wall_thickness / 2 - size_spacing,
                         calc_lid_thickness / 2 -
                         size_spacing
                     ]) linear_extrude(height = calc_lid_thickness + 10) xflip()
-                        right_triangle([ size_spacing * 2, 15 ]);
+                        right_triangle([ size_spacing * 4, 15 ]);
                 }
                 // bottom layer.
                 translate([ 0, 0, 0 ]) cuboid(
                     [
-                        width - calc_wall_thickness - size_spacing, length - calc_wall_thickness / 2,
+                        width - calc_wall_thickness - size_spacing*2, length - calc_wall_thickness / 2,
                         calc_lid_thickness / 2 -
                         size_spacing
                     ],
@@ -150,9 +159,10 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
 
             // Edge easing.
             translate([ -size_spacing / 20, -size_spacing, -calc_lid_thickness / 2 ])
-                linear_extrude(height = calc_lid_thickness + 10) right_triangle([ size_spacing * 2, 15 ]);
+                linear_extrude(height = calc_lid_thickness + 10) right_triangle([ calc_wall_thickness / 2, 15 ]);
             translate([ width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2 ])
-                linear_extrude(height = calc_lid_thickness + 10) xflip() right_triangle([ size_spacing * 2, 15 ]);
+                linear_extrude(height = calc_lid_thickness + 10) xflip()
+                    right_triangle([ calc_wall_thickness / 2, 15 ]);
         }
         if ($children > 0)
         {
