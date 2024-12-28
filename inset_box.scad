@@ -487,21 +487,21 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //    rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //    rabbit_depth = extrustion depth of the rabbit (default 1.5)
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    lid_pattern_dense = if the layout is dense (default false)
+//    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 // Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module InsetLidRabbitClipWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
-                                                 label_radius = 5, label_border = 2, label_offset = 4,
-                                                 label_rotated = false, cap_height = undef, layout_width = undef,
-                                                 size_spacing = m_piece_wiggle_room,
-                                                 lid_thickness = default_lid_thickness, aspect_ratio = 1.0,
-                                                 font = undef, lid_rounding = undef, make_rabbit_width = false,
-                                                 make_rabbit_length = true, rabbit_width = 7, rabbit_length = 6,
-                                                 rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
-                                                 rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5, )
+module InsetLidRabbitClipWithLabelAndCustomShape(
+    width, length, text_width, text_height, text_str, lid_boundary = 10, label_radius = 5, label_border = 2,
+    label_offset = 4, label_rotated = false, cap_height = undef, layout_width = undef,
+    size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
+    lid_rounding = undef, make_rabbit_width = false, make_rabbit_length = true, rabbit_width = 7, rabbit_length = 6,
+    rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3,
+    rabbit_depth = 1.5, lid_pattern_dense = false, lid_dense_shape_edges = 6)
 {
     InsetLidRabbitClip(width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
                        make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width,
@@ -511,7 +511,8 @@ module InsetLidRabbitClipWithLabelAndCustomShape(width, length, text_width, text
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
+                         dense_shape_edges = lid_dense_shape_edges)
         {
             if ($children > 0)
             {
@@ -609,7 +610,8 @@ module InsetLidRabbitClipWithLabel(width, length, text_width, text_height, text_
         rabbit_compression = rabbit_compression, rabbit_depth = rabbit_depth, lid_rounding = lid_rounding, font = font,
         text_str = text_str, text_width = text_width, text_height = text_height, label_radius = label_radius,
         label_rotated = label_rotated, layout_width = layout_width, size_spacing = size_spacing,
-        aspect_ratio = aspect_ratio, label_border = label_border, label_offset = label_offset)
+        aspect_ratio = aspect_ratio, label_border = label_border, label_offset = label_offset,
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
     {
         ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                     shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);

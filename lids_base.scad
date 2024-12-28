@@ -76,6 +76,20 @@ default_lid_supershape_a = 1;
 // for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
 default_lid_supershape_b = 1;
 
+// Function: IsDenseShapeType()
+// Description:
+//   If the shape type is dense or not.
+// Arguments:
+//   shape_type = the shape_type to check
+function IsDenseShapeType(shape_type) = DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_HEX ||
+                                        DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_TRIANGLE;
+// Function: DenseShapeEdges()
+// Description:
+//   The number of edges on the dense shape.
+// Arguments:
+//   shape_type = the shape_type to check
+function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE ? 3 : 6);
+
 // Module: LidMeshDense()
 // Description:
 //   Make a hex mesh for the lid.  This makes a nice pattern for use on the lids.

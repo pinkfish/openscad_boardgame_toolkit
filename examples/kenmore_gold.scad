@@ -23,10 +23,10 @@ default_wall_thickness = 3;
 inner_thickness = 2;
 default_floor_thickness = 2;
 default_lid_thickness = 2;
-default_lid_shape_type = SHAPE_TYPE_CIRCLE;
-default_lid_shape_thickness = 1;
-default_lid_shape_width = 13;
-default_lid_layout_width = 10;
+//default_lid_shape_type = SHAPE_TYPE_CIRCLE;
+//default_lid_shape_thickness = 1;
+//default_lid_shape_width = 13;
+//default_lid_layout_width = 10;
 
 square_tile_width = 58;
 

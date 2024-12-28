@@ -60,6 +60,12 @@
 
 
 
+
+
+
+
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -129,7 +135,7 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
                 {
                     lid_width = width - 2 * (calc_wall_thickness + size_spacing);
                     lid_length = length - calc_wall_thickness;
-                    translate([ calc_wall_thickness / 2+size_spacing, calc_wall_thickness / 2, 0 ])
+                    translate([ calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0 ])
                         cuboid([ lid_width, lid_length, calc_lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
                                rounding = calc_lid_rounding,
                                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
@@ -149,7 +155,7 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
                 // bottom layer.
                 translate([ 0, 0, 0 ]) cuboid(
                     [
-                        width - calc_wall_thickness - size_spacing*2, length - calc_wall_thickness / 2,
+                        width - calc_wall_thickness - size_spacing * 2, length - calc_wall_thickness / 2,
                         calc_lid_thickness / 2 -
                         size_spacing
                     ],
@@ -222,14 +228,16 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                                             label_radius = 5, label_border = 2, label_offset = 4, label_rotated = false,
                                             layout_width = undef, size_spacing = m_piece_wiggle_room,
                                             lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
-                                            lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef)
+                                            lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef,
+                                            lid_pattern_dense = false, lid_dense_shape_edges = 6)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                lid_rounding = lid_rounding, size_spacing = size_spacing, lid_chamfer = lid_chamfer)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
+                         dense_shape_edges = lid_dense_shape_edges)
         {
             if ($children > 0)
             {
@@ -324,7 +332,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         text_str = text_str, text_width = text_width, text_height = text_height, label_radius = label_radius,
         label_rotated = label_rotated, layout_width = layout_width, size_spacing = size_spacing,
         aspect_ratio = aspect_ratio, lid_chamfer = lid_chamfer, lid_rounding = lid_rounding,
-        lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset)
+        lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
     {
         ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                     shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);

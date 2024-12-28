@@ -275,6 +275,8 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_pattern_dense = if the layout is dense (default false)
+//    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 // Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -287,7 +289,8 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
                                         layout_width = undef, size_spacing = m_piece_wiggle_room,
                                         lid_thickness = default_lid_thickness, lid_wall_thickness = undef,
                                         aspect_ratio = 1.0, font = undef, lid_rounding = undef,
-                                        lid_inner_rounding = undef, label_border = 2)
+                                        lid_inner_rounding = undef, label_border = 2, lid_pattern_dense = false,
+                                        lid_dense_shape_edges = 6)
 {
     CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
@@ -295,7 +298,8 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
+                         dense_shape_edges = lid_dense_shape_edges)
         {
             if ($children > 0)
             {
@@ -384,7 +388,8 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
         lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness, font = font, text_str = text_str,
         text_width = text_width, text_height = text_height, label_radius = label_radius, label_rotated = label_rotated,
         layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
-        label_border = label_border, label_offset = label_offset, lid_rounding = undef, lid_inner_rounding = undef)
+        label_border = label_border, label_offset = label_offset, lid_rounding = undef, lid_inner_rounding = undef,
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
     {
         ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                     shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);

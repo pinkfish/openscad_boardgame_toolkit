@@ -189,6 +189,8 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    lid_pattern_dense = if the layout is dense (default false)
+//    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 // Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -200,7 +202,8 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
                                           layout_width = undef, size_spacing = m_piece_wiggle_room,
                                           lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
                                           lid_rounding = undef, wall_thickness = default_wall_thickness, foot = 0,
-                                          finger_hole_length = false, finger_hole_width = true)
+                                          finger_hole_length = false, finger_hole_width = true,
+                                          lid_pattern_dense = false, lid_dense_shape_edges = 6)
 {
     SlipoverBoxLid(width, length, height, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                    lid_rounding = lid_rounding, size_spacing = size_spacing, foot = foot,
@@ -208,7 +211,8 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
+                         layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
+                         dense_shape_edges = lid_dense_shape_edges)
         {
             if ($children > 0)
             {
@@ -294,7 +298,8 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         label_radius = label_radius, label_rotated = label_rotated, layout_width = layout_width,
         size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
-        finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot)
+        finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot,
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
     {
         ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                     shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
