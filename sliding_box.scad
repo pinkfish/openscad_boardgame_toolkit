@@ -66,6 +66,34 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -135,6 +163,7 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
                 {
                     lid_width = width - 2 * (calc_wall_thickness + size_spacing);
                     lid_length = length - calc_wall_thickness;
+                    echo([ "lid top: ", lid_width, lid_length ]);
                     translate([ calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0 ])
                         cuboid([ lid_width, lid_length, calc_lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
                                rounding = calc_lid_rounding,
@@ -153,14 +182,32 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
                         right_triangle([ size_spacing * 4, 15 ]);
                 }
                 // bottom layer.
-                translate([ 0, 0, 0 ]) cuboid(
-                    [
-                        width - calc_wall_thickness - size_spacing * 2, length - calc_wall_thickness / 2,
-                        calc_lid_thickness / 2 -
-                        size_spacing
-                    ],
-                    anchor = BOTTOM + FRONT + LEFT, chamfer = calc_lid_chamfer,
-                    edges = [ TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT ]);
+                echo([
+                    "lid bottom: ", width - calc_wall_thickness - size_spacing * 2,
+                    length - calc_wall_thickness / 2 - size_spacing, calc_lid_thickness / 2 - size_spacing, width,
+                    length
+                ]);
+                difference()
+                {
+                    translate([ 0, 0, 0 ]) cuboid(
+                        [
+                            width - calc_wall_thickness - size_spacing * 2, length - calc_wall_thickness / 2,
+                            calc_lid_thickness / 2 -
+                            size_spacing
+                        ],
+                        anchor = BOTTOM + FRONT + LEFT, chamfer = calc_lid_chamfer,
+                        edges = [ TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT ]);
+
+                    translate([ 0, 0, calc_lid_thickness / 2 - 0.25 ]) rotate([ 0, 45, 0 ])
+                        translate([ -size_spacing / 20, -size_spacing, -calc_lid_thickness / 2 ])
+                            linear_extrude(height = calc_lid_thickness + 10)
+                                right_triangle([ calc_wall_thickness / 2, 15 ]);
+
+                    translate([ 0, -calc_wall_thickness / 2, calc_wall_thickness - 0.35 ]) translate(
+                        [ width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2 ])
+                        rotate([ 0, -45, 0 ]) linear_extrude(height = calc_lid_thickness + 10) xflip()
+                            right_triangle([ calc_wall_thickness / 2, 15 ]);
+                }
             }
 
             // Edge easing.
@@ -396,13 +443,19 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wal
     {
         cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-        translate([ wall_thickness, -size_spacing / 2, height - lid_thickness ]) cuboid(
-            [ width - wall_thickness * 2, length - wall_thickness + size_spacing, lid_thickness + size_spacing / 2 ],
-            anchor = BOTTOM + FRONT + LEFT, );
-        translate([ wall_thickness / 2, -size_spacing / 2, height - lid_thickness ])
-            cuboid([ width - wall_thickness, length - wall_thickness / 2 + size_spacing * 2, lid_thickness / 2 ],
+        rounding_offset = 0.01;
+        translate([ wall_thickness, -rounding_offset, height - lid_thickness ]) cuboid(
+            [
+                width - wall_thickness * 2, length - wall_thickness + size_spacing + rounding_offset,
+                lid_thickness + size_spacing / 2
+            ],
+            anchor = BOTTOM + FRONT + LEFT);
+        translate([ wall_thickness / 2, -rounding_offset, height - lid_thickness ])
+            cuboid([ width - wall_thickness, length - wall_thickness / 2 + rounding_offset, lid_thickness / 2 ],
                    anchor = BOTTOM + FRONT + LEFT, chamfer = lid_thickness / 6,
                    edges = [ TOP + LEFT, TOP + RIGHT, TOP + BACK ]);
+
+        echo([ "box: ", width - wall_thickness, length - wall_thickness / 2, lid_thickness / 2, width, length ]);
 
         // Make everything start from the bottom corner of the box.
         $inner_width = width - wall_thickness * 2;
