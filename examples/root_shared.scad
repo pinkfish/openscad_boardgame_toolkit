@@ -557,7 +557,7 @@ module CapBoxLidWithEyes(width, length, height, lid_thickness = default_lid_thic
 module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness)
 {
     SlidingLid(width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-               size_spacing = m_piece_wiggle_room)
+               size_spacing = m_piece_wiggle_room, lid_on_length = true)
     {
         translate([ 10, 10, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
@@ -566,6 +566,14 @@ module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, 
             ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
                         shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
         }
+
+        // Fingernail pull
+        intersection()
+        {
+            cube([ width - 10, length - 10, lid_thickness ]);
+            translate([ (width) / 2, length - 8 - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+        }
+
         translate([ width / 2, length / 2, 0 ]) children();
     }
 }
