@@ -477,6 +477,7 @@ module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, ta
 //    offset = offset in from the edge for the label
 //    label_rotated = if the label is rotated
 //    full_height = if the label grid is the full height (when flipped upsidedown)
+//    label_colour = the colout of the label (default {{default_label_colour}})
 // Example:
 //    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = false, full_height = true);
@@ -484,18 +485,20 @@ module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, ta
 //    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false);
 module MakeLidLabel(width, length, text_height, text_width, lid_thickness, text_str, border, offset, font, label_radius,
-                    label_rotated, full_height)
+                    label_rotated, full_height, label_colour = undef)
 {
     if (label_rotated)
     {
-        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ]) MakeStripedLidLabel(
-            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
-            offset = offset, full_height = full_height, font = font, radius = label_radius);
+        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+            MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                label = text_str, border = border, offset = offset, full_height = full_height,
+                                font = font, radius = label_radius, label_colour = label_colour);
     }
     else
     {
-        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ]) MakeStripedLidLabel(
-            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
-            offset = offset, full_height = full_height, font = font, radius = label_radius);
+        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
+            MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                label = text_str, border = border, offset = offset, full_height = full_height,
+                                font = font, radius = label_radius, label_colour = label_colour);
     }
 }

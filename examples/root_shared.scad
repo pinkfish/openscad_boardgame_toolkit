@@ -571,7 +571,7 @@ module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, 
         intersection()
         {
             cube([ width - 10, length - 10, lid_thickness ]);
-            translate([ (width) / 2, length - 8 - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+            translate([ (width)-8 - 3, length / 2, 0 ]) rotate([ 0, 0, -90 ]) SlidingLidFingernail(lid_thickness);
         }
 
         translate([ width / 2, length / 2, 0 ]) children();

@@ -15,6 +15,7 @@ specific language governing permissions and limitations
 under the License.
  */
 
+ 
 include <BOSL2/beziers.scad>
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
@@ -76,9 +77,9 @@ lizard_box_top_height = boxData("box", "height") - lizard_box_height - boxData("
 
 item_box_length = wall_thickness * 2 + (square_tile_size + 1) * 5;
 item_box_width = quarter_width;
-item_box_height = tile_thickness * 3 + 1 + lid_thickness * 2;
-item_box_middle_height = tile_thickness * 2 + 1 + lid_thickness * 2;
-item_box_winter_height = tile_thickness * 2 + 1 + lid_thickness * 2;
+item_box_height = tile_thickness * 3 + 1 + lid_thickness * 2 + 0.5;
+item_box_middle_height = tile_thickness * 2 + 1 + lid_thickness * 2 + 0.5;
+item_box_winter_height = tile_thickness * 2 + 1 + lid_thickness * 2 + 0.5;
 item_box_extras_height = boxData("box", "height") - boxData("board", "thickness") - item_box_height -
                          item_box_middle_height - item_box_winter_height;
 
@@ -202,7 +203,8 @@ module MarquisBoxTop(generate_lid = true) // `make` me
             }
         }
     }
-    MakeBoxWithCapLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
+    MakeBoxWithSlidingLid(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height,
+                          lid_thickness = sliding_lid_thickness)
     {
         // Wood markers.
         translate([
@@ -268,7 +270,8 @@ module MarquisBoxTop(generate_lid = true) // `make` me
     {
         translate([ marquis_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithEyes(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height)
+            SlidingLidWithEyes(width = marquis_box_width, length = marquis_box_length, height = marquis_box_top_height,
+                               lid_thickness = sliding_lid_thickness)
             {
                 color("orange") translate([ 0, 10, 0 ]) linear_extrude(height = default_lid_thickness) scale(2)
                     MarquisEyes2d();
@@ -334,7 +337,7 @@ module VagabondBox(generate_lid = true) // `make` me
             SlidingLidWithEyes(width = vagabond_box_width, length = vagabond_box_length, height = vagabond_box_height,
                                lid_thickness = sliding_lid_thickness)
             {
-                color("grey") linear_extrude(height = default_lid_thickness) VagabondEyes2d();
+                color("grey") translate([ 0, -8, 0 ]) linear_extrude(height = default_lid_thickness) VagabondEyes2d();
             }
         }
     }
@@ -382,8 +385,9 @@ module ErieBoxBottom(generate_lid = true) // `make` me
 
 module ErieBoxTop(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
-                      wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
+    MakeBoxWithSlidingLid(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
+                          wall_thickness = wall_thickness, lid_thickness = lid_thickness,
+                          floor_thickness = lid_thickness, lid_thickness = sliding_lid_thickness)
     {
         // Score marker.
         translate([ square_tile_size / 2, $inner_length - square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
@@ -411,7 +415,8 @@ module ErieBoxTop(generate_lid = true) // `make` me
     {
         translate([ erie_box_top_width + 10, 0, 0 ])
         {
-            CapBoxLidWithEyes(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height)
+            SlidingLidWithEyes(width = erie_box_top_width, length = erie_box_top_length, height = erie_box_top_height,
+                               lid_thickness = sliding_lid_thickness)
             {
                 color("blue") linear_extrude(height = default_lid_thickness) scale(2) ErieEyes2d();
             }
@@ -462,7 +467,8 @@ module AllianceBoxBottom(generate_lid = true) // `make` me
 
 module AllianceBoxTop(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height)
+    MakeBoxWithSlidingLid(width = alliance_box_width, length = alliance_box_length, height = alliance_box_top_height,
+                          lid_thickness = sliding_lid_thickness)
     {
         // Score marker.
         translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
@@ -508,8 +514,8 @@ module AllianceBoxTop(generate_lid = true) // `make` me
     {
         translate([ alliance_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithEyes(width = alliance_box_width, length = alliance_box_length,
-                              height = alliance_box_top_height)
+            SlidingLidWithEyes(width = alliance_box_width, length = alliance_box_length,
+                               height = alliance_box_top_height, lid_thickness = sliding_lid_thickness)
             {
                 color("green") linear_extrude(height = default_lid_thickness) scale(1.5) AllianceEyes2d();
             }
@@ -553,7 +559,7 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
 {
     MakeBoxWithSlidingLid(width = riverfolk_box_top_width, length = riverfolk_box_length,
                           height = riverfolk_box_top_height, lid_thickness = sliding_lid_thickness,
-                      lid_on_length = true)
+                          lid_on_length = true)
     {
         // Score marker.
         translate([ square_tile_size / 2, square_tile_size / 2, $inner_height - tile_thickness - 0.5 ])
@@ -728,8 +734,8 @@ module LizardBoxTop(generate_lid = true) // `make` me
 
 module ItemsBoxBottom(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_height,
-                      finger_hold_height = 3)
+    MakeBoxWithSlidingLid(width = item_box_width, length = item_box_length, height = item_box_height,
+                          finger_hold_height = 3, lid_thickness = sliding_lid_thickness)
     {
         depths = [
             "torch", 2, "boot",          3, "coins", 1, "crossbow", 2, "sword", 3,
@@ -782,8 +788,8 @@ module ItemsBoxBottom(generate_lid = true) // `make` me
     {
         translate([ item_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = item_box_width, length = item_box_length, height = item_box_height,
-                               text_width = 70, text_height = 20, text_str = "Items", label_rotated = true);
+            SlidingBoxLidWithLabel(width = item_box_width, length = item_box_length, text_width = 70, text_height = 20,
+                                   text_str = "Items", label_rotated = true, lid_thickness = sliding_lid_thickness);
         }
     }
 }
@@ -840,8 +846,8 @@ module GenerateIcon(icon, height = 2)
 
 module ItemsBoxMiddle(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_middle_height,
-                      finger_hold_height = 3, cap_height = 5)
+    MakeBoxWithSlidingLid(width = item_box_width, length = item_box_length, height = item_box_middle_height,
+                          finger_hold_height = 3, cap_height = 5, lid_thickness = sliding_lid_thickness)
     {
         // 12 craftable items (2× bag, 2× boot, 1× crossbow, 1× hammer, 2× sword, 2× teapot, 2× coins)
         depths = [
@@ -884,17 +890,18 @@ module ItemsBoxMiddle(generate_lid = true) // `make` me
     {
         translate([ item_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = item_box_width, length = item_box_length, height = item_box_middle_height,
-                               text_width = 70, text_height = 20, text_str = "Items", label_rotated = true,
-                               cap_height = 5);
+            SlidingBoxLidWithLabel(width = item_box_width, length = item_box_length, text_width = 70, text_height = 20,
+                                   text_str = "Items", label_rotated = true, cap_height = 5,
+                                   lid_thickness = sliding_lid_thickness,
+                                   label_colour = "blue");
         }
     }
 }
 
 module ItemsBoxWinter(generate_lid = true) // `make` me
 {
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
-                      finger_hold_height = 3)
+    MakeBoxWithSlidingLid(width = item_box_width, length = item_box_length, height = item_box_winter_height,
+                          finger_hold_height = 3, lid_thickness = sliding_lid_thickness)
     {
         for (i = [0:1:5])
         {
@@ -910,8 +917,9 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
     {
         translate([ item_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = item_box_width, length = item_box_length, height = item_box_winter_height,
-                               text_width = 70, text_height = 20, text_str = "Winter", label_rotated = true);
+            SlidingBoxLidWithLabel(width = item_box_width, length = item_box_length, text_width = 70, text_height = 20,
+                                   text_str = "Winter", label_rotated = true, lid_thickness = sliding_lid_thickness,
+                                   label_colour = "blue");
         }
     }
 }
@@ -982,8 +990,8 @@ module ItemsBoxExtras(generate_lid = true) // `make` me
                 text(text = item[0], font = "Stencil Std:style=Bold", size = 2.5, halign = "center", valign = "center");
     }
 
-    MakeBoxWithCapLid(width = item_box_width, length = item_box_length, height = item_box_extras_height,
-                      finger_hold_height = 3)
+    MakeBoxWithSlidingLid(width = item_box_width, length = item_box_length, height = item_box_extras_height,
+                          finger_hold_height = 3, lid_thickness = sliding_lid_thickness)
     {
         $inner_height = item_box_extras_height - lid_thickness * 2;
         $inner_width = item_box_width - wall_thickness * 2;
@@ -1027,8 +1035,9 @@ module ItemsBoxExtras(generate_lid = true) // `make` me
     {
         translate([ item_box_width + 10, 0, 0 ])
         {
-            CapBoxLidWithLabel(width = item_box_width, length = item_box_length, height = item_box_extras_height,
-                               text_width = 70, text_height = 20, text_str = "Items", label_rotated = true);
+            SlidingBoxLidWithLabel(width = item_box_width, length = item_box_length, text_width = 70, text_height = 20,
+                                   text_str = "Items", label_rotated = true, lid_thickness = sliding_lid_thickness,
+                                   label_colour = "blue");
         }
     }
 }
@@ -1067,5 +1076,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    RiverfolkBoxTop();
+    ItemsBoxWinter();
 }
