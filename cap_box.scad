@@ -84,6 +84,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: MakeBoxWithCapLid(100, 50, 20);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 20);
@@ -94,7 +95,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
                          wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
                          lid_wall_thickness = undef, lid_finger_hold_len = undef, finger_hold_height = 5,
-                         floor_thickness = default_floor_thickness)
+                         floor_thickness = default_floor_thickness, material_colour = default_material_colour)
 {
     calc_lid_wall_thickness =
         lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
@@ -106,23 +107,24 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
     difference()
     {
-
-        cuboid([ width, length, height - lid_thickness - size_spacing ], anchor = BOTTOM + FRONT + LEFT,
-               rounding = wall_thickness, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+        color(material_colour)
+            cuboid([ width, length, height - lid_thickness - size_spacing ], anchor = BOTTOM + FRONT + LEFT,
+                   rounding = wall_thickness, edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         // lid diff.
         translate([ 0, 0, height - calc_cap_height ]) difference()
         {
-            translate([ -size_spacing, -size_spacing, 0 ])
+            translate([ -size_spacing, -size_spacing, 0 ]) color(material_colour)
                 cuboid([ width + size_spacing * 2, length + size_spacing * 2, calc_cap_height ],
                        anchor = BOTTOM + FRONT + LEFT);
-            translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cuboid(
-                [
-                    width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                    calc_cap_height
-                ],
-                anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
-                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+            translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ])
+                color(material_colour) cuboid(
+                    [
+                        width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                        length - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                        calc_cap_height
+                    ],
+                    anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
+                    edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         }
         // finger cutouts.
         translate([ 0, 0, height - calc_cap_height - calc_finger_hold_height ]) difference()
@@ -130,32 +132,33 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
             // Remove the edge around the outside where the finger bits go.
             difference()
             {
-                translate([ -size_spacing, -size_spacing, 0 ])
+                translate([ -size_spacing, -size_spacing, 0 ]) color(material_colour)
                     cuboid([ width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1 ],
                            anchor = BOTTOM + FRONT + LEFT);
 
-                translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ]) cuboid(
-                    [
-                        width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                        length - calc_lid_wall_thickness * 2 - size_spacing * 2, calc_finger_hold_height + 2
-                    ],
-                    anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
-                    edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                translate([ calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0 ])
+                    color(material_colour) cuboid(
+                        [
+                            width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                            length - calc_lid_wall_thickness * 2 - size_spacing * 2, calc_finger_hold_height + 2
+                        ],
+                        anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
+                        edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             }
             // Finger hole bits.
-            translate([ calc_lid_finger_hold_len, 0, -0.1 ])
+            translate([ calc_lid_finger_hold_len, 0, -0.1 ]) color(material_colour)
                 cuboid([ width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness, calc_finger_hold_height + 0.2 ],
                        rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ],
                        anchor = BOTTOM + LEFT + FRONT, $fn = 32);
-            translate([ calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1 ])
+            translate([ calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1 ]) color(material_colour)
                 cuboid([ width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness, calc_finger_hold_height + 0.2 ],
                        rounding = calc_finger_hole_rounding, edges = [ TOP + LEFT, TOP + RIGHT ],
                        anchor = BOTTOM + LEFT + FRONT, $fn = 32);
-            translate([ 0, calc_lid_finger_hold_len, -0.1 ])
+            translate([ 0, calc_lid_finger_hold_len, -0.1 ]) color(material_colour)
                 cuboid([ wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2 ],
                        rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ],
                        anchor = BOTTOM + LEFT + FRONT, $fn = 32);
-            translate([ width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1 ])
+            translate([ width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1 ]) color(material_colour)
                 cuboid([ wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2 ],
                        rounding = calc_finger_hole_rounding, edges = [ TOP + FRONT, TOP + BACK ],
                        anchor = BOTTOM + LEFT + FRONT, $fn = 32);
@@ -184,6 +187,7 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: CapBoxLid(100, 50, 20);
 // Example:
 //    CapBoxLid(100, 50, 30);
@@ -193,7 +197,8 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 //    CapBoxLid(100, 50, 10, cap_height = 3);
 module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
                  wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
-                 lid_wall_thickness = undef, lid_rounding = undef, lid_inner_rounding = undef)
+                 lid_wall_thickness = undef, lid_rounding = undef, lid_inner_rounding = undef,
+                 material_colour = default_material_colour)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
@@ -209,9 +214,9 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
                 difference()
                 {
                     // Top piece
-                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
-                           rounding = calc_lid_rounding,
-                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                    color(default_material_colour) cuboid(
+                        [ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
+                        edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 }
                 if ($children > 0)
                 {
@@ -240,11 +245,14 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
             }
             difference()
             {
-                cuboid([ width, length, calc_cap_height ], anchor = BOTTOM + FRONT + LEFT,
-                       rounding = calc_lid_wall_thickness / 2,
-                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) cube(
-                    [ width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1 ]);
+                color(default_material_colour)
+                    cuboid([ width, length, calc_cap_height ], anchor = BOTTOM + FRONT + LEFT,
+                           rounding = calc_lid_wall_thickness / 2,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) color(default_material_colour)
+                    cube([
+                        width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1
+                    ]);
             }
         }
     }
@@ -277,6 +285,8 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+//    label_colour = the color of the label (default undef)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -290,13 +300,14 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
                                         lid_thickness = default_lid_thickness, lid_wall_thickness = undef,
                                         aspect_ratio = 1.0, font = undef, lid_rounding = undef,
                                         lid_inner_rounding = undef, label_border = 2, lid_pattern_dense = false,
-                                        lid_dense_shape_edges = 6)
+                                        lid_dense_shape_edges = 6, label_colour = label_colour,
+                                        material_colour = default_material_colour)
 {
     CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
               size_spacing = m_piece_wiggle_room, lid_rounding = lid_rounding, lid_inner_rounding = lid_inner_rounding)
     {
-        translate([ lid_boundary, lid_boundary, 0 ])
+        translate([ lid_boundary, lid_boundary, 0 ]) color(default_material_colour)
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
                          dense_shape_edges = lid_dense_shape_edges)
@@ -312,7 +323,8 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
+                     label_colour = label_colour, material_colour = material_colour);
         // Don't include the first child since is it used for the lid shape.
         if ($children > 1)
         {
@@ -365,6 +377,8 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    label_colour = the color of the label (default undef)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: CapBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
@@ -381,7 +395,8 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
                           label_rotated = false, cap_height = undef, layout_width = undef, shape_width = undef,
                           shape_type = undef, shape_thickness = undef, size_spacing = m_piece_wiggle_room,
                           lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0,
-                          font = undef, lid_rounding = undef, lid_inner_rounding = undef, shape_rounding = undef)
+                          font = undef, lid_rounding = undef, lid_inner_rounding = undef, shape_rounding = undef,
+                          label_colour = undef)
 {
     CapBoxLidWithLabelAndCustomShape(
         width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
@@ -389,10 +404,12 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
         text_width = text_width, text_height = text_height, label_radius = label_radius, label_rotated = label_rotated,
         layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
         label_border = label_border, label_offset = label_offset, lid_rounding = undef, lid_inner_rounding = undef,
-        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
+        label_colour = label_colour)
     {
-        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+        color(default_material_colour)
+            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
         if ($children > 0)
         {
             children(0);

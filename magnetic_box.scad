@@ -44,33 +44,36 @@ under the License.
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
 //    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1);
 module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thickness,
                               lid_thickness = default_lid_thickness, magnet_border = 1.5,
-                              wall_thickness = default_wall_thickness, floor_thickness = default_floor_thickness)
+                              wall_thickness = default_wall_thickness, floor_thickness = default_floor_thickness,
+                              material_colour = default_material_colour)
 {
     difference()
     {
-        cuboid([ width, length, height - lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+        color(material_colour)
+            cuboid([ width, length, height - lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                   edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         translate([
             magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, height - lid_thickness -
             magnet_thickness
-        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        ]) color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
         translate([
             width - magnet_diameter / 2 - magnet_border, magnet_diameter / 2 + magnet_border, height - lid_thickness -
             magnet_thickness
-        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        ]) color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
         translate([
             width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border,
             height - lid_thickness -
             magnet_thickness
-        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        ]) color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
         translate([
             magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border, height - lid_thickness -
             magnet_thickness
-        ]) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+        ]) color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
         $inner_width = width - wall_thickness * 2;
         $inner_length = length - wall_thickness * 2;
         $inner_height = height - lid_thickness - floor_thickness;
@@ -94,6 +97,7 @@ module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thi
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    full_height = if the cyclinder should be the full height of the box (default true)
 //    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
 //    MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness =
 //    1);
@@ -108,7 +112,8 @@ module MakeBoxWithMagneticLid(width, length, height, magnet_diameter, magnet_thi
 module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter, magnet_thickness,
                                          lid_thickness = default_lid_thickness, magnet_border = 1.5,
                                          wall_thickness = default_wall_thickness,
-                                         floor_thickness = default_floor_thickness, full_height = false)
+                                         floor_thickness = default_floor_thickness, full_height = false,
+                                         material_colour = default_material_colour)
 {
     module make_side_cylinder(box_size)
     {
@@ -121,7 +126,7 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
                 translate([
                     -offset + box_size / 2, -offset + box_size / 2, height - lid_thickness - floor_thickness -
                     actual_height
-                ]) cyl(h = actual_height, d = box_size, anchor = BOTTOM, $fn = 32);
+                ]) color(material_colour) cyl(h = actual_height, d = box_size, anchor = BOTTOM, $fn = 32);
             }
             else
             {
@@ -129,12 +134,13 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
                 translate([
                     -wall_thickness + box_size / 2, -wall_thickness + box_size / 2,
                     height - lid_thickness - floor_thickness - magnet_thickness * 1.5
-                ]) cyl(h = magnet_thickness * 1.5, d = box_size, anchor = BOTTOM, $fn = 32);
+                ]) color(material_colour) cyl(h = magnet_thickness * 1.5, d = box_size, anchor = BOTTOM, $fn = 32);
                 translate([
                     -offset + box_size / 2, -offset + box_size / 2,
                     height - lid_thickness - floor_thickness - actual_height - magnet_thickness * 1.5
-                ]) cyl(h = actual_height + 0.01, d2 = box_size, d1 = full_height ? box_size : 0, anchor = BOTTOM,
-                       $fn = 32, shift = [ box_size / 2 - wall_thickness, box_size / 2 - wall_thickness ]);
+                ]) color(material_colour)
+                    cyl(h = actual_height + 0.01, d2 = box_size, d1 = full_height ? box_size : 0, anchor = BOTTOM,
+                        $fn = 32, shift = [ box_size / 2 - wall_thickness, box_size / 2 - wall_thickness ]);
             }
             side_radius = box_size / 2 - wall_thickness;
             echo(side_radius);
@@ -147,13 +153,14 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
                         -wall_thickness + box_size, -wall_thickness + box_size / 2 - side_radius,
                         height - lid_thickness - floor_thickness -
                         actual_height
-                    ]) prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
-                                size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
+                    ]) color(material_colour)
+                        prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
+                                 size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
                     translate([
                         -wall_thickness + box_size + side_radius, -wall_thickness + box_size / 2,
                         height - lid_thickness - floor_thickness -
                         actual_height
-                    ]) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
+                    ]) color(material_colour) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
                 }
                 difference()
                 {
@@ -161,13 +168,14 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
                         -wall_thickness + box_size / 2 - side_radius, -wall_thickness + box_size,
                         height - lid_thickness - floor_thickness -
                         actual_height
-                    ]) prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
-                                size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
+                    ]) color(material_colour)
+                        prismoid(size1 = [ side_radius * 2, side_radius * 2 ],
+                                 size2 = [ side_radius * 2, side_radius * 2 ], h = actual_height, anchor = BOTTOM);
                     translate([
                         -wall_thickness + box_size / 2, -wall_thickness + box_size + side_radius,
                         height - lid_thickness - floor_thickness -
                         actual_height
-                    ]) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
+                    ]) color(material_colour) cyl(r = side_radius, h = actual_height + 1, anchor = BOTTOM, $fn = 32);
                 }
             }
         }
@@ -175,15 +183,17 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
 
     difference()
     {
-        cube([
+        color(material_colour) cube([
             width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness + 0.1
         ]);
         box_size = magnet_diameter + magnet_border * 2;
-        make_side_cylinder(box_size);
-        translate([ width - wall_thickness * 2, 0, 0 ]) rotate([ 0, 0, 90 ]) make_side_cylinder(box_size);
-        translate([ width - wall_thickness * 2, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 180 ])
+        color(material_colour) make_side_cylinder(box_size);
+        translate([ width - wall_thickness * 2, 0, 0 ]) rotate([ 0, 0, 90 ]) color(material_colour)
             make_side_cylinder(box_size);
-        translate([ 0, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 270 ]) make_side_cylinder(box_size);
+        translate([ width - wall_thickness * 2, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 180 ])
+            color(material_colour) make_side_cylinder(box_size);
+        translate([ 0, length - wall_thickness * 2, 0 ]) rotate([ 0, 0, 270 ]) color(material_colour)
+            make_side_cylinder(box_size);
     }
 }
 
@@ -197,28 +207,31 @@ module MakeBoxWithMagneticLidInsideSpace(width, length, height, magnet_diameter,
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: MagneticBoxLid(100, 50, 5, 1);
 // Example:
 //    MagneticBoxLid(100, 50, 5, 1);
 module MagneticBoxLid(width, length, magnet_diameter, magnet_thickness, magnet_border = 1.5,
                       lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness, top_thickness = 2,
-                      lid_rounding = undef, size_spacing = m_piece_wiggle_room)
+                      lid_rounding = undef, size_spacing = m_piece_wiggle_room,
+                      material_colour = default_material_colour)
 {
     calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
     internal_build_lid(width, length, lid_thickness, wall_thickness)
     {
         difference()
         {
-            cuboid([ width, length, lid_thickness ], rounding = calc_lid_rounding, anchor = BOTTOM + FRONT + LEFT,
-                   edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+            color(material_colour)
+                cuboid([ width, length, lid_thickness ], rounding = calc_lid_rounding, anchor = BOTTOM + FRONT + LEFT,
+                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             translate([ magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, -1 ])
-                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+                color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
             translate([ width - magnet_diameter / 2 - magnet_border, magnet_diameter / 2 + magnet_border, -1 ])
-                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+                color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
             translate([ width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border, -1 ])
-                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+                color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
             translate([ magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border, -1 ])
-                cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
+                color(material_colour) cyl(d = magnet_diameter, h = magnet_thickness + 1, anchor = BOTTOM, $fn = 32);
         }
         if ($children > 0)
         {
@@ -270,6 +283,7 @@ module MagneticBoxLid(width, length, magnet_diameter, magnet_thickness, magnet_b
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: MagneticBoxLidWithLabelAndCustomShape(100, 50,  5, 1, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    MagneticBoxLidWithLabelAndCustomShape(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -282,11 +296,11 @@ module MagneticBoxLidWithLabelAndCustomShape(width, length, magnet_diameter, mag
                                              size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                                              aspect_ratio = 1.0, font = undef, lid_rounding = undef,
                                              wall_thickness = default_wall_thickness, lid_pattern_dense = false,
-                                             lid_dense_shape_edges = 6)
+                                             lid_dense_shape_edges = 6, material_colour = default_material_colour)
 {
     MagneticBoxLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                    lid_rounding = lid_rounding, size_spacing = size_spacing, magnet_diameter = magnet_diameter,
-                   magnet_thickness = magnet_thickness)
+                   magnet_thickness = magnet_thickness, material_colour = material_colour)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
@@ -299,18 +313,20 @@ module MagneticBoxLidWithLabelAndCustomShape(width, length, magnet_diameter, mag
             }
             else
             {
-                square([ 10, 10 ]);
+                color(material_colour) square([ 10, 10 ]);
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
+                     material_colour = material_colour);
 
         // Fingernail pull
         intersection()
         {
-            cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
+            translate([ (width) / 2, length - label_border - 3, 0 ]) color(material_colour)
+                SlidingLidFingernail(lid_thickness);
         }
 
         // Don't include the first child since is it used for the lid shape.
@@ -363,6 +379,7 @@ module MagneticBoxLidWithLabelAndCustomShape(width, length, magnet_diameter, mag
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
@@ -372,7 +389,7 @@ module MagneticBoxLidWithLabel(width, length, magnet_diameter, magnet_thickness,
                                shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
                                lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
                                font = undef, size_spacing = m_piece_wiggle_room, lid_rounding = undef,
-                               shape_rounding = undef)
+                               shape_rounding = undef, material_colour = default_material_colour)
 {
     MagneticBoxLidWithLabelAndCustomShape(
         width = width, length = length, magnet_diameter = magnet_diameter, magnet_thickness = magnet_thickness,
@@ -381,10 +398,11 @@ module MagneticBoxLidWithLabel(width, length, magnet_diameter, magnet_thickness,
         layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
         lid_rounding = lid_rounding, lid_boundary = lid_boundary, label_border = label_border,
         label_offset = label_offset, lid_pattern_dense = IsDenseShapeType(shape_type),
-        lid_dense_shape_edges = DenseShapeEdges(shape_type))
+        lid_dense_shape_edges = DenseShapeEdges(shape_type), material_colour = material_colour)
     {
-        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+        color(material_colour)
+            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
 
         if ($children > 1)
         {

@@ -222,11 +222,13 @@ module InsetHinge(length, width, diameter, offset)
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Examples:
 //   MakeBoxAndLidWithInsetHinge(100, 50, 20);
 module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = default_wall_thickness,
                                    floor_thickness = default_floor_thickness, hinge_offset = 0.5, gap = 1, side_gap = 3,
-                                   print_layer_height = 0.2, lid_thickness = default_lid_thickness)
+                                   print_layer_height = 0.2, lid_thickness = default_lid_thickness,
+                                   material_colour = default_material_colour)
 {
     hinge_width = hinge_diameter * 2 + gap;
     hinge_length = length - side_gap * 2;
@@ -236,8 +238,9 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
         {
             difference()
             {
-                cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                color(material_colour)
+                    cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 0)
                 {
                     $inner_width = width - wall_thickness - hinge_width;
@@ -249,8 +252,9 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
 
             translate([ width + gap, 0, 0 ]) difference()
             {
-                cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                color(material_colour)
+                    cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 if ($children > 1)
                 {
                     $inner_width = width - wall_thickness - hinge_width;
@@ -261,8 +265,9 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
             }
         }
         translate([ width - hinge_diameter - 0.01, side_gap, height / 2 - hinge_diameter - print_layer_height ])
-            cube([ hinge_width + 0.02, hinge_length, hinge_diameter + 5 ]);
+            color(material_colour) cube([ hinge_width + 0.02, hinge_length, hinge_diameter + 5 ]);
     }
     translate([ width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 ]) rotate([ 0, 0, 90 ])
-        InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, diameter = hinge_diameter);
+        color(material_colour)
+            InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, diameter = hinge_diameter);
 }

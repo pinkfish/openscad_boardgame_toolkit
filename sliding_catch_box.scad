@@ -49,54 +49,63 @@ under the License.
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //   top_thickness = the thickness of the all above the catch (default 2)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
 // Example:
 //    MakeBoxWithSlidingCatchLid(100, 50, 20);
 module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default_lid_thickness,
                                   wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
-                                  top_thickness = 2, floor_thickness = default_floor_thickness)
+                                  top_thickness = 2, floor_thickness = default_floor_thickness,
+                                  material_colour = default_material_colour)
 {
     calc_sliding_len = (length - wall_thickness) / 6;
     difference()
     {
 
-        cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+        color(material_colour)
+            cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                   edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         // middle diff.
-        translate([ wall_thickness, wall_thickness, floor_thickness ])
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) color(material_colour)
             cube([ width - wall_thickness * 2, length - wall_thickness * 2, height ]);
 
         // Sliding cutouts.
         translate([ -0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness ])
-            cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], anchor = FRONT + LEFT + BOTTOM,
-                   rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+            color(material_colour)
+                cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ],
+                       anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
         translate(
             [ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness ])
-            cuboid([ width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing ],
-                   anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+            color(material_colour)
+                cuboid([ width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing ],
+                       anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
         // Rounding corners.
         translate([ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing ])
-            cuboid([ width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
-                   anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
-                   edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+            color(material_colour)
+                cuboid([ width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
+                       anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
+                       edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
 
         // Second cutout.
         translate([
             -0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness -
             top_thickness
-        ]) cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], rounding = lid_thickness,
-                  anchor = FRONT + LEFT + BOTTOM, edges = [BACK + TOP]);
+        ]) color(material_colour)
+            cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], rounding = lid_thickness,
+                   anchor = FRONT + LEFT + BOTTOM, edges = [BACK + TOP]);
         translate([ -0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness ])
-            cuboid([ width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing ],
-                   anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
+            color(material_colour) cuboid(
+                [ width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing ],
+                anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
         // Rounding corners.
         translate([
             -0.5, wall_thickness + length - calc_sliding_len - wall_thickness - size_spacing * 2,
             height - top_thickness +
             size_spacing
-        ]) cuboid([ width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
-                  anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
-                  edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+        ]) color(material_colour)
+            cuboid([ width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
+                   anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
+                   edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
 
         // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
         // just not the walls.
@@ -105,7 +114,7 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default
         $inner_height = height - lid_thickness - floor_thickness;
         intersection()
         {
-            translate([ wall_thickness, wall_thickness, floor_thickness ])
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) color(material_colour)
                 cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
             translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
         }
@@ -121,12 +130,13 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: SlidingCatchBoxLid(100, 50);
 // Example:
 //    SlidingCatchBoxLid(100, 50);
 module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
                           size_spacing = m_piece_wiggle_room, top_thickness = 2, fill_middle = true,
-                          lid_roudning = undef, lid_rounding = undef)
+                          lid_roudning = undef, lid_rounding = undef, material_colour = default_material_colour)
 {
     calc_sliding_len = (length - wall_thickness) / 6;
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
@@ -138,29 +148,29 @@ module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, 
         {
             union()
             {
-                cube([ width, length - wall_thickness, lid_thickness - size_spacing ]);
+                color(material_colour) cube([ width, length - wall_thickness, lid_thickness - size_spacing ]);
                 if (fill_middle)
                 {
-                    translate([ wall_thickness, 0, lid_thickness - 0.1 ])
+                    translate([ wall_thickness, 0, lid_thickness - 0.1 ]) color(material_colour)
                         cuboid([ width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1 ],
                                anchor = FRONT + LEFT + BOTTOM, rounding = calc_lid_rounding, edges = TOP, $fn = 32);
                 }
             }
             // Front piece.
-            translate([ -1, -1, -0.5 ])
+            translate([ -1, -1, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, -1, -0.5 ])
+            translate([ width - wall_thickness - size_spacing, -1, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
             // Middle piece.
-            translate([ -1, calc_sliding_len * 2, -0.5 ])
+            translate([ -1, calc_sliding_len * 2, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5 ])
+            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
 
             // End piece.
-            translate([ -1, calc_sliding_len * 5, -0.5 ])
+            translate([ -1, calc_sliding_len * 5, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5 ])
+            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5 ]) color(material_colour)
                 cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
         }
         if ($children > 0)
@@ -212,21 +222,25 @@ module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, 
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module SlidingCatchBoxLidWithLabelAndCustomShape(
-    width, length, text_width, text_height, text_str, lid_boundary = 10, label_radius = 5, label_border = 2,
-    label_offset = 4, label_rotated = false, layout_width = undef, size_spacing = m_piece_wiggle_room,
-    lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef, lid_rounding = undef,
-    wall_thickness = default_wall_thickness, top_thickness = 2, fill_middle = true)
+module SlidingCatchBoxLidWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
+                                                 label_radius = 5, label_border = 2, label_offset = 4,
+                                                 label_rotated = false, layout_width = undef,
+                                                 size_spacing = m_piece_wiggle_room,
+                                                 lid_thickness = default_lid_thickness, aspect_ratio = 1.0,
+                                                 font = undef, lid_rounding = undef,
+                                                 wall_thickness = default_wall_thickness, top_thickness = 2,
+                                                 fill_middle = true, material_colour = default_material_colour)
 {
     SlidingCatchBoxLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                        lid_rounding = lid_rounding, size_spacing = size_spacing, top_thickness = top_thickness,
-                       fill_middle = fill_middle)
+                       fill_middle = fill_middle, material_colour = material_colour)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
@@ -238,18 +252,20 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
             }
             else
             {
-                square([ 10, 10 ]);
+                color(material_colour) square([ 10, 10 ]);
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
+                     material_colour = material_colour);
 
         // Fingernail pull
         intersection()
         {
-            cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
+            translate([ (width) / 2, length - label_border - 3, 0 ]) color(material_colour)
+                SlidingLidFingernail(lid_thickness);
         }
 
         // Don't include the first child since is it used for the lid shape.
@@ -304,6 +320,7 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
@@ -313,7 +330,7 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
                                    shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
                                    size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                                    top_thickness = 2, fill_middle = true, font = undef, lid_rounding = undef,
-                                   shape_rounding = undef)
+                                   shape_rounding = undef, material_colour = default_material_colour)
 {
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
@@ -323,10 +340,11 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
         label_radius = label_radius, label_rotated = label_rotated, layout_width = layout_width,
         size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
-        top_thickness = top_thickness, fill_middle = fill_middle)
+        top_thickness = top_thickness, fill_middle = fill_middle, material_colour = material_colour)
     {
-        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+        color(material_colour)
+            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
 
         if ($children > 1)
         {

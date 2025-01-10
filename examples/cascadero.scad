@@ -53,14 +53,14 @@ module SealsBox() // `make` me
     }
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
-        translate([ 10, 10, 0 ])
+        translate([ 10, 10, 0 ]) color(default_material_colour)
             LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
-        translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Seals", border = 2, offset = 4);
+        translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ]) MakeStripedLidLabel(
+            width = 60, length = 20, lid_thickness = 3, label = "Seals", border = 2, offset = 4, label_colour = "blue");
         intersection()
         {
-            cube([ top_width - 10, top_length - 5, 3 ]);
-            translate([ (top_width) / 2, top_length - 3, 0 ]) SlidingLidFingernail(3);
+            color(default_material_colour) cube([ top_width - 10, top_length - 5, 3 ]);
+            translate([ (top_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
         }
     }
 }
@@ -74,14 +74,15 @@ module FarmerBox() // `make` me
     }
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
     {
-        translate([ 10, 10, 0 ])
+        translate([ 10, 10, 0 ]) color(default_material_colour)
             LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Farmer", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Farmer", border = 2, offset = 4,
+                                label_colour = "blue");
         intersection()
         {
-            cube([ top_width - 10, top_length - 5, 3 ]);
-            translate([ (top_width) / 2, top_length - 3, 0 ]) SlidingLidFingernail(3);
+            color(default_material_colour) cube([ top_width - 10, top_length - 5, 3 ]);
+            translate([ (top_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
         }
     }
 }
@@ -95,14 +96,15 @@ module HeraldBox() // `make` me
     }
     translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
     {
-        translate([ 10, 10, 0 ])
+        translate([ 10, 10, 0 ]) color(default_material_colour)
             LidMeshHex(width = herald_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 50, length = 15, lid_thickness = 3, label = "Herald", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 50, length = 15, lid_thickness = 3, label = "Herald", border = 2, offset = 4,
+                                label_colour = "blue");
         intersection()
         {
-            cube([ herald_width - 10, top_length - 5, 3 ]);
-            translate([ (herald_width) / 2, top_length - 3, 0 ]) SlidingLidFingernail(3);
+            color(default_material_colour) cube([ herald_width - 10, top_length - 5, 3 ]);
+            translate([ (herald_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
         }
     }
 }
@@ -120,14 +122,16 @@ module PlayerBox() // `make` me
     }
     translate([ player_width + 10, 0, 0 ]) SlidingLid(player_width, player_width, lid_thickness = lid_thickness)
     {
-        translate([ 10, 10, 0 ])
+        translate([ 10, 10, 0 ]) color(default_material_colour)
             LidMeshHex(width = player_width, length = player_length, lid_thickness = 3, boundary = 10, radius = 5);
         translate([ (player_width - 20) / 2, (player_length - 60) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Player", border = 2, offset = 4);
+            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Player", border = 2, offset = 4,
+                                label_colour = "blue");
         intersection()
         {
-            cube([ player_width - 10, player_length - 5, 3 ]);
-            translate([ (player_width) / 2, player_length - 3, 0 ]) SlidingLidFingernail(3);
+            color(default_material_colour) cube([ player_width - 10, player_length - 5, 3 ]);
+            translate([ (player_width) / 2, player_length - 3, 0 ]) color(default_material_colour)
+                SlidingLidFingernail(3);
         }
     }
 }

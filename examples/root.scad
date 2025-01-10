@@ -15,7 +15,6 @@ specific language governing permissions and limitations
 under the License.
  */
 
- 
 include <BOSL2/beziers.scad>
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
@@ -892,8 +891,7 @@ module ItemsBoxMiddle(generate_lid = true) // `make` me
         {
             SlidingBoxLidWithLabel(width = item_box_width, length = item_box_length, text_width = 70, text_height = 20,
                                    text_str = "Items", label_rotated = true, cap_height = 5,
-                                   lid_thickness = sliding_lid_thickness,
-                                   label_colour = "blue");
+                                   lid_thickness = sliding_lid_thickness, label_colour = "blue");
         }
     }
 }

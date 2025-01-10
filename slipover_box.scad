@@ -48,28 +48,32 @@ under the License.
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
 //   MakeBoxWithSlipoverLid(100, 50, 10);
 module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wall_thickness, foot = 0,
                               size_spacing = m_piece_wiggle_room, wall_height = undef,
-                              floor_thickness = default_floor_thickness, lid_thickness = default_lid_thickness)
+                              floor_thickness = default_floor_thickness, lid_thickness = default_lid_thickness,
+                              material_colour = default_material_colour)
 {
     wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
     difference()
     {
         union()
         {
-            translate([ wall_thickness + size_spacing, wall_thickness + size_spacing, 0 ]) cuboid(
-                [
-                    width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2,
-                    wall_height_calc
-                ],
-                anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+            translate([ wall_thickness + size_spacing, wall_thickness + size_spacing, 0 ]) color(material_colour)
+                cuboid(
+                    [
+                        width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2,
+                        wall_height_calc
+                    ],
+                    anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                    edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             if (foot > 0)
             {
-                cuboid([ width, length, foot ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                color(material_colour)
+                    cuboid([ width, length, foot ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
             }
         }
 
@@ -95,11 +99,13 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   lid_rounding = how much to round the lid (default wall_thickness)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
 module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickness,
                       wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room, foot = 0,
-                      finger_hole_length = false, finger_hole_width = true, lid_rounding = undef)
+                      finger_hole_length = false, finger_hole_width = true, lid_rounding = undef,
+                      material_colour = default_material_colour)
 {
     foot_offset = foot > 0 ? foot + size_spacing : 0;
     calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
@@ -112,9 +118,9 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
                 internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = size_spacing)
                 {
                     // Top piece
-                    cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
-                           rounding = calc_lid_rounding,
-                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                    color(material_colour) cuboid([ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT,
+                                                  rounding = calc_lid_rounding,
+                                                  edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                     if ($children > 0)
                     {
                         children(0);
@@ -144,24 +150,24 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
             finger_height = min(10, (height - foot_offset - lid_thickness) / 2);
             difference()
             {
-                cuboid([ width, length, height - foot_offset ], anchor = BOTTOM + FRONT + LEFT,
-                       rounding = calc_lid_rounding,
-                       edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-                translate([ wall_thickness, wall_thickness, -0.5 ])
+                color(material_colour) cuboid([ width, length, height - foot_offset ], anchor = BOTTOM + FRONT + LEFT,
+                                              rounding = calc_lid_rounding,
+                                              edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                translate([ wall_thickness, wall_thickness, -0.5 ]) color(material_colour)
                     cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
                 if (finger_hole_length)
                 {
-                    translate([ width / 2, 0, finger_height - 0.01 ]) mirror([ 0, 0, 1 ])
+                    translate([ width / 2, 0, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) color(material_colour)
                         FingerHoleWall(radius = 7, height = finger_height);
-                    translate([ width / 2, length, finger_height - 0.01 ]) mirror([ 0, 0, 1 ])
+                    translate([ width / 2, length, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) color(material_colour)
                         FingerHoleWall(radius = 7, height = finger_height);
                 }
                 if (finger_hole_width)
                 {
                     translate([ 0, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
-                        FingerHoleWall(radius = 7, height = finger_height);
+                        color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
                     translate([ width, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
-                        FingerHoleWall(radius = 7, height = finger_height);
+                        color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
                 }
             }
         }
@@ -191,6 +197,7 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -203,11 +210,13 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
                                           lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
                                           lid_rounding = undef, wall_thickness = default_wall_thickness, foot = 0,
                                           finger_hole_length = false, finger_hole_width = true,
-                                          lid_pattern_dense = false, lid_dense_shape_edges = 6)
+                                          lid_pattern_dense = false, lid_dense_shape_edges = 6, label_colour = undef,
+                                          material_colour = default_material_colour)
 {
     SlipoverBoxLid(width, length, height, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                    lid_rounding = lid_rounding, size_spacing = size_spacing, foot = foot,
-                   finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width)
+                   finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width,
+                   material_colour = material_colour)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
@@ -220,18 +229,20 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
             }
             else
             {
-                square([ 10, 10 ]);
+                color(material_colour) square([ 10, 10 ]);
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius);
+                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
+                     material_colour = material_colour, label_colour = label_colour);
 
         // Fingernail pull
         intersection()
         {
-            cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ]) SlidingLidFingernail(lid_thickness);
+            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
+            translate([ (width) / 2, length - label_border - 3, 0 ]) color(material_colour)
+                SlidingLidFingernail(lid_thickness);
         }
 
         // Don't include the first child since is it used for the lid shape.
@@ -281,6 +292,7 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
 //   shape_width = width of the shape (default {{default_lid_shape_width}})
 //   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
@@ -290,7 +302,8 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
                             shape_width = undef, shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
                             size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                             finger_hole_length = false, finger_hole_width = true, font = undef, lid_rounding = undef,
-                            shape_rounding = default_lid_shape_rounding)
+                            shape_rounding = default_lid_shape_rounding, label_colour = undef,
+                            material_colour = default_material_colour)
 {
     SlipoverLidWithLabelAndCustomShape(
         width = width, length = length, height = height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -299,10 +312,12 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
         finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot,
-        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type))
+        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
+        material_colour = material_colour)
     {
-        ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                    shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+        color(material_colour)
+            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
+                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
 
         if ($children > 1)
         {

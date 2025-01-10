@@ -237,9 +237,9 @@ module MoneyBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ money_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height,
-                               text_width = 70, text_height = 20, text_str = "Money", label_rotated = true);
+        translate([ money_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
+            text_height = 20, text_str = "Money", label_rotated = true, label_colour = "blue");
     }
 }
 module CardBox(generate_lid = true) // `make` me
@@ -260,9 +260,9 @@ module CardBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ card_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 70, text_height = 20, text_str = "Cards", label_rotated = true);
+        translate([ card_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = card_box_width, length = card_box_length, height = card_box_height, text_width = 70,
+            text_height = 20, text_str = "Cards", label_rotated = true, label_colour = "blue");
     }
 }
 
@@ -323,15 +323,15 @@ module TokensBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ tokens_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = tokens_box_width, length = tokens_box_length, height = tokens_box_height,
-                               text_width = 70, text_height = 20, text_str = "Tokens", label_rotated = true);
+        translate([ tokens_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = tokens_box_width, length = tokens_box_length, height = tokens_box_height, text_width = 70,
+            text_height = 20, text_str = "Tokens", label_rotated = true, label_colour = "blue");
     }
 }
 
 module Spacer() // `make` me
 {
-    difference()
+    color("yellow") difference()
     {
         cuboid([ spacer_box_width, spacer_box_length, spacer_box_height ], rounding = 2,
                anchor = BOTTOM + LEFT + FRONT);

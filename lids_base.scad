@@ -377,16 +377,17 @@ module internal_build_lid(width, length, lid_thickness, wall_thickness, size_spa
 // Example:
 //   SlidingLidFingernail(3);
 
-module SlidingLidFingernail(lid_thickness, radius = 6, finger_gap = 1.5, sphere = 12, finger_length = 10)
+module SlidingLidFingernail(lid_thickness, radius = 6, finger_gap = 1.5, sphere = 12, finger_length = 10,
+                            material_colour = default_material_colour)
 {
     difference()
     {
-        translate([ 0, 0, lid_thickness / 2 ]) cyl(h = lid_thickness, r = radius);
+        translate([ 0, 0, lid_thickness / 2 ]) color(material_colour) cyl(h = lid_thickness, r = radius);
         translate([ 0, 0, finger_length + lid_thickness - finger_gap + 0.1 ]) intersection()
         {
-            translate([ -finger_length / 2, -finger_length, -finger_length ])
+            translate([ -finger_length / 2, -finger_length, -finger_length ]) color(material_colour)
                 cube([ finger_length, finger_length, finger_gap ]);
-            sphere(r = finger_length);
+            color(material_colour) sphere(r = finger_length);
         }
     }
 }
@@ -485,20 +486,20 @@ module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, ta
 //    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false);
 module MakeLidLabel(width, length, text_height, text_width, lid_thickness, text_str, border, offset, font, label_radius,
-                    label_rotated, full_height, label_colour = undef)
+                    label_rotated, full_height, label_colour = undef, material_colour = default_material_colour)
 {
     if (label_rotated)
     {
-        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                label = text_str, border = border, offset = offset, full_height = full_height,
-                                font = font, radius = label_radius, label_colour = label_colour);
+        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ]) MakeStripedLidLabel(
+            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
+            offset = offset, full_height = full_height, font = font, radius = label_radius, label_colour = label_colour,
+            material_colour = material_colour);
     }
     else
     {
-        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
-            MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                label = text_str, border = border, offset = offset, full_height = full_height,
-                                font = font, radius = label_radius, label_colour = label_colour);
+        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ]) MakeStripedLidLabel(
+            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
+            offset = offset, full_height = full_height, font = font, radius = label_radius, label_colour = label_colour,
+            material_colour = material_colour);
     }
 }

@@ -50,6 +50,10 @@ default_floor_thickness = 2;
 // Description: The default font to use for labels
 default_label_font = "Stencil Std:style=Bold";
 
+// Constant: default_material_colour
+// Description: The default colour to use for material when making boxes.
+default_material_colour = "yellow";
+
 // Function: DefaultValue()
 // Description:
 //    Figures out the value, uses the input if it is not undefined, default if it is undefined.

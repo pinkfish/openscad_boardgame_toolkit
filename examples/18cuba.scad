@@ -131,9 +131,9 @@ module MoneyBox(offset = 0, generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ money_box_width + 10, 0, 0 ])
-            SlipoverLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height,
-                                 text_width = 70, text_height = 20, text_str = "18Cuba", label_rotated = true);
+        translate([ money_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
+            width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
+            text_height = 20, text_str = "18Cuba", label_rotated = true, label_colour = "blue");
     }
 }
 
@@ -168,10 +168,10 @@ module TrainBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ train_box_width + 10, 0, 0 ])
-            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                                 lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Trains",
-                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
+            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
+            text_width = 70, text_height = 20, text_str = "Trains", label_rotated = true,
+            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
     }
 }
 
@@ -195,10 +195,10 @@ module SharesBox(offset = 0, generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ train_box_width + 10, 0, 0 ])
-            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                                 lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Shares",
-                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
+            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
+            text_width = 70, text_height = 20, text_str = "Shares", label_rotated = true,
+            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
     }
 }
 
@@ -256,10 +256,10 @@ module LastBox(generate_lid = true) // `make` me
 
     if (generate_lid)
     {
-        translate([ train_box_width + 10, 0, 0 ])
-            SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                                 lid_thickness = 1, text_width = 130, text_height = 20, text_str = "Machine/Minor",
-                                 label_rotated = true, wall_thickness = wall_thickness, foot = 2);
+        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
+            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
+            text_width = 130, text_height = 20, text_str = "Machine/Minor", label_rotated = true,
+            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
     }
 }
 
@@ -380,7 +380,7 @@ module LargeTokensToPrint(generate_lid = true) // `make` me
     {
         translate([ rest_section_width * 2 + 20, 0, 0 ])
             SlipoverBoxLid(length = train_box_length, width = rest_section_width, height = rest_height,
-                           lid_thickness = 0.75, foot = 2, wall_thickness = wall_thickness);
+                           lid_thickness = 0.75, foot = 2, wall_thickness = wall_thickness, label_colour = "blue");
     }
 }
 

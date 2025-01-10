@@ -117,11 +117,13 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 // Example:
 //   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true);
 // Example:
-//   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true, label_color = "blue");
+//   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true,
+//   label_color = "blue");
 module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
-                           radius = 5, full_height = false, label_colour = undef)
+                           radius = 5, full_height = false, label_colour = undef,
+                           material_colour = default_material_colour)
 {
-    module TextShape(text_height = lid_thickness - 0.01, edge_offset = 0)
+    module TextShape(text_height = lid_thickness, edge_offset = 0)
     {
         linear_extrude(text_height) union()
         {
@@ -136,35 +138,43 @@ module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offs
     calc_font = DefaultValue(font, default_label_font);
     intersection()
     {
-        cuboid(size = [ width, length, lid_thickness ], rounding = radius, edges = "Z", anchor = FRONT + LEFT + BOTTOM);
+        color(DefaultValue(label_colour, default_label_colour)) cuboid(
+            size = [ width, length, lid_thickness ], rounding = radius, edges = "Z", anchor = FRONT + LEFT + BOTTOM);
+
+        color(DefaultValue(label_colour, default_label_colour)) TextShape();
+    }
+
+    intersection()
+    {
+        color(material_colour) cuboid(size = [ width, length, lid_thickness ], rounding = radius, edges = "Z",
+                                      anchor = FRONT + LEFT + BOTTOM);
         union()
         {
             difference()
             {
-                cuboid(size = [ width, length, lid_thickness ], rounding = radius, edges = "Z",
-                       anchor = FRONT + LEFT + BOTTOM);
+                color(material_colour) cuboid(size = [ width, length, lid_thickness ], rounding = radius, edges = "Z",
+                                              anchor = FRONT + LEFT + BOTTOM);
 
-                translate([ border, border, -0.5 ])
+                translate([ border, border, -0.5 ]) color(material_colour)
                     cuboid(size = [ width - border * 2, length - border * 2, lid_thickness + 1 ], rounding = radius,
                            edges = "Z", anchor = FRONT + LEFT + BOTTOM);
             }
-            color(DefaultValue(label_colour, default_label_colour)) TextShape();
-
             if (full_height)
             {
                 difference()
                 {
-                    Make3dStripedGrid(width = width, length = length, height = lid_thickness, bar_width_bottom = 1,
-                                      bar_width_top = 0.2);
-                    TextShape(text_height = lid_thickness + 1, edge_offset = -0.01);
+                    color(material_colour) Make3dStripedGrid(width = width, length = length, height = lid_thickness,
+                                                             bar_width_bottom = 1, bar_width_top = 0.2);
+                    color(material_colour) TextShape(text_height = lid_thickness + 1, edge_offset = -0.01);
                 }
             }
             else
             {
                 difference()
                 {
-                    linear_extrude(height = lid_thickness / 2) MakeStripedGrid(width = width, length = length);
-                    TextShape(text_height = lid_thickness + 1, edge_offset = -0.01);
+                    color(material_colour) linear_extrude(height = lid_thickness / 2)
+                        MakeStripedGrid(width = width, length = length);
+                    color(material_colour) TextShape(text_height = lid_thickness + 1, edge_offset = -0.01);
                 }
             }
         }
