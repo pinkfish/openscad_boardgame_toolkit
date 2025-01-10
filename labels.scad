@@ -118,7 +118,7 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true);
 // Example:
 //   MakeStripedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true,
-//   label_color = "blue");
+//   label_colour = "blue");
 module MakeStripedLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
                            radius = 5, full_height = false, label_colour = undef,
                            material_colour = default_material_colour)

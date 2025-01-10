@@ -257,7 +257,7 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
             }
             else
             {
-                square([ 10, 10 ]);
+                color(material_colour) square([ 10, 10 ]);
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
