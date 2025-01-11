@@ -128,10 +128,10 @@ module DestinationBox(generate_lid = true) // `make` me
         text_str = "Destinations";
         text_width = 80;
         text_height = 20;
-        translate([ destination_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = destination_box_width, length = destination_box_length,
-                               lid_thickness = lid_thickness, height = destination_box_height, text_width = text_width,
-                               text_height = text_height, text_str = text_str, label_rotated = false);
+        translate([ destination_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = destination_box_width, length = destination_box_length, lid_thickness = lid_thickness,
+            height = destination_box_height, text_width = text_width, text_height = text_height, text_str = text_str,
+            label_rotated = false, label_colour = "black");
     }
 }
 
@@ -206,7 +206,7 @@ module VictoryBox(generate_lid = true) // `make` me
         translate([ victory_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = victory_box_width, length = victory_box_length, height = victory_box_height,
                                lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false);
+                               text_str = text_str, label_rotated = false, label_colour = "black");
     }
 }
 
@@ -223,9 +223,10 @@ module CardBox(generate_lid = true) // `make` me
         text_str = "Cards";
         text_width = 60;
         text_height = 20;
-        translate([ card_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = card_box_width, length = card_box_length, height = card_box_height, lid_thickness = lid_thickness,
-            text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = false);
+        translate([ card_box_width + 10, 0, 0 ])
+            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
+                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                               text_str = text_str, label_rotated = false, label_colour = "black");
     }
 }
 
@@ -258,7 +259,7 @@ module TicketBox(generate_lid = true) // `make` me
         translate([ ticket_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
                                lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = true);
+                               text_str = text_str, label_rotated = true, label_colour = "black");
     }
 }
 
@@ -266,9 +267,9 @@ module MiddleBox() // `make` me
 {
     difference()
     {
-        cuboid([ middle_box_width, middle_box_length, middle_box_height ], rounding = wall_thickness,
-               anchor = BOTTOM + FRONT + LEFT);
-        translate([ wall_thickness, wall_thickness, lid_thickness ])
+        color(default_material_colour) cuboid([ middle_box_width, middle_box_length, middle_box_height ],
+                                              rounding = wall_thickness, anchor = BOTTOM + FRONT + LEFT);
+        translate([ wall_thickness, wall_thickness, lid_thickness ]) color(default_material_colour)
             cuboid([ middle_box_width - wall_thickness * 2, middle_box_length - wall_thickness * 2, middle_box_height ],
                    rounding = 1.5, anchor = BOTTOM + FRONT + LEFT);
     }

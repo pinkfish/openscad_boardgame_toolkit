@@ -124,7 +124,7 @@ module PlayerBox() // `make` me
 {
     MakeBoxAndLidWithInsetHinge(width = player_box_width, length = player_box_length, height = player_box_height)
     {
-        union()
+        color(default_material_colour) union()
         {
             for (j = [0:1:1])
             {
@@ -145,7 +145,7 @@ module PlayerBox() // `make` me
                 }
             }
         }
-        union()
+        color(default_material_colour) union()
         {
             difference()
             {
@@ -183,11 +183,11 @@ module CardBox(generate_lid = true) // `make` me
     {
         translate([ card_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 70, text_height = 20, text_str = "Bucket King");
+                               text_width = 70, text_height = 20, text_str = "Bucket King", label_colour = "black");
     }
 }
 
 if (FROM_MAKE != 1)
 {
-    CardBox();
+    PlayerBox();
 }

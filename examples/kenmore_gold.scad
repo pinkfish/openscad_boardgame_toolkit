@@ -23,10 +23,10 @@ default_wall_thickness = 3;
 inner_thickness = 2;
 default_floor_thickness = 2;
 default_lid_thickness = 2;
-//default_lid_shape_type = SHAPE_TYPE_CIRCLE;
-//default_lid_shape_thickness = 1;
-//default_lid_shape_width = 13;
-//default_lid_layout_width = 10;
+// default_lid_shape_type = SHAPE_TYPE_CIRCLE;
+// default_lid_shape_thickness = 1;
+// default_lid_shape_width = 13;
+// default_lid_layout_width = 10;
 
 square_tile_width = 58;
 
@@ -64,7 +64,7 @@ module SquareTileBox() // `make` me
     }
     translate([ tile_box_width + 10, 0, 0 ])
         CapBoxLidWithLabel(width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
-                           text_height = 20, text_str = "Kenmore Gold");
+                           text_height = 20, text_str = "Kenmore Gold", label_colour = "black");
 }
 
 module StartCaveBox() // `make` me
@@ -86,7 +86,7 @@ module StartCaveBox() // `make` me
     }
     translate([ start_cave_box_width + 10, 0, 0 ])
         CapBoxLidWithLabel(width = start_cave_box_width, length = start_cave_box_length, height = start_cave_box_height,
-                           text_width = 70, text_height = 20, text_str = "Start Cave");
+                           text_width = 70, text_height = 20, text_str = "Start Cave", label_colour = "black");
 }
 
 module LootBox() // `make` me
@@ -97,7 +97,7 @@ module LootBox() // `make` me
     }
     translate([ loot_box_width + 10, 0, 0 ])
         CapBoxLidWithLabel(width = loot_box_width, length = loot_box_length, height = loot_box_height, text_width = 50,
-                           text_height = 20, text_str = "Loot");
+                           text_height = 20, text_str = "Loot", label_colour = "black");
 }
 
 if (FROM_MAKE != 1)

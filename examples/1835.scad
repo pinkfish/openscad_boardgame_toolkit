@@ -134,10 +134,10 @@ module AllMoneyBoxes(generate_lid = true) // `make` me
     {
         translate([ 0, money_box_length * 2 + 20, 0 ])
             CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_1,
-                               text_width = 70, text_height = 20, text_str = "Money");
+                               text_width = 70, text_height = 20, text_str = "Money", label_colour = "black");
         translate([ 0, money_box_length * 3 + 20, 0 ])
             CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_2,
-                               text_width = 70, text_height = 20, text_str = "Money");
+                               text_width = 70, text_height = 20, text_str = "Money", label_colour = "black");
     }
 }
 
@@ -157,8 +157,9 @@ module HexBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ 0, hex_box_length + 10, 0 ]) InsetLidTabbedWithLabel(
-            width = hex_box_width, length = hex_box_length, text_width = 70, text_height = 20, text_str = "Tiles");
+        translate([ 0, hex_box_length + 10, 0 ])
+            InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, text_width = 70, text_height = 20,
+                                    text_str = "Tiles", label_colour = "black");
     }
 }
 
@@ -201,9 +202,10 @@ module AllShareBoxes(generate_lid = true) // `make` me
     translate([ 0, shares_box_length * 3 + 30, 0 ]) SharesBox(6);
     if (generate_lid)
     {
-        translate([ 0, shares_box_length * 4 + 40, 0 ]) SlipoverLidWithLabel(
-            width = shares_box_width, length = shares_box_length, text_width = 70, text_height = 20,
-            text_str = "Shares", label_rotated = true, wall_thickness = 1.5, height = shares_height);
+        translate([ 0, shares_box_length * 4 + 40, 0 ])
+            SlipoverLidWithLabel(width = shares_box_width, length = shares_box_length, text_width = 70,
+                                 text_height = 20, text_str = "Shares", label_rotated = true, wall_thickness = 1.5,
+                                 height = shares_height, label_colour = "black");
     }
 }
 
@@ -259,9 +261,9 @@ module MiddleBox(generate_lid = true) // `make` me
 
     if (generate_lid)
     {
-        translate([ 0, middle_length + 10, 0 ])
-            CapBoxLidWithLabel(width = middle_width, length = middle_length, height = middle_height, text_height = 20,
-                               text_width = 120, text_str = "Tokens/Trains", label_rotated = true);
+        translate([ 0, middle_length + 10, 0 ]) CapBoxLidWithLabel(
+            width = middle_width, length = middle_length, height = middle_height, text_height = 20, text_width = 120,
+            text_str = "Tokens/Trains", label_rotated = true, label_colour = "black");
     }
 }
 
@@ -269,11 +271,12 @@ module SpacerBox() // `make` me
 {
     difference()
     {
-        cube([ spacer_box_width, spacer_box_length, spacer_box_height ]);
-        translate([ default_wall_thickness, default_wall_thickness, default_wall_thickness ]) cube([
-            spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
-            spacer_box_height
-        ]);
+        color(default_material_colour) cube([ spacer_box_width, spacer_box_length, spacer_box_height ]);
+        translate([ default_wall_thickness, default_wall_thickness, default_wall_thickness ])
+            color(default_material_colour) cube([
+                spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
+                spacer_box_height
+            ]);
     }
 }
 
@@ -304,7 +307,7 @@ module LastSectionFirstPlayer(generate_lid = true) // `make` me
     {
         translate([ 0, first_player_box_length + 10, 0 ])
             SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length,
-                           height = first_player_box_height, wall_thickness = 3, foot = 2);
+                           height = first_player_box_height, wall_thickness = 3, foot = 2, label_colour = "black");
     }
 }
 

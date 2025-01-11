@@ -150,7 +150,7 @@ module PlayerBox(generate_lid = true) // `make` me
     {
         translate([ player_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                               text_width = 70, text_height = 20, text_str = "Player");
+                               text_width = 70, text_height = 20, text_str = "Player", label_colour = "black");
     }
 }
 
@@ -178,7 +178,7 @@ module UnmetNeedsBox(generate_lid = true) // `make` me
     {
         translate([ shared_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
-                               text_width = 70, text_height = 20, text_str = "Tokens");
+                               text_width = 70, text_height = 20, text_str = "Tokens", label_colour = "black");
     }
 }
 
@@ -220,7 +220,7 @@ module ExtraCardsBox(generate_lid = false) // `make` me
     {
         translate([ shared_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
-                               text_width = 70, text_height = 20, text_str = "Cards");
+                               text_width = 70, text_height = 20, text_str = "Cards", label_colour = "black");
     }
 }
 
@@ -248,8 +248,8 @@ module SideBox() // `make` me
 {
     translate([ side_box_width / 2, side_box_length / 2, side_box_height / 2 ]) difference()
     {
-        cuboid([ side_box_width, side_box_length, side_box_height ]);
-        translate([ 0, 0, default_floor_thickness ]) cuboid([
+        color(default_material_colour) cuboid([ side_box_width, side_box_length, side_box_height ]);
+        translate([ 0, 0, default_floor_thickness ]) color(default_material_colour) cuboid([
             side_box_width - default_wall_thickness * 2, side_box_length - default_wall_thickness * 2,
             side_box_height
         ]);

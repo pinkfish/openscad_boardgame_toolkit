@@ -903,7 +903,8 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
     {
         for (i = [0:1:5])
         {
-            translate([ $inner_width / 2, boxData("winter", "length") / 2 + (boxData("winter", "length") + 1) * i, 0 ])
+            translate(
+                [ $inner_width / 2, boxData("winter", "length") / 2 + (boxData("winter", "length") + 0) * i + 3, 0 ])
             {
                 rotate([ 0, 0, 90 ]) WinterToken(tile_thickness * 2 + 1);
                 translate([ boxData("winter", "width") / 2, -5, 0 ]) sphere(r = 8, anchor = BOTTOM);
@@ -924,23 +925,22 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
 
 module DiceBox(generate_lid = true) // `make` me
 {
-    $inner_height = dice_box_height - lid_thickness * 2;
-    $inner_width = dice_box_width - wall_thickness * 2;
-    $inner_length = dice_box_length - wall_thickness * 2;
     MakeBoxWithCapLid(width = dice_box_width, length = dice_box_length, height = dice_box_height)
     {
         translate([ dice_width / 2 + 3, dice_width / 2 + 3, dice_width / 2 ])
         {
-            Dodecahedron(dice_width);
-            translate([ 0, 0, dice_width / 2 ]) cyl(d = dice_length, h = dice_box_height);
+            color(default_material_colour) Dodecahedron(dice_width);
+            translate([ 0, 0, dice_width / 2 ]) color(default_material_colour)
+                cyl(d = dice_length, h = dice_box_height);
         }
 
         translate([ $inner_width - dice_width / 2 - 3, $inner_length - dice_width / 2 - 3, dice_width / 2 ])
         {
-            Dodecahedron(dice_width);
-            translate([ 0, 0, dice_width / 2 ]) cyl(d = dice_length, h = dice_box_height);
+            color(default_material_colour) Dodecahedron(dice_width);
+            translate([ 0, 0, dice_width / 2 ]) color(default_material_colour)
+                cyl(d = dice_length, h = dice_box_height);
         }
-        translate([ 0, 0, dice_width / 2 ])
+        translate([ 0, 0, dice_width / 2 ]) color(default_material_colour)
             RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = dice_box_height, radius = 10);
     }
     if (generate_lid)
@@ -949,14 +949,15 @@ module DiceBox(generate_lid = true) // `make` me
         {
             CapBoxLid(width = dice_box_width, length = dice_box_length, height = dice_box_height)
             {
-                translate([ 10, 10, 0 ])
-                    LidMeshBasic(width = dice_box_width, length = dice_box_length, lid_thickness = lid_thickness,
-                                 boundary = 10, layout_width = default_lid_layout_width,
-                                 shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
-                                 shape_thickness = default_lid_shape_thickness, aspect_ratio = 1.0);
+                translate([ 10, 10, 0 ]) LidMeshBasic(width = dice_box_width, length = dice_box_length,
+                                                      lid_thickness = lid_thickness, boundary = 10,
+                                                      layout_width = default_lid_layout_width, aspect_ratio = 1.0)
+                    color(default_material_colour)
+                        ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                                    shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = aspect_ratio);
 
-                translate([ (dice_box_width) / 2, (dice_box_length) / 2, 0 ]) linear_extrude(height = lid_thickness)
-                    D20Outline2d(20, 1);
+                translate([ (dice_box_width) / 2, (dice_box_length) / 2, 0 ]) color("black")
+                    linear_extrude(height = lid_thickness) D20Outline2d(20, 1);
             }
         }
     }
@@ -1074,5 +1075,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    ItemsBoxWinter();
+    DiceBox();
 }

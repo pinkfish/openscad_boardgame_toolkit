@@ -39,7 +39,7 @@ module PiecesBox() // `make` me
                            height = canvas_piece_box_height, text_width = len(str) * 9 + 5, text_height = 15,
                            text_str = str, label_rotated = true, wall_thickness = wall_thickness, lid_thickness = 2,
                            lid_boundary = 5, layout_width = 5, shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 1.5,
-                           shape_width = 7);
+                           shape_width = 7, label_colour = "black");
     }
     MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                       height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
@@ -61,45 +61,52 @@ module DividerPiece() // `make` me
     {
         difference()
         {
-            cuboid([ divider_total_width, divider_length, divider_thickness ], rounding = 5,
-                   edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ], anchor = BOTTOM + LEFT + FRONT);
+            color(default_material_colour) cuboid(
+                [ divider_total_width, divider_length, divider_thickness ], rounding = 5,
+                edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ], anchor = BOTTOM + LEFT + FRONT);
             // left
-            translate([ divider_upright_diff / 8, divider_length / 16, -0.5 ]) cuboid(
+            translate([ divider_upright_diff / 8, divider_length / 16, -0.5 ]) color(default_material_colour) cuboid(
                 [ divider_upright_diff * 3 / 4, divider_length * 12 / 32, divider_thickness + 1 ], rounding = 5,
                 edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ], anchor = BOTTOM + LEFT + FRONT);
-            translate([ divider_upright_diff / 8, divider_length * 8 / 16, -0.5 ]) cuboid(
-                [ divider_upright_diff * 3 / 4, divider_length * 13 / 32, divider_thickness + 1 ], rounding = 5,
-                edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ], anchor = BOTTOM + LEFT + FRONT);
+            translate([ divider_upright_diff / 8, divider_length * 8 / 16, -0.5 ]) color(default_material_colour)
+                cuboid([ divider_upright_diff * 3 / 4, divider_length * 13 / 32, divider_thickness + 1 ], rounding = 5,
+                       edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                       anchor = BOTTOM + LEFT + FRONT);
             // right
             translate(
                 [ divider_upright_diff / 8 + divider_upright_diff + divider_middle_width, divider_length / 16, -0.5 ])
-                cuboid([ divider_upright_diff * 3 / 4, divider_length * 12 / 32, divider_thickness + 1 ], rounding = 5,
-                       edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
-                       anchor = BOTTOM + LEFT + FRONT);
+                color(default_material_colour)
+                    cuboid([ divider_upright_diff * 3 / 4, divider_length * 12 / 32, divider_thickness + 1 ],
+                           rounding = 5, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                           anchor = BOTTOM + LEFT + FRONT);
             translate([
                 divider_upright_diff / 8 + divider_upright_diff + divider_middle_width, divider_length * 8 / 16, -0.5
-            ]) cuboid([ divider_upright_diff * 3 / 4, divider_length * 13 / 32, divider_thickness + 1 ], rounding = 5,
-                      edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
-                      anchor = BOTTOM + LEFT + FRONT);
+            ]) color(default_material_colour)
+                cuboid([ divider_upright_diff * 3 / 4, divider_length * 13 / 32, divider_thickness + 1 ], rounding = 5,
+                       edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                       anchor = BOTTOM + LEFT + FRONT);
             // middle
-            translate([ divider_upright_diff / 8 + divider_upright_diff - 2, divider_length / 8, -0.5 ]) cuboid(
-                [ divider_middle_width * 3 / 4 - 2, divider_length * 12 / 16, divider_thickness + 1 ], rounding = 5,
-                edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ], anchor = BOTTOM + LEFT + FRONT);
+            translate([ divider_upright_diff / 8 + divider_upright_diff - 2, divider_length / 8, -0.5 ])
+                color(default_material_colour)
+                    cuboid([ divider_middle_width * 3 / 4 - 2, divider_length * 12 / 16, divider_thickness + 1 ],
+                           rounding = 5, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                           anchor = BOTTOM + LEFT + FRONT);
         }
         // left
-        translate([ divider_upright_diff, 0, 0 ])
+        translate([ divider_upright_diff, 0, 0 ]) color(default_material_colour)
             cuboid([ 2, divider_upright_length, divider_height ], anchor = BOTTOM + LEFT + FRONT, rounding = 3,
                    edges = [ TOP + FRONT, TOP + BACK ]);
-        translate([ divider_upright_diff, divider_length - divider_upright_length, 0 ])
+        translate([ divider_upright_diff, divider_length - divider_upright_length, 0 ]) color(default_material_colour)
             cuboid([ 2, divider_upright_length, divider_height ], anchor = BOTTOM + LEFT + FRONT, rounding = 3,
                    edges = [ TOP + FRONT, TOP + BACK ]);
         // right
-        translate([ divider_upright_diff + divider_middle_width - 2, 0, 0 ])
+        translate([ divider_upright_diff + divider_middle_width - 2, 0, 0 ]) color(default_material_colour)
             cuboid([ 2, divider_upright_length, divider_height ], anchor = BOTTOM + LEFT + FRONT, rounding = 3,
                    edges = [ TOP + FRONT, TOP + BACK ]);
         translate([ divider_upright_diff + divider_middle_width - 2, divider_length - divider_upright_length - 2, 0 ])
-            cuboid([ 2, divider_upright_length, divider_height ], anchor = BOTTOM + LEFT + FRONT, rounding = 3,
-                   edges = [ TOP + FRONT, TOP + BACK ]);
+            color(default_material_colour)
+                cuboid([ 2, divider_upright_length, divider_height ], anchor = BOTTOM + LEFT + FRONT, rounding = 3,
+                       edges = [ TOP + FRONT, TOP + BACK ]);
     }
 }
 
