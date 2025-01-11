@@ -214,7 +214,7 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
                 difference()
                 {
                     // Top piece
-                    color(default_material_colour) cuboid(
+                    color(material_colour) cuboid(
                         [ width, length, lid_thickness ], anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
                         edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
                 }
@@ -245,11 +245,11 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
             }
             difference()
             {
-                color(default_material_colour)
+                color(material_colour)
                     cuboid([ width, length, calc_cap_height ], anchor = BOTTOM + FRONT + LEFT,
                            rounding = calc_lid_wall_thickness / 2,
                            edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) color(default_material_colour)
+                translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) color(material_colour)
                     cube([
                         width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1
                     ]);
@@ -305,12 +305,13 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
 {
     CapBoxLid(width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
               lid_thickness = lid_thickness, lid_wall_thickness = lid_wall_thickness,
-              size_spacing = m_piece_wiggle_room, lid_rounding = lid_rounding, lid_inner_rounding = lid_inner_rounding)
+              size_spacing = m_piece_wiggle_room, lid_rounding = lid_rounding, lid_inner_rounding = lid_inner_rounding,
+              material_colour = material_colour)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
-                         dense_shape_edges = lid_dense_shape_edges)
+                         dense_shape_edges = lid_dense_shape_edges, material_colour = material_colour)
         {
             if ($children > 0)
             {
@@ -318,7 +319,7 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
             }
             else
             {
-                color(default_material_colour) square([ 10, 10 ]);
+                color(material_colour) square([ 10, 10 ]);
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
@@ -385,6 +386,8 @@ module CapBoxLidWithLabelAndCustomShape(width, length, height, text_width, text_
 // Example:
 //    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
+//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog", material_colour = "lightblue", label_colour = "black");
+// Example:
 //    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 //    default_lid_shape_thickness = 1;
 //    default_lid_shape_width = 13;
@@ -396,7 +399,7 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
                           shape_type = undef, shape_thickness = undef, size_spacing = m_piece_wiggle_room,
                           lid_thickness = default_lid_thickness, lid_wall_thickness = undef, aspect_ratio = 1.0,
                           font = undef, lid_rounding = undef, lid_inner_rounding = undef, shape_rounding = undef,
-                          label_colour = undef)
+                          material_colour = default_material_colour, label_colour = undef)
 {
     CapBoxLidWithLabelAndCustomShape(
         width = width, length = length, height = height, cap_height = cap_height, wall_thickness = wall_thickness,
@@ -405,9 +408,9 @@ module CapBoxLidWithLabel(width, length, height, text_width, text_height, text_s
         layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
         label_border = label_border, label_offset = label_offset, lid_rounding = undef, lid_inner_rounding = undef,
         lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
-        label_colour = label_colour)
+        material_colour = material_colour, label_colour = label_colour)
     {
-        color(default_material_colour)
+        color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                         shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
         if ($children > 0)

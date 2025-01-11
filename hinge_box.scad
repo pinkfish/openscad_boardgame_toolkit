@@ -227,7 +227,8 @@ module InsetHinge(length, width, diameter, offset)
 //   MakeBoxAndLidWithInsetHinge(100, 50, 20);
 module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wall_thickness = default_wall_thickness,
                                    floor_thickness = default_floor_thickness, hinge_offset = 0.5, gap = 1, side_gap = 3,
-                                   print_layer_height = 0.2, lid_thickness = default_lid_thickness,
+                                   print_layer_height = 0.2, lid_thickness = default_lid_thickness, prism_width = 0.75,
+                                   tab_offset = 0.2, tab_length = 10, tab_height = 8,
                                    material_colour = default_material_colour)
 {
     hinge_width = hinge_diameter * 2 + gap;
@@ -238,28 +239,52 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
         {
             difference()
             {
-                color(material_colour)
-                    cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                union()
+                {
+                    color(material_colour)
+                        cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                    // Add a latch.
+                    color(material_colour) translate([ 0, length / 2 + tab_length / 2, height / 2 - lid_thickness ])
+                        rotate([ 0, 0, 270 ]) mirror([ 0, 0, 1 ])
+                            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
+                                       prism_width = prism_width, wall_thickness = wall_thickness);
+                }
                 if ($children > 0)
                 {
                     $inner_width = width - wall_thickness - hinge_width;
                     $inner_height = height / 2 - floor_thickness;
                     $inner_length = length - wall_thickness * 2;
+                    $material_colour = material_colour;
                     translate([ wall_thickness, wall_thickness, floor_thickness ]) children(0);
                 }
             }
 
             translate([ width + gap, 0, 0 ]) difference()
             {
-                color(material_colour)
-                    cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                           edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                difference()
+                {
+                    color(material_colour)
+                        cuboid([ width, length, height / 2 ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
+                               edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
+                    // Add a catch.
+                    color(material_colour) translate(
+                        [ width + gap - wall_thickness / 2, length / 2 + tab_length / 2, height / 2 + lid_thickness ])
+                        rotate([ 0, 0, 270 ]) mirror([ 0, 1, 0 ]) minkowski()
+                    {
+                        translate([ -tab_offset, -tab_offset, -tab_offset ]) color(material_colour)
+                            cube(tab_offset * 2);
+
+                        MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
+                                   prism_width = prism_width, wall_thickness = wall_thickness);
+                    }
+                }
                 if ($children > 1)
                 {
                     $inner_width = width - wall_thickness - hinge_width;
                     $inner_height = height / 2 - lid_thickness;
                     $inner_length = length - wall_thickness * 2;
+                    $material_colour = material_colour;
                     translate([ hinge_width, wall_thickness, lid_thickness ]) children(1);
                 }
             }

@@ -111,7 +111,8 @@ function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE 
 //   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 3) {
 //      ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE,  shape_width = $layout_width);
 //   }
-module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_edges = 6)
+module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_edges = 6,
+                    material_colour = default_material_colour)
 {
     cell_width = cos(180 / shape_edges) * radius;
     rows = width / cell_width;
@@ -132,13 +133,13 @@ module LidMeshDense(width, length, lid_thickness, boundary, radius, shape_edges 
 
             difference()
             {
-                cube([ width - boundary * 2, length - boundary * 2, lid_thickness + 1 ]);
-                translate([ shape_thickness / 2, shape_thickness / 2, 0 ]) cube([
+                color(material_colour) cube([ width - boundary * 2, length - boundary * 2, lid_thickness + 1 ]);
+                translate([ shape_thickness / 2, shape_thickness / 2, 0 ]) color(material_colour) cube([
                     width - boundary * 2 - shape_thickness, length - boundary * 2 - shape_thickness, lid_thickness + 1
                 ]);
             }
         }
-        cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
+        color(material_colour) cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
     }
 }
 
@@ -187,7 +188,8 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //        circle(r = 7);
 //        circle(r = 6);
 //      }
-module LidMeshRepeating(width, length, lid_thickness, boundary, layout_width, aspect_ratio = 1.0, shape_edges = 4)
+module LidMeshRepeating(width, length, lid_thickness, boundary, layout_width, aspect_ratio = 1.0, shape_edges = 4,
+                        material_colour = default_material_colour)
 {
     rows = width / layout_width;
     cols = length / layout_width * aspect_ratio;
@@ -205,14 +207,15 @@ module LidMeshRepeating(width, length, lid_thickness, boundary, layout_width, as
             }
             difference()
             {
-                translate([ 0, 0, -0.5 ]) cube([ width, length, lid_thickness + 1 ]);
-                translate([ m_piece_wiggle_room, m_piece_wiggle_room, -0.5 + m_piece_wiggle_room ]) cube([
-                    width - boundary * 2 - m_piece_wiggle_room * 2, length - boundary * 2 - m_piece_wiggle_room * 2,
-                    lid_thickness + 1 + m_piece_wiggle_room * 2
-                ]);
+                translate([ 0, 0, -0.5 ]) color(material_colour) cube([ width, length, lid_thickness + 1 ]);
+                translate([ m_piece_wiggle_room, m_piece_wiggle_room, -0.5 + m_piece_wiggle_room ])
+                    color(material_colour) cube([
+                        width - boundary * 2 - m_piece_wiggle_room * 2, length - boundary * 2 - m_piece_wiggle_room * 2,
+                        lid_thickness + 1 + m_piece_wiggle_room * 2
+                    ]);
             }
         }
-        cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
+        color(material_colour) cube([ width - boundary * 2, length - boundary * 2, lid_thickness ]);
     }
 }
 
@@ -293,14 +296,14 @@ module LidMeshRepeating(width, length, lid_thickness, boundary, layout_width, as
 //       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //   }
 module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, aspect_ratio = 1.0, dense = false,
-                    dense_shape_edges = 6)
+                    dense_shape_edges = 6, material_colour = default_material_colour)
 {
     calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
     calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
     if (dense)
     {
         LidMeshDense(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                     radius = calc_layout_width / 2, shape_edges = dense_shape_edges)
+                     radius = calc_layout_width / 2, shape_edges = dense_shape_edges, material_colour = material_colour)
         {
             children();
         }
@@ -308,7 +311,8 @@ module LidMeshBasic(width, length, lid_thickness, boundary, layout_width, aspect
     else
     {
         LidMeshRepeating(width = width, length = length, lid_thickness = lid_thickness, boundary = boundary,
-                         layout_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio)
+                         layout_width = calc_layout_width, shape_edges = 4, aspect_ratio = calc_aspect_ratio,
+                         material_colour = material_colour)
         {
             children();
         }

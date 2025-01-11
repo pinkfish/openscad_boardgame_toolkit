@@ -482,10 +482,10 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 //    radius = radius of the hole
 //    height = height of the wall
 //    wall_thickness = this is used as an offset to move in from the wall by this amount to cut through it (default
-//    2) 
-//    rounding_radius = rounding radius at the top of the hole (default 3) 
-//    orient = orintation of the hole, from BSOL2 (default UP) 
-//    spin = spin of the hole, from BSOL2 (default 0) 
+//    2)
+//    rounding_radius = rounding radius at the top of the hole (default 3)
+//    orient = orintation of the hole, from BSOL2 (default UP)
+//    spin = spin of the hole, from BSOL2 (default 0)
 //    anchor = location to anchor everything (from BSOL2)
 // Example:
 //    FingerHoleBase(10, 20);

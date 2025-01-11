@@ -150,7 +150,6 @@ module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall
                                         make_tab_width = make_tab_width, make_tab_length = make_tab_length)
             MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
                        prism_width = prism_width, wall_thickness = wall_thickness);
-        ;
     }
 }
 
@@ -371,11 +370,12 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
             cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1 ]);
         translate([ 0, 0, height - lid_thickness ]) color(material_colour)
             MakeTabs(box_width = width, box_length = length, lid_thickness = lid_thickness, tab_length = tab_length,
-                     make_tab_length = make_tab_length, make_tab_width = make_tab_width) minkowski()
+                     make_tab_length = make_tab_length, make_tab_width = make_tab_width) color(material_colour)
+                minkowski()
         {
             translate([ -tab_offset, -tab_offset, -tab_offset ]) color(material_colour) cube(tab_offset * 2);
-            color(material_colour) MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
-                                              prism_width = prism_width, wall_thickness = wall_thickness);
+            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
+                       prism_width = prism_width, wall_thickness = wall_thickness);
         }
 
         // Make sure the children start from the bottom corner of the box.
