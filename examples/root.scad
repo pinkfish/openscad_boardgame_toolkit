@@ -951,10 +951,10 @@ module DiceBox(generate_lid = true) // `make` me
             {
                 translate([ 10, 10, 0 ]) LidMeshBasic(width = dice_box_width, length = dice_box_length,
                                                       lid_thickness = lid_thickness, boundary = 10,
-                                                      layout_width = default_lid_layout_width, aspect_ratio = 1.0)
+                                                      layout_width = default_lid_layout_width)
                     color(default_material_colour)
                         ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
-                                    shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = aspect_ratio);
+                                    shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = 1.0);
 
                 translate([ (dice_box_width) / 2, (dice_box_length) / 2, 0 ]) color("black")
                     linear_extrude(height = lid_thickness) D20Outline2d(20, 1);
