@@ -24,6 +24,11 @@ box_height = 40;
 lid_thickness = 3;
 wall_thickness = 2;
 
+generate_mmu = MMU == 1;
+
+default_solid_label_background = generate_mmu;
+default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
+
 side_width = 2;
 gap = 2;
 
@@ -52,17 +57,8 @@ module SealsBox() // `make` me
                            height = section_height, radius = 15);
     }
     translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
-    {
-        translate([ 10, 10, 0 ]) color(default_material_colour)
-            LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
-        translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ]) MakeStripedLidLabel(
-            width = 60, length = 20, lid_thickness = 3, label = "Seals", border = 2, offset = 4, label_colour = "blue");
-        intersection()
-        {
-            color(default_material_colour) cube([ top_width - 10, top_length - 5, 3 ]);
-            translate([ (top_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
-        }
-    }
+        SlidingBoxLidWithLabel(top_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20,
+                               text_str = "Seals", label_colour = "blue", label_radius = 5);
 }
 
 module FarmerBox() // `make` me
@@ -72,19 +68,9 @@ module FarmerBox() // `make` me
         RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
                            height = section_height, radius = 15);
     }
-    translate([ top_width + 10, 0, 0 ]) SlidingLid(top_width, top_length)
-    {
-        translate([ 10, 10, 0 ]) color(default_material_colour)
-            LidMeshHex(width = top_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
-        translate([ (top_width - 60) / 2, (top_length - 20) / 2, 0 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Farmer", border = 2, offset = 4,
-                                label_colour = "blue");
-        intersection()
-        {
-            color(default_material_colour) cube([ top_width - 10, top_length - 5, 3 ]);
-            translate([ (top_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
-        }
-    }
+    translate([ top_width + 10, 0, 0 ])
+        SlidingBoxLidWithLabel(herald_width, top_length, lid_thickness = lid_thickness, text_width = 60,
+                               text_height = 20, text_str = "Farmer", label_colour = "blue", label_radius = 5);
 }
 
 module HeraldBox() // `make` me
@@ -95,18 +81,8 @@ module HeraldBox() // `make` me
                            height = section_height, radius = 15);
     }
     translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
-    {
-        translate([ 10, 10, 0 ]) color(default_material_colour)
-            LidMeshHex(width = herald_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 5);
-        translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 50, length = 15, lid_thickness = 3, label = "Herald", border = 2, offset = 4,
-                                label_colour = "blue");
-        intersection()
-        {
-            color(default_material_colour) cube([ herald_width - 10, top_length - 5, 3 ]);
-            translate([ (herald_width) / 2, top_length - 3, 0 ]) color(default_material_colour) SlidingLidFingernail(3);
-        }
-    }
+        SlidingBoxLidWithLabel(herald_width, top_length, lid_thickness = lid_thickness, text_width = 60,
+                               text_height = 20, text_str = "Herald", label_colour = "blue", label_radius = 5);
 }
 
 module PlayerBox() // `make` me
@@ -114,31 +90,19 @@ module PlayerBox() // `make` me
     MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)
     {
 
-        RoundedBoxGrid(width = player_width - wall_thickness * 2, length = first_width, height = section_height,
-                       radius = radius, rows = 2, cols = 1, all_sides = true);
+        RoundedBoxGrid(width = $inner_width, length = first_width, height = section_height, radius = radius, rows = 2,
+                       cols = 1, all_sides = true);
         translate([ 0, first_width + wall_thickness, 0 ]) RoundedBoxAllSides(
-            width = player_length - wall_thickness * 2, length = player_width - first_width - wall_thickness * 3,
-            height = section_height, radius = radius);
+            width = $inner_width, length = $inner_length - first_width, height = section_height, radius = radius);
     }
-    translate([ player_width + 10, 0, 0 ]) SlidingLid(player_width, player_width, lid_thickness = lid_thickness)
-    {
-        translate([ 10, 10, 0 ]) color(default_material_colour)
-            LidMeshHex(width = player_width, length = player_length, lid_thickness = 3, boundary = 10, radius = 5);
-        translate([ (player_width - 20) / 2, (player_length - 60) / 2, 0 ]) rotate([ 0, 0, 90 ])
-            MakeStripedLidLabel(width = 60, length = 20, lid_thickness = 3, label = "Player", border = 2, offset = 4,
-                                label_colour = "blue");
-        intersection()
-        {
-            color(default_material_colour) cube([ player_width - 10, player_length - 5, 3 ]);
-            translate([ (player_width) / 2, player_length - 3, 0 ]) color(default_material_colour)
-                SlidingLidFingernail(3);
-        }
-    }
+    translate([ player_width + 10, 0, 0 ])
+        SlidingBoxLidWithLabel(player_width, player_width, lid_thickness = lid_thickness, text_width = 60,
+                               text_height = 20, text_str = "Player", label_colour = "blue", label_radius = 5);
 }
 
 if (FROM_MAKE != 1)
 {
-    BoxLayout();
+    //    BoxLayout();
 
     SealsBox();
 
