@@ -22,6 +22,10 @@ box_width = 310;
 box_length = 385;
 box_height = 100;
 
+default_material_colour = "purple";
+
+generate_mmu = MMU == 1;
+
 card_width = 68;
 card_length = 92;
 bond_width = 59;
@@ -129,7 +133,7 @@ module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_h
     translate([ box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
     {
         MakeBoxWithSlidingLid(width = card_box_width, length = box_length, height = all_boxes_height,
-                              lid_thickness = lid_thickness, wall_thickness = wall_thickness)
+                              lid_thickness = lid_thickness, wall_thickness = wall_thickness, lid_on_length = true)
         {
             cube([ $inner_width, $inner_length, all_boxes_height - lid_thickness ]);
             translate([ card_box_width / 2, box_length / 2, all_boxes_height - 28 + 0.01 - lid_thickness / 2 ])
@@ -141,7 +145,8 @@ module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_h
     {
         translate([ box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ]) SlidingBoxLidWithLabel(
             width = card_box_width, length = box_length, lid_thickness = lid_thickness, text_width = text_width,
-            text_height = text_height, text_str = text_str, label_rotated = false, wall_thickness = 2) children();
+            text_height = text_height, text_str = text_str, label_rotated = false, wall_thickness = 2,
+            lid_on_length = true, label_colour = "black") children();
     }
 }
 
@@ -178,25 +183,20 @@ module CardBoxEasternUS(generate_lid = true) // `make` me
         text_str = "Eastern US";
         text_width = 80;
         text_height = 20;
-        translate([ eastern_us_card_box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ]) SlidingBoxLidWithLabel(
-            width = card_box_width, length = eastern_us_card_box_length, lid_thickness = lid_thickness,
-            text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = false);
+        translate([ eastern_us_card_box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ])
+            SlidingBoxLidWithLabel(width = card_box_width, length = eastern_us_card_box_length,
+                                   lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                                   text_str = text_str, label_rotated = false, label_colour = "black");
     }
 }
-
-/*
-module CardBoxEasternUS(generate_lid = true)
-{
-    CardBox(eastern_us_cards, "Eastern US", generate_lid = generate_lid);
-}*/
-
 module CardBoxAustralia(generate_lid = true) // `make` me
 {
     CardBox(australia_cards, "Australia", generate_lid = generate_lid, text_width = 45, text_height = 14)
     {
-        translate([ card_box_width / 2, 15, 0 ])
+        translate([ 17, 27, 0 ]) rotate(90)
         {
-            AustralianFlag(length = 40, white_height = 2, red_height = 1, border = 1);
+            AustralianFlag(length = 40, white_height = 2, red_height = 1.5, blue_height = 1, border = 1,
+                           solid_background = generate_mmu);
         }
     }
 }
@@ -208,7 +208,13 @@ module CardBoxMexico(generate_lid = true) // `make` me
 
 module CardBoxSweden(generate_lid = true) // `make` me
 {
-    CardBox(sweden_cards, "Sweden", generate_lid = generate_lid);
+    CardBox(sweden_cards, "Sweden", generate_lid = generate_lid)
+    {
+        translate([ 12, 18, 0 ]) rotate(90)
+        {
+            SwedenFlag(length = 20, height = lid_thickness, border = 1, solid_background = generate_mmu);
+        }
+    }
 }
 
 module CardBoxPortugal(generate_lid = true) // `make` me
@@ -287,7 +293,8 @@ module PlayerBoxWithPlasticExtras(generate_lid = true) // `make` me
             {
                 InsetLidTabbedWithLabel(width = player_box_width, length = player_box_plastic_extra_length,
                                         lid_thickness = lid_thickness, text_width = text_width,
-                                        text_height = text_height, text_str = text_str, label_rotated = true);
+                                        text_height = text_height, text_str = text_str, label_rotated = true,
+                                        label_colour = "black");
                 translate(
                     [ player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5 ])
                     cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
@@ -331,9 +338,9 @@ module PlayerBox(generate_lid = true) // `make` me
     }
     if (generate_lid)
     {
-        translate([ player_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_small_height,
-                               text_width = 70, text_height = 15, text_str = "Player", lid_thickness = 1.7);
+        translate([ player_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = player_box_width, length = player_box_length, height = player_box_small_height, text_width = 70,
+            text_height = 15, text_str = "Player", lid_thickness = 1.7, label_colour = "black");
     }
 }
 
@@ -342,19 +349,17 @@ module PlayerBoxTrains(generate_lid = true)
     MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = player_box_height,
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
     {
-        cube([
-           $inner_width, $inner_length,
-            empty_city_height
-        ]);
+        cube([ $inner_width, $inner_length, empty_city_height ]);
     }
     if (generate_lid)
     {
         text_str = "Trains";
         text_width = 60;
         text_height = 20;
-        translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-            width = player_box_width, length = player_box_trains_length, lid_thickness = lid_thickness,
-            text_width = text_width, text_height = text_height, text_str = text_str, label_rotated = false);
+        translate([ player_box_width + 10, 0, 0 ])
+            SlidingBoxLidWithLabel(width = player_box_width, length = player_box_trains_length,
+                                   lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                                   text_str = text_str, label_rotated = false, label_colour = "black");
     }
 }
 
@@ -378,7 +383,7 @@ module EmptyCityBox(generate_lid = true) // `make` me
             translate([ (empty_city_width + text_height) / 2, (empty_city_length - text_width) / 2, 0 ])
                 rotate([ 0, 0, 90 ])
                     MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                        label = text_str, border = wall_thickness, offset = 4);
+                                        label = text_str, border = wall_thickness, offset = 4, label_colour = "black");
         }
     }
 }
@@ -400,7 +405,7 @@ module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0) // `make
         translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
             width = money_section_width + extra_width, length = money_section_length + extra_length,
             lid_thickness = lid_thickness, text_width = text_width, text_height = text_height, text_str = text_str,
-            label_rotated = true);
+            label_rotated = true, label_colour = "black");
     }
 }
 
@@ -418,7 +423,7 @@ module HexBox(generate_lid = true, extra_height = 0) // `make` me
         text_height = 20;
         translate([ 6.5 * tile_width, 0, 0 ]) CapBoxLidWithLabel(
             width = hex_box_width, length = hex_box_length, height = top_section_height + extra_height,
-            text_width = text_width, text_height = text_height, text_str = text_str);
+            text_width = text_width, text_height = text_height, text_str = text_str, label_colour = "black");
     }
 }
 
@@ -437,15 +442,13 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0) // `ma
             }
             translate([ tile_radius * 2, tile_width / 2, 14 ]) sphere(r = 10, $fn = 64);
             translate([ tile_radius * 2, tile_width * 3 / 2, 14 ]) sphere(r = 10, $fn = 64);
-            translate([
-                3 + tile_radius * 5, tile_width, $inner_height - tile_thickness * 2.5
-            ])
+            translate([ 3 + tile_radius * 5, tile_width, $inner_height - tile_thickness * 2.5 ])
             {
                 RegularPolygon(width = tile_width, height = top_section_height, shape_edges = 6);
                 translate([ 0, -tile_width / 2, 10 ]) sphere(r = 10);
             }
         }
-        translate([ tile_radius * 7, 12, $inner_height - 10  ])
+        translate([ tile_radius * 7, 12, $inner_height - 10 ])
         {
             cube([ 15.5, 41, 11 ]);
             translate([ 7.75, 0, 3 ]) sphere(r = 8, anchor = BOTTOM);
@@ -456,10 +459,10 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0) // `ma
         text_str = "New Cities";
         text_width = 80;
         text_height = 20;
-        translate([ new_city_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
-                               height = top_section_height, lid_thickness = lid_thickness, text_width = text_width,
-                               text_height = text_height, text_str = text_str, label_rotated = false);
+        translate([ new_city_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
+            width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
+            height = top_section_height, lid_thickness = lid_thickness, text_width = text_width,
+            text_height = text_height, text_str = text_str, label_rotated = false, label_colour = "black");
     }
 }
 
@@ -489,10 +492,7 @@ module SwedenBox(generate_lid = true) // `make` me
         }
         sweden_flag_len = 35;
         sweden_flag_wid = sweden_flag_len * 5 / 8;
-        translate([
-            2 + sweden_flag_len / 2, $inner_length - sweden_flag_wid / 2 - 2,
-            $inner_height - 1
-        ])
+        translate([ 2 + sweden_flag_len / 2, $inner_length - sweden_flag_wid / 2 - 2, $inner_height - 1 ])
         {
             line_horiz = sweden_flag_wid * 2 / 10;
             line_vert = sweden_flag_len * 2 / 16;
@@ -504,10 +504,8 @@ module SwedenBox(generate_lid = true) // `make` me
             cuboid([ sweden_flag_len, line_horiz, 50 ], anchor = BOTTOM);
             translate([ -sweden_flag_len * 3 / 16, 0, 0 ]) cuboid([ line_vert, sweden_flag_wid, 50 ], anchor = BOTTOM);
         }
-        translate([
-            0, $inner_length - sweden_flag_wid * 3 / 2 - 10,
-            $inner_height - 1
-        ]) linear_extrude(height = 50) text("Sweden", font = "Stencil Std:style=Bold", size = 15);
+        translate([ 0, $inner_length - sweden_flag_wid * 3 / 2 - 10, $inner_height - 1 ]) linear_extrude(height = 50)
+            text("Sweden", font = "Stencil Std:style=Bold", size = 15);
     }
     if (generate_lid)
     {
@@ -517,8 +515,9 @@ module SwedenBox(generate_lid = true) // `make` me
         translate([ sweden_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
                                lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false) translate([ 84, 58, 0 ]) scale(0.25)
-                rotate([ 0, 0, 90 ]) linear_extrude(height = lid_thickness) difference()
+                               text_str = text_str, label_rotated = false, label_colour = "black")
+                translate([ 84, 58, 0 ]) scale(0.25) rotate([ 0, 0, 90 ]) color("lightblue")
+                    linear_extrude(height = lid_thickness) difference()
         {
             // Offset fixes the svg error.
             offset(delta = 0.001) import("svg/sweden.svg");
@@ -579,8 +578,8 @@ module AustraliaBox(generate_lid = true) // `make` me
         // New city tiles.
 
         translate([
-            $inner_width - sweden_bonus_width - apothem - 1,
-            apothem * 3 + wall_thickness + 2, $inner_height - tile_thickness * 3.3
+            $inner_width - sweden_bonus_width - apothem - 1, apothem * 3 + wall_thickness + 2,
+            $inner_height - tile_thickness * 3.3
         ])
         {
             translate([ 0, 0, 0 ]) NewCityHex(tile_thickness * 3.3);
@@ -594,8 +593,7 @@ module AustraliaBox(generate_lid = true) // `make` me
         // Commonweath of Australia tile.
         translate([
             $inner_width - tile_width * 2 - wall_thickness * 3 + 3,
-            australia_box_length - tile_radius - wall_thickness * 3 - 1,
-            $inner_height - tile_thickness * 1.4
+            australia_box_length - tile_radius - wall_thickness * 3 - 1, $inner_height - tile_thickness * 1.4
         ])
         {
             rotate([ 0, 0, 30 ]) RegularPolygon(shape_edges = 6, width = tile_width, height = tile_thickness * 15);
@@ -629,8 +627,8 @@ module AustraliaBox(generate_lid = true) // `make` me
         }
 
         // Map in the top section.
-        translate([ 5, australia_box_length - 26, $inner_height - 1 ]) scale(0.17)
-            linear_extrude(height = 100) difference()
+        translate([ 5, australia_box_length - 26, $inner_height - 1 ]) scale(0.17) linear_extrude(height = 100)
+            difference()
         {
             fill() import("svg/australia.svg");
             offset(-4) fill() import("svg/australia.svg");
@@ -644,8 +642,8 @@ module AustraliaBox(generate_lid = true) // `make` me
         translate([ australia_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = australia_box_width, length = australia_box_length, height = top_section_height,
                                lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false) translate([ 44, 15, 0 ])
-                linear_extrude(height = lid_thickness) scale(0.3) difference()
+                               text_str = text_str, label_rotated = false, label_colour = "black")
+                translate([ 44, 15, 0 ]) color("blue") linear_extrude(height = lid_thickness) scale(0.3) difference()
         {
             fill() import("svg/australia.svg");
             offset(-4) fill() import("svg/australia.svg");
@@ -684,21 +682,21 @@ module SpacerNoPlasticPlayerBoxSide() // `make` me
 {
     difference()
     {
-        cuboid(
+        color(default_material_colour) cuboid(
             [
                 box_width - empty_city_width - player_box_trains_length - 2, spacer_plastic_side_length,
                 all_boxes_height
             ],
             rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
             anchor = BOTTOM + FRONT + LEFT, $fn = 16);
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+        translate([ wall_thickness, wall_thickness, wall_thickness ]) color(default_material_colour) cube([
             box_width - empty_city_width - player_box_trains_length - 2 - wall_thickness * 2,
             spacer_plastic_side_length - wall_thickness * 2,
             all_boxes_height
         ]);
-        translate([ -1, -1, all_boxes_height - top_section_height ])
+        translate([ -1, -1, all_boxes_height - top_section_height ]) color(default_material_colour)
             cuboid([ 90.5, 120, top_section_height + 1 ], anchor = BOTTOM + FRONT + LEFT, $fn = 16, rounding = 1);
-        translate([ -1, -1, all_boxes_height - top_section_height + 4.01 ])
+        translate([ -1, -1, all_boxes_height - top_section_height + 4.01 ]) color(default_material_colour)
             cuboid([ 90.5, 125, top_section_height + 1 - 5 ], anchor = BOTTOM + FRONT + LEFT, $fn = 16, rounding = -2,
                    edges = [TOP + RIGHT]);
     }
@@ -713,10 +711,11 @@ module SpacerNoPlasticPlayerBoxFront() // `make` me
 {
     difference()
     {
-        cuboid([ spacer_front_width, box_length - card_box_width - spacer_plastic_side_length, all_boxes_height ],
-               rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
-               anchor = BOTTOM + FRONT + LEFT, $fn = 16);
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+        color(default_material_colour)
+            cuboid([ spacer_front_width, box_length - card_box_width - spacer_plastic_side_length, all_boxes_height ],
+                   rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                   anchor = BOTTOM + FRONT + LEFT, $fn = 16);
+        translate([ wall_thickness, wall_thickness, wall_thickness ]) color(default_material_colour) cube([
             spacer_front_width - wall_thickness * 2,
             box_length - card_box_width - spacer_plastic_side_length - wall_thickness * 2,
             all_boxes_height
@@ -729,10 +728,11 @@ module SpacerNoPlasticPlayerBoxTop() // `make` me
     spacer_width = box_width - sweden_box_width - spacer_front_width;
     difference()
     {
-        cuboid([ spacer_width, box_length - card_box_width - spacer_plastic_side_length, top_section_height ],
-               rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
-               anchor = BOTTOM + FRONT + LEFT, $fn = 16);
-        translate([ wall_thickness, wall_thickness, wall_thickness ]) cube([
+        color(default_material_colour)
+            cuboid([ spacer_width, box_length - card_box_width - spacer_plastic_side_length, top_section_height ],
+                   rounding = 2, edges = [ FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT ],
+                   anchor = BOTTOM + FRONT + LEFT, $fn = 16);
+        translate([ wall_thickness, wall_thickness, wall_thickness ]) color(default_material_colour) cube([
             spacer_width - wall_thickness * 2,
             box_length - card_box_width - spacer_plastic_side_length - wall_thickness * 2,
             all_boxes_height
@@ -955,5 +955,5 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
 
 if (FROM_MAKE != 1)
 {
-    BoxLayout();
+    CardBoxAustralia();
 }

@@ -271,7 +271,7 @@ module InsideTokenTray()
 
     difference()
     {
-        cube([
+        color(default_material_colour) cube([
             rest_section_width - wall_thickness * 2 - m_piece_wiggle_room * 2,
             train_box_length - wall_thickness * 2 - m_piece_wiggle_room * 2,
             rest_section_height
@@ -284,46 +284,55 @@ module InsideTokenTray()
                 translate([
                     2.3, 4 + (token_diameter + 3) * i,
                     rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
-                ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                      anchor = FRONT + LEFT + BOTTOM, $fn = 64);
                 translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 11.2 : 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
                 translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
                 if (i != 1 && i != 4)
                 {
                     translate([ 24.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
-                        cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
-                            $fn = 64);
+                        color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                           anchor = FRONT + LEFT + BOTTOM, $fn = 64);
                     translate([ 46.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
-                        cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
-                            $fn = 64);
+                        color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                           anchor = FRONT + LEFT + BOTTOM, $fn = 64);
                     // finger indent for the middle secxtion
-                    translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
-                    translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
+                    translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
+                        sphere(r = 6, $fn = 32);
+                    translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
+                        sphere(r = 6, $fn = 32);
                 }
                 translate([
                     65.8, 4 + (token_diameter + 3) * i,
                     rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
-                ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                      anchor = FRONT + LEFT + BOTTOM, $fn = 64);
                 // finger holes for tokens.
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
+                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) color(default_material_colour)
+                    xcyl(r = 6, h = 10, $fn = 32);
+                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) color(default_material_colour)
+                    cuboid([ 12, 12, 12 ]);
             }
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 1.2 ]) linear_extrude(height = 2)
-                text("Ferrocarril Central", size = 3.2, anchor = CENTER);
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 1.2 ]) linear_extrude(height = 2)
-                text("Yellow", size = 3.2, anchor = CENTER);
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 1.2 ])
+                color(default_material_colour) linear_extrude(height = 2)
+                    text("Ferrocarril Central", size = 3.2, anchor = CENTER);
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 1.2 ])
+                color(default_material_colour) linear_extrude(height = 2) text("Yellow", size = 3.2, anchor = CENTER);
             translate([
                 32, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2 - token_diameter + 1,
                 rest_section_height - token_big_thickness - 0.2
-            ]) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+            ]) color(default_material_colour)
+                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
             translate(
                 [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height - 4.4 ])
-                ycyl(r = 6, h = 10, $fn = 32);
+                color(default_material_colour) ycyl(r = 6, h = 10, $fn = 32);
             translate(
                 [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height + 1.7 ])
-                cuboid([ 12, 12, 12 ]);
+                color(default_material_colour) cuboid([ 12, 12, 12 ]);
 
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 8, rest_section_height - 1.2 ]) linear_extrude(height = 2)
-                rotate(90) text("18 Cuba", size = 15, anchor = CENTER);
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 8, rest_section_height - 1.2 ])
+                color(default_material_colour) linear_extrude(height = 2) rotate(90)
+                    text("18 Cuba", size = 15, anchor = CENTER);
         }
     }
 }
