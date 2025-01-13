@@ -68,9 +68,9 @@ module FarmerBox() // `make` me
         RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
                            height = section_height, radius = 15);
     }
-    translate([ top_width + 10, 0, 0 ])
-        SlidingBoxLidWithLabel(herald_width, top_length, lid_thickness = lid_thickness, text_width = 60,
-                               text_height = 20, text_str = "Farmer", label_colour = "blue", label_radius = 5);
+    translate([ top_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
+        herald_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20, text_str = "Farmer",
+        label_colour = "blue", label_radius = 5, label_rotated = true);
 }
 
 module HeraldBox() // `make` me
@@ -80,9 +80,9 @@ module HeraldBox() // `make` me
         RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = herald_width - wall_thickness * 2,
                            height = section_height, radius = 15);
     }
-    translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length)
-        SlidingBoxLidWithLabel(herald_width, top_length, lid_thickness = lid_thickness, text_width = 60,
-                               text_height = 20, text_str = "Herald", label_colour = "blue", label_radius = 5);
+    translate([ herald_width + 10, 0, 0 ]) SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
+        herald_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20, text_str = "Herald",
+        label_colour = "blue", label_radius = 5, label_rotated = true);
 }
 
 module PlayerBox() // `make` me
