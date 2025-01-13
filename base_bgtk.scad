@@ -49,10 +49,19 @@ default_floor_thickness = 2;
 // Constant: default_label_font
 // Description: The default font to use for labels
 default_label_font = "Stencil Std:style=Bold";
+// Constant: default_label_solid_background
+// Description: The default to use if the label should have a solid background or not.
+default_label_solid_background = false;
 
 // Constant: default_material_colour
 // Description: The default colour to use for material when making boxes.
 default_material_colour = "yellow";
+// Constant: default_label_colour
+// Description: The default colour to use for the label when making boxes.
+default_label_colour = "black";
+// Constant: default_label_background_colour
+// Description: The default colour to use for the label background when making boxes.
+default_label_background_colour = "lime";
 
 // Function: DefaultValue()
 // Description:

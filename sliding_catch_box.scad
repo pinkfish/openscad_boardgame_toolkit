@@ -223,20 +223,21 @@ module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, 
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    top_thickness = the thickness of the all above the catch (default 2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_solid_background = generate a solid label background, useful for mmu (default
+//    {{default_label_solid_background}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module SlidingCatchBoxLidWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
-                                                 label_radius = 5, label_border = 2, label_offset = 4,
-                                                 label_rotated = false, layout_width = undef,
-                                                 size_spacing = m_piece_wiggle_room,
-                                                 lid_thickness = default_lid_thickness, aspect_ratio = 1.0,
-                                                 font = undef, lid_rounding = undef,
-                                                 wall_thickness = default_wall_thickness, top_thickness = 2,
-                                                 fill_middle = true, material_colour = default_material_colour)
+module SlidingCatchBoxLidWithLabelAndCustomShape(
+    width, length, text_width, text_height, text_str, lid_boundary = 10, label_radius = 5, label_border = 2,
+    label_offset = 4, label_rotated = false, layout_width = undef, size_spacing = m_piece_wiggle_room,
+    lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef, lid_rounding = undef,
+    wall_thickness = default_wall_thickness, top_thickness = 2, fill_middle = true,
+    material_colour = default_material_colour, label_solid_background = undef, label_background_colour = undef)
 {
     SlidingCatchBoxLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                        lid_rounding = lid_rounding, size_spacing = size_spacing, top_thickness = top_thickness,
@@ -258,7 +259,9 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(width, length, text_width, text
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
                      font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     material_colour = material_colour);
+                     material_colour = material_colour,
+                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
+                     label_background_colour = label_background_colour);
 
         // Fingernail pull
         intersection()
@@ -321,6 +324,9 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(width, length, text_width, text
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_solid_background = generate a solid label background, useful for mmu (default
+//    {{default_label_solid_background}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
@@ -330,7 +336,8 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
                                    shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
                                    size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                                    top_thickness = 2, fill_middle = true, font = undef, lid_rounding = undef,
-                                   shape_rounding = undef, material_colour = default_material_colour)
+                                   shape_rounding = undef, material_colour = default_material_colour,
+                                   label_solid_background = undef, label_background_colour = undef)
 {
     calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
@@ -340,7 +347,8 @@ module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_
         label_radius = label_radius, label_rotated = label_rotated, layout_width = layout_width,
         size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
-        top_thickness = top_thickness, fill_middle = fill_middle, material_colour = material_colour)
+        top_thickness = top_thickness, fill_middle = fill_middle, material_colour = material_colour,
+        label_solid_background = label_solid_background, label_background_colour = label_background_colour)
     {
         color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,

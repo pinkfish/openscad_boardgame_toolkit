@@ -198,6 +198,9 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_solid_background = generate a solid label background, useful for mmu (default
+//    {{default_label_solid_background}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -211,7 +214,8 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
                                           lid_rounding = undef, wall_thickness = default_wall_thickness, foot = 0,
                                           finger_hole_length = false, finger_hole_width = true,
                                           lid_pattern_dense = false, lid_dense_shape_edges = 6, label_colour = undef,
-                                          material_colour = default_material_colour)
+                                          material_colour = default_material_colour, label_solid_background = undef,
+                                          label_background_colour = undef)
 {
     SlipoverBoxLid(width, length, height, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                    lid_rounding = lid_rounding, size_spacing = size_spacing, foot = foot,
@@ -235,7 +239,9 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
                      font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     material_colour = material_colour, label_colour = label_colour);
+                     material_colour = material_colour, label_colour = label_colour,
+                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
+                     label_background_colour = label_background_colour);
 
         // Fingernail pull
         intersection()
@@ -293,6 +299,9 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
 //   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   label_solid_background = generate a solid label background, useful for mmu (default
+//   {{default_label_solid_background}})
+//   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
@@ -303,7 +312,8 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
                             size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
                             finger_hole_length = false, finger_hole_width = true, font = undef, lid_rounding = undef,
                             shape_rounding = default_lid_shape_rounding, label_colour = undef,
-                            material_colour = default_material_colour)
+                            material_colour = default_material_colour, label_solid_background = undef,
+                            label_background_colour = undef)
 {
     SlipoverLidWithLabelAndCustomShape(
         width = width, length = length, height = height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -313,7 +323,8 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
         finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot,
         lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
-        material_colour = material_colour)
+        material_colour = material_colour, label_solid_background = label_solid_background,
+        label_background_colour = label_background_colour)
     {
         color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,

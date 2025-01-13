@@ -228,6 +228,9 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
 //    lid_on_length = lid along the length of the box (default false)
 //    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_solid_background = generate a solid label background, useful for mmu (default
+//    {{default_label_solid_background}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlidingBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -240,7 +243,8 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                                             lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
                                             lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef,
                                             lid_pattern_dense = false, lid_dense_shape_edges = 6, lid_on_length = false,
-                                            label_colour = undef, material_colour = default_material_colour)
+                                            label_colour = undef, material_colour = default_material_colour,
+                                            label_solid_background = undef, label_background_colour = undef)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                lid_rounding = lid_rounding, size_spacing = size_spacing, lid_chamfer = lid_chamfer,
@@ -261,9 +265,11 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
             }
         }
         MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
-                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
+                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = false,
                      font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     label_colour = label_colour, material_colour = material_colour);
+                     label_colour = label_colour, material_colour = material_colour,
+                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
+                     label_background_colour = label_background_colour);
 
         // Fingernail pull
         if (lid_on_length)
@@ -272,8 +278,8 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
             {
 
                 color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
-                translate([ width - label_border - 3, length / 2, 0 ])
-                   rotate(270) SlidingLidFingernail(lid_thickness, material_colour = material_colour);
+                translate([ width - label_border - 3, length / 2, 0 ]) rotate(270)
+                    SlidingLidFingernail(lid_thickness, material_colour = material_colour);
             }
         }
         else
@@ -346,6 +352,9 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
 //    lid_on_length = lid along the length of the box (default false)
 //    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_solid_background = generate a solid label background, useful for mmu (default
+//    {{default_label_solid_background}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
@@ -357,7 +366,7 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
                               wall_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
                               lid_chamfer = undef, lid_rounding = undef, font = undef, label_radius = 5,
                               shape_rounding = undef, lid_on_length = false, label_colour = undef,
-                              material_colour = default_material_colour)
+                              material_colour = default_material_colour, label_solid_background = undef)
 {
     SlidingBoxLidWithLabelAndCustomShape(
         width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness, font = font,
