@@ -39,22 +39,36 @@ under the License.
 //    height = height of the background
 //    background= generate the background (default true)
 //    border = size of border to generate (default 0)
-module FlagBackgroundAndBorder(length, height, background_color, background = true, border = 0)
+module FlagBackgroundAndBorder(length, height, background_color, width = undef, background = true, border = 0,
+                               solid_background = false)
 {
+    calc_width = DefaultValue(width, length / 2);
     if (border > 0)
     {
         difference()
         {
-            cuboid([ length + border, length / 2 + border, height ], anchor = BOTTOM);
-            translate([ 0, 0, -0.5 ]) cuboid([ length - 0.02, length / 2 - 0.02, height + 1 ], anchor = BOTTOM);
+            color(default_material_colour) cuboid([ length + border, calc_width + border, height ], anchor = BOTTOM);
+            translate([ 0, 0, -0.5 ]) color(default_material_colour)
+                cuboid([ length - 0.02, calc_width - 0.02, height + 1 ], anchor = BOTTOM);
         }
     }
     if (background)
     {
         color(background_color) difference()
         {
-            translate([ -length / 4, 0, 0 ])
-                Make3dStripedGrid(width = length, length = length / 2, height = height, spacing = 1.5);
+            if (solid_background)
+            {
+                cuboid([ length, calc_width, height ]);
+            }
+            else
+            {
+                intersection()
+                {
+                    cuboid([ length, calc_width, height ]);
+                    translate([ -length * 3 / 4, -calc_width / 2, 0 ])
+                        Make3dStripedGrid(width = length, length = calc_width, height = height, spacing = 1.5);
+                }
+            }
             translate([ 0, 0, -0.5 ]) children(0);
         }
     }
@@ -213,14 +227,17 @@ module UnionJack(length, white_height, red_height, background = true, border = 0
 //   red_height = height of the red parts
 // . border = border to put on the flag (this goes outside the length) (default 0)
 //   background = put in a blue background with stripes (default true)
+//   solid_background = generate the flag for an mmu, solid background (default false)
 // Topics: Flags
 // Example:
-//   AustralianFlag(100, 5, 4);
+//   AustralianFlag(100, 5, 4, 1);
 // Example:
-//   AustralianFlag(100, 5, 4, border = 1);
+//   AustralianFlag(100, 5, 4, 1, border = 1);
 // Example:
-//   AustralianFlag(100, 5, 4, background = false);
-module AustralianFlag(length, white_height, red_height, border = 0, background = true)
+//   AustralianFlag(100, 5, 4, 1, background = false);
+// Example:
+//   AustralianFlag(100, 5, 4, 1, border = 1, solid_background = true);
+module AustralianFlag(length, white_height, red_height, blue_height, border = 0, background = true, solid_background = false)
 {
     module Star5(d)
     {
@@ -239,8 +256,9 @@ module AustralianFlag(length, white_height, red_height, border = 0, background =
     {
         difference()
         {
-            cuboid([ length + border, length / 2 + border, max(white_height, red_height) ], anchor = BOTTOM);
-            translate([ 0, 0, -0.5 ])
+            color(default_material_colour)
+                cuboid([ length + border, length / 2 + border, max(white_height, red_height) ], anchor = BOTTOM);
+            translate([ 0, 0, -0.5 ]) color(default_material_colour)
                 cuboid([ length - 0.02, length / 2 - 0.02, max(white_height, red_height) + 1 ], anchor = BOTTOM);
         }
     }
@@ -254,8 +272,16 @@ module AustralianFlag(length, white_height, red_height, border = 0, background =
             {
                 color("blue") difference()
                 {
-                    translate([ -length / 4, 0, 0 ]) Make3dStripedGrid(
-                        width = length, length = length / 2, height = max(red_height, white_height), spacing = 1.5);
+                    if (solid_background)
+                    {
+                        translate([ length / 2, length / 4, 0 ])
+                            cuboid([ length, length / 2, blue_height ], anchor = BOTTOM);
+                    }
+                    else
+                    {
+                        translate([ -length / 4, 0, 0 ])
+                            Make3dStripedGrid(width = length, length = length / 2, height = blue_height, spacing = 1.5);
+                    }
                     intersection()
                     {
                         translate([ 0, length / 2, -0.5 ])
@@ -314,7 +340,7 @@ module AustralianFlag(length, white_height, red_height, border = 0, background =
 //   SwedenFlag(100, 4, border = 1);
 // Example:
 //   SwedenFlag(100, 4, background = false);
-module SwedenFlag(length, height, background = true, border = 0)
+module SwedenFlag(length, height, background = true, border = 0, solid_background = 0)
 {
     width = length * 5 / 8;
     line_horiz = width * 2 / 10;
@@ -324,9 +350,10 @@ module SwedenFlag(length, height, background = true, border = 0)
         cuboid([ length, line_horiz, height ], anchor = BOTTOM);
         translate([ -length * 3 / 16, 0, 0 ]) cuboid([ line_vert, width, height ], anchor = BOTTOM);
     }
-    FlagBackgroundAndBorder(length, height, "blue", background = background, border = border)
+    FlagBackgroundAndBorder(length, height, background_color = "blue", background = background, border = border,
+                            solid_background = solid_background)
     {
-        CrossBit(height + 2);
+        color("yellow") CrossBit(height + 2);
         color("yellow") CrossBit(height);
     }
 }

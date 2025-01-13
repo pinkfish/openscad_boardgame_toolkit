@@ -266,11 +266,25 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                      label_colour = label_colour, material_colour = material_colour);
 
         // Fingernail pull
-        intersection()
+        if (lid_on_length)
         {
-            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ])
-                SlidingLidFingernail(lid_thickness, material_colour = material_colour);
+            intersection()
+            {
+
+                color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
+                translate([ width - label_border - 3, length / 2, 0 ])
+                   rotate(270) SlidingLidFingernail(lid_thickness, material_colour = material_colour);
+            }
+        }
+        else
+        {
+            intersection()
+            {
+
+                color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
+                translate([ (width) / 2, length - label_border - 3, 0 ])
+                    SlidingLidFingernail(lid_thickness, material_colour = material_colour);
+            }
         }
 
         // Don't include the first child since is it used for the lid shape.
@@ -358,6 +372,10 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
                         shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
 
+        if ($children > 0)
+        {
+            children(0);
+        }
         if ($children > 1)
         {
             children(1);
