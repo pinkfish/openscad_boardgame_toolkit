@@ -383,8 +383,8 @@ module FillerBox() // `make` me
 {
     difference()
     {
-        cube([ filler_box_width, filler_box_length, filler_box_height ]);
-        translate([ wall_thickness, wall_thickness, wall_thickness ])
+        color(default_material_colour) cube([ filler_box_width, filler_box_length, filler_box_height ]);
+        translate([ wall_thickness, wall_thickness, wall_thickness ]) color(default_material_colour)
             cube([ filler_box_width - wall_thickness * 2, filler_box_length - wall_thickness * 2, filler_box_height ]);
     }
 }
