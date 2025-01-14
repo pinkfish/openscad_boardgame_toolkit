@@ -4,849 +4,637 @@ all: 3mfmerge release/st_petersburg/MoneyBox.3mf release/st_petersburg/CardBox.3
 
 release/st_petersburg/MoneyBox.3mf: output/st_petersburg__MoneyBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__MoneyBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__MoneyBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/MoneyBox.stl: output/st_petersburg__MoneyBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make -o $@ -d output/st_petersburg__MoneyBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/st_petersburg__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/CardBox.3mf: output/st_petersburg__CardBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/CardBox.stl: output/st_petersburg__CardBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make -o $@ -d output/st_petersburg__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/st_petersburg__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/TokensBox.3mf: output/st_petersburg__TokensBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__TokensBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__TokensBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/TokensBox.stl: output/st_petersburg__TokensBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make -o $@ -d output/st_petersburg__TokensBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/st_petersburg__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/Spacer.3mf: output/st_petersburg__Spacer.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__Spacer.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/st_petersburg__Spacer.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/Spacer.stl: output/st_petersburg__Spacer.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make -o $@ -d output/st_petersburg__Spacer.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/st_petersburg__Spacer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/SealsBox.3mf: output/cascadero__SealsBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__SealsBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__SealsBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/SealsBox.stl: output/cascadero__SealsBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make -o $@ -d output/cascadero__SealsBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/cascadero__SealsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/FarmerBox.3mf: output/cascadero__FarmerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__FarmerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__FarmerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/FarmerBox.stl: output/cascadero__FarmerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make -o $@ -d output/cascadero__FarmerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/cascadero__FarmerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/HeraldBox.3mf: output/cascadero__HeraldBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__HeraldBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__HeraldBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/HeraldBox.stl: output/cascadero__HeraldBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make -o $@ -d output/cascadero__HeraldBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/cascadero__HeraldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/PlayerBox.3mf: output/cascadero__PlayerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/cascadero__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/PlayerBox.stl: output/cascadero__PlayerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make -o $@ -d output/cascadero__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/cascadero__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenOne.3mf: output/explorers_of_navoria__PlayerBoxGreenOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxGreenOne.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxGreenOne.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenOne.stl: output/explorers_of_navoria__PlayerBoxGreenOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOne.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowOne.3mf: output/explorers_of_navoria__PlayerBoxYellowOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxYellowOne.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxYellowOne.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowOne.stl: output/explorers_of_navoria__PlayerBoxYellowOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOne.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleOne.3mf: output/explorers_of_navoria__PlayerBoxPurpleOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleOne.stl: output/explorers_of_navoria__PlayerBoxPurpleOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackOne.3mf: output/explorers_of_navoria__PlayerBoxBlackOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxBlackOne.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxBlackOne.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackOne.stl: output/explorers_of_navoria__PlayerBoxBlackOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOne.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenTwo.3mf: output/explorers_of_navoria__PlayerBoxGreenTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenTwo.stl: output/explorers_of_navoria__PlayerBoxGreenTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowTwo.3mf: output/explorers_of_navoria__PlayerBoxYellowTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowTwo.stl: output/explorers_of_navoria__PlayerBoxYellowTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleTwo.3mf: output/explorers_of_navoria__PlayerBoxPurpleTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleTwo.stl: output/explorers_of_navoria__PlayerBoxPurpleTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackTwo.3mf: output/explorers_of_navoria__PlayerBoxBlackTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackTwo.stl: output/explorers_of_navoria__PlayerBoxBlackTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/FavourBox.3mf: output/explorers_of_navoria__FavourBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__FavourBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__FavourBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/FavourBox.stl: output/explorers_of_navoria__FavourBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__FavourBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__FavourBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/StuffBox.3mf: output/explorers_of_navoria__StuffBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__StuffBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__StuffBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/StuffBox.stl: output/explorers_of_navoria__StuffBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__StuffBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__StuffBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/CardBox.3mf: output/explorers_of_navoria__CardBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/CardBox.stl: output/explorers_of_navoria__CardBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/BagBox.3mf: output/explorers_of_navoria__BagBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__BagBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/explorers_of_navoria__BagBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/BagBox.stl: output/explorers_of_navoria__BagBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__BagBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/explorers_of_navoria__BagBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/CardBox.3mf: output/modern_art__CardBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/modern_art__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/modern_art__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/CardBox.stl: output/modern_art__CardBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make -o $@ -d output/modern_art__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/modern_art__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/TokensBox.3mf: output/modern_art__TokensBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/modern_art__TokensBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/modern_art__TokensBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/TokensBox.stl: output/modern_art__TokensBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make -o $@ -d output/modern_art__TokensBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/modern_art__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/bucket_king/PlayerBox.3mf: output/bucket_king__PlayerBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/bucket_king__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/bucket_king__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/bucket_king/PlayerBox.stl: output/bucket_king__PlayerBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	$(SCAD) -m make -o $@ -d output/bucket_king__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/bucket_king__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/bucket_king/CardBox.3mf: output/bucket_king__CardBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/bucket_king__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/bucket_king__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/bucket_king/CardBox.stl: output/bucket_king__CardBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	$(SCAD) -m make -o $@ -d output/bucket_king__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/bucket_king__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/AllMoneyBoxes.3mf: output/1835__AllMoneyBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__AllMoneyBoxes.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__AllMoneyBoxes.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/AllMoneyBoxes.stl: output/1835__AllMoneyBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__AllMoneyBoxes.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__AllMoneyBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/HexBox.3mf: output/1835__HexBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__HexBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__HexBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/HexBox.stl: output/1835__HexBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__HexBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/AllShareBoxes.3mf: output/1835__AllShareBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__AllShareBoxes.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__AllShareBoxes.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/AllShareBoxes.stl: output/1835__AllShareBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__AllShareBoxes.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__AllShareBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MiddleBox.3mf: output/1835__MiddleBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__MiddleBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__MiddleBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MiddleBox.stl: output/1835__MiddleBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__MiddleBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/SpacerBox.3mf: output/1835__SpacerBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__SpacerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__SpacerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/SpacerBox.stl: output/1835__SpacerBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__SpacerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/LastSectionFirstPlayer.3mf: output/1835__LastSectionFirstPlayer.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__LastSectionFirstPlayer.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/1835__LastSectionFirstPlayer.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/LastSectionFirstPlayer.stl: output/1835__LastSectionFirstPlayer.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make -o $@ -d output/1835__LastSectionFirstPlayer.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/1835__LastSectionFirstPlayer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBox.3mf: output/canvas__PiecesBox.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/canvas__PiecesBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/canvas__PiecesBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBox.stl: output/canvas__PiecesBox.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make -o $@ -d output/canvas__PiecesBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/canvas__PiecesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/DividerPiece.3mf: output/canvas__DividerPiece.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/canvas__DividerPiece.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/canvas__DividerPiece.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/DividerPiece.stl: output/canvas__DividerPiece.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make -o $@ -d output/canvas__DividerPiece.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/canvas__DividerPiece.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/DestinationBox.3mf: output/isle_of_trains__DestinationBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__DestinationBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__DestinationBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/DestinationBox.stl: output/isle_of_trains__DestinationBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make -o $@ -d output/isle_of_trains__DestinationBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/isle_of_trains__DestinationBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/VictoryBox.3mf: output/isle_of_trains__VictoryBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__VictoryBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__VictoryBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/VictoryBox.stl: output/isle_of_trains__VictoryBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make -o $@ -d output/isle_of_trains__VictoryBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/isle_of_trains__VictoryBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/CardBox.3mf: output/isle_of_trains__CardBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/CardBox.stl: output/isle_of_trains__CardBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make -o $@ -d output/isle_of_trains__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/isle_of_trains__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/TicketBox.3mf: output/isle_of_trains__TicketBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__TicketBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__TicketBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/TicketBox.stl: output/isle_of_trains__TicketBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make -o $@ -d output/isle_of_trains__TicketBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/isle_of_trains__TicketBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/MiddleBox.3mf: output/isle_of_trains__MiddleBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__MiddleBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/isle_of_trains__MiddleBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/MiddleBox.stl: output/isle_of_trains__MiddleBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make -o $@ -d output/isle_of_trains__MiddleBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/isle_of_trains__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/CardBox.3mf: output/root__CardBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__CardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__CardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/CardBox.stl: output/root__CardBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__CardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/MarquisBoxBottom.3mf: output/root__MarquisBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__MarquisBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__MarquisBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/MarquisBoxBottom.stl: output/root__MarquisBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__MarquisBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__MarquisBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/MarquisBoxTop.3mf: output/root__MarquisBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__MarquisBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__MarquisBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/MarquisBoxTop.stl: output/root__MarquisBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__MarquisBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__MarquisBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/VagabondBox.3mf: output/root__VagabondBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__VagabondBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__VagabondBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/VagabondBox.stl: output/root__VagabondBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__VagabondBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__VagabondBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ErieBoxBottom.3mf: output/root__ErieBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ErieBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ErieBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ErieBoxBottom.stl: output/root__ErieBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ErieBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ErieBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ErieBoxTop.3mf: output/root__ErieBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ErieBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ErieBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ErieBoxTop.stl: output/root__ErieBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ErieBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ErieBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/AllianceBoxBottom.3mf: output/root__AllianceBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__AllianceBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__AllianceBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/AllianceBoxBottom.stl: output/root__AllianceBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__AllianceBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__AllianceBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/AllianceBoxTop.3mf: output/root__AllianceBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__AllianceBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__AllianceBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/AllianceBoxTop.stl: output/root__AllianceBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__AllianceBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__AllianceBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/RiverfolkBoxBottom.3mf: output/root__RiverfolkBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__RiverfolkBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__RiverfolkBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/RiverfolkBoxBottom.stl: output/root__RiverfolkBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__RiverfolkBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__RiverfolkBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/RiverfolkBoxTop.3mf: output/root__RiverfolkBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__RiverfolkBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__RiverfolkBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/RiverfolkBoxTop.stl: output/root__RiverfolkBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__RiverfolkBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__RiverfolkBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/LizardBoxBottom.3mf: output/root__LizardBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__LizardBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__LizardBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/LizardBoxBottom.stl: output/root__LizardBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__LizardBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__LizardBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/LizardBoxTop.3mf: output/root__LizardBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__LizardBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__LizardBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/LizardBoxTop.stl: output/root__LizardBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__LizardBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__LizardBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxBottom.3mf: output/root__ItemsBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxBottom.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxBottom.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxBottom.stl: output/root__ItemsBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ItemsBoxBottom.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ItemsBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxMiddle.3mf: output/root__ItemsBoxMiddle.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxMiddle.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxMiddle.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxMiddle.stl: output/root__ItemsBoxMiddle.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ItemsBoxMiddle.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ItemsBoxMiddle.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxWinter.3mf: output/root__ItemsBoxWinter.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxWinter.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxWinter.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxWinter.stl: output/root__ItemsBoxWinter.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ItemsBoxWinter.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ItemsBoxWinter.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/DiceBox.3mf: output/root__DiceBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__DiceBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__DiceBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/DiceBox.stl: output/root__DiceBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__DiceBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__DiceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxExtras.3mf: output/root__ItemsBoxExtras.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxExtras.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/root__ItemsBoxExtras.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxExtras.stl: output/root__ItemsBoxExtras.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make -o $@ -d output/root__ItemsBoxExtras.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/root__ItemsBoxExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/MoneyBox.3mf: output/18cuba__MoneyBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__MoneyBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__MoneyBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/MoneyBox.stl: output/18cuba__MoneyBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make -o $@ -d output/18cuba__MoneyBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/18cuba__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/TrainBox.3mf: output/18cuba__TrainBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__TrainBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__TrainBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/TrainBox.stl: output/18cuba__TrainBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make -o $@ -d output/18cuba__TrainBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/18cuba__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/SharesBox.3mf: output/18cuba__SharesBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__SharesBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__SharesBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/SharesBox.stl: output/18cuba__SharesBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make -o $@ -d output/18cuba__SharesBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/18cuba__SharesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LastBox.3mf: output/18cuba__LastBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__LastBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__LastBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LastBox.stl: output/18cuba__LastBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make -o $@ -d output/18cuba__LastBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/18cuba__LastBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LargeTokensToPrint.3mf: output/18cuba__LargeTokensToPrint.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__LargeTokensToPrint.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/18cuba__LargeTokensToPrint.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LargeTokensToPrint.stl: output/18cuba__LargeTokensToPrint.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make -o $@ -d output/18cuba__LargeTokensToPrint.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/18cuba__LargeTokensToPrint.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxEasternUS.3mf: output/railways_of_the_world__CardBoxEasternUS.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxEasternUS.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxEasternUS.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxEasternUS.stl: output/railways_of_the_world__CardBoxEasternUS.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxEasternUS.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxEasternUS.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxAustralia.3mf: output/railways_of_the_world__CardBoxAustralia.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxAustralia.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxAustralia.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxAustralia.stl: output/railways_of_the_world__CardBoxAustralia.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxAustralia.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxAustralia.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxMexico.3mf: output/railways_of_the_world__CardBoxMexico.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxMexico.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxMexico.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxMexico.stl: output/railways_of_the_world__CardBoxMexico.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxMexico.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxMexico.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxSweden.3mf: output/railways_of_the_world__CardBoxSweden.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxSweden.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxSweden.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxSweden.stl: output/railways_of_the_world__CardBoxSweden.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxSweden.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxSweden.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxPortugal.3mf: output/railways_of_the_world__CardBoxPortugal.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxPortugal.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__CardBoxPortugal.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxPortugal.stl: output/railways_of_the_world__CardBoxPortugal.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxPortugal.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__CardBoxPortugal.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxWithPlasticExtras.3mf: output/railways_of_the_world__PlayerBoxWithPlasticExtras.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxWithPlasticExtras.stl: output/railways_of_the_world__PlayerBoxWithPlasticExtras.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBox.3mf: output/railways_of_the_world__PlayerBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBox.stl: output/railways_of_the_world__PlayerBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/EmptyCityBox.3mf: output/railways_of_the_world__EmptyCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__EmptyCityBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__EmptyCityBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/EmptyCityBox.stl: output/railways_of_the_world__EmptyCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__EmptyCityBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__EmptyCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/MoneyBox.3mf: output/railways_of_the_world__MoneyBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__MoneyBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__MoneyBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/MoneyBox.stl: output/railways_of_the_world__MoneyBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__MoneyBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/HexBox.3mf: output/railways_of_the_world__HexBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__HexBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__HexBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/HexBox.stl: output/railways_of_the_world__HexBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__HexBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/NewCityBox.3mf: output/railways_of_the_world__NewCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__NewCityBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__NewCityBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/NewCityBox.stl: output/railways_of_the_world__NewCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__NewCityBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__NewCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SwedenBox.3mf: output/railways_of_the_world__SwedenBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SwedenBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SwedenBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SwedenBox.stl: output/railways_of_the_world__SwedenBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SwedenBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SwedenBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/AustraliaBox.3mf: output/railways_of_the_world__AustraliaBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__AustraliaBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__AustraliaBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/AustraliaBox.stl: output/railways_of_the_world__AustraliaBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__AustraliaBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__AustraliaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxSide.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxSide.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxFront.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxFront.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxTop.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxTop.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/SquareTileBox.3mf: output/kenmore_gold__SquareTileBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__SquareTileBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__SquareTileBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/SquareTileBox.stl: output/kenmore_gold__SquareTileBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make -o $@ -d output/kenmore_gold__SquareTileBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/kenmore_gold__SquareTileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/StartCaveBox.3mf: output/kenmore_gold__StartCaveBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__StartCaveBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__StartCaveBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/StartCaveBox.stl: output/kenmore_gold__StartCaveBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make -o $@ -d output/kenmore_gold__StartCaveBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/kenmore_gold__StartCaveBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/LootBox.3mf: output/kenmore_gold__LootBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__LootBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/kenmore_gold__LootBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/LootBox.stl: output/kenmore_gold__LootBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make -o $@ -d output/kenmore_gold__LootBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/kenmore_gold__LootBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/PlayerBox.3mf: output/wolves__PlayerBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/PlayerBox.stl: output/wolves__PlayerBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make -o $@ -d output/wolves__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wolves__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/UnmetNeedsBox.3mf: output/wolves__UnmetNeedsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__UnmetNeedsBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__UnmetNeedsBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/UnmetNeedsBox.stl: output/wolves__UnmetNeedsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make -o $@ -d output/wolves__UnmetNeedsBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wolves__UnmetNeedsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ExtraCardsBox.3mf: output/wolves__ExtraCardsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__ExtraCardsBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__ExtraCardsBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ExtraCardsBox.stl: output/wolves__ExtraCardsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make -o $@ -d output/wolves__ExtraCardsBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wolves__ExtraCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ResourcesBox.3mf: output/wolves__ResourcesBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__ResourcesBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__ResourcesBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ResourcesBox.stl: output/wolves__ResourcesBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make -o $@ -d output/wolves__ResourcesBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wolves__ResourcesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/SideBox.3mf: output/wolves__SideBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__SideBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wolves__SideBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/SideBox.stl: output/wolves__SideBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make -o $@ -d output/wolves__SideBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wolves__SideBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/PlayerBox.3mf: output/russian_railroads__PlayerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/PlayerBox.stl: output/russian_railroads__PlayerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/ExtraTokensBox.3mf: output/russian_railroads__ExtraTokensBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__ExtraTokensBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__ExtraTokensBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/ExtraTokensBox.stl: output/russian_railroads__ExtraTokensBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__ExtraTokensBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__ExtraTokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/MoneyBox.3mf: output/russian_railroads__MoneyBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__MoneyBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__MoneyBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/MoneyBox.stl: output/russian_railroads__MoneyBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__MoneyBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrainBox.3mf: output/russian_railroads__TrainBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__TrainBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__TrainBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrainBox.stl: output/russian_railroads__TrainBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__TrainBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/EngineerBox.3mf: output/russian_railroads__EngineerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__EngineerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__EngineerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/EngineerBox.stl: output/russian_railroads__EngineerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__EngineerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__EngineerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrackBox.3mf: output/russian_railroads__TrackBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__TrackBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/russian_railroads__TrackBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrackBox.stl: output/russian_railroads__TrackBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make -o $@ -d output/russian_railroads__TrackBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/russian_railroads__TrackBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/PlayerBox.3mf: output/wyrmspan__PlayerBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__PlayerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__PlayerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/PlayerBox.stl: output/wyrmspan__PlayerBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__PlayerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/FoodBox.3mf: output/wyrmspan__FoodBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__FoodBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__FoodBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/FoodBox.stl: output/wyrmspan__FoodBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__FoodBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__FoodBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/DragonCardBox.3mf: output/wyrmspan__DragonCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__DragonCardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__DragonCardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/DragonCardBox.stl: output/wyrmspan__DragonCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__DragonCardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__DragonCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CaveCardBox.3mf: output/wyrmspan__CaveCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__CaveCardBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__CaveCardBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CaveCardBox.stl: output/wyrmspan__CaveCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__CaveCardBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__CaveCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CoinBox.3mf: output/wyrmspan__CoinBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__CoinBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__CoinBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CoinBox.stl: output/wyrmspan__CoinBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__CoinBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__CoinBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/BonusBox.3mf: output/wyrmspan__BonusBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__BonusBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/wyrmspan__BonusBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/BonusBox.stl: output/wyrmspan__BonusBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make -o $@ -d output/wyrmspan__BonusBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/wyrmspan__BonusBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/BothLaurelBoxes.3mf: output/zoovadis__BothLaurelBoxes.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__BothLaurelBoxes.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__BothLaurelBoxes.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/BothLaurelBoxes.stl: output/zoovadis__BothLaurelBoxes.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__BothLaurelBoxes.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__BothLaurelBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/MarmosetBox.3mf: output/zoovadis__MarmosetBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__MarmosetBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__MarmosetBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/MarmosetBox.stl: output/zoovadis__MarmosetBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__MarmosetBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__MarmosetBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/IbisBox.3mf: output/zoovadis__IbisBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__IbisBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__IbisBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/IbisBox.stl: output/zoovadis__IbisBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__IbisBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__IbisBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/RhinoBox.3mf: output/zoovadis__RhinoBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__RhinoBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__RhinoBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/RhinoBox.stl: output/zoovadis__RhinoBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__RhinoBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__RhinoBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/CrocodileBox.3mf: output/zoovadis__CrocodileBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__CrocodileBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__CrocodileBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/CrocodileBox.stl: output/zoovadis__CrocodileBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__CrocodileBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__CrocodileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/HyenaBox.3mf: output/zoovadis__HyenaBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__HyenaBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__HyenaBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/HyenaBox.stl: output/zoovadis__HyenaBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__HyenaBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__HyenaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/ArmadiloBox.3mf: output/zoovadis__ArmadiloBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__ArmadiloBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__ArmadiloBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/ArmadiloBox.stl: output/zoovadis__ArmadiloBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__ArmadiloBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__ArmadiloBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/TigerBox.3mf: output/zoovadis__TigerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__TigerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__TigerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/TigerBox.stl: output/zoovadis__TigerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__TigerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__TigerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/PeacockBox.3mf: output/zoovadis__PeacockBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__PeacockBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__PeacockBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/PeacockBox.stl: output/zoovadis__PeacockBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__PeacockBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__PeacockBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/ShieldBox.3mf: output/zoovadis__ShieldBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__ShieldBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__ShieldBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/ShieldBox.stl: output/zoovadis__ShieldBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__ShieldBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__ShieldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/FillerBox.3mf: output/zoovadis__FillerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__FillerBox.deps -D FROM_MAKE=1 -D MMU=1
-
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- -d output/zoovadis__FillerBox.deps -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/FillerBox.stl: output/zoovadis__FillerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make -o $@ -d output/zoovadis__FillerBox.deps $< -D FROM_MAKE=1 -D MMU=0
-
+	$(SCAD) -m make -o $@ -d output/zoovadis__FillerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0

@@ -29,7 +29,7 @@ default_lid_shape_thickness = 2.5;
 default_lid_shape_width = 13;
 default_lid_layout_width = 10;
 
-default_label_solid_background = MMU == 1;
+default_label_solid_background = MAKE_MMU == 1;
 
 sliding_lid_thickness = 3;
 

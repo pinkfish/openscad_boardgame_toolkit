@@ -22,7 +22,7 @@ box_width = 310;
 box_length = 385;
 box_height = 100;
 
-generate_mmu = MMU == 1;
+generate_mmu = MAKE_MMU == 1;
 
 default_material_colour = "purple";
 default_solid_label_background = generate_mmu;
