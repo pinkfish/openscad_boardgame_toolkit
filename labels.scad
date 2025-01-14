@@ -109,11 +109,11 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   solid_background = if the background should be solid (default false)
 //   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
 // Topics: Label
-// Example:
+// Example(Render):
 //   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia");
-// Example:
+// Example(Render):
 //   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true);
-// Example:
+// Example(Render):
 //   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true,
 //   label_colour = "blue");
 module MakeMainLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
