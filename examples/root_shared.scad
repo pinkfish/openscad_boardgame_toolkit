@@ -538,40 +538,46 @@ module AllianceCamp2d(size)
 }
 
 module CapBoxLidWithEyes(width, length, height, lid_thickness = default_lid_thickness,
-                         wall_thickness = default_wall_thickness)
+                         wall_thickness = default_wall_thickness, material_colour = undef)
 {
     CapBoxLid(width = width, length = length, height = height, wall_thickness = wall_thickness,
-              lid_thickness = lid_thickness, size_spacing = m_piece_wiggle_room)
+              lid_thickness = lid_thickness, size_spacing = m_piece_wiggle_room, material_colour = material_colour)
     {
         translate([ 10, 10, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
-                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
+                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio,
+                         material_colour = material_colour)
         {
-            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
-                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
+            color(material_colour) ShapeByType(
+                shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
         }
         translate([ width / 2, length / 2, 0 ]) children();
     }
 }
 
-module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness)
+module SlidingLidWithEyes(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
+                          material_colour = undef)
 {
     SlidingLid(width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-               size_spacing = m_piece_wiggle_room, lid_on_length = true)
+               size_spacing = m_piece_wiggle_room, lid_on_length = true, material_colour = material_colour)
     {
         translate([ 10, 10, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = default_lid_thickness, boundary = 10,
-                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio)
+                         layout_width = default_lid_layout_width, aspect_ratio = default_lid_aspect_ratio,
+                         material_colour = material_colour)
         {
-            ShapeByType(shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
-                        shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
+            color(material_colour) ShapeByType(
+                shape_type = default_lid_shape_type, shape_width = default_lid_shape_width,
+                shape_thickness = default_lid_shape_thickness, shape_aspect_ratio = default_lid_aspect_ratio);
         }
 
         // Fingernail pull
         intersection()
         {
-            cube([ width - 10, length - 10, lid_thickness ]);
-            translate([ (width)-8 - 3, length / 2, 0 ]) rotate([ 0, 0, -90 ]) SlidingLidFingernail(lid_thickness);
+            color(material_colour) cube([ width - 10, length - 10, lid_thickness ]);
+            translate([ (width)-8 - 3, length / 2, 0 ]) rotate([ 0, 0, -90 ]) color(material_colour)
+                SlidingLidFingernail(lid_thickness);
         }
 
         translate([ width / 2, length / 2, 0 ]) children();

@@ -61,9 +61,10 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
 {
     if (lid_on_length)
     {
-        translate([ 0, length, 0 ]) rotate([ 0, 0, 270 ]) SlidingLid(
-            length, width, lid_thickness = lid_thickness, wall_thickness = wall_thickness, size_spacing = size_spacing,
-            lid_rounding = lid_rounding, lid_chamfer = lid_chamfer, lid_on_length = false)
+        translate([ 0, length, 0 ]) rotate([ 0, 0, 270 ])
+            SlidingLid(length, width, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
+                       size_spacing = size_spacing, lid_rounding = lid_rounding, lid_chamfer = lid_chamfer,
+                       lid_on_length = false, material_colour = material_colour)
         {
             translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
@@ -244,7 +245,8 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                                             lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef,
                                             lid_pattern_dense = false, lid_dense_shape_edges = 6, lid_on_length = false,
                                             label_colour = undef, material_colour = default_material_colour,
-                                            label_solid_background = undef, label_background_colour = undef)
+                                            label_solid_background = default_label_solid_background,
+                                            label_background_colour = undef)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                lid_rounding = lid_rounding, size_spacing = size_spacing, lid_chamfer = lid_chamfer,
@@ -253,7 +255,7 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
                          layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
-                         dense_shape_edges = lid_dense_shape_edges)
+                         dense_shape_edges = lid_dense_shape_edges, material_colour = material_colour)
         {
             if ($children > 0)
             {
@@ -268,8 +270,7 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                      lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = false,
                      font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
                      label_colour = label_colour, material_colour = material_colour,
-                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
-                     label_background_colour = label_background_colour);
+                     solid_background = label_solid_background, label_background_colour = label_background_colour);
 
         // Fingernail pull
         if (lid_on_length)
@@ -366,7 +367,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
                               wall_thickness = undef, aspect_ratio = undef, size_spacing = m_piece_wiggle_room,
                               lid_chamfer = undef, lid_rounding = undef, font = undef, label_radius = 5,
                               shape_rounding = undef, lid_on_length = false, label_colour = undef,
-                              material_colour = default_material_colour, label_solid_background = undef)
+                              material_colour = default_material_colour,
+                              label_solid_background = default_label_solid_background, label_background_colour = undef)
 {
     SlidingBoxLidWithLabelAndCustomShape(
         width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness, font = font,
@@ -375,7 +377,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         aspect_ratio = aspect_ratio, lid_chamfer = lid_chamfer, lid_rounding = lid_rounding,
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
         lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
-        lid_on_length = lid_on_length, label_colour = label_colour, material_colour = material_colour)
+        lid_on_length = lid_on_length, label_colour = label_colour, material_colour = material_colour,
+        label_solid_background = label_solid_background, label_background_colour = label_background_colour)
     {
         color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
@@ -434,13 +437,14 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    last_child_positive = if the last child should be a positive addition to the box (default false)
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
 module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wall_thickness,
                              lid_thickness = default_lid_thickness, floor_thickness = default_floor_thickness,
                              size_spacing = m_piece_wiggle_room, lid_on_length = false,
-                             material_colour = default_material_colour)
+                             material_colour = default_material_colour, last_child_positive = false)
 {
     difference()
     {
@@ -479,6 +483,20 @@ module MakeBoxWithSlidingLid(width, length, height, wall_thickness = default_wal
         $inner_width = width - wall_thickness * 2;
         $inner_length = length - wall_thickness * 2;
         $inner_height = height - lid_thickness - floor_thickness;
-        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+        if (last_child_positive)
+        {
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) children([0:$children - 2]);
+        }
+        else
+        {
+            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
+        }
+    }
+    if (last_child_positive)
+    {
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
+        translate([ wall_thickness, wall_thickness, floor_thickness ]) children($children - 1);
     }
 }

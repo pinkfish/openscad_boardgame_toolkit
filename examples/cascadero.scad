@@ -24,9 +24,7 @@ box_height = 40;
 lid_thickness = 3;
 wall_thickness = 2;
 
-generate_mmu = MMU == 1;
-
-default_solid_label_background = generate_mmu;
+default_label_solid_background = MMU == 1;
 default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
 
 side_width = 2;

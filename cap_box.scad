@@ -85,6 +85,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
 // Usage: MakeBoxWithCapLid(100, 50, 20);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 20);
@@ -95,7 +96,8 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
                          wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
                          lid_wall_thickness = undef, lid_finger_hold_len = undef, finger_hold_height = 5,
-                         floor_thickness = default_floor_thickness, material_colour = default_material_colour)
+                         floor_thickness = default_floor_thickness, material_colour = default_material_colour,
+                         last_child_positive = false)
 {
     calc_lid_wall_thickness =
         lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
@@ -167,7 +169,21 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
         $inner_height = height - lid_thickness - floor_thickness;
         $inner_width = width - wall_thickness * 2;
         $inner_length = length - wall_thickness * 2;
-        translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
+        if (last_child_positive)
+        {
+            translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children([0:$children - 2]);
+        }
+        else
+        {
+            translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children();
+        }
+    }
+    if (last_child_positive)
+    {
+        $inner_height = height - lid_thickness - floor_thickness;
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        translate([ wall_thickness, wall_thickness, calc_floor_thickness ]) children($children - 1);
     }
 }
 

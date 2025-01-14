@@ -492,28 +492,30 @@ module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, ta
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false);
 // Example:
 //    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false, 
+//       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false,
 //       solid_background = true);
 // Example:
 //    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = true, 
+//       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = true,
 //       solid_background = true);
 module MakeLidLabel(width, length, text_height, text_width, lid_thickness, text_str, border, offset, font, label_radius,
                     label_rotated, full_height, label_colour = undef, material_colour = default_material_colour,
-                    label_background_colour = undef, solid_background = false)
+                    label_background_colour = undef, solid_background = default_label_solid_background)
 {
     if (label_rotated)
     {
-        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ]) MakeMainLidLabel(
-            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
-            offset = offset, full_height = full_height, font = font, radius = label_radius, label_colour = label_colour,
-            material_colour = material_colour, solid_background = solid_background);
+        translate([ (width + text_height) / 2, (length - text_width) / 2, 0 ]) rotate([ 0, 0, 90 ])
+            MakeMainLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
+                             border = border, offset = offset, full_height = full_height, font = font,
+                             radius = label_radius, label_colour = label_colour, material_colour = material_colour,
+                             solid_background = solid_background, label_background_colour = label_background_colour);
     }
     else
     {
-        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ]) MakeMainLidLabel(
-            width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str, border = border,
-            offset = offset, full_height = full_height, font = font, radius = label_radius, label_colour = label_colour,
-            material_colour = material_colour, solid_background = solid_background);
+        translate([ (width - text_width) / 2, (length - text_height) / 2, 0 ])
+            MakeMainLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness, label = text_str,
+                             border = border, offset = offset, full_height = full_height, font = font,
+                             radius = label_radius, label_colour = label_colour, material_colour = material_colour,
+                             solid_background = solid_background, label_background_colour = label_background_colour);
     }
 }
