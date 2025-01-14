@@ -29,7 +29,7 @@ default_lid_shape_thickness = 2.5;
 default_lid_shape_width = 13;
 default_lid_layout_width = 10;
 
-default_label_solid_background = true;
+default_label_solid_background = MMU == 1;
 
 sliding_lid_thickness = 3;
 
@@ -1181,7 +1181,7 @@ module DiceBox(generate_lid = true) // `make` me
         translate([ item_box_width + 10, 0, 0 ])
         {
             SlidingLid(width = dice_box_width, length = dice_box_length, lid_thickness = sliding_lid_thickness,
-                          material_colour = "grey")
+                       material_colour = "grey")
             {
                 translate([ 10, 10, 0 ])
                     LidMeshBasic(width = dice_box_width, length = dice_box_length, lid_thickness = lid_thickness,
