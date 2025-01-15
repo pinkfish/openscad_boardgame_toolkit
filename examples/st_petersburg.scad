@@ -27,6 +27,8 @@ default_wall_thickness = 3;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 
+default_label_solid_background = MAKE_MMU == 1;
+
 box_length = 266;
 box_width = 182;
 box_height = 65;
