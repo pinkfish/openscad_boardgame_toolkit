@@ -45,6 +45,9 @@ default_wall_thickness = 2;
 // Constant: default_floor_thickness
 // Description: The default lid thickness for all boxes.
 default_floor_thickness = 2;
+// Constant: default_slicing_layer_height
+// The slicing layer height to use for cases where this matter.
+default_slicing_layer_height = 0.2;
 
 // Constant: default_label_font
 // Description: The default font to use for labels
