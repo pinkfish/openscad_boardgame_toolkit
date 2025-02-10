@@ -485,17 +485,21 @@ module MakeTabs(box_width, box_length, lid_thickness = default_lid_thickness, ta
 //    label_colour = the colout of the label (default {{default_label_colour}})
 //    solid_background = if the background should be solid (default false)
 // Example:
-//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
+//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2,  text_str =
+//    "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = false, full_height = true);
 // Example:
-//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
+//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2,  text_str =
+//    "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false);
 // Example:
-//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
+//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str =
+//    "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = false,
 //       solid_background = true);
 // Example:
-//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str = "frog", border = 2,
+//    MakeLidLabel(100, 20, text_height = 50, text_width = 10, lid_thickness = 2, text_str =
+//    "frog", border = 2,
 //       offset = 4, font = default_label_font, label_radius = 2, label_rotated = true, full_height = true,
 //       solid_background = true);
 module MakeLidLabel(width, length, text_height, text_width, lid_thickness, text_str, border, offset, font, label_radius,

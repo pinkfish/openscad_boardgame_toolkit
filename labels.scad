@@ -112,10 +112,11 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 // Example(Render):
 //   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia");
 // Example(Render):
-//   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true);
+//   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   full_height = true);
 // Example(Render):
-//   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia", full_height = true,
-//   label_colour = "blue");
+//   MakeMainLidLabel(width = 20, length = 80, lid_thickness = 2,label = "Australia",
+//   full_height = true, label_colour = "blue");
 module MakeMainLidLabel(width, length, lid_thickness, label, border = 2, offset = 4, font = default_label_font,
                         radius = 5, full_height = false, label_colour = undef,
                         material_colour = default_material_colour, background_colour = undef, solid_background = false,
@@ -139,7 +140,7 @@ module MakeMainLidLabel(width, length, lid_thickness, label, border = 2, offset 
         {
             translate([
                 border + 0.01, border + 0.01,
-                full_height ? lid_wall_thickness - default_slicing_layer_height : lid_thickness / 2 -
+                full_height ? lid_thickness - default_slicing_layer_height : lid_thickness / 2 -
                 default_slicing_layer_height
             ]) color(calc_background_color)
                 cuboid(size = [ width - border * 2, length - border * 2, default_slicing_layer_height ],

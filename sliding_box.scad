@@ -242,11 +242,13 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                                             label_radius = 5, label_border = 2, label_offset = 4, label_rotated = false,
                                             layout_width = undef, size_spacing = m_piece_wiggle_room,
                                             lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
+                                            wall_thickness = default_wall_thickness,
                                             lid_rounding = undef, wall_thickness = undef, lid_chamfer = undef,
                                             lid_pattern_dense = false, lid_dense_shape_edges = 6, lid_on_length = false,
                                             label_colour = undef, material_colour = default_material_colour,
                                             label_solid_background = default_label_solid_background,
-                                            label_background_colour = undef)
+                                            label_background_colour = undef, label_width_offset = 0,
+                                            label_length_offset = 0)
 {
     SlidingLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                lid_rounding = lid_rounding, size_spacing = size_spacing, lid_chamfer = lid_chamfer,
@@ -266,11 +268,12 @@ module SlidingBoxLidWithLabelAndCustomShape(width, length, text_width, text_heig
                 color(material_colour) square([ 10, 10 ]);
             }
         }
-        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
-                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = false,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     label_colour = label_colour, material_colour = material_colour,
-                     solid_background = label_solid_background, label_background_colour = label_background_colour);
+        translate([ label_length_offset, label_width_offset, 0 ])
+            MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
+                         lid_thickness = lid_thickness, border = label_border, offset = label_offset, lid_wall_thickness = wall_thickness,
+                         full_height = false, font = font, label_rotated = label_rotated, text_str = text_str,
+                         label_radius = label_radius, label_colour = label_colour, material_colour = material_colour,
+                         solid_background = label_solid_background, label_background_colour = label_background_colour);
 
         // Fingernail pull
         if (lid_on_length)
@@ -368,7 +371,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
                               lid_chamfer = undef, lid_rounding = undef, font = undef, label_radius = 5,
                               shape_rounding = undef, lid_on_length = false, label_colour = undef,
                               material_colour = default_material_colour,
-                              label_solid_background = default_label_solid_background, label_background_colour = undef)
+                              label_solid_background = default_label_solid_background, label_background_colour = undef,
+                              label_width_offset = 0, label_length_offset = 0)
 {
     SlidingBoxLidWithLabelAndCustomShape(
         width = width, length = length, wall_thickness = wall_thickness, lid_thickness = lid_thickness, font = font,
@@ -378,7 +382,8 @@ module SlidingBoxLidWithLabel(width, length, text_width, text_height, text_str, 
         lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
         lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
         lid_on_length = lid_on_length, label_colour = label_colour, material_colour = material_colour,
-        label_solid_background = label_solid_background, label_background_colour = label_background_colour)
+        label_solid_background = label_solid_background, label_background_colour = label_background_colour,
+        label_width_offset = label_width_offset, label_length_offset = label_length_offset)
     {
         color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
