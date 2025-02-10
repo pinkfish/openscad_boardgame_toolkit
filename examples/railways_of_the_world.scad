@@ -25,7 +25,7 @@ box_height = 100;
 generate_mmu = MAKE_MMU == 1;
 
 default_material_colour = "purple";
-default_label_solid_background =  MAKE_MMU == 1;
+default_label_solid_background = MAKE_MMU == 1;
 
 card_width = 68;
 card_length = 92;
@@ -185,9 +185,19 @@ module CardBoxEasternUS(generate_lid = true) // `make` me
         text_width = 80;
         text_height = 20;
         translate([ eastern_us_card_box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ])
+        {
             SlidingBoxLidWithLabel(width = card_box_width, length = eastern_us_card_box_length,
                                    lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                                   text_str = text_str, label_rotated = false, label_colour = "black");
+                                   text_str = text_str, label_rotated = false, label_colour = "black",
+                                   label_width_offset = -5)
+            {
+                translate([ 25, 40, 0 ]) rotate(270)
+                {
+                    UnitedStatesFlag(length = 30, white_height = lid_thickness, red_height = 1.5, blue_height = 1.5,
+                                     border = 1, solid_background = true);
+                }
+            }
+        }
     }
 }
 module CardBoxAustralia(generate_lid = true) // `make` me
@@ -196,7 +206,7 @@ module CardBoxAustralia(generate_lid = true) // `make` me
     {
         translate([ 17, 27, 0 ]) rotate(90)
         {
-            AustralianFlag(length = 40, white_height = 2, red_height = 1.5, blue_height = 1, border = 1,
+            AustralianFlag(length = 30, white_height = 2, red_height = 1.5, blue_height = 1, border = 1,
                            solid_background = generate_mmu);
         }
     }
@@ -956,5 +966,5 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
 
 if (FROM_MAKE != 1)
 {
-    CardBoxAustralia();
+    CardBoxEasternUS();
 }
