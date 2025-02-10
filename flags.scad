@@ -36,11 +36,13 @@ under the License.
 //    from the background while the second child renders the inside of the flag.
 // Arguments:
 // .  length = length of the background
+//    width = width of background (default length/2)
 //    height = height of the background
+//    background_color = color of the background
 //    background= generate the background (default true)
 //    border = size of border to generate (default 0)
 module FlagBackgroundAndBorder(length, height, background_color, width = undef, background = true, border = 0,
-                               solid_background = false)
+                               solid_background = false, grid_spacing = 1.5)
 {
     calc_width = DefaultValue(width, length / 2);
     if (border > 0)
@@ -58,15 +60,15 @@ module FlagBackgroundAndBorder(length, height, background_color, width = undef, 
         {
             if (solid_background)
             {
-                cuboid([ length, calc_width, height ]);
+                cuboid([ length, calc_width, height ], anchor = BOTTOM);
             }
             else
             {
                 intersection()
                 {
-                    cuboid([ length, calc_width, height ]);
-                    translate([ -length * 3 / 4, -calc_width / 2, 0 ])
-                        Make3dStripedGrid(width = length, length = calc_width, height = height, spacing = 1.5);
+                    cuboid([ length, calc_width, height ], anchor = BOTTOM);
+                    translate([ -length * 5.5 / 4, -calc_width / 2, 0 ])
+                        Make3dStripedGrid(width = length, length = calc_width, height = height, spacing = grid_spacing);
                 }
             }
             translate([ 0, 0, -0.5 ]) children(0);
@@ -237,7 +239,8 @@ module UnionJack(length, white_height, red_height, background = true, border = 0
 //   AustralianFlag(100, 5, 4, 1, background = false);
 // Example:
 //   AustralianFlag(100, 5, 4, 1, border = 1, solid_background = true);
-module AustralianFlag(length, white_height, red_height, blue_height, border = 0, background = true, solid_background = false)
+module AustralianFlag(length, white_height, red_height, blue_height, border = 0, background = true,
+                      solid_background = false)
 {
     module Star5(d)
     {
@@ -340,21 +343,35 @@ module AustralianFlag(length, white_height, red_height, blue_height, border = 0,
 //   SwedenFlag(100, 4, border = 1);
 // Example:
 //   SwedenFlag(100, 4, background = false);
-module SwedenFlag(length, height, background = true, border = 0, solid_background = 0)
+module SwedenFlag(length, height, background = true, border = 0, solid_background = 0,
+                  layer_thickness = default_slicing_layer_height)
 {
     width = length * 5 / 8;
     line_horiz = width * 2 / 10;
     line_vert = length * 2 / 16;
     module CrossBit(height)
     {
-        cuboid([ length, line_horiz, height ], anchor = BOTTOM);
-        translate([ -length * 3 / 16, 0, 0 ]) cuboid([ line_vert, width, height ], anchor = BOTTOM);
+        cuboid([ length, line_horiz, height ], anchor = TOP);
+        translate([ -length * 3 / 16, 0, 0 ]) cuboid([ line_vert, width, height ], anchor = TOP);
     }
-    FlagBackgroundAndBorder(length, height, background_color = "blue", background = background, border = border,
-                            solid_background = solid_background)
+    background_height = solid_background ? height - layer_thickness * 2 : height * 3 / 4;
+    FlagBackgroundAndBorder(length, background_height, width = width,
+                            background_color = solid_background ? default_material_colour : "blue",
+                            background = background, border = border, solid_background = solid_background)
     {
-        color("yellow") CrossBit(height + 2);
-        color("yellow") CrossBit(height);
+        translate([ 0, 0, height ])
+        {
+            color("yellow") CrossBit(solid_background ? layer_thickness : height);
+        }
+        translate([ 0, 0, height ])
+        {
+            color("yellow") CrossBit(solid_background ? layer_thickness : height);
+        }
+    }
+    if (solid_background)
+    {
+        translate([ 0, 0, height - layer_thickness * 2 ]) color("blue")
+            cuboid([ length, width, layer_thickness ], anchor = BOTTOM);
     }
 }
 
@@ -367,45 +384,63 @@ module SwedenFlag(length, height, background = true, border = 0, solid_backgroun
 //   red_height = height of the red parts
 // . border = border to put on the flag (this goes outside the length) (default 0)
 //   background = put in a blue background with stripes (default true)
+//   solid_background = a solid background (setup for mmu)
 // Topics: Flags
 // Example:
-//   UnitedStatesFlag(100, 4, 2);
+//   UnitedStatesFlag(100, 4, 2, 1);
 // Example:
-//   UnitedStatesFlag(100, 4, 2, border = 1);
+//   UnitedStatesFlag(100, 4, 2, 1, border = 1);
 // Example:
-//   UnitedStatesFlag(100, 4, 2, background = false);
-module UnitedStatesFlag(length, white_height, red_height, background = true, border = 0)
+//   UnitedStatesFlag(100, 4, 2, 1, background = false);
+module UnitedStatesFlag(length, white_height, red_height, blue_height, background = true, border = 0,
+                        solid_background = false, layer_thickness = default_slicing_layer_height)
 {
     width = length / 1.9;
-    top_bit_width = width * 7 / 16;
+    top_bit_width = width * 7 / 13;
     top_bit_length = length * 2 / 5;
-    star_offset_width = top_bit_width / 10;
-    star_offset_length = top_bit_length / 12;
+    star_offset_width = top_bit_length / 10;
+    star_offset_length = top_bit_width / 5.5;
     stripe = width / 13;
-    star = stripe * 4 / 5;
+    star_size = stripe * 4 / 5;
+    background_material_thickness = min(red_height, white_height) - layer_thickness;
+    background_stars_material_thickness = solid_background ? blue_height - layer_thickness : blue_height;
+    module Stars()
+    {
+        for (i = [0:1:4])
+        {
+            for (j = [0:1:9])
+            {
+                color("white") translate([
+                    -top_bit_width / 2 + star_offset_length / 2 + star_offset_length * i +
+                        (j % 2 == 1 ? star_offset_length / 2 : 0),
+                    -top_bit_length / 2 + star_offset_width / 2 + star_offset_width * j,
+                    blue_height
+                ]) linear_extrude(height = white_height - blue_height)
+                    star(5, or = star_size / 2, ir = star_size / 4, spin = 180 / 5);
+            }
+        }
+    }
     module StarSection(white_height)
     {
-        FlagBackgroundAndBorder(top_bit_length, max(red_height, white_height), "blue", background = background,
-                                border = border)
+        FlagBackgroundAndBorder(length = top_bit_width, height = background_stars_material_thickness,
+                                background_color = solid_background ? default_material_colour : "blue",
+                                width = top_bit_length, background = background, border = 0,
+                                grid_spacing = min(star_offset_width / 4, star_offset_length / 4),
+                                solid_background = solid_background)
         {
-
-            for (i = [0:1:4])
+            union()
             {
-                for (j = [0:1:8])
-                {
-                    color("white") translate(
-                        [ star_offset_width * j, star_offset_length * i + (j % 2 == 1 ? star_offset_length : 0), 0 ])
-                        linear_extrude(height = white_height) star(5, star / 2);
-                }
+                Stars();
             }
-            for (j = [0:1:8])
+            union()
             {
-                if (j % 2 == 0)
-                {
-                    color("white") translate([ star_offset_width * j, star_offset_length * 5, 0 ])
-                        linear_extrude(height = white_height) star(5, star / 2);
-                }
+                Stars();
             }
+        }
+        if (solid_background)
+        {
+            translate([ 0, 0, background_stars_material_thickness ]) color("blue")
+                cuboid([ top_bit_width, top_bit_length, layer_thickness ], anchor = BOTTOM);
         }
     }
     module Stripes(white_height, red_height)
@@ -414,24 +449,42 @@ module UnitedStatesFlag(length, white_height, red_height, background = true, bor
         {
             union()
             {
-                for (i = [0:1:5])
+                color(default_material_colour)
+                    cuboid([ width, length, background_material_thickness ], anchor = BOTTOM + LEFT);
+                translate([ 0, 0, background_material_thickness ])
                 {
-                    translate([ stripe * 2 * i, 0, 0 ]) color("red")
-                        cuboid([ stripe, length, red_height ], anchor = BOTTOM);
-                    translate([ stripe * 2 * i + stripe, 0, 0 ]) color("white")
-                        cuboid([ stripe, length, white_height ], anchor = BOTTOM);
+                    for (i = [0:1:5])
+                    {
+                        translate([ stripe * 2 * i, 0, 0 ]) color("red") cuboid(
+                            [ stripe, length, red_height - background_material_thickness ], anchor = BOTTOM + LEFT);
+                        translate([ stripe * 2 * i + stripe, 0, 0 ]) color("white") cuboid(
+                            [ stripe, length, white_height - background_material_thickness ], anchor = BOTTOM + LEFT);
+                    }
+                    translate([ stripe * 2 * 6, 0, 0 ]) color("red")
+                        cuboid([ stripe, length, red_height - background_material_thickness ], anchor = BOTTOM + LEFT);
                 }
-                translate([ stripe * 2 * 6, 0, 0 ]) color("red")
-                    cuboid([ stripe, length, red_height ], anchor = BOTTOM);
             }
-            translate([ 0, 0, -1 ]) cuboid(
-                [ top_bit_width + 0.01, top_bit_length + 0.01, max(white_height, red_height) + 2 ], anchor = BOTTOM);
+            translate([ -width / 2 + stripe * 6.5, -length / 2 + top_bit_length / 2, -1 ])
+                cuboid([ top_bit_width + 0.01, top_bit_length + 0.01, max(white_height, red_height) + 2 ],
+                       anchor = BOTTOM + LEFT);
         }
     }
     module MainFlag(white_height, red_height)
     {
-        Stripes(white_height = white_height, red_height = red_height);
-        StarSection(white_height = white_height);
+        translate([ -width / 2, 0, 0 ]) Stripes(white_height = white_height, red_height = red_height);
+        translate([ -width / 2 + top_bit_width / 2, -length / 2 + top_bit_length / 2, 0 ])
+            StarSection(white_height = white_height);
+    }
+    MainFlag(white_height = white_height, red_height = red_height);
+    if (border > 0)
+    {
+        difference()
+        {
+            color(default_material_colour)
+                cuboid([ width + border, length + border, max(white_height, red_height) ], anchor = BOTTOM);
+            translate([ 0, 0, -0.5 ]) color(default_material_colour)
+                cuboid([ width - 0.02, length - 0.02, max(white_height, red_height) + 1 ], anchor = BOTTOM);
+        }
     }
 }
 
