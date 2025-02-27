@@ -134,7 +134,7 @@ module TentToken(height)
                 paths = [[ 0, 1, 2 ]]);
 }
 
-module PlayerBox(generate_lid = true) // `make` me
+module PlayerBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height)
     {
@@ -185,12 +185,11 @@ module PlayerBox(generate_lid = true) // `make` me
             RegularPolygon(width = backpack_token_width, height = card_board_token_thickness * 6 + 1, shape_edges = 6,
                            finger_holes = [2], finger_hole_radius = 12);
     }
-    if (generate_lid)
-    {
-        translate([ player_box_width + 10, 0, 0 ])
-            SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, text_width = 40,
-                                   text_height = 20, text_str = "Player");
-    }
+}
+module PlayerBoxLid() // `make` me
+{
+    SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, text_width = 40, text_height = 20,
+                           text_str = "Player");
 }
 
 function ResouceString(resource_num) = resource_num == 0   ? "Water"
@@ -205,21 +204,20 @@ function ResouceString(resource_num) = resource_num == 0   ? "Water"
                                        : resource_num == 9 ? "JMT"
                                                            : "unknown";
 
-module ResourceBox(generate_lid = true, resource_num = 0) // `make` me
+module ResourceBox(resource_num = 0) // `make` me
 {
     MakeBoxWithSlidingLid(width = resource_box_width, length = resource_box_length, height = resource_box_height)
     {
         RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = resource_box_height, radius = 10);
     }
-    if (generate_lid)
-    {
-        translate([ resource_box_width + 10, 0, 0 ])
-            SlidingBoxLidWithLabel(width = resource_box_width, length = resource_box_length, text_width = 40,
-                                   text_height = 20, text_str = ResourceString(resource_num));
-    }
+}
+module ResourceBoxLid(resource_num = 0) // `make` me
+{
+    SlidingBoxLidWithLabel(width = resource_box_width, length = resource_box_length, text_width = 40, text_height = 20,
+                           text_str = ResourceString(resource_num));
 }
 
-module DestinationCardBox(generate_lid = true) // `make` me
+module DestinationCardBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = destination_card_box_width, length = destination_card_box_length,
                           height = destination_card_box_height, lid_on_length = true)
@@ -228,15 +226,15 @@ module DestinationCardBox(generate_lid = true) // `make` me
         translate([ -0.1, destination_cards_width / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
             radius = 10, height = destination_card_box_height - default_lid_thickness + 0.02, spin = 270);
     }
-    if (generate_lid)
-    {
-        translate([ field_guide_card_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-            width = destination_card_box_width, length = destination_card_box_length, lid_on_length = true,
-            text_width = 70, text_height = 20, text_str = "Destination", label_rotated = true);
-    }
+}
+module DestinationCardBoxLid() // `make` me
+{
+    SlidingBoxLidWithLabel(width = destination_card_box_width, length = destination_card_box_length,
+                           lid_on_length = true, text_width = 70, text_height = 20, text_str = "Destination",
+                           label_rotated = true);
 }
 
-module FieldGuideCardBox(generate_lid = true) // `make` me
+module FieldGuideCardBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = field_guide_card_box_width, length = field_guide_card_box_length,
                           height = field_guide_card_box_height, lid_on_length = true)
@@ -245,15 +243,15 @@ module FieldGuideCardBox(generate_lid = true) // `make` me
         translate([ -0.1, destination_cards_width / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
             radius = 10, height = destination_card_box_height - default_lid_thickness + 0.02, spin = 270);
     }
-    if (generate_lid)
-    {
-        translate([ field_guide_card_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-            width = field_guide_card_box_width, length = field_guide_card_box_length, lid_on_length = true,
-            text_width = 70, text_height = 20, text_str = "Field Guide", label_rotated = true);
-    }
+}
+module FieldGuideCardBoxLid() // `make` me
+{
+    SlidingBoxLidWithLabel(width = field_guide_card_box_width, length = field_guide_card_box_length,
+                           lid_on_length = true, text_width = 70, text_height = 20, text_str = "Field Guide",
+                           label_rotated = true);
 }
 
-module TrailsCardsBox(generate_lid = true) // `make` me
+module TrailsCardsBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = trails_card_box_width, length = trails_card_box_length,
                           height = trails_card_box_height, lid_on_length = true)
@@ -266,15 +264,15 @@ module TrailsCardsBox(generate_lid = true) // `make` me
         translate([ $inner_width - backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01 ])
             FingerHoleBase(radius = 10, height = destination_card_box_height + 0.02, spin = 0);
     }
-    if (generate_lid)
-    {
-        translate([ trails_card_box_width + 10, 0, 0 ])
-            SlidingBoxLidWithLabel(width = trails_card_box_width, length = trails_card_box_length, lid_on_length = true,
-                                   text_width = 70, text_height = 20, text_str = "Trails", label_rotated = true);
-    }
+}
+module TrailsCardsBoxLid() // `make` me
+{
+
+    SlidingBoxLidWithLabel(width = trails_card_box_width, length = trails_card_box_length, lid_on_length = true,
+                           text_width = 70, text_height = 20, text_str = "Trails", label_rotated = true);
 }
 
-module WeatherTokensBox(generate_lid = true) // `make` me
+module WeatherTokensBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = weather_tokens_box_width, length = weather_tokens_box_length,
                           height = weather_tokens_box_height, lid_on_length = true)
@@ -308,12 +306,11 @@ module WeatherTokensBox(generate_lid = true) // `make` me
             translate([ weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
         }
     }
-    if (generate_lid)
-    {
-        translate([ weather_tokens_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-            width = weather_tokens_box_width, length = weather_tokens_box_length, lid_on_length = true, text_width = 70,
-            text_height = 20, text_str = "Weather", label_rotated = true);
-    }
+}
+module WeatherTokensBoxLid() // `make` me
+{
+    SlidingBoxLidWithLabel(width = weather_tokens_box_width, length = weather_tokens_box_length, lid_on_length = true,
+                           text_width = 70, text_height = 20, text_str = "Weather", label_rotated = true);
 }
 
 module ArrowHead(height)
@@ -326,7 +323,7 @@ module ArrowHead(height)
         radius = [ 20, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 20, 2.5 ]));
 }
 
-module BonusTileBox(generate_lid = true) // `make` me
+module BonusTileBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = bonus_marker_box_width, length = bonus_marker_box_length,
                           height = bonus_marker_box_height)
@@ -358,12 +355,12 @@ module BonusTileBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ bonus_marker_box_width + 10, 0, 0 ])
-            SlidingBoxLidWithLabel(width = bonus_marker_box_width, length = bonus_marker_box_length, text_width = 70,
-                                   text_height = 20, text_str = "Bonus", label_rotated = true);
-    }
+}
+module BonusTileBoxLid() // `make` me
+{
+
+    SlidingBoxLidWithLabel(width = bonus_marker_box_width, length = bonus_marker_box_length, text_width = 70,
+                           text_height = 20, text_str = "Bonus", label_rotated = true);
 }
 
 module BoxLayout()
@@ -372,28 +369,28 @@ module BoxLayout()
     cube([ 1, box_length, box_height ]);
     translate([ 0, 0, board_thickness ])
     {
-        PlayerBox(false);
-        translate([ 0, player_box_length, 0 ]) PlayerBox(false);
-        translate([ 0, player_box_length * 2, 0 ]) PlayerBox(false);
-        translate([ 0, player_box_length * 3, 0 ]) PlayerBox(false);
-        translate([ 0, 0, player_box_height ]) ResourceBox(false, resource_num = 0);
-        translate([ 0, player_box_length, player_box_height ]) ResourceBox(false, resource_num = 1);
-        translate([ 0, player_box_length * 2, player_box_height ]) ResourceBox(false, resource_num = 2);
-        translate([ 0, player_box_length * 3, player_box_height ]) ResourceBox(false, resource_num = 3);
-        translate([ player_box_width, 0, 0 ]) ResourceBox(false, resource_num = 4);
-        translate([ player_box_width, player_box_length, 0 ]) ResourceBox(false, resource_num = 5);
-        translate([ player_box_width, player_box_length * 2, 0 ]) ResourceBox(false, resource_num = 6);
-        translate([ player_box_width, player_box_length * 3, 0 ]) ResourceBox(false, resource_num = 7);
-        translate([ player_box_width, 0, player_box_height ]) ResourceBox(false, resource_num = 8);
-        translate([ player_box_width, player_box_length, player_box_height ]) ResourceBox(false, resource_num = 9);
-        translate([ player_box_width, player_box_length * 2, player_box_height ]) BonusTileBox(false);
-        translate([ player_box_width * 2, 0, 0 ]) DestinationCardBox(false);
-        translate([ player_box_width * 2, destination_card_box_length, 0 ]) FieldGuideCardBox(false);
+        PlayerBox();
+        translate([ 0, player_box_length, 0 ]) PlayerBox();
+        translate([ 0, player_box_length * 2, 0 ]) PlayerBox();
+        translate([ 0, player_box_length * 3, 0 ]) PlayerBox(fale);
+        translate([ 0, 0, player_box_height ]) ResourceBox(, resource_num = 0);
+        translate([ 0, player_box_length, player_box_height ]) ResourceBox(resource_num = 1);
+        translate([ 0, player_box_length * 2, player_box_height ]) ResourceBox(resource_num = 2);
+        translate([ 0, player_box_length * 3, player_box_height ]) ResourceBox(resource_num = 3);
+        translate([ player_box_width, 0, 0 ]) ResourceBox(resource_num = 4);
+        translate([ player_box_width, player_box_length, 0 ]) ResourceBox(resource_num = 5);
+        translate([ player_box_width, player_box_length * 2, 0 ]) ResourceBox(resource_num = 6);
+        translate([ player_box_width, player_box_length * 3, 0 ]) ResourceBox(resource_num = 7);
+        translate([ player_box_width, 0, player_box_height ]) ResourceBox(resource_num = 8);
+        translate([ player_box_width, player_box_length, player_box_height ]) ResourceBox(resource_num = 9);
+        translate([ player_box_width, player_box_length * 2, player_box_height ]) BonusTileBox();
+        translate([ player_box_width * 2, 0, 0 ]) DestinationCardBox();
+        translate([ player_box_width * 2, destination_card_box_length, 0 ]) FieldGuideCardBox();
         translate([ player_box_width * 2, destination_card_box_length + field_guide_card_box_length, 0 ])
-            TrailsCardsBox(false);
+            TrailsCardsBox();
         translate([
             player_box_width * 2, destination_card_box_length + field_guide_card_box_length + trails_card_box_length, 0
-        ]) WeatherTokensBox(false);
+        ]) WeatherTokensBox();
     }
     // translate([ 0, 0, box_height - player_board_thickness ])
     //   cube([ player_board_width, player_board_length, player_board_thickness ]);

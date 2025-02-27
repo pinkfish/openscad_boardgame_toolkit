@@ -966,5 +966,5 @@ module PrintLayout(plastic_player_box = false, generate_lid = true)
 
 if (FROM_MAKE != 1)
 {
-    CardBoxEasternUS();
+    PortugeseFlag(100, 3);
 }

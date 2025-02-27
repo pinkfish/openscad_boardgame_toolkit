@@ -23,7 +23,7 @@ under the License.
 include <BOSL2/polyhedra.scad>
 
 // FileSummary: 3d Shapes for all sorts of things.
-// FileGroup: Shapes3d
+// FileGroup: Shapes
 
 // Includes:
 //   include <boardgame_toolkit.scad>

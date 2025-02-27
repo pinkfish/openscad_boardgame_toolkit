@@ -226,7 +226,7 @@ module MeepleToken(height)
     }
 }
 
-module MoneyBox(generate_lid = true) // `make` me
+module MoneyBox() // `make` me
 {
     MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height)
     {
@@ -237,14 +237,14 @@ module MoneyBox(generate_lid = true) // `make` me
                 FingerHoleBase(radius = 12, height = money_box_height, spin = 270);
         }
     }
-    if (generate_lid)
-    {
-        translate([ money_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
-            text_height = 20, text_str = "Money", label_rotated = true, label_colour = "blue");
-    }
 }
-module CardBox(generate_lid = true) // `make` me
+
+module MoneyBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
+                       text_height = 20, text_str = "Money", label_rotated = true, label_colour = "blue");
+}
+module CardBox() // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {
@@ -260,15 +260,15 @@ module CardBox(generate_lid = true) // `make` me
             translate([ 0, card_width / 2, 0 ]) xcyl(r = 14, h = 50, anchor = BOTTOM);
         }
     }
-    if (generate_lid)
-    {
-        translate([ card_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = card_box_width, length = card_box_length, height = card_box_height, text_width = 70,
-            text_height = 20, text_str = "Cards", label_rotated = true, label_colour = "blue");
-    }
 }
 
-module TokensBox(generate_lid = true) // `make` me
+module CardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height, text_width = 70,
+                       text_height = 20, text_str = "Cards", label_rotated = true, label_colour = "blue");
+}
+
+module TokensBox() // `make` me
 {
     MakeBoxWithCapLid(width = tokens_box_width, length = tokens_box_length, height = tokens_box_height)
     {
@@ -323,12 +323,13 @@ module TokensBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ tokens_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = tokens_box_width, length = tokens_box_length, height = tokens_box_height, text_width = 70,
-            text_height = 20, text_str = "Tokens", label_rotated = true, label_colour = "blue");
-    }
+}
+
+module TokensBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = tokens_box_width, length = tokens_box_length, height = tokens_box_height,
+                       text_width = 70, text_height = 20, text_str = "Tokens", label_rotated = true,
+                       label_colour = "blue");
 }
 
 module Spacer() // `make` me
@@ -352,10 +353,10 @@ module BoxLayout()
     cube([ 1, box_length, box_height ]);
     translate([ 0, 0, board_thickness ])
     {
-        MoneyBox(generate_lid = false);
-        translate([ 0, 0, money_box_height ]) TokensBox(generate_lid = false);
+        MoneyBox();
+        translate([ 0, 0, money_box_height ]) TokensBox();
         translate([ 0, 0, money_box_height + tokens_box_height ]) Spacer();
-        translate([ money_box_width, 0, 0 ]) CardBox(generate_lid = false);
+        translate([ money_box_width, 0, 0 ]) CardBox();
     }
 }
 
