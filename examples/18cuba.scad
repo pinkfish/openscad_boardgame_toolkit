@@ -70,8 +70,6 @@ wall_thickness = 1.5;
 lid_thickness = 2;
 floor_thickness = 2;
 
-echo(rest_height);
-
 money_box_length = box_width - 1;
 money_box_width = money_length + wall_thickness * 4;
 money_box_height = rest_height / 2;
@@ -81,8 +79,6 @@ train_box_width = train_card_length + wall_thickness * 4;
 train_box_height = rest_height / 2;
 
 rest_section_width = box_length - train_box_width * 2 - money_box_width - 1;
-echo(rest_section_width);
-echo(money_box_height);
 
 train_svg_width = 200;
 train_svg_length = 200;
@@ -112,7 +108,7 @@ module Outline(height = 5, outline = 1.5, offset = 0.5)
     }
 }
 
-module MoneyBox(offset = 0, generate_lid = true) // `make` me
+module MoneyBox(offset = 0) // `make` me
 {
     MakeBoxWithSlipoverLid(length = money_box_length, width = money_box_width, height = money_box_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness)
@@ -129,15 +125,16 @@ module MoneyBox(offset = 0, generate_lid = true) // `make` me
                 linear_extrude(height = 2) text(money_types[i + offset], size = 10, anchor = CENTER);
         }
     }
-    if (generate_lid)
-    {
-        translate([ money_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
-            width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
-            text_height = 20, text_str = "18Cuba", label_rotated = true, label_colour = "blue");
-    }
 }
 
-module TrainBox(generate_lid = true) // `make` me
+module MoneyBoxLid(offset = 0) // `make` me
+{
+    translate([ money_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
+        width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
+        text_height = 20, text_str = "18Cuba", label_rotated = true, label_colour = "blue");
+}
+
+module TrainBox() // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -166,16 +163,16 @@ module TrainBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
-            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
-            text_width = 70, text_height = 20, text_str = "Trains", label_rotated = true,
-            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
-    }
 }
 
-module SharesBox(offset = 0, generate_lid = true) // `make` me
+module TrainBoxLid() // `make` me
+{
+    SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                         lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Trains",
+                         label_rotated = true, wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
+}
+
+module SharesBox(offset = 0, ) // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -193,16 +190,15 @@ module SharesBox(offset = 0, generate_lid = true) // `make` me
                 linear_extrude(height = 2) text(company_names[i + offset], size = 4, anchor = CENTER);
         }
     }
-    if (generate_lid)
-    {
-        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
-            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
-            text_width = 70, text_height = 20, text_str = "Shares", label_rotated = true,
-            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
-    }
+}
+module SharesBoxLid(offset = 0, ) // `make` me
+{
+    SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                         lid_thickness = 1, text_width = 70, text_height = 20, text_str = "Shares",
+                         label_rotated = true, wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
 }
 
-module LastBox(generate_lid = true) // `make` me
+module LastBox() // `make` me
 {
     MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
                            lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
@@ -253,14 +249,13 @@ module LastBox(generate_lid = true) // `make` me
             train_box_height - lid_thickness - rail_thickness - 0.4 + 5
         ]) ycyl(d = 10, h = 10, $fn = 32);
     }
+}
 
-    if (generate_lid)
-    {
-        translate([ train_box_width + 10, 0, 0 ]) SlipoverLidWithLabel(
-            width = train_box_width, length = train_box_length, height = train_box_height, lid_thickness = 1,
-            text_width = 130, text_height = 20, text_str = "Machine/Minor", label_rotated = true,
-            wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
-    }
+module LastBoxLid() // `make` me
+{
+    SlipoverLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
+                         lid_thickness = 1, text_width = 130, text_height = 20, text_str = "Machine/Minor",
+                         label_rotated = true, wall_thickness = wall_thickness, foot = 2, label_colour = "blue");
 }
 
 module InsideTokenTray()
@@ -376,7 +371,7 @@ module LargeTokensBox()
     }
 }
 
-module LargeTokensToPrint(generate_lid = true) // `make` me
+module LargeTokensToPrint() // `make` me
 {
     LargeTokensBox();
 
@@ -384,13 +379,12 @@ module LargeTokensToPrint(generate_lid = true) // `make` me
     {
         InsideTokenTray();
     }
+}
 
-    if (generate_lid)
-    {
-        translate([ rest_section_width * 2 + 20, 0, 0 ])
-            SlipoverBoxLid(length = train_box_length, width = rest_section_width, height = rest_height,
-                           lid_thickness = 0.75, foot = 2, wall_thickness = wall_thickness, label_colour = "blue");
-    }
+module LargeTokensToPrintLid() // `make` me
+{
+    SlipoverBoxLid(length = train_box_length, width = rest_section_width, height = rest_height, lid_thickness = 0.75,
+                   foot = 2, wall_thickness = wall_thickness, label_colour = "blue");
 }
 
 module BoxLayout()
@@ -399,16 +393,14 @@ module BoxLayout()
     cube([ box_width, box_length, total_board_thickness + box_hexes ]);
     translate([ 0, 0, total_board_thickness + box_hexes ])
     {
-        translate([ money_box_length, 0, 0 ]) rotate([ 0, 0, 90 ]) MoneyBox(offset = 0, generate_lid = false);
-        translate([ money_box_length, 0, money_box_height ]) rotate([ 0, 0, 90 ])
-            MoneyBox(offset = 4, generate_lid = false);
-        translate([ money_box_length, money_box_width, 0 ]) rotate([ 0, 0, 90 ]) TrainBox(generate_lid = false);
-        translate([ money_box_length, money_box_width, train_box_height ]) rotate([ 0, 0, 90 ])
-            SharesBox(offset = 0, generate_lid = false);
+        translate([ money_box_length, 0, 0 ]) rotate([ 0, 0, 90 ]) MoneyBox(offset = 0);
+        translate([ money_box_length, 0, money_box_height ]) rotate([ 0, 0, 90 ]) MoneyBox(offset = 4);
+        translate([ money_box_length, money_box_width, 0 ]) rotate([ 0, 0, 90 ]) TrainBox();
+        translate([ money_box_length, money_box_width, train_box_height ]) rotate([ 0, 0, 90 ]) SharesBox(offset = 0);
         translate([ money_box_length, money_box_width + train_box_width, 0 ]) rotate([ 0, 0, 90 ])
-            SharesBox(offset = 5, generate_lid = false);
+            SharesBox(offset = 5);
         translate([ money_box_length, money_box_width + train_box_width, train_box_height ]) rotate([ 0, 0, 90 ])
-            LastBox(generate_lid = false);
+            LastBox();
         translate([ money_box_length, money_box_width + train_box_width * 2, 0 ]) rotate([ 0, 0, 90 ]) LargeTokensBox();
         translate([ money_box_length, money_box_width + train_box_width * 2 + 2, 0.75 + token_big_thickness ])
             rotate([ 0, 0, 90 ]) InsideTokenTray();

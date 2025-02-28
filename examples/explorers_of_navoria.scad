@@ -142,7 +142,6 @@ bag_box_length = box_length - stuff_box_length - 2 - card_box_length;
 bag_box_width = box_width - player_box_width - 2;
 bag_box_height =
     box_height - board_thickness - player_layout_thickness - 1 - player_layout_thickness * player_layout_num;
-echo(player_box_height);
 
 module FavourTile(height)
 {
@@ -573,115 +572,153 @@ module ExplorerMarkerPurple(height)
 
 module PlayerBoxOneBase(generate_lid = true, material_colour = undef)
 {
-    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
-                      material_colour = material_colour)
-    {
-        inner_box_width = player_box_width - wall_thickness;
-        inner_box_length = player_box_length - wall_thickness;
-        inner_box_height = player_box_height - lid_thickness * 2;
-        translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) color(material_colour)
-            RoundedBoxAllSides(width = inner_box_width - wall_thickness * 2,
-                               length = inner_box_length + wall_thickness * 2 + 2, height = player_box_height,
-                               radius = wall_thickness, $fn = 64);
-        marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
-        // king marker
-        translate([ (inner_box_width - king_marker) / 2, 0, marker_depth ])
-        {
-            color(material_colour)
-                cuboid([ king_marker, king_marker, marker_thickness + 1 ], anchor = BOTTOM + LEFT + FRONT);
-            translate([ king_marker, king_marker / 2, marker_thickness / 2 - 1 ]) color(material_colour)
-                sphere(r = 8, anchor = BOTTOM);
-            translate([ 0, king_marker / 2, marker_thickness / 2 - 1 ]) color(material_colour)
-                sphere(r = 8, anchor = BOTTOM);
-        }
-
-        // bird marker
-        translate([
-            bird_length / 2 + (inner_box_width - bird_length) / 2, king_marker + 1 + bird_diameter / 2,
-            marker_depth
-        ])
-        {
-            color(material_colour) BirdTurnOrder(marker_thickness + 1);
-            translate([ bird_length / 2, 0, marker_thickness / 2 - 1 ]) color(material_colour)
-                sphere(r = 8, anchor = BOTTOM);
-            translate([ -bird_length / 2, 0, marker_thickness / 2 - 1 ]) color(material_colour)
-                sphere(r = 8, anchor = BOTTOM);
-        }
-
-        width = trading_post_castle_height * 2 + 18;
-        translate([
-            (inner_box_width - width) / 2 + trading_post_castle_height / 2,
-            bird_diameter + king_marker + trading_post_castle_width / 2,
-            marker_depth
-        ])
-        {
-            for (i = [0:1:3])
-            {
-                translate([ 2, (trading_post_castle_width + 0.75) * i, 0 ])
-                {
-                    children(0);
-                    translate([ trading_post_castle_height / 2, 0, marker_thickness / 2 - 1 ]) color(material_colour)
-                        sphere(r = 8, anchor = BOTTOM);
-                }
-            }
-            for (i = [0:1:3])
-            {
-                translate([ trading_post_castle_height + 13, (trading_post_castle_width + 0.75) * i, 0 ])
-                {
-                    children(1);
-                    translate([ -trading_post_castle_height / 2, 0 * i, marker_thickness / 2 - 1 ])
-                        color(material_colour) sphere(r = 8, anchor = BOTTOM);
-                }
-            }
-        }
-        translate([ inner_box_width / 2 - 1.5, inner_box_length - trading_post_castle_width / 2 - wall_thickness, 0 ])
-        {
-            rotate([ 0, 0, 90 ]) children(1);
-            translate([ 0, -trading_post_castle_height / 2, marker_thickness / 2 ]) color(material_colour)
-                sphere(r = 8, anchor = BOTTOM);
-        }
-    }
     if (generate_lid)
     {
-        translate([ player_box_width + 10, 0, 0 ])
+        CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
+                           text_width = 50, text_height = 15, text_str = "Player", label_rotated = true,
+                           material_colour = material_colour, label_colour = "black");
+    }
+    else
+    {
+        MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
+                          material_colour = material_colour)
         {
-            CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                               text_width = 50, text_height = 15, text_str = "Player", label_rotated = true,
-                               material_colour = material_colour, label_colour = "black");
+            inner_box_width = player_box_width - wall_thickness;
+            inner_box_length = player_box_length - wall_thickness;
+            inner_box_height = player_box_height - lid_thickness * 2;
+            translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ])
+                color(material_colour)
+                    RoundedBoxAllSides(width = inner_box_width - wall_thickness * 2,
+                                       length = inner_box_length + wall_thickness * 2 + 2, height = player_box_height,
+                                       radius = wall_thickness, $fn = 64);
+            marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
+            // king marker
+            translate([ (inner_box_width - king_marker) / 2, 0, marker_depth ])
+            {
+                color(material_colour)
+                    cuboid([ king_marker, king_marker, marker_thickness + 1 ], anchor = BOTTOM + LEFT + FRONT);
+                translate([ king_marker, king_marker / 2, marker_thickness / 2 - 1 ]) color(material_colour)
+                    sphere(r = 8, anchor = BOTTOM);
+                translate([ 0, king_marker / 2, marker_thickness / 2 - 1 ]) color(material_colour)
+                    sphere(r = 8, anchor = BOTTOM);
+            }
+
+            // bird marker
+            translate([
+                bird_length / 2 + (inner_box_width - bird_length) / 2, king_marker + 1 + bird_diameter / 2,
+                marker_depth
+            ])
+            {
+                color(material_colour) BirdTurnOrder(marker_thickness + 1);
+                translate([ bird_length / 2, 0, marker_thickness / 2 - 1 ]) color(material_colour)
+                    sphere(r = 8, anchor = BOTTOM);
+                translate([ -bird_length / 2, 0, marker_thickness / 2 - 1 ]) color(material_colour)
+                    sphere(r = 8, anchor = BOTTOM);
+            }
+
+            width = trading_post_castle_height * 2 + 18;
+            translate([
+                (inner_box_width - width) / 2 + trading_post_castle_height / 2,
+                bird_diameter + king_marker + trading_post_castle_width / 2,
+                marker_depth
+            ])
+            {
+                for (i = [0:1:3])
+                {
+                    translate([ 2, (trading_post_castle_width + 0.75) * i, 0 ])
+                    {
+                        children(0);
+                        translate([ trading_post_castle_height / 2, 0, marker_thickness / 2 - 1 ])
+                            color(material_colour) sphere(r = 8, anchor = BOTTOM);
+                    }
+                }
+                for (i = [0:1:3])
+                {
+                    translate([ trading_post_castle_height + 13, (trading_post_castle_width + 0.75) * i, 0 ])
+                    {
+                        children(1);
+                        translate([ -trading_post_castle_height / 2, 0 * i, marker_thickness / 2 - 1 ])
+                            color(material_colour) sphere(r = 8, anchor = BOTTOM);
+                    }
+                }
+            }
+            translate(
+                [ inner_box_width / 2 - 1.5, inner_box_length - trading_post_castle_width / 2 - wall_thickness, 0 ])
+            {
+                rotate([ 0, 0, 90 ]) children(1);
+                translate([ 0, -trading_post_castle_height / 2, marker_thickness / 2 ]) color(material_colour)
+                    sphere(r = 8, anchor = BOTTOM);
+            }
         }
     }
 }
 
-module PlayerBoxGreenOne(generate_lid = true) // `make` me
+module PlayerBoxGreenOne() // `make` me
 {
-    PlayerBoxOneBase(generate_lid = generate_lid, material_colour = "green")
+    PlayerBoxOneBase(generate_lid = false, material_colour = "green")
     {
         rotate([ 0, 0, 90 ]) color("green") TradingPostGreen(marker_thickness + 1);
         rotate([ 0, 0, -90 ]) color("green") TradingPostGreen(marker_thickness + 1);
     }
 }
 
-module PlayerBoxYellowOne(generate_lid = true) // `make` me
+module PlayerBoxGreenOneLid() // `make` me
 {
-    PlayerBoxOneBase(generate_lid = generate_lid, material_colour = "yellow")
+    PlayerBoxOneBase(generate_lid = true, material_colour = "green")
+    {
+        rotate([ 0, 0, 90 ]) color("green") TradingPostGreen(marker_thickness + 1);
+        rotate([ 0, 0, -90 ]) color("green") TradingPostGreen(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxYellowOne() // `make` me
+{
+    PlayerBoxOneBase(generate_lid = false, material_colour = "yellow")
     {
         rotate([ 0, 0, -90 ]) TradingPostYellow(marker_thickness + 1);
         rotate([ 0, 0, 90 ]) TradingPostYellow(marker_thickness + 1);
     }
 }
 
-module PlayerBoxPurpleOne(generate_lid = true) // `make` me
+module PlayerBoxYellowOneLid() // `make` me
 {
-    PlayerBoxOneBase(generate_lid = generate_lid, material_colour = "purple")
+    PlayerBoxOneBase(generate_lid = true, material_colour = "yellow")
+    {
+        rotate([ 0, 0, -90 ]) TradingPostYellow(marker_thickness + 1);
+        rotate([ 0, 0, 90 ]) TradingPostYellow(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxPurpleOne() // `make` me
+{
+    PlayerBoxOneBase(generate_lid = false, material_colour = "purple")
     {
         rotate([ 0, 0, -90 ]) TradingPostPurple(marker_thickness + 1);
         rotate([ 0, 0, 90 ]) TradingPostPurple(marker_thickness + 1);
     }
 }
 
-module PlayerBoxBlackOne(generate_lid = true) // `make` me
+module PlayerBoxPurpleOneLid() // `make` me
 {
-    PlayerBoxOneBase(generate_lid = generate_lid, material_colour = "grey")
+    PlayerBoxOneBase(generate_lid = true, material_colour = "purple")
+    {
+        rotate([ 0, 0, -90 ]) TradingPostPurple(marker_thickness + 1);
+        rotate([ 0, 0, 90 ]) TradingPostPurple(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxBlackOne() // `make` me
+{
+    PlayerBoxOneBase(generate_lid = false, material_colour = "grey")
+    {
+        rotate([ 0, 0, -90 ]) TradingPostBlack(marker_thickness + 1);
+        rotate([ 0, 0, 90 ]) TradingPostBlack(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxBlackOneLid() // `make` me
+{
+    PlayerBoxOneBase(generate_lid = true, material_colour = "grey")
     {
         rotate([ 0, 0, -90 ]) TradingPostBlack(marker_thickness + 1);
         rotate([ 0, 0, 90 ]) TradingPostBlack(marker_thickness + 1);
@@ -690,63 +727,6 @@ module PlayerBoxBlackOne(generate_lid = true) // `make` me
 
 module PlayerBoxTwoBase(generate_lid = true, material_colour = undef)
 {
-    MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
-                      material_colour = material_colour)
-    {
-        marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
-        inner_box_height = player_box_height - lid_thickness * 2;
-        inner_box_length = player_box_length - wall_thickness * 2;
-        inner_box_width = player_box_width - wall_thickness * 2;
-        translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ]) color(material_colour)
-            RoundedBoxAllSides(width = inner_box_width - wall_thickness,
-                               length = inner_box_length + wall_thickness * 2 + 2, height = player_box_height,
-                               radius = wall_thickness, $fn = 64);
-        translate([ 0, 0, marker_depth ])
-        {
-            // favour.
-            translate([ (inner_box_width - favour_marker_width * 2 - 1.5) / 2, favour_marker_length / 2 + 1, 0 ])
-            {
-                for (i = [0:1:1])
-                {
-                    translate([ favour_marker_width / 2, (favour_marker_length + 7) * i, 0 ])
-                    {
-                        rotate([ 0, 0, 180 ]) color(material_colour) FavourMarker(height = marker_thickness + 1);
-                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 9, anchor = BOTTOM);
-                        translate([ 0, -favour_marker_length / 2 + 3, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 9, anchor = BOTTOM);
-                    }
-                    translate(
-                        [ favour_marker_width / 2 + favour_marker_width + 1.5, (favour_marker_length + 7) * i, 0 ])
-                    {
-                        rotate([ 0, 0, 180 ]) color(material_colour) FavourMarker(height = marker_thickness + 1);
-                        translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 9, anchor = BOTTOM);
-                        translate([ 0, -favour_marker_length / 2 + 2, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 9, anchor = BOTTOM);
-                    }
-                }
-            }
-            // explorers.
-            translate([
-                (inner_box_width - explorer_marker_height) / 2,
-                (favour_marker_length + 5.5) * 2 + explorer_hat_width / 2 + 5, 0
-            ])
-            {
-                for (i = [0:1:2])
-                {
-                    translate([ explorer_marker_height / 2, (explorer_base_width + 2) * i, 0 ])
-                    {
-                        children(0);
-                        translate([ explorer_marker_height / 2, 0, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 8, anchor = BOTTOM);
-                        translate([ -explorer_marker_height / 2, 0, marker_thickness / 2 ]) color(material_colour)
-                            sphere(r = 8, anchor = BOTTOM);
-                    }
-                }
-            }
-        }
-    }
     if (generate_lid)
     {
         translate([ player_box_width + 10, 0, 0 ])
@@ -756,45 +736,142 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef)
                                material_colour = material_colour, label_colour = "black");
         }
     }
+    else
+    {
+        MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
+                          material_colour = material_colour)
+        {
+            marker_depth = player_box_height - lid_thickness * 2 - marker_thickness - 0.5;
+            inner_box_height = player_box_height - lid_thickness * 2;
+            inner_box_length = player_box_length - wall_thickness * 2;
+            inner_box_width = player_box_width - wall_thickness * 2;
+            translate([ wall_thickness / 2, -wall_thickness - 1, inner_box_height - wall_thickness ])
+                color(material_colour)
+                    RoundedBoxAllSides(width = inner_box_width - wall_thickness,
+                                       length = inner_box_length + wall_thickness * 2 + 2, height = player_box_height,
+                                       radius = wall_thickness, $fn = 64);
+            translate([ 0, 0, marker_depth ])
+            {
+                // favour.
+                translate([ (inner_box_width - favour_marker_width * 2 - 1.5) / 2, favour_marker_length / 2 + 1, 0 ])
+                {
+                    for (i = [0:1:1])
+                    {
+                        translate([ favour_marker_width / 2, (favour_marker_length + 7) * i, 0 ])
+                        {
+                            rotate([ 0, 0, 180 ]) color(material_colour) FavourMarker(height = marker_thickness + 1);
+                            translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 9, anchor = BOTTOM);
+                            translate([ 0, -favour_marker_length / 2 + 3, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 9, anchor = BOTTOM);
+                        }
+                        translate(
+                            [ favour_marker_width / 2 + favour_marker_width + 1.5, (favour_marker_length + 7) * i, 0 ])
+                        {
+                            rotate([ 0, 0, 180 ]) color(material_colour) FavourMarker(height = marker_thickness + 1);
+                            translate([ 0, favour_marker_length / 2, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 9, anchor = BOTTOM);
+                            translate([ 0, -favour_marker_length / 2 + 2, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 9, anchor = BOTTOM);
+                        }
+                    }
+                }
+                // explorers.
+                translate([
+                    (inner_box_width - explorer_marker_height) / 2,
+                    (favour_marker_length + 5.5) * 2 + explorer_hat_width / 2 + 5, 0
+                ])
+                {
+                    for (i = [0:1:2])
+                    {
+                        translate([ explorer_marker_height / 2, (explorer_base_width + 2) * i, 0 ])
+                        {
+                            children(0);
+                            translate([ explorer_marker_height / 2, 0, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 8, anchor = BOTTOM);
+                            translate([ -explorer_marker_height / 2, 0, marker_thickness / 2 ]) color(material_colour)
+                                sphere(r = 8, anchor = BOTTOM);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-module PlayerBoxGreenTwo(generate_lid = true) // `make` me
+module PlayerBoxGreenTwo() // `make` me
 {
-    PlayerBoxTwoBase(generate_lid = generate_lid, material_colour = "green")
+    PlayerBoxTwoBase(generate_lid = false, material_colour = "green")
     {
         rotate([ 0, 0, 90 ]) color("green") ExplorerMarkerGreen(marker_thickness + 1);
         rotate([ 0, 0, -90 ]) color("green") ExplorerMarkerGreen(marker_thickness + 1);
     }
 }
 
-module PlayerBoxYellowTwo(generate_lid = true) // `make` me
+module PlayerBoxGreenTwoLid() // `make` me
 {
-    PlayerBoxTwoBase(generate_lid = generate_lid, material_colour = "yellow")
+    PlayerBoxTwoBase(generate_lid = true, material_colour = "green")
+    {
+        rotate([ 0, 0, 90 ]) color("green") ExplorerMarkerGreen(marker_thickness + 1);
+        rotate([ 0, 0, -90 ]) color("green") ExplorerMarkerGreen(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxYellowTwo() // `make` me
+{
+    PlayerBoxTwoBase(generate_lid = false, material_colour = "yellow")
     {
         rotate([ 0, 0, 90 ]) color("yellow") ExplorerMarkerYellow(marker_thickness + 1);
         rotate([ 0, 0, -90 ]) color("yellow") ExplorerMarkerYellow(marker_thickness + 1);
     }
 }
 
-module PlayerBoxPurpleTwo(generate_lid = true) // `make` me
+module PlayerBoxYellowTwoLid() // `make` me
 {
-    PlayerBoxTwoBase(generate_lid = generate_lid, material_colour = "purple")
+    PlayerBoxTwoBase(generate_lid = true, material_colour = "yellow")
+    {
+        rotate([ 0, 0, 90 ]) color("yellow") ExplorerMarkerYellow(marker_thickness + 1);
+        rotate([ 0, 0, -90 ]) color("yellow") ExplorerMarkerYellow(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxPurpleTwo() // `make` me
+{
+    PlayerBoxTwoBase(generate_lid = false, material_colour = "purple")
     {
         rotate([ 0, 0, 90 ]) color("purple") ExplorerMarkerPurple(marker_thickness + 1);
         rotate([ 0, 0, -90 ]) color("purple") ExplorerMarkerPurple(marker_thickness + 1);
     }
 }
 
-module PlayerBoxBlackTwo(generate_lid = true) // `make` me
+module PlayerBoxPurpleTwoLid() // `make` me
 {
-    PlayerBoxTwoBase(generate_lid = generate_lid, material_colour = "grey")
+    PlayerBoxTwoBase(generate_lid = true, material_colour = "purple")
+    {
+        rotate([ 0, 0, 90 ]) color("purple") ExplorerMarkerPurple(marker_thickness + 1);
+        rotate([ 0, 0, -90 ]) color("purple") ExplorerMarkerPurple(marker_thickness + 1);
+    }
+}
+
+module PlayerBoxBlackTwo() // `make` me
+{
+    PlayerBoxTwoBase(generate_lid = false, material_colour = "grey")
     {
         rotate([ 0, 0, 90 ]) color("grey") ExplorerMarkerBlack(marker_thickness + 1);
         rotate([ 0, 0, -90 ]) color("grey") ExplorerMarkerBlack(marker_thickness + 1);
     }
 }
 
-module FavourBox(generate_lid = true) // `make` me
+module PlayerBoxBlackTwoLid() // `make` me
+{
+    PlayerBoxTwoBase(generate_lid = true, material_colour = "grey")
+    {
+        rotate([ 0, 0, 90 ]) color("grey") ExplorerMarkerBlack(marker_thickness + 1);
+        rotate([ 0, 0, -90 ]) color("grey") ExplorerMarkerBlack(marker_thickness + 1);
+    }
+}
+
+module FavourBox() // `make` me
 {
     MakeBoxWithCapLid(width = favour_box_width, length = favour_box_length, height = favour_box_height)
     {
@@ -813,18 +890,16 @@ module FavourBox(generate_lid = true) // `make` me
                 cyl(r = 11, anchor = BOTTOM, h = favour_box_height * 2, rounding = 9.5);
         }
     }
-    if (generate_lid)
-    {
-        translate([ favour_box_width + 10, 0, 0 ])
-        {
-            CapBoxLidWithLabel(width = favour_box_width, length = favour_box_length, height = favour_box_height,
-                               text_width = 50, text_height = 15, text_str = "Favours", label_rotated = true,
-                               label_colour = "black");
-        }
-    }
 }
 
-module StuffBox(generate_lid = true) // `make` me
+module FavourBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = favour_box_width, length = favour_box_length, height = favour_box_height,
+                       text_width = 50, text_height = 15, text_str = "Favours", label_rotated = true,
+                       label_colour = "black");
+}
+
+module StuffBox() // `make` me
 {
     MakeBoxWithCapLid(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height)
     {
@@ -832,32 +907,32 @@ module StuffBox(generate_lid = true) // `make` me
             RoundedBoxAllSides(width = stuff_box_width - wall_thickness * 2,
                                length = stuff_box_length - wall_thickness * 2, height = stuff_box_height, radius = 10);
     }
-    if (generate_lid)
+}
+
+module StuffBoxLid() // `make` me
+{
+    translate([ stuff_box_width + 10, 0, 0 ])
     {
+        CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
+                           text_width = 50, text_height = 15, text_str = "Swords", label_rotated = true,
+                           label_colour = "black");
         translate([ stuff_box_width + 10, 0, 0 ])
         {
             CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                               text_width = 50, text_height = 15, text_str = "Swords", label_rotated = true,
+                               text_width = 50, text_height = 15, text_str = "Apples", label_rotated = true,
                                label_colour = "black");
             translate([ stuff_box_width + 10, 0, 0 ])
             {
                 CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                                   text_width = 50, text_height = 15, text_str = "Apples", label_rotated = true,
+                                   text_width = 50, text_height = 15, text_str = "Crystals", label_rotated = true,
                                    label_colour = "black");
-                translate([ stuff_box_width + 10, 0, 0 ])
-                {
-                    CapBoxLidWithLabel(width = stuff_box_width, length = stuff_box_length, height = stuff_box_height,
-                                       text_width = 50, text_height = 15, text_str = "Crystals", label_rotated = true,
-                                       label_colour = "black");
-                }
             }
         }
     }
 }
 
-module CardBox(generate_lid = true) // `make` me
+module CardBox() // `make` me
 {
-
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {
         inner_width = card_box_width - wall_thickness * 2;
@@ -873,15 +948,12 @@ module CardBox(generate_lid = true) // `make` me
             color(default_material_colour) linear_extrude(card_box_height) rotate(270) text(
                 "Explorers of", size = 5, font = "Marker Felt:style=Regular", valign = "center", halign = "center");
     }
-    if (generate_lid)
-    {
-        translate([ card_box_width + 10, 0, 0 ])
-        {
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 50, text_height = 15, text_str = "Cards", label_rotated = true,
-                               label_colour = "black");
-        }
-    }
+}
+
+module CardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height, text_width = 50,
+                       text_height = 15, text_str = "Cards", label_rotated = true, label_colour = "black");
 }
 
 module BagBox() // `make` me
@@ -902,19 +974,19 @@ module BoxLayout()
     cube([ 1, box_length, box_height ]);
     translate([ 0, 0, board_thickness ])
     {
-        PlayerBoxGreenOne(generate_lid = false);
-        translate([ 0, 0, player_box_height ]) PlayerBoxYellowOne(generate_lid = false);
-        translate([ 0, 0, player_box_height * 2 ]) PlayerBoxPurpleOne(generate_lid = false);
-        translate([ 0, 0, player_box_height * 3 ]) PlayerBoxBlackOne(generate_lid = false);
-        translate([ 0, player_box_length, 0 ]) PlayerBoxGreenTwo(generate_lid = false);
-        translate([ 0, player_box_length, player_box_height ]) PlayerBoxYellowTwo(generate_lid = false);
-        translate([ 0, player_box_length, player_box_height * 2 ]) PlayerBoxPurpleTwo(generate_lid = false);
-        translate([ 0, player_box_length, player_box_height * 3 ]) PlayerBoxBlackTwo(generate_lid = false);
-        translate([ player_box_width, 0, 0 ]) FavourBox(generate_lid = false);
-        translate([ player_box_width, 0, favour_box_height ]) StuffBox(generate_lid = false);
-        translate([ player_box_width + stuff_box_width, 0, favour_box_height ]) StuffBox(generate_lid = false);
-        translate([ player_box_width + stuff_box_width * 2, 0, favour_box_height ]) StuffBox(generate_lid = false);
-        translate([ player_box_width, favour_box_length, 0 ]) CardBox(generate_lid = false);
+        PlayerBoxGreenOne();
+        translate([ 0, 0, player_box_height ]) PlayerBoxYellowOne();
+        translate([ 0, 0, player_box_height * 2 ]) PlayerBoxPurpleOne();
+        translate([ 0, 0, player_box_height * 3 ]) PlayerBoxBlackOne();
+        translate([ 0, player_box_length, 0 ]) PlayerBoxGreenTwo();
+        translate([ 0, player_box_length, player_box_height ]) PlayerBoxYellowTwo();
+        translate([ 0, player_box_length, player_box_height * 2 ]) PlayerBoxPurpleTwo();
+        translate([ 0, player_box_length, player_box_height * 3 ]) PlayerBoxBlackTwo();
+        translate([ player_box_width, 0, 0 ]) FavourBox();
+        translate([ player_box_width, 0, favour_box_height ]) StuffBox();
+        translate([ player_box_width + stuff_box_width, 0, favour_box_height ]) StuffBox();
+        translate([ player_box_width + stuff_box_width * 2, 0, favour_box_height ]) StuffBox();
+        translate([ player_box_width, favour_box_length, 0 ]) CardBox();
         translate([ player_box_width, favour_box_length + card_box_length, 0 ]) BagBox();
     }
     translate([ box_width - player_layout_width, 0, box_height - player_layout_thickness * player_layout_num ])

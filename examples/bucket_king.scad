@@ -171,7 +171,7 @@ module PlayerBox() // `make` me
     }
 }
 
-module CardBox(generate_lid = true) // `make` me
+module CardBox() // `make` me
 {
     MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
     {

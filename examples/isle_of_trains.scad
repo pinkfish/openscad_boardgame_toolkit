@@ -81,8 +81,6 @@ ticket_box_height = box_height - 1;
 
 function TileRadius(width) = width / 2 / cos(180 / 6);
 
-echo([ card_box_width, ticket_tile_width ]);
-
 module DestinationBox(generate_lid = true) // `make` me
 {
     MakeBoxWithCapLid(width = destination_box_width, length = destination_box_length, height = destination_box_height,
@@ -123,16 +121,16 @@ module DestinationBox(generate_lid = true) // `make` me
                 finger_holes = [ 0, 4 ], finger_hole_radius = token_thickness * num_destination_tiles + 0.5);
         }
     }
-    if (generate_lid)
-    {
-        text_str = "Destinations";
-        text_width = 80;
-        text_height = 20;
-        translate([ destination_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = destination_box_width, length = destination_box_length, lid_thickness = lid_thickness,
-            height = destination_box_height, text_width = text_width, text_height = text_height, text_str = text_str,
-            label_rotated = false, label_colour = "black");
-    }
+}
+
+module DestinationBoxLid(generate_lid = true) // `make` me
+{
+    text_str = "Destinations";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = destination_box_width, length = destination_box_length, lid_thickness = lid_thickness,
+                       height = destination_box_height, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = false, label_colour = "black");
 }
 
 module VictoryBox(generate_lid = true) // `make` me
@@ -198,16 +196,16 @@ module VictoryBox(generate_lid = true) // `make` me
                            finger_hole_radius = five_bit_height, finger_holes = [ 3, 6 ]);
         }
     }
-    if (generate_lid)
-    {
-        text_str = "Victory";
-        text_width = 80;
-        text_height = 20;
-        translate([ victory_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = victory_box_width, length = victory_box_length, height = victory_box_height,
-                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false, label_colour = "black");
-    }
+}
+
+module VictoryBoxLid(generate_lid = true) // `make` me
+{
+    text_str = "Victory";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = victory_box_width, length = victory_box_length, height = victory_box_height,
+                       lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = false, label_colour = "black");
 }
 
 module CardBox(generate_lid = true) // `make` me
@@ -218,16 +216,16 @@ module CardBox(generate_lid = true) // `make` me
         cube([ card_length + 0.5, card_width + 0.5, card_box_height ]);
         translate([ 0, card_width / 2 + 0.25, -2 ]) FingerHoleBase(radius = 10, height = card_box_height);
     }
-    if (generate_lid)
-    {
-        text_str = "Cards";
-        text_width = 60;
-        text_height = 20;
-        translate([ card_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false, label_colour = "black");
-    }
+}
+
+module CardBoxLid(generate_lid = true) // `make` me
+{
+    text_str = "Cards";
+    text_width = 60;
+    text_height = 20;
+    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
+                       lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = false, label_colour = "black");
 }
 
 module TicketBox(generate_lid = true) // `make` me
@@ -251,16 +249,16 @@ module TicketBox(generate_lid = true) // `make` me
                                     finger_holes = [ 2, 6 ], finger_hole_radius = 9);
         }
     }
-    if (generate_lid)
-    {
-        text_str = "Isle of Trains";
-        text_width = 80;
-        text_height = 15;
-        translate([ ticket_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
-                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = true, label_colour = "black");
-    }
+}
+
+module TicketBoxLid(generate_lid = true) // `make` me
+{
+    text_str = "Isle of Trains";
+    text_width = 80;
+    text_height = 15;
+    CapBoxLidWithLabel(width = ticket_box_width, length = ticket_box_length, height = ticket_box_height,
+                       lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = true, label_colour = "black");
 }
 
 module MiddleBox() // `make` me

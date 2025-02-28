@@ -131,7 +131,7 @@ module ShieldOutline()
     resize([ shield_length, shield_width ]) import("svg/animal screen.svg");
 }
 
-module StandingBox()
+module StandingBox() // `make` me
 {
     total_height = (animal_thickness + inner_width) * 6 + wall_thickness * 3;
 

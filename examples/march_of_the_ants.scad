@@ -193,7 +193,7 @@ module CentipedeOutline()
         resize([ centipede_width, centipede_length ]) rotate(90) import("svg/mota - centipede.svg");
 }
 
-module TileBox(generate_lid = true)
+module TileBox() // `make` me
 {
     MakeBoxWithCapLid(width = tile_box_width, length = tile_box_length, height = tile_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -224,15 +224,16 @@ module TileBox(generate_lid = true)
                 cuboid([ 30, tile_width / 2, tile_box_height + 20 ], anchor = BOTTOM + FRONT + LEFT, rounding = 5);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, tile_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
-            text_height = 20, text_str = "Tiles", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module FoodTokenBox(generate_lid = true)
+module TileBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
+                       text_height = 20, text_str = "Tiles", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module FoodTokenBox() // `make` me
 {
     centipede_height = tile_thickness * (centipede_token_num / 3) + 1;
 
@@ -295,16 +296,17 @@ module FoodTokenBox(generate_lid = true)
         }
         translate([ 40, 0, 0 ]) Centipede();
     }
-    if (generate_lid)
-    {
-        translate([ 0, food_token_box_length + 10, 0 ])
-            CapBoxLidWithLabel(width = food_token_box_width, length = food_token_box_length,
-                               height = food_token_box_height, text_width = 70, text_height = 20, text_str = "Food",
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module CardBox(generate_lid = true)
+module FoodTokenBoxLid() // `make` me
+{
+
+    CapBoxLidWithLabel(width = food_token_box_width, length = food_token_box_length, height = food_token_box_height,
+                       text_width = 70, text_height = 20, text_str = "Food", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module CardBox() // `make` me
 {
     MakeBoxWithCapLid(card_box_width, card_box_length, card_box_height, wall_thickness = wall_thickness,
                       lid_thickness = lid_thickness)
@@ -312,16 +314,16 @@ module CardBox(generate_lid = true)
         translate([ 0.5, 0.5, 0 ]) cube([ sleeved_card_width, sleeved_card_length, card_box_length ]);
         translate([ sleeved_card_width / 2, 0, card_box_height - 40 ]) FingerHoleBase(radius = 15, height = 40);
     }
-    if (generate_lid)
-    {
-        translate([ 0, card_box_length + 10, 0 ])
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_length,
-                               text_width = 70, text_height = 20, text_str = "Cards", label_rotated = true,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module MinionsOfTheMeadowCardBox(generate_lid = true)
+module CardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_length, text_width = 70,
+                       text_height = 20, text_str = "Cards", label_rotated = true, wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module MinionsOfTheMeadowCardBox() // `make` me
 {
     MakeBoxWithCapLid(card_box_width, card_box_length, minions_of_the_meadow_card_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -331,13 +333,13 @@ module MinionsOfTheMeadowCardBox(generate_lid = true)
         translate([ sleeved_card_width / 2, 0, minions_of_the_meadow_card_box_height - 40 ])
             FingerHoleBase(radius = 15, height = 40);
     }
-    if (generate_lid)
-    {
-        translate([ 0, card_box_length + 10, 0 ])
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 90, text_height = 20, text_str = "Minions Cards", label_rotated = true,
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
+}
+
+module MinionsOfTheMeadowCardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height, text_width = 90,
+                       text_height = 20, text_str = "Minions Cards", label_rotated = true,
+                       wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module Aphid(h = aphid_thickness)
@@ -348,7 +350,7 @@ module Aphid(h = aphid_thickness)
                edges = [ BACK + LEFT, BACK + RIGHT ]);
 }
 
-module AphidBox(generate_lid = true)
+module AphidBox() // `make` me
 {
     MakeBoxWithCapLid(player_box_width, player_box_length, player_box_height, lid_thickness = wall_thickness,
                       wall_thickness = wall_thickness)
@@ -371,15 +373,16 @@ module AphidBox(generate_lid = true)
         ]) cuboid([ (aphid_diameter + 1.1) * 9, total_aphid_len + 4, 10 ], anchor = BOTTOM + FRONT + LEFT, rounding = 5,
                   edges = [ FRONT + BOTTOM, BACK + BOTTOM ]);
     }
-    if (generate_lid)
-    {
-        translate([ 0, player_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = player_box_width, length = player_box_length, height = player_box_height, text_width = 70,
-            text_height = 20, text_str = "Aphids", lid_thickness = wall_thickness, wall_thickness = wall_thickness);
-    }
 }
 
-module MinionsOfTheMeadowBox(generate_lid = true)
+module AphidBoxLid() // `make` me
+{
+    translate([ 0, player_box_length + 10, 0 ]) CapBoxLidWithLabel(
+        width = player_box_width, length = player_box_length, height = player_box_height, text_width = 70,
+        text_height = 20, text_str = "Aphids", lid_thickness = wall_thickness, wall_thickness = wall_thickness);
+}
+
+module MinionsOfTheMeadowBox() // `make` me
 {
     MakeBoxWithCapLid(minions_of_the_meadow_box_width, minions_of_the_meadow_box_length,
                       minions_of_the_meadow_box_height, wall_thickness = wall_thickness, lid_thickness = lid_thickness)
@@ -394,16 +397,17 @@ module MinionsOfTheMeadowBox(generate_lid = true)
                 sphere(r = tile_thickness * num_mm_hex);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, minions_of_the_meadow_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = minions_of_the_meadow_box_width, length = minions_of_the_meadow_box_length,
-            height = minions_of_the_meadow_box_height, text_width = 70, text_height = 20,
-            text_str = "Minions of the Meadows", lid_thickness = lid_thickness, wall_thickness = wall_thickness);
-    }
 }
 
-module PlayerBox(generate_lid = true)
+module MinionsOfTheMeadowBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = minions_of_the_meadow_box_width, length = minions_of_the_meadow_box_length,
+                       height = minions_of_the_meadow_box_height, text_width = 70, text_height = 20,
+                       text_str = "Minions of the Meadows", lid_thickness = lid_thickness,
+                       wall_thickness = wall_thickness);
+}
+
+module PlayerBox() // `make` me
 {
     MakeBoxWithCapLid(player_box_width, player_box_length, player_box_height, wall_thickness = wall_thickness,
                       lid_thickness = lid_thickness)
@@ -455,15 +459,16 @@ module PlayerBox(generate_lid = true)
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, player_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = player_box_width, length = player_box_length, height = player_box_height, text_width = 70,
-            text_height = 20, text_str = "Player", lid_thickness = wall_thickness, wall_thickness = wall_thickness);
-    }
 }
 
-module PredatorBox(generate_lid = true)
+module PlayerBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
+                       text_width = 70, text_height = 20, text_str = "Player", lid_thickness = wall_thickness,
+                       wall_thickness = wall_thickness);
+}
+
+module PredatorBox() // `make` me
 {
     MakeBoxWithCapLid(predator_box_width, predator_box_length, predator_box_height, wall_thickness = wall_thickness,
                       lid_thickness = lid_thickness)
@@ -511,12 +516,13 @@ module PredatorBox(generate_lid = true)
             translate([ 0, -centipede_width / 2, 15 ]) sphere(r = 10);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, player_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = predator_box_width, length = predator_box_length, height = predator_box_height, text_width = 70,
-            text_height = 20, text_str = "Predator", lid_thickness = wall_thickness, wall_thickness = wall_thickness);
-    }
+}
+
+module PredatorBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = predator_box_width, length = predator_box_length, height = predator_box_height,
+                       text_width = 70, text_height = 20, text_str = "Predator", lid_thickness = wall_thickness,
+                       wall_thickness = wall_thickness);
 }
 
 module BoxLayout()
@@ -526,25 +532,25 @@ module BoxLayout()
 
     translate([ 0, 0, thickness_to_stuff ])
     {
-        TileBox(generate_lid = false);
-        translate([ 0, tile_box_length, 0 ]) CardBox(generate_lid = false);
-        translate([ 0, tile_box_length, card_box_height ]) MinionsOfTheMeadowCardBox(generate_lid = false);
-        translate([ card_box_width, tile_box_length, 0 ]) MinionsOfTheMeadowBox(generate_lid = false);
+        TileBox();
+        translate([ 0, tile_box_length, 0 ]) CardBox();
+        translate([ 0, tile_box_length, card_box_height ]) MinionsOfTheMeadowCardBox();
+        translate([ card_box_width, tile_box_length, 0 ]) MinionsOfTheMeadowBox();
         translate([ card_box_width, tile_box_length, minions_of_the_meadow_box_height ])
-            FoodTokenBox(generate_lid = false);
+            FoodTokenBox();
         translate([ card_box_width, tile_box_length, minions_of_the_meadow_box_height + food_token_box_height ])
-            PredatorBox(generate_lid = false);
+            PredatorBox();
         for (i = [0:1:2])
         {
-            translate([ 0, tile_box_length + card_box_length, player_box_height * i ]) PlayerBox(generate_lid = false);
+            translate([ 0, tile_box_length + card_box_length, player_box_height * i ]) PlayerBox();
             if (i < 2)
             {
                 translate([ player_box_width, tile_box_length + card_box_length, player_box_height * i ])
-                    PlayerBox(generate_lid = false);
+                    PlayerBox();
             }
         }
         translate([ player_box_width, tile_box_length + card_box_length, player_box_height * 2 ])
-            AphidBox(generate_lid = false);
+            AphidBox();
     }
 }
 
@@ -613,7 +619,7 @@ module TestBox()
         {
             linear_extrude(height = 60) LadybirdOutline();
 
-            translate([ 10+ ladybird_width / 2, 0, 1 ])
+            translate([ 10 + ladybird_width / 2, 0, 1 ])
             {
                 linear_extrude(height = 60) MajorWorkerOutline();
                 translate([ major_worker_len / 2 + 5, 5, 0 ])

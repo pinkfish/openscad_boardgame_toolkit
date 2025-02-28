@@ -91,7 +91,7 @@ spacer_box_width = first_player_box_width;
 spacer_box_length = first_player_box_length;
 spacer_box_height = main_height - first_player_box_height;
 
-module MoneyBox1()
+module MoneyBox1() // `make` me
 {
     MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1) for (i = [0:1:3])
     {
@@ -108,7 +108,13 @@ module MoneyBox1()
     }
 }
 
-module MoneyBox2()
+module MoneyBox1Lid() // `make` me
+{
+    CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_1, text_width = 70,
+                       text_height = 20, text_str = "Money", label_colour = "black");
+}
+
+module MoneyBox2() // `make` me
 {
     MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2) for (i = [0:1:3])
     {
@@ -125,23 +131,13 @@ module MoneyBox2()
     }
 }
 
-module AllMoneyBoxes(generate_lid = true) // `make` me
+module MoneyBox2Lid() // `make` me
 {
-    echo([ money_box_length, money_box_height_1, money_box_height_2, money_box_width, inner_wall ]);
-    MoneyBox1();
-    translate([ 0, money_box_length + 10, 0 ]) MoneyBox2();
-    if (generate_lid)
-    {
-        translate([ 0, money_box_length * 2 + 20, 0 ])
-            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_1,
-                               text_width = 70, text_height = 20, text_str = "Money", label_colour = "black");
-        translate([ 0, money_box_length * 3 + 20, 0 ])
-            CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_2,
-                               text_width = 70, text_height = 20, text_str = "Money", label_colour = "black");
-    }
+    CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height_2, text_width = 70,
+                       text_height = 20, text_str = "Money", label_colour = "black");
 }
 
-module HexBox(generate_lid = true) // `make` me
+module HexBox() // `make` me
 {
     MakeBoxWithInsetLidTabbed(width = hex_box_width, length = hex_box_length, height = hex_box_height)
     {
@@ -155,12 +151,13 @@ module HexBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, hex_box_length + 10, 0 ])
-            InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, text_width = 70, text_height = 20,
-                                    text_str = "Tiles", label_colour = "black");
-    }
+}
+
+module HexBoxLid() // `make` me
+{
+
+    InsetLidTabbedWithLabel(width = hex_box_width, length = hex_box_length, text_width = 70, text_height = 20,
+                            text_str = "Tiles", label_colour = "black");
 }
 
 module SharesBox(offset)
@@ -194,22 +191,22 @@ module SharesBox(offset)
     }
 }
 
-module AllShareBoxes(generate_lid = true) // `make` me
+module AllShareBoxes() // `make` me
 {
     SharesBox(0);
     translate([ 0, shares_box_length + 10, 0 ]) SharesBox(2);
     translate([ 0, shares_box_length * 2 + 20, 0 ]) SharesBox(4);
     translate([ 0, shares_box_length * 3 + 30, 0 ]) SharesBox(6);
-    if (generate_lid)
-    {
-        translate([ 0, shares_box_length * 4 + 40, 0 ])
-            SlipoverLidWithLabel(width = shares_box_width, length = shares_box_length, text_width = 70,
-                                 text_height = 20, text_str = "Shares", label_rotated = true, wall_thickness = 1.5,
-                                 height = shares_height, label_colour = "black");
-    }
+}
+module AllShareBoxesLid() // `make` me
+{
+
+    SlipoverLidWithLabel(width = shares_box_width, length = shares_box_length, text_width = 70, text_height = 20,
+                         text_str = "Shares", label_rotated = true, wall_thickness = 1.5, height = shares_height,
+                         label_colour = "black");
 }
 
-module MiddleBox(generate_lid = true) // `make` me
+module MiddleBox() // `make` me
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
@@ -258,13 +255,11 @@ module MiddleBox(generate_lid = true) // `make` me
             }
         }
     }
-
-    if (generate_lid)
-    {
-        translate([ 0, middle_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = middle_width, length = middle_length, height = middle_height, text_height = 20, text_width = 120,
-            text_str = "Tokens/Trains", label_rotated = true, label_colour = "black");
-    }
+}
+module MiddleBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = middle_width, length = middle_length, height = middle_height, text_height = 20,
+                       text_width = 120, text_str = "Tokens/Trains", label_rotated = true, label_colour = "black");
 }
 
 module SpacerBox() // `make` me
@@ -280,7 +275,7 @@ module SpacerBox() // `make` me
     }
 }
 
-module LastSectionFirstPlayer(generate_lid = true) // `make` me
+module LastSectionFirstPlayer() // `make` me
 {
     MakeBoxWithSlipoverLid(width = first_player_box_width, length = first_player_box_length,
                            height = first_player_box_height, wall_thickness = 3, foot = 2)
@@ -303,12 +298,12 @@ module LastSectionFirstPlayer(generate_lid = true) // `make` me
             sphere(r = 10, anchor = BOTTOM + FRONT, $fn = 64);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, first_player_box_length + 10, 0 ])
-            SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length,
-                           height = first_player_box_height, wall_thickness = 3, foot = 2, label_colour = "black");
-    }
+}
+
+module LastSectionFirstPlayerLid() // `make` me
+{
+    SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length, height = first_player_box_height,
+                   wall_thickness = 3, foot = 2, label_colour = "black");
 }
 
 module BoxLayout()
@@ -320,14 +315,14 @@ module BoxLayout()
         MoneyBox1();
         translate([ 0, 0, money_box_height_1 ]) MoneyBox2();
         translate([ 0, middle_width, money_box_height_1 + money_box_height_2 ]) rotate([ 0, 0, -90 ])
-            MiddleBox(generate_lid = false);
-        translate([ 0, money_box_length + hex_box_width, 0 ]) rotate([ 0, 0, -90 ]) HexBox(generate_lid = false);
+            MiddleBox();
+        translate([ 0, money_box_length + hex_box_width, 0 ]) rotate([ 0, 0, -90 ]) HexBox();
         translate([ 0, money_box_length + hex_box_width, hex_box_height ]) rotate([ 0, 0, -90 ])
-            HexBox(generate_lid = false);
+            HexBox();
         translate([ 0, money_box_length + hex_box_width, hex_box_height * 2 ]) rotate([ 0, 0, -90 ])
-            HexBox(generate_lid = false);
+            HexBox();
         translate([ 0, money_box_length + hex_box_width, hex_box_height * 3 ]) rotate([ 0, 0, -90 ])
-            HexBox(generate_lid = false);
+            HexBox();
         translate([ 0, money_box_length + hex_box_width + shares_box_width, 0 ]) rotate([ 0, 0, -90 ]) SharesBox(0);
         translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height ]) rotate([ 0, 0, -90 ])
             SharesBox(2);
@@ -336,31 +331,11 @@ module BoxLayout()
         translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height * 3 ]) rotate([ 0, 0, -90 ])
             SharesBox(6);
         translate([ shares_box_length, money_box_length + hex_box_width + first_player_box_width, 0 ])
-            rotate([ 0, 0, -90 ]) LastSectionFirstPlayer(generate_lid = false);
+            rotate([ 0, 0, -90 ]) LastSectionFirstPlayer();
         translate(
             [ shares_box_length, money_box_length + hex_box_width + first_player_box_width, first_player_box_height ])
             rotate([ 0, 0, -90 ]) SpacerBox();
     }
-}
-
-module PrintLayout()
-{
-
-    MiddleBox();
-
-    translate([ middle_width + 10, 0, 0 ]) AllShareBoxes();
-
-    translate([ middle_width + shares_box_width + shares_box_width + 30, 0, 0 ]) AllMoneyBoxes();
-
-    translate([ middle_width + shares_box_width + shares_box_width + money_box_width + 40, 0, 0 ]) HexBox();
-
-    translate([ middle_width + shares_box_width + shares_box_width + money_box_width + hex_box_width + 50, 0, 0 ])
-        LastSectionFirstPlayer();
-
-    translate([
-        middle_width + shares_box_width + shares_box_width + money_box_width + hex_box_width + shares_box_width + 60, 0,
-        0
-    ]) SpacerBox();
 }
 
 if (FROM_MAKE != 1)

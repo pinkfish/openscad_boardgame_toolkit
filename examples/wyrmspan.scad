@@ -80,7 +80,7 @@ coin_box_length = box_width - dragon_card_box_length - player_box_length - 1;
 coin_box_width = dragon_card_box_width;
 coin_box_height = dragon_card_box_height / 2;
 
-module PlayerBox(generate_lid = true) // `make` me
+module PlayerBox() // `make` me
 {
     MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height, )
     {
@@ -89,14 +89,15 @@ module PlayerBox(generate_lid = true) // `make` me
             player_box_height
         ]);
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                           text_width = 50, text_height = 15, text_str = "Player");
-    }
 }
 
-module FoodBox(generate_lid = true) // `make` me
+module PlayerBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
+                       text_width = 50, text_height = 15, text_str = "Player");
+}
+
+module FoodBox() // `make` me
 {
     MakeBoxWithCapLid(width = food_box_width, length = food_box_length, height = food_box_height)
     {
@@ -104,14 +105,15 @@ module FoodBox(generate_lid = true) // `make` me
             width = food_box_width - 2 * default_wall_thickness, length = food_box_length - 2 * default_wall_thickness,
             height = food_box_height - default_lid_thickness * 2, radius = 10, rows = 2, cols = 1);
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = food_box_width, length = food_box_length, height = food_box_height, text_width = 70,
-                           text_height = 15, text_str = "Edibles");
-    }
 }
 
-module DragonCardBox(generate_lid = true) // `make` me
+module FoodBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = food_box_width, length = food_box_length, height = food_box_height, text_width = 70,
+                       text_height = 15, text_str = "Edibles");
+}
+
+module DragonCardBox() // `make` me
 {
     MakeBoxWithCapLid(width = dragon_card_box_width, length = dragon_card_box_length, height = dragon_card_box_height)
     {
@@ -123,11 +125,12 @@ module DragonCardBox(generate_lid = true) // `make` me
                 FingerHoleBase(radius = 15, height = cave_card_box_height, spin = 270);
         }
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = dragon_card_box_width, length = dragon_card_box_length,
-                           height = dragon_card_box_height, text_width = 70, text_height = 15, text_str = "Dragons");
-    }
+}
+
+module DragonCardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = dragon_card_box_width, length = dragon_card_box_length, height = dragon_card_box_height,
+                       text_width = 70, text_height = 15, text_str = "Dragons");
 }
 
 module ProvidedEggBox()
@@ -135,7 +138,7 @@ module ProvidedEggBox()
     cube([ eggs_box_width, eggs_box_length, eggs_box_height ]);
 }
 
-module CaveCardBox(generate_lid = true) // `make` me
+module CaveCardBox() // `make` me
 {
     MakeBoxWithCapLid(width = cave_card_box_width, length = cave_card_box_length, height = cave_card_box_height)
     {
@@ -178,40 +181,43 @@ module CaveCardBox(generate_lid = true) // `make` me
             translate([ 0, round_token_diameter / 2, 13 ]) sphere(r = 10);
         }
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = cave_card_box_width, length = cave_card_box_length, height = cave_card_box_height,
-                           text_width = 70, text_height = 15, text_str = "Caves + stuff");
-    }
 }
 
-module CoinBox(generate_lid = true) // `make` me
+module CaveCardBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = cave_card_box_width, length = cave_card_box_length, height = cave_card_box_height,
+                       text_width = 70, text_height = 15, text_str = "Caves + stuff");
+}
+
+module CoinBox() // `make` me
 {
     MakeBoxWithCapLid(width = coin_box_width, length = coin_box_length, height = coin_box_height, )
     {
         RoundedBoxAllSides(width = coin_box_width - default_wall_thickness * 2,
                            length = coin_box_length - default_wall_thickness * 2, height = coin_box_height, radius = 7);
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = coin_box_width, length = coin_box_length, height = coin_box_height, text_width = 70,
-                           text_height = 15, text_str = "Coins", default_wall_thickness = default_wall_thickness,
-                           default_lid_thickness = default_lid_thickness);
-    }
 }
 
-module BonusBox(generate_lid = true) // `make` me
+module CoinBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = coin_box_width, length = coin_box_length, height = coin_box_height, text_width = 70,
+                       text_height = 15, text_str = "Coins", default_wall_thickness = default_wall_thickness,
+                       default_lid_thickness = default_lid_thickness);
+}
+
+module BonusBox() // `make` me
 {
     MakeBoxWithCapLid(width = coin_box_width, length = coin_box_length, height = coin_box_height)
     {
         RoundedBoxAllSides(width = coin_box_width - default_wall_thickness * 2,
                            length = coin_box_length - default_wall_thickness * 2, height = coin_box_height, radius = 7);
     }
-    if (generate_lid)
-    {
-        CapBoxLidWithLabel(width = coin_box_width, length = coin_box_length, height = coin_box_height, text_width = 70,
-                           text_height = 15, text_str = "Bonus");
-    }
+}
+
+module BonusBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = coin_box_width, length = coin_box_length, height = coin_box_height, text_width = 70,
+                       text_height = 15, text_str = "Bonus");
 }
 
 module BoxLayout()
@@ -220,16 +226,16 @@ module BoxLayout()
     cube([ box_length, 1, box_height ]);
     for (i = [0:1:4])
     {
-        translate([ 0, 0, player_box_height * i ]) PlayerBox(generate_lid = false);
+        translate([ 0, 0, player_box_height * i ]) PlayerBox();
     }
     for (i = [0:1:1])
     {
-        translate([ player_box_width, 0, food_box_height * i ]) FoodBox(generate_lid = false);
+        translate([ player_box_width, 0, food_box_height * i ]) FoodBox();
     }
-    translate([ 0, player_box_length, 0 ]) DragonCardBox(generate_lid = false);
-    translate([ 0, player_box_length + dragon_card_box_length, 0 ]) CoinBox(generate_lid = false);
-    translate([ 0, player_box_length + dragon_card_box_length, coin_box_height ]) BonusBox(generate_lid = false);
-    translate([ dragon_card_box_width, player_box_length, 0 ]) CaveCardBox(generate_lid = false);
+    translate([ 0, player_box_length, 0 ]) DragonCardBox();
+    translate([ 0, player_box_length + dragon_card_box_length, 0 ]) CoinBox();
+    translate([ 0, player_box_length + dragon_card_box_length, coin_box_height ]) BonusBox();
+    translate([ dragon_card_box_width, player_box_length, 0 ]) CaveCardBox();
     translate([ dragon_card_box_width + cave_card_box_width, player_box_length, 0 ]) ProvidedEggBox();
     translate([ dragon_card_box_width + cave_card_box_width, player_box_length + eggs_box_length, 0 ]) ProvidedEggBox();
 }

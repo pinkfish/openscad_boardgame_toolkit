@@ -62,9 +62,11 @@ module SquareTileBox() // `make` me
             FingerHoleBase(radius = 18, height = tile_box_height - default_floor_thickness + 1,
                            wall_thickness = default_wall_thickness);
     }
-    translate([ tile_box_width + 10, 0, 0 ])
-        CapBoxLidWithLabel(width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
-                           text_height = 20, text_str = "Kenmore Gold", label_colour = "black");
+}
+module SquareTileBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
+                       text_height = 20, text_str = "Kenmore Gold", label_colour = "black");
 }
 
 module StartCaveBox() // `make` me
@@ -84,6 +86,10 @@ module StartCaveBox() // `make` me
             FingerHoleBase(radius = 18, height = tile_box_height - default_floor_thickness + 1,
                            wall_thickness = default_wall_thickness);
     }
+}
+
+module StartCaveBoxLid() // `make` me
+{
     translate([ start_cave_box_width + 10, 0, 0 ])
         CapBoxLidWithLabel(width = start_cave_box_width, length = start_cave_box_length, height = start_cave_box_height,
                            text_width = 70, text_height = 20, text_str = "Start Cave", label_colour = "black");
@@ -95,9 +101,12 @@ module LootBox() // `make` me
     {
         RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = $inner_height, radius = 10);
     }
-    translate([ loot_box_width + 10, 0, 0 ])
-        CapBoxLidWithLabel(width = loot_box_width, length = loot_box_length, height = loot_box_height, text_width = 50,
-                           text_height = 20, text_str = "Loot", label_colour = "black");
+}
+
+module LootBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = loot_box_width, length = loot_box_length, height = loot_box_height, text_width = 50,
+                       text_height = 20, text_str = "Loot", label_colour = "black");
 }
 
 if (FROM_MAKE != 1)

@@ -146,12 +146,13 @@ module PlayerBox(generate_lid = true) // `make` me
                 xcyl(r = 10, h = meeple_width + 20, anchor = BOTTOM, rounding = 10);
         }
     }
-    if (generate_lid)
-    {
-        translate([ player_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                               text_width = 70, text_height = 20, text_str = "Player", label_colour = "black");
-    }
+}
+
+module PlayerBoxLid(generate_lid = true) // `make` me
+{
+
+    CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
+                       text_width = 70, text_height = 20, text_str = "Player", label_colour = "black");
 }
 
 module UnmetNeedsBox(generate_lid = true) // `make` me
@@ -174,12 +175,13 @@ module UnmetNeedsBox(generate_lid = true) // `make` me
             HexGridWithCutouts(rows = 3, cols = 3, height = token_thickness * status_awards_num / 9, spacing = 1,
                                tile_width = status_award_size);
     }
-    if (generate_lid)
-    {
-        translate([ shared_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
-                               text_width = 70, text_height = 20, text_str = "Tokens", label_colour = "black");
-    }
+}
+
+module UnmetNeedsBoxLid(generate_lid = true) // `make` me
+{
+
+    CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
+                       text_width = 70, text_height = 20, text_str = "Tokens", label_colour = "black");
 }
 
 module ExtraCardsBox(generate_lid = false) // `make` me
@@ -216,12 +218,13 @@ module ExtraCardsBox(generate_lid = false) // `make` me
                 text("Wolf", size = 4, valign = "center", halign = "center");
         }
     }
-    if (generate_lid)
-    {
-        translate([ shared_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
-                               text_width = 70, text_height = 20, text_str = "Cards", label_colour = "black");
-    }
+}
+
+module ExtraCardsBoxLid(generate_lid = false) // `make` me
+{
+
+    CapBoxLidWithLabel(width = shared_box_width, length = shared_box_length, height = shared_box_height,
+                       text_width = 70, text_height = 20, text_str = "Cards", label_colour = "black");
 }
 
 module ResourcesBox(generate_lid = true) // `make` me
@@ -230,18 +233,19 @@ module ResourcesBox(generate_lid = true) // `make` me
     {
         RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = resources_box_height, radius = 10);
     }
-    if (generate_lid)
-    {
-        translate([ resources_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length,
-                               height = resources_box_height, text_width = 70, text_height = 20, text_str = "Corn");
-        translate([ resources_box_width * 2 + 20, 0, 0 ])
-            CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length,
-                               height = resources_box_height, text_width = 70, text_height = 20, text_str = "Buffalo");
-        translate([ resources_box_width * 3 + 30, 0, 0 ])
-            CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length,
-                               height = resources_box_height, text_width = 70, text_height = 20, text_str = "Fish");
-    }
+}
+
+module ResourcesBoxLid(generate_lid = true) // `make` me
+{
+    translate([ resources_box_width + 10, 0, 0 ])
+        CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length, height = resources_box_height,
+                           text_width = 70, text_height = 20, text_str = "Corn");
+    translate([ resources_box_width * 2 + 20, 0, 0 ])
+        CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length, height = resources_box_height,
+                           text_width = 70, text_height = 20, text_str = "Buffalo");
+    translate([ resources_box_width * 3 + 30, 0, 0 ])
+        CapBoxLidWithLabel(width = resources_box_width, length = resources_box_length, height = resources_box_height,
+                           text_width = 70, text_height = 20, text_str = "Fish");
 }
 
 module SideBox() // `make` me

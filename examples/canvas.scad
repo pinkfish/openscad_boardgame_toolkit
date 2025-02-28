@@ -31,27 +31,48 @@ divider_total_width = 73 + 50 + 73;
 divider_upright_length = 45;
 divider_upright_diff = 73;
 
+module MakeLid(str)
+{
+    CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+                       height = canvas_piece_box_height, text_width = len(str) * 9 + 5, text_height = 15,
+                       text_str = str, label_rotated = true, wall_thickness = wall_thickness, lid_thickness = 2,
+                       lid_boundary = 5, layout_width = 5, shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 1.5,
+                       shape_width = 7, label_colour = "black");
+}
+
 module PiecesBox() // `make` me
 {
-    module MakeLid(str)
-    {
-        CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                           height = canvas_piece_box_height, text_width = len(str) * 9 + 5, text_height = 15,
-                           text_str = str, label_rotated = true, wall_thickness = wall_thickness, lid_thickness = 2,
-                           lid_boundary = 5, layout_width = 5, shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 1.5,
-                           shape_width = 7, label_colour = "black");
-    }
     MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                       height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
                       lid_finger_hold_len = 14)
         RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
                            length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
                            radius = 5);
+}
+
+module PiecesBoxLidRed() // `make` me
+{
     translate([ 0, canvas_piece_box_length + 10, 0 ]) MakeLid("Red");
+}
+module PiecesBoxLidGreen() // `make` me
+{
+
     translate([ 0, (canvas_piece_box_length + 10) * 2, 0 ]) MakeLid("Green");
+}
+module PiecesBoxLidGrey() // `make` me
+{
     translate([ 0, (canvas_piece_box_length + 10) * 3, 0 ]) MakeLid("Grey");
+}
+module PiecesBoxLidBlue() // `make` me
+{
     translate([ 0, (canvas_piece_box_length + 10) * 4, 0 ]) MakeLid("Blue");
+}
+module PiecesBoxLidPurple() // `make` me
+{
     translate([ 0, (canvas_piece_box_length + 10) * 5, 0 ]) MakeLid("Purple");
+}
+module PiecesBoxLidPalette() // `make` me
+{
     translate([ 0, (canvas_piece_box_length + 10) * 6, 0 ]) MakeLid("Palette");
 }
 

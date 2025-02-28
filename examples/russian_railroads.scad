@@ -194,7 +194,7 @@ module EngineerTile(height)
     }
 }
 
-module PlayerBox(generate_lid = true) // `make` me
+module PlayerBox() // `make` me
 {
     MakeBoxWithCapLid(width = player_box_width, length = player_box_length, height = player_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -271,15 +271,16 @@ module PlayerBox(generate_lid = true) // `make` me
                 RegularPolygon(width = industry_hex, height = industry_thickness + 1, shape_edges = 6);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, player_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = player_box_width, length = player_box_length, height = player_box_height, text_width = 70,
-            text_height = 20, text_str = "Player", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module ExtraTokensBox(generate_lid = true) // `make` me
+module PlayerBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
+                       text_width = 70, text_height = 20, text_str = "Player", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module ExtraTokensBox() // `make` me
 {
     MakeBoxWithCapLid(width = extra_tokens_box_width, length = extra_tokens_box_length,
                       height = extra_tokens_box_height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -374,16 +375,16 @@ module ExtraTokensBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, extra_tokens_box_length + 10, 0 ])
-            CapBoxLidWithLabel(width = extra_tokens_box_width, length = extra_tokens_box_length,
-                               height = extra_tokens_box_height, text_width = 70, text_height = 20, text_str = "Extra",
-                               wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module MoneyBox(generate_lid = true) // `make` me
+module ExtraTokensBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = extra_tokens_box_width, length = extra_tokens_box_length,
+                       height = extra_tokens_box_height, text_width = 70, text_height = 20, text_str = "Extra",
+                       wall_thickness = wall_thickness, lid_thickness = lid_thickness);
+}
+
+module MoneyBox() // `make` me
 {
     MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -391,15 +392,16 @@ module MoneyBox(generate_lid = true) // `make` me
         RoundedBoxAllSides(width = money_box_width - wall_thickness * 2, length = money_box_length - wall_thickness * 2,
                            height = money_box_height, radius = 6);
     }
-    if (generate_lid)
-    {
-        translate([ 0, money_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
-            text_height = 20, text_str = "Money", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module TrainBox(generate_lid = true) // `make` me
+module MoneyBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
+                       text_height = 20, text_str = "Money", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module TrainBox() // `make` me
 {
     MakeBoxWithCapLid(width = train_box_width, length = train_box_length, height = train_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -421,15 +423,16 @@ module TrainBox(generate_lid = true) // `make` me
             train_box_height - lid_thickness * 2 - tile_thickness * 5 - 0.5
         ]) rotate([ 0, 0, 180 ]) TrainTile(height = tile_thickness * 5 + 1);
     }
-    if (generate_lid)
-    {
-        translate([ 0, train_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = train_box_width, length = train_box_length, height = train_box_height, text_width = 70,
-            text_height = 20, text_str = "Trains", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module EngineerBox(generate_lid = true) // `make` me
+module TrainBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height, text_width = 70,
+                       text_height = 20, text_str = "Trains", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module EngineerBox() // `make` me
 {
     MakeBoxWithCapLid(width = engineer_box_width, length = engineer_box_length, height = engineer_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -442,15 +445,16 @@ module EngineerBox(generate_lid = true) // `make` me
                 EngineerTile(height = tile_thickness * 3 + 1);
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, engineer_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = engineer_box_width, length = engineer_box_length, height = engineer_box_height, text_width = 70,
-            text_height = 20, text_str = "Engineers", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
 }
 
-module TrackBox(generate_lid = true) // `make` me
+module EngineerBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = engineer_box_width, length = engineer_box_length, height = engineer_box_height,
+                       text_width = 70, text_height = 20, text_str = "Engineers", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
+}
+
+module TrackBox() // `make` me
 {
     MakeBoxWithCapLid(width = track_box_width, length = track_box_length, height = track_box_height,
                       wall_thickness = wall_thickness, lid_thickness = lid_thickness, floor_thickness = lid_thickness)
@@ -473,8 +477,7 @@ module TrackBox(generate_lid = true) // `make` me
                             track_box_height - lid_thickness * 2 - rail_white_thickness - 0.5
                         ])
                         {
-                            rotate([0,0,90])
-                            WhiteTrack(height = rail_white_thickness + 1);
+                            rotate([ 0, 0, 90 ]) WhiteTrack(height = rail_white_thickness + 1);
                             translate([ -rail_white_length / 2, 0, rail_white_thickness / 2 ])
                                 sphere(r = 7, anchor = BOTTOM);
                         }
@@ -483,12 +486,13 @@ module TrackBox(generate_lid = true) // `make` me
             }
         }
     }
-    if (generate_lid)
-    {
-        translate([ 0, track_box_length + 10, 0 ]) CapBoxLidWithLabel(
-            width = track_box_width, length = track_box_length, height = track_box_height, text_width = 70,
-            text_height = 20, text_str = "Tracks", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
-    }
+}
+
+module TrackBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = track_box_width, length = track_box_length, height = track_box_height, text_width = 70,
+                       text_height = 20, text_str = "Tracks", wall_thickness = wall_thickness,
+                       lid_thickness = lid_thickness);
 }
 
 module BoxLayout()
@@ -497,36 +501,36 @@ module BoxLayout()
     cube([ 1, box_length, box_height ]);
     translate([ 0, 0, board_thickness ])
     {
-        PlayerBox(generate_lid = false);
-        translate([ player_box_width, 0, 0 ]) PlayerBox(generate_lid = false);
-        translate([ 0, 0, player_box_height ]) PlayerBox(generate_lid = false);
-        translate([ player_box_width, 0, player_box_height ]) PlayerBox(generate_lid = false);
-        translate([ 0, 0, player_box_height * 2 ]) ExtraTokensBox(generate_lid = false);
-        translate([ player_box_width, 0, player_box_height * 2 ]) MoneyBox(generate_lid = false);
-        translate([ 0, player_box_length, 0 ]) TrainBox(generate_lid = false);
-        translate([ 0, player_box_length, player_box_height ]) EngineerBox(generate_lid = false);
-        translate([ 0, player_box_length + engineer_box_length, 0 ]) TrackBox(generate_lid = false);
+        PlayerBox();
+        translate([ player_box_width, 0, 0 ]) PlayerBox();
+        translate([ 0, 0, player_box_height ]) PlayerBox();
+        translate([ player_box_width, 0, player_box_height ]) PlayerBox();
+        translate([ 0, 0, player_box_height * 2 ]) ExtraTokensBox();
+        translate([ player_box_width, 0, player_box_height * 2 ]) MoneyBox();
+        translate([ 0, player_box_length, 0 ]) TrainBox();
+        translate([ 0, player_box_length, player_box_height ]) EngineerBox();
+        translate([ 0, player_box_length + engineer_box_length, 0 ]) TrackBox();
     }
 }
 
 module PrintLayout()
 {
-    PlayerBox(generate_lid = true);
+    PlayerBox();
     translate([ player_box_width + 10, 0, 0 ])
     {
-        ExtraTokensBox(generate_lid = false);
+        ExtraTokensBox();
         translate([ extra_tokens_box_width + 10, 0, 0 ])
         {
-            MoneyBox(generate_lid = false);
+            MoneyBox();
             translate([ money_box_width + 10, 0, 0 ])
             {
-                TrainBox(generate_lid = false);
+                TrainBox();
                 translate([ train_box_width + 10, 0, 0 ])
                 {
-                    EngineerBox(generate_lid = false);
+                    EngineerBox();
                     translate([ engineer_box_width + 10, 0, 0 ])
                     {
-                        TrackBox(generate_lid = false);
+                        TrackBox();
                     }
                 }
             }

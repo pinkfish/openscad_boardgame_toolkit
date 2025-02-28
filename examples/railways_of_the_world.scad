@@ -130,18 +130,6 @@ echo([ top_section_height, new_city_box_width, new_city_box_length, box_width - 
 
 module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_height = 20)
 {
-    box_length = CardBoxWidth(num_cards);
-    translate([ box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
-    {
-        MakeBoxWithSlidingLid(width = card_box_width, length = box_length, height = all_boxes_height,
-                              lid_thickness = lid_thickness, wall_thickness = wall_thickness, lid_on_length = true)
-        {
-            cube([ $inner_width, $inner_length, all_boxes_height - lid_thickness ]);
-            translate([ card_box_width / 2, box_length / 2, all_boxes_height - 28 + 0.01 - lid_thickness / 2 ])
-                FingerHoleWall(radius = 25, height = 28, depth_of_hole = card_box_width + 2, orient = UP,
-                               rounding_radius = 5);
-        }
-    }
     if (generate_lid)
     {
         translate([ box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ]) SlidingBoxLidWithLabel(
@@ -149,9 +137,24 @@ module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_h
             text_height = text_height, text_str = text_str, label_rotated = false, wall_thickness = 2,
             lid_on_length = true, label_colour = "black") children();
     }
+    else
+    {
+        box_length = CardBoxWidth(num_cards);
+        translate([ box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
+        {
+            MakeBoxWithSlidingLid(width = card_box_width, length = box_length, height = all_boxes_height,
+                                  lid_thickness = lid_thickness, wall_thickness = wall_thickness, lid_on_length = true)
+            {
+                cube([ $inner_width, $inner_length, all_boxes_height - lid_thickness ]);
+                translate([ card_box_width / 2, box_length / 2, all_boxes_height - 28 + 0.01 - lid_thickness / 2 ])
+                    FingerHoleWall(radius = 25, height = 28, depth_of_hole = card_box_width + 2, orient = UP,
+                                   rounding_radius = 5);
+            }
+        }
+    }
 }
 
-module CardBoxEasternUS(generate_lid = true) // `make` me
+module CardBoxEasternUS() // `make` me
 {
     translate([ eastern_us_card_box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
     {
@@ -179,30 +182,32 @@ module CardBoxEasternUS(generate_lid = true) // `make` me
             // Bond section.
         }
     }
-    if (generate_lid)
+}
+
+module CardBoxEasternUSLid() // `make` me
+
+{
+    text_str = "Eastern US";
+    text_width = 80;
+    text_height = 20;
+    rotate([ 0, 0, 90 ])
     {
-        text_str = "Eastern US";
-        text_width = 80;
-        text_height = 20;
-        translate([ eastern_us_card_box_length * 2 + 10, 0, 0 ]) rotate([ 0, 0, 90 ])
+        SlidingBoxLidWithLabel(width = card_box_width, length = eastern_us_card_box_length,
+                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                               text_str = text_str, label_rotated = false, label_colour = "black",
+                               label_width_offset = -5)
         {
-            SlidingBoxLidWithLabel(width = card_box_width, length = eastern_us_card_box_length,
-                                   lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                                   text_str = text_str, label_rotated = false, label_colour = "black",
-                                   label_width_offset = -5)
+            translate([ 25, 40, 0 ]) rotate(270)
             {
-                translate([ 25, 40, 0 ]) rotate(270)
-                {
-                    UnitedStatesFlag(length = 30, white_height = lid_thickness, red_height = 1.5, blue_height = 1.5,
-                                     border = 1, solid_background = true);
-                }
+                UnitedStatesFlag(length = 30, white_height = lid_thickness, red_height = 1.5, blue_height = 1.5,
+                                 border = 1, solid_background = true);
             }
         }
     }
 }
-module CardBoxAustralia(generate_lid = true) // `make` me
+module CardBoxAustralia() // `make` me
 {
-    CardBox(australia_cards, "Australia", generate_lid = generate_lid, text_width = 45, text_height = 14)
+    CardBox(australia_cards, "Australia", generate_lid = false, text_width = 45, text_height = 14)
     {
         translate([ 17, 27, 0 ]) rotate(90)
         {
@@ -212,14 +217,31 @@ module CardBoxAustralia(generate_lid = true) // `make` me
     }
 }
 
-module CardBoxMexico(generate_lid = true) // `make` me
+module CardBoxAustraliaLid() // `make` me
 {
-    CardBox(mexico_cards, "Mexico", generate_lid = generate_lid);
+    CardBox(australia_cards, "Australia", , text_width = 45, text_height = 14)
+    {
+        translate([ 17, 27, 0 ]) rotate(90)
+        {
+            AustralianFlag(length = 30, white_height = 2, red_height = 1.5, blue_height = 1, border = 1,
+                           solid_background = generate_mmu);
+        }
+    }
 }
 
-module CardBoxSweden(generate_lid = true) // `make` me
+module CardBoxMexico() // `make` me
 {
-    CardBox(sweden_cards, "Sweden", generate_lid = generate_lid)
+    CardBox(mexico_cards, "Mexico", generate_lid = false);
+}
+
+module CardBoxMexicoLid() // `make` me
+{
+    CardBox(mexico_cards, "Mexico", );
+}
+
+module CardBoxSweden() // `make` me
+{
+    CardBox(sweden_cards, "Sweden", generate_lid = false)
     {
         translate([ 12, 18, 0 ]) rotate(90)
         {
@@ -228,12 +250,28 @@ module CardBoxSweden(generate_lid = true) // `make` me
     }
 }
 
-module CardBoxPortugal(generate_lid = true) // `make` me
+module CardBoxSwedenLid() // `make` me
 {
-    CardBox(portugal_cards, "Portugal", generate_lid = generate_lid);
+    CardBox(sweden_cards, "Sweden", )
+    {
+        translate([ 12, 18, 0 ]) rotate(90)
+        {
+            SwedenFlag(length = 20, height = lid_thickness, border = 1, solid_background = generate_mmu);
+        }
+    }
 }
 
-module PlayerBoxWithPlasticExtras(generate_lid = true) // `make` me
+module CardBoxPortugal() // `make` me
+{
+    CardBox(portugal_cards, "Portugal", generate_lid = false);
+}
+
+module CardBoxPortugalLid() // `make` me
+{
+    CardBox(portugal_cards, "Portugal", );
+}
+
+module PlayerBoxWithPlasticExtras() // `make` me
 {
     card_height = train_card_thickness * 4 + 0.5;
     MakeBoxWithInsetLidTabbed(width = player_box_width, length = player_box_plastic_extra_length,
@@ -292,32 +330,27 @@ module PlayerBoxWithPlasticExtras(generate_lid = true) // `make` me
         ]) FingerHoleBase(radius = 10, height = player_box_height - 1 + 0.01, wall_thickness = wall_thickness * 2,
                           spin = 270, rounding_radius = 5, floor_thickness = 1);
     };
+}
 
-    if (generate_lid)
+module PlayerBoxWithPlasticExtrasLid() // `make` me
+{
+    text_str = "Player";
+    text_width = 80;
+    text_height = 30;
+
+    difference()
     {
-        text_str = "Player";
-        text_width = 80;
-        text_height = 30;
-        translate([ player_box_width + 10, 0, 0 ])
-        {
-            difference()
-            {
-                InsetLidTabbedWithLabel(width = player_box_width, length = player_box_plastic_extra_length,
-                                        lid_thickness = lid_thickness, text_width = text_width,
-                                        text_height = text_height, text_str = text_str, label_rotated = true,
-                                        label_colour = "black");
-                translate(
-                    [ player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5 ])
-                    cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
-                translate(
-                    [ player_box_width - 56, player_box_silo_lid_hole_second - player_box_silo_lid_hole_size, 0.5 ])
-                    cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
-            }
-        }
+        InsetLidTabbedWithLabel(width = player_box_width, length = player_box_plastic_extra_length,
+                                lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                                text_str = text_str, label_rotated = true, label_colour = "black");
+        translate([ player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5 ])
+            cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
+        translate([ player_box_width - 56, player_box_silo_lid_hole_second - player_box_silo_lid_hole_size, 0.5 ])
+            cube([ 50, player_box_silo_lid_hole_size, lid_thickness + 1 ]);
     }
 }
 
-module PlayerBox(generate_lid = true) // `make` me
+module PlayerBox() // `make` me
 {
     card_height = train_card_thickness * 4 + 1;
     lid_thickness = 1.7;
@@ -347,59 +380,61 @@ module PlayerBox(generate_lid = true) // `make` me
             translate([ player_marker_diameter / 2, 0, 10 ]) sphere(r = 10);
         }
     }
-    if (generate_lid)
-    {
-        translate([ player_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = player_box_width, length = player_box_length, height = player_box_small_height, text_width = 70,
-            text_height = 15, text_str = "Player", lid_thickness = 1.7, label_colour = "black");
-    }
 }
 
-module PlayerBoxTrains(generate_lid = true)
+module PlayerBoxLid() // `make` me
+{
+    CapBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_small_height,
+                       text_width = 70, text_height = 15, text_str = "Player", lid_thickness = 1.7,
+                       label_colour = "black");
+}
+
+module PlayerBoxTrains() // `make` me
 {
     MakeBoxWithSlidingLid(width = player_box_width, length = player_box_trains_length, height = player_box_height,
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness, floor_thickness = 1)
     {
         cube([ $inner_width, $inner_length, empty_city_height ]);
     }
-    if (generate_lid)
-    {
-        text_str = "Trains";
-        text_width = 60;
-        text_height = 20;
-        translate([ player_box_width + 10, 0, 0 ])
-            SlidingBoxLidWithLabel(width = player_box_width, length = player_box_trains_length,
-                                   lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                                   text_str = text_str, label_rotated = false, label_colour = "black");
-    }
 }
 
-module EmptyCityBox(generate_lid = true) // `make` me
+module PlayerBoxTrainsLid() // `make` me
+{
+    text_str = "Trains";
+    text_width = 60;
+    text_height = 20;
+    SlidingBoxLidWithLabel(width = player_box_width, length = player_box_trains_length, lid_thickness = lid_thickness,
+                           text_width = text_width, text_height = text_height, text_str = text_str,
+                           label_rotated = false, label_colour = "black");
+}
+
+module EmptyCityBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = empty_city_width, length = empty_city_length, height = empty_city_height,
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness)
     {
         cube([ $inner_width, $inner_length, empty_city_height ]);
     }
-    if (generate_lid)
+}
+
+module EmptyCityBoxLid() // `make` me
+{
+    text_str = "Empty City";
+    text_width = 80;
+    text_height = 20;
+
+    SlidingLid(empty_city_width, empty_city_length, lid_thickness = lid_thickness)
     {
-        text_str = "Empty City";
-        text_width = 80;
-        text_height = 20;
-        translate([ empty_city_width + 10, 0, 0 ])
-            SlidingLid(empty_city_width, empty_city_length, lid_thickness = lid_thickness)
-        {
-            translate([ 10, 10, 0 ]) LidMeshHex(width = empty_city_width, length = empty_city_length,
-                                                lid_thickness = lid_thickness, boundary = 10, radius = 12);
-            translate([ (empty_city_width + text_height) / 2, (empty_city_length - text_width) / 2, 0 ])
-                rotate([ 0, 0, 90 ])
-                    MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
-                                        label = text_str, border = wall_thickness, offset = 4, label_colour = "black");
-        }
+        translate([ 10, 10, 0 ]) LidMeshHex(width = empty_city_width, length = empty_city_length,
+                                            lid_thickness = lid_thickness, boundary = 10, radius = 12);
+        translate([ (empty_city_width + text_height) / 2, (empty_city_length - text_width) / 2, 0 ])
+            rotate([ 0, 0, 90 ])
+                MakeStripedLidLabel(width = text_width, length = text_height, lid_thickness = lid_thickness,
+                                    label = text_str, border = wall_thickness, offset = 4, label_colour = "black");
     }
 }
 
-module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0) // `make` me
+module MoneyBox(extra_length = 0, extra_width = 0) // `make` me
 {
     MakeBoxWithSlidingLid(width = money_section_width + extra_width, length = money_section_length + extra_length,
                           height = top_section_height, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
@@ -408,37 +443,37 @@ module MoneyBox(generate_lid = true, extra_length = 0, extra_width = 0) // `make
 
         translate([ money_section_width / 2, 0, top_section_height - 20 ]) FingerHoleBase(radius = 15, height = 20);
     }
-    if (generate_lid)
-    {
-        text_str = "Money";
-        text_width = 80;
-        text_height = 20;
-        translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-            width = money_section_width + extra_width, length = money_section_length + extra_length,
-            lid_thickness = lid_thickness, text_width = text_width, text_height = text_height, text_str = text_str,
-            label_rotated = true, label_colour = "black");
-    }
 }
 
-module HexBox(generate_lid = true, extra_height = 0) // `make` me
+module MoneyBoxLid(extra_length = 0, extra_width = 0) // `make` me
+{
+    text_str = "Money";
+    text_width = 80;
+    text_height = 20;
+    SlidingBoxLidWithLabel(width = money_section_width + extra_width, length = money_section_length + extra_length,
+                           lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                           text_str = text_str, label_rotated = true, label_colour = "black");
+}
+
+module HexBox(extra_height = 0) // `make` me
 {
     MakeBoxWithCapLid(width = hex_box_width, length = hex_box_length, height = top_section_height + extra_height)
     {
         HexGridWithCutouts(rows = 4, cols = 5, height = top_section_height + extra_height, spacing = 0,
                            push_block_height = 0.25, tile_width = tile_width);
     }
-    if (generate_lid)
-    {
-        text_str = "Tracks";
-        text_width = 80;
-        text_height = 20;
-        translate([ 6.5 * tile_width, 0, 0 ]) CapBoxLidWithLabel(
-            width = hex_box_width, length = hex_box_length, height = top_section_height + extra_height,
-            text_width = text_width, text_height = text_height, text_str = text_str, label_colour = "black");
-    }
 }
 
-module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0) // `make` me
+module HexBoxLid(extra_height = 0) // `make` me
+{
+    text_str = "Tracks";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = hex_box_width, length = hex_box_length, height = top_section_height + extra_height,
+                       text_width = text_width, text_height = text_height, text_str = text_str, label_colour = "black");
+}
+
+module NewCityBox(extra_width = 0, extra_length = 0) // `make` me
 {
     MakeBoxWithCapLid(width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
                       height = top_section_height, lid_thickness = lid_thickness, wall_thickness = wall_thickness)
@@ -465,19 +500,19 @@ module NewCityBox(generate_lid = true, extra_width = 0, extra_length = 0) // `ma
             translate([ 7.75, 0, 3 ]) sphere(r = 8, anchor = BOTTOM);
         }
     }
-    if (generate_lid)
-    {
-        text_str = "New Cities";
-        text_width = 80;
-        text_height = 20;
-        translate([ new_city_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
-            height = top_section_height, lid_thickness = lid_thickness, text_width = text_width,
-            text_height = text_height, text_str = text_str, label_rotated = false, label_colour = "black");
-    }
 }
 
-module SwedenBox(generate_lid = true) // `make` me
+module NewCityBoxLid(extra_width = 0, extra_length = 0) // `make` me
+{
+    text_str = "New Cities";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = new_city_box_width + extra_width, length = new_city_box_length + extra_length,
+                       height = top_section_height, lid_thickness = lid_thickness, text_width = text_width,
+                       text_height = text_height, text_str = text_str, label_rotated = false, label_colour = "black");
+}
+
+module SwedenBox() // `make` me
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -518,26 +553,25 @@ module SwedenBox(generate_lid = true) // `make` me
         translate([ 0, $inner_length - sweden_flag_wid * 3 / 2 - 10, $inner_height - 1 ]) linear_extrude(height = 50)
             text("Sweden", font = "Stencil Std:style=Bold", size = 15);
     }
-    if (generate_lid)
+}
+
+module SwedenBoxLid() // `make` me
+{
+    text_str = "Sweden";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
+                       lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = false, label_colour = "black") translate([ 84, 58, 0 ])
+        scale(0.25) rotate([ 0, 0, 90 ]) color("lightblue") linear_extrude(height = lid_thickness) difference()
     {
-        text_str = "Sweden";
-        text_width = 80;
-        text_height = 20;
-        translate([ sweden_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
-                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false, label_colour = "black")
-                translate([ 84, 58, 0 ]) scale(0.25) rotate([ 0, 0, 90 ]) color("lightblue")
-                    linear_extrude(height = lid_thickness) difference()
-        {
-            // Offset fixes the svg error.
-            offset(delta = 0.001) import("svg/sweden.svg");
-            offset(-4) import("svg/sweden.svg");
-        }
+        // Offset fixes the svg error.
+        offset(delta = 0.001) import("svg/sweden.svg");
+        offset(-4) import("svg/sweden.svg");
     }
 }
 
-module AustraliaBox(generate_lid = true) // `make` me
+module AustraliaBox() // `make` me
 {
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
@@ -645,20 +679,20 @@ module AustraliaBox(generate_lid = true) // `make` me
             offset(-4) fill() import("svg/australia.svg");
         }
     }
-    if (generate_lid)
+}
+
+module AustraliaBoxLid() // `make` me
+{
+    text_str = "Australia";
+    text_width = 80;
+    text_height = 20;
+    CapBoxLidWithLabel(width = australia_box_width, length = australia_box_length, height = top_section_height,
+                       lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
+                       text_str = text_str, label_rotated = false, label_colour = "black") translate([ 44, 15, 0 ])
+        color("blue") linear_extrude(height = lid_thickness) scale(0.3) difference()
     {
-        text_str = "Australia";
-        text_width = 80;
-        text_height = 20;
-        translate([ australia_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = australia_box_width, length = australia_box_length, height = top_section_height,
-                               lid_thickness = lid_thickness, text_width = text_width, text_height = text_height,
-                               text_str = text_str, label_rotated = false, label_colour = "black")
-                translate([ 44, 15, 0 ]) color("blue") linear_extrude(height = lid_thickness) scale(0.3) difference()
-        {
-            fill() import("svg/australia.svg");
-            offset(-4) fill() import("svg/australia.svg");
-        }
+        fill() import("svg/australia.svg");
+        offset(-4) fill() import("svg/australia.svg");
     }
 }
 
@@ -755,35 +789,33 @@ module BoxLayout(plastic_player_box = false)
 {
     module PlayerBoxTrainsRotated()
     {
-        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBoxTrains(generate_lid = false);
+        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBoxTrains();
     }
     module PlayerBoxSmallRotated()
     {
-        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBox(generate_lid = false);
+        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBox();
     }
     module PlayerBoxes()
     {
-        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBox(generate_lid = false);
-        translate([ player_box_length, player_box_width, 0 ]) rotate([ 0, 0, -90 ])
-            PlayerBoxTrains(generate_lid = false);
+        translate([ 0, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBox();
+        translate([ player_box_length, player_box_width, 0 ]) rotate([ 0, 0, -90 ]) PlayerBoxTrains();
     }
     cube([ 1, box_length, box_height ]);
     cube([ box_width, box_length, total_board_thickness ]);
     translate([ 0, 0, total_board_thickness ])
     {
-        CardBoxEasternUS(generate_lid = false);
-        translate([ eastern_us_card_box_length, 0, 0 ]) CardBoxAustralia(generate_lid = false);
-        translate([ eastern_us_card_box_length + CardBoxWidth(australia_cards), 0, 0 ])
-            CardBoxSweden(generate_lid = false);
+        CardBoxEasternUS();
+        translate([ eastern_us_card_box_length, 0, 0 ]) CardBoxAustralia();
+        translate([ eastern_us_card_box_length + CardBoxWidth(australia_cards), 0, 0 ]) CardBoxSweden();
         translate([ eastern_us_card_box_length + CardBoxWidth(australia_cards) + CardBoxWidth(sweden_cards), 0, 0 ])
-            CardBoxMexico(generate_lid = false);
+            CardBoxMexico();
         translate([
             eastern_us_card_box_length + CardBoxWidth(australia_cards) + CardBoxWidth(sweden_cards) +
                 CardBoxWidth(mexico_cards),
             0, 0
-        ]) CardBoxPortugal(generate_lid = false);
-        translate([ 0, card_box_width, 0 ]) EmptyCityBox(generate_lid = false);
-        translate([ 0, card_box_width + empty_city_length, 0 ]) EmptyCityBox(generate_lid = false);
+        ]) CardBoxPortugal();
+        translate([ 0, card_box_width, 0 ]) EmptyCityBox();
+        translate([ 0, card_box_width + empty_city_length, 0 ]) EmptyCityBox();
         if (plastic_player_box)
         {
             translate([ empty_city_width, card_box_width, 0 ]) PlayerBoxes();
@@ -793,11 +825,10 @@ module BoxLayout(plastic_player_box = false)
             translate([ empty_city_width, card_box_width + player_box_width, player_box_height ]) PlayerBoxes();
             translate([ empty_city_width, card_box_width + player_box_width * 2, player_box_height ]) PlayerBoxes();
             translate([ 0, card_box_width + money_section_width, player_box_height * 2 ]) rotate([ 0, 0, -90 ])
-                MoneyBox(generate_lid = false);
-            translate([ 0, card_box_width + money_section_width, player_box_height * 2 ]) HexBox(generate_lid = false);
-            translate([ hex_box_width, card_box_width + money_section_width, player_box_height * 2 ])
-                HexBox(generate_lid = false);
-            translate([ money_section_length, card_box_width, player_box_height * 2 ]) NewCityBox(generate_lid = false);
+                MoneyBox();
+            translate([ 0, card_box_width + money_section_width, player_box_height * 2 ]) HexBox();
+            translate([ hex_box_width, card_box_width + money_section_width, player_box_height * 2 ]) HexBox();
+            translate([ money_section_length, card_box_width, player_box_height * 2 ]) NewCityBox();
         }
         else
         {
@@ -824,23 +855,23 @@ module BoxLayout(plastic_player_box = false)
                 ]) PlayerBoxSmallRotated();
             }
             translate([ empty_city_width + player_box_trains_length, card_box_width + player_box_width, 0 ])
-                HexBox(generate_lid = false, extra_height = hex_box_extra_height);
+                HexBox(, extra_height = hex_box_extra_height);
             translate([
                 empty_city_width + player_box_trains_length, card_box_width + player_box_width, top_section_height +
                 hex_box_extra_height
-            ]) HexBox(generate_lid = false, extra_height = hex_box_extra_height);
+            ]) HexBox(, extra_height = hex_box_extra_height);
             translate([
                 empty_city_width + player_box_trains_length, card_box_width + player_box_width,
                 top_section_height * 2 + hex_box_extra_height * 2
-            ]) MoneyBox(generate_lid = false, extra_length = new_city_extra_width, extra_width = new_city_extra_length);
+            ]) MoneyBox(, extra_length = new_city_extra_width, extra_width = new_city_extra_length);
             translate([
                 empty_city_width + player_box_trains_length + money_section_width + new_city_box_length +
                     new_city_extra_length * 2,
                 card_box_width + player_box_width, top_section_height * 2 + hex_box_extra_height * 2
-            ]) rotate([ 0, 0, 90 ]) NewCityBox(generate_lid = false, extra_length = new_city_extra_length,
-                                               extra_width = new_city_extra_width);
-            translate([ 0, card_box_width, empty_city_height ]) AustraliaBox(generate_lid = false);
-            translate([ 0, card_box_width + australia_box_length, empty_city_height ]) SwedenBox(generate_lid = false);
+            ]) rotate([ 0, 0, 90 ])
+                NewCityBox(, extra_length = new_city_extra_length, extra_width = new_city_extra_width);
+            translate([ 0, card_box_width, empty_city_height ]) AustraliaBox();
+            translate([ 0, card_box_width + australia_box_length, empty_city_height ]) SwedenBox();
             translate([
                 empty_city_width + player_box_trains_length,
                 card_box_width + player_box_width + money_section_length + new_city_extra_width, 0
@@ -855,7 +886,7 @@ module BoxLayout(plastic_player_box = false)
     }
 }
 
-module PrintLayout(plastic_player_box = false, generate_lid = true)
+module PrintLayout(plastic_player_box = false, )
 {
     module PlayerBoxes()
     {
