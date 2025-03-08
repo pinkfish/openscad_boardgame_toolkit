@@ -133,23 +133,23 @@ module ShieldOutline()
 
 module StandingBox() // `make` me
 {
-    total_height = (animal_thickness + inner_width) * 6 + wall_thickness * 3;
+    total_height = (animal_thickness + inner_wall) * 6 + wall_thickness * 3;
 
-    difference()
+    color(default_material_colour) difference()
     {
         cuboid(
             [
-                animal_max_width + wall_thickness * 2, (animal_thickness + inner_width) * 6 + wall_thickness * 2,
-                animal_length -
+                animal_max_width + wall_thickness * 2, (animal_thickness + inner_wall) * 6 + wall_thickness * 2,
+                animal_max_length -
                 wall_thickness
             ],
             anchor = BOTTOM + FRONT);
         for (i = [0:1:5])
         {
-            translate([ 0, i * (animal_thickness + inner_width) + wall_thickness, wall_thickness ])
-                cuboid([ animal_max_width, animal_thickness, animal_length ], anchor = BOTTOM + FRONT);
+            translate([ 0, i * (animal_thickness + inner_wall) + wall_thickness, wall_thickness ])
+                cuboid([ animal_max_width, animal_thickness, animal_max_length ], anchor = BOTTOM + FRONT);
         }
-        translate([ 0, total_height - 1, animal_length ]) rotate([ 90, 0, 0 ]) linear_extrude(height = total_height)
+        translate([ 0, total_height - 1, animal_max_length ]) rotate([ 90, 0, 0 ]) linear_extrude(height = total_height)
             ellipse([ animal_max_width / 2, animal_max_width * 3 / 4 ], $fn = 64);
     }
 }

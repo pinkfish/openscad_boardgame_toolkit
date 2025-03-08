@@ -126,8 +126,6 @@ sweden_box_length = empty_city_length;
 australia_box_width = expansion_area_box_width;
 australia_box_length = empty_city_length - 0.5;
 
-echo([ top_section_height, new_city_box_width, new_city_box_length, box_width - money_section_length * 2 ]);
-
 module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_height = 20)
 {
     if (generate_lid)
@@ -158,7 +156,6 @@ module CardBoxEasternUS() // `make` me
 {
     translate([ eastern_us_card_box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
     {
-
         union()
         {
             MakeBoxWithSlidingLid(width = card_box_width, length = eastern_us_card_box_length,
@@ -219,7 +216,7 @@ module CardBoxAustralia() // `make` me
 
 module CardBoxAustraliaLid() // `make` me
 {
-    CardBox(australia_cards, "Australia", , text_width = 45, text_height = 14)
+    CardBox(australia_cards, "Australia", text_width = 45, text_height = 14)
     {
         translate([ 17, 27, 0 ]) rotate(90)
         {
@@ -855,21 +852,21 @@ module BoxLayout(plastic_player_box = false)
                 ]) PlayerBoxSmallRotated();
             }
             translate([ empty_city_width + player_box_trains_length, card_box_width + player_box_width, 0 ])
-                HexBox(, extra_height = hex_box_extra_height);
+                HexBox(extra_height = hex_box_extra_height);
             translate([
                 empty_city_width + player_box_trains_length, card_box_width + player_box_width, top_section_height +
                 hex_box_extra_height
-            ]) HexBox(, extra_height = hex_box_extra_height);
+            ]) HexBox(extra_height = hex_box_extra_height);
             translate([
                 empty_city_width + player_box_trains_length, card_box_width + player_box_width,
                 top_section_height * 2 + hex_box_extra_height * 2
-            ]) MoneyBox(, extra_length = new_city_extra_width, extra_width = new_city_extra_length);
+            ]) MoneyBox(extra_length = new_city_extra_width, extra_width = new_city_extra_length);
             translate([
                 empty_city_width + player_box_trains_length + money_section_width + new_city_box_length +
                     new_city_extra_length * 2,
                 card_box_width + player_box_width, top_section_height * 2 + hex_box_extra_height * 2
             ]) rotate([ 0, 0, 90 ])
-                NewCityBox(, extra_length = new_city_extra_length, extra_width = new_city_extra_width);
+                NewCityBox(extra_length = new_city_extra_length, extra_width = new_city_extra_width);
             translate([ 0, card_box_width, empty_city_height ]) AustraliaBox();
             translate([ 0, card_box_width + australia_box_length, empty_city_height ]) SwedenBox();
             translate([

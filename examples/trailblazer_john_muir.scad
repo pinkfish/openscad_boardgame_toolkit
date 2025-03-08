@@ -121,11 +121,6 @@ weather_tokens_box_width = destination_card_box_width;
 weather_tokens_box_length =
     box_width - trails_card_box_length - field_guide_card_box_length - destination_card_box_length - 2;
 weather_tokens_box_height = destination_card_box_height;
-
-echo([
-    (weather_tokens_box_height - 6) / card_board_token_thickness, (resource_box_height - 6) / card_board_token_thickness
-]);
-
 module TentToken(height)
 {
     linear_extrude(height)
@@ -373,7 +368,7 @@ module BoxLayout()
         translate([ 0, player_box_length, 0 ]) PlayerBox();
         translate([ 0, player_box_length * 2, 0 ]) PlayerBox();
         translate([ 0, player_box_length * 3, 0 ]) PlayerBox(fale);
-        translate([ 0, 0, player_box_height ]) ResourceBox(, resource_num = 0);
+        translate([ 0, 0, player_box_height ]) ResourceBox(resource_num = 0);
         translate([ 0, player_box_length, player_box_height ]) ResourceBox(resource_num = 1);
         translate([ 0, player_box_length * 2, player_box_height ]) ResourceBox(resource_num = 2);
         translate([ 0, player_box_length * 3, player_box_height ]) ResourceBox(resource_num = 3);
