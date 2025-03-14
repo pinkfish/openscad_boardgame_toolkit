@@ -128,12 +128,6 @@ predator_box_height = box_height - food_token_box_height - minions_of_the_meadow
 predator_box_width = minions_of_the_meadow_box_width;
 predator_box_length = minions_of_the_meadow_box_length;
 
-echo([
-    tile_thickness * (tile_num_standard + tile_num_start) + 4, tile_box_height, food_token_box_width, aphid_box_height,
-    box_height - thickness_to_stuff, (num_mm_cards + total_cards) * twenty_sleeved_cards_thickness / 20,
-    predator_box_height
-]);
-
 module GreatTunnel()
 {
     apothem = tile_width / 2;
@@ -536,8 +530,7 @@ module BoxLayout()
         translate([ 0, tile_box_length, 0 ]) CardBox();
         translate([ 0, tile_box_length, card_box_height ]) MinionsOfTheMeadowCardBox();
         translate([ card_box_width, tile_box_length, 0 ]) MinionsOfTheMeadowBox();
-        translate([ card_box_width, tile_box_length, minions_of_the_meadow_box_height ])
-            FoodTokenBox();
+        translate([ card_box_width, tile_box_length, minions_of_the_meadow_box_height ]) FoodTokenBox();
         translate([ card_box_width, tile_box_length, minions_of_the_meadow_box_height + food_token_box_height ])
             PredatorBox();
         for (i = [0:1:2])
@@ -545,12 +538,10 @@ module BoxLayout()
             translate([ 0, tile_box_length + card_box_length, player_box_height * i ]) PlayerBox();
             if (i < 2)
             {
-                translate([ player_box_width, tile_box_length + card_box_length, player_box_height * i ])
-                    PlayerBox();
+                translate([ player_box_width, tile_box_length + card_box_length, player_box_height * i ]) PlayerBox();
             }
         }
-        translate([ player_box_width, tile_box_length + card_box_length, player_box_height * 2 ])
-            AphidBox();
+        translate([ player_box_width, tile_box_length + card_box_length, player_box_height * 2 ]) AphidBox();
     }
 }
 

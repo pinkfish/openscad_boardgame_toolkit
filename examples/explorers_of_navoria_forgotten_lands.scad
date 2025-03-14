@@ -80,22 +80,25 @@ player_overlay_width = 73;
 
 specied_token_diameter = 25;
 
-faction_skill_box_width = faction_skill_width + default_wall_thickness * 2 + 1;
-faction_skill_box_length = faction_skill_main_length * 2 + default_wall_thickness * 3 + 1;
-faction_skill_box_height =
-    default_floor_thickness + default_lid_thickness + num_faction_tiles * player_layout_thickness + 2;
-
-card_box_width = box_width - player_box_width - 2;
-card_box_length = box_length - faction_skill_box_length - 2;
-card_box_height = box_height - board_thickness;
-
 bits_box_width = box_width - player_box_width - 2;
-bits_box_length = faction_skill_box_length;
-bits_box_height = default_lid_thickness + default_floor_thickness + 6;
+bits_box_length = faction_skill_main_length * 2 + default_wall_thickness * 3 + 1;
+bits_box_height = default_lid_thickness + default_floor_thickness + marker_thickness + 1;
 
 tokens_box_height = box_height - player_box_height - 1;
 tokens_box_width = player_box_width;
 tokens_box_length = player_box_length;
+
+faction_skill_box_width = faction_skill_width + default_wall_thickness * 2 + 1;
+faction_skill_box_length = bits_box_length;
+faction_skill_box_height = box_height - bits_box_height - board_thickness - 1;
+
+filler_box_width = bits_box_width - faction_skill_box_width;
+filler_box_length = bits_box_length;
+filler_box_height = faction_skill_box_height;
+
+card_box_width = box_width - player_box_width - 2;
+card_box_length = box_length - faction_skill_box_length - 2;
+card_box_height = box_height - board_thickness - 1;
 
 module TradingPostWhite(height)
 {
@@ -654,6 +657,19 @@ module BitsBox() // `make` me
             $inner_height - token_thickness * 2 - 0.9
         ]) CuboidWithIndentsBottom([ exploration_tiles_width, exploration_tiles_length, token_thickness * 2 + 1 ],
                                    finger_holes = [ 0, 4 ], finger_hole_radius = 20);
+
+        translate([ $inner_width - specied_token_diameter, specied_token_diameter / 2, 0.5 ])
+            CylinderWithIndents(radius = specied_token_diameter / 2, height = marker_thickness + 1,
+                                finger_holes = [ 0, 180 ], finger_hole_radius = 10);
+        translate([ $inner_width - specied_token_diameter, specied_token_diameter * 7 / 2, 0.5 ])
+            CylinderWithIndents(radius = specied_token_diameter / 2, height = marker_thickness + 1,
+                                finger_holes = [ 0, 180 ], finger_hole_radius = 10);
+        translate([ $inner_width - specied_token_diameter * 2 - 4, specied_token_diameter * 7 / 2, 0.5 ])
+            CylinderWithIndents(radius = specied_token_diameter / 2, height = marker_thickness + 1,
+                                finger_holes = [ 0, 180 ], finger_hole_radius = 10);
+        translate([ $inner_width - specied_token_diameter / 2, specied_token_diameter * 3 / 2, 0.5 ])
+            CylinderWithIndents(radius = specied_token_diameter / 2, height = marker_thickness + 1,
+                                finger_holes = [ 80, 270 ], finger_hole_radius = 10);
     }
 }
 
@@ -679,6 +695,18 @@ module TokensBoxLid() // `make` me
         width = tokens_box_width, length = tokens_box_length, text_width = 70, text_height = 20, text_str = "Contract");
 }
 
+module SpacerBox() // `make` me
+{
+    color("purple") translate([ filler_box_width / 2, filler_box_length / 2, filler_box_height / 2 ]) difference()
+    {
+        cuboid([ filler_box_width, filler_box_length, filler_box_height ], rounding = 2);
+        translate([ 0, 0, default_floor_thickness ]) cuboid([
+            filler_box_width - default_wall_thickness * 2, filler_box_length - default_wall_thickness * 2,
+            filler_box_height
+        ]);
+    }
+}
+
 module BoxLayout()
 {
     cube([ 1, box_length, expansion_box_height ]);
@@ -692,6 +720,7 @@ module BoxLayout()
     translate([ 0, player_box_length, player_box_height ]) TokensBox();
     translate([ player_box_width, 0, 0 ]) BitsBox();
     translate([ player_box_width, 0, bits_box_height ]) FactionSkillTiles();
+    translate([ player_box_width + faction_skill_box_width, 0, bits_box_height ]) SpacerBox();
 
     translate([ player_box_width, faction_skill_box_length, 0 ]) CardBox();
 }

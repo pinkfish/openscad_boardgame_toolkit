@@ -16,7 +16,7 @@ for fname in onlyfiles:
     with open(fname, 'r') as file:
        for line in file:
            line = line.strip()
-           x = re.search("^module *([a-zA-Z_-]*)\\(.*\\).*`make` me", line)
+           x = re.search("^module *([a-zA-Z0-9_-]*)\\(.*\\).*`make` me", line)
            if x:
                fdata = re.search(".*/(.*).scad", fname)
                # Search and replace.
@@ -34,13 +34,14 @@ with open("generate.makefile", "w") as mfile:
         mfile.write("release/{0}/{1}.stl: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
         mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make -o $@ -d output/{0}__{1}.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
         # Create the scad file.
-        scad_script = "MAKE_MMU = 0;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
+        scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
         file_data = ""
-        if os.path.exists('output/{0}__{1}.scad'):
-            with open('output/{0}__{1}.scad', 'r') as file:
+        output_fname = "output/{0}__{1}.scad".format(d.basename, d.module)
+        if os.path.exists(output_fname):
+            with open(output_fname, 'r') as file:
                 file_data = file.read()
         # Only write the file if it is different.
         if file_data != scad_script:
-            with open("output/{0}__{1}.scad".format(d.basename, d.module), "w") as f:
+            with open(output_fname, "w") as f:
                 f.write(scad_script)
                 f.close()

@@ -195,9 +195,10 @@ module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole
 //    finger_hole_radius = the radius to use for the finger holes
 // Examples:
 //    CylinderWithIndents(15, 10, finger_holes = [30, 210]);
-module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef)
+module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef,
+                           anchor = BOTTOM)
 {
-    cyl(r = radius, h = height, anchor = BOTTOM);
+    cyl(r = radius, h = height, anchor = anchor);
     calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
     for (i = [0:1:len(finger_holes) - 1])
     {
@@ -212,12 +213,21 @@ module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height
     children();
 }
 
+function HoleToPosition(pos) = (pos == 0   ? FRONT
+                                : pos == 1 ? FRONT + RIGHT
+                                : pos == 2 ? RIGHT
+                                : pos == 3 ? RIGHT + BACK
+                                : pos == 4 ? BACK
+                                : pos == 5 ? BACK + LEFT
+                                : pos == 6 ? LEFT
+                                : pos == 7 ? LEFT + FRONT
+                                           : FRONT);
+
 // Module: CuboidWithIndentsBottom()
 // Description:
 //    Makes a nice cuboid with finger holes bits at the specific sides, this anchors to the bottom.
 //    The holes are at:
-//    [top=0, topright=1, right=2, bottomright=3, bottom=4,
-//       bottomleft=5, left=6, topleft=7 ]
+//    [LEFT + FRONT, RIGHT+BACK, LEFT, RIGHT, FRONT, BACK, ]
 // Arguments:
 //    size = size of the cuboid
 //    finger_holes = finger holes at the specified places
@@ -227,16 +237,16 @@ module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [1, 5]);
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [0, 4]);
-module CuboidWithIndentsBottom(size, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef,
-                               rounding = undef, edges = undef)
+module CuboidWithIndentsBottom(size, finger_holes = [], finger_positions = [], finger_hole_height = 0,
+                               finger_hole_radius = undef, rounding = undef, edges = undef, anchor = BOTTOM)
 {
-    cuboid(size, anchor = BOTTOM, rounding = rounding, edges = edges);
     calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
     mult = [ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ], [ 0, -1 ], [ 1, -1 ] ];
-    for (i = [0:1:len(finger_holes) - 1])
+    poses = len(finger_positions) > 0 ? finger_positions : [for (x = finger_holes) HoleToPosition(x)];
+    cuboid(size, anchor = anchor, rounding = rounding, edges = edges) for (i = [0:1:len(poses) - 1])
     {
-        data = mult[finger_holes[i]];
-        translate([ size[0] / 2 * data[0], size[1] / 2 * data[1], finger_hole_height ])
+        //    data = mult[finger_holes[i]];
+        position(poses[i]) translate([ 0, 0, finger_hole_height - size[2] / 2 ])
             cyl(r = calc_finger_hole_radius, h = size[2] + calc_finger_hole_radius * 2, anchor = BOTTOM,
                 rounding = calc_finger_hole_radius);
     }
