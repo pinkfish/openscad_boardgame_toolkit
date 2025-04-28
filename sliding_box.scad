@@ -59,49 +59,53 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
                   lid_rounding = undef, lid_chamfer = undef, lid_on_length = false,
                   material_colour = default_material_colour)
 {
+    calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
+    calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+    calc_lid_rounding = DefaultValue(lid_rounding, calc_wall_thickness / 2);
+    calc_lid_chamfer = DefaultValue(lid_chamfer, calc_wall_thickness / 6);
     if (lid_on_length)
     {
         translate([ 0, length, 0 ]) rotate([ 0, 0, 270 ])
-            SlidingLid(length, width, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                       size_spacing = size_spacing, lid_rounding = lid_rounding, lid_chamfer = lid_chamfer,
+            SlidingLid(length, width, lid_thickness = calc_lid_thickness, wall_thickness = calc_wall_thickness,
+                       size_spacing = size_spacing, lid_rounding = calc_lid_rounding, lid_chamfer = calc_lid_chamfer,
                        lid_on_length = false, material_colour = material_colour)
         {
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 0)
                 {
                     children(0);
                 }
             }
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 1)
                 {
                     children(1);
                 }
             }
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 2)
                 {
                     children(2);
                 }
             }
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 3)
                 {
                     children(3);
                 }
             }
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 4)
                 {
                     children(4);
                 }
             }
-            translate([ length - wall_thickness / 2, -wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
+            translate([ length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0 ]) rotate([ 0, 0, -270 ])
             {
                 if ($children > 5)
                 {
@@ -112,10 +116,6 @@ module SlidingLid(width, length, lid_thickness = undef, wall_thickness = undef, 
     }
     else
     {
-        calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
-        calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
-        calc_lid_rounding = DefaultValue(lid_rounding, calc_wall_thickness / 2);
-        calc_lid_chamfer = DefaultValue(lid_chamfer, calc_wall_thickness / 6);
         internal_build_lid(width, length, calc_lid_thickness, calc_wall_thickness)
         {
             difference()

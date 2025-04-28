@@ -40,28 +40,28 @@ board_length = 245;
 board_middle_width = 20;
 board_middle_gap_width = 46;
 
-wind_speed_direction_width = 80;
-wind_speed_direction_length = 80;
+wind_speed_direction_width = 81.5;
+wind_speed_direction_length = 81.5;
 wind_speed_middle_hole = 51;
 wind_speed_corner_radius = 2;
 
 blue_airplane_disameter = 50.5;
 
-ice_brakes_width = 65;
-ice_brakes_length = 113;
+ice_brakes_width = 66;
+ice_brakes_length = 114;
 
-kerosene_length = 184;
-kerosene_width = 35;
+kerosene_board_length = 184;
+kerosene_board_width = 35.5;
 
-intern_board_length = 185;
-intern_board_width = 28;
+intern_board_length = 186;
+intern_board_width = 29.5;
 
 rules_player_stuff_thickness = 6;
 
 airplan_angle_diameter = 60;
 airplae_angle_thickness = 5;
 
-cards_width = 62;
+cards_width = 68;
 cards_length = 92;
 card_thickness = 4;
 
@@ -70,11 +70,11 @@ num__dice = 8;
 
 switch_width = 10.5;
 
-intern_width = 15;
-intern_length = 25;
+intern_width = 15.5;
+intern_length = 26;
 intern_top_length = 5;
-intern_top_width = 11;
-intern_bottom_top_width = 9;
+intern_top_width = 12;
+intern_bottom_top_width = 10;
 
 reroll_token_diameter = 16.5;
 
@@ -111,7 +111,13 @@ buttons_box_width = approach_track_box_width;
 buttons_box_length = (box_length - 2) / 12;
 buttons_box_height = dice_box_height - approach_track_box_height;
 
-echo([buttons_box_height]);
+card_box_width = cards_length + default_wall_thickness * 2 + 1;
+card_box_length = cards_width + default_wall_thickness * 2 + 1;
+card_box_height = dice_box_height;
+
+spacer_width = box_width - approach_track_box_width - dice_box_width - 2;
+spacer_length = dice_box_length - card_box_length;
+spacer_height = dice_box_height;
 
 module WindSpeedPiece(height)
 {
@@ -151,26 +157,44 @@ module BasePiecesOne() // `make` me
 {
     MakeBoxWithSlidingLid(width = bottom_boxes_width, length = bottom_boxes_length, height = bottom_boxes_height)
     {
-        translate([ 5, 8, $inner_height - double_board_thickness - 0.5 ]) CuboidWithIndentsBottom(
-            [ keroscene_width, kerosene_length, double_board_thickness + 0.6 ], anchor = BOTTOM + LEFT + FRONT,
-            finger_positions = [ BACK, FRONT ], finger_hole_radius = 10);
-        translate([ $inner_width - intern_board_width, 10, $inner_height - double_board_thickness - 0.5 ])
-            CuboidWithIndentsBottom([ intern_board_width, intern_board_length, double_board_thickness + 0.6 ],
+        translate([ 0, 8, $inner_height - double_board_thickness - 0.5 ])
+        {
+            CuboidWithIndentsBottom([ kerosene_board_width, kerosene_board_length, double_board_thickness + 0.6 ],
+                                    anchor = BOTTOM + LEFT + FRONT, finger_positions = [ BACK, FRONT ],
+                                    finger_hole_radius = 10);
+            translate([ kerosene_board_width / 2, kerosene_board_length / 2, -1 ]) rotate([ 0, 0, 90 ])
+                linear_extrude(height = 2) text("Kerosene", halign = "center", valign = "center");
+        }
+        translate([ $inner_width - intern_board_width, 10, $inner_height - single_board_thickness - 0.5 ])
+        {
+            CuboidWithIndentsBottom([ intern_board_width, intern_board_length, single_board_thickness + 0.6 ],
                                     anchor = BOTTOM + LEFT + FRONT, finger_positions = [ BACK, FRONT ],
                                     finger_hole_radius = 15);
-        for (i = [0:6])
+            translate([ intern_board_width / 2, intern_board_length / 2, -1 ]) rotate([ 0, 0, 90 ])
+                linear_extrude(height = 2) text("Intern", halign = "center", valign = "center");
+        }
+        for (i = [0:5])
         {
             translate(
-                [ $inner_width / 2 - 7, 20 + (intern_width + 10) * i, $inner_height - single_board_thickness - 0.5 ])
+                [ $inner_width / 2 + 3, 20 + (intern_length + 14) * i, $inner_height - single_board_thickness - 0.5 ])
             {
-                rotate([ 0, 0, 90 ])
-                {
-                    InternPiece(height = single_board_thickness + 1);
-                    translate([ 0, 0, -1 ]) linear_extrude(height = 2)
-                        text(str(i + 1), halign = "center", valign = "center");
-                }
-                translate([ 2, intern_width / 2, 0 ]) cyl(r = 9, h = 20, rounding = 5, anchor = BOTTOM);
+                InternPiece(height = single_board_thickness + 1);
+                translate([ 0, 0, -1 ]) linear_extrude(height = 2)
+                    text(str(i + 1), halign = "center", valign = "center");
+
+                translate([ 0, intern_length / 2, 0 ]) cyl(r = 9, h = 20, rounding = 5, anchor = BOTTOM);
             }
+        }
+        // 7th one
+        translate([
+            $inner_width / 2 + 3 - intern_width - 5, 20 + (intern_length + 14) * 5,
+            $inner_height - single_board_thickness - 0.5
+        ])
+        {
+            InternPiece(height = single_board_thickness + 1);
+            translate([ 0, 0, -1 ]) linear_extrude(height = 2) text(str(7), halign = "center", valign = "center");
+
+            translate([ 0, intern_length / 2, 0 ]) cyl(r = 9, h = 20, rounding = 5, anchor = BOTTOM);
         }
     }
 }
@@ -179,15 +203,22 @@ module BasePiecesTwo() // `make` me
 {
     MakeBoxWithSlidingLid(width = bottom_boxes_width, length = bottom_boxes_length, height = bottom_boxes_height)
     {
-        translate([ 10, 12, $inner_height - double_board_thickness - 0.5 ]) CuboidWithIndentsBottom(
-            [ ice_brakes_width, ice_brakes_length, double_board_thickness + 0.6 ], anchor = BOTTOM + LEFT + FRONT,
-            finger_positions = [ BACK, FRONT ], finger_hole_radius = 20);
+        translate([ 10, 12, $inner_height - double_board_thickness - 0.5 ])
+        {
+            CuboidWithIndentsBottom([ ice_brakes_width, ice_brakes_length, double_board_thickness + 0.6 ],
+                                    anchor = BOTTOM + LEFT + FRONT, finger_positions = [ BACK, FRONT ],
+                                    finger_hole_radius = 20);
+            translate([ ice_brakes_width / 2, ice_brakes_length / 2, -1 ]) rotate([ 0, 0, 90 ])
+                linear_extrude(height = 2) text("Ice Brakes", halign = "center", valign = "center");
+        }
         translate([ 1, $inner_length - wind_speed_direction_length - 2, $inner_height - single_board_thickness - 0.5 ])
         {
             WindSpeedPiece(height = single_board_thickness + 0.6);
             translate([ wind_speed_direction_width / 2, 0, 0 ]) cyl(r = 20, h = 40, rounding = 20, anchor = BOTTOM);
             translate([ wind_speed_direction_width - 12, wind_speed_direction_length - 12, 0 ])
                 cyl(r = 20, h = 40, rounding = 20, anchor = BOTTOM);
+            translate([ wind_speed_direction_width / 2, wind_speed_direction_length / 2, -1 ]) rotate([ 0, 0, 135 ])
+                linear_extrude(height = 2) text("Wind Speed", halign = "center", valign = "center");
         }
     }
 }
@@ -204,13 +235,13 @@ module ApproachTracks() // `make` me
                           height = approach_track_box_height)
     {
         translate([ 0, 0, $inner_height - approach_track_thickness_8 - 0.5 ])
-            cube([ approach_track_width, approach_track_length_8, approach_track_thickness_8 + 1 ]);
+            cube([ approach_track_width + 1, approach_track_length_8, approach_track_thickness_8 + 1 ]);
         translate([ 0, 0, $inner_height - approach_track_thickness_7 - 1 ])
-            cube([ approach_track_width, approach_track_length_7, approach_track_thickness_7 + 1.25 ]);
+            cube([ approach_track_width + 1, approach_track_length_7, approach_track_thickness_7 + 1.25 ]);
         translate([ 0, 0, $inner_height - approach_track_thickness_6 - 1.5 ])
-            cube([ approach_track_width, approach_track_length_6, approach_track_thickness_6 + 1.75 ]);
+            cube([ approach_track_width + 1, approach_track_length_6, approach_track_thickness_6 + 1.75 ]);
         translate([ 0, 0, $inner_height - approach_track_thickness_5 - 2 ])
-            cube([ approach_track_width, approach_track_length_5, approach_track_thickness_5 + 2.5 ]);
+            cube([ approach_track_width + 1, approach_track_length_5, approach_track_thickness_5 + 2.5 ]);
         translate([ $inner_width / 2, 0, 0 ]) FingerHoleWall(radius = 10, height = approach_track_thickness_5 + 2.01);
     }
 }
@@ -258,11 +289,51 @@ module ButtonsBoxDouble() // `make` me
     }
 }
 
+module ButtonsBoxOnePointFive() // `make` me
+{
+    MakeBoxWithSlidingLid(width = buttons_box_width, length = buttons_box_length * 1.5, height = buttons_box_height)
+    {
+        RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = $inner_height + 5, radius = 5);
+    }
+}
+
 module ButtonsBoxTripple() // `make` me
 {
     MakeBoxWithSlidingLid(width = buttons_box_width, length = buttons_box_length * 3, height = buttons_box_height)
     {
         RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = $inner_height + 5, radius = 5);
+    }
+}
+
+module CardBox() // `make` me
+{
+    MakeBoxWithSlidingLid(width = card_box_width, length = card_box_length, height = card_box_height,
+                          lid_on_length = true)
+    {
+        cube([ $inner_width, $inner_length, card_box_height ]);
+        translate([ 0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01 ])
+            FingerHoleBase(radius = 20, height = card_box_height, spin = 270);
+    }
+}
+
+module CardsBoxLid() // `make` me
+{
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 70, text_height = 20,
+                           text_str = "Sky Team", label_rotated = false, lid_on_length = true);
+}
+
+module SpacerBox() // `make` me
+{
+    color("purple") translate([ spacer_width / 2, spacer_length / 2, 0 ]) difference()
+    {
+        cuboid([ spacer_width, spacer_length, spacer_height ], rounding = 2, anchor = BOTTOM,
+               edges = [ FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT ]);
+        translate([ 0, 0, default_floor_thickness ]) cuboid(
+            [
+                spacer_width - default_wall_thickness * 2, spacer_length - default_wall_thickness * 2,
+                spacer_height + 10
+            ],
+            anchor = BOTTOM, rounding = 1);
     }
 }
 
@@ -294,6 +365,11 @@ module ButtonsBoxLid() // `make` me
                     {
                         SlidingBoxLidWithLabel(width = buttons_box_width, length = buttons_box_length, text_width = 30,
                                                text_height = 15, text_str = "Kero");
+                        translate([ buttons_box_width + 10, 0, 0 ])
+                        {
+                            SlidingBoxLidWithLabel(width = buttons_box_width, length = buttons_box_length * 2,
+                                                   text_width = 30, text_height = 15, text_str = "Stuff");
+                        }
                     }
                 }
             }
@@ -318,6 +394,8 @@ module BoxLayout()
         translate([ 0, buttons_box_length * 7, bottom_boxes_height + approach_track_box_height ]) ButtonsBoxDouble();
         translate([ 0, buttons_box_length * 9, bottom_boxes_height + approach_track_box_height ]) ButtonsBoxTripple();
         translate([ approach_track_box_width, 0, bottom_boxes_height ]) DiceBox();
+        translate([ approach_track_box_width + dice_box_width, 0, bottom_boxes_height ]) CardBox();
+        translate([ approach_track_box_width + dice_box_width, card_box_length, bottom_boxes_height ]) SpacerBox();
     }
 }
 
