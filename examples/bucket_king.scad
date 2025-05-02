@@ -189,5 +189,12 @@ module CardBox() // `make` me
 
 if (FROM_MAKE != 1)
 {
-    PlayerBox();
+    /*
+    hinge_diameter = 6;
+    hinge_width = hinge_diameter * 2 + 1;
+    hinge_length = 200 - 3 * 2;
+    hinge_offset = 0.5;
+    InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, diameter = hinge_diameter, spacing = 0.2);
+    */
+     PlayerBox();
 }

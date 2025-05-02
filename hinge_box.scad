@@ -45,8 +45,8 @@ module HingeCone(r, offset)
 {
     difference()
     {
-        cylinder(h = r, r1 = r, r2 = 0);
-        translate([ 0, 0, -0.01 ]) cylinder(h = r - offset, r1 = r - offset, r2 = 0);
+        cylinder(h = r, r1 = r, r2 = 0, $fn = 32);
+        translate([ 0, 0, -0.01 ]) cylinder(h = r - offset, r1 = r - offset, r2 = 0, $fn = 32);
     }
 }
 
@@ -88,10 +88,11 @@ module HingeLineWithSpacingAndNum(diameter, num, spacing, offset, spin = 90)
     length = num * diameter;
     rotate([ 0, 270, 0 ]) translate([ 0, 0, -length / 2 ])
     {
+
         difference()
         {
             cylinder(r = diameter / 2, h = length, $fn = 32);
-            for (i = [1:1:num - 1])
+            for (i = [1:1:num])
             {
                 translate([ 0, 0, spacing * i ]) mirror([ 0, 0, i % 2 ])
                     HingeCone(diameter / 2 - 0.01, offset, $fn = 32);
@@ -113,7 +114,8 @@ module HingeLineWithSpacingAndNum(diameter, num, spacing, offset, spin = 90)
             {
                 rotate([ 0, 0, spin ]) union()
                 {
-                    translate([ 0, 0, spacing * i + offset / 2 ]) cylinder(r = diameter / 2, h = diameter - offset);
+                    translate([ 0, 0, spacing * i + offset / 2 ])
+                        cylinder(r = diameter / 2, h = diameter - offset, $fn = 32);
                     translate([ 0, 0, spacing * i + diameter - diameter / 2 ]) union()
                     {
 
@@ -160,7 +162,7 @@ module HingeLineWithSpacingAndNum(diameter, num, spacing, offset, spin = 90)
 // Usage: InsetHinge(100, 20, 6, 0.5);
 // Example:
 //   InsetHinge(length = 100, width = 20, diameter = 6, offset = 0.5);
-module InsetHinge(length, width, diameter, offset)
+module InsetHinge(length, width, diameter, offset, spacing)
 {
     num = length / diameter;
     spacing = length / num;
@@ -229,7 +231,7 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
                                    floor_thickness = default_floor_thickness, hinge_offset = 0.5, gap = 1, side_gap = 3,
                                    print_layer_height = 0.2, lid_thickness = default_lid_thickness, prism_width = 0.75,
                                    tab_offset = 0.2, tab_length = 10, tab_height = 8,
-                                   material_colour = default_material_colour)
+                                   material_colour = default_material_colour, spacing = 0.2)
 {
     hinge_width = hinge_diameter * 2 + gap;
     hinge_length = length - side_gap * 2;
@@ -289,10 +291,11 @@ module MakeBoxAndLidWithInsetHinge(width, length, height, hinge_diameter = 6, wa
                 }
             }
         }
-        translate([ width - hinge_diameter - 0.01, side_gap, height / 2 - hinge_diameter - print_layer_height ])
-            color(material_colour) cube([ hinge_width + 0.02, hinge_length, hinge_diameter + 5 ]);
+        translate([ width - hinge_diameter - 0.01 - spacing, side_gap + spacing, height / 2 - hinge_diameter - print_layer_height ])
+            color(material_colour)
+                cube([ hinge_width + spacing * 2 + 0.02, hinge_length + spacing * 2, hinge_diameter + 5 ]);
     }
     translate([ width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 ]) rotate([ 0, 0, 90 ])
-        color(material_colour)
-            InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, diameter = hinge_diameter);
+        color(material_colour) InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset,
+                                          diameter = hinge_diameter, spacing = spacing);
 }
