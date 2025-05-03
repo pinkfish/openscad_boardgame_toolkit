@@ -123,6 +123,14 @@ track_box_length = train_box_length;
 track_box_width = train_box_width;
 track_box_height = train_box_height;
 
+spacer_stack_width = train_box_width;
+spacer_stack_length = train_box_length;
+spacer_stack_height = middle_height - train_box_height - engineer_box_height - track_box_height;
+
+spacer_width = box_width - 2;
+spacer_length = box_length - 2 - player_box_length - train_box_length;
+spacer_height = middle_height;
+
 module WhiteTrack(height)
 {
     difference()
@@ -473,6 +481,33 @@ module TrackBoxLid() // `make` me
                            text_str = "Tracks", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
+module SpacerStack() // `make` me
+{
+    difference()
+    {
+        color("yellow") cuboid([ spacer_stack_width, spacer_stack_length, spacer_stack_height ],
+                               anchor = BOTTOM + LEFT + FRONT, rounding = 2, $fn = 32);
+        translate([ wall_thickness, wall_thickness, default_floor_thickness ]) cuboid(
+            [
+                spacer_stack_width - wall_thickness * 2, spacer_stack_length - wall_thickness * 2,
+                spacer_stack_height + 10
+            ],
+            anchor = BOTTOM + LEFT + FRONT);
+    }
+}
+
+module SpacerSide() // `make` me
+{
+    difference()
+    {
+        color("yellow") cuboid([ spacer_width, spacer_length, spacer_height ], anchor = BOTTOM + LEFT + FRONT,
+                               rounding = 2, $fn = 32);
+        translate([ wall_thickness, wall_thickness, default_floor_thickness ])
+            cuboid([ spacer_width - wall_thickness * 2, spacer_length - wall_thickness * 2, spacer_height + 10 ],
+                   anchor = BOTTOM + LEFT + FRONT);
+    }
+}
+
 module BoxLayout()
 {
     cube([ box_width, box_length, board_thickness ]);
@@ -488,6 +523,8 @@ module BoxLayout()
         translate([ 0, player_box_length, 0 ]) TrainBox();
         translate([ 0, player_box_length, train_box_height ]) EngineerBox();
         translate([ 0, player_box_length, train_box_height + engineer_box_height ]) TrackBox();
+        translate([ 0, player_box_length, train_box_height + engineer_box_height + track_box_height ]) SpacerStack();
+        translate([ 0, player_box_length + train_box_length, 0 ]) SpacerSide();
     }
 }
 
@@ -547,5 +584,5 @@ module TestBox()
 
 if (FROM_MAKE != 1)
 {
-    ExtraTokensBox();
+    BoxLayout();
 }
