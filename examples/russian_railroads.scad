@@ -123,8 +123,6 @@ track_box_length = train_box_length;
 track_box_width = train_box_width;
 track_box_height = train_box_height;
 
-echo([player_box_height]);
-
 module WhiteTrack(height)
 {
     difference()
@@ -270,9 +268,8 @@ module PlayerBox() // `make` me
 
 module PlayerBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, height = player_box_height,
-                           text_width = 70, text_height = 20, text_str = "Player", wall_thickness = wall_thickness,
-                           lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, text_width = 70, text_height = 20,
+                           text_str = "Player", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module ExtraTokensBox() // `make` me
@@ -340,7 +337,7 @@ module ExtraTokensBox() // `make` me
             translate([ -extra_score_track_length / 2, 0, 0 ])
             {
                 xcyl(r = 7, h = 20, anchor = BOTTOM, $fn = 64);
-                translate([ 0, 0, default_lid_thickness +tile_thickness*2 - 0.4 ])
+                translate([ 0, 0, default_lid_thickness + tile_thickness * 2 - 0.4 ])
                     cuboid([ 14, 14, tile_thickness * 2 ], anchor = BOTTOM, rounding = -3,
                            edges = [ TOP + FRONT, TOP + BACK ], $fn = 64);
             }
@@ -354,8 +351,8 @@ module ExtraTokensBox() // `make` me
             translate([ extra_score_track_length / 2, 0, 0 ])
             {
                 xcyl(r = 7, h = 20, anchor = BOTTOM, $fn = 64);
-                translate([ 0, 0,  default_lid_thickness +tile_thickness*2 - 0.4 ])
-                    cuboid([ 14, 14, tile_thickness * 2  ], anchor = BOTTOM, rounding = -3,
+                translate([ 0, 0, default_lid_thickness + tile_thickness * 2 - 0.4 ])
+                    cuboid([ 14, 14, tile_thickness * 2 ], anchor = BOTTOM, rounding = -3,
                            edges = [ TOP + FRONT, TOP + BACK ], $fn = 64);
             }
         }
@@ -364,9 +361,9 @@ module ExtraTokensBox() // `make` me
 
 module ExtraTokensBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = extra_tokens_box_width, length = extra_tokens_box_length,
-                           height = extra_tokens_box_height, text_width = 70, text_height = 20, text_str = "Extra",
-                           wall_thickness = wall_thickness, lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = extra_tokens_box_width, length = extra_tokens_box_length, text_width = 70,
+                           text_height = 20, text_str = "Extra", wall_thickness = wall_thickness,
+                           lid_thickness = lid_thickness);
 }
 
 module MoneyBox() // `make` me
@@ -381,9 +378,8 @@ module MoneyBox() // `make` me
 
 module MoneyBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height,
-                           text_width = 70, text_height = 20, text_str = "Money", wall_thickness = wall_thickness,
-                           lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = money_box_width, length = money_box_length, text_width = 70, text_height = 20,
+                           text_str = "Money", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module TrainBox() // `make` me
@@ -412,9 +408,8 @@ module TrainBox() // `make` me
 
 module TrainBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = train_box_width, length = train_box_length, height = train_box_height,
-                           text_width = 70, text_height = 20, text_str = "Trains", wall_thickness = wall_thickness,
-                           lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = train_box_width, length = train_box_length, text_width = 70, text_height = 20,
+                           text_str = "Trains", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module EngineerBox() // `make` me
@@ -433,9 +428,8 @@ module EngineerBox() // `make` me
 
 module EngineerBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = engineer_box_width, length = engineer_box_length, height = engineer_box_height,
-                           text_width = 70, text_height = 20, text_str = "Engineers", wall_thickness = wall_thickness,
-                           lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = engineer_box_width, length = engineer_box_length, text_width = 70, text_height = 20,
+                           text_str = "Engineers", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module TrackBox() // `make` me
@@ -475,9 +469,8 @@ module TrackBox() // `make` me
 
 module TrackBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = track_box_width, length = track_box_length, height = track_box_height,
-                           text_width = 70, text_height = 20, text_str = "Tracks", wall_thickness = wall_thickness,
-                           lid_thickness = lid_thickness);
+    SlidingBoxLidWithLabel(width = track_box_width, length = track_box_length, text_width = 70, text_height = 20,
+                           text_str = "Tracks", wall_thickness = wall_thickness, lid_thickness = lid_thickness);
 }
 
 module BoxLayout()
