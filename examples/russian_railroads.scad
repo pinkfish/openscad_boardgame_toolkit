@@ -736,5 +736,5 @@ module TestBox()
 
 if (FROM_MAKE != 1)
 {
-    TrackBox();
+    BoxLayout();
 }
