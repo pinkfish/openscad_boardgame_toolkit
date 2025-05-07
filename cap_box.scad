@@ -86,6 +86,8 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
+//       {{CATCH_LENGTH}})
 // Usage: MakeBoxWithCapLid(100, 50, 20);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 20);
@@ -97,7 +99,7 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
                          wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
                          lid_wall_thickness = undef, lid_finger_hold_len = undef, finger_hold_height = 5,
                          floor_thickness = default_floor_thickness, material_colour = default_material_colour,
-                         last_child_positive = false)
+                         last_child_positive = false, lid_catch = CATCH_LENGTH)
 {
     calc_lid_wall_thickness =
         lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
@@ -128,6 +130,26 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
                     anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_wall_thickness,
                     edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
         }
+
+        // lid catches
+        translate([ 0, 0, height - calc_cap_height ])
+        {
+            if (lid_catch == CATCH_LENGTH)
+            {
+                translate([ (width / 6), 0, 0 ]) color(material_colour)
+                    wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+                translate([ (width * 5 / 6), length, 0 ]) rotate(180) color(material_colour)
+                    wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+            }
+            else if (lid_catch == CATCH_WIDTH)
+            {
+                translate([ width, length / 6, 0 ]) rotate(90) color(material_colour)
+                    wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+                translate([ 0, length * 5 / 6, 0 ]) rotate(270) color(material_colour)
+                    wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+            }
+        }
+
         // finger cutouts.
         translate([ 0, 0, height - calc_cap_height - calc_finger_hold_height ]) difference()
         {
@@ -214,7 +236,7 @@ module MakeBoxWithCapLid(width, length, height, cap_height = undef, lid_thicknes
 module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = default_lid_thickness,
                  wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
                  lid_wall_thickness = undef, lid_rounding = undef, lid_inner_rounding = undef,
-                 material_colour = default_material_colour)
+                 material_colour = default_material_colour, lid_catch = CATCH_LENGTH)
 {
     calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
     calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
@@ -267,6 +289,24 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
                 translate([ calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5 ]) color(material_colour) cube(
                     [ width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1 ]);
             }
+        }
+    }
+    // lid catches
+    translate([ 0, 0, height - calc_cap_height ])
+    {
+        if (lid_catch == CATCH_LENGTH)
+        {
+            translate([ (width * 5 / 6), 0, 0 ]) color(material_colour) rotate([ 0, 180, 0 ])
+                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+            translate([ (width / 6), length, 0 ]) rotate(180) rotate([ 0, 180, 0 ]) color(material_colour)
+                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+        }
+        else if (lid_catch == CATCH_WIDTH)
+        {
+            translate([ width, length * 5 / 6, 0 ]) rotate(90) color(material_colour) rotate([ 0, 180, 0 ])
+                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+            translate([ 0, length / 6, 0 ]) rotate(270) color(material_colour) rotate([ 0, 180, 0 ])
+                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
         }
     }
 }

@@ -119,6 +119,19 @@ SHAPE_TYPE_HILBERT = 10;
 //   Makes a nice cloud shape.
 SHAPE_TYPE_CLOUD = 11;
 
+// Constant: CATCH_NONE
+// Description:
+//   No catch associated with the lid.
+CATCH_NONE = 0;
+// Constant: CATCH_LENGTH
+// Description:
+//   Catch on the length side
+CATCH_LENGTH = 1;
+// Constant: CATCH_WIDTH
+// Description:
+//   Catch on the width side.
+CATCH_WIDTH = 2;
+
 // Module: DifferenceWithOffset()
 // Description:
 //   Helper function that does an offset with the size inside the difference of the object

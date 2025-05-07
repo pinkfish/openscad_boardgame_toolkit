@@ -26,6 +26,8 @@ default_wall_thickness = 2;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 
+default_label_solid_background = true; // MAKE_MMU == 1;
+
 inner_wall = 1;
 
 share_width = 46;
@@ -93,18 +95,30 @@ spacer_box_height = main_height - first_player_box_height;
 
 module MoneyBox1() // `make` me
 {
-    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1) for (i = [0:1:3])
+    module InnerPieces(show_everything)
     {
-        translate([ (money_width + inner_wall) * i, 0, 0 ])
-        {
-            difference()
+        for (i = [0:1:3])
+
+            translate([ (money_width + inner_wall) * i, 0, 0 ])
             {
-                cube([ money_width, money_length, money_box_height_1 ]);
-                translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
-                    text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
+                if (show_everything)
+                {
+                    cube([ money_width, money_length, money_box_height_1 ]);
+                    translate([ money_width / 2, 1.2, 0 ])
+                        FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
+                }
+                else
+                {
+                    translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
+                        text(money_names[i], font = "Stencil Std:style=Bold", anchor = CENTER);
+                }
             }
-            translate([ money_width / 2, 1.2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
-        }
+    }
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_1,
+                      last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(show_everything = true);
+        color("black") InnerPieces(show_everything = false);
     }
 }
 
@@ -116,18 +130,31 @@ module MoneyBox1Lid() // `make` me
 
 module MoneyBox2() // `make` me
 {
-    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2) for (i = [0:1:3])
+    module InnerPieces(show_everything)
     {
-        translate([ (money_width + inner_wall) * i, 0, 0 ])
+        for (i = [0:1:3])
         {
-            difference()
+            translate([ (money_width + inner_wall) * i, 0, 0 ])
             {
-                cube([ money_width, money_length, money_box_height_2 ]);
-                translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
-                    text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
+                if (show_everything)
+                {
+                    cube([ money_width, money_length, money_box_height_2 ]);
+                    translate([ money_width / 2, 1.2, 0 ])
+                        FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
+                }
+                else
+                {
+                    translate([ money_width / 2, money_length / 2, 0 ]) linear_extrude(height = 0.2)
+                        text(money_names[i + 4], font = "Stencil Std:style=Bold", anchor = CENTER);
+                }
             }
-            translate([ money_width / 2, 1.2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 0);
         }
+    }
+    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height_2,
+                      last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(show_everything = true);
+        color("black") InnerPieces(show_everything = false);
     }
 }
 
@@ -162,8 +189,7 @@ module HexBoxLid() // `make` me
 
 module SharesBox(offset)
 {
-    MakeBoxWithSlipoverLid(width = shares_box_width, length = shares_box_length, height = shares_height,
-                           wall_thickness = 1.5, foot = 2)
+    module InnerPieces(show_everything)
     {
         for (i = [0:1:1])
         {
@@ -171,22 +197,38 @@ module SharesBox(offset)
             {
                 if (i + offset + 1 < len(share_names))
                 {
-                    cube([ share_width, share_length, main_height ]);
-                    translate([ share_width / 2, share_length / 2, -0.4 ]) linear_extrude(height = 1) rotate(90)
+                    if (show_everything)
+                    {
+                        color("yellow") cube([ share_width, share_length, main_height ]);
+                    }
+                    translate([ share_width / 2, share_length / 2, -0.2 ]) linear_extrude(height = 0.2) rotate(90)
                         text(share_names[i + offset], font = "Stencil Std:style=Bold", anchor = CENTER, size = 4);
                 }
                 else
                 {
-                    translate([ share_width / 2, share_length / 2, $inner_height - 2 ]) linear_extrude(height = 20)
+                    translate([ share_width / 2, share_length / 2, $inner_height - 0.2 ]) linear_extrude(height = 0.2)
                         rotate(90) text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
                 }
             }
         }
-        translate([ -1, share_length / 2, 0 ]) FingerHoleBase(radius = 10, height = $inner_height, spin = 270);
-        if (offset != 6)
+        if (show_everything)
         {
-            translate([ -1, share_length / 2 + share_length, 0 ])
-                FingerHoleBase(radius = 10, height = $inner_height, spin = 270);
+            translate([ -1, share_length / 2, -default_floor_thickness - 0.1 ]) color("yellow")
+                FingerHoleBase(radius = 10, height = $inner_height + default_floor_thickness, spin = 270);
+            if (offset != 6)
+            {
+                translate([ -1, share_length / 2 + share_length, -default_floor_thickness - 0.1 ]) color("yellow")
+                    FingerHoleBase(radius = 10, height = $inner_height + default_floor_thickness, spin = 270);
+            }
+        }
+    }
+    MakeBoxWithSlipoverLid(width = shares_box_width, length = shares_box_length, height = shares_height,
+                           wall_thickness = 1.5, foot = 2, last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(show_everything = true);
+        if (default_label_solid_background)
+        {
+            color("black") InnerPieces(show_everything = false);
         }
     }
 }
@@ -210,16 +252,20 @@ module MiddleBox() // `make` me
 {
     token_depths = [ 1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4 ];
     labels = [ "White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R" ];
-    MakeBoxWithCapLid(width = middle_width, length = middle_length, height = middle_height)
+
+    module InnerPieces(show_everything)
     {
-        translate([ insert_width / 2, 11.5, $inner_height ]) linear_extrude(height = 5)
+        translate([ insert_width / 2, 11.5, $inner_height - 0.19 ]) linear_extrude(height = 0.2)
             text("1835", font = "Stencil Std:style=Bold", anchor = CENTER, size = 20);
         translate([ 47, first_player_box_height + default_wall_thickness + 15, 0 ])
         {
-            cube([ share_width + 0.5, share_length + 0.5, middle_height ]);
-            translate([ share_width / 2, share_length / 2, -0.5 ]) linear_extrude(height = 1) rotate(90)
+            if (show_everything)
+            {
+                cube([ share_width + 0.5, share_length + 0.5, middle_height ]);
+                translate([ share_width / 2, 0, 18 ]) cyl(r = 20, h = middle_height * 2, rounding = 12);
+            }
+            translate([ share_width / 2, share_length / 2, -0.19 ]) linear_extrude(height = 0.2) rotate(90)
                 text("Trains", font = "Stencil Std:style=Bold", anchor = CENTER, size = 10);
-            translate([ share_width / 2, 0, 0 ]) cyl(r = 15, h = middle_height * 2);
         }
         private_company_cards = share_thickness_twenty * 10 / 20 + 1;
         translate([
@@ -228,10 +274,13 @@ module MiddleBox() // `make` me
             private_company_cards
         ])
         {
-            cube([ share_width, share_length, private_company_cards ]);
-            translate([ share_width / 2, share_length / 2, -0.5 ]) linear_extrude(height = 1) rotate(90)
+            if (show_everything)
+            {
+                cube([ share_width, share_length, private_company_cards ]);
+                translate([ share_width / 2, share_length, 24 ]) cyl(r = 15, h = 50, rounding = 9);
+            }
+            translate([ share_width / 2, share_length / 2, -0.19 ]) linear_extrude(height = 0.2) rotate(90)
                 text("Private", font = "Stencil Std:style=Bold", anchor = CENTER, size = 10);
-            translate([ share_width / 2, share_length, 24 ]) cyl(r = 15, h = 50, rounding = 9);
         }
         translate([ 0, 0, 0 ]) for (i = [0:1:len(token_depths) - 1])
         {
@@ -239,20 +288,32 @@ module MiddleBox() // `make` me
 
             translate([ 0, (i < 4 ? i : i + 1) * (token_diameter + default_wall_thickness * 2 + 4) + 5, 0 ])
             {
-                for (j = [0:1:token_num - 1])
+                if (show_everything)
                 {
-                    translate([
-                        token_diameter / 2 + j * (token_diameter + 5), token_diameter / 2 + 3,
-                        token_thickness / 2 + insert_height - token_thickness - 0.45
-                    ])
+                    for (j = [0:1:token_num - 1])
                     {
-                        cyl(d = token_diameter, h = token_thickness + 1, $fn = 32);
-                        translate([ token_diameter / 2, 0, 7 ]) sphere(r = 7);
+                        translate([
+                            token_diameter / 2 + j * (token_diameter + 5), token_diameter / 2 + 3,
+                            token_thickness / 2 + insert_height - token_thickness - 0.45
+                        ])
+                        {
+                            cyl(d = token_diameter, h = token_thickness + 1, $fn = 32);
+                            translate([ token_diameter / 2, 0, 7 ]) sphere(r = 7);
+                        }
                     }
                 }
-                translate([ 2, -1, insert_height - 1 ]) linear_extrude(height = 2)
+                translate([ 2, -1, insert_height - 0.39 ]) linear_extrude(height = 0.2)
                     text(labels[i], font = "Stencil Std:style=Bold", anchor = LEFT, size = 4);
             }
+        }
+    }
+    MakeBoxWithCapLid(width = middle_width, length = middle_length, height = middle_height,
+                      last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(show_everything = true);
+        if (default_label_solid_background)
+        {
+            color("black") InnerPieces(show_everything = false);
         }
     }
 }
@@ -314,15 +375,11 @@ module BoxLayout()
     {
         MoneyBox1();
         translate([ 0, 0, money_box_height_1 ]) MoneyBox2();
-        translate([ 0, middle_width, money_box_height_1 + money_box_height_2 ]) rotate([ 0, 0, -90 ])
-            MiddleBox();
+        translate([ 0, middle_width, money_box_height_1 + money_box_height_2 ]) rotate([ 0, 0, -90 ]) MiddleBox();
         translate([ 0, money_box_length + hex_box_width, 0 ]) rotate([ 0, 0, -90 ]) HexBox();
-        translate([ 0, money_box_length + hex_box_width, hex_box_height ]) rotate([ 0, 0, -90 ])
-            HexBox();
-        translate([ 0, money_box_length + hex_box_width, hex_box_height * 2 ]) rotate([ 0, 0, -90 ])
-            HexBox();
-        translate([ 0, money_box_length + hex_box_width, hex_box_height * 3 ]) rotate([ 0, 0, -90 ])
-            HexBox();
+        translate([ 0, money_box_length + hex_box_width, hex_box_height ]) rotate([ 0, 0, -90 ]) HexBox();
+        translate([ 0, money_box_length + hex_box_width, hex_box_height * 2 ]) rotate([ 0, 0, -90 ]) HexBox();
+        translate([ 0, money_box_length + hex_box_width, hex_box_height * 3 ]) rotate([ 0, 0, -90 ]) HexBox();
         translate([ 0, money_box_length + hex_box_width + shares_box_width, 0 ]) rotate([ 0, 0, -90 ]) SharesBox(0);
         translate([ 0, money_box_length + hex_box_width + shares_box_width, shares_height ]) rotate([ 0, 0, -90 ])
             SharesBox(2);
@@ -340,5 +397,6 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    AllMoneyBoxes();
+    MiddleBox();
+    ;
 }

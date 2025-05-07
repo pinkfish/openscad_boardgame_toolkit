@@ -49,12 +49,16 @@ under the License.
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    last_child_postitive = if the last child in the list should be a postive, not negative
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
+//       {{CATCH_LENGTH}})
 // Example:
 //   MakeBoxWithSlipoverLid(100, 50, 10);
 module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wall_thickness, foot = 0,
                               size_spacing = m_piece_wiggle_room, wall_height = undef,
                               floor_thickness = default_floor_thickness, lid_thickness = default_lid_thickness,
-                              material_colour = default_material_colour)
+                              material_colour = default_material_colour, last_child_positive = false,
+                              lid_catch = CATCH_LENGTH)
 {
     wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
     difference()
@@ -77,10 +81,39 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
             }
         }
 
+        if (lid_catch == CATCH_LENGTH)
+        {
+            translate([ (width / 6), wall_thickness, foot ]) color(material_colour)
+                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+            translate([ (width * 5 / 6), length - wall_thickness, foot ]) rotate(180) color(material_colour)
+                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+        }
+        else if (lid_catch == CATCH_WIDTH)
+        {
+            translate([ width - wall_thickness, length / 6, foot ]) rotate(90) color(material_colour)
+                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+            translate([ wall_thickness, length * 5 / 6, foot ]) rotate(270) color(material_colour)
+                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+        }
+
         $inner_width = width - wall_thickness * 4;
         $inner_length = length - wall_thickness * 4;
         $inner_height = height - lid_thickness - floor_thickness;
-        translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children();
+        if (last_child_positive)
+        {
+            translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children([0:$children - 2]);
+        }
+        else
+        {
+            translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children();
+        }
+    }
+    if (last_child_positive)
+    {
+        $inner_width = width - wall_thickness * 2;
+        $inner_length = length - wall_thickness * 2;
+        $inner_height = height - lid_thickness - floor_thickness;
+        translate([ wall_thickness * 2, wall_thickness * 2, floor_thickness ]) children($children - 1);
     }
 }
 
@@ -96,16 +129,20 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   finger_hole_length = finger hole on the length side (default6 false)
+//   finger_hole_width = finger hole on the width side (default true)
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   lid_rounding = how much to round the lid (default wall_thickness)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
+//       {{CATCH_LENGTH}})
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
 module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickness,
                       wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room, foot = 0,
                       finger_hole_length = false, finger_hole_width = true, lid_rounding = undef,
-                      material_colour = default_material_colour)
+                      material_colour = default_material_colour, lid_catch = CATCH_LENGTH)
 {
     foot_offset = foot > 0 ? foot + size_spacing : 0;
     calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
@@ -170,6 +207,38 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
                         color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
                 }
             }
+
+            // lid catch
+            if (lid_catch == CATCH_LENGTH)
+            {
+                translate([ (width / 6) + size_spacing, wall_thickness, 0 ])
+                {
+                    color(material_colour) rotate([ 0, 0, 0 ]) wedge([
+                        width * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                    ]);
+                }
+                translate([ (width * 5 / 6) - size_spacing, length - wall_thickness, 0 ])
+                {
+                    rotate(180) rotate([ 0, 0, 0 ]) color(material_colour) wedge([
+                        width * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                    ]);
+                }
+            }
+            else if (lid_catch == CATCH_WIDTH)
+            {
+                translate([ width - wall_thickness, length / 6 + size_sizeing, 0 ])
+                {
+                    rotate(90) color(material_colour) wedge([
+                        length * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                    ]);
+                }
+                translate([ wall_thickness, length * 5 / 6 - size_spacing, 0 ])
+                {
+                    rotate(270) color(material_colour) wedge([
+                        length * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                    ]);
+                }
+            }
         }
     }
 }
@@ -201,6 +270,10 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_length = finger hole on the length side (default6 false)
+//    finger_hole_width = finger hole on the width side (default true)
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
+//       {{CATCH_LENGTH}})
 // Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -215,12 +288,12 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
                                           finger_hole_length = false, finger_hole_width = true,
                                           lid_pattern_dense = false, lid_dense_shape_edges = 6, label_colour = undef,
                                           material_colour = default_material_colour, label_solid_background = undef,
-                                          label_background_colour = undef)
+                                          label_background_colour = undef, lid_catch = CATCH_LENGTH)
 {
     SlipoverBoxLid(width, length, height, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
                    lid_rounding = lid_rounding, size_spacing = size_spacing, foot = foot,
                    finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width,
-                   material_colour = material_colour)
+                   material_colour = material_colour, lid_catch = lid_catch)
     {
         translate([ lid_boundary, lid_boundary, 0 ])
             LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
@@ -242,14 +315,6 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
                      material_colour = material_colour, label_colour = label_colour,
                      solid_background = DefaultValue(label_solid_background, default_label_solid_background),
                      label_background_colour = label_background_colour);
-
-        // Fingernail pull
-        intersection()
-        {
-            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ]) color(material_colour)
-                SlidingLidFingernail(lid_thickness);
-        }
 
         // Don't include the first child since is it used for the lid shape.
         if ($children > 1)
@@ -302,6 +367,10 @@ module SlipoverLidWithLabelAndCustomShape(width, length, height, text_width, tex
 //   label_solid_background = generate a solid label background, useful for mmu (default
 //   {{default_label_solid_background}})
 //   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//   finger_hole_length = finger hole on the length side (default6 false)
+//   finger_hole_width = finger hole on the width side (default true)
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
+//       {{CATCH_LENGTH}})
 // Example:
 //   SlipoverLidWithLabel(20, 100, 10, text_width = 50, text_height = 20, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14, label_rotated = true);
@@ -313,7 +382,7 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
                             finger_hole_length = false, finger_hole_width = true, font = undef, lid_rounding = undef,
                             shape_rounding = default_lid_shape_rounding, label_colour = undef,
                             material_colour = default_material_colour, label_solid_background = undef,
-                            label_background_colour = undef)
+                            label_background_colour = undef, lid_catch = CATCH_LENGTH)
 {
     SlipoverLidWithLabelAndCustomShape(
         width = width, length = length, height = height, wall_thickness = wall_thickness, lid_thickness = lid_thickness,
@@ -324,7 +393,7 @@ module SlipoverLidWithLabel(width, length, height, text_width, text_height, text
         finger_hole_length = finger_hole_length, finger_hole_width = finger_hole_width, foot = foot,
         lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
         material_colour = material_colour, label_solid_background = label_solid_background,
-        label_background_colour = label_background_colour)
+        label_background_colour = label_background_colour, lid_catch = lid_catch)
     {
         color(material_colour)
             ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,

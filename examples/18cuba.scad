@@ -23,6 +23,8 @@ box_width = 225;
 box_height = 68;
 box_hexes = 20;
 
+default_label_solid_background = MAKE_MMU == 1;
+
 money_biggest_thickness = 8.5;
 money_types = [ "1", "2", "5", "10", "20", "50", "100", "500" ];
 company_names = [
@@ -103,26 +105,39 @@ module Outline(height = 5, outline = 1.5, offset = 0.5)
 
     difference()
     {
-        linear_extrude(height = 5) offset(1.5) children();
-        translate([ 0, 0, -1 ]) linear_extrude(height = 10) offset(0.5) children();
+        linear_extrude(height = height) offset(outline) children();
+        translate([ 0, 0, -height ]) linear_extrude(height = height) offset(offset) children();
     }
 }
 
 module MoneyBox(offset = 0) // `make` me
 {
     MakeBoxWithSlipoverLid(length = money_box_length, width = money_box_width, height = money_box_height,
-                           lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness)
+                           lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness,
+                           last_child_positive = default_label_solid_background)
     {
         for (i = [0:1:3])
         {
             translate([ -0.2, i * (money_width + inner_wall + 0.5) + 12, 0 ])
             {
                 cube([ money_length + 0.5, money_width + 0.5, money_box_height ]);
-                translate([ -1, money_width / 2, 0 ])
+                translate([ -0.8, money_width / 2, -1 ])
                     FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
             }
-            translate([ money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.3 ])
+            translate([ money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.2 ])
                 linear_extrude(height = 2) text(money_types[i + offset], size = 10, anchor = CENTER);
+        }
+        if (default_label_solid_background)
+        {
+            union()
+            {
+                for (i = [0:1:3])
+                {
+                    color("black")
+                        translate([ money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.2 ])
+                            linear_extrude(height = 0.2) text(money_types[i + offset], size = 10, anchor = CENTER);
+                }
+            }
         }
     }
 }
@@ -136,30 +151,46 @@ module MoneyBoxLid(offset = 0) // `make` me
 
 module TrainBox() // `make` me
 {
-    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
-                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
+    module InnerPieces(show_everything)
     {
         for (i = [0:1:4])
         {
-            translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+            if (show_everything)
             {
-                cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
-                translate([ -1, train_card_width / 2, 0 ])
-                    FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+                translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+                {
+                    cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
+                    translate([ -1, train_card_width / 2, 0 ])
+                        FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+                }
             }
             if (i < 3)
             {
                 translate([
-                    (train_card_length - train_card_width) / 2 + 5, -5 + i * (train_card_width + inner_wall + 2), -0.3
-                ]) Outline(offset = 0.25) resize([ train_card_width / 2, train_card_width / 2 ]) TrainOutline();
+                    (train_card_length - train_card_width) / 2 + 5, -5 + i * (train_card_width + inner_wall + 2), -0.2
+                ]) Outline(offset = 0.25, height = 0.2) resize([ train_card_width / 2, train_card_width / 2 ])
+                    TrainOutline();
             }
             else
             {
                 translate([
-                    (train_card_length - train_card_width) / 2 + 7, i * (train_card_width + inner_wall + 2) + 12, -0.3
-                ]) Outline(offset = 0.1)
+                    (train_card_length - train_card_width) / 2 + 7, i * (train_card_width + inner_wall + 2) + 12, -0.2
+                ]) Outline(offset = 0.1, height = 0.2)
                     resize([ train_card_width / 2 * wagon_ratio_len, train_card_width / 2 * wagon_ratio_wid ])
                         WagonOutline();
+            }
+        }
+    }
+    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
+                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness,
+                           last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(true);
+        if (default_label_solid_background)
+        {
+            color("black") union()
+            {
+                InnerPieces(false);
             }
         }
     }
@@ -174,20 +205,35 @@ module TrainBoxLid() // `make` me
 
 module SharesBox(offset = 0, ) // `make` me
 {
-    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
-                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
+    module InnerPieces(show_everything)
     {
         for (i = [0:1:4])
         {
-            translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+            if (show_everything)
             {
-                cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
-                translate([ -1, train_card_width / 2, 0 ])
-                    FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+                translate([ -0.2, i * (train_card_width + inner_wall + 2), 0 ])
+                {
+                    cube([ train_card_length + 0.5, train_card_width + 0.5, train_box_height ]);
+                    translate([ -1, train_card_width / 2, 0 ])
+                        FingerHoleBase(radius = 10, height = money_box_height * 2, spin = 270);
+                }
             }
             translate(
-                [ train_card_length / 2 - 2 + 5, i * (train_card_width + inner_wall + 2) + train_card_width / 2, -0.3 ])
-                linear_extrude(height = 2) text(company_names[i + offset], size = 4, anchor = CENTER);
+                [ train_card_length / 2 - 2 + 5, i * (train_card_width + inner_wall + 2) + train_card_width / 2, -0.2 ])
+                linear_extrude(height = 0.2) text(company_names[i + offset], size = 4, anchor = CENTER);
+        }
+    }
+    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
+                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness,
+                           last_child_positive = default_label_solid_background)
+    {
+        InnerPieces(true);
+        if (default_label_solid_background)
+        {
+            color("black") union()
+            {
+                InnerPieces(show_everything = false);
+            }
         }
     }
 }
@@ -200,54 +246,91 @@ module SharesBoxLid(offset = 0, ) // `make` me
 
 module LastBox() // `make` me
 {
-    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
-                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness)
+    module InnerPieces(show_everything)
     {
-        cube([ train_card_length, train_card_width, train_box_height ]);
-        translate([ train_card_length / 2 - 2, train_card_width / 2, -0.3 ]) linear_extrude(height = 2)
+        if (show_everything)
+        {
+            cube([ train_card_length, train_card_width, train_box_height ]);
+        }
+        translate([ train_card_length / 2 - 2, train_card_width / 2, -0.2 ]) linear_extrude(height = 0.2)
             text("Concession", size = 4.7, anchor = CENTER);
         for (i = [0:1:9])
         {
             // Cylinder for tokens.
-            translate([
-                2.3, train_card_width + 4 + (token_diameter + 1) * i, train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            translate([
-                24.2, train_card_width + 4 + (token_diameter + 1) * i, train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            last_i = i > 7 ? i + 1 : i;
-            translate([
-                46.2, train_card_width + 4 + (token_diameter + 1) * last_i,
-                train_box_height - 1 - token_thin_thickness - 0.5
-            ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            // finger holes for tokens.
-            translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-            translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 15.2 ]) cuboid([ 12, 12, 12 ]);
-            translate([ 57, train_card_width + 9.4 + (token_diameter + 1) * last_i, 10.5 ])
-                xcyl(r = 6, h = 10, $fn = 32);
-            translate([ 57, train_card_width + 9.4 + (token_diameter + 1) * last_i, 15.2 ]) cuboid([ 12, 12, 12 ]);
-            // finger indent for the middle secxtion
-            translate([ 37, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5 ]) sphere(r = 6, $fn = 32);
-            // Text associated with the tokens.
-            translate(
-                [ 18.5, train_card_width + 9.4 + (token_diameter + 1) * i, train_box_height - lid_thickness - 0.4 ])
-                linear_extrude(height = 2) text(minor_companies[i], size = 3.2, anchor = CENTER);
+            if (show_everything)
+            {
+                translate([
+                    2.3, train_card_width + 4 + (token_diameter + 1) * i,
+                    train_box_height - 1 - token_thin_thickness - 0.5
+                ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
+                       $fn = 64);
+                translate([
+                    24.2, train_card_width + 4 + (token_diameter + 1) * i,
+                    train_box_height - 1 - token_thin_thickness - 0.5
+                ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
+                       $fn = 64);
+                last_i = i > 7 ? i + 1 : i;
+                translate([
+                    46.2, train_card_width + 4 + (token_diameter + 1) * last_i,
+                    train_box_height - 1 - token_thin_thickness - 0.5
+                ]) cyl(d = token_diameter + 0.5, h = token_thin_thickness + 1, anchor = FRONT + LEFT + BOTTOM,
+                       $fn = 64);
+
+                // finger holes for tokens.
+                if (show_everything)
+                {
+
+                    translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5 ])
+                        xcyl(r = 6, h = 10, $fn = 32);
+                    translate([ 0, train_card_width + 9.4 + (token_diameter + 1) * i, 15.2 ]) cuboid([ 12, 12, 12 ]);
+                    translate([ 57, train_card_width + 9.4 + (token_diameter + 1) * last_i, 10.5 ])
+                        xcyl(r = 6, h = 10, $fn = 32);
+                    translate([ 57, train_card_width + 9.4 + (token_diameter + 1) * last_i, 15.2 ])
+                        cuboid([ 12, 12, 12 ]);
+                }
+                // finger indent for the middle secxtion
+                if (show_everything)
+                {
+
+                    translate([ 37, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5 ]) sphere(r = 6, $fn = 32);
+                }
+                // Text associated with the tokens.
+                translate(
+                    [ 18.5, train_card_width + 9.4 + (token_diameter + 1) * i, train_box_height - lid_thickness - 0.2 ])
+                    linear_extrude(height = 0.2) text(minor_companies[i], size = 3.2, anchor = CENTER);
+            }
         }
         // names for the tokens.
-        translate([ 18.5, train_card_width + 9.5 + (token_diameter + 1) * 7, train_box_height - lid_thickness - 0.4 ])
-            linear_extrude(height = 2) rotate([ 0, 0, 90 ]) text("Green", size = 3.2, anchor = CENTER);
-        translate([ 18.5, train_card_width + 9.5 + (token_diameter + 1) * 9, train_box_height - lid_thickness - 0.4 ])
-            linear_extrude(height = 2) rotate([ 0, 0, 90 ]) text("Brown", size = 3.2, anchor = CENTER);
+        translate([ 18.5, train_card_width + 9.5 + (token_diameter + 1) * 7, train_box_height - lid_thickness - 0.2 ])
+            linear_extrude(height = 0.2) rotate([ 0, 0, 90 ]) text("Green", size = 3.2, anchor = CENTER);
+        translate([ 18.5, train_card_width + 9.5 + (token_diameter + 1) * 9, train_box_height - lid_thickness - 0.2 ])
+            linear_extrude(height = 0.2) rotate([ 0, 0, 90 ]) text("Brown", size = 3.2, anchor = CENTER);
         // Rail locations.
-        translate([
-            10, train_card_width + 3 + (token_diameter + 1) * 10,
-            train_box_height - lid_thickness - rail_thickness - 0.4
-        ]) cube([ rail_length, rail_thickness * 3, rail_thickness + 1 ]);
+        if (show_everything)
+        {
+            translate([
+                10, train_card_width + 3 + (token_diameter + 1) * 10,
+                train_box_height - lid_thickness - rail_thickness - 0.4
+            ]) cube([ rail_length, rail_thickness * 3, rail_thickness + 1 ]);
+        }
         // finger cutout for the rails.
-        translate([
-            22, train_card_width + 3 + (token_diameter + 1) * 10 + 15,
-            train_box_height - lid_thickness - rail_thickness - 0.4 + 5
-        ]) ycyl(d = 10, h = 10, $fn = 32);
+        if (show_everything)
+        {
+            translate([
+                22, train_card_width + 3 + (token_diameter + 1) * 10 + 15,
+                train_box_height - lid_thickness - rail_thickness - 0.4 + 5
+            ]) ycyl(d = 10, h = 10, $fn = 32);
+        }
+    }
+    MakeBoxWithSlipoverLid(length = train_box_length, width = train_box_width, height = train_box_height,
+                           lid_thickness = 1, floor_thickness = 1, foot = 2, wall_thickness = wall_thickness,
+                           last_child_positive = default_label_solid_background, lid_catch = CATCH_LENGTH)
+    {
+        InnerPieces(show_everything = true);
+        if (default_label_solid_background)
+        {
+            color("black") InnerPieces(show_everything = false);
+        }
     }
 }
 
@@ -263,7 +346,82 @@ module InsideTokenTray()
     wall_height = 0.75 + token_big_thickness;
 
     rest_section_height = rest_height - wall_height - 0.70 - 0.5;
+    module InnerPieces(show_everything)
+    {
+        translate([ 0, 0, 0.75 ])
+        {
+            for (i = [0:1:4])
+            {
+                if (show_everything)
+                {
+                    // Cylinder for tokens.
+                    translate([
+                        2.3, 4 + (token_diameter + 3) * i,
+                        rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
+                    ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                          anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                    translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 11.2 : 7.5 ])
+                        xcyl(r = 6, h = 10, $fn = 32);
+                    translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
+                }
+                if (i != 1 && i != 4)
+                {
+                    if (show_everything)
+                    {
+                        translate(
+                            [ 24.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
+                            color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                               anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                        translate(
+                            [ 46.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
+                            color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                               anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                        // finger indent for the middle secxtion
+                        translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
+                            sphere(r = 6, $fn = 32);
+                        translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
+                            sphere(r = 6, $fn = 32);
+                    }
+                }
+                if (show_everything)
+                {
+                    translate([
+                        65.8, 4 + (token_diameter + 3) * i,
+                        rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
+                    ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                          anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                    // finger holes for tokens.
+                    translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) color(default_material_colour)
+                        xcyl(r = 6, h = 10, $fn = 32);
+                    translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) color(default_material_colour)
+                        cuboid([ 12, 12, 12 ]);
+                }
+            }
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 0.94 ])
+                color(default_material_colour) linear_extrude(height = 0.2)
+                    text("Ferrocarril Central", size = 3.2, anchor = CENTER);
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 0.94 ])
+                color(default_material_colour) linear_extrude(height = 0.2) text("Yellow", size = 3.2, anchor = CENTER);
+            if (show_everything)
+            {
+                translate([
+                    32, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2 - token_diameter + 1,
+                    rest_section_height - token_big_thickness - 0.2
+                ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
+                                                      anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                translate([
+                    37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height - 4.4
+                ]) color(default_material_colour) ycyl(r = 6, h = 10, $fn = 32);
+                translate([
+                    37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height + 1.7
+                ]) color(default_material_colour) cuboid([ 12, 12, 12 ]);
+            }
 
+            translate([ 38.5, 6.4 + (token_diameter + 3) * 8, rest_section_height - 0.94 ])
+                color(default_material_colour) linear_extrude(height = 0.2) rotate(90)
+                    text("18 Cuba", size = 15, anchor = CENTER);
+        }
+    }
     difference()
     {
         color(default_material_colour) cube([
@@ -271,64 +429,12 @@ module InsideTokenTray()
             train_box_length - wall_thickness * 2 - m_piece_wiggle_room * 2,
             rest_section_height
         ]);
-        translate([ 0, 0, 0.75 ])
-        {
-            for (i = [0:1:4])
-            {
-                // Cylinder for tokens.
-                translate([
-                    2.3, 4 + (token_diameter + 3) * i,
-                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
-                ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
-                                                      anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 11.2 : 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-                translate([ 77, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) cuboid([ 12, 12, 12 ]);
-                if (i != 1 && i != 4)
-                {
-                    translate([ 24.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
-                        color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
-                                                           anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                    translate([ 46.2, 4 + (token_diameter + 3) * i, rest_section_height - token_big_thickness - 0.2 ])
-                        color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
-                                                           anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                    // finger indent for the middle secxtion
-                    translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
-                        sphere(r = 6, $fn = 32);
-                    translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) color(default_material_colour)
-                        sphere(r = 6, $fn = 32);
-                }
-                translate([
-                    65.8, 4 + (token_diameter + 3) * i,
-                    rest_section_height - (i == 4 ? token_thin_thickness : token_big_thickness) - 0.2
-                ]) color(default_material_colour) cyl(d = token_diameter + 0.5, h = token_big_thickness + 1,
-                                                      anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-                // finger holes for tokens.
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 13 : 6.5 ]) color(default_material_colour)
-                    xcyl(r = 6, h = 10, $fn = 32);
-                translate([ 0, 9.4 + (token_diameter + 3) * i, i == 4 ? 20 : 12.2 ]) color(default_material_colour)
-                    cuboid([ 12, 12, 12 ]);
-            }
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 1.2 ])
-                color(default_material_colour) linear_extrude(height = 2)
-                    text("Ferrocarril Central", size = 3.2, anchor = CENTER);
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 1.2 ])
-                color(default_material_colour) linear_extrude(height = 2) text("Yellow", size = 3.2, anchor = CENTER);
-            translate([
-                32, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2 - token_diameter + 1,
-                rest_section_height - token_big_thickness - 0.2
-            ]) color(default_material_colour)
-                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            translate(
-                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height - 4.4 ])
-                color(default_material_colour) ycyl(r = 6, h = 10, $fn = 32);
-            translate(
-                [ 37.5, train_box_length - wall_thickness * 4 - m_piece_wiggle_room * 2, rest_section_height + 1.7 ])
-                color(default_material_colour) cuboid([ 12, 12, 12 ]);
 
-            translate([ 38.5, 6.4 + (token_diameter + 3) * 8, rest_section_height - 1.2 ])
-                color(default_material_colour) linear_extrude(height = 2) rotate(90)
-                    text("18 Cuba", size = 15, anchor = CENTER);
-        }
+        InnerPieces(true);
+    }
+    if (default_label_solid_background)
+    {
+        color("black") InnerPieces(show_everything = false);
     }
 }
 
@@ -336,37 +442,49 @@ module LargeTokensBox()
 {
     wall_height = 0.75 + token_big_thickness;
 
+    module InnerPieces(show_everything)
+    {
+        for (i = [0:1:11])
+        {
+            if (show_everything)
+            {
+                // Cylinder for tokens.
+                translate([ 2.3, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ]) cyl(
+                    d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                translate([ 24.2, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ]) cyl(
+                    d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                last_i = i > 7 ? i : i;
+                translate([ 66.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ]) cyl(
+                    d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                translate([ 46.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ])
+                    cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
+                // finger holes for tokens.
+                translate([ 0, 9.4 + (token_diameter + 3) * i, 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
+                translate([ 0, 9.4 + (token_diameter + 3) * i, 12.2 ]) cuboid([ 12, 12, 12 ]);
+                translate([ 77, 9.4 + (token_diameter + 3) * last_i, 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
+                translate([ 77, 9.4 + (token_diameter + 3) * last_i, 12.2 ]) cuboid([ 12, 12, 12 ]);
+                // finger indent for the middle secxtion
+                translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
+                translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
+            }
+            // Text associated with the tokens.
+            if (i % 3 == 0 || i % 3 == 2)
+            {
+                translate([ 18.5, 9.4 + (token_diameter + 3) * i, wall_height - lid_thickness - 0.2 ])
+                    rotate([ 0, 0, 90 ]) linear_extrude(height = 0.2)
+                        text(major_companies[floor(i / 1.5)], size = 3.2, anchor = CENTER);
+            }
+        }
+    }
+
     MakeBoxWithSlipoverLid(length = train_box_length, width = rest_section_width, height = rest_height,
                            lid_thickness = 0.75, floor_thickness = 0.75, foot = 2, wall_thickness = wall_thickness,
                            wall_height = wall_height)
     {
-        for (i = [0:1:11])
+        InnerPieces(show_everything = true);
+        if (default_label_solid_background)
         {
-            // Cylinder for tokens.
-            translate([ 2.3, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            translate([ 24.2, 4 + (token_diameter + 3) * i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            last_i = i > 7 ? i : i;
-            translate([ 66.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter + 0.5, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            translate([ 46.2, 4 + (token_diameter + 3) * last_i, wall_height - token_big_thickness - 0.2 ])
-                cyl(d = token_diameter, h = token_big_thickness + 1, anchor = FRONT + LEFT + BOTTOM, $fn = 64);
-            // finger holes for tokens.
-            translate([ 0, 9.4 + (token_diameter + 3) * i, 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-            translate([ 0, 9.4 + (token_diameter + 3) * i, 12.2 ]) cuboid([ 12, 12, 12 ]);
-            translate([ 77, 9.4 + (token_diameter + 3) * last_i, 7.5 ]) xcyl(r = 6, h = 10, $fn = 32);
-            translate([ 77, 9.4 + (token_diameter + 3) * last_i, 12.2 ]) cuboid([ 12, 12, 12 ]);
-            // finger indent for the middle secxtion
-            translate([ 37, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
-            translate([ 59, 9.4 + (token_diameter + 3) * i, 11.5 ]) sphere(r = 6, $fn = 32);
-            // Text associated with the tokens.
-            if (i % 3 == 0 || i % 3 == 2)
-            {
-                translate([ 18.5, 9.4 + (token_diameter + 3) * i, wall_height - lid_thickness - 0.4 ])
-                    rotate([ 0, 0, 90 ]) linear_extrude(height = 2)
-                        text(major_companies[floor(i / 1.5)], size = 3.2, anchor = CENTER);
-            }
+            color("black") InnerPieces(false);
         }
     }
 }
@@ -420,5 +538,5 @@ module PrintLayout()
 
 if (FROM_MAKE != 1)
 {
-    BoxLayout();
+    LastBoxLid();
 }

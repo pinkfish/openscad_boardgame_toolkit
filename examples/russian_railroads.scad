@@ -427,10 +427,14 @@ module ExtraTokensBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = extra_tokens_box_width, length = extra_tokens_box_length,
                           height = extra_tokens_box_height, wall_thickness = wall_thickness,
-                          lid_thickness = lid_thickness, floor_thickness = lid_thickness, last_child_positive = true)
+                          lid_thickness = lid_thickness, floor_thickness = lid_thickness,
+                          last_child_positive = default_label_solid_background)
     {
         InnerBits(true);
-        color("black") InnerBits(false);
+        if (default_label_solid_background)
+        {
+            color("black") InnerBits(false);
+        }
     }
 }
 
@@ -545,12 +549,15 @@ module TrainBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = train_box_width, length = train_box_length, height = train_box_height,
                           wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                          floor_thickness = lid_thickness, last_child_positive = true)
+                          floor_thickness = lid_thickness, last_child_positive = default_label_solid_background)
     {
         InnerBits(true);
-        union()
+        if (default_label_solid_background)
         {
-            color("black") InnerBits(false);
+            union()
+            {
+                color("black") InnerBits(false);
+            }
         }
     }
 }
@@ -651,10 +658,13 @@ module TrackBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = track_box_width, length = track_box_length, height = track_box_height,
                           wall_thickness = wall_thickness, lid_thickness = lid_thickness,
-                          floor_thickness = lid_thickness, last_child_positive = true)
+                          floor_thickness = lid_thickness, last_child_positive = default_label_solid_background)
     {
         InnerPieces(show_everything = true);
-        color("black") InnerPieces(show_everything = false);
+        if (default_label_solid_background)
+        {
+            color("black") InnerPieces(show_everything = false);
+        }
     }
 }
 
