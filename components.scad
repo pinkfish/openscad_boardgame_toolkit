@@ -448,14 +448,24 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
                                                           -rounding_radius,
                                                       ],
                                                       radius, [ 0, -height + radius ]);
+                    hull()
+                    {
+
+                        for (i = [0:1:1])
+                        {
+                            mirror([ i, 0, 0 ]) union()
+                            {
+                                translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
+                                    tangents[3][1], tangents[3][0], [ tangents[3][0][0] + 0.1, 0 ],
+                                    [ tangents[3][1][0], 0 ]
+                                ]);
+                            }
+                        }
+                    }
                     for (i = [0:1:1])
                     {
                         mirror([ i, 0, 0 ]) union()
                         {
-                            translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
-                                tangents[3][1], tangents[3][0], [ tangents[3][0][0] + 0.1, 0 ], [ tangents[3][1][0], 0 ]
-                            ]);
-
                             difference()
                             {
                                 translate([ radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5 ])
@@ -474,6 +484,7 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
                             }
                         }
                     }
+
                     translate([ 0, -height + radius, 0 ]) cyl(r = radius, h = depth_of_hole, $fn = 64);
                 }
             }

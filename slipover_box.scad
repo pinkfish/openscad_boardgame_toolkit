@@ -83,17 +83,19 @@ module MakeBoxWithSlipoverLid(width, length, height, wall_thickness = default_wa
 
         if (lid_catch == CATCH_LENGTH)
         {
-            translate([ (width / 6), wall_thickness, foot ]) color(material_colour)
-                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
-            translate([ (width * 5 / 6), length - wall_thickness, foot ]) rotate(180) color(material_colour)
-                wedge([ width * 2 / 3, lid_thickness, lid_thickness ]);
+            catch_width = width - wall_thickness * 2;
+            translate([ (catch_width * 2 / 8) + wall_thickness, wall_thickness, foot ]) color(material_colour)
+                wedge([ catch_width * 2 / 4, lid_thickness, lid_thickness ]);
+            translate([ (catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot ]) rotate(180)
+                color(material_colour) wedge([ catch_width * 2 / 4, lid_thickness, lid_thickness ]);
         }
         else if (lid_catch == CATCH_WIDTH)
         {
-            translate([ width - wall_thickness, length / 6, foot ]) rotate(90) color(material_colour)
-                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
-            translate([ wall_thickness, length * 5 / 6, foot ]) rotate(270) color(material_colour)
-                wedge([ length * 2 / 3, lid_thickness, lid_thickness ]);
+            catch_length = length - wall_thickness * 2;
+            translate([ width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot ]) rotate(90)
+                color(material_colour) wedge([ catch_length * 2 / 4, lid_thickness, lid_thickness ]);
+            translate([ wall_thickness, catch_length * 6 / 8 + wall_thickness, foot ]) rotate(270)
+                color(material_colour) wedge([ catch_length * 2 / 4, lid_thickness, lid_thickness ]);
         }
 
         $inner_width = width - wall_thickness * 4;
@@ -185,6 +187,7 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
                 }
             }
             finger_height = min(10, (height - foot_offset - lid_thickness) / 2);
+                    echo([finger_height]);
             difference()
             {
                 color(material_colour) cuboid([ width, length, height - foot_offset ], anchor = BOTTOM + FRONT + LEFT,
@@ -194,16 +197,16 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
                     cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 1 ]);
                 if (finger_hole_length)
                 {
-                    translate([ width / 2, 0, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) color(material_colour)
+                    translate([ width / 2, 1, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) color(material_colour)
                         FingerHoleWall(radius = 7, height = finger_height);
-                    translate([ width / 2, length, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) color(material_colour)
-                        FingerHoleWall(radius = 7, height = finger_height);
+                    translate([ width / 2, length - 1, finger_height - 0.01 ]) mirror([ 0, 0, 1 ])
+                        color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
                 }
                 if (finger_hole_width)
                 {
-                    translate([ 0, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
+                    translate([ 1, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
                         color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
-                    translate([ width, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
+                    translate([ width - 1, length / 2, finger_height - 0.01 ]) mirror([ 0, 0, 1 ]) rotate([ 0, 0, 90 ])
                         color(material_colour) FingerHoleWall(radius = 7, height = finger_height);
                 }
             }
@@ -211,31 +214,37 @@ module SlipoverBoxLid(width, length, height, lid_thickness = default_lid_thickne
             // lid catch
             if (lid_catch == CATCH_LENGTH)
             {
-                translate([ (width / 6) + size_spacing, wall_thickness, 0 ])
+                catch_width = width - wall_thickness * 2;
+                translate([ (catch_width * 2 / 8) + size_spacing + wall_thickness, wall_thickness, 0 ])
                 {
                     color(material_colour) rotate([ 0, 0, 0 ]) wedge([
-                        width * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                        catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness -
+                        size_spacing
                     ]);
                 }
-                translate([ (width * 5 / 6) - size_spacing, length - wall_thickness, 0 ])
+                translate([ (catch_width * 6 / 8) + size_spacing + wall_thickness, length - wall_thickness, 0 ])
                 {
                     rotate(180) rotate([ 0, 0, 0 ]) color(material_colour) wedge([
-                        width * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                        catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness -
+                        size_spacing
                     ]);
                 }
             }
             else if (lid_catch == CATCH_WIDTH)
             {
-                translate([ width - wall_thickness, length / 6 + size_sizeing, 0 ])
+                catch_length = length - wall_thickness * 2;
+                translate([ width - wall_thickness, catch_length * 2 / 8 + size_sizeing + wall_thickness, 0 ])
                 {
                     rotate(90) color(material_colour) wedge([
-                        length * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                        catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness -
+                        size_spacing
                     ]);
                 }
-                translate([ wall_thickness, length * 5 / 6 - size_spacing, 0 ])
+                translate([ wall_thickness, catch_length * 6 / 8 + size_spacing + wall_thickness, 0 ])
                 {
                     rotate(270) color(material_colour) wedge([
-                        length * 2 / 3 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing
+                        catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness -
+                        size_spacing
                     ]);
                 }
             }

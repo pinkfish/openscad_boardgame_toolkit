@@ -26,7 +26,7 @@ default_wall_thickness = 2;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 
-default_label_solid_background = true; // MAKE_MMU == 1;
+default_label_solid_background = MAKE_MMU == 1;
 
 inner_wall = 1;
 
@@ -363,8 +363,9 @@ module LastSectionFirstPlayer() // `make` me
 
 module LastSectionFirstPlayerLid() // `make` me
 {
-    SlipoverBoxLid(width = first_player_box_width, length = first_player_box_length, height = first_player_box_height,
-                   wall_thickness = 3, foot = 2, label_colour = "black");
+    SlipoverLidWithLabel(width = first_player_box_width, length = first_player_box_length,
+                         height = first_player_box_height, wall_thickness = 3, foot = 2, label_colour = "black",
+                         text_str = "First", text_width = 50, text_height = 20, label_radius = 2, label_rotated = true);
 }
 
 module BoxLayout()
@@ -397,6 +398,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    MiddleBox();
-    ;
+    LastSectionFirstPlayerLid();
 }
