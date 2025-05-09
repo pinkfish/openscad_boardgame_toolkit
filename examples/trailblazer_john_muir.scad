@@ -367,7 +367,7 @@ module BoxLayout()
         PlayerBox();
         translate([ 0, player_box_length, 0 ]) PlayerBox();
         translate([ 0, player_box_length * 2, 0 ]) PlayerBox();
-        translate([ 0, player_box_length * 3, 0 ]) PlayerBox(fale);
+        translate([ 0, player_box_length * 3, 0 ]) PlayerBox();
         translate([ 0, 0, player_box_height ]) ResourceBox(resource_num = 0);
         translate([ 0, player_box_length, player_box_height ]) ResourceBox(resource_num = 1);
         translate([ 0, player_box_length * 2, player_box_height ]) ResourceBox(resource_num = 2);
@@ -393,5 +393,5 @@ module BoxLayout()
 
 if (FROM_MAKE != 1)
 {
-    PlayerBox();
+    BoxLayout();
 }
