@@ -27,6 +27,11 @@ board_width = 255;
 
 spinner = 132;
 
+card_width = 66;
+card_length = 91;
+ten_cards_thickness = 6;
+single_card_thickness = ten_cards_thickness / 10;
+
 nest_width = 45;
 nest_total_length = 180;
 

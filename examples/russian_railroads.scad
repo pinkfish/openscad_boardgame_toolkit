@@ -657,7 +657,7 @@ module TrackBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = track_box_width, length = track_box_length, height = track_box_height,
                           wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness,
-                          floor_thickness = lid_thickness, last_child_positive = default_label_solid_background)
+                          floor_thickness = default_floor_thickness, last_child_positive = default_label_solid_background)
     {
         InnerPieces(show_everything = true);
         if (default_label_solid_background)
