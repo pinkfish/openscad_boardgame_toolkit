@@ -294,15 +294,15 @@ module CapBoxLid(width, length, height, cap_height = undef, lid_thickness = defa
         }
     }
     // lid catches
-    translate([ 0, 0, height - calc_cap_height ])
+    translate([ 0, 0, calc_cap_height ])
     {
         if (lid_catch == CATCH_LENGTH)
         {
             catch_width = width - wall_thickness * 2;
-            translate([ (catch_width * 6 / 8), 0, 0 ]) color(material_colour) rotate([ 0, 180, 0 ])
+            translate([ (catch_width * 6 / 8) + wall_thickness, 0, 0 ]) color(material_colour) rotate([ 0, 180, 0 ])
                 wedge([ catch_width * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness ]);
-            translate([ (catch_width * 2 / 8), length, 0 ]) rotate(180) rotate([ 0, 180, 0 ]) color(material_colour)
-                wedge([ catch_width * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness ]);
+            translate([ (catch_width * 2 / 8) + wall_thickness, length, 0 ]) rotate(180) rotate([ 0, 180, 0 ])
+                color(material_colour) wedge([ catch_width * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness ]);
         }
         else if (lid_catch == CATCH_WIDTH)
         {
