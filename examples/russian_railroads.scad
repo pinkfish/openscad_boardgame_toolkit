@@ -314,8 +314,8 @@ module ExtraTokensBox() // `make` me
                                                   edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                 }
             }
-            translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-                text("Purple", valign = "center", halign = "center", size = 3);
+            //translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
+              //  text("Purple", valign = "center", halign = "center", size = 5.5);
         }
         translate([ worker_width + worker_width / 2 + 2, worker_length / 2, $inner_height - worker_thickness - 1.5 ])
         {
@@ -329,8 +329,8 @@ module ExtraTokensBox() // `make` me
                                                   edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                 }
             }
-            translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-                text("Purple", valign = "center", halign = "center", size = 3);
+          //  translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
+            //    text("Purple", valign = "center", halign = "center", size = 5.5);
         }
 
         // Black
@@ -349,8 +349,8 @@ module ExtraTokensBox() // `make` me
                         cuboid([ 12, 12, 6 ], anchor = BOTTOM, rounding = -3, edges = [ TOP + LEFT, TOP + RIGHT ]);
                 }
             }
-            translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-                text("Black", valign = "center", halign = "center", size = 3);
+         //   translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
+           //     text("Black", valign = "center", halign = "center", size = 7);
         }
 
         // Doublers.
@@ -369,7 +369,7 @@ module ExtraTokensBox() // `make` me
                                    edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                     }
                     translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-                        text("x2", valign = "center", halign = "center", size = 3);
+                        text("x2", valign = "center", halign = "center", size = 7.5);
                 }
                 translate([ j * (doubler_size + 1) + doubler_size / 2, $inner_length - doubler_size / 2, 0 ])
                 {
@@ -383,7 +383,7 @@ module ExtraTokensBox() // `make` me
                                    edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                     }
                     translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-                        text("x2", valign = "center", halign = "center", size = 3);
+                        text("x2", valign = "center", halign = "center", size = 7.5);
                 }
             }
         }
@@ -403,7 +403,7 @@ module ExtraTokensBox() // `make` me
                 }
             }
             translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                text("Bonus", valign = "center", halign = "center", size = 3);
+                text("Bonus", valign = "center", halign = "center", size = 7.5);
         }
         translate([
             $inner_width - extra_score_track_length / 2, ($inner_length) / 2, $inner_height - tile_thickness * 4 - 0.5
@@ -421,7 +421,7 @@ module ExtraTokensBox() // `make` me
                 }
             }
             translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                text("Bonus", valign = "center", halign = "center", size = 3);
+                text("Bonus", valign = "center", halign = "center", size = 7.5);
         }
     }
     MakeBoxWithSlidingLid(width = extra_tokens_box_width, length = extra_tokens_box_length,
@@ -496,7 +496,7 @@ module TrainBox() // `make` me
                     translate([ 0, train_tile_length / 2, 0.5 ]) ycyl(d = 15, anchor = BOTTOM, h = 20);
                 }
                 translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 3);
+                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 15);
             }
             translate([
                 (train_tile_width + 8) * i + train_tile_width / 2 + 5, $inner_length - train_tile_length / 2,
@@ -508,7 +508,7 @@ module TrainBox() // `make` me
                     rotate([ 0, 0, 180 ]) TrainTile(height = tile_thickness * 4 + 1);
                 }
                 translate([ 0, 0, -0.19 ]) rotate([ 0, 0, 180 ]) linear_extrude(height = label_height)
-                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 3);
+                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 15);
             }
         }
         translate([
@@ -522,7 +522,7 @@ module TrainBox() // `make` me
                 translate([ -train_tile_width / 2, 4, 0 ]) sphere(d = 20, anchor = BOTTOM);
             }
             translate([ 0, 0, -0.19 ]) rotate([ 0, 0, 180 ]) linear_extrude(height = label_height)
-                text("9", valign = "center", halign = "center", size = 3);
+                text("9", valign = "center", halign = "center", size = 15);
         }
         translate([ (train_tile_width + 8) * 4 + 18, train_tile_length / 2, $inner_height - tile_thickness * 2 - 0.5 ])
         {
@@ -532,7 +532,7 @@ module TrainBox() // `make` me
                 translate([ -train_tile_width / 2, -4, 0 ]) sphere(d = 20, anchor = BOTTOM);
             }
             translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                text("9", valign = "center", halign = "center", size = 3);
+                text("9", valign = "center", halign = "center", size = 15);
         }
         translate([ (train_tile_width + 8) * 5 + 23, $inner_length / 2, $inner_height - tile_thickness - 0.5 ])
         {
@@ -543,7 +543,7 @@ module TrainBox() // `make` me
                 translate([ engineer_width / 2, 0, 0 ]) sphere(d = 30, anchor = BOTTOM);
             }
             translate([ 0, 0, -0.19 ]) rotate(270) linear_extrude(height = label_height)
-                text("Start", valign = "center", halign = "center", size = 5);
+                text("Start", valign = "center", halign = "center", size = 15);
         }
     }
     MakeBoxWithSlidingLid(width = train_box_width, length = train_box_length, height = train_box_height,
@@ -603,7 +603,7 @@ module TrackBox() // `make` me
                 cube([ box_section_len, $inner_length - 1, track_box_height ]);
             }
             translate([ $inner_length / 4, $inner_length / 2, -0.19 ]) rotate(270) linear_extrude(height = label_height)
-                text("Grey", valign = "center", halign = "center", size = 5);
+                text("Grey", valign = "center", halign = "center", size = 15);
             translate([ box_section_len + 2, 0, 0 ])
             {
                 if (show_everything)
@@ -611,7 +611,7 @@ module TrackBox() // `make` me
                     cube([ box_section_len, $inner_length - 1, track_box_height ]);
                 }
                 translate([ $inner_length / 4, $inner_length / 2, -0.19 ]) rotate(270)
-                    linear_extrude(height = label_height) text("Brown", valign = "center", halign = "center", size = 5);
+                    linear_extrude(height = label_height) text("Brown", valign = "center", halign = "center", size = 15);
                 translate([ box_section_len + 2, 0, 0 ])
                 {
                     if (show_everything)
@@ -620,7 +620,7 @@ module TrackBox() // `make` me
                     }
                     translate([ $inner_length / 4, $inner_length / 2, -0.19 ]) rotate(270)
                         linear_extrude(height = label_height)
-                            text("Black", valign = "center", halign = "center", size = 5);
+                            text("Black", valign = "center", halign = "center", size = 15);
                     translate([ box_section_len + 2, 0, 0 ])
                     {
                         if (show_everything)
@@ -629,7 +629,7 @@ module TrackBox() // `make` me
                         }
                         translate([ $inner_length / 4, $inner_length / 2, -0.19 ]) rotate(270)
                             linear_extrude(height = label_height)
-                                text("Natural", valign = "center", halign = "center", size = 5);
+                                text("Natural", valign = "center", halign = "center", size = 15);
                         if (show_everything)
                         {
                             translate([ box_section_len + 2 + rail_white_width / 2, rail_white_length / 2 + 4, 0 ])
@@ -745,5 +745,5 @@ module TestBox()
 
 if (FROM_MAKE != 1)
 {
-    CardBox();
+    ExtraTokensBox();
 }
