@@ -33,8 +33,8 @@ middle_height = box_height - board_thickness;
 
 tile_thickness = 2;
 
-train_tile_width = 20.5;
-train_tile_length = 41;
+train_tile_width = 30.5;
+train_tile_length = 56;
 train_tile_pointy_len = 10;
 
 bonus_train_tile_width = 26;
@@ -47,10 +47,11 @@ question_token_diameter = 23;
 
 rubel_token_diameter = 24.5;
 
-doubler_size = 20;
+doubler_width = 21;
+doubler_length = 23.5;
 
-extra_score_track_width = 18;
-extra_score_track_length = 31.5;
+extra_score_track_width = 19;
+extra_score_track_length = 32.5;
 
 engineer_width = 36;
 engineer_length = 81.5;
@@ -114,15 +115,15 @@ money_box_width = player_box_width;
 money_box_length = player_box_length;
 money_box_height = player_box_height;
 
-card_box_length = train_tile_length * 2 + default_wall_thickness * 2 + 2;
+card_box_length = train_tile_width * 3 + 2 + default_wall_thickness * 2 + 2;
 card_box_width = default_wall_thickness * 2 + 12;
 card_box_height = middle_height;
 
-train_box_length = train_tile_length * 2 + default_wall_thickness * 2 + 2;
+train_box_length = train_tile_width * 3 + 2 + default_wall_thickness * 2 + 2;
 train_box_width = box_width - 2 - card_box_width;
-train_box_height = tile_thickness * 4 + default_floor_thickness + default_lid_thickness + 2;
+train_box_height = tile_thickness * 5 + default_floor_thickness + default_lid_thickness + 2;
 
-engineer_box_length = train_box_length;
+engineer_box_length = 82 + default_wall_thickness * 2 + 5;
 engineer_box_width = train_box_width;
 engineer_box_height = tile_thickness * 3 + default_floor_thickness + default_lid_thickness + 2;
 
@@ -294,7 +295,8 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
     SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, text_width = 70, text_height = 20,
-                           text_str = "Player", wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness);
+                           text_str = "Player", wall_thickness = default_wall_thickness,
+                           lid_thickness = default_lid_thickness);
 }
 
 module ExtraTokensBox() // `make` me
@@ -314,8 +316,6 @@ module ExtraTokensBox() // `make` me
                                                   edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                 }
             }
-            //translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-              //  text("Purple", valign = "center", halign = "center", size = 5.5);
         }
         translate([ worker_width + worker_width / 2 + 2, worker_length / 2, $inner_height - worker_thickness - 1.5 ])
         {
@@ -329,8 +329,6 @@ module ExtraTokensBox() // `make` me
                                                   edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                 }
             }
-          //  translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-            //    text("Purple", valign = "center", halign = "center", size = 5.5);
         }
 
         // Black
@@ -349,8 +347,6 @@ module ExtraTokensBox() // `make` me
                         cuboid([ 12, 12, 6 ], anchor = BOTTOM, rounding = -3, edges = [ TOP + LEFT, TOP + RIGHT ]);
                 }
             }
-         //   translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
-           //     text("Black", valign = "center", halign = "center", size = 7);
         }
 
         // Doublers.
@@ -358,28 +354,28 @@ module ExtraTokensBox() // `make` me
         {
             for (j = [0:1:2])
             {
-                translate([ j * (doubler_size + 1) + doubler_size / 2, doubler_size / 2, 0 ])
+                translate([ j * (doubler_width + 1) + doubler_width / 2, doubler_length / 2, 0 ])
                 {
                     if (show_everything)
                     {
-                        cuboid([ doubler_size, doubler_size, tile_thickness * 4 + 1 ], anchor = BOTTOM);
-                        translate([ 0, -doubler_size / 2 - 2, 0 ]) ycyl(r = 8, h = 5, anchor = BOTTOM);
-                        translate([ 0, -doubler_size / 2, tile_thickness * 2 + 0.51 ])
+                        cuboid([ doubler_width, doubler_length, tile_thickness * 4 + 1 ], anchor = BOTTOM);
+                        translate([ 0, -doubler_length / 2 - 2, 0 ]) ycyl(r = 8, h = 5, anchor = BOTTOM);
+                        translate([ 0, -doubler_length / 2, tile_thickness * 2 + 0.51 ])
                             cuboid([ 14, 14, tile_thickness * 2 ], anchor = BOTTOM, rounding = -3,
                                    edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                     }
                     translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
                         text("x2", valign = "center", halign = "center", size = 7.5);
                 }
-                translate([ j * (doubler_size + 1) + doubler_size / 2, $inner_length - doubler_size / 2, 0 ])
+                translate([ j * (doubler_width + 1) + doubler_width / 2, $inner_length - doubler_length / 2, 0 ])
                 {
                     if (show_everything)
                     {
-                        cuboid([ doubler_size, doubler_size, tile_thickness * num_doubler_tokens * 4 + 1 ],
+                        cuboid([ doubler_width, doubler_length, tile_thickness * num_doubler_tokens * 4 + 1 ],
                                anchor = BOTTOM);
-                        translate([ 0, doubler_size / 2 + 2, 0 ]) ycyl(r = 8, h = 5, anchor = BOTTOM);
-                        translate([ 0, doubler_size / 2, tile_thickness * 2 + 0.51 + default_lid_thickness ])
-                            cuboid([ doubler_size - 4, 16, tile_thickness * 2 ], anchor = BOTTOM, rounding = -3,
+                        translate([ 0, doubler_length / 2 + 2, 0 ]) ycyl(r = 8, h = 5, anchor = BOTTOM);
+                        translate([ 0, doubler_length / 2, tile_thickness * 2 + 0.51 + default_lid_thickness ])
+                            cuboid([ doubler_width - 4, 16, tile_thickness * 2 ], anchor = BOTTOM, rounding = -3,
                                    edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 64);
                     }
                     translate([ 0, 0, -0.19 ]) rotate(90) linear_extrude(height = label_height)
@@ -457,7 +453,8 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
     SlidingBoxLidWithLabel(width = money_box_width, length = money_box_length, text_width = 70, text_height = 20,
-                           text_str = "Money", wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness);
+                           text_str = "Money", wall_thickness = default_wall_thickness,
+                           lid_thickness = default_lid_thickness);
 }
 
 module CardBox() // `make` me
@@ -483,63 +480,54 @@ module TrainBox() // `make` me
 {
     module InnerBits(show_everything)
     {
-        for (i = [0:1:3])
+        for (i = [0:1:2])
         {
             translate([
-                (train_tile_width + 8) * i + train_tile_width / 2 + 5, train_tile_length / 2,
-                $inner_height - tile_thickness * 4 - 0.5
+                (train_tile_length + 10) * i + train_tile_length / 2 + 2, train_tile_width / 2,
+                $inner_height - tile_thickness * 5 - 0.5
             ])
             {
                 if (show_everything)
                 {
-                    TrainTile(height = tile_thickness * 4 + 1);
+                    rotate(270) TrainTile(height = tile_thickness * 5 + 1);
+                    translate([ -5, train_tile_length / 2, 0.5 ]) ycyl(d = 30, anchor = BOTTOM, h = 50);
+                }
+                translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
+                    text(str(i * 3 + 1), valign = "center", halign = "center", size = 15);
+            }
+            translate([
+                (train_tile_length + 10) * i + train_tile_length / 2 + 2, train_box_length / 2 - 3,
+                $inner_height - tile_thickness * 5 - 0.5
+            ])
+            {
+                if (show_everything)
+                {
+                    rotate(270) TrainTile(height = tile_thickness * 5 + 1);
                     translate([ 0, train_tile_length / 2, 0.5 ]) ycyl(d = 15, anchor = BOTTOM, h = 20);
                 }
                 translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 15);
+                    text(str(i * 3 + 2), valign = "center", halign = "center", size = 15);
             }
             translate([
-                (train_tile_width + 8) * i + train_tile_width / 2 + 5, $inner_length - train_tile_length / 2,
-                $inner_height - tile_thickness * 4 - 0.5
+                (train_tile_length + 10) * i + train_tile_length / 2 + 2, $inner_length - train_tile_width / 2,
+                $inner_height - tile_thickness * 5 - 0.5
             ])
             {
                 if (show_everything)
                 {
-                    rotate([ 0, 0, 180 ]) TrainTile(height = tile_thickness * 4 + 1);
+                    rotate([ 0, 0, 270 ]) TrainTile(height = tile_thickness * 5 + 1);
                 }
                 translate([ 0, 0, -0.19 ]) rotate([ 0, 0, 180 ]) linear_extrude(height = label_height)
-                    text(str(i * 2 + 1), valign = "center", halign = "center", size = 15);
+                    text(str(i * 3 + 3), valign = "center", halign = "center", size = 15);
             }
         }
-        translate([
-            (train_tile_width + 8) * 4 + 18, $inner_length - train_tile_length / 2,
-            $inner_height - tile_thickness * 3 - 0.5
-        ])
-        {
-            if (show_everything)
-            {
-                rotate([ 0, 0, 180 ]) TrainTile(height = tile_thickness * 5 + 1);
-                translate([ -train_tile_width / 2, 4, 0 ]) sphere(d = 20, anchor = BOTTOM);
-            }
-            translate([ 0, 0, -0.19 ]) rotate([ 0, 0, 180 ]) linear_extrude(height = label_height)
-                text("9", valign = "center", halign = "center", size = 15);
-        }
-        translate([ (train_tile_width + 8) * 4 + 18, train_tile_length / 2, $inner_height - tile_thickness * 2 - 0.5 ])
-        {
-            if (show_everything)
-            {
-                TrainTile(height = tile_thickness * 5 + 1);
-                translate([ -train_tile_width / 2, -4, 0 ]) sphere(d = 20, anchor = BOTTOM);
-            }
-            translate([ 0, 0, -0.19 ]) linear_extrude(height = label_height)
-                text("9", valign = "center", halign = "center", size = 15);
-        }
-        translate([ (train_tile_width + 8) * 5 + 23, $inner_length / 2, $inner_height - tile_thickness - 0.5 ])
+
+        translate([ (train_tile_length) + 35, $inner_length / 2, $inner_height - tile_thickness - 0.5 ])
         {
             if (show_everything)
             {
                 rotate([ 0, 0, 180 ])
-                    cuboid([ start_tile_width, start_tile_length, tile_thickness * 2 ], anchor = BOTTOM);
+                    cuboid([ start_tile_length, start_tile_width, tile_thickness * 2 ], anchor = BOTTOM);
                 translate([ engineer_width / 2, 0, 0 ]) sphere(d = 30, anchor = BOTTOM);
             }
             translate([ 0, 0, -0.19 ]) rotate(270) linear_extrude(height = label_height)
@@ -548,7 +536,8 @@ module TrainBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = train_box_width, length = train_box_length, height = train_box_height,
                           wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness,
-                          floor_thickness = default_floor_thickness, last_child_positive = default_label_solid_background)
+                          floor_thickness = default_floor_thickness,
+                          last_child_positive = default_label_solid_background)
     {
         InnerBits(true);
         if (default_label_solid_background)
@@ -564,7 +553,8 @@ module TrainBox() // `make` me
 module TrainBoxLid() // `make` me
 {
     SlidingBoxLidWithLabel(width = train_box_width, length = train_box_length, text_width = 70, text_height = 20,
-                           text_str = "Trains", wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness);
+                           text_str = "Trains", wall_thickness = default_wall_thickness,
+                           lid_thickness = default_lid_thickness);
 }
 
 module EngineerBox() // `make` me
@@ -588,7 +578,8 @@ module EngineerBox() // `make` me
 module EngineerBoxLid() // `make` me
 {
     SlidingBoxLidWithLabel(width = engineer_box_width, length = engineer_box_length, text_width = 70, text_height = 20,
-                           text_str = "Engineers", wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness);
+                           text_str = "Engineers", wall_thickness = default_wall_thickness,
+                           lid_thickness = default_lid_thickness);
 }
 
 module TrackBox() // `make` me
@@ -611,7 +602,8 @@ module TrackBox() // `make` me
                     cube([ box_section_len, $inner_length - 1, track_box_height ]);
                 }
                 translate([ $inner_length / 4, $inner_length / 2, -0.19 ]) rotate(270)
-                    linear_extrude(height = label_height) text("Brown", valign = "center", halign = "center", size = 15);
+                    linear_extrude(height = label_height)
+                        text("Brown", valign = "center", halign = "center", size = 15);
                 translate([ box_section_len + 2, 0, 0 ])
                 {
                     if (show_everything)
@@ -636,10 +628,8 @@ module TrackBox() // `make` me
                             {
                                 for (i = [0:1:3])
                                 {
-                                    translate([
-                                        0, (rail_white_length + 5) * i,
-                                        $inner_height - rail_white_thickness - 0.5
-                                    ])
+                                    translate(
+                                        [ 0, (rail_white_length + 5) * i, $inner_height - rail_white_thickness - 0.5 ])
                                     {
                                         rotate([ 0, 0, 90 ]) WhiteTrack(height = rail_white_thickness + 1);
                                         translate([ -rail_white_length / 2 - 2, 0, 4 ]) sphere(r = 7, anchor = BOTTOM);
@@ -657,7 +647,8 @@ module TrackBox() // `make` me
     }
     MakeBoxWithSlidingLid(width = track_box_width, length = track_box_length, height = track_box_height,
                           wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness,
-                          floor_thickness = default_floor_thickness, last_child_positive = default_label_solid_background)
+                          floor_thickness = default_floor_thickness,
+                          last_child_positive = default_label_solid_background)
     {
         InnerPieces(show_everything = true);
         if (default_label_solid_background)
@@ -670,7 +661,8 @@ module TrackBox() // `make` me
 module TrackBoxLid() // `make` me
 {
     SlidingBoxLidWithLabel(width = track_box_width, length = track_box_length, text_width = 70, text_height = 20,
-                           text_str = "Tracks", wall_thickness = default_wall_thickness, lid_thickness = default_lid_thickness);
+                           text_str = "Tracks", wall_thickness = default_wall_thickness,
+                           lid_thickness = default_lid_thickness);
 }
 module SpacerSide() // `make` me
 {
@@ -678,9 +670,12 @@ module SpacerSide() // `make` me
     {
         color("yellow") cuboid([ spacer_width, spacer_length, spacer_height ], anchor = BOTTOM + LEFT + FRONT,
                                rounding = 2, $fn = 32);
-        translate([ default_wall_thickness, default_wall_thickness, default_floor_thickness ])
-            cuboid([ spacer_width - default_wall_thickness * 2, spacer_length - default_wall_thickness * 2, spacer_height + 10 ],
-                   anchor = BOTTOM + LEFT + FRONT);
+        translate([ default_wall_thickness, default_wall_thickness, default_floor_thickness ]) cuboid(
+            [
+                spacer_width - default_wall_thickness * 2, spacer_length - default_wall_thickness * 2,
+                spacer_height + 10
+            ],
+            anchor = BOTTOM + LEFT + FRONT);
     }
 }
 
@@ -745,5 +740,5 @@ module TestBox()
 
 if (FROM_MAKE != 1)
 {
-    ExtraTokensBox();
+    TrainBox();
 }
