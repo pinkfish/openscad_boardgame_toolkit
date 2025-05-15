@@ -33,8 +33,8 @@ middle_height = box_height - board_thickness;
 
 tile_thickness = 2;
 
-train_tile_width = 30.5;
-train_tile_length = 56;
+train_tile_width = 31;
+train_tile_length = 58;
 train_tile_pointy_len = 10;
 
 bonus_train_tile_width = 26;
@@ -119,7 +119,7 @@ card_box_length = train_tile_width * 3 + 2 + default_wall_thickness * 2 + 2;
 card_box_width = default_wall_thickness * 2 + 12;
 card_box_height = middle_height;
 
-train_box_length = train_tile_width * 3 + 2 + default_wall_thickness * 2 + 2;
+train_box_length = train_tile_width * 3 + 0.5 + default_wall_thickness * 2 + 2;
 train_box_width = box_width - 2 - card_box_width;
 train_box_height = tile_thickness * 5 + default_floor_thickness + default_lid_thickness + 2;
 
@@ -483,7 +483,7 @@ module TrainBox() // `make` me
         for (i = [0:1:2])
         {
             translate([
-                (train_tile_length + 10) * i + train_tile_length / 2 + 2, train_tile_width / 2,
+                (train_tile_length + 8) * i + train_tile_length / 2 + 2, train_tile_width / 2,
                 $inner_height - tile_thickness * 5 - 0.5
             ])
             {
@@ -496,7 +496,7 @@ module TrainBox() // `make` me
                     text(str(i * 3 + 1), valign = "center", halign = "center", size = 15);
             }
             translate([
-                (train_tile_length + 10) * i + train_tile_length / 2 + 2, train_box_length / 2 - 3,
+                (train_tile_length + 8) * i + train_tile_length / 2 + 2, train_box_length / 2 - 3,
                 $inner_height - tile_thickness * 5 - 0.5
             ])
             {
@@ -509,7 +509,7 @@ module TrainBox() // `make` me
                     text(str(i * 3 + 2), valign = "center", halign = "center", size = 15);
             }
             translate([
-                (train_tile_length + 10) * i + train_tile_length / 2 + 2, $inner_length - train_tile_width / 2,
+                (train_tile_length + 8) * i + train_tile_length / 2 + 2, $inner_length - train_tile_width / 2,
                 $inner_height - tile_thickness * 5 - 0.5
             ])
             {
