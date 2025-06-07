@@ -91,7 +91,7 @@ weather_tokens_number = 26;
 generate_mmu = MAKE_MMU == 1;
 
 default_material_colour = "purple";
-default_label_solid_background = true; //  MAKE_MMU == 1;
+default_label_solid_background = MAKE_MMU == 1;
 
 player_box_length = box_length / 4 - 1;
 player_box_width = player_board_width / 2 - 1;
@@ -121,6 +121,13 @@ weather_tokens_box_width = destination_card_box_width;
 weather_tokens_box_length =
     box_width - trails_card_box_length - field_guide_card_box_length - destination_card_box_length - 2;
 weather_tokens_box_height = destination_card_box_height;
+
+spacer_box_width = box_width - player_board_width - 2;
+spacer_box_height = box_height - board_thickness - 1 - destination_card_box_height;
+spacer_box_length = box_length - 2;
+
+
+
 module TentToken(height)
 {
     linear_extrude(height)
@@ -187,7 +194,7 @@ module PlayerBoxLid() // `make` me
                            text_str = "Player");
 }
 
-function ResouceString(resource_num) = resource_num == 0   ? "Water"
+function ResourceString(resource_num) = resource_num == 0   ? "Water"
                                        : resource_num == 1 ? "Earth"
                                        : resource_num == 2 ? "Wind"
                                        : resource_num == 3 ? "Fire"
@@ -199,17 +206,22 @@ function ResouceString(resource_num) = resource_num == 0   ? "Water"
                                        : resource_num == 9 ? "JMT"
                                                            : "unknown";
 
-module ResourceBox(resource_num = 0) // `make` me
+module ResourceBox() // `make` me
 {
     MakeBoxWithSlidingLid(width = resource_box_width, length = resource_box_length, height = resource_box_height)
     {
         RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = resource_box_height, radius = 10);
     }
 }
-module ResourceBoxLid(resource_num = 0) // `make` me
+module ResourceBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = resource_box_width, length = resource_box_length, text_width = 40, text_height = 20,
-                           text_str = ResourceString(resource_num));
+    for (i = [0:9]) {
+        translate([(resource_box_width + 3) * i,0,0]) {  
+            SlidingBoxLidWithLabel(width = resource_box_width, length = resource_box_length, text_width = 40, text_height = 20,
+            label_rotated = true,
+                           text_str = ResourceString(i));
+        }
+    }
 }
 
 module DestinationCardBox() // `make` me
@@ -235,8 +247,8 @@ module FieldGuideCardBox() // `make` me
                           height = field_guide_card_box_height, lid_on_length = true)
     {
         cube([ animal_cards_length + 1, $inner_length, field_guide_card_box_height ]);
-        translate([ -0.1, destination_cards_width / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
-            radius = 10, height = destination_card_box_height - default_lid_thickness + 0.02, spin = 270);
+        translate([ -0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
+            radius = 10, height = field_guide_card_box_height - default_lid_thickness + 0.02, spin = 270);
     }
 }
 module FieldGuideCardBoxLid() // `make` me
@@ -264,7 +276,7 @@ module TrailsCardsBoxLid() // `make` me
 {
 
     SlidingBoxLidWithLabel(width = trails_card_box_width, length = trails_card_box_length, lid_on_length = true,
-                           text_width = 70, text_height = 20, text_str = "Trails", label_rotated = true);
+                           text_width = 70, text_height = 20, text_str = "Trails", label_rotated = false);
 }
 
 module WeatherTokensBox() // `make` me
@@ -353,9 +365,23 @@ module BonusTileBox() // `make` me
 }
 module BonusTileBoxLid() // `make` me
 {
-
     SlidingBoxLidWithLabel(width = bonus_marker_box_width, length = bonus_marker_box_length, text_width = 70,
                            text_height = 20, text_str = "Bonus", label_rotated = true);
+}
+
+module SpacerBox() // `make` me
+{
+    difference()
+    {
+        color(default_material_colour) cuboid([ spacer_box_width, spacer_box_length, spacer_box_height ], rounding = 3,
+                                              anchor = BOTTOM + FRONT + LEFT);
+        translate([ default_wall_thickness, default_wall_thickness, default_floor_thickness ]) cuboid(
+            [
+                spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
+                spacer_box_height
+            ],
+            anchor = BOTTOM + FRONT + LEFT);
+    }
 }
 
 module BoxLayout()
@@ -383,15 +409,16 @@ module BoxLayout()
         translate([ player_box_width * 2, destination_card_box_length, 0 ]) FieldGuideCardBox();
         translate([ player_box_width * 2, destination_card_box_length + field_guide_card_box_length, 0 ])
             TrailsCardsBox();
+        translate([ player_box_width * 2, 0, destination_card_box_height ]) SpacerBox();
         translate([
             player_box_width * 2, destination_card_box_length + field_guide_card_box_length + trails_card_box_length, 0
         ]) WeatherTokensBox();
     }
-    // translate([ 0, 0, box_height - player_board_thickness ])
-    //   cube([ player_board_width, player_board_length, player_board_thickness ]);
+    translate([ 0, 0, box_height - player_board_thickness ])
+        cube([ player_board_width, player_board_length, player_board_thickness ]);
 }
 
 if (FROM_MAKE != 1)
 {
-    MakeMainLidLabel(width = 70, length = 20, 3, "Frog", solid_background = true, border = 2);
+    ResourceBoxLid();
 }
