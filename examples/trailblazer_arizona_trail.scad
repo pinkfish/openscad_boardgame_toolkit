@@ -115,27 +115,31 @@ pieces_box_length_2 = (box_length - 2) / 2 - 10;
 pieces_box_width = destination_card_box_width;
 pieces_box_height = cardboard_token_thickness * 4 + 1 + default_floor_thickness + default_lid_thickness + 1;
 
-pieces_box_small_length_1 = (box_length - 2) / 2 + 4;
-pieces_box_small_length_2 = (box_length - 2) / 2 - 4;
+pieces_box_small_length_1 = (box_length - 2) / 2 + 10;
+pieces_box_small_length_2 = (box_length - 2) / 2 - 10;
 pieces_box_small_width = destination_card_box_width + player_box_width - player_board_width;
 pieces_box_small_height = player_board_thickness;
 
-two_size = 16; // 1
-three_corner = 11; // 2
+pieces_box_cards_width = destination_card_box_width;
+pieces_box_cards_length = box_length - destination_card_box_length - trails_card_box_length - field_guide_card_box_length - 2;
+pieces_box_cards_height = destination_card_box_height;
+
+two_size = 16; // cards
+three_corner = 11; // cards
 three_straight = 5; // 1
 four_l_left = 4; // 2
 four_l_right = 2; // 3
 four_square = 4; // 1
-four_zig_zag_left = 1;
-four_zig_zag_right = 1;
+four_zig_zag_left = 1; // 1
+four_zig_zag_right = 1; // 1
 four_t = 3; // 2
-five_cross = 2;
-five_balanced_l = 2;
-five_t = 2;
+five_cross = 2; // 2
+five_balanced_l = 2; // 3
+five_t = 2; // 4
 five_square_plus_left = 4; // 2
 five_square_plus_right = 4; // 1
-five_u = 2;
-five_corner = 2;
+five_u = 2; // 2
+five_corner = 2; // 1
 
 module TwoShape(h) {
   linear_extrude(height=h) rect([flora_double_polyominoes, flora_double_polyominoes / 2], rounding=1);
@@ -393,117 +397,178 @@ module FieldGuideCardBoxLid() // `make` me
 module PiecesBoxOne() // `make` me
 {
   MakeBoxWithSlidingLid(width=pieces_box_width, length=pieces_box_length_1, height=pieces_box_height) {
-    // Two straight - 16
-    for (i = [0:(two_size / 4) - 1]) {
-      translate(
-        [
-          flora_double_polyominoes / 2,
-          flora_double_polyominoes / 4 + i * (flora_double_polyominoes / 2 + 1.5),
-          $inner_height - cardboard_token_thickness * 4 - 0.5,
-        ],
-      )
-        TwoShape(h=cardboard_token_thickness * 4 + 1);
+
+    translate(
+      [
+        flora_double_polyominoes * 2 / 4,
+        flora_double_polyominoes * 3 / 4,
+        $inner_height - cardboard_token_thickness * four_zig_zag_right - 0.5,
+      ],
+    ) {
+      rotate(90)
+        FourZigZagRight(h=cardboard_token_thickness * 4 + 1);
+      translate([0, flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+      translate([0, -flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
+
+    translate(
+      [
+        flora_double_polyominoes * 4 / 4 + 1.5,
+        flora_double_polyominoes * 7 / 4 + 4.5,
+        $inner_height - cardboard_token_thickness * four_zig_zag_left - 0.5,
+      ],
+    ) {
+      rotate(90)
+        FourZigZagLeft(h=cardboard_token_thickness * 4 + 1);
+      translate([0, flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+      translate([0, -flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
     }
 
     // Three straight - 5
-    translate([$inner_width - flora_double_polyominoes * 3 / 4, flora_double_polyominoes / 4, $inner_height - cardboard_token_thickness * 4 - 0.5])
-      ThreeShape(h=cardboard_token_thickness * 4 + 1);
-    translate([$inner_width - flora_double_polyominoes * 3 / 4, flora_double_polyominoes / 4 + flora_double_polyominoes / 2 + 1.5, $inner_height - cardboard_token_thickness * 1 - 0.75])
-      ThreeShape(h=cardboard_token_thickness * 4 + 1);
-    // Corner 5 size.
     translate(
       [
         $inner_width - flora_double_polyominoes * 3 / 4,
-        flora_double_polyominoes * 3 / 2 + 3 + flora_double_polyominoes / 4,
+        flora_double_polyominoes / 4,
+        $inner_height - cardboard_token_thickness * 4 - 0.5,
+      ],
+    ) {
+      ThreeShape(h=cardboard_token_thickness * 4 + 1);
+      translate([0, flora_double_polyominoes / 4, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+    }
+    translate(
+      [
+        $inner_width - flora_double_polyominoes * 3 / 4,
+        flora_double_polyominoes / 4 + flora_double_polyominoes / 2 + 1.5,
+        $inner_height - cardboard_token_thickness * 1 - 0.75,
+      ],
+    ) {
+      ThreeShape(h=cardboard_token_thickness * 4 + 1);
+    }
+
+    // Corner 5 size.
+    translate(
+      [
+        flora_double_polyominoes * 3 / 4,
+        flora_double_polyominoes * 4 / 2 + 6 + flora_double_polyominoes / 4,
         $inner_height - cardboard_token_thickness * five_corner - 0.5,
       ],
-    )
-      FiveCorner(h=cardboard_token_thickness * 4 + 1);
+    ) {
+      rotate(180)
+        FiveCorner(h=cardboard_token_thickness * 4 + 1);
+      translate([-flora_double_polyominoes / 4, flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
 
     // Square
     translate(
       [
-        flora_double_polyominoes * 4 / 8,
+        $inner_width - flora_double_polyominoes * 4 / 8,
         flora_double_polyominoes * 5 / 2 + 6,
         $inner_height - cardboard_token_thickness * four_square - 0.5,
       ],
-    )
+    ) {
       FourSquare(h=cardboard_token_thickness * 4 + 1);
+      translate([0, -flora_double_polyominoes / 2, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
+
     // Square + right
     translate(
       [
-        $inner_width - flora_double_polyominoes * 8 / 8 - 2,
-        flora_double_polyominoes * 5 / 2 + 4.5,
+        $inner_width - flora_double_polyominoes * 4 / 8,
+        flora_double_polyominoes * 3 / 2 + 3,
         $inner_height - cardboard_token_thickness * five_square_plus_right - 0.5,
       ],
-    )
-      rotate(270)
+    ) {
+      rotate(90)
         FiveSquareRight(h=cardboard_token_thickness * five_square_plus_right + 1);
+      translate([-flora_double_polyominoes / 4, -flora_double_polyominoes / 2, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
   }
 }
 
 module PiecesBoxTwo() // `make` me
 {
   MakeBoxWithSlidingLid(width=pieces_box_width, length=pieces_box_length_2, height=pieces_box_height) {
-    // Three corner - 11
+
+    // Five U
     translate(
       [
-        flora_double_polyominoes / 2,
-        flora_double_polyominoes * 2 / 4,
-        $inner_height - cardboard_token_thickness * 4 - 0.5,
+        $inner_width - flora_double_polyominoes * 3 / 4,
+        flora_double_polyominoes * 8 / 4 + 4.5,
+        $inner_height - cardboard_token_thickness * five_u - 0.5,
       ],
-    )
-      ThreeCorner();
+    ) {
+      rotate(90)
+        FiveU(h=cardboard_token_thickness * 4 + 1);
+      translate([0, 0, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
+
+    // Five Cross
     translate(
       [
-        flora_double_polyominoes / 2 + 1.5,
-        flora_double_polyominoes * 2 / 4 + flora_double_polyominoes / 2 + 1.5,
-        $inner_height - cardboard_token_thickness * 4 - 0.5,
+        flora_double_polyominoes * 3 / 4 + 1.5,
+        flora_double_polyominoes * 3 / 4 + 1.5,
+        $inner_height - cardboard_token_thickness * five_cross - 0.5,
       ],
-    )
+    ) {
       rotate(180)
-        ThreeCorner();
-    translate(
-      [
-        $inner_width - flora_double_polyominoes * 4 / 4 - 3,
-        flora_double_polyominoes * 4 / 4 + 1.5,
-        $inner_height - cardboard_token_thickness * 3 - 0.5,
-      ],
-    )
-      rotate(270)
-        ThreeCorner();
+        FiveCross(h=cardboard_token_thickness * 4 + 1);
+      translate([-flora_double_polyominoes / 4, -flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+      translate([flora_double_polyominoes / 4, flora_double_polyominoes / 4, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
+
     // L shapes (4 + 2)
     translate(
       [
-        $inner_width - flora_double_polyominoes * 2 / 4,
-        flora_double_polyominoes * 5 / 4 + 3,
+        $inner_width - flora_double_polyominoes * 3 / 4,
+        flora_double_polyominoes * 2 / 4,
         $inner_height - cardboard_token_thickness * four_l_left - 0.5,
       ],
-    )
-      rotate(180)
+    ) {
+      rotate(90)
         FourLLeft(h=cardboard_token_thickness * 4 + 1);
+      translate([-3, 0, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
 
     // T shape.
     translate(
       [
-        $inner_width - flora_double_polyominoes * 3 / 4 - 1.5,
-        flora_double_polyominoes / 2,
+        $inner_width - flora_double_polyominoes * 3 / 4 - 3,
+        flora_double_polyominoes * 4 / 4 + 3,
         $inner_height - cardboard_token_thickness * four_t - 0.5,
       ],
-    )
-      rotate(270)
+    ) {
+      rotate(90)
         FourT(h=cardboard_token_thickness * 4 + 1);
+    }
 
     // Five square (4 + 4)
     translate(
       [
-        flora_double_polyominoes * 4 / 8 + 1.5,
+        flora_double_polyominoes * 4 / 8,
         flora_double_polyominoes * 0 / 8 + flora_double_polyominoes * 4 / 2 + 3,
         $inner_height - cardboard_token_thickness * five_square_plus_left - 0.5,
       ],
-    )
-      rotate(270)
+    ) {
+      rotate(180)
         FiveSquareLeft(h=cardboard_token_thickness * five_square_plus_left + 1);
+      translate([flora_double_polyominoes / 2, 0, 0])
+        cyl(r=12, anchor=BOTTOM, h=20, rounding=6);
+    }
   }
 }
 
@@ -516,9 +581,121 @@ module PiecesBoxThree() // `make` me
         flora_double_polyominoes * 3 / 4,
         $inner_height - cardboard_token_thickness * four_l_right - 0.5,
       ],
-    )
+    ) {
       rotate(0)
         FourLRight(h=cardboard_token_thickness * 4 + 1);
+      translate([0, flora_double_polyominoes / 2, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+      translate([-flora_double_polyominoes / 4, -flora_double_polyominoes / 4, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+    }
+    translate(
+      [
+        flora_double_polyominoes * 4 / 8,
+        flora_double_polyominoes * 9 / 4,
+        $inner_height - cardboard_token_thickness * five_balanced_l - 0.5,
+      ],
+    ) {
+      rotate(180)
+        FiveL(h=cardboard_token_thickness * 4 + 1);
+      translate([0, -flora_double_polyominoes * 6 / 8, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+      translate([flora_double_polyominoes / 4, flora_double_polyominoes * 2 / 4, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+    }
+  }
+}
+
+module PiecesBoxFour() // `make` me
+{
+  MakeBoxWithSlidingLid(width=pieces_box_small_width, length=pieces_box_small_length_2, height=pieces_box_small_height) {
+    translate(
+      [
+        flora_double_polyominoes * 4 / 8,
+        flora_double_polyominoes * 5.5 / 4,
+        $inner_height - cardboard_token_thickness * five_t - 0.5,
+      ],
+    ) {
+      rotate(0)
+        FiveT(h=cardboard_token_thickness * 4 + 1);
+      translate([flora_double_polyominoes / 4, flora_double_polyominoes, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+      translate([flora_double_polyominoes / 4, -flora_double_polyominoes, 0])
+        intersection() {
+          sphere(r=15, anchor=BOTTOM);
+          cyl(r=11, anchor=BOTTOM, h=20);
+        }
+    }
+  }
+}
+
+module PiecesBoxCards() // `make` me
+{
+  MakeBoxWithSlidingLid(width=pieces_box_cards_width, length=pieces_box_cards_length, height=pieces_box_cards_height) {
+    translate(
+      [
+        flora_double_polyominoes * 12 / 8 + 7,
+        flora_double_polyominoes * 2 / 4,
+        $inner_height - cardboard_token_thickness * floor(three_corner / 2) - 0.5,
+      ],
+    ) {
+      ThreeCorner(h=cardboard_token_thickness * floor(three_corner / 2) + 1);
+      translate([flora_double_polyominoes / 2, -flora_double_polyominoes / 4, 0])
+        cyl(r=11, h=20, anchor=BOTTOM, rounding=5.5);
+    }
+    translate(
+      [
+        $inner_width - flora_double_polyominoes * 4 / 8,
+        $inner_length - flora_double_polyominoes * 2 / 4,
+        $inner_height - cardboard_token_thickness * (floor(three_corner / 2) + 1) - 0.5,
+      ],
+    ) {
+      rotate(180)
+        ThreeCorner(h=cardboard_token_thickness * (three_corner / 2 + 1) + 1);
+      translate([0, -flora_double_polyominoes / 4, 0])
+        cyl(r=11, h=20, anchor=BOTTOM, rounding=5.5);
+    }
+    translate(
+      [
+        flora_double_polyominoes * 2 / 8,
+        $inner_length - flora_double_polyominoes * 2 / 4,
+        $inner_height - cardboard_token_thickness * two_size / 2 - 0.5,
+      ],
+    ) {
+      rotate(90)
+        TwoShape(h=cardboard_token_thickness * two_size + 1);
+      translate([flora_double_polyominoes / 4, -2, 0])
+        cyl(r=11, h=20, anchor=BOTTOM, rounding=5.5);
+    }
+    translate(
+      [
+        flora_double_polyominoes * 6 / 8 + 3.5,
+        flora_double_polyominoes * 2 / 4,
+        $inner_height - cardboard_token_thickness * two_size / 2 - 0.5,
+      ],
+    ) {
+      rotate(90)
+        TwoShape(h=cardboard_token_thickness * two_size + 1);
+      translate([-flora_double_polyominoes / 4, 4, 0])
+        cyl(r=11, h=20, anchor=BOTTOM, rounding=5.5);
+      translate([flora_double_polyominoes / 4, 0, 0])
+        cyl(r=11, h=20, anchor=BOTTOM, rounding=5.5);
+    }
   }
 }
 
@@ -558,9 +735,11 @@ module BoxLayout() {
     translate([player_box_width, 0, 0]) DestinationCardBox();
     translate([player_box_width, destination_card_box_length, 0]) TrailsCardsBox();
     translate([player_box_width, destination_card_box_length + trails_card_box_length, 0]) FieldGuideCardBox();
+    translate([player_box_width, destination_card_box_length + trails_card_box_length + field_guide_card_box_length, 0]) PiecesBoxCards();
     translate([player_box_width, 0, destination_card_box_height]) PiecesBoxOne();
-    translate([player_box_width, pieces_box_length, destination_card_box_height]) PiecesBoxTwo();
+    translate([player_box_width, pieces_box_length_1, destination_card_box_height]) PiecesBoxTwo();
     translate([player_board_width, 0, destination_card_box_height + pieces_box_height]) PiecesBoxThree();
+    translate([player_board_width, pieces_box_small_length_1, destination_card_box_height + pieces_box_height]) PiecesBoxFour();
   }
   translate([0, 0, box_height - player_board_thickness])
     cube([player_board_width, player_board_length, player_board_thickness]);
