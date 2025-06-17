@@ -53,72 +53,95 @@ under the License.
 // Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
 // Example:
 //    MakeBoxWithSlidingCatchLid(100, 50, 20);
-module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default_lid_thickness,
-                                  wall_thickness = default_wall_thickness, size_spacing = m_piece_wiggle_room,
-                                  top_thickness = 2, floor_thickness = default_floor_thickness,
-                                  material_colour = default_material_colour)
-{
-    calc_sliding_len = (length - wall_thickness) / 6;
-    difference()
-    {
+module MakeBoxWithSlidingCatchLid(
+  width,
+  length,
+  height,
+  lid_thickness = default_lid_thickness,
+  wall_thickness = default_wall_thickness,
+  size_spacing = m_piece_wiggle_room,
+  top_thickness = 2,
+  floor_thickness = default_floor_thickness,
+  material_colour = default_material_colour
+) {
+  calc_sliding_len = (length - wall_thickness) / 6;
+  difference() {
 
-        color(material_colour)
-            cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                   edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-        // middle diff.
-        translate([ wall_thickness, wall_thickness, floor_thickness ]) color(material_colour)
-            cube([ width - wall_thickness * 2, length - wall_thickness * 2, height ]);
+    color(material_colour)
+      cuboid(
+        [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+      );
+    // middle diff.
+    translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour)
+        cube([width - wall_thickness * 2, length - wall_thickness * 2, height]);
 
-        // Sliding cutouts.
-        translate([ -0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness ])
-            color(material_colour)
-                cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ],
-                       anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
-        translate(
-            [ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness ])
-            color(material_colour)
-                cuboid([ width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing ],
-                       anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
-        // Rounding corners.
-        translate([ -0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing ])
-            color(material_colour)
-                cuboid([ width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
-                       anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
-                       edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+    // Sliding cutouts.
+    translate([-0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness])
+      color(material_colour)
+        cuboid(
+          [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
+          anchor=FRONT + LEFT + BOTTOM, rounding=lid_thickness / 2, edges=[BACK + BOTTOM]
+        );
+    translate(
+      [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness]
+    )
+      color(material_colour)
+        cuboid(
+          [width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing],
+          anchor=FRONT + LEFT + BOTTOM, rounding=lid_thickness / 2, edges=[BACK + BOTTOM]
+        );
+    // Rounding corners.
+    translate([-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing])
+      color(material_colour)
+        cuboid(
+          [width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
+          anchor=FRONT + LEFT + BOTTOM, rounding=-top_thickness / 2,
+          edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK], $fn=32
+        );
 
-        // Second cutout.
-        translate([
-            -0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness -
-            top_thickness
-        ]) color(material_colour)
-            cuboid([ width + 1, calc_sliding_len + 1, lid_thickness + size_spacing ], rounding = lid_thickness,
-                   anchor = FRONT + LEFT + BOTTOM, edges = [BACK + TOP]);
-        translate([ -0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness ])
-            color(material_colour) cuboid(
-                [ width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing ],
-                anchor = FRONT + LEFT + BOTTOM, rounding = lid_thickness / 2, edges = [BACK + BOTTOM]);
-        // Rounding corners.
-        translate([
-            -0.5, wall_thickness + length - calc_sliding_len - wall_thickness - size_spacing * 2,
-            height - top_thickness +
-            size_spacing
-        ]) color(material_colour)
-            cuboid([ width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing ],
-                   anchor = FRONT + LEFT + BOTTOM, rounding = -top_thickness / 2,
-                   edges = [ FRONT + BOTTOM, FRONT + TOP, TOP + BACK ], $fn = 32);
+    // Second cutout.
+    translate(
+      [
+        -0.5,
+        wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2,
+        height - lid_thickness - top_thickness,
+      ]
+    ) color(material_colour)
+        cuboid(
+          [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing], rounding=lid_thickness,
+          anchor=FRONT + LEFT + BOTTOM, edges=[BACK + TOP]
+        );
+    translate([-0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness])
+      color(material_colour) cuboid(
+          [width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing],
+          anchor=FRONT + LEFT + BOTTOM, rounding=lid_thickness / 2, edges=[BACK + BOTTOM]
+        );
+    // Rounding corners.
+    translate(
+      [
+        -0.5,
+        wall_thickness + length - calc_sliding_len - wall_thickness - size_spacing * 2,
+        height - top_thickness + size_spacing,
+      ]
+    ) color(material_colour)
+        cuboid(
+          [width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
+          anchor=FRONT + LEFT + BOTTOM, rounding=-top_thickness / 2,
+          edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK], $fn=32
+        );
 
-        // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
-        // just not the walls.
-        $inner_width = width - wall_thickness * 2;
-        $inner_length = length - wall_thickness * 2;
-        $inner_height = height - lid_thickness - floor_thickness;
-        intersection()
-        {
-            translate([ wall_thickness, wall_thickness, floor_thickness ]) color(material_colour)
-                cube([ width - wall_thickness * 2, length - wall_thickness * 2, height + 2 ]);
-            translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-        }
+    // Make sure the children are only in the area of the inside of the box, can make holes in the bottom
+    // just not the walls.
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    intersection() {
+      translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour)
+          cube([width - wall_thickness * 2, length - wall_thickness * 2, height + 2]);
+      translate([wall_thickness, wall_thickness, floor_thickness]) children();
     }
+  }
 }
 
 // Module: SlidingCatchBoxLid()
@@ -134,70 +157,70 @@ module MakeBoxWithSlidingCatchLid(width, length, height, lid_thickness = default
 // Usage: SlidingCatchBoxLid(100, 50);
 // Example:
 //    SlidingCatchBoxLid(100, 50);
-module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                          size_spacing = m_piece_wiggle_room, top_thickness = 2, fill_middle = true,
-                          lid_roudning = undef, lid_rounding = undef, material_colour = default_material_colour)
-{
-    calc_sliding_len = (length - wall_thickness) / 6;
-    calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
-    calc_lid_rounding = DefaultValue(lid_roudning, top_thickness / 2);
+module SlidingCatchBoxLid(
+  width,
+  length,
+  lid_thickness = default_lid_thickness,
+  wall_thickness = default_wall_thickness,
+  size_spacing = m_piece_wiggle_room,
+  top_thickness = 2,
+  fill_middle = true,
+  lid_roudning = undef,
+  lid_rounding = undef,
+  material_colour = default_material_colour
+) {
+  calc_sliding_len = (length - wall_thickness) / 6;
+  calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
+  calc_lid_rounding = DefaultValue(lid_roudning, top_thickness / 2);
 
-    internal_build_lid(width, length, calc_lid_thickness, wall_thickness)
-    {
-        difference()
-        {
-            union()
-            {
-                color(material_colour) cube([ width, length - wall_thickness, lid_thickness - size_spacing ]);
-                if (fill_middle)
-                {
-                    translate([ wall_thickness, 0, lid_thickness - 0.1 ]) color(material_colour)
-                        cuboid([ width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1 ],
-                               anchor = FRONT + LEFT + BOTTOM, rounding = calc_lid_rounding, edges = TOP, $fn = 32);
-                }
-            }
-            // Front piece.
-            translate([ -1, -1, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, -1, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-            // Middle piece.
-            translate([ -1, calc_sliding_len * 2, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1 ]);
+  internal_build_lid(width, length, calc_lid_thickness, wall_thickness) {
+    difference() {
+      union() {
+        color(material_colour) cube([width, length - wall_thickness, lid_thickness - size_spacing]);
+        if (fill_middle) {
+          translate([wall_thickness, 0, lid_thickness - 0.1]) color(material_colour)
+              cuboid(
+                [width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1],
+                anchor=FRONT + LEFT + BOTTOM, rounding=calc_lid_rounding, edges=TOP, $fn=32
+              );
+        }
+      }
+      // Front piece.
+      translate([-1, -1, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]);
+      translate([width - wall_thickness - size_spacing, -1, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]);
+      // Middle piece.
+      translate([-1, calc_sliding_len * 2, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1]);
+      translate([width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len * 2, lid_thickness + 1]);
 
-            // End piece.
-            translate([ -1, calc_sliding_len * 5, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-            translate([ width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5 ]) color(material_colour)
-                cube([ wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1 ]);
-        }
-        if ($children > 0)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(0);
-        }
-        if ($children > 1)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(1);
-        }
-        if ($children > 2)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(2);
-        }
-        if ($children > 3)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(3);
-        }
-        if ($children > 4)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(4);
-        }
-        if ($children > 5)
-        {
-            translate([ wall_thickness, 0, 0 ]) children(5);
-        }
+      // End piece.
+      translate([-1, calc_sliding_len * 5, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]);
+      translate([width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5]) color(material_colour)
+          cube([wall_thickness + size_spacing + 1, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]);
     }
+    if ($children > 0) {
+      translate([wall_thickness, 0, 0]) children(0);
+    }
+    if ($children > 1) {
+      translate([wall_thickness, 0, 0]) children(1);
+    }
+    if ($children > 2) {
+      translate([wall_thickness, 0, 0]) children(2);
+    }
+    if ($children > 3) {
+      translate([wall_thickness, 0, 0]) children(3);
+    }
+    if ($children > 4) {
+      translate([wall_thickness, 0, 0]) children(4);
+    }
+    if ($children > 5) {
+      translate([wall_thickness, 0, 0]) children(5);
+    }
+  }
 }
 
 // Module: SlidingCatchBoxLidWithLabelAndCustomShape()
@@ -226,6 +249,7 @@ module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, 
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -233,70 +257,83 @@ module SlidingCatchBoxLid(width, length, lid_thickness = default_lid_thickness, 
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
 module SlidingCatchBoxLidWithLabelAndCustomShape(
-    width, length, text_width, text_height, text_str, lid_boundary = 10, label_radius = 5, label_border = 2,
-    label_offset = 4, label_rotated = false, layout_width = undef, size_spacing = m_piece_wiggle_room,
-    lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef, lid_rounding = undef,
-    wall_thickness = default_wall_thickness, top_thickness = 2, fill_middle = true,
-    material_colour = default_material_colour, label_solid_background = undef, label_background_colour = undef)
-{
-    SlidingCatchBoxLid(width, length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                       lid_rounding = lid_rounding, size_spacing = size_spacing, top_thickness = top_thickness,
-                       fill_middle = fill_middle, material_colour = material_colour)
-    {
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
-        {
-            if ($children > 0)
-            {
-                children(0);
-            }
-            else
-            {
-                color(material_colour) square([ 10, 10 ]);
-            }
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_boundary = 10,
+  label_radius = 5,
+  label_border = 2,
+  label_offset = 4,
+  label_rotated = false,
+  layout_width = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_thickness = default_lid_thickness,
+  aspect_ratio = 1.0,
+  font = undef,
+  lid_rounding = undef,
+  wall_thickness = default_wall_thickness,
+  top_thickness = 2,
+  fill_middle = true,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+  finger_hole_size = undef
+) {
+  SlidingCatchBoxLid(
+    width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+    lid_rounding=lid_rounding, size_spacing=size_spacing, top_thickness=top_thickness,
+    fill_middle=fill_middle, material_colour=material_colour
+  ) {
+    translate([lid_boundary, lid_boundary, 0])
+      LidMeshBasic(
+        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+        layout_width=layout_width, aspect_ratio=aspect_ratio
+      ) {
+        if ($children > 0) {
+          children(0);
+        } else {
+          color(material_colour) square([10, 10]);
         }
-        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
-                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     material_colour = material_colour,
-                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
-                     label_background_colour = label_background_colour);
+      }
+    MakeLidLabel(
+      width=width, length=length, text_width=text_width, text_height=text_height,
+      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
+      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      material_colour=material_colour,
+      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
+      label_background_colour=label_background_colour,
+      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+    );
 
-        // Fingernail pull
-        intersection()
-        {
-            color(material_colour) cube([ width - label_border, length - label_border, lid_thickness ]);
-            translate([ (width) / 2, length - label_border - 3, 0 ]) color(material_colour)
-                SlidingLidFingernail(lid_thickness);
-        }
-
-        // Don't include the first child since is it used for the lid shape.
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-        if ($children > 6)
-        {
-            children(6);
-        }
+    // Fingernail pull
+    intersection() {
+      color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
+      translate([(width) / 2, length - label_border - 3, 0]) color(material_colour)
+          SlidingLidFingernail(lid_thickness);
     }
+
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
 }
 
 // Module: SlidingCatchBoxLidWithLabel()
@@ -330,53 +367,70 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 // Usage: SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
-module SlidingCatchBoxLidWithLabel(width, length, text_width, text_height, text_str, lid_boundary = 10,
-                                   wall_thickness = default_wall_thickness, label_radius = 5, label_border = 2,
-                                   label_offset = 4, label_rotated = false, layout_width = undef, shape_width = undef,
-                                   shape_type = undef, shape_thickness = undef, aspect_ratio = undef,
-                                   size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
-                                   top_thickness = 2, fill_middle = true, font = undef, lid_rounding = undef,
-                                   shape_rounding = undef, material_colour = default_material_colour,
-                                   label_solid_background = undef, label_background_colour = undef)
-{
-    calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
+module SlidingCatchBoxLidWithLabel(
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_boundary = 10,
+  wall_thickness = default_wall_thickness,
+  label_radius = 5,
+  label_border = 2,
+  label_offset = 4,
+  label_rotated = false,
+  layout_width = undef,
+  shape_width = undef,
+  shape_type = undef,
+  shape_thickness = undef,
+  aspect_ratio = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_thickness = default_lid_thickness,
+  top_thickness = 2,
+  fill_middle = true,
+  font = undef,
+  lid_rounding = undef,
+  shape_rounding = undef,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+    finger_hole_size = undef
+) {
+  calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
-    SlidingCatchBoxLidWithLabelAndCustomShape(
-        width = width, length = length, wall_thickness = wall_thickness, lid_thickness = calc_lid_thickness,
-        font = font, text_str = text_str, text_width = text_width, text_height = text_height,
-        label_radius = label_radius, label_rotated = label_rotated, layout_width = layout_width,
-        size_spacing = size_spacing, aspect_ratio = aspect_ratio, lid_rounding = lid_rounding,
-        lid_boundary = lid_boundary, label_border = label_border, label_offset = label_offset,
-        top_thickness = top_thickness, fill_middle = fill_middle, material_colour = material_colour,
-        label_solid_background = label_solid_background, label_background_colour = label_background_colour)
-    {
-        color(material_colour)
-            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
+  SlidingCatchBoxLidWithLabelAndCustomShape(
+    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
+    font=font, text_str=text_str, text_width=text_width, text_height=text_height,
+    label_radius=label_radius, label_rotated=label_rotated, layout_width=layout_width,
+    size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
+    lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
+    top_thickness=top_thickness, fill_middle=fill_middle, material_colour=material_colour,
+    label_solid_background=label_solid_background, label_background_colour=label_background_colour,
+    finger_hole_size = finger_hole_size
+  ) {
+    color(material_colour)
+      ShapeByType(
+        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+      );
 
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-        if ($children > 6)
-        {
-            children(6);
-        }
+    if ($children > 1) {
+      children(1);
     }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
 }

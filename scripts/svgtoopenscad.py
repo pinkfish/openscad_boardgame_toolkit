@@ -53,5 +53,5 @@ class OpenScadOutput():
 
        
 
-os = OpenScadOutput("../svg/Asset 2.svg")
+os = OpenScadOutput("../examples/svg/emberleaf/frog worker.svg")
 os.PrintAllObjects()

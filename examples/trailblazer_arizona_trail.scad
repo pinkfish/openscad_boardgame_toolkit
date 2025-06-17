@@ -746,5 +746,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PiecesBoxTwo();
+  TrailsCardsBoxLid();
 }

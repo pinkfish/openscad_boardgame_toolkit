@@ -118,6 +118,58 @@ SHAPE_TYPE_HILBERT = 10;
 // Description:
 //   Makes a nice cloud shape.
 SHAPE_TYPE_CLOUD = 11;
+// Constant: SHAPE_TYPE_PENTAGON_R1
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R1 = 12;
+// Constant: SHAPE_TYPE_PENTAGON_R2
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R2 = 13;
+// Constant: SHAPE_TYPE_PENTAGON_R3
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R3 = 14;
+// Constant: SHAPE_TYPE_PENTAGON_R4
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R4 = 15;
+// Constant: SHAPE_TYPE_PENTAGON_R5
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R5 = 16;
+// Constant: SHAPE_TYPE_PENTAGON_R6
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R6 = 17;
+// Constant: SHAPE_TYPE_PENTAGON_R7
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R7 = 18;
+// Constant: SHAPE_TYPE_PENTAGON_R8
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R8 = 19;
+// Constant: SHAPE_TYPE_PENTAGON_R9
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R9 = 20;
+// Constant: SHAPE_TYPE_PENTAGON_R10
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R10 = 21;
+// Constant: SHAPE_TYPE_PENTAGON_R11
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R11 = 22;
+// Constant: SHAPE_TYPE_PENTAGON_R12
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R12 = 23;
+// Constant: SHAPE_TYPE_PENTAGON_R13
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R13 = 24;
 
 // Constant: CATCH_NONE
 // Description:

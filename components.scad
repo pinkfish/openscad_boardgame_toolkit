@@ -1,21 +1,19 @@
-/**
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations
-under the License.
- */
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+//
+//   http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
 // LibFile: components.scad
 //    This file has all the modules needed to generate varioius inserts
@@ -49,25 +47,20 @@ under the License.
 // Example:
 //   RoundedBoxOnLength(30, 20, 10, 7);
 
-module RoundedBoxOnLength(width, length, height, radius)
-{
-    hull()
-    {
-        difference()
-        {
-            translate([ width / 2, length / 2, radius ]) hull()
-            {
-                ydistribute(l = length - radius * 2)
-                {
-                    xcyl(l = width, r = radius);
-                    xcyl(l = width, r = radius);
-                }
-            }
-            translate([ -0.5, -0.5, radius ]) cube([ width + 1, length + 1, radius + 1 ]);
+module RoundedBoxOnLength(width, length, height, radius) {
+  hull() {
+    difference() {
+      translate([width / 2, length / 2, radius]) hull() {
+          ydistribute(l=length - radius * 2) {
+            xcyl(l=width, r=radius);
+            xcyl(l=width, r=radius);
+          }
         }
-
-        translate([ 0, 0, height - 1 ]) cube([ width, length, 1 ]);
+      translate([-0.5, -0.5, radius]) cube([width + 1, length + 1, radius + 1]);
     }
+
+    translate([0, 0, height - 1]) cube([width, length, 1]);
+  }
 }
 
 // Module: RoundedBoxAllSides()
@@ -83,27 +76,23 @@ module RoundedBoxOnLength(width, length, height, radius)
 // Topics: Recess
 // Example:
 //   RoundedBoxAllSides(30, 20, 10, 7);
-module RoundedBoxAllSides(width, length, height, radius)
-{
-    hull()
-    {
-        difference()
-        {
-            hull()
-            {
-                translate([ radius, radius, radius ]) sphere(radius);
+module RoundedBoxAllSides(width, length, height, radius) {
+  hull() {
+    difference() {
+      hull() {
+        translate([radius, radius, radius]) sphere(radius);
 
-                translate([ width - radius, radius, radius ]) sphere(radius);
+        translate([width - radius, radius, radius]) sphere(radius);
 
-                translate([ radius, length - radius, radius ]) sphere(radius);
+        translate([radius, length - radius, radius]) sphere(radius);
 
-                translate([ width - radius, length - radius, radius ]) sphere(radius);
-            }
-            translate([ -0.5, -0.5, radius ]) cube([ width + 1, length + 1, radius + 1 ]);
-        }
-
-        translate([ 0, 0, height - 1 ]) cube([ width, length, 1 ]);
+        translate([width - radius, length - radius, radius]) sphere(radius);
+      }
+      translate([-0.5, -0.5, radius]) cube([width + 1, length + 1, radius + 1]);
     }
+
+    translate([0, 0, height - 1]) cube([width, length, 1]);
+  }
 }
 
 // Module: RoundedBoxGrid()
@@ -123,23 +112,18 @@ module RoundedBoxAllSides(width, length, height, radius)
 // Topics: Recess, Grid
 // Example:
 //   RoundedBoxGrid(30, 20, 10, 7, rows=2, cols=1);
-module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false)
-{
-    row_length = (width - spacing * (rows - 1)) / rows;
-    col_length = (length - spacing * (cols - 1)) / cols;
-    for (x = [0:rows - 1])
-        for (y = [0:cols - 1])
-            translate([ x * (row_length + spacing), y * (col_length + spacing), 0 ])
-            {
-                if (all_sides)
-                {
-                    RoundedBoxAllSides(length = col_length, width = row_length, height = height, radius = radius);
-                }
-                else
-                {
-                    RoundedBoxOnLength(length = col_length, width = row_length, height = height, radius = radius);
-                }
-            }
+module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false) {
+  row_length = (width - spacing * (rows - 1)) / rows;
+  col_length = (length - spacing * (cols - 1)) / cols;
+  for (x = [0:rows - 1])
+    for (y = [0:cols - 1])
+      translate([x * (row_length + spacing), y * (col_length + spacing), 0]) {
+        if (all_sides) {
+          RoundedBoxAllSides(length=col_length, width=row_length, height=height, radius=radius);
+        } else {
+          RoundedBoxOnLength(length=col_length, width=row_length, height=height, radius=radius);
+        }
+      }
 }
 
 // Module: RegularPolygon()
@@ -159,29 +143,28 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
 //   RegularPolygon(10, 5, shape_edges = 6);
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6, finger_holes = [0, 3]);
-module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef)
-{
-    rotate_deg = ((shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
-    apothem = width / 2;
-    radius = apothem / cos(180 / shape_edges);
+module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef) {
+  rotate_deg = ( (shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
+  apothem = width / 2;
+  radius = apothem / cos(180 / shape_edges);
 
-    side_length = 2 * apothem * tan(180 / shape_edges);
+  side_length = 2 * apothem * tan(180 / shape_edges);
 
-    calc_finger_hole_radius = DefaultValue(finger_hole_radius, side_length * 9 / 10);
+  calc_finger_hole_radius = DefaultValue(finger_hole_radius, side_length * 9 / 10);
 
-    rotate([ 0, 0, rotate_deg ]) linear_extrude(height = height) regular_ngon(n = shape_edges, or = radius);
-    degree = 360 / shape_edges;
-    for (i = [0:1:len(finger_holes) - 1])
-    {
-        x = width / 2 * cos(degree * finger_holes[i] + rotate_deg + degree / 2);
-        y = width / 2 * sin(degree * finger_holes[i] + rotate_deg + degree / 2);
-        translate([ x, y, finger_hole_height ])
-        {
-            cyl(r = calc_finger_hole_radius, h = max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
-                rounding = calc_finger_hole_radius, anchor = BOTTOM);
-        }
+  rotate([0, 0, rotate_deg]) linear_extrude(height=height) regular_ngon(n=shape_edges, or=radius);
+  degree = 360 / shape_edges;
+  for (i = [0:1:len(finger_holes) - 1]) {
+    x = width / 2 * cos(degree * finger_holes[i] + rotate_deg + degree / 2);
+    y = width / 2 * sin(degree * finger_holes[i] + rotate_deg + degree / 2);
+    translate([x, y, finger_hole_height]) {
+      cyl(
+        r=calc_finger_hole_radius, h=max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
+        rounding=calc_finger_hole_radius, anchor=BOTTOM,
+      );
     }
-    children();
+  }
+  children();
 }
 
 // Module: CircleWithIndents()
@@ -195,33 +178,41 @@ module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole
 //    finger_hole_radius = the radius to use for the finger holes
 // Examples:
 //    CylinderWithIndents(15, 10, finger_holes = [30, 210]);
-module CylinderWithIndents(radius, height, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef,
-                           anchor = BOTTOM)
-{
-    cyl(r = radius, h = height, anchor = anchor);
-    calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
-    for (i = [0:1:len(finger_holes) - 1])
-    {
-        x = radius * cos(finger_holes[i]);
-        y = radius * sin(finger_holes[i]);
-        translate([ x, y, finger_hole_height ])
-        {
-            cyl(r = calc_finger_hole_radius, h = height + calc_finger_hole_radius * 2, anchor = BOTTOM,
-                rounding = calc_finger_hole_radius);
-        }
+module CylinderWithIndents(
+  radius,
+  height,
+  finger_holes = [],
+  finger_hole_height = 0,
+  finger_hole_radius = undef,
+  anchor = BOTTOM
+) {
+  cyl(r=radius, h=height, anchor=anchor);
+  calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
+  for (i = [0:1:len(finger_holes) - 1]) {
+    x = radius * cos(finger_holes[i]);
+    y = radius * sin(finger_holes[i]);
+    translate([x, y, finger_hole_height]) {
+      cyl(
+        r=calc_finger_hole_radius, h=height + calc_finger_hole_radius * 2, anchor=BOTTOM,
+        rounding=calc_finger_hole_radius,
+      );
     }
-    children();
+  }
+  children();
 }
 
-function HoleToPosition(pos) = (pos == 0   ? FRONT
-                                : pos == 1 ? FRONT + RIGHT
-                                : pos == 2 ? RIGHT
-                                : pos == 3 ? RIGHT + BACK
-                                : pos == 4 ? BACK
-                                : pos == 5 ? BACK + LEFT
-                                : pos == 6 ? LEFT
-                                : pos == 7 ? LEFT + FRONT
-                                           : FRONT);
+function HoleToPosition(pos) =
+  (
+    pos == 0 ? FRONT
+    : pos == 1 ? FRONT + RIGHT
+    : pos == 2 ? RIGHT
+    : pos == 3 ? RIGHT + BACK
+    : pos == 4 ? BACK
+    : pos == 5 ? BACK + LEFT
+    : pos == 6 ? LEFT
+    : pos == 7 ? LEFT + FRONT
+    : FRONT
+  );
 
 // Module: CuboidWithIndentsBottom()
 // Description:
@@ -237,20 +228,28 @@ function HoleToPosition(pos) = (pos == 0   ? FRONT
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [1, 5]);
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [0, 4]);
-module CuboidWithIndentsBottom(size, finger_holes = [], finger_positions = [], finger_hole_height = 0,
-                               finger_hole_radius = undef, rounding = undef, edges = undef, anchor = BOTTOM)
-{
-    calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
-    mult = [ [ 1, 0 ], [ 1, 1 ], [ 0, 1 ], [ -1, 1 ], [ -1, 0 ], [ -1, -1 ], [ 0, -1 ], [ 1, -1 ] ];
-    poses = len(finger_positions) > 0 ? finger_positions : [for (x = finger_holes) HoleToPosition(x)];
-    cuboid(size, anchor = anchor, rounding = rounding, edges = edges) for (i = [0:1:len(poses) - 1])
-    {
-        //    data = mult[finger_holes[i]];
-        position(poses[i]) translate([ 0, 0, finger_hole_height - size[2] / 2 ])
-            cyl(r = calc_finger_hole_radius, h = size[2] + calc_finger_hole_radius * 2, anchor = BOTTOM,
-                rounding = calc_finger_hole_radius);
-    }
-    children();
+module CuboidWithIndentsBottom(
+  size,
+  finger_holes = [],
+  finger_positions = [],
+  finger_hole_height = 0,
+  finger_hole_radius = undef,
+  rounding = undef,
+  edges = undef,
+  anchor = BOTTOM
+) {
+  calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
+  mult = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  poses = len(finger_positions) > 0 ? finger_positions : [for (x = finger_holes) HoleToPosition(x)];
+  cuboid(size, anchor=anchor, rounding=rounding, edges=edges)for (i = [0:1:len(poses) - 1]) {
+    //    data = mult[finger_holes[i]];
+    position(poses[i]) translate([0, 0, finger_hole_height - size[2] / 2])
+        cyl(
+          r=calc_finger_hole_radius, h=size[2] + calc_finger_hole_radius * 2, anchor=BOTTOM,
+          rounding=calc_finger_hole_radius,
+        );
+  }
+  children();
 }
 
 // Module: RegularPolygonGrid()
@@ -267,35 +266,45 @@ module CuboidWithIndentsBottom(size, finger_holes = [], finger_positions = [], f
 //   cols = number of cols to generate
 //   spacing = spacing between shapres
 //   aspect_ratio = ratio between shape and width, the dy is * this (default 1.0)
+//   inner_control = if the layout is controled by the client using $polygon_x and $polygon_y as the layout (defaul false)
 // Topics: Grid
 // Example:
 //   RegularPolygonGrid(width = 10, rows = 2, cols = 1, spacing = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
-module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6, aspect_ratio = 1.0)
-{
-    apothem = width / 2;
-    radius = apothem / cos(180 / shape_edges);
-    side_length = 2 * apothem * tan(180 / shape_edges);
-    extra_edge = 2 * side_length * cos(360 / shape_edges);
+module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6, aspect_ratio = 1.0, inner_control = false) {
+  apothem = width / 2;
+  radius = apothem / cos(180 / shape_edges);
+  side_length = 2 * apothem * tan(180 / shape_edges);
+  extra_edge = 2 * side_length * cos(360 / shape_edges);
 
-    dx = ((shape_edges % 2) == 1) ? apothem + radius + spacing : apothem * 2 + spacing;
-    dy =
-        ((shape_edges % 2) == 0 ? ((shape_edges / 2 % 2) == 1 ? radius * 2 + spacing : apothem * 2 + spacing)
-                                : abs(2 * apothem * sin(((shape_edges - 1) / (shape_edges * 2)) * 360)) * 2 + spacing) *
-        aspect_ratio;
-    dx_y = 0;
-    offset_y = ((shape_edges % 2) == 1) ? (apothem + radius) / 2 : apothem;
-    offset_x = ((shape_edges % 2) == 0) ? ((shape_edges / 2 % 2) == 1 ? radius : apothem)
-                                        : abs(2 * apothem * sin(((shape_edges - 1) / (shape_edges * 2)) * 360));
+  dx = ( (shape_edges % 2) == 1) ? apothem + radius + spacing : apothem * 2 + spacing;
+  dy =
+  (
+    (shape_edges % 2) == 0 ? ( (shape_edges / 2 % 2) == 1 ? radius * 2 + spacing : apothem * 2 + spacing)
+    : abs(2 * apothem * sin(( (shape_edges - 1) / (shape_edges * 2)) * 360)) * 2 + spacing
+  ) * aspect_ratio;
+  dx_y = 0;
+  offset_y = ( (shape_edges % 2) == 1) ? (apothem + radius) / 2 : apothem;
+  offset_x =
+    ( (shape_edges % 2) == 0) ? ( (shape_edges / 2 % 2) == 1 ? radius : apothem)
+    : abs(2 * apothem * sin(( (shape_edges - 1) / (shape_edges * 2)) * 360));
 
-    rotate_deg = ((shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
+  rotate_deg = ( (shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
 
-    for (i = [0:rows - 1])
-        for (j = [0:cols - 1])
-            translate([ i * dy + offset_x, j * dx + i * dx_y + offset_y, 0 ])
-            {
-                children();
-            }
+  for (i = [0:rows - 1])
+    for (j = [0:cols - 1]) {
+      if (inner_control) {
+        $polygon_grid_rows = rows;
+        $polygon_grid_cols = cols;
+        $polygon_x = i;
+        $polygon_y = j;
+        children();
+      } else {
+        translate([i * dy + offset_x, j * dx + i * dx_y + offset_y, 0]) {
+          children();
+        }
+      }
+    }
 }
 
 // Module: RegularPolygonGridDense()
@@ -317,40 +326,38 @@ module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6, aspec
 //   RegularPolygonGridDense(radius = 10, rows = 3, cols = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
 //
-module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6)
-{
-    apothem = radius * cos(180 / shape_edges);
-    side_length = (shape_edges == 3) ? radius * sqrt(3) : 2 * apothem * tan(180 / shape_edges);
-    extra_edge = 2 * side_length * cos(360 / shape_edges);
-    triangle_height = sqrt(3) / 2 * side_length;
+module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6, inner_control = false) {
+  apothem = radius * cos(180 / shape_edges);
+  side_length = (shape_edges == 3) ? radius * sqrt(3) : 2 * apothem * tan(180 / shape_edges);
+  extra_edge = 2 * side_length * cos(360 / shape_edges);
+  triangle_height = sqrt(3) / 2 * side_length;
 
-    dx = (shape_edges == 3) ? side_length : apothem;
-    col_x = apothem + radius;
-    dy = (shape_edges == 3) ? triangle_height : 0.75 * (radius + radius);
+  dx = (shape_edges == 3) ? side_length : apothem;
+  col_x = apothem + radius;
+  dy = (shape_edges == 3) ? triangle_height : 0.75 * (radius + radius);
 
-    for (i = [0:rows - 1])
-        for (j = [0:cols - 1])
-            if (shape_edges == 6)
-            {
-                translate([ i * dy, (i % 2) == 0 ? (j * 2 + 1) * dx : j * 2 * dx, 0 ])
-                {
-                    children();
-                }
+  for (i = [0:rows - 1])
+    for (j = [0:cols - 1]) {
+      if (inner_control) {
+        $polygon_x = i;
+        $polygon_y = j;
+        children();
+      } else {
+        if (shape_edges == 6) {
+          translate([i * dy, (i % 2) == 0 ? (j * 2 + 1) * dx : j * 2 * dx, 0]) {
+            children();
+          }
+        } else {
+          translate([i / 2 * dy, j * dx + ( (i + 1) % 2) * (side_length / 2), 0]) {
+            if (i % 2 == 1) {
+              translate([triangle_height - side_length, 0, 0]) mirror([1, 0, 0]) children();
+            } else {
+              children();
             }
-            else
-            {
-                translate([ i / 2 * dy, j * dx + ((i + 1) % 2) * (side_length / 2), 0 ])
-                {
-                    if (i % 2 == 1)
-                    {
-                        translate([ triangle_height - side_length, 0, 0 ]) mirror([ 1, 0, 0 ]) children();
-                    }
-                    else
-                    {
-                        children();
-                    }
-                }
-            }
+          }
+        }
+      }
+    }
 }
 
 // Module: HexGridWithCutouts()
@@ -369,40 +376,35 @@ module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6)
 // Topics: Recess Grid
 // Example:
 //   HexGridWithCutouts(rows = 4, cols = 3, height = 10, spacing = 0, push_block_height = 1, tile_width = 29);
-module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_height = 0, wall_thickness = 2)
-{
-    width = tile_width;
-    apothem = width / 2;
-    radius = apothem / cos(180 / 6);
+module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_height = 0, wall_thickness = 2, inner_control = false) {
+  width = tile_width;
+  apothem = width / 2;
+  radius = apothem / cos(180 / 6);
 
-    intersection()
-    {
-        // Narrow it down to being inside the box itself.
-        translate([ 0, 0, -10 ]) cube([ rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20 ]);
-        RegularPolygonGrid(width = width, rows = rows, cols = cols, spacing = 0, shape_edges = 6)
-        {
-            union()
-            {
-                difference()
-                {
-                    RegularPolygon(width = width, height = 10 + height, shape_edges = 6);
-                    RegularPolygon(width = 15, height = push_block_height, shape_edges = 6);
-                }
-
-                translate([ 0, apothem, 0 ]) cuboid([ radius, 10, 35 ], anchor = BOT);
-
-                // Put in all the finger holes in the grid.
-                translate([ radius + 1, -apothem, -6 ])
-                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-                translate([ radius + 1, apothem, -6 ])
-                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-                translate([ -radius + 1, -apothem, -6 ])
-                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-                translate([ -radius + 1, apothem, -6 ])
-                    cuboid([ radius + wall_thickness, 15, radius * 2 ], anchor = BOT, rounding = 3);
-            }
+  intersection() {
+    // Narrow it down to being inside the box itself.
+    translate([0, 0, -10]) cube([rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20]);
+    RegularPolygonGrid(width=width, rows=rows, cols=cols, spacing=0, shape_edges=6, inner_control=inner_control) {
+      union() {
+        difference() {
+          RegularPolygon(width=width, height=10 + height, shape_edges=6);
+          RegularPolygon(width=15, height=push_block_height, shape_edges=6);
         }
+
+        translate([0, apothem, 0]) cuboid([radius, 10, 35], anchor=BOT);
+
+        // Put in all the finger holes in the grid.
+        translate([radius + 1, -apothem, -6])
+          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+        translate([radius + 1, apothem, -6])
+          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+        translate([-radius + 1, -apothem, -6])
+          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+        translate([-radius + 1, apothem, -6])
+          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+      }
     }
+  }
 }
 
 // Module FingerHoleWall()
@@ -420,75 +422,75 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   FingerHoleWall(10, 20)
 // Example:
 //   FingerHoleWall(10, 9)
-module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0)
-{
-    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
-    multmatrix(m = tmat) union()
-    {
-        if (height >= radius + rounding_radius)
-        {
-            top_height = radius * 2 - height;
-            middle_height = radius - top_height;
-            translate([ 0, 0, height ])
-                cuboid([ radius * 2, depth_of_hole, middle_height ], rounding = -rounding_radius,
-                       edges = [ TOP + LEFT, TOP + RIGHT ], $fn = 16, anchor = TOP);
-            translate([ 0, 0, 0 ]) ycyl(r = radius, h = depth_of_hole, $fn = 64, anchor = BOTTOM);
-        }
-        else
-        {
-            translate([ 0, 0, height ]) rotate([ 90, 0, 0 ]) intersection()
-            {
-                translate([ 0, -height / 2, 0 ])
-                    cuboid([ radius * 2 + rounding_radius * 2, height, depth_of_hole ], anchor = CENTER);
-                union()
-                {
-                    tangents = circle_circle_tangents(rounding_radius,
-                                                      [
-                                                          radius + rounding_radius,
-                                                          -rounding_radius,
-                                                      ],
-                                                      radius, [ 0, -height + radius ]);
-                    hull()
-                    {
+module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0) {
+  tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
+  multmatrix(m=tmat) union() {
+      if (height >= radius + rounding_radius) {
+        top_height = radius * 2 - height;
+        middle_height = radius - top_height;
+        translate([0, 0, height])
+          cuboid(
+            [radius * 2, depth_of_hole, middle_height], rounding=-rounding_radius,
+            edges=[TOP + LEFT, TOP + RIGHT], $fn=16, anchor=TOP,
+          );
+        translate([0, 0, 0]) ycyl(r=radius, h=depth_of_hole, $fn=64, anchor=BOTTOM);
+      } else {
+        translate([0, 0, height]) rotate([90, 0, 0]) intersection() {
+              translate([0, -height / 2, 0])
+                cuboid([radius * 2 + rounding_radius * 2, height, depth_of_hole], anchor=CENTER);
+              union() {
+                tangents = circle_circle_tangents(
+                  rounding_radius,
+                  [
+                    radius + rounding_radius,
+                    -rounding_radius,
+                  ],
+                  radius, [0, -height + radius],
+                );
+                hull() {
 
-                        for (i = [0:1:1])
-                        {
-                            mirror([ i, 0, 0 ]) union()
-                            {
-                                translate([ 0, 0, -depth_of_hole / 2 ]) linear_extrude(height = depth_of_hole) polygon([
-                                    tangents[3][1], tangents[3][0], [ tangents[3][0][0] + 0.1, 0 ],
-                                    [ tangents[3][1][0], 0 ]
-                                ]);
-                            }
-                        }
-                    }
-                    for (i = [0:1:1])
-                    {
-                        mirror([ i, 0, 0 ]) union()
-                        {
-                            difference()
-                            {
-                                translate([ radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5 ])
-                                    difference()
-                                {
-                                    cuboid([ rounding_radius, rounding_radius, depth_of_hole + 1 ],
-                                           anchor = BOTTOM + FRONT + RIGHT);
-                                    cyl(r = rounding_radius, h = depth_of_hole + 1, $fn = 32, anchor = BOTTOM);
-                                }
-
-                                translate([ 0, 0, -depth_of_hole / 2 - 0.5 ]) linear_extrude(height = depth_of_hole + 1)
-                                    polygon([
-                                        tangents[3][1], tangents[3][0], [ tangents[3][0][0], height - radius * 2 ],
-                                        [ tangents[3][1][0], height - radius * 2 ]
-                                    ]);
-                            }
-                        }
-                    }
-
-                    translate([ 0, -height + radius, 0 ]) cyl(r = radius, h = depth_of_hole, $fn = 64);
+                  for (i = [0:1:1]) {
+                    mirror([i, 0, 0]) union() {
+                        translate([0, 0, -depth_of_hole / 2]) linear_extrude(height=depth_of_hole) polygon(
+                              [
+                                tangents[3][1],
+                                tangents[3][0],
+                                [tangents[3][0][0] + 0.1, 0],
+                                [tangents[3][1][0], 0],
+                              ],
+                            );
+                      }
+                  }
                 }
+                for (i = [0:1:1]) {
+                  mirror([i, 0, 0]) union() {
+                      difference() {
+                        translate([radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5])
+                          difference() {
+                            cuboid(
+                              [rounding_radius, rounding_radius, depth_of_hole + 1],
+                              anchor=BOTTOM + FRONT + RIGHT,
+                            );
+                            cyl(r=rounding_radius, h=depth_of_hole + 1, $fn=32, anchor=BOTTOM);
+                          }
+
+                        translate([0, 0, -depth_of_hole / 2 - 0.5]) linear_extrude(height=depth_of_hole + 1)
+                            polygon(
+                              [
+                                tangents[3][1],
+                                tangents[3][0],
+                                [tangents[3][0][0], height - radius * 2],
+                                [tangents[3][1][0], height - radius * 2],
+                              ],
+                            );
+                      }
+                    }
+                }
+
+                translate([0, -height + radius, 0]) cyl(r=radius, h=depth_of_hole, $fn=64);
+              }
             }
-        }
+      }
     }
 }
 
@@ -512,21 +514,28 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 //    FingerHoleBase(10, 20);
 // Example:
 //    FingerHoleBase(10, 20, rounding_radius = 7);
-module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = default_wall_thickness, orient = UP,
-                      spin = 0)
-{
-    tmat = reorient(anchor = CENTER, spin = spin, orient = orient, size = [ 1, 1, 1 ]);
-    multmatrix(m = tmat) union()
-    {
-        translate([ -radius, -wall_thickness / 2, height ])
-        {
-            translate([ 0, wall_thickness / 2, 0 ]) cyl(r = radius, h = height, anchor = TOP + LEFT, $fn = 64);
-            cuboid([ radius * 2, wall_thickness + 1, height ], rounding = -rounding_radius,
-                   edges = [ TOP + LEFT, TOP + RIGHT ], anchor = TOP + LEFT, $fn = 32);
-            translate([ radius, -wall_thickness / 2 - 0.01, 0 ]) rotate([ 90, 90, 0 ])
-                cuboid([ height, radius * 2, wall_thickness ], rounding = -wall_thickness / 2, anchor = TOP + LEFT,
-                       $fn = 32, edges = [ FRONT + TOP, TOP + BACK ]);
-        }
+module FingerHoleBase(
+  radius,
+  height,
+  rounding_radius = 3,
+  wall_thickness = default_wall_thickness,
+  orient = UP,
+  spin = 0
+) {
+  tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
+  multmatrix(m=tmat) union() {
+      translate([-radius, -wall_thickness / 2, height]) {
+        translate([0, wall_thickness / 2, 0]) cyl(r=radius, h=height, anchor=TOP + LEFT, $fn=64);
+        cuboid(
+          [radius * 2, wall_thickness + 1, height], rounding=-rounding_radius,
+          edges=[TOP + LEFT, TOP + RIGHT], anchor=TOP + LEFT, $fn=32,
+        );
+        translate([radius, -wall_thickness / 2 - 0.01, 0]) rotate([90, 90, 0])
+            cuboid(
+              [height, radius * 2, wall_thickness], rounding=-wall_thickness / 2, anchor=TOP + LEFT,
+              $fn=32, edges=[FRONT + TOP, TOP + BACK],
+            );
+      }
     }
 }
 
@@ -545,92 +554,77 @@ module FingerHoleBase(radius, height, rounding_radius = 3, wall_thickness = defa
 //   smoothness = how smooth to make all the curves (default 32)
 // Example:
 //   HilbertCurve(3, 100);
-module HilbertCurve(order, size, line_thickness = 20, smoothness = 32)
-{
+module HilbertCurve(order, size, line_thickness = 20, smoothness = 32) {
 
-    module topline(order)
-    {
-        if (order > 0)
-        {
-            scale([ 0.5, 0.5 ]) topline(order - 1);
-        }
-        else
-        {
-            hull()
-            {
-                translate([ -size / 2, size / 2 ]) circle(d = line_thickness);
-                translate([ size / 2, size / 2 ]) circle(d = line_thickness);
-            };
-        }
+  module topline(order) {
+    if (order > 0) {
+      scale([0.5, 0.5]) topline(order - 1);
+    } else {
+      hull() {
+        translate([-size / 2, size / 2]) circle(d=line_thickness);
+        translate([size / 2, size / 2]) circle(d=line_thickness);
+      }
+      ;
     }
+  }
 
-    module leftline(order)
-    {
-        if (order > 0)
-        {
-            scale([ 0.5, 0.5 ]) translate([ -size, 0 ]) leftline(order - 1);
-        }
-        else
-        {
-            hull()
-            {
-                translate([ -size / 2, size / 2 ]) circle(d = line_thickness);
-                translate([ -size / 2, -size / 2 ]) circle(d = line_thickness);
-            };
-        }
+  module leftline(order) {
+    if (order > 0) {
+      scale([0.5, 0.5]) translate([-size, 0]) leftline(order - 1);
+    } else {
+      hull() {
+        translate([-size / 2, size / 2]) circle(d=line_thickness);
+        translate([-size / 2, -size / 2]) circle(d=line_thickness);
+      }
+      ;
     }
+  }
 
-    module rightline(order)
-    {
-        if (order > 0)
-        {
-            scale([ 0.5, 0.5 ]) translate([ size, 0 ]) rightline(order - 1);
-        }
-        else
-        {
-            hull()
-            {
-                translate([ size / 2, size / 2 ]) circle(d = line_thickness);
-                translate([ size / 2, -size / 2 ]) circle(d = line_thickness);
-            };
-        }
+  module rightline(order) {
+    if (order > 0) {
+      scale([0.5, 0.5]) translate([size, 0]) rightline(order - 1);
+    } else {
+      hull() {
+        translate([size / 2, size / 2]) circle(d=line_thickness);
+        translate([size / 2, -size / 2]) circle(d=line_thickness);
+      }
+      ;
     }
+  }
 
-    module hilbert(order)
-    {
+  module hilbert(order) {
 
-        if (order > 0)
-        {
-            union()
-            {
-                translate([ size / 2, size / 2 ]) scale([ 0.5, 0.5 ]) hilbert(order - 1);
-                translate([ -size / 2, size / 2 ]) scale([ 0.5, 0.5 ]) hilbert(order - 1);
-                translate([ size / 2, -size / 2 ]) rotate([ 0, 0, 90 ]) scale([ 0.5, 0.5 ]) hilbert(order - 1);
-                translate([ -size / 2, -size / 2 ]) rotate([ 0, 0, -90 ]) scale([ 0.5, 0.5 ]) hilbert(order - 1);
-                topline(order);
-                leftline(order);
-                rightline(order);
-            };
-        }
-        else
-            union()
-            {
-                hull()
-                {
-                    translate([ size / 2, size / 2 ]) circle(d = line_thickness);
-                    translate([ size / 2, -size / 2 ]) circle(d = line_thickness);
-                };
-                hull()
-                {
-                    translate([ -size / 2, size / 2 ]) circle(d = line_thickness);
-                    translate([ -size / 2, -size / 2 ]) circle(d = line_thickness);
-                };
-                hull()
-                {
-                    translate([ -size / 2, size / 2 ]) circle(d = line_thickness);
-                    translate([ size / 2, size / 2 ]) circle(d = line_thickness);
-                };
-            };
+    if (order > 0) {
+      union() {
+        translate([size / 2, size / 2]) scale([0.5, 0.5]) hilbert(order - 1);
+        translate([-size / 2, size / 2]) scale([0.5, 0.5]) hilbert(order - 1);
+        translate([size / 2, -size / 2]) rotate([0, 0, 90]) scale([0.5, 0.5]) hilbert(order - 1);
+        translate([-size / 2, -size / 2]) rotate([0, 0, -90]) scale([0.5, 0.5]) hilbert(order - 1);
+        topline(order);
+        leftline(order);
+        rightline(order);
+      }
+      ;
     }
-    hilbert(order);
+    else
+      union() {
+        hull() {
+          translate([size / 2, size / 2]) circle(d=line_thickness);
+          translate([size / 2, -size / 2]) circle(d=line_thickness);
+        }
+        ;
+        hull() {
+          translate([-size / 2, size / 2]) circle(d=line_thickness);
+          translate([-size / 2, -size / 2]) circle(d=line_thickness);
+        }
+        ;
+        hull() {
+          translate([-size / 2, size / 2]) circle(d=line_thickness);
+          translate([size / 2, size / 2]) circle(d=line_thickness);
+        }
+        ;
+      }
+    ;
+  }
+  hilbert(order);
 }

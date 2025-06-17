@@ -49,44 +49,45 @@ under the License.
 // Topics: TabbedBox
 // Example:
 //  InsetLid(50, 100);
-module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                inset = 1, size_spacing = m_piece_wiggle_room, lid_rounding = undef,
-                material_colour = default_material_colour)
-{
-    calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
-    $inner_width = width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
-    $inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
-    internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = size_spacing)
-    {
-        translate([ wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0 ])
-            color(material_colour) cuboid([ $inner_width, $inner_length, lid_thickness ],
-                                          anchor = BOTTOM + FRONT + LEFT, rounding = calc_lid_rounding,
-                                          edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
+module InsetLid(
+  width,
+  length,
+  lid_thickness = default_lid_thickness,
+  wall_thickness = default_wall_thickness,
+  inset = 1,
+  size_spacing = m_piece_wiggle_room,
+  lid_rounding = undef,
+  material_colour = default_material_colour
+) {
+  calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
+  $inner_width = width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
+  $inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
+  internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing=size_spacing) {
+    translate([wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0])
+      color(material_colour) cuboid(
+          [$inner_width, $inner_length, lid_thickness],
+          anchor=BOTTOM + FRONT + LEFT, rounding=calc_lid_rounding,
+          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        );
+    if ($children > 0) {
+      children(0);
     }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+  }
 }
 
 // Module: InsetLidTabbed()
@@ -111,46 +112,54 @@ module InsetLid(width, length, lid_thickness = default_lid_thickness, wall_thick
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   InsetLidTabbed(30, 100);
-module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall_thickness = default_wall_thickness,
-                      inset = 1, size_spacing = m_piece_wiggle_room, make_tab_width = false, make_tab_length = true,
-                      prism_width = 0.75, tab_length = 10, tab_height = 8, lid_rounding = undef,
-                      material_colour = default_material_colour)
-{
-    translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
-    {
-        InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, size_spacing = size_spacing, lid_rounding = lid_rounding, material_colour)
-        {
-            if ($children > 0)
-            {
-                children(0);
-            }
-            if ($children > 1)
-            {
-                children(1);
-            }
-            if ($children > 2)
-            {
-                children(2);
-            }
-            if ($children > 3)
-            {
-                children(3);
-            }
-            if ($children > 4)
-            {
-                children(4);
-            }
-            if ($children > 5)
-            {
-                children(5);
-            }
+module InsetLidTabbed(
+  width,
+  length,
+  lid_thickness = default_lid_thickness,
+  wall_thickness = default_wall_thickness,
+  inset = 1,
+  size_spacing = m_piece_wiggle_room,
+  make_tab_width = false,
+  make_tab_length = true,
+  prism_width = 0.75,
+  tab_length = 10,
+  tab_height = 8,
+  lid_rounding = undef,
+  material_colour = default_material_colour
+) {
+  translate([0, length, lid_thickness]) rotate([180, 0, 0]) union() {
+        InsetLid(
+          width=width, length=length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+          inset=inset, size_spacing=size_spacing, lid_rounding=lid_rounding, material_colour
+        ) {
+          if ($children > 0) {
+            children(0);
+          }
+          if ($children > 1) {
+            children(1);
+          }
+          if ($children > 2) {
+            children(2);
+          }
+          if ($children > 3) {
+            children(3);
+          }
+          if ($children > 4) {
+            children(4);
+          }
+          if ($children > 5) {
+            children(5);
+          }
         }
-        color(material_colour) MakeTabs(box_width = width, box_length = length, lid_thickness = lid_thickness,
-                                        make_tab_width = make_tab_width, make_tab_length = make_tab_length)
-            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
-                       prism_width = prism_width, wall_thickness = wall_thickness);
-    }
+        color(material_colour) MakeTabs(
+            box_width=width, box_length=length, lid_thickness=lid_thickness,
+            make_tab_width=make_tab_width, make_tab_length=make_tab_length
+          )
+            MakeLidTab(
+              length=tab_length, height=tab_height, lid_thickness=lid_thickness,
+              prism_width=prism_width, wall_thickness=wall_thickness
+            );
+      }
 }
 
 // Module: InsetLidTabbedWithLabelAndCustomShape()
@@ -184,70 +193,86 @@ module InsetLidTabbed(width, length, lid_thickness = default_lid_thickness, wall
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module InsetLidTabbedWithLabelAndCustomShape(width, length, text_width, text_height, text_str, lid_boundary = 10,
-                                             label_radius = 5, label_border = 2, label_offset = 4,
-                                             label_rotated = false, cap_height = undef, layout_width = undef,
-                                             size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness,
-                                             aspect_ratio = 1.0, font = undef, lid_rounding = undef, tab_length = 10,
-                                             tab_height = 8, make_tab_width = false, make_tab_length = true,
-                                             prism_width = 0.75, material_colour = default_material_colour,
-                                             label_solid_background = undef, label_background_colour = undef)
-{
-    InsetLidTabbed(width, length, lid_thickness = lid_thickness, tab_length = tab_length, tab_height = tab_height,
-                   lid_rounding = lid_rounding, prism_width = prism_width, make_tab_length = make_tab_length,
-                   make_tab_width = make_tab_width, size_spacing = size_spacing, material_colour = material_colour)
-    {
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio)
-        {
-            if ($children > 0)
-            {
-                children(0);
-            }
-            else
-            {
-                color(material_colour) square([ 10, 10 ]);
-            }
+module InsetLidTabbedWithLabelAndCustomShape(
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_boundary = 10,
+  label_radius = 5,
+  label_border = 2,
+  label_offset = 4,
+  label_rotated = false,
+  cap_height = undef,
+  layout_width = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_thickness = default_lid_thickness,
+  aspect_ratio = 1.0,
+  font = undef,
+  lid_rounding = undef,
+  tab_length = 10,
+  tab_height = 8,
+  make_tab_width = false,
+  make_tab_length = true,
+  prism_width = 0.75,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+  finger_hole_size = undef
+) {
+  InsetLidTabbed(
+    width, length, lid_thickness=lid_thickness, tab_length=tab_length, tab_height=tab_height,
+    lid_rounding=lid_rounding, prism_width=prism_width, make_tab_length=make_tab_length,
+    make_tab_width=make_tab_width, size_spacing=size_spacing, material_colour=material_colour
+  ) {
+    translate([lid_boundary, lid_boundary, 0])
+      LidMeshBasic(
+        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+        layout_width=layout_width, aspect_ratio=aspect_ratio
+      ) {
+        if ($children > 0) {
+          children(0);
+        } else {
+          color(material_colour) square([10, 10]);
         }
-        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
-                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     material_colour = material_colour,
-                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
-                     label_background_colour = label_background_colour);
-        // Don't include the first child since is it used for the lid shape.
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-        if ($children > 6)
-        {
-            children(6);
-        }
+      }
+    MakeLidLabel(
+      width=width, length=length, text_width=text_width, text_height=text_height,
+      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
+      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      material_colour=material_colour,
+      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
+      label_background_colour=label_background_colour,
+      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+    );
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
     }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
 }
 
 // Module: InsetLidTabbedWithLabel()
@@ -285,57 +310,77 @@ module InsetLidTabbedWithLabelAndCustomShape(width, length, text_width, text_hei
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //    InsetLidTabbedWithLabel(
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
-module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str, lid_thickness = default_lid_thickness,
-                               lid_boundary = 10, label_radius = 5, label_border = 2, label_rotated = false,
-                               tab_length = 10, tab_height = 8, make_tab_width = false, make_tab_length = true,
-                               prism_width = 0.75, layout_width = undef, shape_width = undef, shape_type = undef,
-                               aspect_ratio = undef, shape_thickness = undef, lid_rounding = undef, font = undef,
-                               size_spacing = m_piece_wiggle_room, label_offset = 4, shape_rounding = undef,
-                               material_colour = default_material_colour, label_solid_background = undef,
-                               label_background_colour = undef)
-{
-    InsetLidTabbedWithLabelAndCustomShape(
-        width = width, length = length, lid_thickness = lid_thickness, tab_length = tab_length,
-        prism_width = prism_width, tab_height = tab_height, make_tab_width = make_tab_width,
-        make_tab_length = make_tab_length, font = font, text_str = text_str, text_width = text_width,
-        text_height = text_height, label_radius = label_radius, label_rotated = label_rotated,
-        layout_width = layout_width, size_spacing = size_spacing, aspect_ratio = aspect_ratio,
-        label_border = label_border, label_offset = label_offset, material_colour = material_colour,
-        label_solid_background = label_solid_background, label_background_colour = label_background_colour)
-    {
-        color(material_colour)
-            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
-        if ($children > 0)
-        {
-            children(0);
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
+module InsetLidTabbedWithLabel(
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_thickness = default_lid_thickness,
+  lid_boundary = 10,
+  label_radius = 5,
+  label_border = 2,
+  label_rotated = false,
+  tab_length = 10,
+  tab_height = 8,
+  make_tab_width = false,
+  make_tab_length = true,
+  prism_width = 0.75,
+  layout_width = undef,
+  shape_width = undef,
+  shape_type = undef,
+  aspect_ratio = undef,
+  shape_thickness = undef,
+  lid_rounding = undef,
+  font = undef,
+  size_spacing = m_piece_wiggle_room,
+  label_offset = 4,
+  shape_rounding = undef,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+  finger_hole_size = undef
+) {
+  InsetLidTabbedWithLabelAndCustomShape(
+    width=width, length=length, lid_thickness=lid_thickness, tab_length=tab_length,
+    prism_width=prism_width, tab_height=tab_height, make_tab_width=make_tab_width,
+    make_tab_length=make_tab_length, font=font, text_str=text_str, text_width=text_width,
+    text_height=text_height, label_radius=label_radius, label_rotated=label_rotated,
+    layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
+    label_border=label_border, label_offset=label_offset, material_colour=material_colour,
+    label_solid_background=label_solid_background, label_background_colour=label_background_colour,
+    finger_hole_size = finger_hole_size
+  ) {
+    color(material_colour)
+      ShapeByType(
+        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+      );
+    if ($children > 0) {
+      children(0);
     }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+  }
 }
 
 // Module: MakeBoxWithInsetLidTabbed()
@@ -364,51 +409,71 @@ module InsetLidTabbedWithLabel(width, length, text_width, text_height, text_str,
 //   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
 //   floor_thickness = thickness of the floor (default 2)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithInsetLidTabbed(width = 30, length = 100, height = 20);
-module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_thickness = 2, tab_height = 8,
-                                 inset = 1, make_tab_width = false, make_tab_length = true, prism_width = 0.75,
-                                 tab_length = 10, stackable = false, size_spacing = m_piece_wiggle_room,
-                                 floor_thickness = 2, tab_offset = 0.45, material_colour = default_material_colour)
-{
-    difference()
-    {
-        color(material_colour)
-            cuboid([ width, length, height ], anchor = BOTTOM + FRONT + LEFT, rounding = wall_thickness,
-                   edges = [ LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK ]);
-        translate([ wall_thickness - inset, wall_thickness - inset, height - lid_thickness ]) color(material_colour)
-            cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1 ]);
-        translate([ 0, 0, height - lid_thickness ]) color(material_colour)
-            MakeTabs(box_width = width, box_length = length, lid_thickness = lid_thickness, tab_length = tab_length,
-                     make_tab_length = make_tab_length, make_tab_width = make_tab_width) color(material_colour)
-                minkowski()
-        {
-            translate([ -tab_offset, -tab_offset, -tab_offset ]) color(material_colour) cube(tab_offset * 2);
-            MakeLidTab(length = tab_length, height = tab_height, lid_thickness = lid_thickness,
-                       prism_width = prism_width, wall_thickness = wall_thickness);
-        }
-
-        // Make sure the children start from the bottom corner of the box.
-        $inner_width = width - wall_thickness * 2;
-        $inner_length = length - wall_thickness * 2;
-        $inner_height = height - lid_thickness - floor_thickness;
-        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-        // Cuff off the bit on the bottom to allow for stacking.
-        if (stackable)
-        {
-            difference()
-            {
-                translate([ -0.5, -0.5, -0.5 ]) color(material_colour)
-                    cube([ width + 1, length + 1, wall_thickness + 0.5 - size_spacing ]);
-                translate([ wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1 ])
-                    color(material_colour) cube([
-                        width - (wall_thickness - inset + size_spacing) * 2,
-                        length - (wall_thickness - inset + size_spacing) * 2, wall_thickness + 2
-                    ]);
+module MakeBoxWithInsetLidTabbed(
+  width,
+  length,
+  height,
+  wall_thickness = 2,
+  lid_thickness = 2,
+  tab_height = 8,
+  inset = 1,
+  make_tab_width = false,
+  make_tab_length = true,
+  prism_width = 0.75,
+  tab_length = 10,
+  stackable = false,
+  size_spacing = m_piece_wiggle_room,
+  floor_thickness = 2,
+  tab_offset = 0.45,
+  material_colour = default_material_colour,
+  finger_hole_size = undef
+) {
+  difference() {
+    color(material_colour)
+      cuboid(
+        [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+      );
+    translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness]) color(material_colour)
+        cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1]);
+    translate([0, 0, height - lid_thickness]) color(material_colour)
+        MakeTabs(
+          box_width=width, box_length=length, lid_thickness=lid_thickness, tab_length=tab_length,
+          make_tab_length=make_tab_length, make_tab_width=make_tab_width
+        ) color(material_colour)
+            minkowski() {
+              translate([-tab_offset, -tab_offset, -tab_offset]) color(material_colour) cube(tab_offset * 2);
+              MakeLidTab(
+                length=tab_length, height=tab_height, lid_thickness=lid_thickness,
+                prism_width=prism_width, wall_thickness=wall_thickness
+              );
             }
-        }
+
+    // Make sure the children start from the bottom corner of the box.
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+    // Cuff off the bit on the bottom to allow for stacking.
+    if (stackable) {
+      difference() {
+        translate([-0.5, -0.5, -0.5]) color(material_colour)
+            cube([width + 1, length + 1, wall_thickness + 0.5 - size_spacing]);
+        translate([wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1])
+          color(material_colour) cube(
+              [
+                width - (wall_thickness - inset + size_spacing) * 2,
+                length - (wall_thickness - inset + size_spacing) * 2,
+                wall_thickness + 2,
+              ]
+            );
+      }
     }
+  }
 }
 
 // Module: InsetLidRabbitClip()
@@ -437,51 +502,63 @@ module MakeBoxWithInsetLidTabbed(width, length, height, wall_thickness = 2, lid_
 // Topics: RabbitClipBox
 // Example:
 //   InsetLidRabbitClip(30, 100);
-module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, inset = 1,
-                          size_spacing = m_piece_wiggle_room, make_rabbit_width = false, make_rabbit_length = true,
-                          rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
-                          rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, rabbit_depth = 1.5,
-                          lid_rounding = undef, material_colour = default_material_colour)
-{
-    translate([ 0, length, lid_thickness ]) rotate([ 180, 0, 0 ]) union()
-    {
-        InsetLid(width = width, length = length, lid_thickness = lid_thickness, wall_thickness = wall_thickness,
-                 inset = inset, size_spacing = size_spacing, lid_rounding = lid_rounding,
-                 material_colour = material_colour)
-        {
-            if ($children > 0)
-            {
-                children(0);
-            }
-            if ($children > 1)
-            {
-                children(1);
-            }
-            if ($children > 2)
-            {
-                children(2);
-            }
-            if ($children > 3)
-            {
-                children(3);
-            }
-            if ($children > 4)
-            {
-                children(4);
-            }
-            if ($children > 5)
-            {
-                children(5);
-            }
+module InsetLidRabbitClip(
+  width,
+  length,
+  lid_thickness = 2,
+  wall_thickness = 2,
+  inset = 1,
+  size_spacing = m_piece_wiggle_room,
+  make_rabbit_width = false,
+  make_rabbit_length = true,
+  rabbit_width = 7,
+  rabbit_length = 6,
+  rabbit_lock = false,
+  rabbit_compression = 0.1,
+  rabbit_thickness = 0.8,
+  rabbit_snap = 0.25,
+  rabbit_offset = 3,
+  rabbit_depth = 1.5,
+  lid_rounding = undef,
+  material_colour = default_material_colour
+) {
+  translate([0, length, lid_thickness]) rotate([180, 0, 0]) union() {
+        InsetLid(
+          width=width, length=length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+          inset=inset, size_spacing=size_spacing, lid_rounding=lid_rounding,
+          material_colour=material_colour
+        ) {
+          if ($children > 0) {
+            children(0);
+          }
+          if ($children > 1) {
+            children(1);
+          }
+          if ($children > 2) {
+            children(2);
+          }
+          if ($children > 3) {
+            children(3);
+          }
+          if ($children > 4) {
+            children(4);
+          }
+          if ($children > 5) {
+            children(5);
+          }
         }
-        color(material_colour) MakeTabs(box_width = width, box_length = length, lid_thickness = lid_thickness,
-                                        make_tab_width = make_rabbit_width, make_tab_length = make_rabbit_length)
-            translate([ (rabbit_length + rabbit_offset) / 2, wall_thickness / 2, -lid_thickness / 2 ])
-                cuboid([ rabbit_length + rabbit_offset, wall_thickness, lid_thickness ]) attach(TOP)
-                    rabbit_clip(type = "pin", length = rabbit_length, width = rabbit_width, snap = rabbit_snap,
-                                thickness = rabbit_thickness, depth = rabbit_depth, compression = rabbit_compression,
-                                lock = rabbit_lock);
-    }
+        color(material_colour) MakeTabs(
+            box_width=width, box_length=length, lid_thickness=lid_thickness,
+            make_tab_width=make_rabbit_width, make_tab_length=make_rabbit_length
+          )
+            translate([(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, -lid_thickness / 2])
+              cuboid([rabbit_length + rabbit_offset, wall_thickness, lid_thickness]) attach(TOP)
+                  rabbit_clip(
+                    type="pin", length=rabbit_length, width=rabbit_width, snap=rabbit_snap,
+                    thickness=rabbit_thickness, depth=rabbit_depth, compression=rabbit_compression,
+                    lock=rabbit_lock
+                  );
+      }
 }
 
 // Module: InsetLidRabbitClipWithLabelAndCustomShape()
@@ -520,6 +597,7 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
 // Example:
 //    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
@@ -527,67 +605,89 @@ module InsetLidRabbitClip(width, length, lid_thickness = 2, wall_thickness = 2, 
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
 module InsetLidRabbitClipWithLabelAndCustomShape(
-    width, length, text_width, text_height, text_str, lid_boundary = 10, label_radius = 5, label_border = 2,
-    label_offset = 4, label_rotated = false, cap_height = undef, layout_width = undef,
-    size_spacing = m_piece_wiggle_room, lid_thickness = default_lid_thickness, aspect_ratio = 1.0, font = undef,
-    lid_rounding = undef, make_rabbit_width = false, make_rabbit_length = true, rabbit_width = 7, rabbit_length = 6,
-    rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3,
-    rabbit_depth = 1.5, lid_pattern_dense = false, lid_dense_shape_edges = 6, material_colour = default_material_colour,
-    label_solid_background = undef, label_background_colour = undef)
-{
-    InsetLidRabbitClip(width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
-                       make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width,
-                       rabbit_length = rabbit_length, rabbit_lock = rabbit_lock, rabbit_offset = rabbit_offset,
-                       rabbit_thickness = rabbit_thickness, rabbit_compression = rabbit_compression,
-                       rabbit_depth = rabbit_depth, lid_rounding = lid_rounding, size_spacing = size_spacing,
-                       material_colour = material_colour)
-    {
-        translate([ lid_boundary, lid_boundary, 0 ])
-            LidMeshBasic(width = width, length = length, lid_thickness = lid_thickness, boundary = lid_boundary,
-                         layout_width = layout_width, aspect_ratio = aspect_ratio, dense = lid_pattern_dense,
-                         dense_shape_edges = lid_dense_shape_edges)
-        {
-            if ($children > 0)
-            {
-                children(0);
-            }
-            else
-            {
-                color(material_colour) square([ 10, 10 ]);
-            }
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_boundary = 10,
+  label_radius = 5,
+  label_border = 2,
+  label_offset = 4,
+  label_rotated = false,
+  cap_height = undef,
+  layout_width = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_thickness = default_lid_thickness,
+  aspect_ratio = 1.0,
+  font = undef,
+  lid_rounding = undef,
+  make_rabbit_width = false,
+  make_rabbit_length = true,
+  rabbit_width = 7,
+  rabbit_length = 6,
+  rabbit_lock = false,
+  rabbit_compression = 0.1,
+  rabbit_thickness = 0.8,
+  rabbit_snap = 0.25,
+  rabbit_offset = 3,
+  rabbit_depth = 1.5,
+  lid_pattern_dense = false,
+  lid_dense_shape_edges = 6,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+  finger_hole_size = undef
+) {
+  InsetLidRabbitClip(
+    width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
+    make_rabbit_width=make_rabbit_width, rabbit_width=rabbit_width,
+    rabbit_length=rabbit_length, rabbit_lock=rabbit_lock, rabbit_offset=rabbit_offset,
+    rabbit_thickness=rabbit_thickness, rabbit_compression=rabbit_compression,
+    rabbit_depth=rabbit_depth, lid_rounding=lid_rounding, size_spacing=size_spacing,
+    material_colour=material_colour
+  ) {
+    translate([lid_boundary, lid_boundary, 0])
+      LidMeshBasic(
+        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+        dense_shape_edges=lid_dense_shape_edges
+      ) {
+        if ($children > 0) {
+          children(0);
+        } else {
+          color(material_colour) square([10, 10]);
         }
-        MakeLidLabel(width = width, length = length, text_width = text_width, text_height = text_height,
-                     lid_thickness = lid_thickness, border = label_border, offset = label_offset, full_height = true,
-                     font = font, label_rotated = label_rotated, text_str = text_str, label_radius = label_radius,
-                     material_colour = material_colour,
-                     solid_background = DefaultValue(label_solid_background, default_label_solid_background),
-                     label_background_colour = label_background_colour);
-        // Don't include the first child since is it used for the lid shape.
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-        if ($children > 6)
-        {
-            children(6);
-        }
+      }
+    MakeLidLabel(
+      width=width, length=length, text_width=text_width, text_height=text_height,
+      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
+      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      material_colour=material_colour,
+      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
+      label_background_colour=label_background_colour,
+      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+    );
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
     }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
 }
 
 // Module: InsetLidRabbitClipWithLabel()
@@ -629,62 +729,85 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
 //    label_solid_background = generate a solid label background, useful for mmu (default
 //    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: RabbitClipBox
 // Example:
 //    InsetLidRabbitClipWithLabel(
 //        width = 100, length = 100, lid_thickness = 3, text_width = 60,
 //        text_height = 30, text_str = "Trains", label_rotated = false);
-module InsetLidRabbitClipWithLabel(width, length, text_width, text_height, text_str, lid_thickness = 3,
-                                   lid_boundary = 10, label_radius = 5, label_border = 2, label_offset = 4,
-                                   label_rotated = false, make_rabbit_width = false, make_rabbit_length = true,
-                                   rabbit_width = 7, rabbit_length = 6, rabbit_lock = false, rabbit_compression = 0.1,
-                                   rabbit_thickness = 0.8, rabbit_snap = 0.25, rabbit_offset = 3, layout_width = undef,
-                                   shape_width = undef, shape_type = undef, shape_thickness = undef,
-                                   aspect_ratio = undef, rabbit_depth = 1.5, lid_rounding = undef, font = undef,
-                                   size_spacing = m_piece_wiggle_room, shape_rounding = undef,
-                                   material_colour = default_material_colour, label_solid_background = undef,
-                                   label_background_colour = undef)
-{
-    InsetLidRabbitClipWithLabelAndCustomShape(
-        width, length, lid_thickness = lid_thickness, make_rabbit_length = make_rabbit_length,
-        make_rabbit_width = make_rabbit_width, rabbit_width = rabbit_width, rabbit_length = rabbit_length,
-        rabbit_lock = rabbit_lock, rabbit_offset = rabbit_offset, rabbit_thickness = rabbit_thickness,
-        rabbit_compression = rabbit_compression, rabbit_depth = rabbit_depth, lid_rounding = lid_rounding, font = font,
-        text_str = text_str, text_width = text_width, text_height = text_height, label_radius = label_radius,
-        label_rotated = label_rotated, layout_width = layout_width, size_spacing = size_spacing,
-        aspect_ratio = aspect_ratio, label_border = label_border, label_offset = label_offset,
-        lid_pattern_dense = IsDenseShapeType(shape_type), lid_dense_shape_edges = DenseShapeEdges(shape_type),
-        material_colour = material_colour, label_solid_background = label_solid_background,
-        label_background_colour = label_background_colour)
-    {
-        color(material_colour)
-            ShapeByType(shape_type = shape_type, shape_width = shape_width, shape_thickness = shape_thickness,
-                        shape_aspect_ratio = aspect_ratio, rounding = shape_rounding);
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
-        if ($children > 6)
-        {
-            children(5);
-        }
+module InsetLidRabbitClipWithLabel(
+  width,
+  length,
+  text_width,
+  text_height,
+  text_str,
+  lid_thickness = 3,
+  lid_boundary = 10,
+  label_radius = 5,
+  label_border = 2,
+  label_offset = 4,
+  label_rotated = false,
+  make_rabbit_width = false,
+  make_rabbit_length = true,
+  rabbit_width = 7,
+  rabbit_length = 6,
+  rabbit_lock = false,
+  rabbit_compression = 0.1,
+  rabbit_thickness = 0.8,
+  rabbit_snap = 0.25,
+  rabbit_offset = 3,
+  layout_width = undef,
+  shape_width = undef,
+  shape_type = undef,
+  shape_thickness = undef,
+  aspect_ratio = undef,
+  rabbit_depth = 1.5,
+  lid_rounding = undef,
+  font = undef,
+  size_spacing = m_piece_wiggle_room,
+  shape_rounding = undef,
+  material_colour = default_material_colour,
+  label_solid_background = undef,
+  label_background_colour = undef,
+  finger_hole_size = undef
+) {
+  InsetLidRabbitClipWithLabelAndCustomShape(
+    width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
+    make_rabbit_width=make_rabbit_width, rabbit_width=rabbit_width, rabbit_length=rabbit_length,
+    rabbit_lock=rabbit_lock, rabbit_offset=rabbit_offset, rabbit_thickness=rabbit_thickness,
+    rabbit_compression=rabbit_compression, rabbit_depth=rabbit_depth, lid_rounding=lid_rounding, font=font,
+    text_str=text_str, text_width=text_width, text_height=text_height, label_radius=label_radius,
+    label_rotated=label_rotated, layout_width=layout_width, size_spacing=size_spacing,
+    aspect_ratio=aspect_ratio, label_border=label_border, label_offset=label_offset,
+    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    material_colour=material_colour, label_solid_background=label_solid_background,
+    label_background_colour=label_background_colour,
+    finger_hole_size = finger_hole_size
+  ) {
+    color(material_colour)
+      ShapeByType(
+        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+      );
+    if ($children > 1) {
+      children(1);
     }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(5);
+    }
+  }
 }
 
 // Module: MakeBoxWithInsetLidRabbitClip()
@@ -718,40 +841,63 @@ module InsetLidRabbitClipWithLabel(width, length, text_width, text_height, text_
 // Topics: RabbitClipBox
 // Example:
 //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
-module MakeBoxWithInsetLidRabbitClip(width, length, height, wall_thickness = 2, lid_thickness = 2, tab_height = 8,
-                                     floor_thickness = 2, inset = 1, make_rabbit_width = false,
-                                     make_rabbit_length = true, rabbit_width = 6, rabbit_length = 7, rabbit_offset = 3,
-                                     rabbit_lock = false, rabbit_compression = 0.1, rabbit_thickness = 0.8,
-                                     rabbit_snap = 0.25, size_spacing = m_piece_wiggle_room, rabbit_depth = 1.5,
-                                     material_colour = default_material_colour)
-{
-    difference()
-    {
-        color(material_colour) cube([ width, length, height ]);
-        translate([ wall_thickness - inset, wall_thickness - inset, height - lid_thickness ]) color(material_colour)
-            cube([ width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1 ]);
-        translate([ 0, 0, height - lid_thickness ]) color(material_colour)
-            MakeTabs(box_width = width, box_length = length, lid_thickness = lid_thickness,
-                     tab_length = rabbit_length + rabbit_offset, make_tab_length = make_rabbit_length,
-                     make_tab_width = make_rabbit_width) union()
-        {
-            translate([
-                (rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness / 2
-            ]) color(material_colour)
-                cuboid(
-                    [ rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01 ]);
+module MakeBoxWithInsetLidRabbitClip(
+  width,
+  length,
+  height,
+  wall_thickness = 2,
+  lid_thickness = 2,
+  tab_height = 8,
+  floor_thickness = 2,
+  inset = 1,
+  make_rabbit_width = false,
+  make_rabbit_length = true,
+  rabbit_width = 6,
+  rabbit_length = 7,
+  rabbit_offset = 3,
+  rabbit_lock = false,
+  rabbit_compression = 0.1,
+  rabbit_thickness = 0.8,
+  rabbit_snap = 0.25,
+  size_spacing = m_piece_wiggle_room,
+  rabbit_depth = 1.5,
+  material_colour = default_material_colour
+) {
+  difference() {
+    color(material_colour) cube([width, length, height]);
+    translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness]) color(material_colour)
+        cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1]);
+    translate([0, 0, height - lid_thickness]) color(material_colour)
+        MakeTabs(
+          box_width=width, box_length=length, lid_thickness=lid_thickness,
+          tab_length=rabbit_length + rabbit_offset, make_tab_length=make_rabbit_length,
+          make_tab_width=make_rabbit_width
+        ) union() {
             translate(
-                [ (rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness ])
-                color(material_colour)
-                    rabbit_clip(type = "socket", length = rabbit_length, width = rabbit_width, snap = rabbit_snap,
-                                thickness = rabbit_thickness, depth = rabbit_depth + 0.01,
-                                compression = rabbit_compression, lock = rabbit_lock);
-        }
+              [
+                (rabbit_length + rabbit_offset + size_spacing * 2) / 2,
+                wall_thickness / 2 - 0.01,
+                -lid_thickness / 2,
+              ]
+            ) color(material_colour)
+                cuboid(
+                  [rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01]
+                );
+            translate(
+              [(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness]
+            )
+              color(material_colour)
+                rabbit_clip(
+                  type="socket", length=rabbit_length, width=rabbit_width, snap=rabbit_snap,
+                  thickness=rabbit_thickness, depth=rabbit_depth + 0.01,
+                  compression=rabbit_compression, lock=rabbit_lock
+                );
+          }
 
-        // Make sure the children start from the bottom corner of the box.
-        $inner_width = width - wall_thickness * 2;
-        $inner_length = length - wall_thickness * 2;
-        $inner_height = height - lid_thickness - floor_thickness;
-        translate([ wall_thickness, wall_thickness, floor_thickness ]) children();
-    }
+    // Make sure the children start from the bottom corner of the box.
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+  }
 }
