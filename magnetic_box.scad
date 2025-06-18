@@ -317,10 +317,13 @@ module MagneticBoxLid(
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    label_radius = radius of the label corners (default 5)
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -330,13 +333,11 @@ module MagneticBoxLid(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: MagneticBoxLidWithLabelAndCustomShape(100, 50,  5, 1, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: MagneticBoxLidWithLabelAndCustomShape(100, 50,  5, 1, text_str = "Frog");
 // Example:
-//    MagneticBoxLidWithLabelAndCustomShape(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog") {
+//    MagneticBoxLidWithLabelAndCustomShape(100, 50, 5, 1, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
@@ -345,14 +346,14 @@ module MagneticBoxLidWithLabelAndCustomShape(
   length,
   magnet_diameter,
   magnet_thickness,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
@@ -363,7 +364,6 @@ module MagneticBoxLidWithLabelAndCustomShape(
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
@@ -385,13 +385,12 @@ module MagneticBoxLidWithLabelAndCustomShape(
         }
       }
     MakeLidLabel(
-      width=width, length=length, text_width=text_width, text_height=text_height,
+      width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
-      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
       label_background_colour=label_background_colour,
-      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+      finger_hole_size=finger_hole_size
     );
 
     // Fingernail pull
@@ -436,36 +435,37 @@ module MagneticBoxLidWithLabelAndCustomShape(
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    label_radius = radius of the label corners (default 12)
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
-// Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_str = "Frog");
 // Example:
-//    MagneticBoxLidWithLabel(100, 50, 5, 1, text_width = 70, text_height = 20, text_str = "Frog");
+//    MagneticBoxLidWithLabel(100, 50, 5, 1, text_str = "Frog");
 module MagneticBoxLidWithLabel(
   width,
   length,
   magnet_diameter,
   magnet_thickness,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
+  label_type = default_label_type,
   magnet_border = 1.5,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   layout_width = undef,
   shape_width = undef,
   shape_type = undef,
@@ -478,20 +478,20 @@ module MagneticBoxLidWithLabel(
   lid_rounding = undef,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
   MagneticBoxLidWithLabelAndCustomShape(
     width=width, length=length, magnet_diameter=magnet_diameter, magnet_thickness=magnet_thickness,
     wall_thickness=wall_thickness, lid_thickness=lid_thickness, font=font, text_str=text_str,
-    text_width=text_width, text_height=text_height, label_radius=label_radius, label_rotated=label_rotated,
+    label_radius=label_radius, text_length=text_length,
+    text_scale=text_scale, label_type=label_type,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     lid_rounding=lid_rounding, lid_boundary=lid_boundary, label_border=label_border,
     label_offset=label_offset, lid_pattern_dense=IsDenseShapeType(shape_type),
     lid_dense_shape_edges=DenseShapeEdges(shape_type), material_colour=material_colour,
-    label_solid_background=label_solid_background, label_background_colour=label_background_colour,
-    finger_hole_size = finger_hole_size
+    label_background_colour=label_background_colour,
+    finger_hole_size=finger_hole_size
   ) {
     color(material_colour)
       ShapeByType(

@@ -183,7 +183,7 @@ module CardBox() // `make` me
     {
         translate([ card_box_width + 10, 0, 0 ])
             CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 70, text_height = 20, text_str = "Bucket King", label_colour = "black");
+                              text_str = "Bucket King", label_colour = "black");
     }
 }
 

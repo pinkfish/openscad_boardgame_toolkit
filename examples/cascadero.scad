@@ -38,7 +38,7 @@ player_length = player_width;
 player_section_width = 40;
 lid_boundary = 7;
 
-top_width = ((box_width - gap) - 40) / 2;
+top_width = ( (box_width - gap) - 40) / 2;
 top_length = top_width;
 herald_width = 40;
 
@@ -49,76 +49,87 @@ radius = 10;
 
 module SealsBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
-    {
-        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
-                           height = section_height, radius = 15);
-    }
+  MakeBoxWithSlidingLid(width=top_width, length=top_length, height=section_height) {
+    RoundedBoxAllSides(
+      length=top_length - wall_thickness * 2, width=top_width - wall_thickness * 2,
+      height=section_height, radius=15
+    );
+  }
 }
 module SealsBoxLid() // `make` me
 {
-    SlidingLid(top_width, top_length)
-        SlidingBoxLidWithLabel(top_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20,
-                               text_str = "Seals", label_colour = "blue", label_radius = 5);
+  SlidingLid(top_width, top_length)
+    SlidingBoxLidWithLabel(
+      top_width, top_length, lid_thickness=lid_thickness,
+      text_str="Seals", label_colour="blue", label_radius=5
+    );
 }
 
 module FarmerBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = top_width, length = top_length, height = section_height)
-    {
-        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = top_width - wall_thickness * 2,
-                           height = section_height, radius = 15);
-    }
+  MakeBoxWithSlidingLid(width=top_width, length=top_length, height=section_height) {
+    RoundedBoxAllSides(
+      length=top_length - wall_thickness * 2, width=top_width - wall_thickness * 2,
+      height=section_height, radius=15
+    );
+  }
 }
 
 module FarmerBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(herald_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20,
-                           text_str = "Farmer", label_colour = "blue", label_radius = 5, label_rotated = true);
+  SlidingBoxLidWithLabel(
+    herald_width, top_length, lid_thickness=lid_thickness,
+    text_str="Farmer", label_colour="blue", label_radius=5, label_rotated=true
+  );
 }
 
 module HeraldBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = herald_width, length = top_length, height = section_height)
-    {
-        RoundedBoxAllSides(length = top_length - wall_thickness * 2, width = herald_width - wall_thickness * 2,
-                           height = section_height, radius = 15);
-    }
+  MakeBoxWithSlidingLid(width=herald_width, length=top_length, height=section_height) {
+    RoundedBoxAllSides(
+      length=top_length - wall_thickness * 2, width=herald_width - wall_thickness * 2,
+      height=section_height, radius=15
+    );
+  }
 }
 module HeraldBoxLid() // `make` me
 {
-    SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
-        herald_width, top_length, lid_thickness = lid_thickness, text_width = 60, text_height = 20, text_str = "Herald",
-        label_colour = "blue", label_radius = 5, label_rotated = true);
+  SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
+      herald_width, top_length, lid_thickness=lid_thickness, text_str="Herald",
+      label_colour="blue", label_radius=5, label_rotated=true
+    );
 }
 
 module PlayerBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = player_width, length = player_length, height = section_height)
-    {
+  MakeBoxWithSlidingLid(width=player_width, length=player_length, height=section_height) {
 
-        RoundedBoxGrid(width = $inner_width, length = first_width, height = section_height, radius = radius, rows = 2,
-                       cols = 1, all_sides = true);
-        translate([ 0, first_width + wall_thickness, 0 ]) RoundedBoxAllSides(
-            width = $inner_width, length = $inner_length - first_width, height = section_height, radius = radius);
-    }
+    RoundedBoxGrid(
+      width=$inner_width, length=first_width, height=section_height, radius=radius, rows=2,
+      cols=1, all_sides=true
+    );
+    translate([0, first_width + wall_thickness, 0]) RoundedBoxAllSides(
+        width=$inner_width, length=$inner_length - first_width, height=section_height, radius=radius
+      );
+  }
 }
 
 module PlayerBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(player_width, player_width, lid_thickness = lid_thickness, text_width = 60, text_height = 20,
-                           text_str = "Player", label_colour = "blue", label_radius = 5);
+  SlidingBoxLidWithLabel(
+    player_width, player_width, lid_thickness=lid_thickness,
+    text_str="Player", label_colour="blue", label_radius=5
+  );
 }
 
-if (FROM_MAKE != 1)
-{
-    //    BoxLayout();
+if (FROM_MAKE != 1) {
+  //    BoxLayout();
 
-    SealsBox();
+  SealsBox();
 
-    translate([ 0, 100, 0 ]) FarmerBox();
+  translate([0, 100, 0]) FarmerBox();
 
-    translate([ 0, 200, 0 ]) HeraldBox();
+  translate([0, 200, 0]) HeraldBox();
 
-    translate([ 0, 300, 0 ]) PlayerBox();
+  translate([0, 300, 0]) PlayerBox();
 }

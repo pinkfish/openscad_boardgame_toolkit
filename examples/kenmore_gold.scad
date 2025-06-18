@@ -50,66 +50,66 @@ loot_box_height = tile_box_height - start_cave_box_height;
 
 module SquareTileBox() // `make` me
 {
-    MakeBoxWithCapLid(width = tile_box_width, length = tile_box_length, height = tile_box_height)
-    {
-        cube([ square_tile_width, square_tile_width, tile_box_height ]);
-        translate([ square_tile_width + inner_thickness, 0, 0 ])
-            cube([ square_tile_width, square_tile_width, tile_box_height ]);
-        translate([ square_tile_width / 2, 0, -default_floor_thickness - 1 ])
-            FingerHoleBase(radius = 18, height = tile_box_height - default_floor_thickness + 1,
-                           wall_thickness = default_wall_thickness);
-        translate([ square_tile_width * 3 / 2 + inner_thickness, 0, -default_floor_thickness - 1 ])
-            FingerHoleBase(radius = 18, height = tile_box_height - default_floor_thickness + 1,
-                           wall_thickness = default_wall_thickness);
-    }
+  MakeBoxWithCapLid(width=tile_box_width, length=tile_box_length, height=tile_box_height) {
+    cube([square_tile_width, square_tile_width, tile_box_height]);
+    translate([square_tile_width + inner_thickness, 0, 0])
+      cube([square_tile_width, square_tile_width, tile_box_height]);
+    translate([square_tile_width / 2, 0, -default_floor_thickness - 1])
+      FingerHoleBase(
+        radius=18, height=tile_box_height - default_floor_thickness + 1,
+        wall_thickness=default_wall_thickness
+      );
+    translate([square_tile_width * 3 / 2 + inner_thickness, 0, -default_floor_thickness - 1])
+      FingerHoleBase(
+        radius=18, height=tile_box_height - default_floor_thickness + 1,
+        wall_thickness=default_wall_thickness
+      );
+  }
 }
 module SquareTileBoxLid() // `make` me
 {
-    CapBoxLidWithLabel(width = tile_box_width, length = tile_box_length, height = tile_box_height, text_width = 70,
-                       text_height = 20, text_str = "Kenmore Gold", label_colour = "black");
+  CapBoxLidWithLabel(width=tile_box_width, length=tile_box_length, height=tile_box_height, text_str="Kenmore Gold", label_colour="black");
 }
 
 module StartCaveBox() // `make` me
 {
-    MakeBoxWithCapLid(width = start_cave_box_width, length = start_cave_box_length, height = start_cave_box_height)
-    {
-        translate([ $inner_width / 2, $inner_length / 2, 0 ])
-        {
-            difference()
-            {
-                cuboid([ cave_start_length, cave_start_width, start_cave_box_height ], anchor = BOTTOM);
-                translate([ 0, cave_start_width / 2 - cave_start_indent, 0 ])
-                    cuboid([ square_tile_width - 1, cave_start_width, start_cave_box_height ], anchor = BOTTOM + FRONT);
-            }
-        }
-        translate([ start_cave_box_width / 2, 0, -default_floor_thickness - 1 ])
-            FingerHoleBase(radius = 18, height = tile_box_height - default_floor_thickness + 1,
-                           wall_thickness = default_wall_thickness);
+  MakeBoxWithCapLid(width=start_cave_box_width, length=start_cave_box_length, height=start_cave_box_height) {
+    translate([$inner_width / 2, $inner_length / 2, 0]) {
+      difference() {
+        cuboid([cave_start_length, cave_start_width, start_cave_box_height], anchor=BOTTOM);
+        translate([0, cave_start_width / 2 - cave_start_indent, 0])
+          cuboid([square_tile_width - 1, cave_start_width, start_cave_box_height], anchor=BOTTOM + FRONT);
+      }
     }
+    translate([start_cave_box_width / 2, 0, -default_floor_thickness - 1])
+      FingerHoleBase(
+        radius=18, height=tile_box_height - default_floor_thickness + 1,
+        wall_thickness=default_wall_thickness
+      );
+  }
 }
 
 module StartCaveBoxLid() // `make` me
 {
-    translate([ start_cave_box_width + 10, 0, 0 ])
-        CapBoxLidWithLabel(width = start_cave_box_width, length = start_cave_box_length, height = start_cave_box_height,
-                           text_width = 70, text_height = 20, text_str = "Start Cave", label_colour = "black");
+  translate([start_cave_box_width + 10, 0, 0])
+    CapBoxLidWithLabel(
+      width=start_cave_box_width, length=start_cave_box_length, height=start_cave_box_height,
+      text_str="Start Cave", label_colour="black"
+    );
 }
 
 module LootBox() // `make` me
 {
-    MakeBoxWithCapLid(width = loot_box_width, length = loot_box_length, height = loot_box_height)
-    {
-        RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = $inner_height, radius = 10);
-    }
+  MakeBoxWithCapLid(width=loot_box_width, length=loot_box_length, height=loot_box_height) {
+    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height, radius=10);
+  }
 }
 
 module LootBoxLid() // `make` me
 {
-    CapBoxLidWithLabel(width = loot_box_width, length = loot_box_length, height = loot_box_height, text_width = 50,
-                       text_height = 20, text_str = "Loot", label_colour = "black");
+  CapBoxLidWithLabel(width=loot_box_width, length=loot_box_length, height=loot_box_height, text_str="Loot", label_colour="black");
 }
 
-if (FROM_MAKE != 1)
-{
-    LootBox();
+if (FROM_MAKE != 1) {
+  LootBox();
 }

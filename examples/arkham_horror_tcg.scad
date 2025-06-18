@@ -40,7 +40,7 @@ card_box_height = card_width + default_lid_thickness + default_floor_thickness +
 
 function CardBoxWidth(num_cards) = num_cards * single_card_thickness + default_wall_thickness * 2;
 
-module CardBox(num_cards, text_str, generate_lid = true, text_width = 70, text_height = 20)
+module CardBox(num_cards, text_str, generate_lid = true)
 {
     card_box_length = CardBoxWidth(num_cards);
     translate([ card_box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
@@ -67,7 +67,7 @@ module AgnesBakerLid() // `make` me
 {
     card_box_length = CardBoxWidth(num_investigator_cards + 2);
 
-    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 50, text_height = 15,
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, 
                            text_str = "Agnes", lid_on_length = true, wall_thickness = default_wall_thickness);
 }
 
@@ -75,7 +75,7 @@ module RolandBanksLid() // `make` me
 {
     card_box_length = CardBoxWidth(num_investigator_cards + 2);
 
-    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 50, text_height = 15,
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, 
                            text_str = "Roland", lid_on_length = true, wall_thickness = default_wall_thickness);
 }
 
@@ -83,7 +83,7 @@ module DaisyWalkerLid() // `make` me
 {
     card_box_length = CardBoxWidth(num_investigator_cards + 2);
 
-    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 50, text_height = 15,
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, 
                            text_str = "Daisy", lid_on_length = true, wall_thickness = default_wall_thickness);
 }
 
@@ -91,7 +91,7 @@ module SkidsOTooleLid() // `make` me
 {
     card_box_length = CardBoxWidth(num_investigator_cards + 2);
 
-    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 50, text_height = 15,
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, 
                            text_str = "Skids", lid_on_length = true, wall_thickness = default_wall_thickness);
 }
 
@@ -99,7 +99,7 @@ module WendyAdamsLid() // `make` me
 {
     card_box_length = CardBoxWidth(num_investigator_cards + 2);
 
-    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length, text_width = 50, text_height = 15,
+    SlidingBoxLidWithLabel(width = card_box_width, length = card_box_length,
                            text_str = "Wendy", lid_on_length = true, wall_thickness = default_wall_thickness);
 }
 

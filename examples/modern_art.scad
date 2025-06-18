@@ -45,42 +45,40 @@ token_box_height = card_box_height;
 
 module CardBox() // `make` me
 {
-    MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
-    {
-        cube([ card_length, card_width, card_box_height ]);
-        translate([ 0, $inner_length - card_width, 0 ]) cube([ card_length, card_width, card_box_height ]);
-        translate([ 0, card_width / 2, -default_floor_thickness - 0.5 ])
-            FingerHoleBase(radius = 15, height = card_box_height);
-        translate([ 0, $inner_length - card_width / 2, -default_floor_thickness - 0.5 ])
-            FingerHoleBase(radius = 15, height = card_box_height);
-    }
+  MakeBoxWithCapLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+    cube([card_length, card_width, card_box_height]);
+    translate([0, $inner_length - card_width, 0]) cube([card_length, card_width, card_box_height]);
+    translate([0, card_width / 2, -default_floor_thickness - 0.5])
+      FingerHoleBase(radius=15, height=card_box_height);
+    translate([0, $inner_length - card_width / 2, -default_floor_thickness - 0.5])
+      FingerHoleBase(radius=15, height=card_box_height);
+  }
 }
 
 module CardBoxLid() // `make` me
-    {
-        translate([ card_box_width + 10, 0, 0 ])
-            CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height,
-                               text_width = 70, text_height = 20, text_str = "Tokens", label_rotated = true);
-    
+{
+  translate([card_box_width + 10, 0, 0])
+    CapBoxLidWithLabel(
+      width=card_box_width, length=card_box_length, height=card_box_height,
+      text_str="Tokens"
+    );
 }
 
 module TokensBox() // `make` me
 {
-    MakeBoxWithCapLid(width = token_box_width, length = token_box_length, height = token_box_height)
-    {
-        RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = token_box_height, radius = 15);
-    }
+  MakeBoxWithCapLid(width=token_box_width, length=token_box_length, height=token_box_height) {
+    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=token_box_height, radius=15);
+  }
 }
 
 module TokensBoxLid() // `make` me
-    {
-        translate([ token_box_width + 10, 0, 0 ]) CapBoxLidWithLabel(
-            width = token_box_width, length = token_box_length, height = token_box_height, text_width = 90,
-            text_height = 20, text_str = "Modern Art", label_rotated = true, font = "Marker Felt:style=Regular");
-    
+{
+  translate([token_box_width + 10, 0, 0]) CapBoxLidWithLabel(
+      width=token_box_width, length=token_box_length, height=token_box_height,
+      text_str="Modern Art", font="Marker Felt:style=Regular"
+    );
 }
 
-if (FROM_MAKE != 1)
-{
-    CardBox();
+if (FROM_MAKE != 1) {
+  CardBox();
 }

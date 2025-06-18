@@ -368,8 +368,7 @@ module DestinationCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     width=destination_card_box_width, length=destination_card_box_length,
-    lid_on_length=true, text_width=70, text_height=20, text_str="Destination",
-    label_rotated=true,
+    lid_on_length=true, text_str="Destination",
   );
 }
 
@@ -389,8 +388,7 @@ module FieldGuideCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     width=field_guide_card_box_width, length=field_guide_card_box_length,
-    lid_on_length=true, text_width=70, text_height=20, text_str="Field Guide",
-    label_rotated=true,
+    lid_on_length=true, text_str="Field Guide",
   );
 }
 
@@ -720,7 +718,7 @@ module TrailsCardsBoxLid() // `make` me
 
   SlidingBoxLidWithLabel(
     width=trails_card_box_width, length=trails_card_box_length, lid_on_length=true,
-    text_width=70, text_height=20, text_str="Trails", label_rotated=false,
+    text_str="Trails"
   );
 }
 

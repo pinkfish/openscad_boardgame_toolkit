@@ -346,10 +346,13 @@ module CapBoxLid(
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    label_radius = radius of the label corners (default 5)
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border= border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -359,14 +362,12 @@ module CapBoxLid(
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    inner_control = if the shape needs inner control (default false)
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog") {
+//    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
@@ -374,15 +375,15 @@ module CapBoxLidWithLabelAndCustomShape(
   width,
   length,
   height,
-  text_width,
-  text_height,
+  text_length,
   text_str,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
@@ -397,7 +398,6 @@ module CapBoxLidWithLabelAndCustomShape(
   lid_dense_shape_edges = 6,
   label_colour = undef,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   pattern_inner_control = false,
   finger_hole_size = undef
@@ -420,15 +420,15 @@ module CapBoxLidWithLabelAndCustomShape(
           color(material_colour) square([10, 10]);
         }
       }
-    MakeLidLabel(
-      width=width, length=length, text_width=text_width, text_height=text_height,
-      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
-      label_colour=label_colour, material_colour=material_colour,
-      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
-      label_background_colour=label_background_colour,
-      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
-    );
+    translate([lid_boundary, lid_boundary, 0])
+      MakeLidLabel(
+        width=width - lid_boundary * 2, length=length - lid_boundary * 2, text_length=text_length, text_scale=text_scale,
+        lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
+        font=font, label_type=label_type, text_str=text_str, label_radius=label_radius,
+        label_colour=label_colour, material_colour=material_colour,
+        label_background_colour=label_background_colour,
+        finger_hole_size=finger_hole_size
+      );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
       children(1);
@@ -459,6 +459,11 @@ module CapBoxLidWithLabelAndCustomShape(
 //   width = outside width of the box
 //    length = inside width of the box
 //    height = outside height of the box
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
@@ -466,10 +471,8 @@ module CapBoxLidWithLabelAndCustomShape(
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    label_radius = radius of the label corners (default 5)
 //    border= border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -477,37 +480,35 @@ module CapBoxLidWithLabelAndCustomShape(
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: CapBoxLidWithLabel(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: CapBoxLidWithLabel(100, 50, text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
+//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog");
+//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_width = 70, text_height = 20, text_str = "Frog", material_colour =
+//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog", material_colour =
 //    "lightblue", label_colour = "black");
 // Example:
 //    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 //    default_lid_shape_thickness = 1;
 //    default_lid_shape_width = 13;
 //    default_lid_layout_width = 10;
-//    CapBoxLidWithLabel(120, 70, 30, text_width = 70, text_height = 20, text_str = "Cards");
+//    CapBoxLidWithLabel(120, 70, 30, text_str = "Cards");
 module CapBoxLidWithLabel(
   width,
   length,
   height,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
+  label_type = default_label_type,
   cap_height = undef,
   layout_width = undef,
   shape_width = undef,
@@ -523,18 +524,17 @@ module CapBoxLidWithLabel(
   shape_rounding = undef,
   material_colour = default_material_colour,
   label_colour = undef,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
   CapBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, font=font, text_str=text_str,
-    text_width=text_width, text_height=text_height, label_radius=label_radius, label_rotated=label_rotated,
+    text_length=text_length, text_scale=text_scale,  label_type=label_type,label_radius=label_radius,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, lid_rounding=undef, lid_inner_rounding=undef,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    material_colour=material_colour, label_colour=label_colour, label_solid_background=label_solid_background,
+    material_colour=material_colour, label_colour=label_colour,
     label_background_colour=label_background_colour, pattern_inner_control=ShapeNeedsInnerControl(shape_type),
     finger_hole_size=finger_hole_size
   ) {

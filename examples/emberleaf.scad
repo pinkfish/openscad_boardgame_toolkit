@@ -27,7 +27,7 @@ default_wall_thickness = 3;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 
-default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 board_thickness = 23.5;
 
@@ -886,7 +886,7 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height,
-    text_width=70, text_height=25, text_str="Player", label_rotated=true,
+    text_str="Player", label_type=LABEL_TYPE_FRAMED_SOLID, text_scale=0.7
   );
 }
 
@@ -907,8 +907,12 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-    PlayerBoxLid();
-    /*
+  PlayerBoxLid();
+  metrics = textmetrics("Player", font=default_label_font, size=10);
+  fontmetrics = fontmetrics(size=10, font=default_label_font);
+  echo([metrics.size, metrics.size[1] / metrics.size[0], 10 / fontmetrics.max.ascent/2, fontmetrics]);
+  // MakeMainLidLabelStriped(150, 50, 2, "Player");
+  /*
   RegularPolygonGrid(100, 4, 3, inner_control = true) {
 
     ShapeByType(

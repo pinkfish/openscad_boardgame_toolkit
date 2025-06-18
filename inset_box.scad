@@ -173,10 +173,13 @@ module InsetLidTabbed(
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    label_radius = radius of the label corners (default 5)
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -190,27 +193,25 @@ module InsetLidTabbed(
 //    prism_width = width of the prism in the tab. (default 0.75)
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
-//    InsetLidTabbedWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
+//    InsetLidTabbedWithLabelAndCustomShape(100, 50, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
 module InsetLidTabbedWithLabelAndCustomShape(
   width,
   length,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
@@ -224,7 +225,6 @@ module InsetLidTabbedWithLabelAndCustomShape(
   make_tab_length = true,
   prism_width = 0.75,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
@@ -245,13 +245,12 @@ module InsetLidTabbedWithLabelAndCustomShape(
         }
       }
     MakeLidLabel(
-      width=width, length=length, text_width=text_width, text_height=text_height,
+      width=width, length=length, 
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      font=font,   text_length=text_length, text_scale=text_scale,  label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
-      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
       label_background_colour=label_background_colour,
-      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+      finger_hole_size=finger_hole_size
     );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -281,20 +280,20 @@ module InsetLidTabbedWithLabelAndCustomShape(
 //   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
 //   build more complicated lids.
 // Usage:
-//    InsetLidTabbedWithLabel(width = 100, length = 100, lid_thickness = 3, text_width = 60, text_height = 30, text_str
-//    = "Trains", label_rotated = false);
+//    InsetLidTabbedWithLabel(width = 100, length = 100, lid_thickness = 3, text_str
+//    = "Trains");
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
-//    text_width = width of the text section
-//    text_height = length of the text section
 //    text_str = The string to write
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
-//    label_radius = radius of the rounded corner for the label section (default 12)
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = how wide the border strip on the label should be (default 2)
 //    label_offset = how far inside the border the label should be (degault 4)
-//    label_rotated = if the label should be rotated, default to false
 //    tab_height = height of the tabs (default 6)
 //    tab_length = length of the tabs (default 10)
 //    inset = inset of the edge (default 1)
@@ -307,26 +306,23 @@ module InsetLidTabbedWithLabelAndCustomShape(
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: TabbedBox, TabbedLid
 // Example:
 //    InsetLidTabbedWithLabel(
-//        width = 100, length = 100, lid_thickness = 3, text_width = 60,
-//        text_height = 30, text_str = "Trains", label_rotated = false);
+//        width = 100, length = 100, lid_thickness = 3, text_str = "Trains");
 module InsetLidTabbedWithLabel(
   width,
   length,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
-  label_rotated = false,
   tab_length = 10,
   tab_height = 8,
   make_tab_width = false,
@@ -343,19 +339,18 @@ module InsetLidTabbedWithLabel(
   label_offset = 4,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
   InsetLidTabbedWithLabelAndCustomShape(
     width=width, length=length, lid_thickness=lid_thickness, tab_length=tab_length,
     prism_width=prism_width, tab_height=tab_height, make_tab_width=make_tab_width,
-    make_tab_length=make_tab_length, font=font, text_str=text_str, text_width=text_width,
-    text_height=text_height, label_radius=label_radius, label_rotated=label_rotated,
+    make_tab_length=make_tab_length, font=font, text_str=text_str,  label_radius=label_radius,   text_length=text_length,
+     text_scale=text_scale,  label_type=label_type,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, material_colour=material_colour,
-    label_solid_background=label_solid_background, label_background_colour=label_background_colour,
-    finger_hole_size = finger_hole_size
+    label_background_colour=label_background_colour,
+    finger_hole_size=finger_hole_size
   ) {
     color(material_colour)
       ShapeByType(
@@ -572,10 +567,13 @@ module InsetLidRabbitClip(
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    label_radius = radius of the label corners (default 5)
+//    text_str = the string to use for the label
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
-//    label_rotated = if the label is rotated (default false)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -594,27 +592,25 @@ module InsetLidRabbitClip(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog");
+// Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
-//    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_width = 70, text_height = 20, text_str = "Frog") {
+//    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
 module InsetLidRabbitClipWithLabelAndCustomShape(
   width,
   length,
-  text_width,
-  text_height,
   text_str,
+  text_length = undef,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
@@ -635,7 +631,6 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
@@ -660,13 +655,12 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
         }
       }
     MakeLidLabel(
-      width=width, length=length, text_width=text_width, text_height=text_height,
+      width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, label_rotated=label_rotated, text_str=text_str, label_radius=label_radius,
+      font=font,   text_length=text_length, text_scale=text_scale,  label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
-      solid_background=DefaultValue(label_solid_background, default_label_solid_background),
       label_background_colour=label_background_colour,
-      finger_hole_size=DefaultValue(finger_hole_size, (label_rotated ? length - text_height - 10 - lid_boundary * 2 > 0 : width - text_width - 10 - lid_boundary * 2 > 0) ? 10 : 0)
+      finger_hole_size=finger_hole_size
     );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -696,20 +690,20 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
 //   a label and a hex grid. The children to this as also pulled out of the lid so can be used to
 //   build more complicated lids.
 // Usage:
-//    InsetLidRabbitClipWithLabel(width = 100, length = 100, lid_thickness = 3, text_width = 60, text_height = 30,
-//    text_str = "Trains", label_rotated = false);
+//    InsetLidRabbitClipWithLabel(width = 100, length = 100, lid_thickness = 3,
+//    text_str = "Trains");
 // Arguments:
 //    width = width of the box (outside dimension)
 //    length = length of the box (outside dimension)
-//    text_width = width of the text section
-//    text_height = length of the text section
 //    text_str = The string to write
 //    lid_thickness = height of the lid (default 3)
 //    lid_boundary = how much boundary should be around the pattern (default 10)
-//    label_radius = radius of the rounded corner for the label section (default 12)
+//    text_length = the length of the text to use (defaults to 3/4 of length/width)
+//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
+//    label_radius = radius of the label corners (default text_width/4)
+//    label_type = the type of the label (default {{default_label_type}})
 //    label_border = how wide the border strip on the label should be (default 2)
 //    label_offset = how far inside the border the label should be (degault 4)
-//    label_rotated = if the label should be rotated, default to false
 //    make_rabbit_width = makes tabes on thr width (default false)
 //    make_rabbit_length = makes tabs on the length (default true)
 //    rabbit_length = length of the rabbit piece (downwards direction) (default 6)
@@ -726,27 +720,24 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    size_spacing = how much wiggle room around the piece (default {{m_piece_wiggle_room}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_solid_background = generate a solid label background, useful for mmu (default
-//    {{default_label_solid_background}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: RabbitClipBox
 // Example:
 //    InsetLidRabbitClipWithLabel(
-//        width = 100, length = 100, lid_thickness = 3, text_width = 60,
-//        text_height = 30, text_str = "Trains", label_rotated = false);
+//        width = 100, length = 100, lid_thickness = 3, text_str = "Trains");
 module InsetLidRabbitClipWithLabel(
   width,
   length,
-  text_width,
-  text_height,
+  text_length,
   text_str,
+  text_scale = 1.0,
+  label_type = default_label_type,
   lid_thickness = 3,
   lid_boundary = 10,
-  label_radius = 5,
+  label_radius = undef,
   label_border = 2,
   label_offset = 4,
-  label_rotated = false,
   make_rabbit_width = false,
   make_rabbit_length = true,
   rabbit_width = 7,
@@ -767,7 +758,6 @@ module InsetLidRabbitClipWithLabel(
   size_spacing = m_piece_wiggle_room,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_solid_background = undef,
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
@@ -776,13 +766,13 @@ module InsetLidRabbitClipWithLabel(
     make_rabbit_width=make_rabbit_width, rabbit_width=rabbit_width, rabbit_length=rabbit_length,
     rabbit_lock=rabbit_lock, rabbit_offset=rabbit_offset, rabbit_thickness=rabbit_thickness,
     rabbit_compression=rabbit_compression, rabbit_depth=rabbit_depth, lid_rounding=lid_rounding, font=font,
-    text_str=text_str, text_width=text_width, text_height=text_height, label_radius=label_radius,
-    label_rotated=label_rotated, layout_width=layout_width, size_spacing=size_spacing,
+    text_str=text_str, label_radius=label_radius,
+     text_length=text_length, text_scale=text_scale,  label_type=label_type, layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, label_border=label_border, label_offset=label_offset,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    material_colour=material_colour, label_solid_background=label_solid_background,
+    material_colour=material_colour, 
     label_background_colour=label_background_colour,
-    finger_hole_size = finger_hole_size
+    finger_hole_size=finger_hole_size
   ) {
     color(material_colour)
       ShapeByType(

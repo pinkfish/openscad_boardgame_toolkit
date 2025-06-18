@@ -119,306 +119,374 @@ trails_card_box_height = destination_card_box_height;
 
 weather_tokens_box_width = destination_card_box_width;
 weather_tokens_box_length =
-    box_width - trails_card_box_length - field_guide_card_box_length - destination_card_box_length - 2;
+box_width - trails_card_box_length - field_guide_card_box_length - destination_card_box_length - 2;
 weather_tokens_box_height = destination_card_box_height;
 
 spacer_box_width = box_width - player_board_width - 2;
 spacer_box_height = box_height - board_thickness - 1 - destination_card_box_height;
 spacer_box_length = box_length - 2;
 
-
-
-module TentToken(height)
-{
-    linear_extrude(height)
-        polygon(points = [[tent_token_width / 2, -tent_token_length / 2],
-                          [-tent_token_width / 2, -tent_token_length / 2], [0, tent_token_length / 2]],
-                paths = [[ 0, 1, 2 ]]);
+module TentToken(height) {
+  linear_extrude(height)
+    polygon(
+      points=[
+        [tent_token_width / 2, -tent_token_length / 2],
+        [-tent_token_width / 2, -tent_token_length / 2],
+        [0, tent_token_length / 2],
+      ],
+      paths=[[0, 1, 2]]
+    );
 }
 
 module PlayerBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height)
-    {
-        // tent
-        translate([ tent_token_width - 2, tent_token_length / 2 + 1, $inner_height - tent_token_thickness - 0.5 ])
-        {
-            TentToken(tent_token_thickness + 1);
-        }
-        // score marker
-        translate([
-            player_score_marker_diameter / 2 + tent_token_width + 3, player_score_marker_diameter / 2,
-            $inner_height - player_score_marker_thickness - 0.5
-        ]) CylinderWithIndents(radius = player_score_marker_diameter / 2, height = player_score_marker_thickness + 1);
-        // achievement tokens
-        translate([
-            $inner_width - achievment_token_diameter / 2, $inner_length - achievment_token_diameter / 2,
-            $inner_height - card_board_token_thickness * 4 - 0.5
-        ]) CylinderWithIndents(radius = achievment_token_diameter / 2, height = card_board_token_thickness * 4 + 1,
-                               finger_holes = [270], finger_hole_radius = 10);
-
-        // walking tokens
-        translate([
-            $inner_width - hiking_boots_token_diameter / 2, hiking_boots_token_diameter / 2,
-            $inner_height - card_board_token_thickness * 5 - 0.5
-        ]) CylinderWithIndents(radius = hiking_boots_token_diameter / 2, height = card_board_token_thickness * 5 + 1,
-                               finger_holes = [90], finger_hole_radius = 10);
-        translate([ 0, -2, $inner_height - hiker_token_thickness + 4 ])
-            RoundedBoxAllSides(width = hiker_token_length + 6, length = hiker_token_width + achievment_token_diameter,
-                               height = hiker_token_thickness, radius = 10);
-
-        // hiker
-        translate([
-            hiker_token_length / 2, player_score_marker_diameter + 1.5 + hiker_token_width / 2,
-            $inner_height - player_score_marker_thickness - 0.5
-        ]) CuboidWithIndentsBottom(size = [ hiker_token_length, hiker_token_width, hiker_token_thickness + 1 ]);
-
-        // backpack tokens
-        translate([
-            backpack_token_width / 2, $inner_length - backpack_token_width / 2 - 2.5,
-            $inner_height - player_score_marker_thickness - 0.5
-        ]) rotate([ 0, 0, 30 ])
-            RegularPolygon(width = backpack_token_width, height = card_board_token_thickness * 6 + 1, shape_edges = 6,
-                           finger_holes = [5], finger_hole_radius = 12);
-        translate([
-            backpack_token_width / 2 * 3 + 1, $inner_length - backpack_token_width / 2 - 2.5,
-            $inner_height - player_score_marker_thickness - 0.5
-        ]) rotate([ 0, 0, 30 ])
-            RegularPolygon(width = backpack_token_width, height = card_board_token_thickness * 6 + 1, shape_edges = 6,
-                           finger_holes = [2], finger_hole_radius = 12);
+  MakeBoxWithSlidingLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+    // tent
+    translate([tent_token_width - 2, tent_token_length / 2 + 1, $inner_height - tent_token_thickness - 0.5]) {
+      TentToken(tent_token_thickness + 1);
     }
+    // score marker
+    translate(
+      [
+        player_score_marker_diameter / 2 + tent_token_width + 3,
+        player_score_marker_diameter / 2,
+        $inner_height - player_score_marker_thickness - 0.5,
+      ]
+    ) CylinderWithIndents(radius=player_score_marker_diameter / 2, height=player_score_marker_thickness + 1);
+    // achievement tokens
+    translate(
+      [
+        $inner_width - achievment_token_diameter / 2,
+        $inner_length - achievment_token_diameter / 2,
+        $inner_height - card_board_token_thickness * 4 - 0.5,
+      ]
+    ) CylinderWithIndents(
+        radius=achievment_token_diameter / 2, height=card_board_token_thickness * 4 + 1,
+        finger_holes=[270], finger_hole_radius=10
+      );
+
+    // walking tokens
+    translate(
+      [
+        $inner_width - hiking_boots_token_diameter / 2,
+        hiking_boots_token_diameter / 2,
+        $inner_height - card_board_token_thickness * 5 - 0.5,
+      ]
+    ) CylinderWithIndents(
+        radius=hiking_boots_token_diameter / 2, height=card_board_token_thickness * 5 + 1,
+        finger_holes=[90], finger_hole_radius=10
+      );
+    translate([0, -2, $inner_height - hiker_token_thickness + 4])
+      RoundedBoxAllSides(
+        width=hiker_token_length + 6, length=hiker_token_width + achievment_token_diameter,
+        height=hiker_token_thickness, radius=10
+      );
+
+    // hiker
+    translate(
+      [
+        hiker_token_length / 2,
+        player_score_marker_diameter + 1.5 + hiker_token_width / 2,
+        $inner_height - player_score_marker_thickness - 0.5,
+      ]
+    ) CuboidWithIndentsBottom(size=[hiker_token_length, hiker_token_width, hiker_token_thickness + 1]);
+
+    // backpack tokens
+    translate(
+      [
+        backpack_token_width / 2,
+        $inner_length - backpack_token_width / 2 - 2.5,
+        $inner_height - player_score_marker_thickness - 0.5,
+      ]
+    ) rotate([0, 0, 30])
+        RegularPolygon(
+          width=backpack_token_width, height=card_board_token_thickness * 6 + 1, shape_edges=6,
+          finger_holes=[5], finger_hole_radius=12
+        );
+    translate(
+      [
+        backpack_token_width / 2 * 3 + 1,
+        $inner_length - backpack_token_width / 2 - 2.5,
+        $inner_height - player_score_marker_thickness - 0.5,
+      ]
+    ) rotate([0, 0, 30])
+        RegularPolygon(
+          width=backpack_token_width, height=card_board_token_thickness * 6 + 1, shape_edges=6,
+          finger_holes=[2], finger_hole_radius=12
+        );
+  }
 }
 module PlayerBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = player_box_width, length = player_box_length, text_width = 40, text_height = 20,
-                           text_str = "Player");
+  SlidingBoxLidWithLabel(
+    width=player_box_width, length=player_box_length,
+    text_str="Player"
+  );
 }
 
-function ResourceString(resource_num) = resource_num == 0   ? "Water"
-                                       : resource_num == 1 ? "Earth"
-                                       : resource_num == 2 ? "Wind"
-                                       : resource_num == 3 ? "Fire"
-                                       : resource_num == 4 ? "Food"
-                                       : resource_num == 5 ? "Water"
-                                       : resource_num == 6 ? "Sleep"
-                                       : resource_num == 7 ? "Endurance"
-                                       : resource_num == 8 ? "Hardship"
-                                       : resource_num == 9 ? "JMT"
-                                                           : "unknown";
+function ResourceString(resource_num) =
+  resource_num == 0 ? "Water"
+  : resource_num == 1 ? "Earth"
+  : resource_num == 2 ? "Wind"
+  : resource_num == 3 ? "Fire"
+  : resource_num == 4 ? "Food"
+  : resource_num == 5 ? "Water"
+  : resource_num == 6 ? "Sleep"
+  : resource_num == 7 ? "Endurance"
+  : resource_num == 8 ? "Hardship"
+  : resource_num == 9 ? "JMT"
+  : "unknown";
 
 module ResourceBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = resource_box_width, length = resource_box_length, height = resource_box_height)
-    {
-        RoundedBoxAllSides(width = $inner_width, length = $inner_length, height = resource_box_height, radius = 10);
-    }
+  MakeBoxWithSlidingLid(width=resource_box_width, length=resource_box_length, height=resource_box_height) {
+    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=10);
+  }
 }
 module ResourceBoxLid() // `make` me
 {
-    for (i = [0:9]) {
-        translate([(resource_box_width + 3) * i,0,0]) {  
-            SlidingBoxLidWithLabel(width = resource_box_width, length = resource_box_length, text_width = 40, text_height = 20,
-            label_rotated = true,
-                           text_str = ResourceString(i));
-        }
+  for (i = [0:9]) {
+    translate([(resource_box_width + 3) * i, 0, 0]) {
+      SlidingBoxLidWithLabel(
+        width=resource_box_width, length=resource_box_length,
+        text_str=ResourceString(i)
+      );
     }
+  }
 }
 
 module DestinationCardBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = destination_card_box_width, length = destination_card_box_length,
-                          height = destination_card_box_height, lid_on_length = true)
-    {
-        cube([ $inner_width, $inner_length, destination_card_box_height ]);
-        translate([ -0.1, destination_cards_width / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
-            radius = 10, height = destination_card_box_height - default_lid_thickness + 0.02, spin = 270);
-    }
+  MakeBoxWithSlidingLid(
+    width=destination_card_box_width, length=destination_card_box_length,
+    height=destination_card_box_height, lid_on_length=true
+  ) {
+    cube([$inner_width, $inner_length, destination_card_box_height]);
+    translate([-0.1, destination_cards_width / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=270
+      );
+  }
 }
 module DestinationCardBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = destination_card_box_width, length = destination_card_box_length,
-                           lid_on_length = true, text_width = 70, text_height = 20, text_str = "Destination",
-                           label_rotated = true);
+  SlidingBoxLidWithLabel(
+    width=destination_card_box_width, length=destination_card_box_length,
+    lid_on_length=true, text_str="Destination",
+  );
 }
 
 module FieldGuideCardBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = field_guide_card_box_width, length = field_guide_card_box_length,
-                          height = field_guide_card_box_height, lid_on_length = true)
-    {
-        cube([ animal_cards_length + 1, $inner_length, field_guide_card_box_height ]);
-        translate([ -0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01 ]) FingerHoleBase(
-            radius = 10, height = field_guide_card_box_height - default_lid_thickness + 0.02, spin = 270);
-    }
+  MakeBoxWithSlidingLid(
+    width=field_guide_card_box_width, length=field_guide_card_box_length,
+    height=field_guide_card_box_height, lid_on_length=true
+  ) {
+    cube([animal_cards_length + 1, $inner_length, field_guide_card_box_height]);
+    translate([-0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10, height=field_guide_card_box_height - default_lid_thickness + 0.02, spin=270
+      );
+  }
 }
 module FieldGuideCardBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = field_guide_card_box_width, length = field_guide_card_box_length,
-                           lid_on_length = true, text_width = 70, text_height = 20, text_str = "Field Guide",
-                           label_rotated = true);
+  SlidingBoxLidWithLabel(
+    width=field_guide_card_box_width, length=field_guide_card_box_length,
+    lid_on_length=true, text_str="Field Guide",
+  );
 }
 
 module TrailsCardsBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = trails_card_box_width, length = trails_card_box_length,
-                          height = trails_card_box_height, lid_on_length = true)
-    {
-        cube([ backpack_cards_width + 1, $inner_length, trails_card_box_height ]);
-        translate([ $inner_width - backpack_cards_width - 1, 0, 0 ])
-            cube([ backpack_cards_width, $inner_length, trails_card_box_height ]);
-        translate([ backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01 ])
-            FingerHoleBase(radius = 10, height = destination_card_box_height + 0.02, spin = 0);
-        translate([ $inner_width - backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01 ])
-            FingerHoleBase(radius = 10, height = destination_card_box_height + 0.02, spin = 0);
-    }
+  MakeBoxWithSlidingLid(
+    width=trails_card_box_width, length=trails_card_box_length,
+    height=trails_card_box_height, lid_on_length=true
+  ) {
+    cube([backpack_cards_width + 1, $inner_length, trails_card_box_height]);
+    translate([$inner_width - backpack_cards_width - 1, 0, 0])
+      cube([backpack_cards_width, $inner_length, trails_card_box_height]);
+    translate([backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
+    translate([$inner_width - backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
+  }
 }
 module TrailsCardsBoxLid() // `make` me
 {
 
-    SlidingBoxLidWithLabel(width = trails_card_box_width, length = trails_card_box_length, lid_on_length = true,
-                           text_width = 70, text_height = 20, text_str = "Trails", label_rotated = false);
+  SlidingBoxLidWithLabel(
+    width=trails_card_box_width, length=trails_card_box_length, lid_on_length=true,
+    text_str="Trails"
+  );
 }
 
 module WeatherTokensBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = weather_tokens_box_width, length = weather_tokens_box_length,
-                          height = weather_tokens_box_height, lid_on_length = true)
-    {
-        translate([ weather_token_width / 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7 ])
-        {
-            cuboid([ weather_token_width, weather_token_width, card_board_token_thickness * 7 ], anchor = BOTTOM,
-                   rounding = weather_corner_round_radius, edges = [FRONT + LEFT]);
-            translate([ weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
-            translate([ -weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
-        }
-        translate(
-            [ weather_token_width * 3 / 2 + 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7 ])
-        {
-            cuboid([ weather_token_width, weather_token_width, card_board_token_thickness * 7 ], anchor = BOTTOM,
-                   rounding = weather_corner_round_radius, edges = [FRONT + LEFT]);
-            translate([ weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
-        }
-        translate(
-            [ weather_token_width * 5 / 2 + 4, $inner_length / 2, $inner_height - card_board_token_thickness * 6 ])
-        {
-            cuboid([ weather_token_width, weather_token_width, card_board_token_thickness * 6 ], anchor = BOTTOM,
-                   rounding = weather_corner_round_radius, edges = [FRONT + LEFT]);
-            translate([ weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
-        }
-        translate(
-            [ weather_token_width * 7 / 2 + 6, $inner_length / 2, $inner_height - card_board_token_thickness * 6 ])
-        {
-            cuboid([ weather_token_width, weather_token_width, card_board_token_thickness * 6 ], anchor = BOTTOM,
-                   rounding = weather_corner_round_radius, edges = [FRONT + LEFT]);
-            translate([ weather_token_width / 2, 0, 0 ]) cyl(d = 18, h = 30, anchor = BOTTOM, rounding = 9);
-        }
+  MakeBoxWithSlidingLid(
+    width=weather_tokens_box_width, length=weather_tokens_box_length,
+    height=weather_tokens_box_height, lid_on_length=true
+  ) {
+    translate([weather_token_width / 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]) {
+      cuboid(
+        [weather_token_width, weather_token_width, card_board_token_thickness * 7], anchor=BOTTOM,
+        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+      );
+      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
+      translate([-weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
     }
+    translate(
+      [weather_token_width * 3 / 2 + 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]
+    ) {
+      cuboid(
+        [weather_token_width, weather_token_width, card_board_token_thickness * 7], anchor=BOTTOM,
+        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+      );
+      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
+    }
+    translate(
+      [weather_token_width * 5 / 2 + 4, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+    ) {
+      cuboid(
+        [weather_token_width, weather_token_width, card_board_token_thickness * 6], anchor=BOTTOM,
+        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+      );
+      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
+    }
+    translate(
+      [weather_token_width * 7 / 2 + 6, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+    ) {
+      cuboid(
+        [weather_token_width, weather_token_width, card_board_token_thickness * 6], anchor=BOTTOM,
+        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+      );
+      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
+    }
+  }
 }
 module WeatherTokensBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = weather_tokens_box_width, length = weather_tokens_box_length, lid_on_length = true,
-                           text_width = 70, text_height = 20, text_str = "Weather", label_rotated = true);
+  SlidingBoxLidWithLabel(
+    width=weather_tokens_box_width, length=weather_tokens_box_length, lid_on_length=true,
+    text_str="Weather"
+  );
 }
 
-module ArrowHead(height)
-{
-    translate([ 0, -bonus_tree_length / 2, 0 ]) linear_extrude(height = height) polygon(round_corners(
-        [[bonus_tree_top / 2, bonus_tree_length * 3 / 4], [bonus_tree_width / 2, bonus_tree_base_height],
-         [bonus_tree_base / 2 + 2, bonus_tree_base_height - 2], [bonus_tree_base / 2, 0], [-bonus_tree_base / 2, 0],
-         [-bonus_tree_base / 2 - 2, bonus_tree_base_height - 2], [-bonus_tree_width / 2, bonus_tree_base_height],
-         [-bonus_tree_top / 2, bonus_tree_length * 3 / 4], [0, bonus_tree_length]],
-        radius = [ 20, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 20, 2.5 ]));
+module ArrowHead(height) {
+  translate([0, -bonus_tree_length / 2, 0]) linear_extrude(height=height) polygon(
+        round_corners(
+          [
+            [bonus_tree_top / 2, bonus_tree_length * 3 / 4],
+            [bonus_tree_width / 2, bonus_tree_base_height],
+            [bonus_tree_base / 2 + 2, bonus_tree_base_height - 2],
+            [bonus_tree_base / 2, 0],
+            [-bonus_tree_base / 2, 0],
+            [-bonus_tree_base / 2 - 2, bonus_tree_base_height - 2],
+            [-bonus_tree_width / 2, bonus_tree_base_height],
+            [-bonus_tree_top / 2, bonus_tree_length * 3 / 4],
+            [0, bonus_tree_length],
+          ],
+          radius=[20, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 20, 2.5]
+        )
+      );
 }
 
 module BonusTileBox() // `make` me
 {
-    MakeBoxWithSlidingLid(width = bonus_marker_box_width, length = bonus_marker_box_length,
-                          height = bonus_marker_box_height)
-    {
-        translate([ $inner_width / 2, bonus_token_diameter / 2, $inner_height - card_board_token_thickness * 4 - 0.5 ])
-            cyl(d = bonus_token_diameter, h = card_board_token_thickness * 4 + 1, anchor = BOTTOM);
-        translate([
-            bonus_tree_length / 2, $inner_length - bonus_tree_width / 2,
-            $inner_height - 8 * card_board_token_thickness - 0.5
-        ])
-        {
-            rotate([ 0, 0, 270 ]) ArrowHead(8 * card_board_token_thickness + 1);
-            hull()
-            {
-                translate([ bonus_tree_length / 2, 0, 0 ]) cyl(d = 18, anchor = BOTTOM, h = 50, rounding = 8);
-                cyl(d = 18, anchor = BOTTOM, h = 50, rounding = 8);
-            }
-        }
-        translate([
-            $inner_width - bonus_tree_length / 2, $inner_length - bonus_tree_width * 3 / 2 + 10,
-            $inner_height - 8 * card_board_token_thickness - 0.5
-        ])
-        {
-            rotate([ 0, 0, 90 ]) ArrowHead(8 * card_board_token_thickness + 1);
-            hull()
-            {
-                translate([ -bonus_tree_length / 2, 0, 0 ]) cyl(d = 18, anchor = BOTTOM, h = 50, rounding = 8);
-                cyl(d = 18, anchor = BOTTOM, h = 50, rounding = 8);
-            }
-        }
+  MakeBoxWithSlidingLid(
+    width=bonus_marker_box_width, length=bonus_marker_box_length,
+    height=bonus_marker_box_height
+  ) {
+    translate([$inner_width / 2, bonus_token_diameter / 2, $inner_height - card_board_token_thickness * 4 - 0.5])
+      cyl(d=bonus_token_diameter, h=card_board_token_thickness * 4 + 1, anchor=BOTTOM);
+    translate(
+      [
+        bonus_tree_length / 2,
+        $inner_length - bonus_tree_width / 2,
+        $inner_height - 8 * card_board_token_thickness - 0.5,
+      ]
+    ) {
+      rotate([0, 0, 270]) ArrowHead(8 * card_board_token_thickness + 1);
+      hull() {
+        translate([bonus_tree_length / 2, 0, 0]) cyl(d=18, anchor=BOTTOM, h=50, rounding=8);
+        cyl(d=18, anchor=BOTTOM, h=50, rounding=8);
+      }
     }
+    translate(
+      [
+        $inner_width - bonus_tree_length / 2,
+        $inner_length - bonus_tree_width * 3 / 2 + 10,
+        $inner_height - 8 * card_board_token_thickness - 0.5,
+      ]
+    ) {
+      rotate([0, 0, 90]) ArrowHead(8 * card_board_token_thickness + 1);
+      hull() {
+        translate([-bonus_tree_length / 2, 0, 0]) cyl(d=18, anchor=BOTTOM, h=50, rounding=8);
+        cyl(d=18, anchor=BOTTOM, h=50, rounding=8);
+      }
+    }
+  }
 }
 module BonusTileBoxLid() // `make` me
 {
-    SlidingBoxLidWithLabel(width = bonus_marker_box_width, length = bonus_marker_box_length, text_width = 70,
-                           text_height = 20, text_str = "Bonus", label_rotated = true);
+  SlidingBoxLidWithLabel(
+    width=bonus_marker_box_width, length=bonus_marker_box_length,
+    text_str="Bonus"
+  );
 }
 
 module SpacerBox() // `make` me
 {
-    difference()
-    {
-        color(default_material_colour) cuboid([ spacer_box_width, spacer_box_length, spacer_box_height ], rounding = 3,
-                                              anchor = BOTTOM + FRONT + LEFT);
-        translate([ default_wall_thickness, default_wall_thickness, default_floor_thickness ]) cuboid(
-            [
-                spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
-                spacer_box_height
-            ],
-            anchor = BOTTOM + FRONT + LEFT);
-    }
+  difference() {
+    color(default_material_colour) cuboid(
+        [spacer_box_width, spacer_box_length, spacer_box_height], rounding=3,
+        anchor=BOTTOM + FRONT + LEFT
+      );
+    translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) cuboid(
+        [
+          spacer_box_width - default_wall_thickness * 2,
+          spacer_box_length - default_wall_thickness * 2,
+          spacer_box_height,
+        ],
+        anchor=BOTTOM + FRONT + LEFT
+      );
+  }
 }
 
-module BoxLayout()
-{
-    cube([ box_width, box_length, board_thickness ]);
-    cube([ 1, box_length, box_height ]);
-    translate([ 0, 0, board_thickness ])
-    {
-        PlayerBox();
-        translate([ 0, player_box_length, 0 ]) PlayerBox();
-        translate([ 0, player_box_length * 2, 0 ]) PlayerBox();
-        translate([ 0, player_box_length * 3, 0 ]) PlayerBox();
-        translate([ 0, 0, player_box_height ]) ResourceBox(resource_num = 0);
-        translate([ 0, player_box_length, player_box_height ]) ResourceBox(resource_num = 1);
-        translate([ 0, player_box_length * 2, player_box_height ]) ResourceBox(resource_num = 2);
-        translate([ 0, player_box_length * 3, player_box_height ]) ResourceBox(resource_num = 3);
-        translate([ player_box_width, 0, 0 ]) ResourceBox(resource_num = 4);
-        translate([ player_box_width, player_box_length, 0 ]) ResourceBox(resource_num = 5);
-        translate([ player_box_width, player_box_length * 2, 0 ]) ResourceBox(resource_num = 6);
-        translate([ player_box_width, player_box_length * 3, 0 ]) ResourceBox(resource_num = 7);
-        translate([ player_box_width, 0, player_box_height ]) ResourceBox(resource_num = 8);
-        translate([ player_box_width, player_box_length, player_box_height ]) ResourceBox(resource_num = 9);
-        translate([ player_box_width, player_box_length * 2, player_box_height ]) BonusTileBox();
-        translate([ player_box_width * 2, 0, 0 ]) DestinationCardBox();
-        translate([ player_box_width * 2, destination_card_box_length, 0 ]) FieldGuideCardBox();
-        translate([ player_box_width * 2, destination_card_box_length + field_guide_card_box_length, 0 ])
-            TrailsCardsBox();
-        translate([ player_box_width * 2, 0, destination_card_box_height ]) SpacerBox();
-        translate([
-            player_box_width * 2, destination_card_box_length + field_guide_card_box_length + trails_card_box_length, 0
-        ]) WeatherTokensBox();
-    }
-    translate([ 0, 0, box_height - player_board_thickness ])
-        cube([ player_board_width, player_board_length, player_board_thickness ]);
+module BoxLayout() {
+  cube([box_width, box_length, board_thickness]);
+  cube([1, box_length, box_height]);
+  translate([0, 0, board_thickness]) {
+    PlayerBox();
+    translate([0, player_box_length, 0]) PlayerBox();
+    translate([0, player_box_length * 2, 0]) PlayerBox();
+    translate([0, player_box_length * 3, 0]) PlayerBox();
+    translate([0, 0, player_box_height]) ResourceBox(resource_num=0);
+    translate([0, player_box_length, player_box_height]) ResourceBox(resource_num=1);
+    translate([0, player_box_length * 2, player_box_height]) ResourceBox(resource_num=2);
+    translate([0, player_box_length * 3, player_box_height]) ResourceBox(resource_num=3);
+    translate([player_box_width, 0, 0]) ResourceBox(resource_num=4);
+    translate([player_box_width, player_box_length, 0]) ResourceBox(resource_num=5);
+    translate([player_box_width, player_box_length * 2, 0]) ResourceBox(resource_num=6);
+    translate([player_box_width, player_box_length * 3, 0]) ResourceBox(resource_num=7);
+    translate([player_box_width, 0, player_box_height]) ResourceBox(resource_num=8);
+    translate([player_box_width, player_box_length, player_box_height]) ResourceBox(resource_num=9);
+    translate([player_box_width, player_box_length * 2, player_box_height]) BonusTileBox();
+    translate([player_box_width * 2, 0, 0]) DestinationCardBox();
+    translate([player_box_width * 2, destination_card_box_length, 0]) FieldGuideCardBox();
+    translate([player_box_width * 2, destination_card_box_length + field_guide_card_box_length, 0])
+      TrailsCardsBox();
+    translate([player_box_width * 2, 0, destination_card_box_height]) SpacerBox();
+    translate(
+      [
+        player_box_width * 2,
+        destination_card_box_length + field_guide_card_box_length + trails_card_box_length,
+        0,
+      ]
+    ) WeatherTokensBox();
+  }
+  translate([0, 0, box_height - player_board_thickness])
+    cube([player_board_width, player_board_length, player_board_thickness]);
 }
 
-if (FROM_MAKE != 1)
-{
-    ResourceBoxLid();
+if (FROM_MAKE != 1) {
+  ResourceBoxLid();
 }

@@ -4,1735 +4,1735 @@ all: 3mfmerge release/st_petersburg/MoneyBox.3mf release/st_petersburg/MoneyBoxL
 
 release/st_petersburg/MoneyBox.3mf: output/st_petersburg__MoneyBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/MoneyBox.stl: output/st_petersburg__MoneyBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/MoneyBoxLid.3mf: output/st_petersburg__MoneyBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/MoneyBoxLid.stl: output/st_petersburg__MoneyBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/CardBox.3mf: output/st_petersburg__CardBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/CardBox.stl: output/st_petersburg__CardBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/CardBoxLid.3mf: output/st_petersburg__CardBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/CardBoxLid.stl: output/st_petersburg__CardBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/TokensBox.3mf: output/st_petersburg__TokensBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/TokensBox.stl: output/st_petersburg__TokensBox.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/TokensBoxLid.3mf: output/st_petersburg__TokensBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/TokensBoxLid.stl: output/st_petersburg__TokensBoxLid.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/st_petersburg/Spacer.3mf: output/st_petersburg__Spacer.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/st_petersburg__Spacer.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/st_petersburg__Spacer.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/st_petersburg/Spacer.stl: output/st_petersburg__Spacer.scad st_petersburg.scad
 	-mkdir -p release/st_petersburg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/st_petersburg__Spacer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/st_petersburg__Spacer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/SealsBox.3mf: output/cascadero__SealsBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__SealsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__SealsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/SealsBox.stl: output/cascadero__SealsBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__SealsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__SealsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/SealsBoxLid.3mf: output/cascadero__SealsBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__SealsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__SealsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/SealsBoxLid.stl: output/cascadero__SealsBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__SealsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__SealsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/FarmerBox.3mf: output/cascadero__FarmerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__FarmerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__FarmerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/FarmerBox.stl: output/cascadero__FarmerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__FarmerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__FarmerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/FarmerBoxLid.3mf: output/cascadero__FarmerBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__FarmerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__FarmerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/FarmerBoxLid.stl: output/cascadero__FarmerBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__FarmerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__FarmerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/HeraldBox.3mf: output/cascadero__HeraldBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__HeraldBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__HeraldBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/HeraldBox.stl: output/cascadero__HeraldBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__HeraldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__HeraldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/HeraldBoxLid.3mf: output/cascadero__HeraldBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__HeraldBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__HeraldBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/HeraldBoxLid.stl: output/cascadero__HeraldBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__HeraldBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__HeraldBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/PlayerBox.3mf: output/cascadero__PlayerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/PlayerBox.stl: output/cascadero__PlayerBox.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/cascadero/PlayerBoxLid.3mf: output/cascadero__PlayerBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/cascadero__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/cascadero__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/cascadero/PlayerBoxLid.stl: output/cascadero__PlayerBoxLid.scad cascadero.scad
 	-mkdir -p release/cascadero
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/cascadero__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/cascadero__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenOne.3mf: output/explorers_of_navoria__PlayerBoxGreenOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxGreenOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxGreenOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenOne.stl: output/explorers_of_navoria__PlayerBoxGreenOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenOneLid.3mf: output/explorers_of_navoria__PlayerBoxGreenOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxGreenOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxGreenOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenOneLid.stl: output/explorers_of_navoria__PlayerBoxGreenOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxGreenOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowOne.3mf: output/explorers_of_navoria__PlayerBoxYellowOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxYellowOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxYellowOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowOne.stl: output/explorers_of_navoria__PlayerBoxYellowOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowOneLid.3mf: output/explorers_of_navoria__PlayerBoxYellowOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxYellowOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxYellowOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowOneLid.stl: output/explorers_of_navoria__PlayerBoxYellowOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxYellowOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleOne.3mf: output/explorers_of_navoria__PlayerBoxPurpleOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleOne.stl: output/explorers_of_navoria__PlayerBoxPurpleOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleOneLid.3mf: output/explorers_of_navoria__PlayerBoxPurpleOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxPurpleOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxPurpleOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleOneLid.stl: output/explorers_of_navoria__PlayerBoxPurpleOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackOne.3mf: output/explorers_of_navoria__PlayerBoxBlackOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxBlackOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxBlackOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackOne.stl: output/explorers_of_navoria__PlayerBoxBlackOne.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackOneLid.3mf: output/explorers_of_navoria__PlayerBoxBlackOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxBlackOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxBlackOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackOneLid.stl: output/explorers_of_navoria__PlayerBoxBlackOneLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxBlackOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenTwo.3mf: output/explorers_of_navoria__PlayerBoxGreenTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenTwo.stl: output/explorers_of_navoria__PlayerBoxGreenTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxGreenTwoLid.3mf: output/explorers_of_navoria__PlayerBoxGreenTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxGreenTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxGreenTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxGreenTwoLid.stl: output/explorers_of_navoria__PlayerBoxGreenTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxGreenTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowTwo.3mf: output/explorers_of_navoria__PlayerBoxYellowTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowTwo.stl: output/explorers_of_navoria__PlayerBoxYellowTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxYellowTwoLid.3mf: output/explorers_of_navoria__PlayerBoxYellowTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxYellowTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxYellowTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxYellowTwoLid.stl: output/explorers_of_navoria__PlayerBoxYellowTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxYellowTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleTwo.3mf: output/explorers_of_navoria__PlayerBoxPurpleTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleTwo.stl: output/explorers_of_navoria__PlayerBoxPurpleTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxPurpleTwoLid.3mf: output/explorers_of_navoria__PlayerBoxPurpleTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxPurpleTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxPurpleTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxPurpleTwoLid.stl: output/explorers_of_navoria__PlayerBoxPurpleTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxPurpleTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackTwo.3mf: output/explorers_of_navoria__PlayerBoxBlackTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackTwo.stl: output/explorers_of_navoria__PlayerBoxBlackTwo.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/PlayerBoxBlackTwoLid.3mf: output/explorers_of_navoria__PlayerBoxBlackTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__PlayerBoxBlackTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__PlayerBoxBlackTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/PlayerBoxBlackTwoLid.stl: output/explorers_of_navoria__PlayerBoxBlackTwoLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__PlayerBoxBlackTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/FavourBox.3mf: output/explorers_of_navoria__FavourBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__FavourBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__FavourBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/FavourBox.stl: output/explorers_of_navoria__FavourBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__FavourBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__FavourBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/FavourBoxLid.3mf: output/explorers_of_navoria__FavourBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__FavourBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__FavourBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/FavourBoxLid.stl: output/explorers_of_navoria__FavourBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__FavourBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__FavourBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/StuffBox.3mf: output/explorers_of_navoria__StuffBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__StuffBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__StuffBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/StuffBox.stl: output/explorers_of_navoria__StuffBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__StuffBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__StuffBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/StuffBoxLid.3mf: output/explorers_of_navoria__StuffBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__StuffBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__StuffBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/StuffBoxLid.stl: output/explorers_of_navoria__StuffBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__StuffBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__StuffBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/CardBox.3mf: output/explorers_of_navoria__CardBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/CardBox.stl: output/explorers_of_navoria__CardBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/CardBoxLid.3mf: output/explorers_of_navoria__CardBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/CardBoxLid.stl: output/explorers_of_navoria__CardBoxLid.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria/BagBox.3mf: output/explorers_of_navoria__BagBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria__BagBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria__BagBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria/BagBox.stl: output/explorers_of_navoria__BagBox.scad explorers_of_navoria.scad
 	-mkdir -p release/explorers_of_navoria
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria__BagBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria__BagBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/CardBox.3mf: output/modern_art__CardBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/modern_art__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/modern_art__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/CardBox.stl: output/modern_art__CardBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/modern_art__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/modern_art__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/CardBoxLid.3mf: output/modern_art__CardBoxLid.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/modern_art__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/modern_art__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/CardBoxLid.stl: output/modern_art__CardBoxLid.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/modern_art__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/modern_art__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/TokensBox.3mf: output/modern_art__TokensBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/modern_art__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/modern_art__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/TokensBox.stl: output/modern_art__TokensBox.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/modern_art__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/modern_art__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/modern_art/TokensBoxLid.3mf: output/modern_art__TokensBoxLid.scad modern_art.scad
 	-mkdir -p release/modern_art
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/modern_art__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/modern_art__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/modern_art/TokensBoxLid.stl: output/modern_art__TokensBoxLid.scad modern_art.scad
 	-mkdir -p release/modern_art
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/modern_art__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/modern_art__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/bucket_king/PlayerBox.3mf: output/bucket_king__PlayerBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/bucket_king__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/bucket_king__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/bucket_king/PlayerBox.stl: output/bucket_king__PlayerBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/bucket_king__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/bucket_king__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/bucket_king/CardBox.3mf: output/bucket_king__CardBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/bucket_king__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/bucket_king__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/bucket_king/CardBox.stl: output/bucket_king__CardBox.scad bucket_king.scad
 	-mkdir -p release/bucket_king
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/bucket_king__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/bucket_king__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/BasePiecesOne.3mf: output/sky_team__BasePiecesOne.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__BasePiecesOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__BasePiecesOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/BasePiecesOne.stl: output/sky_team__BasePiecesOne.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__BasePiecesOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__BasePiecesOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/BasePiecesTwo.3mf: output/sky_team__BasePiecesTwo.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__BasePiecesTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__BasePiecesTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/BasePiecesTwo.stl: output/sky_team__BasePiecesTwo.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__BasePiecesTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__BasePiecesTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/BasePiecesLid.3mf: output/sky_team__BasePiecesLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__BasePiecesLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__BasePiecesLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/BasePiecesLid.stl: output/sky_team__BasePiecesLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__BasePiecesLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__BasePiecesLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ApproachTracks.3mf: output/sky_team__ApproachTracks.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ApproachTracks.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ApproachTracks.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ApproachTracks.stl: output/sky_team__ApproachTracks.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ApproachTracks.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ApproachTracks.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ApproachTracksLid.3mf: output/sky_team__ApproachTracksLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ApproachTracksLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ApproachTracksLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ApproachTracksLid.stl: output/sky_team__ApproachTracksLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ApproachTracksLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ApproachTracksLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/DiceBox.3mf: output/sky_team__DiceBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__DiceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__DiceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/DiceBox.stl: output/sky_team__DiceBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__DiceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__DiceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/DiceBoxLid.3mf: output/sky_team__DiceBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__DiceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__DiceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/DiceBoxLid.stl: output/sky_team__DiceBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__DiceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__DiceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ButtonsBox.3mf: output/sky_team__ButtonsBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ButtonsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ButtonsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ButtonsBox.stl: output/sky_team__ButtonsBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ButtonsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ButtonsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ButtonsBoxDouble.3mf: output/sky_team__ButtonsBoxDouble.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ButtonsBoxDouble.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ButtonsBoxDouble.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ButtonsBoxDouble.stl: output/sky_team__ButtonsBoxDouble.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ButtonsBoxDouble.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ButtonsBoxDouble.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ButtonsBoxOnePointFive.3mf: output/sky_team__ButtonsBoxOnePointFive.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ButtonsBoxOnePointFive.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ButtonsBoxOnePointFive.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ButtonsBoxOnePointFive.stl: output/sky_team__ButtonsBoxOnePointFive.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ButtonsBoxOnePointFive.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ButtonsBoxOnePointFive.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ButtonsBoxTripple.3mf: output/sky_team__ButtonsBoxTripple.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ButtonsBoxTripple.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ButtonsBoxTripple.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ButtonsBoxTripple.stl: output/sky_team__ButtonsBoxTripple.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ButtonsBoxTripple.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ButtonsBoxTripple.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/CardBox.3mf: output/sky_team__CardBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/CardBox.stl: output/sky_team__CardBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/CardsBoxLid.3mf: output/sky_team__CardsBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__CardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__CardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/CardsBoxLid.stl: output/sky_team__CardsBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__CardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__CardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/SpacerBox.3mf: output/sky_team__SpacerBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/SpacerBox.stl: output/sky_team__SpacerBox.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/sky_team/ButtonsBoxLid.3mf: output/sky_team__ButtonsBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/sky_team__ButtonsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/sky_team__ButtonsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/sky_team/ButtonsBoxLid.stl: output/sky_team__ButtonsBoxLid.scad sky_team.scad
 	-mkdir -p release/sky_team
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/sky_team__ButtonsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/sky_team__ButtonsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/BlackPlayerBox.3mf: output/emberleaf__BlackPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__BlackPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__BlackPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/BlackPlayerBox.stl: output/emberleaf__BlackPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__BlackPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__BlackPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/RedPlayerBox.3mf: output/emberleaf__RedPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__RedPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__RedPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/RedPlayerBox.stl: output/emberleaf__RedPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__RedPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__RedPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/YellowPlayerBox.3mf: output/emberleaf__YellowPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__YellowPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__YellowPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/YellowPlayerBox.stl: output/emberleaf__YellowPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__YellowPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__YellowPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/BluePlayerBox.3mf: output/emberleaf__BluePlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__BluePlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__BluePlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/BluePlayerBox.stl: output/emberleaf__BluePlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__BluePlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__BluePlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/GreyPlayerBox.3mf: output/emberleaf__GreyPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__GreyPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__GreyPlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/GreyPlayerBox.stl: output/emberleaf__GreyPlayerBox.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__GreyPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__GreyPlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/emberleaf/PlayerBoxLid.3mf: output/emberleaf__PlayerBoxLid.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/emberleaf__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/emberleaf__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/emberleaf/PlayerBoxLid.stl: output/emberleaf__PlayerBoxLid.scad emberleaf.scad
 	-mkdir -p release/emberleaf
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/emberleaf__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/emberleaf__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/TileBox.3mf: output/march_of_the_ants__TileBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__TileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__TileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/TileBox.stl: output/march_of_the_ants__TileBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__TileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__TileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/TileBoxLid.3mf: output/march_of_the_ants__TileBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__TileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__TileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/TileBoxLid.stl: output/march_of_the_ants__TileBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__TileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__TileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/FoodTokenBox.3mf: output/march_of_the_ants__FoodTokenBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__FoodTokenBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__FoodTokenBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/FoodTokenBox.stl: output/march_of_the_ants__FoodTokenBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__FoodTokenBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__FoodTokenBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/FoodTokenBoxLid.3mf: output/march_of_the_ants__FoodTokenBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__FoodTokenBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__FoodTokenBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/FoodTokenBoxLid.stl: output/march_of_the_ants__FoodTokenBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__FoodTokenBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__FoodTokenBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/CardBox.3mf: output/march_of_the_ants__CardBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/CardBox.stl: output/march_of_the_ants__CardBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/CardBoxLid.3mf: output/march_of_the_ants__CardBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/CardBoxLid.stl: output/march_of_the_ants__CardBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/MinionsOfTheMeadowCardBox.3mf: output/march_of_the_ants__MinionsOfTheMeadowCardBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__MinionsOfTheMeadowCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__MinionsOfTheMeadowCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/MinionsOfTheMeadowCardBox.stl: output/march_of_the_ants__MinionsOfTheMeadowCardBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/MinionsOfTheMeadowCardBoxLid.3mf: output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/MinionsOfTheMeadowCardBoxLid.stl: output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/AphidBox.3mf: output/march_of_the_ants__AphidBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__AphidBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__AphidBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/AphidBox.stl: output/march_of_the_ants__AphidBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__AphidBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__AphidBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/AphidBoxLid.3mf: output/march_of_the_ants__AphidBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__AphidBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__AphidBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/AphidBoxLid.stl: output/march_of_the_ants__AphidBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__AphidBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__AphidBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/MinionsOfTheMeadowBox.3mf: output/march_of_the_ants__MinionsOfTheMeadowBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__MinionsOfTheMeadowBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__MinionsOfTheMeadowBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/MinionsOfTheMeadowBox.stl: output/march_of_the_ants__MinionsOfTheMeadowBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/MinionsOfTheMeadowBoxLid.3mf: output/march_of_the_ants__MinionsOfTheMeadowBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__MinionsOfTheMeadowBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__MinionsOfTheMeadowBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/MinionsOfTheMeadowBoxLid.stl: output/march_of_the_ants__MinionsOfTheMeadowBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__MinionsOfTheMeadowBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/PlayerBox.3mf: output/march_of_the_ants__PlayerBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/PlayerBox.stl: output/march_of_the_ants__PlayerBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/PlayerBoxLid.3mf: output/march_of_the_ants__PlayerBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/PlayerBoxLid.stl: output/march_of_the_ants__PlayerBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/PredatorBox.3mf: output/march_of_the_ants__PredatorBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__PredatorBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__PredatorBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/PredatorBox.stl: output/march_of_the_ants__PredatorBox.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__PredatorBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__PredatorBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/march_of_the_ants/PredatorBoxLid.3mf: output/march_of_the_ants__PredatorBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/march_of_the_ants__PredatorBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/march_of_the_ants__PredatorBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/march_of_the_ants/PredatorBoxLid.stl: output/march_of_the_ants__PredatorBoxLid.scad march_of_the_ants.scad
 	-mkdir -p release/march_of_the_ants
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/march_of_the_ants__PredatorBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/march_of_the_ants__PredatorBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MoneyBox1.3mf: output/1835__MoneyBox1.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MoneyBox1.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MoneyBox1.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MoneyBox1.stl: output/1835__MoneyBox1.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MoneyBox1.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MoneyBox1.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MoneyBox1Lid.3mf: output/1835__MoneyBox1Lid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MoneyBox1Lid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MoneyBox1Lid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MoneyBox1Lid.stl: output/1835__MoneyBox1Lid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MoneyBox1Lid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MoneyBox1Lid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MoneyBox2.3mf: output/1835__MoneyBox2.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MoneyBox2.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MoneyBox2.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MoneyBox2.stl: output/1835__MoneyBox2.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MoneyBox2.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MoneyBox2.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MoneyBox2Lid.3mf: output/1835__MoneyBox2Lid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MoneyBox2Lid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MoneyBox2Lid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MoneyBox2Lid.stl: output/1835__MoneyBox2Lid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MoneyBox2Lid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MoneyBox2Lid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/HexBox.3mf: output/1835__HexBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__HexBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__HexBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/HexBox.stl: output/1835__HexBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/HexBoxLid.3mf: output/1835__HexBoxLid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__HexBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__HexBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/HexBoxLid.stl: output/1835__HexBoxLid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__HexBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__HexBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/AllShareBoxes.3mf: output/1835__AllShareBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__AllShareBoxes.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__AllShareBoxes.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/AllShareBoxes.stl: output/1835__AllShareBoxes.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__AllShareBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__AllShareBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/AllShareBoxesLid.3mf: output/1835__AllShareBoxesLid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__AllShareBoxesLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__AllShareBoxesLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/AllShareBoxesLid.stl: output/1835__AllShareBoxesLid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__AllShareBoxesLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__AllShareBoxesLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MiddleBox.3mf: output/1835__MiddleBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MiddleBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MiddleBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MiddleBox.stl: output/1835__MiddleBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/MiddleBoxLid.3mf: output/1835__MiddleBoxLid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__MiddleBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__MiddleBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/MiddleBoxLid.stl: output/1835__MiddleBoxLid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__MiddleBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__MiddleBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/SpacerBox.3mf: output/1835__SpacerBox.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/SpacerBox.stl: output/1835__SpacerBox.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/LastSectionFirstPlayer.3mf: output/1835__LastSectionFirstPlayer.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__LastSectionFirstPlayer.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__LastSectionFirstPlayer.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/LastSectionFirstPlayer.stl: output/1835__LastSectionFirstPlayer.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__LastSectionFirstPlayer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__LastSectionFirstPlayer.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/1835/LastSectionFirstPlayerLid.3mf: output/1835__LastSectionFirstPlayerLid.scad 1835.scad
 	-mkdir -p release/1835
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/1835__LastSectionFirstPlayerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/1835__LastSectionFirstPlayerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/1835/LastSectionFirstPlayerLid.stl: output/1835__LastSectionFirstPlayerLid.scad 1835.scad
 	-mkdir -p release/1835
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/1835__LastSectionFirstPlayerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/1835__LastSectionFirstPlayerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBox.3mf: output/canvas__PiecesBox.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBox.stl: output/canvas__PiecesBox.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidRed.3mf: output/canvas__PiecesBoxLidRed.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidRed.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidRed.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidRed.stl: output/canvas__PiecesBoxLidRed.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidRed.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidRed.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidGreen.3mf: output/canvas__PiecesBoxLidGreen.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidGreen.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidGreen.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidGreen.stl: output/canvas__PiecesBoxLidGreen.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidGreen.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidGreen.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidGrey.3mf: output/canvas__PiecesBoxLidGrey.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidGrey.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidGrey.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidGrey.stl: output/canvas__PiecesBoxLidGrey.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidGrey.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidGrey.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidBlue.3mf: output/canvas__PiecesBoxLidBlue.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidBlue.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidBlue.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidBlue.stl: output/canvas__PiecesBoxLidBlue.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidBlue.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidBlue.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidPurple.3mf: output/canvas__PiecesBoxLidPurple.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidPurple.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidPurple.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidPurple.stl: output/canvas__PiecesBoxLidPurple.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidPurple.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidPurple.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/PiecesBoxLidPalette.3mf: output/canvas__PiecesBoxLidPalette.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__PiecesBoxLidPalette.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__PiecesBoxLidPalette.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/PiecesBoxLidPalette.stl: output/canvas__PiecesBoxLidPalette.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__PiecesBoxLidPalette.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__PiecesBoxLidPalette.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/canvas/DividerPiece.3mf: output/canvas__DividerPiece.scad canvas.scad
 	-mkdir -p release/canvas
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/canvas__DividerPiece.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/canvas__DividerPiece.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/canvas/DividerPiece.stl: output/canvas__DividerPiece.scad canvas.scad
 	-mkdir -p release/canvas
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/canvas__DividerPiece.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/canvas__DividerPiece.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/DestinationBox.3mf: output/isle_of_trains__DestinationBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__DestinationBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__DestinationBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/DestinationBox.stl: output/isle_of_trains__DestinationBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__DestinationBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__DestinationBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/DestinationBoxLid.3mf: output/isle_of_trains__DestinationBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__DestinationBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__DestinationBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/DestinationBoxLid.stl: output/isle_of_trains__DestinationBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__DestinationBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__DestinationBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/VictoryBox.3mf: output/isle_of_trains__VictoryBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__VictoryBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__VictoryBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/VictoryBox.stl: output/isle_of_trains__VictoryBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__VictoryBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__VictoryBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/VictoryBoxLid.3mf: output/isle_of_trains__VictoryBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__VictoryBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__VictoryBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/VictoryBoxLid.stl: output/isle_of_trains__VictoryBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__VictoryBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__VictoryBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/CardBox.3mf: output/isle_of_trains__CardBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/CardBox.stl: output/isle_of_trains__CardBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/CardBoxLid.3mf: output/isle_of_trains__CardBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/CardBoxLid.stl: output/isle_of_trains__CardBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/TicketBox.3mf: output/isle_of_trains__TicketBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__TicketBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__TicketBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/TicketBox.stl: output/isle_of_trains__TicketBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__TicketBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__TicketBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/TicketBoxLid.3mf: output/isle_of_trains__TicketBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__TicketBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__TicketBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/TicketBoxLid.stl: output/isle_of_trains__TicketBoxLid.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__TicketBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__TicketBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/isle_of_trains/MiddleBox.3mf: output/isle_of_trains__MiddleBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/isle_of_trains__MiddleBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/isle_of_trains__MiddleBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/isle_of_trains/MiddleBox.stl: output/isle_of_trains__MiddleBox.scad isle_of_trains.scad
 	-mkdir -p release/isle_of_trains
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/isle_of_trains__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/isle_of_trains__MiddleBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteOne.3mf: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteOne.stl: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteOneLid.3mf: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteOneLid.stl: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteOneLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteTwo.3mf: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteTwo.stl: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteTwoLid.3mf: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/PlayerBoxWhiteTwoLid.stl: output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__PlayerBoxWhiteTwoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/CardBox.3mf: output/explorers_of_navoria_forgotten_lands__CardBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/CardBox.stl: output/explorers_of_navoria_forgotten_lands__CardBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/CardBoxLid.3mf: output/explorers_of_navoria_forgotten_lands__CardBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/CardBoxLid.stl: output/explorers_of_navoria_forgotten_lands__CardBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/BitsBox.3mf: output/explorers_of_navoria_forgotten_lands__BitsBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__BitsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__BitsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/BitsBox.stl: output/explorers_of_navoria_forgotten_lands__BitsBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__BitsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__BitsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/BitsBoxLid.3mf: output/explorers_of_navoria_forgotten_lands__BitsBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__BitsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__BitsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/BitsBoxLid.stl: output/explorers_of_navoria_forgotten_lands__BitsBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__BitsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__BitsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/TokensBox.3mf: output/explorers_of_navoria_forgotten_lands__TokensBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__TokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/TokensBox.stl: output/explorers_of_navoria_forgotten_lands__TokensBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__TokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/TokensBoxLid.3mf: output/explorers_of_navoria_forgotten_lands__TokensBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__TokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/TokensBoxLid.stl: output/explorers_of_navoria_forgotten_lands__TokensBoxLid.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__TokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/explorers_of_navoria_forgotten_lands/SpacerBox.3mf: output/explorers_of_navoria_forgotten_lands__SpacerBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/explorers_of_navoria_forgotten_lands__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/explorers_of_navoria_forgotten_lands__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/explorers_of_navoria_forgotten_lands/SpacerBox.stl: output/explorers_of_navoria_forgotten_lands__SpacerBox.scad explorers_of_navoria_forgotten_lands.scad
 	-mkdir -p release/explorers_of_navoria_forgotten_lands
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/explorers_of_navoria_forgotten_lands__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/explorers_of_navoria_forgotten_lands__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/CardBox.3mf: output/root__CardBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/CardBox.stl: output/root__CardBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/MarquisBoxBottom.3mf: output/root__MarquisBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__MarquisBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__MarquisBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/MarquisBoxBottom.stl: output/root__MarquisBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__MarquisBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__MarquisBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/MarquisBoxTop.3mf: output/root__MarquisBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__MarquisBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__MarquisBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/MarquisBoxTop.stl: output/root__MarquisBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__MarquisBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__MarquisBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/VagabondBox.3mf: output/root__VagabondBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__VagabondBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__VagabondBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/VagabondBox.stl: output/root__VagabondBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__VagabondBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__VagabondBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ErieBoxBottom.3mf: output/root__ErieBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ErieBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ErieBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ErieBoxBottom.stl: output/root__ErieBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ErieBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ErieBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ErieBoxTop.3mf: output/root__ErieBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ErieBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ErieBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ErieBoxTop.stl: output/root__ErieBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ErieBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ErieBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/AllianceBoxBottom.3mf: output/root__AllianceBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__AllianceBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__AllianceBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/AllianceBoxBottom.stl: output/root__AllianceBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__AllianceBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__AllianceBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/AllianceBoxTop.3mf: output/root__AllianceBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__AllianceBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__AllianceBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/AllianceBoxTop.stl: output/root__AllianceBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__AllianceBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__AllianceBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/RiverfolkBoxBottom.3mf: output/root__RiverfolkBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__RiverfolkBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__RiverfolkBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/RiverfolkBoxBottom.stl: output/root__RiverfolkBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__RiverfolkBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__RiverfolkBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/RiverfolkBoxTop.3mf: output/root__RiverfolkBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__RiverfolkBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__RiverfolkBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/RiverfolkBoxTop.stl: output/root__RiverfolkBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__RiverfolkBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__RiverfolkBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/LizardBoxBottom.3mf: output/root__LizardBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__LizardBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__LizardBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/LizardBoxBottom.stl: output/root__LizardBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__LizardBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__LizardBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/LizardBoxTop.3mf: output/root__LizardBoxTop.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__LizardBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__LizardBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/LizardBoxTop.stl: output/root__LizardBoxTop.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__LizardBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__LizardBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxBottom.3mf: output/root__ItemsBoxBottom.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ItemsBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ItemsBoxBottom.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxBottom.stl: output/root__ItemsBoxBottom.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ItemsBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ItemsBoxBottom.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxMiddle.3mf: output/root__ItemsBoxMiddle.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ItemsBoxMiddle.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ItemsBoxMiddle.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxMiddle.stl: output/root__ItemsBoxMiddle.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ItemsBoxMiddle.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ItemsBoxMiddle.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxWinter.3mf: output/root__ItemsBoxWinter.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ItemsBoxWinter.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ItemsBoxWinter.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxWinter.stl: output/root__ItemsBoxWinter.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ItemsBoxWinter.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ItemsBoxWinter.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/DiceBox.3mf: output/root__DiceBox.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__DiceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__DiceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/DiceBox.stl: output/root__DiceBox.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__DiceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__DiceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/root/ItemsBoxExtras.3mf: output/root__ItemsBoxExtras.scad root.scad
 	-mkdir -p release/root
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/root__ItemsBoxExtras.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/root__ItemsBoxExtras.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/root/ItemsBoxExtras.stl: output/root__ItemsBoxExtras.scad root.scad
 	-mkdir -p release/root
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/root__ItemsBoxExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/root__ItemsBoxExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/MoneyBox.3mf: output/18cuba__MoneyBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/MoneyBox.stl: output/18cuba__MoneyBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/MoneyBoxLid.3mf: output/18cuba__MoneyBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/MoneyBoxLid.stl: output/18cuba__MoneyBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/TrainBox.3mf: output/18cuba__TrainBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__TrainBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__TrainBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/TrainBox.stl: output/18cuba__TrainBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/TrainBoxLid.3mf: output/18cuba__TrainBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__TrainBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__TrainBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/TrainBoxLid.stl: output/18cuba__TrainBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__TrainBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__TrainBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/SharesBox.3mf: output/18cuba__SharesBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__SharesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__SharesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/SharesBox.stl: output/18cuba__SharesBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__SharesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__SharesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/SharesBoxLid.3mf: output/18cuba__SharesBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__SharesBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__SharesBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/SharesBoxLid.stl: output/18cuba__SharesBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__SharesBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__SharesBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LastBox.3mf: output/18cuba__LastBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__LastBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__LastBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LastBox.stl: output/18cuba__LastBox.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__LastBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__LastBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LastBoxLid.3mf: output/18cuba__LastBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__LastBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__LastBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LastBoxLid.stl: output/18cuba__LastBoxLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__LastBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__LastBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LargeTokensToPrint.3mf: output/18cuba__LargeTokensToPrint.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__LargeTokensToPrint.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__LargeTokensToPrint.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LargeTokensToPrint.stl: output/18cuba__LargeTokensToPrint.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__LargeTokensToPrint.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__LargeTokensToPrint.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/18cuba/LargeTokensToPrintLid.3mf: output/18cuba__LargeTokensToPrintLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/18cuba__LargeTokensToPrintLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/18cuba__LargeTokensToPrintLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/18cuba/LargeTokensToPrintLid.stl: output/18cuba__LargeTokensToPrintLid.scad 18cuba.scad
 	-mkdir -p release/18cuba
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/18cuba__LargeTokensToPrintLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/18cuba__LargeTokensToPrintLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxEasternUS.3mf: output/railways_of_the_world__CardBoxEasternUS.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxEasternUS.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxEasternUS.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxEasternUS.stl: output/railways_of_the_world__CardBoxEasternUS.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxEasternUS.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxEasternUS.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxEasternUSLid.3mf: output/railways_of_the_world__CardBoxEasternUSLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxEasternUSLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxEasternUSLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxEasternUSLid.stl: output/railways_of_the_world__CardBoxEasternUSLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxEasternUSLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxEasternUSLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxAustralia.3mf: output/railways_of_the_world__CardBoxAustralia.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxAustralia.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxAustralia.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxAustralia.stl: output/railways_of_the_world__CardBoxAustralia.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxAustralia.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxAustralia.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxAustraliaLid.3mf: output/railways_of_the_world__CardBoxAustraliaLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxAustraliaLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxAustraliaLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxAustraliaLid.stl: output/railways_of_the_world__CardBoxAustraliaLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxAustraliaLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxAustraliaLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxMexico.3mf: output/railways_of_the_world__CardBoxMexico.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxMexico.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxMexico.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxMexico.stl: output/railways_of_the_world__CardBoxMexico.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxMexico.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxMexico.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxMexicoLid.3mf: output/railways_of_the_world__CardBoxMexicoLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxMexicoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxMexicoLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxMexicoLid.stl: output/railways_of_the_world__CardBoxMexicoLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxMexicoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxMexicoLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxSweden.3mf: output/railways_of_the_world__CardBoxSweden.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxSweden.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxSweden.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxSweden.stl: output/railways_of_the_world__CardBoxSweden.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxSweden.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxSweden.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxSwedenLid.3mf: output/railways_of_the_world__CardBoxSwedenLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxSwedenLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxSwedenLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxSwedenLid.stl: output/railways_of_the_world__CardBoxSwedenLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxSwedenLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxSwedenLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxPortugal.3mf: output/railways_of_the_world__CardBoxPortugal.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxPortugal.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxPortugal.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxPortugal.stl: output/railways_of_the_world__CardBoxPortugal.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxPortugal.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxPortugal.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/CardBoxPortugalLid.3mf: output/railways_of_the_world__CardBoxPortugalLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__CardBoxPortugalLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__CardBoxPortugalLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/CardBoxPortugalLid.stl: output/railways_of_the_world__CardBoxPortugalLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__CardBoxPortugalLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__CardBoxPortugalLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxWithPlasticExtras.3mf: output/railways_of_the_world__PlayerBoxWithPlasticExtras.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxWithPlasticExtras.stl: output/railways_of_the_world__PlayerBoxWithPlasticExtras.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtras.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxWithPlasticExtrasLid.3mf: output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxWithPlasticExtrasLid.stl: output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBoxWithPlasticExtrasLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBox.3mf: output/railways_of_the_world__PlayerBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBox.stl: output/railways_of_the_world__PlayerBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxLid.3mf: output/railways_of_the_world__PlayerBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxLid.stl: output/railways_of_the_world__PlayerBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxTrains.3mf: output/railways_of_the_world__PlayerBoxTrains.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBoxTrains.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBoxTrains.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxTrains.stl: output/railways_of_the_world__PlayerBoxTrains.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBoxTrains.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBoxTrains.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/PlayerBoxTrainsLid.3mf: output/railways_of_the_world__PlayerBoxTrainsLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__PlayerBoxTrainsLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__PlayerBoxTrainsLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/PlayerBoxTrainsLid.stl: output/railways_of_the_world__PlayerBoxTrainsLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__PlayerBoxTrainsLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__PlayerBoxTrainsLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/EmptyCityBox.3mf: output/railways_of_the_world__EmptyCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__EmptyCityBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__EmptyCityBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/EmptyCityBox.stl: output/railways_of_the_world__EmptyCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__EmptyCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__EmptyCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/EmptyCityBoxLid.3mf: output/railways_of_the_world__EmptyCityBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__EmptyCityBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__EmptyCityBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/EmptyCityBoxLid.stl: output/railways_of_the_world__EmptyCityBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__EmptyCityBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__EmptyCityBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/MoneyBox.3mf: output/railways_of_the_world__MoneyBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/MoneyBox.stl: output/railways_of_the_world__MoneyBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/MoneyBoxLid.3mf: output/railways_of_the_world__MoneyBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/MoneyBoxLid.stl: output/railways_of_the_world__MoneyBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/HexBox.3mf: output/railways_of_the_world__HexBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__HexBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__HexBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/HexBox.stl: output/railways_of_the_world__HexBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__HexBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/HexBoxLid.3mf: output/railways_of_the_world__HexBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__HexBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__HexBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/HexBoxLid.stl: output/railways_of_the_world__HexBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__HexBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__HexBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/NewCityBox.3mf: output/railways_of_the_world__NewCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__NewCityBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__NewCityBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/NewCityBox.stl: output/railways_of_the_world__NewCityBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__NewCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__NewCityBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/NewCityBoxLid.3mf: output/railways_of_the_world__NewCityBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__NewCityBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__NewCityBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/NewCityBoxLid.stl: output/railways_of_the_world__NewCityBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__NewCityBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__NewCityBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SwedenBox.3mf: output/railways_of_the_world__SwedenBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__SwedenBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__SwedenBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SwedenBox.stl: output/railways_of_the_world__SwedenBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__SwedenBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__SwedenBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SwedenBoxLid.3mf: output/railways_of_the_world__SwedenBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__SwedenBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__SwedenBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SwedenBoxLid.stl: output/railways_of_the_world__SwedenBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__SwedenBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__SwedenBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/AustraliaBox.3mf: output/railways_of_the_world__AustraliaBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__AustraliaBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__AustraliaBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/AustraliaBox.stl: output/railways_of_the_world__AustraliaBox.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__AustraliaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__AustraliaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/AustraliaBoxLid.3mf: output/railways_of_the_world__AustraliaBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__AustraliaBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__AustraliaBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/AustraliaBoxLid.stl: output/railways_of_the_world__AustraliaBoxLid.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__AustraliaBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__AustraliaBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxSide.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxSide.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxFront.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxFront.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxFront.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxTop.3mf: output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/railways_of_the_world/SpacerNoPlasticPlayerBoxTop.stl: output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.scad railways_of_the_world.scad
 	-mkdir -p release/railways_of_the_world
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/railways_of_the_world__SpacerNoPlasticPlayerBoxTop.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/SquareTileBox.3mf: output/kenmore_gold__SquareTileBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__SquareTileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__SquareTileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/SquareTileBox.stl: output/kenmore_gold__SquareTileBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__SquareTileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__SquareTileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/SquareTileBoxLid.3mf: output/kenmore_gold__SquareTileBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__SquareTileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__SquareTileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/SquareTileBoxLid.stl: output/kenmore_gold__SquareTileBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__SquareTileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__SquareTileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/StartCaveBox.3mf: output/kenmore_gold__StartCaveBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__StartCaveBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__StartCaveBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/StartCaveBox.stl: output/kenmore_gold__StartCaveBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__StartCaveBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__StartCaveBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/StartCaveBoxLid.3mf: output/kenmore_gold__StartCaveBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__StartCaveBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__StartCaveBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/StartCaveBoxLid.stl: output/kenmore_gold__StartCaveBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__StartCaveBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__StartCaveBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/LootBox.3mf: output/kenmore_gold__LootBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__LootBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__LootBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/LootBox.stl: output/kenmore_gold__LootBox.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__LootBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__LootBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/kenmore_gold/LootBoxLid.3mf: output/kenmore_gold__LootBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/kenmore_gold__LootBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/kenmore_gold__LootBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/kenmore_gold/LootBoxLid.stl: output/kenmore_gold__LootBoxLid.scad kenmore_gold.scad
 	-mkdir -p release/kenmore_gold
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/kenmore_gold__LootBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/kenmore_gold__LootBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/PlayerBox.3mf: output/wolves__PlayerBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/PlayerBox.stl: output/wolves__PlayerBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/PlayerBoxLid.3mf: output/wolves__PlayerBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/PlayerBoxLid.stl: output/wolves__PlayerBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/UnmetNeedsBox.3mf: output/wolves__UnmetNeedsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__UnmetNeedsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__UnmetNeedsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/UnmetNeedsBox.stl: output/wolves__UnmetNeedsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__UnmetNeedsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__UnmetNeedsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/UnmetNeedsBoxLid.3mf: output/wolves__UnmetNeedsBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__UnmetNeedsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__UnmetNeedsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/UnmetNeedsBoxLid.stl: output/wolves__UnmetNeedsBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__UnmetNeedsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__UnmetNeedsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ExtraCardsBox.3mf: output/wolves__ExtraCardsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__ExtraCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__ExtraCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ExtraCardsBox.stl: output/wolves__ExtraCardsBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__ExtraCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__ExtraCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ExtraCardsBoxLid.3mf: output/wolves__ExtraCardsBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__ExtraCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__ExtraCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ExtraCardsBoxLid.stl: output/wolves__ExtraCardsBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__ExtraCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__ExtraCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ResourcesBox.3mf: output/wolves__ResourcesBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__ResourcesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__ResourcesBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ResourcesBox.stl: output/wolves__ResourcesBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__ResourcesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__ResourcesBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/ResourcesBoxLid.3mf: output/wolves__ResourcesBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__ResourcesBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__ResourcesBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/ResourcesBoxLid.stl: output/wolves__ResourcesBoxLid.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__ResourcesBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__ResourcesBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wolves/SideBox.3mf: output/wolves__SideBox.scad wolves.scad
 	-mkdir -p release/wolves
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wolves__SideBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wolves__SideBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wolves/SideBox.stl: output/wolves__SideBox.scad wolves.scad
 	-mkdir -p release/wolves
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wolves__SideBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wolves__SideBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/PlayerBox.3mf: output/russian_railroads__PlayerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/PlayerBox.stl: output/russian_railroads__PlayerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/PlayerBoxLid.3mf: output/russian_railroads__PlayerBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/PlayerBoxLid.stl: output/russian_railroads__PlayerBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/ExtraTokensBox.3mf: output/russian_railroads__ExtraTokensBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__ExtraTokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__ExtraTokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/ExtraTokensBox.stl: output/russian_railroads__ExtraTokensBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__ExtraTokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__ExtraTokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/ExtraTokensBoxLid.3mf: output/russian_railroads__ExtraTokensBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__ExtraTokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__ExtraTokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/ExtraTokensBoxLid.stl: output/russian_railroads__ExtraTokensBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__ExtraTokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__ExtraTokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/MoneyBox.3mf: output/russian_railroads__MoneyBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__MoneyBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/MoneyBox.stl: output/russian_railroads__MoneyBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__MoneyBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/MoneyBoxLid.3mf: output/russian_railroads__MoneyBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__MoneyBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/MoneyBoxLid.stl: output/russian_railroads__MoneyBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__MoneyBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/CardBox.3mf: output/russian_railroads__CardBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__CardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/CardBox.stl: output/russian_railroads__CardBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__CardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/CardBoxLid.3mf: output/russian_railroads__CardBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__CardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/CardBoxLid.stl: output/russian_railroads__CardBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__CardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrainBox.3mf: output/russian_railroads__TrainBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__TrainBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__TrainBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrainBox.stl: output/russian_railroads__TrainBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__TrainBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrainBoxLid.3mf: output/russian_railroads__TrainBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__TrainBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__TrainBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrainBoxLid.stl: output/russian_railroads__TrainBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__TrainBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__TrainBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/EngineerBox.3mf: output/russian_railroads__EngineerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__EngineerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__EngineerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/EngineerBox.stl: output/russian_railroads__EngineerBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__EngineerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__EngineerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/EngineerBoxLid.3mf: output/russian_railroads__EngineerBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__EngineerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__EngineerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/EngineerBoxLid.stl: output/russian_railroads__EngineerBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__EngineerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__EngineerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrackBox.3mf: output/russian_railroads__TrackBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__TrackBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__TrackBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrackBox.stl: output/russian_railroads__TrackBox.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__TrackBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__TrackBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/TrackBoxLid.3mf: output/russian_railroads__TrackBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__TrackBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__TrackBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/TrackBoxLid.stl: output/russian_railroads__TrackBoxLid.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__TrackBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__TrackBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/russian_railroads/SpacerSide.3mf: output/russian_railroads__SpacerSide.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/russian_railroads__SpacerSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/russian_railroads__SpacerSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/russian_railroads/SpacerSide.stl: output/russian_railroads__SpacerSide.scad russian_railroads.scad
 	-mkdir -p release/russian_railroads
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/russian_railroads__SpacerSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/russian_railroads__SpacerSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/InspectorCardBox.3mf: output/arkham_horror_tcg__InspectorCardBox.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__InspectorCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__InspectorCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/InspectorCardBox.stl: output/arkham_horror_tcg__InspectorCardBox.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__InspectorCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__InspectorCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/AgnesBakerLid.3mf: output/arkham_horror_tcg__AgnesBakerLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__AgnesBakerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__AgnesBakerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/AgnesBakerLid.stl: output/arkham_horror_tcg__AgnesBakerLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__AgnesBakerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__AgnesBakerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/RolandBanksLid.3mf: output/arkham_horror_tcg__RolandBanksLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__RolandBanksLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__RolandBanksLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/RolandBanksLid.stl: output/arkham_horror_tcg__RolandBanksLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__RolandBanksLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__RolandBanksLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/DaisyWalkerLid.3mf: output/arkham_horror_tcg__DaisyWalkerLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__DaisyWalkerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__DaisyWalkerLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/DaisyWalkerLid.stl: output/arkham_horror_tcg__DaisyWalkerLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__DaisyWalkerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__DaisyWalkerLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/SkidsOTooleLid.3mf: output/arkham_horror_tcg__SkidsOTooleLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__SkidsOTooleLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__SkidsOTooleLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/SkidsOTooleLid.stl: output/arkham_horror_tcg__SkidsOTooleLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__SkidsOTooleLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__SkidsOTooleLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/arkham_horror_tcg/WendyAdamsLid.3mf: output/arkham_horror_tcg__WendyAdamsLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/arkham_horror_tcg__WendyAdamsLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/arkham_horror_tcg__WendyAdamsLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/arkham_horror_tcg/WendyAdamsLid.stl: output/arkham_horror_tcg__WendyAdamsLid.scad arkham_horror_tcg.scad
 	-mkdir -p release/arkham_horror_tcg
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/arkham_horror_tcg__WendyAdamsLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/arkham_horror_tcg__WendyAdamsLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/PlayerBox.3mf: output/wyrmspan__PlayerBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/PlayerBox.stl: output/wyrmspan__PlayerBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/PlayerBoxLid.3mf: output/wyrmspan__PlayerBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/PlayerBoxLid.stl: output/wyrmspan__PlayerBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/FoodBox.3mf: output/wyrmspan__FoodBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__FoodBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__FoodBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/FoodBox.stl: output/wyrmspan__FoodBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__FoodBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__FoodBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/FoodBoxLid.3mf: output/wyrmspan__FoodBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__FoodBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__FoodBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/FoodBoxLid.stl: output/wyrmspan__FoodBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__FoodBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__FoodBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/DragonCardBox.3mf: output/wyrmspan__DragonCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__DragonCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__DragonCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/DragonCardBox.stl: output/wyrmspan__DragonCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__DragonCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__DragonCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/DragonCardBoxLid.3mf: output/wyrmspan__DragonCardBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__DragonCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__DragonCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/DragonCardBoxLid.stl: output/wyrmspan__DragonCardBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__DragonCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__DragonCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CaveCardBox.3mf: output/wyrmspan__CaveCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__CaveCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__CaveCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CaveCardBox.stl: output/wyrmspan__CaveCardBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__CaveCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__CaveCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CaveCardBoxLid.3mf: output/wyrmspan__CaveCardBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__CaveCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__CaveCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CaveCardBoxLid.stl: output/wyrmspan__CaveCardBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__CaveCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__CaveCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CoinBox.3mf: output/wyrmspan__CoinBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__CoinBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__CoinBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CoinBox.stl: output/wyrmspan__CoinBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__CoinBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__CoinBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/CoinBoxLid.3mf: output/wyrmspan__CoinBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__CoinBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__CoinBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/CoinBoxLid.stl: output/wyrmspan__CoinBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__CoinBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__CoinBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/BonusBox.3mf: output/wyrmspan__BonusBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__BonusBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__BonusBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/BonusBox.stl: output/wyrmspan__BonusBox.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__BonusBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__BonusBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/wyrmspan/BonusBoxLid.3mf: output/wyrmspan__BonusBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/wyrmspan__BonusBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/wyrmspan__BonusBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/wyrmspan/BonusBoxLid.stl: output/wyrmspan__BonusBoxLid.scad wyrmspan.scad
 	-mkdir -p release/wyrmspan
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/wyrmspan__BonusBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/wyrmspan__BonusBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/PlayerBox.3mf: output/biome__PlayerBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/PlayerBox.stl: output/biome__PlayerBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/PlayerBoxLid.3mf: output/biome__PlayerBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/PlayerBoxLid.stl: output/biome__PlayerBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ResourceBox.3mf: output/biome__ResourceBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ResourceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ResourceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ResourceBox.stl: output/biome__ResourceBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ResourceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ResourceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ResourceBoxLid.3mf: output/biome__ResourceBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ResourceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ResourceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ResourceBoxLid.stl: output/biome__ResourceBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ResourceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ResourceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/NestBox.3mf: output/biome__NestBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__NestBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__NestBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/NestBox.stl: output/biome__NestBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__NestBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__NestBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/NestBoxLid.3mf: output/biome__NestBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__NestBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__NestBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/NestBoxLid.stl: output/biome__NestBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__NestBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__NestBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ExtraBitsBox.3mf: output/biome__ExtraBitsBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ExtraBitsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ExtraBitsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ExtraBitsBox.stl: output/biome__ExtraBitsBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ExtraBitsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ExtraBitsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ExtraBitsBoxLid.3mf: output/biome__ExtraBitsBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ExtraBitsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ExtraBitsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ExtraBitsBoxLid.stl: output/biome__ExtraBitsBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ExtraBitsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ExtraBitsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/SpinnerHolder.3mf: output/biome__SpinnerHolder.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__SpinnerHolder.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__SpinnerHolder.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/SpinnerHolder.stl: output/biome__SpinnerHolder.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__SpinnerHolder.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__SpinnerHolder.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/StartingCardBox.3mf: output/biome__StartingCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__StartingCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__StartingCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/StartingCardBox.stl: output/biome__StartingCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__StartingCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__StartingCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/StartingCardBoxLid.3mf: output/biome__StartingCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__StartingCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__StartingCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/StartingCardBoxLid.stl: output/biome__StartingCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__StartingCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__StartingCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/AchievmentCardBox.3mf: output/biome__AchievmentCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__AchievmentCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__AchievmentCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/AchievmentCardBox.stl: output/biome__AchievmentCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__AchievmentCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__AchievmentCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/AchievementCardBoxLid.3mf: output/biome__AchievementCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__AchievementCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__AchievementCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/AchievementCardBoxLid.stl: output/biome__AchievementCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__AchievementCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__AchievementCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ChangingConditionCardBox.3mf: output/biome__ChangingConditionCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ChangingConditionCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ChangingConditionCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ChangingConditionCardBox.stl: output/biome__ChangingConditionCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ChangingConditionCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ChangingConditionCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/ChangingConditionCardBoxLid.3mf: output/biome__ChangingConditionCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__ChangingConditionCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__ChangingConditionCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/ChangingConditionCardBoxLid.stl: output/biome__ChangingConditionCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__ChangingConditionCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__ChangingConditionCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/LegendCardBox.3mf: output/biome__LegendCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__LegendCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__LegendCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/LegendCardBox.stl: output/biome__LegendCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__LegendCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__LegendCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/LegendCardBoxLid.3mf: output/biome__LegendCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__LegendCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__LegendCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/LegendCardBoxLid.stl: output/biome__LegendCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__LegendCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__LegendCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/PlantAnimalCardBox.3mf: output/biome__PlantAnimalCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__PlantAnimalCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__PlantAnimalCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/PlantAnimalCardBox.stl: output/biome__PlantAnimalCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__PlantAnimalCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__PlantAnimalCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/PlantAnimalCardBoxLid.3mf: output/biome__PlantAnimalCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__PlantAnimalCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__PlantAnimalCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/PlantAnimalCardBoxLid.stl: output/biome__PlantAnimalCardBoxLid.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__PlantAnimalCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__PlantAnimalCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/PlantAnimalExtraCardBox.3mf: output/biome__PlantAnimalExtraCardBox.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__PlantAnimalExtraCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__PlantAnimalExtraCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/PlantAnimalExtraCardBox.stl: output/biome__PlantAnimalExtraCardBox.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__PlantAnimalExtraCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__PlantAnimalExtraCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/SpacerSide.3mf: output/biome__SpacerSide.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__SpacerSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__SpacerSide.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/SpacerSide.stl: output/biome__SpacerSide.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__SpacerSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__SpacerSide.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/biome/SpacerFront.3mf: output/biome__SpacerFront.scad biome.scad
 	-mkdir -p release/biome
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/biome__SpacerFront.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/biome__SpacerFront.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/biome/SpacerFront.stl: output/biome__SpacerFront.scad biome.scad
 	-mkdir -p release/biome
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/biome__SpacerFront.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/biome__SpacerFront.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/StandingBox.3mf: output/zoovadis__StandingBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__StandingBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__StandingBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/StandingBox.stl: output/zoovadis__StandingBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__StandingBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__StandingBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/BothLaurelBoxes.3mf: output/zoovadis__BothLaurelBoxes.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__BothLaurelBoxes.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__BothLaurelBoxes.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/BothLaurelBoxes.stl: output/zoovadis__BothLaurelBoxes.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__BothLaurelBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__BothLaurelBoxes.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/MarmosetBox.3mf: output/zoovadis__MarmosetBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__MarmosetBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__MarmosetBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/MarmosetBox.stl: output/zoovadis__MarmosetBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__MarmosetBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__MarmosetBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/IbisBox.3mf: output/zoovadis__IbisBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__IbisBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__IbisBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/IbisBox.stl: output/zoovadis__IbisBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__IbisBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__IbisBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/RhinoBox.3mf: output/zoovadis__RhinoBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__RhinoBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__RhinoBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/RhinoBox.stl: output/zoovadis__RhinoBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__RhinoBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__RhinoBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/CrocodileBox.3mf: output/zoovadis__CrocodileBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__CrocodileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__CrocodileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/CrocodileBox.stl: output/zoovadis__CrocodileBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__CrocodileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__CrocodileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/HyenaBox.3mf: output/zoovadis__HyenaBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__HyenaBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__HyenaBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/HyenaBox.stl: output/zoovadis__HyenaBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__HyenaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__HyenaBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/ArmadiloBox.3mf: output/zoovadis__ArmadiloBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__ArmadiloBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__ArmadiloBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/ArmadiloBox.stl: output/zoovadis__ArmadiloBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__ArmadiloBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__ArmadiloBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/TigerBox.3mf: output/zoovadis__TigerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__TigerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__TigerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/TigerBox.stl: output/zoovadis__TigerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__TigerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__TigerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/PeacockBox.3mf: output/zoovadis__PeacockBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__PeacockBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__PeacockBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/PeacockBox.stl: output/zoovadis__PeacockBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__PeacockBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__PeacockBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/ShieldBox.3mf: output/zoovadis__ShieldBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__ShieldBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__ShieldBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/ShieldBox.stl: output/zoovadis__ShieldBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__ShieldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__ShieldBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/zoovadis/FillerBox.3mf: output/zoovadis__FillerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/zoovadis__FillerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/zoovadis__FillerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/zoovadis/FillerBox.stl: output/zoovadis__FillerBox.scad zoovadis.scad
 	-mkdir -p release/zoovadis
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/zoovadis__FillerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/zoovadis__FillerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/PlayerBox.3mf: output/trailblazer_john_muir__PlayerBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/PlayerBox.stl: output/trailblazer_john_muir__PlayerBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/PlayerBoxLid.3mf: output/trailblazer_john_muir__PlayerBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__PlayerBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/PlayerBoxLid.stl: output/trailblazer_john_muir__PlayerBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__PlayerBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/ResourceBox.3mf: output/trailblazer_john_muir__ResourceBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__ResourceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__ResourceBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/ResourceBox.stl: output/trailblazer_john_muir__ResourceBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__ResourceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__ResourceBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/ResourceBoxLid.3mf: output/trailblazer_john_muir__ResourceBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__ResourceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__ResourceBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/ResourceBoxLid.stl: output/trailblazer_john_muir__ResourceBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__ResourceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__ResourceBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/DestinationCardBox.3mf: output/trailblazer_john_muir__DestinationCardBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__DestinationCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__DestinationCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/DestinationCardBox.stl: output/trailblazer_john_muir__DestinationCardBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__DestinationCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__DestinationCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/DestinationCardBoxLid.3mf: output/trailblazer_john_muir__DestinationCardBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__DestinationCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__DestinationCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/DestinationCardBoxLid.stl: output/trailblazer_john_muir__DestinationCardBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__DestinationCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__DestinationCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/FieldGuideCardBox.3mf: output/trailblazer_john_muir__FieldGuideCardBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__FieldGuideCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__FieldGuideCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/FieldGuideCardBox.stl: output/trailblazer_john_muir__FieldGuideCardBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__FieldGuideCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__FieldGuideCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/FieldGuideCardBoxLid.3mf: output/trailblazer_john_muir__FieldGuideCardBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__FieldGuideCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__FieldGuideCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/FieldGuideCardBoxLid.stl: output/trailblazer_john_muir__FieldGuideCardBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__FieldGuideCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__FieldGuideCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/TrailsCardsBox.3mf: output/trailblazer_john_muir__TrailsCardsBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__TrailsCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__TrailsCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/TrailsCardsBox.stl: output/trailblazer_john_muir__TrailsCardsBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__TrailsCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__TrailsCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/TrailsCardsBoxLid.3mf: output/trailblazer_john_muir__TrailsCardsBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__TrailsCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__TrailsCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/TrailsCardsBoxLid.stl: output/trailblazer_john_muir__TrailsCardsBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__TrailsCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__TrailsCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/WeatherTokensBox.3mf: output/trailblazer_john_muir__WeatherTokensBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__WeatherTokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__WeatherTokensBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/WeatherTokensBox.stl: output/trailblazer_john_muir__WeatherTokensBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__WeatherTokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__WeatherTokensBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/WeatherTokensBoxLid.3mf: output/trailblazer_john_muir__WeatherTokensBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__WeatherTokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__WeatherTokensBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/WeatherTokensBoxLid.stl: output/trailblazer_john_muir__WeatherTokensBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__WeatherTokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__WeatherTokensBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/BonusTileBox.3mf: output/trailblazer_john_muir__BonusTileBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__BonusTileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__BonusTileBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/BonusTileBox.stl: output/trailblazer_john_muir__BonusTileBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__BonusTileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__BonusTileBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/BonusTileBoxLid.3mf: output/trailblazer_john_muir__BonusTileBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__BonusTileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__BonusTileBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/BonusTileBoxLid.stl: output/trailblazer_john_muir__BonusTileBoxLid.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__BonusTileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__BonusTileBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_john_muir/SpacerBox.3mf: output/trailblazer_john_muir__SpacerBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_john_muir__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_john_muir__SpacerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_john_muir/SpacerBox.stl: output/trailblazer_john_muir__SpacerBox.scad trailblazer_john_muir.scad
 	-mkdir -p release/trailblazer_john_muir
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_john_muir__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_john_muir__SpacerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PlayerBox.3mf: output/trailblazer_arizona_trail__PlayerBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PlayerBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PlayerBox.stl: output/trailblazer_arizona_trail__PlayerBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PlayerBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/DestinationCardBox.3mf: output/trailblazer_arizona_trail__DestinationCardBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__DestinationCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__DestinationCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/DestinationCardBox.stl: output/trailblazer_arizona_trail__DestinationCardBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__DestinationCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__DestinationCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/DestinationCardBoxLid.3mf: output/trailblazer_arizona_trail__DestinationCardBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__DestinationCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__DestinationCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/DestinationCardBoxLid.stl: output/trailblazer_arizona_trail__DestinationCardBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__DestinationCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__DestinationCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/FieldGuideCardBox.3mf: output/trailblazer_arizona_trail__FieldGuideCardBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__FieldGuideCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__FieldGuideCardBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/FieldGuideCardBox.stl: output/trailblazer_arizona_trail__FieldGuideCardBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__FieldGuideCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__FieldGuideCardBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/FieldGuideCardBoxLid.3mf: output/trailblazer_arizona_trail__FieldGuideCardBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__FieldGuideCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__FieldGuideCardBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/FieldGuideCardBoxLid.stl: output/trailblazer_arizona_trail__FieldGuideCardBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__FieldGuideCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__FieldGuideCardBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PiecesBoxOne.3mf: output/trailblazer_arizona_trail__PiecesBoxOne.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PiecesBoxOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PiecesBoxOne.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PiecesBoxOne.stl: output/trailblazer_arizona_trail__PiecesBoxOne.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PiecesBoxOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PiecesBoxOne.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PiecesBoxTwo.3mf: output/trailblazer_arizona_trail__PiecesBoxTwo.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PiecesBoxTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PiecesBoxTwo.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PiecesBoxTwo.stl: output/trailblazer_arizona_trail__PiecesBoxTwo.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PiecesBoxTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PiecesBoxTwo.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PiecesBoxThree.3mf: output/trailblazer_arizona_trail__PiecesBoxThree.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PiecesBoxThree.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PiecesBoxThree.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PiecesBoxThree.stl: output/trailblazer_arizona_trail__PiecesBoxThree.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PiecesBoxThree.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PiecesBoxThree.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PiecesBoxFour.3mf: output/trailblazer_arizona_trail__PiecesBoxFour.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PiecesBoxFour.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PiecesBoxFour.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PiecesBoxFour.stl: output/trailblazer_arizona_trail__PiecesBoxFour.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PiecesBoxFour.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PiecesBoxFour.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/PiecesBoxCards.3mf: output/trailblazer_arizona_trail__PiecesBoxCards.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__PiecesBoxCards.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__PiecesBoxCards.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/PiecesBoxCards.stl: output/trailblazer_arizona_trail__PiecesBoxCards.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__PiecesBoxCards.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__PiecesBoxCards.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/TrailsCardsBox.3mf: output/trailblazer_arizona_trail__TrailsCardsBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__TrailsCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__TrailsCardsBox.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/TrailsCardsBox.stl: output/trailblazer_arizona_trail__TrailsCardsBox.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__TrailsCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__TrailsCardsBox.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
 release/trailblazer_arizona_trail/TrailsCardsBoxLid.3mf: output/trailblazer_arizona_trail__TrailsCardsBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output -d output/trailblazer_arizona_trail__TrailsCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
+	../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ -- --enable predictible-output --enable textmetrics -d output/trailblazer_arizona_trail__TrailsCardsBoxLid.deps  -D FROM_MAKE=1 -D MAKE_MMU=1
 release/trailblazer_arizona_trail/TrailsCardsBoxLid.stl: output/trailblazer_arizona_trail__TrailsCardsBoxLid.scad trailblazer_arizona_trail.scad
 	-mkdir -p release/trailblazer_arizona_trail
-	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output -o $@ -d output/trailblazer_arizona_trail__TrailsCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0
+	$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/trailblazer_arizona_trail__TrailsCardsBoxLid.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0

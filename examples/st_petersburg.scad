@@ -94,273 +94,281 @@ spacer_box_length = tokens_box_length;
 spacer_box_width = tokens_box_width;
 spacer_box_height = box_height - board_thickness - money_box_height - tokens_box_height - 0.5;
 
-module HToken(height)
-{
-    translate([ 0, 0, height / 2 ]) union()
-    {
-        translate([ h_width / 2 - h_leg_width / 2, 0, 0 ])
-            cuboid([ h_leg_width, h_length, height ], rounding = 0.5,
-                   edges = [ FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT ]);
-        translate([ 0, -h_length / 2 + h_leg_width / 2 + h_elbow_length - h_leg_width, 0 ])
-            cuboid([ h_width, h_leg_width, height ], rounding = 0.5,
-                   edges = [ FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT ]);
-        translate([ -h_width / 2 + h_leg_width / 2, -h_length / 2 + h_elbow_length / 2, 0 ])
-            cuboid([ h_leg_width, h_elbow_length, height ], rounding = 0.5,
-                   edges = [ FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT ]);
+module HToken(height) {
+  translate([0, 0, height / 2]) union() {
+      translate([h_width / 2 - h_leg_width / 2, 0, 0])
+        cuboid(
+          [h_leg_width, h_length, height], rounding=0.5,
+          edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+        );
+      translate([0, -h_length / 2 + h_leg_width / 2 + h_elbow_length - h_leg_width, 0])
+        cuboid(
+          [h_width, h_leg_width, height], rounding=0.5,
+          edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+        );
+      translate([-h_width / 2 + h_leg_width / 2, -h_length / 2 + h_elbow_length / 2, 0])
+        cuboid(
+          [h_leg_width, h_elbow_length, height], rounding=0.5,
+          edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+        );
     }
 }
 
-module ClubToken(height)
-{
-    translate([ 0, 0, height / 2 ]) union()
-    {
-        cut_out_round = club_round_diameter - club_top_diameter;
-        translate([ cut_out_round / 2 + club_top_diameter / 2, club_length / 2 - club_top_diameter / 2, 0 ])
-            difference()
-        {
-            translate([ -cut_out_round / 4, -cut_out_round / 4, 0 ])
-                cuboid([ cut_out_round / 2, cut_out_round / 2, height ]);
-            cyl(d = cut_out_round, h = height + 1);
+module ClubToken(height) {
+  translate([0, 0, height / 2]) union() {
+      cut_out_round = club_round_diameter - club_top_diameter;
+      translate([cut_out_round / 2 + club_top_diameter / 2, club_length / 2 - club_top_diameter / 2, 0])
+        difference() {
+          translate([-cut_out_round / 4, -cut_out_round / 4, 0])
+            cuboid([cut_out_round / 2, cut_out_round / 2, height]);
+          cyl(d=cut_out_round, h=height + 1);
         }
-        mirror([ 1, 0, 0 ])
-            translate([ cut_out_round / 2 + club_top_diameter / 2, club_length / 2 - club_top_diameter / 2, 0 ])
-                difference()
-        {
-            translate([ -cut_out_round / 4, -cut_out_round / 4, 0 ])
-                cuboid([ cut_out_round / 2, cut_out_round / 2, height ]);
-            cyl(d = cut_out_round, h = height + 1);
-        }
-        hull()
-        {
-            translate([ 0, club_length / 2 - club_top_diameter / 2, 0 ])
-                cyl(d = club_top_diameter, h = height, $fn = 32);
-            translate([ 0, 0, 0 ]) cyl(d = club_top_diameter, h = height, $fn = 32);
-        }
-        // Middle bit.
-        hull()
-        {
-            translate(
-                [ cut_out_round / 2 + 1.25, club_length / 2 - club_top_diameter / 2 - cut_out_round / 2 - 0.4, 0 ])
-                cyl(r = 0.5, h = height);
-            translate(
-                [ -cut_out_round / 2 - 1.75, club_length / 2 - club_top_diameter / 2 - cut_out_round / 2 - 0.4, 0 ])
-                cyl(r = 0.5, h = height);
-            translate([
-                club_width / 2 - club_round_diameter / 2, -club_length / 2 + club_round_diameter / 2 + club_base_length,
-                0
-            ]) cyl(d = club_round_diameter, h = height);
-            translate([
-                -club_width / 2 + club_round_diameter / 2,
-                -club_length / 2 + club_round_diameter / 2 + club_base_length, 0
-            ]) cyl(d = club_round_diameter, h = height);
-        }
-        // Foot.
-        translate([ 0, -club_length / 2 + (club_base_length + 1) / 2, 0 ])
-            cuboid([ club_base_width, club_base_length + 1, height ], rounding = 0.5,
-                   edges = [ FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT ]);
+      mirror([1, 0, 0])
+        translate([cut_out_round / 2 + club_top_diameter / 2, club_length / 2 - club_top_diameter / 2, 0])
+          difference() {
+            translate([-cut_out_round / 4, -cut_out_round / 4, 0])
+              cuboid([cut_out_round / 2, cut_out_round / 2, height]);
+            cyl(d=cut_out_round, h=height + 1);
+          }
+      hull() {
+        translate([0, club_length / 2 - club_top_diameter / 2, 0])
+          cyl(d=club_top_diameter, h=height, $fn=32);
+        translate([0, 0, 0]) cyl(d=club_top_diameter, h=height, $fn=32);
+      }
+      // Middle bit.
+      hull() {
+        translate(
+          [cut_out_round / 2 + 1.25, club_length / 2 - club_top_diameter / 2 - cut_out_round / 2 - 0.4, 0]
+        )
+          cyl(r=0.5, h=height);
+        translate(
+          [-cut_out_round / 2 - 1.75, club_length / 2 - club_top_diameter / 2 - cut_out_round / 2 - 0.4, 0]
+        )
+          cyl(r=0.5, h=height);
+        translate(
+          [
+            club_width / 2 - club_round_diameter / 2,
+            -club_length / 2 + club_round_diameter / 2 + club_base_length,
+            0,
+          ]
+        ) cyl(d=club_round_diameter, h=height);
+        translate(
+          [
+            -club_width / 2 + club_round_diameter / 2,
+            -club_length / 2 + club_round_diameter / 2 + club_base_length,
+            0,
+          ]
+        ) cyl(d=club_round_diameter, h=height);
+      }
+      // Foot.
+      translate([0, -club_length / 2 + (club_base_length + 1) / 2, 0])
+        cuboid(
+          [club_base_width, club_base_length + 1, height], rounding=0.5,
+          edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+        );
     }
 }
 
-module PersonHeadToken(height)
-{
-    translate([ 0, 0, height / 2 ]) union()
-    {
-        // Round bit of head.
-        translate([
-            head_width / 2 - head_round_diameter / 2 - head_back_offset, head_length / 2 - head_round_diameter / 2, 0
-        ]) cyl(d = head_round_diameter, h = height);
-        // Pedastle.
-        hull()
-        {
-            translate([ head_width / 2 - 1.5, -head_length / 2 + 1.5, 0 ]) cyl(r = 1.5, h = height);
-            translate([ head_width / 2 - 0.5 - head_edge_width, -head_length / 2 + 1 + head_edge_length, 0 ])
-                cyl(r = 0.5, h = height);
-            translate([ -head_width / 2 + 1.5, -head_length / 2 + 1.5, 0 ]) cyl(r = 1.5, h = height);
-            translate([ -head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + 1 + head_edge_length, 0 ])
-                cyl(r = 0.5, h = height);
-        }
-        // Nose.
-        hull()
-        {
-            translate([ -head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + 1.5 + head_edge_length, 0 ])
-                cyl(r = 0.5, h = height);
-            translate([
-                -head_width / 2 + head_nose_diameter / 2, -head_length / 2 + head_nose_length + head_nose_diameter / 2,
-                0
-            ]) cyl(d = head_nose_diameter, h = height);
-            translate([ -head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + head_top_nose + 0.5, 0 ])
-                cyl(r = 0.5, h = height);
-        }
+module PersonHeadToken(height) {
+  translate([0, 0, height / 2]) union() {
+      // Round bit of head.
+      translate(
+        [
+          head_width / 2 - head_round_diameter / 2 - head_back_offset,
+          head_length / 2 - head_round_diameter / 2,
+          0,
+        ]
+      ) cyl(d=head_round_diameter, h=height);
+      // Pedastle.
+      hull() {
+        translate([head_width / 2 - 1.5, -head_length / 2 + 1.5, 0]) cyl(r=1.5, h=height);
+        translate([head_width / 2 - 0.5 - head_edge_width, -head_length / 2 + 1 + head_edge_length, 0])
+          cyl(r=0.5, h=height);
+        translate([-head_width / 2 + 1.5, -head_length / 2 + 1.5, 0]) cyl(r=1.5, h=height);
+        translate([-head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + 1 + head_edge_length, 0])
+          cyl(r=0.5, h=height);
+      }
+      // Nose.
+      hull() {
+        translate([-head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + 1.5 + head_edge_length, 0])
+          cyl(r=0.5, h=height);
+        translate(
+          [
+            -head_width / 2 + head_nose_diameter / 2,
+            -head_length / 2 + head_nose_length + head_nose_diameter / 2,
+            0,
+          ]
+        ) cyl(d=head_nose_diameter, h=height);
+        translate([-head_width / 2 + 0.5 + head_edge_width, -head_length / 2 + head_top_nose + 0.5, 0])
+          cyl(r=0.5, h=height);
+      }
     }
 }
 
-module MeepleToken(height)
-{
-    translate([ 0, 0, height / 2 ]) union()
-    {
-        // Base section.
-        hull()
-        {
-            translate([ meeple_width / 2 - 1, meeple_length / 2 - 1, 0 ]) cyl(r = 1, h = height);
-            translate([ -meeple_width / 2 + 1, meeple_length / 2 - 1, 0 ]) cyl(r = 1, h = height);
-            translate([ meeple_bottom_head_width / 2 - 1, meeple_length / 2 - meeple_angle_length, 0 ])
-                cyl(r = 1, h = height);
-            translate([ -meeple_bottom_head_width / 2 + 1, meeple_length / 2 - meeple_angle_length, 0 ])
-                cyl(r = 1, h = height);
-        }
-        // Top Round bit.
-        hull()
-        {
-            translate(
-                [ -meeple_head_width / 2 + meeple_head_diameter / 2, meeple_length / 2 - meeple_head_round_middle, 0 ])
-                cyl(d = meeple_head_diameter, h = height);
-            translate(
-                [ meeple_head_width / 2 - meeple_head_diameter / 2, meeple_length / 2 - meeple_head_round_middle, 0 ])
-                cyl(d = meeple_head_diameter, h = height);
-            translate([ meeple_bottom_head_width / 2 - 1, meeple_length / 2 - meeple_angle_length, 0 ])
-                cyl(r = 1, h = height);
-            translate([ -meeple_bottom_head_width / 2 + 1, meeple_length / 2 - meeple_angle_length, 0 ])
-                cyl(r = 1, h = height);
-            translate([ 0, -meeple_length / 2 + meeple_top_radius, 0 ]) cyl(r = meeple_top_radius, h = height);
-        }
+module MeepleToken(height) {
+  translate([0, 0, height / 2]) union() {
+      // Base section.
+      hull() {
+        translate([meeple_width / 2 - 1, meeple_length / 2 - 1, 0]) cyl(r=1, h=height);
+        translate([-meeple_width / 2 + 1, meeple_length / 2 - 1, 0]) cyl(r=1, h=height);
+        translate([meeple_bottom_head_width / 2 - 1, meeple_length / 2 - meeple_angle_length, 0])
+          cyl(r=1, h=height);
+        translate([-meeple_bottom_head_width / 2 + 1, meeple_length / 2 - meeple_angle_length, 0])
+          cyl(r=1, h=height);
+      }
+      // Top Round bit.
+      hull() {
+        translate(
+          [-meeple_head_width / 2 + meeple_head_diameter / 2, meeple_length / 2 - meeple_head_round_middle, 0]
+        )
+          cyl(d=meeple_head_diameter, h=height);
+        translate(
+          [meeple_head_width / 2 - meeple_head_diameter / 2, meeple_length / 2 - meeple_head_round_middle, 0]
+        )
+          cyl(d=meeple_head_diameter, h=height);
+        translate([meeple_bottom_head_width / 2 - 1, meeple_length / 2 - meeple_angle_length, 0])
+          cyl(r=1, h=height);
+        translate([-meeple_bottom_head_width / 2 + 1, meeple_length / 2 - meeple_angle_length, 0])
+          cyl(r=1, h=height);
+        translate([0, -meeple_length / 2 + meeple_top_radius, 0]) cyl(r=meeple_top_radius, h=height);
+      }
     }
 }
 
 module MoneyBox() // `make` me
 {
-    MakeBoxWithCapLid(width = money_box_width, length = money_box_length, height = money_box_height)
-    {
-        for (i = [0:1:4])
-        {
-            translate([ 0, (money_width + 4) * i, 0 ]) cube([ money_length, money_width, money_box_height ]);
-            translate([ -1, (money_width + 4) * i + money_width / 2, -default_floor_thickness - 0.01 ])
-                FingerHoleBase(radius = 12, height = money_box_height, spin = 270);
-        }
+  MakeBoxWithCapLid(width=money_box_width, length=money_box_length, height=money_box_height) {
+    for (i = [0:1:4]) {
+      translate([0, (money_width + 4) * i, 0]) cube([money_length, money_width, money_box_height]);
+      translate([-1, (money_width + 4) * i + money_width / 2, -default_floor_thickness - 0.01])
+        FingerHoleBase(radius=12, height=money_box_height, spin=270);
     }
+  }
 }
 
 module MoneyBoxLid() // `make` me
 {
-    CapBoxLidWithLabel(width = money_box_width, length = money_box_length, height = money_box_height, text_width = 70,
-                       text_height = 20, text_str = "Money", label_rotated = true, label_colour = "blue");
+  CapBoxLidWithLabel(
+    width=money_box_width, length=money_box_length, height=money_box_height,
+    text_str="Money", label_colour="blue"
+  );
 }
 module CardBox() // `make` me
 {
-    MakeBoxWithCapLid(width = card_box_width, length = card_box_length, height = card_box_height)
-    {
-        for (i = [0:1:3])
-        {
-            translate([ 0, (card_width + 4) * i, 0 ]) cube([ card_length, card_width, card_box_height ]);
-            translate([ -1, (card_width + 4) * i + card_width / 2, -default_floor_thickness - 0.01 ])
-                FingerHoleBase(radius = 12, height = card_box_height, spin = 270);
-        }
-        translate([ 0, $inner_length - card_width, $inner_height - 5 ])
-        {
-            cube([ card_length, card_width, card_box_height ]);
-            translate([ 0, card_width / 2, 0 ]) xcyl(r = 14, h = 50, anchor = BOTTOM);
-        }
+  MakeBoxWithCapLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+    for (i = [0:1:3]) {
+      translate([0, (card_width + 4) * i, 0]) cube([card_length, card_width, card_box_height]);
+      translate([-1, (card_width + 4) * i + card_width / 2, -default_floor_thickness - 0.01])
+        FingerHoleBase(radius=12, height=card_box_height, spin=270);
     }
+    translate([0, $inner_length - card_width, $inner_height - 5]) {
+      cube([card_length, card_width, card_box_height]);
+      translate([0, card_width / 2, 0]) xcyl(r=14, h=50, anchor=BOTTOM);
+    }
+  }
 }
 
 module CardBoxLid() // `make` me
 {
-    CapBoxLidWithLabel(width = card_box_width, length = card_box_length, height = card_box_height, text_width = 70,
-                       text_height = 20, text_str = "Cards", label_rotated = true, label_colour = "blue");
+  CapBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, height=card_box_height,
+    text_str="Cards", label_rotated=true, label_colour="blue"
+  );
 }
 
 module TokensBox() // `make` me
 {
-    MakeBoxWithCapLid(width = tokens_box_width, length = tokens_box_length, height = tokens_box_height)
-    {
-        translate([ 15, 8, 0 ])
-        {
-            translate([ square_size / 2, square_size / 2, $inner_height - wood_token_thickness - 0.5 ])
-            {
-                cuboid([ square_size, square_size, wood_token_thickness + 1 ], anchor = BOTTOM);
-                translate([ 0, square_size / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -square_size / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-            translate([ head_width * 3 / 2 + 4, h_length / 2, $inner_height - wood_token_thickness - 0.5 ])
-            {
-                HToken(wood_token_thickness + 1);
-                translate([ 5, h_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -h_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-            translate(
-                [ head_width * 3 / 2 + 4, h_length + club_length / 2 + 15, $inner_height - wood_token_thickness - 0.5 ])
-            {
-                ClubToken(wood_token_thickness + 1);
-                translate([ 5, club_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -club_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-            translate([ head_width / 2, h_length + head_length / 2 + 15, $inner_height - wood_token_thickness - 0.5 ])
-            {
-                PersonHeadToken(wood_token_thickness + 1);
-                translate([ 5, head_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -head_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-        }
-
-        translate([ 0, -10, 0 ]) for (i = [0:1:3])
-        {
-            translate([
-                $inner_width / 2 - meeple_width / 2 - 2, $inner_length - meeple_length / 2 - (meeple_length + 15) * i,
-                $inner_height - wood_token_thickness - 0.5
-            ])
-            {
-                MeepleToken(height = wood_token_thickness + 1);
-                translate([ 0, meeple_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -meeple_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-            translate([
-                $inner_width / 2 + meeple_width / 2 + 2, $inner_length - meeple_length / 2 - (meeple_length + 15) * i,
-                $inner_height - wood_token_thickness - 0.5
-            ])
-            {
-                MeepleToken(height = wood_token_thickness + 1);
-                translate([ 0, meeple_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-                translate([ 0, -meeple_length / 2, wood_token_thickness / 2 ]) sphere(r = 8, anchor = BOTTOM);
-            }
-        }
+  MakeBoxWithCapLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
+    translate([15, 8, 0]) {
+      translate([square_size / 2, square_size / 2, $inner_height - wood_token_thickness - 0.5]) {
+        cuboid([square_size, square_size, wood_token_thickness + 1], anchor=BOTTOM);
+        translate([0, square_size / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -square_size / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
+      translate([head_width * 3 / 2 + 4, h_length / 2, $inner_height - wood_token_thickness - 0.5]) {
+        HToken(wood_token_thickness + 1);
+        translate([5, h_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -h_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
+      translate(
+        [head_width * 3 / 2 + 4, h_length + club_length / 2 + 15, $inner_height - wood_token_thickness - 0.5]
+      ) {
+        ClubToken(wood_token_thickness + 1);
+        translate([5, club_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -club_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
+      translate([head_width / 2, h_length + head_length / 2 + 15, $inner_height - wood_token_thickness - 0.5]) {
+        PersonHeadToken(wood_token_thickness + 1);
+        translate([5, head_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -head_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
     }
+
+    translate([0, -10, 0])for (i = [0:1:3]) {
+      translate(
+        [
+          $inner_width / 2 - meeple_width / 2 - 2,
+          $inner_length - meeple_length / 2 - (meeple_length + 15) * i,
+          $inner_height - wood_token_thickness - 0.5,
+        ]
+      ) {
+        MeepleToken(height=wood_token_thickness + 1);
+        translate([0, meeple_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -meeple_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
+      translate(
+        [
+          $inner_width / 2 + meeple_width / 2 + 2,
+          $inner_length - meeple_length / 2 - (meeple_length + 15) * i,
+          $inner_height - wood_token_thickness - 0.5,
+        ]
+      ) {
+        MeepleToken(height=wood_token_thickness + 1);
+        translate([0, meeple_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+        translate([0, -meeple_length / 2, wood_token_thickness / 2]) sphere(r=8, anchor=BOTTOM);
+      }
+    }
+  }
 }
 
 module TokensBoxLid() // `make` me
 {
-    CapBoxLidWithLabel(width = tokens_box_width, length = tokens_box_length, height = tokens_box_height,
-                       text_width = 70, text_height = 20, text_str = "Tokens", label_rotated = true,
-                       label_colour = "blue");
+  CapBoxLidWithLabel(
+    width=tokens_box_width, length=tokens_box_length, height=tokens_box_height,
+    text_str="Tokens",
+    label_colour="blue"
+  );
 }
 
 module Spacer() // `make` me
 {
-    color("yellow") difference()
-    {
-        cuboid([ spacer_box_width, spacer_box_length, spacer_box_height ], rounding = 2,
-               anchor = BOTTOM + LEFT + FRONT);
-        translate([ default_wall_thickness, default_wall_thickness, default_floor_thickness ]) cuboid(
-            [
-                spacer_box_width - default_wall_thickness * 2, spacer_box_length - default_wall_thickness * 2,
-                spacer_box_height
-            ],
-            rounding = 2, anchor = BOTTOM + LEFT + FRONT);
+  color("yellow") difference() {
+      cuboid(
+        [spacer_box_width, spacer_box_length, spacer_box_height], rounding=2,
+        anchor=BOTTOM + LEFT + FRONT
+      );
+      translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) cuboid(
+          [
+            spacer_box_width - default_wall_thickness * 2,
+            spacer_box_length - default_wall_thickness * 2,
+            spacer_box_height,
+          ],
+          rounding=2, anchor=BOTTOM + LEFT + FRONT
+        );
     }
 }
 
-module BoxLayout()
-{
-    cube([ box_width, box_length, board_thickness ]);
-    cube([ 1, box_length, box_height ]);
-    translate([ 0, 0, board_thickness ])
-    {
-        MoneyBox();
-        translate([ 0, 0, money_box_height ]) TokensBox();
-        translate([ 0, 0, money_box_height + tokens_box_height ]) Spacer();
-        translate([ money_box_width, 0, 0 ]) CardBox();
-    }
+module BoxLayout() {
+  cube([box_width, box_length, board_thickness]);
+  cube([1, box_length, box_height]);
+  translate([0, 0, board_thickness]) {
+    MoneyBox();
+    translate([0, 0, money_box_height]) TokensBox();
+    translate([0, 0, money_box_height + tokens_box_height]) Spacer();
+    translate([money_box_width, 0, 0]) CardBox();
+  }
 }
 
-if (FROM_MAKE != 1)
-{
-    TokensBox();
+if (FROM_MAKE != 1) {
+  TokensBox();
 }

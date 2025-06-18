@@ -49,13 +49,6 @@ default_floor_thickness = 2;
 // The slicing layer height to use for cases where this matter.
 default_slicing_layer_height = 0.2;
 
-// Constant: default_label_font
-// Description: The default font to use for labels
-default_label_font = "Stencil Std:style=Bold";
-// Constant: default_label_solid_background
-// Description: The default to use if the label should have a solid background or not.
-default_label_solid_background = false;
-
 // Constant: default_material_colour
 // Description: The default colour to use for material when making boxes.
 default_material_colour = "yellow";
@@ -184,17 +177,56 @@ CATCH_LENGTH = 1;
 //   Catch on the width side.
 CATCH_WIDTH = 2;
 
+// Constant: LABEL_TYPE_FRAMED
+// Description:
+//   The label framed inside a box, with a striped background.
+LABEL_TYPE_FRAMED = 0;
+// Constant: LABEL_TYPE_FRAMED_SOLID
+// Description:
+//   The label framed inside a box, with a solid background.
+LABEL_TYPE_FRAMED_SOLID = 1;
+// Constant: LABEL_TYPE_FRAMED_SHORT
+// Description:
+//   The label framed inside a box, with a stripedbackground
+//   on the short length.
+LABEL_TYPE_FRAMED_SHORT = 2;
+// Constant: LABEL_TYPE_FRAMED_SHORT_SOLID
+// Description:
+//   The label framed inside a box, with a solid background
+//   on the short length.
+LABEL_TYPE_FRAMED_SHORT_SOLID = 3;
+// Constant: LABEL_TYPE_ANGLE
+// Description:
+//   The label on an angle across the lid.
+LABEL_TYPE_ANGLE = 4;
+// Constant: LABEL_TYPE_FRAMELESS
+// Description:
+//   The label across the lid on the long lenfth.
+LABEL_TYPE_FRAMELESS = 4;
+// Constant: LABEL_TYPE_FRAMELESS
+// Description:
+//   The label across the lid on the short length.
+LABEL_TYPE_FRAMELESS_SHORT = 4;
+
+// Constant: default_label_font
+// Description: The default font to use for labels
+default_label_font = "Stencil Std:style=Bold";
+// Constant: default_label_solid_background
+// Description: The default to use if the label should have a solid background or not.
+default_label_solid_background = false;
+// Constant: default_label_type
+// Description: The detault type of label to use for all the lids.
+default_label_type = LABEL_TYPE_FRAMED;
+
 // Module: DifferenceWithOffset()
 // Description:
 //   Helper function that does an offset with the size inside the difference of the object
 //   makes it easier for constructing outlines.
 // Arguments:
 //   offset = how much of an offset, -ve is inside the shape, +ve is outside the shape.
-module DifferenceWithOffset(offset)
-{
-    difference()
-    {
-        children();
-        offset(delta = offset) children();
-    }
+module DifferenceWithOffset(offset) {
+  difference() {
+    children();
+    offset(delta=offset) children();
+  }
 }
