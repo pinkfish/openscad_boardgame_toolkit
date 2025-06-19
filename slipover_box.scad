@@ -326,7 +326,8 @@ module SlipoverLidWithLabelAndCustomShape(
   material_colour = default_material_colour,
   label_background_colour = undef,
   lid_catch = CATCH_LENGTH,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  pattern_inner_control
 ) {
   SlipoverBoxLid(
     width, length, height, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
@@ -338,7 +339,7 @@ module SlipoverLidWithLabelAndCustomShape(
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges
+        dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control
       ) {
         if ($children > 0) {
           children(0);
@@ -347,7 +348,7 @@ module SlipoverLidWithLabelAndCustomShape(
         }
       }
     MakeLidLabel(
-      width=width, length=length, 
+      width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
       font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour, label_colour=label_colour,
@@ -438,19 +439,20 @@ module SlipoverLidWithLabel(
   material_colour = default_material_colour,
   label_background_colour = undef,
   lid_catch = CATCH_LENGTH,
-  finger_hole_size = undef
+  finger_hole_size = undef,
 ) {
   SlipoverLidWithLabelAndCustomShape(
     width=width, length=length, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
-    font=font, text_str=text_str, 
+    font=font, text_str=text_str,
     label_radius=label_radius, text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
     finger_hole_length=finger_hole_length, finger_hole_width=finger_hole_width, foot=foot,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    material_colour=material_colour, 
+    material_colour=material_colour,
     label_background_colour=label_background_colour, lid_catch=lid_catch,
-    finger_hole_size=finger_hole_size
+    finger_hole_size=finger_hole_size,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
   ) {
     color(material_colour)
       ShapeByType(

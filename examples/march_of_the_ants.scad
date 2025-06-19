@@ -18,6 +18,8 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_label_font = "Impact";
+
 box_width = 195;
 box_length = 275;
 box_height = 65;
@@ -404,9 +406,12 @@ module MinionsOfTheMeadowBox() // `make` me
 
 module MinionsOfTheMeadowBoxLid() // `make` me
 {
+  echo([minions_of_the_meadow_box_height, minions_of_the_meadow_box_length, minions_of_the_meadow_box_width]);
   CapBoxLidWithLabel(
     width=minions_of_the_meadow_box_width, length=minions_of_the_meadow_box_length,
     height=minions_of_the_meadow_box_height,
+    text_length=minions_of_the_meadow_box_width - 25,
+    text_scale=1.5,
     text_str="Minions of the Meadows", lid_thickness=lid_thickness,
     wall_thickness=wall_thickness
   );
@@ -623,5 +628,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  MinionsOfTheMeadowBoxLid();
 }

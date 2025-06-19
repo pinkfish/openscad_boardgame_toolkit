@@ -260,11 +260,11 @@ module SlidingCatchBoxLid(
 module SlidingCatchBoxLidWithLabelAndCustomShape(
   width,
   length,
-   text_str,
-text_length = undef,
+  text_str,
+  text_length = undef,
   text_scale = 1.0,
   label_type = default_label_type,
- lid_boundary = 10,
+  lid_boundary = 10,
   label_radius = undef,
   label_border = 2,
   label_offset = 4,
@@ -279,7 +279,8 @@ text_length = undef,
   fill_middle = true,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  pattern_inner_control = false
 ) {
   SlidingCatchBoxLid(
     width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
@@ -289,7 +290,7 @@ text_length = undef,
     translate([lid_boundary, lid_boundary, 0])
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio
+        layout_width=layout_width, aspect_ratio=aspect_ratio, inner_control=pattern_inner_control
       ) {
         if ($children > 0) {
           children(0);
@@ -298,9 +299,9 @@ text_length = undef,
         }
       }
     MakeLidLabel(
-      width=width, length=length, 
+      width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font,  text_length=text_length, text_scale=text_scale,  label_type=label_type,text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
       label_background_colour=label_background_colour,
       finger_hole_size=finger_hole_size
@@ -370,18 +371,18 @@ text_length = undef,
 module SlidingCatchBoxLidWithLabel(
   width,
   length,
-   text_str,
-text_length = undef,
+  text_str,
+  text_length = undef,
   text_scale = 1.0,
   label_type = default_label_type,
- lid_boundary = 10,
+  lid_boundary = 10,
   wall_thickness = default_wall_thickness,
   label_radius = undef,
   label_border = 2,
   label_offset = 4,
   layout_width = undef,
   shape_width = undef,
-  shape_type = undef,
+  shape_type = default_lid_shape_type,
   shape_thickness = undef,
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
@@ -393,19 +394,20 @@ text_length = undef,
   shape_rounding = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-    finger_hole_size = undef
+  finger_hole_size = undef
 ) {
   calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
   SlidingCatchBoxLidWithLabelAndCustomShape(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
     font=font, text_str=text_str,
-    label_radius=label_radius,  text_length=text_length, text_scale=text_scale,  label_type=label_type, layout_width=layout_width,
+    label_radius=label_radius, text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
     top_thickness=top_thickness, fill_middle=fill_middle, material_colour=material_colour,
-     label_background_colour=label_background_colour,
-    finger_hole_size = finger_hole_size
+    label_background_colour=label_background_colour,
+    finger_hole_size=finger_hole_size,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
   ) {
     color(material_colour)
       ShapeByType(

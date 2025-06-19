@@ -1089,7 +1089,6 @@ module CardBoxHerosLid() // `make` me
   );
 }
 
-
 module BoxLayout() {
   cube([box_width, box_length, board_thickness]);
   cube([1, box_length, box_height]);

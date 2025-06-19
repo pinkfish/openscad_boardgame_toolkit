@@ -296,6 +296,7 @@ module MakeMainLidLabelStriped(
     }
   }
 
+  echo([width, length, border]);
   translate([-width / 2, -length / 2, 0]) {
     calc_font = DefaultValue(font, default_label_font);
     calc_background_color = DefaultValue(label_background_colour, default_label_background_colour);
@@ -353,9 +354,9 @@ module MakeMainLidLabelStriped(
           0,
           0,
           full_height ? 0
-          : lid_thickness / 2 - default_slicing_layer_height,
+          : lid_thickness / 2 - default_slicing_layer_height * 2,
         ]
-      ) color(material_colour) TextShape(calc_font=calc_font, text_height=full_height ? default_slicing_layer_height * 2 : default_slicing_layer_height * 2, edge_offset=0.01);
+      ) color(material_colour) TextShape(calc_font=calc_font, text_height=lid_thickness * 4, edge_offset=0.01);
     }
   }
 }
@@ -412,8 +413,13 @@ module MakeFramedLidLabel(
 ) {
   rotate([0, 0, 90]) translate([length / 2, -width / 2, 0]) {
       metrics = textmetrics(label, font=font);
-      calc_text_length = DefaultValue(text_length, length > width && !short_length || short_length && length < width ? length * 3 / 4 : width * 3 / 4);
-      calc_text_width = metrics.size[1] / metrics.size[0] * calc_text_length * text_scale;
+      calc_text_length = DefaultValue(
+        text_length,
+        length > width && !short_length || short_length && length < width ?
+          length * 3 / 4 - offset * 2
+        : width * 3 / 4 - offset * 2
+      );
+      calc_text_width = metrics.size[1] / metrics.size[0] * calc_text_length * text_scale + offset * 2;
       calc_finger_hole_size = DefaultValue(finger_hole_size, (short_length ? min(length, width) : max(length, width)) - calc_text_length - 10 > 0 ? 10 : 0);
       calc_radius = DefaultValue(radius, min(5, calc_text_width / 4));
 
@@ -441,14 +447,17 @@ module MakeFramedLidLabel(
 
         if (solid_background) {
           MakeMainLidLabelSolid(
-            width=calc_text_length, length=calc_text_width, lid_thickness=lid_thickness, label=label,
-            border=border, offset=offset, font=font, radius=calc_radius, full_height=full_height,
+            width=calc_text_length, length=calc_text_width,
+            lid_thickness=lid_thickness, label=label,
+            border=border, offset=offset, font=font, radius=calc_radius,
+            full_height=full_height,
             label_colour=label_colour, material_colour=material_colour,
             background_colour=background_colour, label_background_colour=label_background_colour
           );
         } else {
           MakeMainLidLabelStriped(
-            width=calc_text_length, length=calc_text_width, lid_thickness=lid_thickness, label=label,
+            width=calc_text_length, length=calc_text_width,
+            lid_thickness=lid_thickness, label=label,
             border=border, offset=offset, font=font, radius=calc_radius,
             full_height=full_height, label_colour=label_colour,
             material_colour=material_colour, background_colour=background_colour,
