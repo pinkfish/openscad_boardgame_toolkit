@@ -238,7 +238,7 @@ module SlidingBoxLidWithLabelAndCustomShape(
   text_str,
   text_length = undef,
   text_scale = 1.0,
-  label_type = default_label_type,
+  label_type = undef,
   lid_boundary = 10,
   label_radius = undef,
   label_border = 2,
@@ -260,7 +260,8 @@ module SlidingBoxLidWithLabelAndCustomShape(
   label_background_colour = undef,
   label_width_offset = 0,
   label_length_offset = 0,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  pattern_inner_control = false,
 ) {
   SlidingLid(
     width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
@@ -271,7 +272,8 @@ module SlidingBoxLidWithLabelAndCustomShape(
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour
+        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
+        inner_control=pattern_inner_control
       ) {
         if ($children > 0) {
           children(0);
@@ -369,14 +371,14 @@ module SlidingBoxLidWithLabel(
   text_str,
   text_length = undef,
   text_scale = 1.0,
-  label_type = default_label_type,
+  label_type = undef,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
   shape_width = undef,
   label_border = 2,
   label_offset = 4,
   layout_width = undef,
-  shape_type = undef,
+  shape_type = default_lid_shape_type,
   shape_thickness = undef,
   wall_thickness = undef,
   aspect_ratio = undef,
@@ -392,7 +394,7 @@ module SlidingBoxLidWithLabel(
   label_background_colour = undef,
   label_width_offset = 0,
   label_length_offset = 0,
-  finger_hole_size = undef
+  finger_hole_size = undef,
 ) {
   SlidingBoxLidWithLabelAndCustomShape(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness, font=font,
@@ -403,13 +405,15 @@ module SlidingBoxLidWithLabel(
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     lid_on_length=lid_on_length, label_colour=label_colour, material_colour=material_colour,
     label_width_offset=label_width_offset, label_length_offset=label_length_offset,
-    finger_hole_size=finger_hole_size
+    finger_hole_size=finger_hole_size,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
   ) {
-    color(material_colour)
-      ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
-      );
+    translate([lid_boundary, lid_boundary, 0])
+      color(material_colour)
+        ShapeByType(
+          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding,
+        );
 
     if ($children > 0) {
       children(0);

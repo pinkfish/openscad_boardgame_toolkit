@@ -29,13 +29,6 @@ under the License.
 // Section: Labels
 //   Building blocks for making labels.
 
-// Function: IsLabelRotated()
-// Description:
-//    If the label is rotated or not.
-// Arguments:
-//    label_type = the type of label to check.
-function IsLabelRotated(label_type) = (label_type == LABEL_TYPE_FRAMED_ROTATED);
-
 // Module: MakeStripedGrid()
 // Description:
 //   Creates a background striped grid, this is used in the label space generation.
@@ -487,7 +480,7 @@ module MakeFramedLidLabel(
 //      label_type = LABEL_TYPE_FRAMELESS);
 // Example(Render):
 //   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",
-//      label_colour = "blue", label_type = LABEL_TYPE_ANGLE);
+//      label_colour = "blue", label_type = LABEL_TYPE_FRAMELESS_ANGLE);
 module MakeFramelessLidLabel(
   width,
   length,
@@ -504,17 +497,17 @@ module MakeFramelessLidLabel(
   cross_angle = asin(min(width, length) / sqrt(width * width + length * length));
   metrics = textmetrics(label, font=font);
   text_width = length > width ? length * 3 / 4 : width * 3 / 4;
-  angle = DefaultValue(angle, label_type == LABEL_TYPE_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
-  color(label_background_colour)
+  angle = DefaultValue(angle, label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
+  color(DefaultValue(label_background_colour, default_label_background_colour))
     translate([(width) / 2, (length) / 2, 0])
       linear_extrude(lid_thickness - default_slicing_layer_height)
         rotate(angle)
-          resize([text_width, metrics.size[1] / metrics.size[0] * text_width])
+          resize([text_width, metrics.size[1] / metrics.size[0] * text_width * text_scale])
             text(label, font=font, halign="center", valign="center");
-  color(label_colour)
+  color(DefaultValue(label_colour, default_label_colour))
     translate([(width) / 2, (length) / 2, lid_thickness - default_slicing_layer_height])
       linear_extrude(default_slicing_layer_height)
         rotate(angle)
-          resize([text_width, metrics.size[1] / metrics.size[0] * text_width])
+          resize([text_width, metrics.size[1] / metrics.size[0] * text_width * text_scale])
             text(label, font=font, halign="center", valign="center");
 }

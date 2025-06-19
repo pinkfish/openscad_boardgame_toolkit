@@ -22,12 +22,13 @@ $fn = 128;
 
 default_lid_shape_type = SHAPE_TYPE_PENTAGON_R5;
 default_lid_shape_thickness = 1;
-default_lid_shape_width = 13;
+default_lid_shape_width = 10;
 default_wall_thickness = 3;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
+default_label_font = "Impact";
 
-default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_label_type = LABEL_TYPE_FRAMELESS_ANGLE;
 
 board_thickness = 23.5;
 
@@ -47,14 +48,27 @@ frog_base = 12;
 
 card_length = 91;
 card_width = 66;
-card_20_thickness = 5;
-card_thickness = card_20_thickness / 20;
+card_10_thickness = 6;
+single_card_thickness = card_10_thickness / 10;
+cardboard_token_thickness = 2;
 
 token_thickness = 9;
 
 player_box_height = (79 - board_thickness) / 4;
 player_bpx_length = (box_length - 2) / 2;
 player_box_width = card_length + default_wall_thickness * 2;
+
+material_box_width = player_box_width;
+material_box_height = player_box_height;
+material_box_length = player_box_length / 2;
+
+common_box_width = player_box_width;
+common_box_height = player_box_height;
+common_box_length = player_box_length;
+
+card_box_width = player_box_width;
+card_box_length = card_width + default_wall_thickness * 2 + 1;
+card_box_height = box_height - board_thickness;
 
 module BlackHero(height) {
   translate([-33 / 2, -50.8 + 28 / 2, 0])
@@ -815,12 +829,24 @@ module PlayerBoxInside() {
         rotate(180 * (i % 2))
           RatWorker(height=player_box_height);
     }
-    translate([$inner_width - wood_token_diameter / 2, 64, $inner_height - wood_token_thickness * 3 - 0.5]) {
+    translate(
+      [
+        $inner_width - wood_token_diameter / 2,
+        64,
+        $inner_height - wood_token_thickness * 3 - 0.5,
+      ]
+    ) {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([-wood_token_diameter / 2, 0, 0])
         cyl(d=8, rounding=4, h=player_box_height, anchor=BOTTOM);
     }
-    translate([$inner_width - wood_token_diameter * 3 / 2 - 5, 64, $inner_height - wood_token_thickness * 2 - 0.5]) {
+    translate(
+      [
+        $inner_width - wood_token_diameter * 3 / 2 - 5,
+        64,
+        $inner_height - wood_token_thickness * 2 - 0.5,
+      ]
+    ) {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([wood_token_diameter / 2, 0, 0])
         cyl(d=8, rounding=4, h=player_box_height, anchor=BOTTOM);
@@ -829,8 +855,40 @@ module PlayerBoxInside() {
     children(0);
 
     // cards
-    translate([card_length / 2, $inner_length - card_width / 2, $inner_height - card_thickness * 6]) {
-      cuboid([card_length, card_width, player_box_height]);
+    translate(
+      [
+        card_length / 2,
+        $inner_length - card_width / 2,
+        $inner_height - single_card_thickness * 6 - 0.3,
+      ]
+    ) {
+      cuboid([card_length, card_width, player_box_height], anchor=BOTTOM);
+    }
+
+    // Hexes (under the cards)
+    translate(
+      [
+        hex_size / 2 + 1,
+        $inner_length - card_width / 2,
+        $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
+      ]
+    ) {
+      rotate(30)
+        RegularPolygon(
+          width=hex_size, shape_edges=6, height=player_box_height,
+          finger_holes=[0, 4]
+        );
+    }
+
+    translate(
+      [
+        $inner_width - hex_size / 2 - 1,
+        $inner_length - card_width / 2,
+        $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
+      ]
+    ) {
+      rotate(30)
+        RegularPolygon(width=hex_size, shape_edges=6, height=player_box_height, finger_holes=[3, 7]);
     }
 
     // Depth to pull out pieces.
@@ -886,9 +944,151 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height,
-    text_str="Player", label_type=LABEL_TYPE_FRAMED_SOLID, text_scale=0.7
+    text_str="Player", text_scale=0.5, font="Impact"
   );
 }
+
+module MaterialBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    width=material_box_width,
+    length=material_box_length, height=material_box_height
+  ) {
+    RoundedBoxAllSides(
+      width=$inner_width,
+      length=$inner_length, height=$inner_height, radius=$inner_height - 2
+    );
+  }
+}
+
+module MaterialHoneyBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=material_box_width, length=material_box_length, height=material_box_height,
+    text_str="Honey", text_scale=0.5, font="Impact"
+  );
+}
+
+module MaterialWoodBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=material_box_width, length=material_box_length, height=material_box_height,
+    text_str="Wood", text_scale=0.5, font="Impact"
+  );
+}
+
+module MaterialFoodBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=material_box_width, length=material_box_length, height=material_box_height,
+    text_str="Food", text_scale=0.5, font="Impact"
+  );
+}
+
+module MaterialStoneBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=material_box_width, length=material_box_length, height=material_box_height,
+    text_str="Stone", text_scale=0.5, font="Impact"
+  );
+}
+
+module CommonBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    width=common_box_width,
+    length=common_box_length, height=common_box_height
+  ) {
+    for (i = [0:1]) {
+      for (j = [0:2]) {
+        translate([(trophy_length / 2 + 5) * (1 + i * 2), (trophy_width / 2 + 2) * (1 + j * 2), $inner_height - cardboard_token_thickness + 0.5]) {
+          cuboid([trophy_length, trophy_width, common_box_height], anchor=BOTTOM);
+          translate([trophy_length / 2, 0, 0])
+            sphere(r=15, anchor=BOTTOM);
+          translate([-trophy_length / 2, 0, 0])
+            sphere(r=15, anchor=BOTTOM);
+        }
+      }
+      translate(
+        [
+          $inner_width / 2,
+          $inner_length - wood_token_diameter / 2 - 10,
+          $inner_height - wood_token_thickness - 0.5,
+        ]
+      ) {
+        cyl(d=wood_token_diameter, h=wood_token_thickness * 2, anchor=BOTTOM);
+        translate([wood_token_diameter / 2, 0, 1])
+          sphere(r=10, anchor=BOTTOM);
+        translate([-wood_token_diameter / 2, 0, 1])
+          sphere(r=10, anchor=BOTTOM);
+      }
+    }
+  }
+}
+
+module CardBoxHero() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width,
+    length=card_box_length, height=card_box_height,
+    lid_on_length=true
+  ) {
+    translate([0, 0, 0])
+      cube([card_length, card_width, card_box_height]);
+    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+  }
+}
+
+module CardBoxFavor() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width,
+    length=card_box_length, height=card_box_height,
+    lid_on_length=true
+  ) {
+    translate([0, 0, $inner_height - single_card_thickness * 88 + 2])
+      cube([card_length, card_width, card_box_height]);
+    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+  }
+}
+
+module CardBoxSolo() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width,
+    length=card_box_length, height=card_box_height,
+    lid_on_length=true
+  ) {
+    translate([0, 0, 0])
+      cube([card_length, card_width, card_box_height]);
+    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+  }
+}
+
+module CardBoxSoloLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, text_str="Solo", lid_on_length=true
+  );
+}
+
+module CardBoxFavorLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, text_str="Favors", lid_on_length=true
+  );
+}
+
+module CardBoxHerosLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, text_str="Heros", lid_on_length=true
+  );
+}
+
 
 module BoxLayout() {
   cube([box_width, box_length, board_thickness]);
@@ -903,28 +1103,25 @@ module BoxLayout() {
       BluePlayerBox();
     translate([0, 0, player_box_height * 2])
       GreyPlayerBox();
+    translate([0, player_box_length, player_box_height * 2])
+      MaterialBox();
+    translate([0, player_box_length + material_box_length, player_box_height * 2])
+      MaterialBox();
+    translate([0, 0, player_box_height * 3])
+      MaterialBox();
+    translate([0, material_box_length, player_box_height * 3])
+      MaterialBox();
+    translate([0, material_box_length * 2, player_box_height * 3])
+      CommonBox();
+    translate([player_box_width, 0, 0])
+      CardBoxFavor();
+    translate([player_box_width, card_box_length, 0])
+      CardBoxHero();
+    translate([player_box_width, card_box_length * 2, 0])
+      CardBoxSolo();
   }
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxLid();
-  metrics = textmetrics("Player", font=default_label_font, size=10);
-  fontmetrics = fontmetrics(size=10, font=default_label_font);
-  echo([metrics.size, metrics.size[1] / metrics.size[0], 10 / fontmetrics.max.ascent/2, fontmetrics]);
-  // MakeMainLidLabelStriped(150, 50, 2, "Player");
-  /*
-  RegularPolygonGrid(100, 4, 3, inner_control = true) {
-
-    ShapeByType(
-      shape_type=SHAPE_TYPE_PENTAGON_R7, shape_width=10, shape_thickness=1,
-      shape_aspect_ratio=1.0, rounding=0
-    );
-  }
-  /* 
-  for (i = [-3:2])
-    for (j = [-2:2]) {
-      linear_extrude(2)
-        PentagonTesselation("R7", pentagon_size=20, thickness=1, x=i, y=j);
-    }
-    */
+  CardBoxSoloLid();
 }

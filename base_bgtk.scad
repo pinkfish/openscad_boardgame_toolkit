@@ -195,10 +195,10 @@ LABEL_TYPE_FRAMED_SHORT = 2;
 //   The label framed inside a box, with a solid background
 //   on the short length.
 LABEL_TYPE_FRAMED_SHORT_SOLID = 3;
-// Constant: LABEL_TYPE_ANGLE
+// Constant: LABEL_TYPE_FRAMELESS_ANGLE
 // Description:
 //   The label on an angle across the lid.
-LABEL_TYPE_ANGLE = 4;
+LABEL_TYPE_FRAMELESS_ANGLE = 4;
 // Constant: LABEL_TYPE_FRAMELESS
 // Description:
 //   The label across the lid on the long lenfth.

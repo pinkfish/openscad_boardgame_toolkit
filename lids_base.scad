@@ -536,28 +536,29 @@ module MakeLidLabel(
   text_scale = 1.0,
   label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
+  label_background_colour = default_label_background_colour,
   solid_background = default_label_solid_background,
   finger_hole_size = 10
 ) {
+  calc_label_type = DefaultValue(label_type, default_label_type);
   if (
-    label_type == LABEL_TYPE_FRAMED || label_type == LABEL_TYPE_FRAMED_SHORT || label_type == LABEL_TYPE_FRAMED_SHORT_SOLID || label_type == LABEL_TYPE_FRAMED_SOLID
+    calc_label_type == LABEL_TYPE_FRAMED || calc_label_type == LABEL_TYPE_FRAMED_SHORT || calc_label_type == LABEL_TYPE_FRAMED_SHORT_SOLID || calc_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     MakeFramedLidLabel(
       width=width, length=length, text_length=text_length, text_scale=text_scale,
       lid_thickness=lid_thickness, label=text_str,
       border=border, offset=offset, full_height=full_height, font=font,
       radius=label_radius, label_colour=label_colour, material_colour=material_colour,
-      solid_background=label_type == LABEL_TYPE_FRAMED_SOLID || label_type == LABEL_TYPE_FRAMED_SHORT_SOLID,
+      solid_background=calc_label_type == LABEL_TYPE_FRAMED_SOLID || calc_label_type == LABEL_TYPE_FRAMED_SHORT_SOLID,
       label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size, short_length=label_type == LABEL_TYPE_FRAMED_SHORT
+      finger_hole_size=finger_hole_size, short_length=calc_label_type == LABEL_TYPE_FRAMED_SHORT
     );
   } else if (
-    label_type == LABEL_TYPE_ANGLE || label_type == LABEL_TYPE_FRAMELESS || label_type == LABEL_TYPE_FRAMELESS_SHORT
+    calc_label_type == LABEL_TYPE_FRAMELESS_ANGLE || calc_label_type == LABEL_TYPE_FRAMELESS || calc_label_type == LABEL_TYPE_FRAMELESS_SHORT
   ) {
     MakeFramelessLidLabel(
-      width=width, length=length, label_type=label_type,
-      label=text_str, lid_thickness=lid_thickness, font=font,
+      width=width, length=length, label_type=calc_label_type,
+      label=text_str, lid_thickness=lid_thickness, font=font, text_scale=text_scale,
       label_colour=label_colour, label_background_colour=label_background_colour
     );
   }
