@@ -79,7 +79,7 @@ module FarmerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     herald_width, top_length, lid_thickness=lid_thickness,
-    text_str="Farmer", label_colour="blue", label_radius=5, label_rotated=true
+    text_str="Farmer", label_colour="blue", 
   );
 }
 
@@ -96,7 +96,7 @@ module HeraldBoxLid() // `make` me
 {
   SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
       herald_width, top_length, lid_thickness=lid_thickness, text_str="Herald",
-      label_colour="blue", label_radius=5, label_rotated=true
+      label_colour="blue", 
     );
 }
 
