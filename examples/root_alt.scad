@@ -28,6 +28,8 @@ default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 default_lid_shape_thickness = 1;
 default_lid_shape_width = 13;
 default_lid_layout_width = 10;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 
 only_board_height = 16;
 

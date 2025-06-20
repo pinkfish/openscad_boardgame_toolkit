@@ -23,6 +23,8 @@ default_wall_thickness = 3;
 inner_thickness = 2;
 default_floor_thickness = 2;
 default_lid_thickness = 2;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 // default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 // default_lid_shape_thickness = 1;
 // default_lid_shape_width = 13;

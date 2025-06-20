@@ -24,6 +24,8 @@ box_height = 38;
 wall_thickness = 3;
 lid_thickness = 2;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 card_width = 62.5;
 card_length = 89;
 total_card_thickness = 40;

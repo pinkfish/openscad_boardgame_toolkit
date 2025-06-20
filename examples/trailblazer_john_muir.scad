@@ -91,7 +91,7 @@ weather_tokens_number = 26;
 generate_mmu = MAKE_MMU == 1;
 
 default_material_colour = "purple";
-default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 player_box_length = box_length / 4 - 1;
 player_box_width = player_board_width / 2 - 1;

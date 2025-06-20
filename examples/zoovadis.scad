@@ -1,6 +1,8 @@
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 box_width = 216;
 box_length = 307;
 box_width_with_insert = 185;

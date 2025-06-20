@@ -51,6 +51,8 @@ card_width = 66;
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
 cardboard_token_thickness = 2;
+small_victory_width = 19;
+small_victory_length = 16;
 
 token_thickness = 9;
 
@@ -815,8 +817,98 @@ module FrogWorker(height) {
           );
 }
 
+module VictoryToken(height) {
+  translate([-23 / 2, -50.8 + 27 / 2, 0]) linear_extrude(height=height) offset(0.25) scale([0.352806, 0.352806, 1])
+          polygon(
+            bezpath_curve(
+              [
+                [64.01, 83.1],
+                [63.970000000000006, 82.91],
+                [63.74, 82.42999999999999],
+                [63.040000000000006, 81.05],
+                [63.040000000000006, 81.05],
+                [62.00000000000001, 78.83],
+                [61.190000000000005, 77.64999999999999],
+                [61.190000000000005, 77.64999999999999],
+                [59.68000000000001, 75.36999999999999],
+                [59.42, 74.96999999999998],
+                [58.14, 72.90999999999998],
+                [57.15, 71.15999999999998],
+                [55.18, 69.68999999999998],
+                [53.56, 69.07999999999998],
+                [53.27, 68.93999999999998],
+                [51.45, 68.68999999999998],
+                [50.760000000000005, 68.85999999999999],
+                [50.32, 69.36999999999999],
+                [50.11, 69.56999999999998],
+                [49.92, 69.74999999999999],
+                [49.65, 70.12999999999998],
+                [49.48, 70.36999999999998],
+                [48.459999999999994, 71.83999999999997],
+                [46.629999999999995, 75.23999999999998],
+                [45.9, 76.91999999999997],
+                [44.78, 79.49999999999997],
+                [44.769999999999996, 85.17999999999998],
+                [41.71, 83.95999999999998],
+                [39.92, 83.24999999999999],
+                [38.6, 81.63999999999999],
+                [37.68, 80.45999999999998],
+                [35.95, 79.21999999999998],
+                [32.36, 72.90999999999998],
+                [28.759999999999998, 73.71999999999998],
+                [25.099999999999998, 73.66999999999999],
+                [26.189999999999998, 81.04999999999998],
+                [26.2, 81.10999999999999],
+                [26.2, 81.10999999999999],
+                [27.33, 90.57],
+                [27.33, 90.57],
+                [21.65, 92.38],
+                [16.229999999999997, 93.41],
+                [10.549999999999997, 95.27],
+                [8.23, 96.03],
+                [0.08, 99.2],
+                [0.0, 101.56],
+                [-0.14, 105.87],
+                [7.45, 108.95],
+                [11.83, 112.13],
+                [12.8, 112.83999999999999],
+                [17.11, 115.64],
+                [17.97, 116.03999999999999],
+                [19.54, 116.77],
+                [24.49, 118.49],
+                [24.43, 118.83],
+                [24.07, 120.85],
+                [23.49, 121.31],
+                [23.21, 122.69],
+                [23.150000000000002, 123.0],
+                [21.35, 127.8],
+                [21.04, 128.74],
+                [21.22, 139.28],
+                [35.879999999999995, 129.95000000000002],
+                [39.53, 131.91],
+                [41.22, 134.21],
+                [41.28, 143.29],
+                [44.29, 143.93],
+                [48.79, 144.89000000000001],
+                [58.36, 135.41],
+                [59.82, 131.1],
+                [60.22, 129.92],
+                [63.31, 124.97999999999999],
+                [63.6, 123.39999999999999],
+                [64.64, 117.77999999999999],
+                [66.2, 93.36999999999999],
+                [64.01, 83.1],
+              ]
+            )
+          );
+}
+module VictoryTokenSmall(height) {
+  resize([small_victory_length, small_victory_width, height]) VictoryToken(height);
+}
+
 module PlayerBoxInside() {
   MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+    // workers
     translate([12, 7, $inner_height - token_thickness - 0.5])for (i = [0:2]) {
       translate([0, 12 * i, 0])
         OwlWorker(height=player_box_height);
@@ -829,6 +921,7 @@ module PlayerBoxInside() {
         rotate(180 * (i % 2))
           RatWorker(height=player_box_height);
     }
+    // markers
     translate(
       [
         $inner_width - wood_token_diameter / 2,
@@ -851,6 +944,36 @@ module PlayerBoxInside() {
       translate([wood_token_diameter / 2, 0, 0])
         cyl(d=8, rounding=4, h=player_box_height, anchor=BOTTOM);
     }
+
+    // victory.
+    translate(
+      [
+        $inner_width - 13,
+        $inner_length - hex_size - 14,
+        $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness - 0.5,
+      ]
+    ) {
+      rotate(0) {
+        VictoryToken(height=cardboard_token_thickness + 1);
+        translate([-small_victory_length / 2, 0, 0])
+          sphere(r=10, anchor=BOTTOM);
+      }
+    }
+
+    translate(
+      [
+        10,
+        $inner_length - hex_size - 16,
+        $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness - 0.5,
+      ]
+    ) {
+      rotate(180) {
+        VictoryTokenSmall(height=cardboard_token_thickness + 1);
+        translate([-small_victory_length / 2, 0, 0])
+          sphere(r=10, anchor=BOTTOM);
+      }
+    }
+
     // hero
     children(0);
 
@@ -869,26 +992,30 @@ module PlayerBoxInside() {
     translate(
       [
         hex_size / 2 + 1,
-        $inner_length - card_width / 2,
+        $inner_length - hex_size / 2 - 1,
         $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
       ]
     ) {
       rotate(30)
         RegularPolygon(
           width=hex_size, shape_edges=6, height=player_box_height,
-          finger_holes=[0, 4]
+          finger_holes=[4]
         );
     }
 
     translate(
       [
         $inner_width - hex_size / 2 - 1,
-        $inner_length - card_width / 2,
+        $inner_length - hex_size / 2 - 1,
         $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
       ]
     ) {
       rotate(30)
-        RegularPolygon(width=hex_size, shape_edges=6, height=player_box_height, finger_holes=[3, 7]);
+        RegularPolygon(
+          width=hex_size,
+          shape_edges=6, height=player_box_height,
+          finger_holes=[3]
+        );
     }
 
     // Depth to pull out pieces.
@@ -1122,5 +1249,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  CardBoxSoloLid();
+  RedPlayerBox();
 }

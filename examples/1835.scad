@@ -27,6 +27,7 @@ default_lid_thickness = 2;
 default_floor_thickness = 2;
 
 default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 inner_wall = 1;
 

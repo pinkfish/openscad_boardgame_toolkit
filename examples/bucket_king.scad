@@ -18,6 +18,8 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 box_length = 288;
 box_width = 140;
 box_height = 70;

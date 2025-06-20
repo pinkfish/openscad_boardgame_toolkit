@@ -296,7 +296,6 @@ module MakeMainLidLabelStriped(
     }
   }
 
-  echo([width, length, border]);
   translate([-width / 2, -length / 2, 0]) {
     calc_font = DefaultValue(font, default_label_font);
     calc_background_color = DefaultValue(label_background_colour, default_label_background_colour);

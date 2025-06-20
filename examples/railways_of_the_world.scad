@@ -25,7 +25,7 @@ box_height = 100;
 generate_mmu = MAKE_MMU == 1;
 
 default_material_colour = "purple";
-default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 card_width = 68;
 card_length = 92;

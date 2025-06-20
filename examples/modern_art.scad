@@ -31,6 +31,7 @@ default_lid_shape_thickness = 1.5;
 default_lid_shape_rounding = 2;
 default_lid_shape_width = 15;
 default_lid_layout_width = 10;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 card_width = 61;
 card_length = 93;

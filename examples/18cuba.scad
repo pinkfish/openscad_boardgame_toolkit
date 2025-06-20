@@ -23,7 +23,7 @@ box_width = 225;
 box_height = 68;
 box_hexes = 20;
 
-default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 money_biggest_thickness = 8.5;
 money_types = ["1", "2", "5", "10", "20", "50", "100", "500"];
@@ -119,7 +119,7 @@ module MoneyBox(offset = 0) // `make` me
   MakeBoxWithSlipoverLid(
     length=money_box_length, width=money_box_width, height=money_box_height,
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=MAKE_MMU == 1
   ) {
     for (i = [0:1:3]) {
       translate([-0.2, i * (money_width + inner_wall + 0.5) + 12, 0]) {
@@ -130,7 +130,7 @@ module MoneyBox(offset = 0) // `make` me
       translate([money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.2])
         linear_extrude(height=2) text(money_types[i + offset], size=10, anchor=CENTER);
     }
-    if (default_label_solid_background) {
+    if (MAKE_MMU == 1) {
       union() {
         for (i = [0:1:3]) {
           color("black")
@@ -185,10 +185,10 @@ module TrainBox() // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=MAKE_MMU == 1
   ) {
     InnerPieces(true);
-    if (default_label_solid_background) {
+    if (MAKE_MMU == 1) {
       color("black") union() {
           InnerPieces(false);
         }
@@ -225,10 +225,10 @@ module SharesBox(offset = 0) // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=MAKE_MMU == 1
   ) {
     InnerPieces(true);
-    if (default_label_solid_background) {
+    if (MAKE_MMU == 1) {
       color("black") union() {
           InnerPieces(show_everything=false);
         }
@@ -339,10 +339,10 @@ module LastBox() // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=default_label_solid_background, lid_catch=CATCH_LENGTH
+    last_child_positive=MAKE_MMU == 1, lid_catch=CATCH_LENGTH
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (MAKE_MMU == 1) {
       color("black") InnerPieces(show_everything=false);
     }
   }
@@ -469,7 +469,7 @@ module InsideTokenTray() {
 
     InnerPieces(true);
   }
-  if (default_label_solid_background) {
+  if (MAKE_MMU == 1) {
     color("black") InnerPieces(show_everything=false);
   }
 }
@@ -517,7 +517,7 @@ module LargeTokensBox() {
     wall_height=wall_height
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (MAKE_MMU == 1) {
       color("black") InnerPieces(false);
     }
   }

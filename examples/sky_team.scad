@@ -27,6 +27,8 @@ default_lid_shape_thickness = 1;
 default_lid_shape_width = 11;
 default_lid_layout_width = 10.3;
 default_lid_aspect_ratio = 1.5;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 
 box_width = 177;
 box_length = 247;
