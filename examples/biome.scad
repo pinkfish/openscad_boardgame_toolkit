@@ -22,6 +22,10 @@ box_length = 285;
 box_width = 285;
 box_height = 73;
 
+default_lid_shape_type = SHAPE_TYPE_ESCHER_LIZARD;
+default_lid_shape_thickness = 1;
+default_lid_shape_width = 10;
+
 board_thickness = 20;
 board_width = 255;
 

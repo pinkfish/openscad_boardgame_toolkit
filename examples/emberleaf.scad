@@ -19,7 +19,7 @@ include <lib/emberleaf.scad>
 
 $fn = 128;
 
-default_lid_shape_type = SHAPE_TYPE_PENTAGON_R5;
+default_lid_shape_type = SHAPE_TYPE_VORONOI;
 default_lid_shape_thickness = 1;
 default_lid_shape_width = 10;
 default_wall_thickness = 3;
@@ -70,7 +70,6 @@ common_box_length = player_box_length;
 card_box_width = player_box_width;
 card_box_length = card_width + default_wall_thickness * 2 + 1;
 card_box_height = box_height - board_thickness;
-
 
 module PlayerBoxInside() {
   MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
@@ -415,5 +414,8 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  RedPlayerBox();
+  PlayerBoxLid();
+  //linear_extrude(2)
+  //Voronoi(100, 100, 2);
+  //EscherLizardRepeat(rows=10, cols=10, size=465, thickness=10);
 }

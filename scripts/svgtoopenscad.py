@@ -16,16 +16,28 @@ class OpenScadOutput():
             self.PrintGroup(element)
         elif isinstance(element, Path):
             self.PrintPath(element)
+        elif isinstance(element, Polygon):
+            self.PrintPolygon(element)
 
     def PrintGroup(self, group):
         print("// group {0}".format(group.id))
         for element in group:
             if isinstance(element, Path):
                self.PrintPath(element)
+            if isinstance(element, Polygon):
+               self.PrintPolygon(element)
+            else:
+               print("unknown element {0}".format(element))
                
     def PrintPath(self, path):
         cur = None
         for s in path.segments():
+            cur = self.PrintSegment(s, cur)
+        print("]")
+
+    def PrintPolygon(self, polygon):
+        cur = None
+        for s in polygon.segments():
             cur = self.PrintSegment(s, cur)
         print("]")
        
@@ -37,7 +49,7 @@ class OpenScadOutput():
             return segment.end
         elif isinstance(segment, Line):
             if cur == None:
-                print("bez = [[{0}, {1}], ".format(segment.start.x, segment.start.y));
+                print("line = [[{0}, {1}], ".format(segment.start.x, segment.start.y));
             print("[{0}, {1}], [{2}, {3}], [{2}, {3}], ".format(segment.start.x, segment.start.y, segment.end.x, segment.end.y))
             return segment.end
         return cur
@@ -53,5 +65,5 @@ class OpenScadOutput():
 
        
 
-os = OpenScadOutput("../examples/svg/emberleaf/victory.svg")
+os = OpenScadOutput("../svg/Asset 1.svg")
 os.PrintAllObjects()

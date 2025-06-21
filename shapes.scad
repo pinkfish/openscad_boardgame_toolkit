@@ -3554,7 +3554,9 @@ module Sign2d(size) {
 // Arguments:
 //   shnape_type = the type of shape to check
 function ShapeNeedsInnerControl(shape_type) =
-  shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13;
+  (shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_ESCHER_LIZARD) ?
+    1
+  : (shape_type == SHAPE_TYPE_VORONOI ? 2 : 0);
 
 // Module: ShapeByType()
 // Description:
@@ -3644,6 +3646,18 @@ function ShapeNeedsInnerControl(shape_type) =
 //   $polygon_x = 0;
 //   $polygon_y = 0;
 //   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R13, shape_thickness = 1, shape_width = 10);
+// Example:
+//   $polygon_x = 0;
+//   $polygon_y = 0;
+//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R14, shape_thickness = 1, shape_width = 10);
+// Example:
+//   $polygon_x = 0;
+//   $polygon_y = 0;
+//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R15, shape_thickness = 1, shape_width = 10);
+// Example:
+//   $polygon_x = 0;
+//   $polygon_y = 0;
+//   ShapeByType(shape_type = SHAPE_TYPE_ESCHER_LIZARD, shape_thickness = 1, shape_width = 10);
 module ShapeByType(
   shape_type,
   shape_width,
@@ -3745,6 +3759,14 @@ module ShapeByType(
       PentagonTesselation(pentagon_type="R12", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R13) {
       PentagonTesselation(pentagon_type="R13", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+    } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R14) {
+      PentagonTesselation(pentagon_type="R14", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+    } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R15) {
+      PentagonTesselation(pentagon_type="R15", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+    } else if (calc_shape_type == SHAPE_TYPE_ESCHER_LIZARD) {
+      EscherLizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+    } else if (calc_shape_type == SHAPE_TYPE_VORONOI) {
+      Voronoi(width = $polygon_width, length = $polygon_length, cellsize = calc_shape_width, thickness = calc_shape_thickness);
     } else {
       assert(false, "Invalid shape type");
     }

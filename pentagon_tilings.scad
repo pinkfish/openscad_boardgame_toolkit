@@ -1,3 +1,4 @@
+
 // mathgrrl Pentagon Tilings
 
 // pentagon vertices, lattices, and offsets from Ed Pegg's Wolfram Demonstration
@@ -9,17 +10,44 @@
 // what is this business about there being a new pentagon that tiles the plane?
 // http://www.zmescience.com/science/math/pentagon-tiles-surface-0342523454/
 
+/**
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+ */
+
+
+// LibFile: pentagon_tilings.scad
+//    This file has all the modules needed to make a variety of penagon tesslations.
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // PENATGON PARAMETERS
 
 // [Pattern] 
 
-// preview[view:south, tilt:top]
-
-pentagon_type = "R1"; //["R1":Type 1 - Reinhardt 1918,"R2":Type 2 - Reinhardt 1918,"R3":Type 3 - Reinhardt 1918,"R4":Type 4 - Reinhardt 1918,"R5":Type 5 - Reinhardt 1918,"R6":Type 6 - Kershner 1968,"R7":Type 7 - Kershner 1968,"R8":Type 8 - Kershner 1968,"R9":Type 9 - Rice 1975,"R10":Type 10 - James 1975,"R11":Type 11 - Rice 1976,"R12":Type 12 - Rice 1976,"R13": Type 13 - Rice 1977,"R14":Type 14 - Stein 1985,"R15":Mann/McL/VonD 2015!]
-
-output = "pentagon"; //["pentagon":Solid Pentagon,"border":Open Pentagon,"pattern":Pattern Group,"tessellation":Tessellation,"leveled":Leveled Tessellation,"emboss":Embossed Texture,"picture":Tessellation Picture,"cookie":Cookie Cutter,"shortbox":Short Box or Planter,"tallbox":Tall Box or Planter,"lid":Lid for Box or Planter,"desk":Desk Organizer,"desklid":Lids for Desk Organizer]
-
+// Module: PentagonTesselation()
+// Description:
+//   Make the pentagon tesslation as a specific x,y in the pattern.
+// Arguments:
+//   pentagon_type = type of the pentagon, eg: "R12"
+//   x = x location for the pattern
+//   y = y location for the pattern
+//   thickness = thickness of the edges of the patter
+//   pentagon_size = the size of the pentagon
 module PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) {
   // convex initial conditions for each pentagon
   // R1: AA = 70; BB = 140; b = 1; c = 0.5; e = 0.7;

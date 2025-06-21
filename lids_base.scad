@@ -197,6 +197,9 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //        circle(r = 7);
 //        circle(r = 6);
 //      }
+// Example:
+//   LidMeshRepeating(width = 50, length = 50, lid_thickness = 3, boundary = 5, layout_width = 10, inner_control = 2)
+//      Voronoi(width = 50, length = 50, thickness = 2, cellsize = 10);
 module LidMeshRepeating(
   width,
   length,
@@ -206,7 +209,7 @@ module LidMeshRepeating(
   aspect_ratio = 1.0,
   shape_edges = 4,
   material_colour = default_material_colour,
-  inner_control = false
+  inner_control = 0
 ) {
   rows = width / layout_width;
   cols = length / layout_width * aspect_ratio;
@@ -217,7 +220,8 @@ module LidMeshRepeating(
         linear_extrude(height=lid_thickness + 1)
           RegularPolygonGrid(
             width=layout_width, rows=rows + (inner_control ? 11 : 1), cols=cols + (inner_control ? 11 : 1), spacing=0,
-            shape_edges=shape_edges, aspect_ratio=aspect_ratio, inner_control=inner_control
+            shape_edges=shape_edges, aspect_ratio=aspect_ratio, inner_control=inner_control,
+            space_width = width, space_length = length
           ) {
             children();
           }

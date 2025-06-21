@@ -252,7 +252,6 @@ module CuboidWithIndentsBottom(
   children();
 }
 
-
 // Module: RegularPolygonGrid()
 // Description:
 //   Lays out the grid with all the polygons as children.  The layout handles any shape as children.
@@ -272,7 +271,17 @@ module CuboidWithIndentsBottom(
 // Example:
 //   RegularPolygonGrid(width = 10, rows = 2, cols = 1, spacing = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
-module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6, aspect_ratio = 1.0, inner_control = false) {
+module space_width(
+  width,
+  rows,
+  cols,
+  spacing = 2,
+  shape_edges = 6,
+  aspect_ratio = 1.0,
+  inner_control = 0,
+  space_width = undef,
+  space_length = undef
+) {
   apothem = width / 2;
   radius = apothem / cos(180 / shape_edges);
   side_length = 2 * apothem * tan(180 / shape_edges);
@@ -292,20 +301,28 @@ module RegularPolygonGrid(width, rows, cols, spacing = 2, shape_edges = 6, aspec
 
   rotate_deg = ( (shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
 
-  for (i = [0:rows - 1])
-    for (j = [0:cols - 1]) {
-      if (inner_control) {
-        $polygon_grid_rows = rows;
-        $polygon_grid_cols = cols;
-        $polygon_x = i;
-        $polygon_y = j;
-        children();
-      } else {
-        translate([i * dy + offset_x, j * dx + i * dx_y + offset_y, 0]) {
+  if (inner_control == 2) {
+    $polygon_width = space_width;
+    $polygon_length = space_length;
+    $polygon_grid_cols = cols;
+    $polygon_grid_rows = rows;
+    children();
+  } else {
+    for (i = [0:rows - 1])
+      for (j = [0:cols - 1]) {
+        if (inner_control == 1) {
+          $polygon_grid_rows = rows;
+          $polygon_grid_cols = cols;
+          $polygon_x = i;
+          $polygon_y = j;
           children();
+        } else {
+          translate([i * dy + offset_x, j * dx + i * dx_y + offset_y, 0]) {
+            children();
+          }
         }
       }
-    }
+  }
 }
 
 // Module: RegularPolygonGridDense()

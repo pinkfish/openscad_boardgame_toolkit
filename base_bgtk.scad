@@ -48,6 +48,9 @@ default_floor_thickness = 2;
 // Constant: default_slicing_layer_height
 // The slicing layer height to use for cases where this matter.
 default_slicing_layer_height = 0.2;
+// Constant: default_voronoi_seed
+// The seed to use when generating a vornoi so it always looks the same.
+default_voronoi_seed = 10000;
 
 // Constant: default_material_colour
 // Description: The default colour to use for material when making boxes.
@@ -163,6 +166,22 @@ SHAPE_TYPE_PENTAGON_R12 = 23;
 // Description:
 //   Makes a nice repeating pentagon shape.
 SHAPE_TYPE_PENTAGON_R13 = 24;
+// Constant: SHAPE_TYPE_PENTAGON_R14
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R14 = 25;
+// Constant: SHAPE_TYPE_PENTAGON_R15
+// Description:
+//   Makes a nice repeating pentagon shape.
+SHAPE_TYPE_PENTAGON_R15 = 26;
+// Constant: SHAPE_TYPE_ESCHER_LIZARD
+// Description:
+//   Makes a nice repeating escher lizard shape.
+SHAPE_TYPE_ESCHER_LIZARD = 27;
+// Constant: SHAPE_TYPE_VORONOI
+// Description:
+//   Make a lid with a voronoi layout.
+SHAPE_TYPE_VORONOI = 28;
 
 // Constant: CATCH_NONE
 // Description:
