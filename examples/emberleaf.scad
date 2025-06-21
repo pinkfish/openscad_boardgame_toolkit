@@ -19,7 +19,7 @@ include <lib/emberleaf.scad>
 
 $fn = 128;
 
-default_lid_shape_type = SHAPE_TYPE_VORONOI;
+default_lid_shape_type = SHAPE_TYPE_PENTAGON_R5;
 default_lid_shape_thickness = 1;
 default_lid_shape_width = 10;
 default_wall_thickness = 3;
