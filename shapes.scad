@@ -27,6 +27,8 @@
 // Section: Shapes
 //    Shapes to use in boxes and stuff.
 
+calc_sqrt_three = sqrt(3);
+
 // Module: Sword2d()
 // Description:
 //    2d shape of a sword.
@@ -3554,7 +3556,7 @@ module Sign2d(size) {
 // Arguments:
 //   shnape_type = the type of shape to check
 function ShapeNeedsInnerControl(shape_type) =
-  (shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_ESCHER_LIZARD) ?
+  (shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_ESCHER_LIZARD || shape_type == SHAPE_TYPE_LEAF) ?
     1
   : (shape_type == SHAPE_TYPE_VORONOI ? 2 : 0);
 
@@ -3695,6 +3697,7 @@ module ShapeByType(
         regular_ngon(or=calc_shape_width / 2 - calc_shape_thickness / 2, n=6, rounding=calc_rounding);
       }
     } else if (calc_shape_type == SHAPE_TYPE_DENSE_TRIANGLE) {
+      side_length = calc_shape_width / 2 * sqrt(3);
       difference() {
         regular_ngon(or=calc_shape_width / 2 + calc_shape_thickness / 2, n=3, rounding=calc_rounding);
         regular_ngon(or=calc_shape_width / 2 - calc_shape_thickness / 2, n=3, rounding=calc_rounding);
@@ -3766,7 +3769,61 @@ module ShapeByType(
     } else if (calc_shape_type == SHAPE_TYPE_ESCHER_LIZARD) {
       EscherLizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_VORONOI) {
-      Voronoi(width = $polygon_width, length = $polygon_length, cellsize = calc_shape_width, thickness = calc_shape_thickness);
+      Voronoi(width=$polygon_width, length=$polygon_length, cellsize=calc_shape_width, thickness=calc_shape_thickness);
+    } else if (calc_shape_type == SHAPE_TYPE_LEAF) {
+      section = calc_shape_width / 4;
+      section_height = section * calc_sqrt_three / 2;
+      pos = ($polygon_x % 4);
+      offset = (
+        pos == 0 ?
+          0
+        : pos == 1 ?
+          section * 2
+        : pos == 2 ?
+          section * 4
+        : section * 6
+      );
+      translate(
+        [
+          $polygon_x * section_height * 6 + ($polygon_y % 2) * section_height * 2,
+          $polygon_y * section * 4 - offset,
+        ]
+      ) {
+        rotate(($polygon_y % 2) * 180)
+          TesselationLeafOutlineThree(
+            size=calc_shape_width + 0.1,
+            thickness=calc_shape_thickness / 2,
+            vein_thickness=calc_shape_thickness / 4,
+            with_veins=false
+          );
+      }
+    } else if (calc_shape_type == SHAPE_TYPE_LEAF_VEINS) {
+      section = calc_shape_width / 4;
+      section_height = section * calc_sqrt_three / 2;
+      pos = ($polygon_x % 4);
+      offset = (
+        pos == 0 ?
+          0
+        : pos == 1 ?
+          section * 2
+        : pos == 2 ?
+          section * 4
+        : section * 6
+      );
+      translate(
+        [
+          $polygon_x * section_height * 6 + ($polygon_y % 2) * section_height * 2,
+          $polygon_y * section * 4 - offset,
+        ]
+      ) {
+        rotate(($polygon_y % 2) * 180)
+          TesselationLeafOutlineThree(
+            size=calc_shape_width + 0.1,
+            thickness=calc_shape_thickness / 2,
+            vein_thickness=calc_shape_thickness / 4,
+            with_veins=true
+          );
+      }
     } else {
       assert(false, "Invalid shape type");
     }
@@ -4226,4 +4283,172 @@ module PortugalCastle(stroke_width, width) {
           width=0.2,
         );
     }
+}
+
+// Module: TesselationLeaf()
+// Description:
+//   A solid leaf for use with tesselations.
+// Arguments:
+//   size = size of the leaf
+module TesselationLeaf(size) {
+  section = size / 4;
+  section_height = section * calc_sqrt_three / 2;
+  polygon(
+    [
+      [section_height * 2, 0],
+      [0, section * 1],
+      [0, section * 2],
+      [-section_height * 2, section],
+      [-section_height * 2, -section],
+      [0, -section * 2],
+      [0, -section * 1],
+    ]
+  );
+}
+
+// Module: TesselationLeafOutline()
+// Description:
+//   A leaf outline for use with tesselations.
+// Arguments:
+//   size = size of the leaf
+//   thickness = thickness of the sides
+//   with_veins = show veins in the leaf
+//   vein_thickness = how thick to make the veins in the leaf
+module TesselationLeafOutline(size, thickness = undef, with_veins = false, vein_thickness = undef) {
+  module MakePolygon() {
+    polygon(
+      [
+        [section_height * 2, 0],
+        [0, section * 1],
+        [0, section * 2],
+        [-section_height * 2, section],
+        [-section_height * 2, -section],
+        [0, -section * 2],
+        [0, -section * 1],
+      ]
+    );
+  }
+  module MakeVeins() {
+    vein_base_x = -section_height * 2 + calc_thickness;
+    vein_side_x = calc_vein_thickness / 2;
+    vein_side_y = section * 2 - calc_vein_thickness;
+    stroke(
+      [
+        [vein_base_x, 0],
+        [section_height * 2 - calc_thickness, 0],
+      ],
+      width=calc_vein_thickness
+    );
+    stroke(
+      [
+        [vein_base_x, 0],
+        [vein_side_x, vein_side_y],
+      ],
+      width=calc_vein_thickness
+    );
+    stroke(
+      [
+        [vein_base_x, 0],
+        [-vein_side_x, -vein_side_y],
+      ],
+      width=calc_vein_thickness
+    );
+    vein_spacing = section_height * 3 / 2 / 3;
+    len_bottom_vein = sqrt(
+      sqr(vein_base_x - vein_side_x) + sqr(vein_side_y)
+    );
+    line_m = (vein_side_x - vein_base_x) / (vein_side_y);
+    line_angle = atan(line_m);
+    mini_seg = len_bottom_vein / 7;
+    intersection() {
+      for (i = [0:3]) {
+        stroke(
+          [
+            [section_height - section_height * 4 / 2 + vein_spacing * i, 0],
+            [section_height - section_height * 3 / 2 + 20 + vein_spacing * i, 15],
+          ], width=calc_vein_thickness
+        );
+        stroke(
+          [
+            [section_height - section_height * 4 / 2 + vein_spacing * i, 0],
+            [section_height - section_height * 3 / 2 + 20 + vein_spacing * i, -15],
+          ], width=calc_vein_thickness
+        );
+        translate([vein_base_x, 0]) rotate((90 - line_angle)) {
+            stroke(
+              [
+                [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
+              ], width=calc_vein_thickness
+            );
+          }
+        translate([vein_base_x, 0]) rotate(90 - line_angle) {
+            stroke(
+              [
+                [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
+              ], width=calc_vein_thickness
+            );
+          }
+        translate([vein_base_x, 0]) rotate(-(90 - line_angle)) {
+            stroke(
+              [
+                [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
+              ], width=calc_vein_thickness
+            );
+          }
+        translate([vein_base_x, 0]) rotate(-(90 - line_angle)) {
+            stroke(
+              [
+                [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
+              ], width=calc_vein_thickness
+            );
+          }
+      }
+      MakePolygon();
+    }
+  }
+  calc_thickness = DefaultValue(thickness, size / 30);
+  calc_vein_thickness = DefaultValue(vein_thickness, calc_thickness / 2);
+  section = size / 4;
+  section_height = section * calc_sqrt_three / 2;
+  union() {
+    difference() {
+      MakePolygon();
+      offset(-calc_thickness) MakePolygon();
+    }
+    if (with_veins) {
+      MakeVeins();
+    }
+  }
+}
+
+// Module: TesselationLeafOutlineThree()
+// Description:
+//   A leaf outline for use with tesselations, this groups into three
+//   to make layout a lot easier.
+// Arguments:
+//   size = size of the leaf
+//   thickness = thickness of the sides
+//   with_veins = show veins in the leaf
+//   vein_thickness = how thick the veins in the lid are
+module TesselationLeafOutlineThree(size, thickness = undef, with_veins = false, vein_thickness = undef) {
+  section = size / 4;
+  section_height = section * calc_sqrt_three / 2;
+
+  translate([0, -section * 3 / 2])
+    TesselationLeafOutline(
+      size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness
+    );
+  translate([-section_height * 2, section * 3 / 2])
+    rotate(180)
+      TesselationLeafOutline(
+        size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness
+      );
+  translate([section_height * 2, section / 2])
+    TesselationLeafOutline(
+      size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness
+    );
 }

@@ -35,10 +35,10 @@ box_width = 287;
 box_length = 287;
 box_height = 79;
 
-hex_size = 37.5;
+hex_size = 38;
 trophy_width = 26;
 trophy_length = 36;
-wood_token_diameter = 10.5;
+wood_token_diameter = 15.5;
 wood_token_thickness = 3;
 
 frog_height = 17;
@@ -50,8 +50,8 @@ card_width = 66;
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
 cardboard_token_thickness = 2;
-small_victory_width = 19;
-small_victory_length = 16;
+small_victory_width = 20.5;
+small_victory_length = 17.5;
 
 token_thickness = 9;
 
@@ -80,7 +80,7 @@ module PlayerBoxInside() {
       translate([24, 12 * i, 0])
         rotate(180 * (i % 2))
           RabbitWorker(height=player_box_length);
-      translate([45, 14 * i, 0])
+      translate([45.5, 14 * i, 0])
         FrogWorker(height=player_box_height);
       translate([65, 14 * i, 0])
         rotate(180 * (i % 2))
@@ -90,24 +90,24 @@ module PlayerBoxInside() {
     translate(
       [
         $inner_width - wood_token_diameter / 2,
-        64,
+        60,
         $inner_height - wood_token_thickness * 3 - 0.5,
       ]
     ) {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([-wood_token_diameter / 2, 0, 0])
-        cyl(d=8, rounding=4, h=player_box_height, anchor=BOTTOM);
+        cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
     }
     translate(
       [
         $inner_width - wood_token_diameter * 3 / 2 - 5,
-        64,
+        60,
         $inner_height - wood_token_thickness * 2 - 0.5,
       ]
     ) {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([wood_token_diameter / 2, 0, 0])
-        cyl(d=8, rounding=4, h=player_box_height, anchor=BOTTOM);
+        cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
     }
 
     // victory.
@@ -156,8 +156,8 @@ module PlayerBoxInside() {
     // Hexes (under the cards)
     translate(
       [
-        hex_size / 2 + 1,
-        $inner_length - hex_size / 2 - 1,
+        hex_size / 2 + 2,
+        $inner_length - hex_size / 2 - 3,
         $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
       ]
     ) {
@@ -171,7 +171,7 @@ module PlayerBoxInside() {
     translate(
       [
         $inner_width - hex_size / 2 - 1,
-        $inner_length - hex_size / 2 - 1,
+        $inner_length - hex_size / 2 - 3,
         $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness * 3,
       ]
     ) {
@@ -414,7 +414,13 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxLid();
+  BlackPlayerBox();
+  /*
+  TesselationLeafOutline(50);
+  translate([0, 50 / 4 * 3])
+    rotate(180)
+      TesselationLeafOutline(50);
+      */
   //linear_extrude(2)
   //Voronoi(100, 100, 2);
   //EscherLizardRepeat(rows=10, cols=10, size=465, thickness=10);

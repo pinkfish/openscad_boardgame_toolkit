@@ -123,8 +123,8 @@ module LidMeshDense(
   inner_control = false
 ) {
   cell_width = cos(180 / shape_edges) * radius;
-  rows = width / cell_width;
-  cols = length / cell_width;
+  rows = width / cell_width + 2;
+  cols = length / cell_width + 2;
   // Default this to 2, this is just the overlap on the edges.
   shape_thickness = 2;
 
@@ -221,7 +221,7 @@ module LidMeshRepeating(
           RegularPolygonGrid(
             width=layout_width, rows=rows + (inner_control ? 11 : 1), cols=cols + (inner_control ? 11 : 1), spacing=0,
             shape_edges=shape_edges, aspect_ratio=aspect_ratio, inner_control=inner_control,
-            space_width = width, space_length = length
+            space_width=width, space_length=length
           ) {
             children();
           }
@@ -399,7 +399,6 @@ module internal_build_lid(width, length, lid_thickness, wall_thickness, size_spa
 // Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLidFingernail(3);
-
 module SlidingLidFingernail(
   lid_thickness,
   radius = 6,

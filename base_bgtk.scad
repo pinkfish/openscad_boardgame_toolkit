@@ -182,6 +182,15 @@ SHAPE_TYPE_ESCHER_LIZARD = 27;
 // Description:
 //   Make a lid with a voronoi layout.
 SHAPE_TYPE_VORONOI = 28;
+// Constant: SHAPE_TYPE_LEAF
+// Description:
+//   Make a lid with a voronoi layout.
+SHAPE_TYPE_LEAF = 29;
+// Constant: SHAPE_TYPE_LEAF_VEINS
+// Description:
+//   Make a shape with leaf veins, use a wider shape for this it will take
+//   forever to render.
+SHAPE_TYPE_LEAF_VEINS = 30;
 
 // Constant: CATCH_NONE
 // Description:

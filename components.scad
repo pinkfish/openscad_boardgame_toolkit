@@ -271,7 +271,7 @@ module CuboidWithIndentsBottom(
 // Example:
 //   RegularPolygonGrid(width = 10, rows = 2, cols = 1, spacing = 2)
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
-module space_width(
+module RegularPolygonGrid(
   width,
   rows,
   cols,
@@ -317,7 +317,7 @@ module space_width(
           $polygon_y = j;
           children();
         } else {
-          translate([i * dy + offset_x, j * dx + i * dx_y + offset_y, 0]) {
+          translate([i * dy + offset_x - radius, j * dx + i * dx_y + offset_y - radius]) {
             children();
           }
         }
@@ -345,37 +345,49 @@ module space_width(
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
 //
 module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6, inner_control = false) {
-  apothem = radius * cos(180 / shape_edges);
-  side_length = (shape_edges == 3) ? radius * sqrt(3) : 2 * apothem * tan(180 / shape_edges);
-  extra_edge = 2 * side_length * cos(360 / shape_edges);
-  triangle_height = sqrt(3) / 2 * side_length;
+  if (shape_edges == 6) {
+    apothem = radius * cos(180 / shape_edges);
+    side_length = 2 * apothem * tan(180 / shape_edges);
+    extra_edge = 2 * side_length * cos(360 / shape_edges);
 
-  dx = (shape_edges == 3) ? side_length : apothem;
-  col_x = apothem + radius;
-  dy = (shape_edges == 3) ? triangle_height : 0.75 * (radius + radius);
+    dx = apothem;
+    col_x = apothem + radius;
+    dy = 0.75 * (radius + radius);
 
-  for (i = [0:rows - 1])
-    for (j = [0:cols - 1]) {
-      if (inner_control) {
-        $polygon_x = i;
-        $polygon_y = j;
-        children();
-      } else {
-        if (shape_edges == 6) {
-          translate([i * dy, (i % 2) == 0 ? (j * 2 + 1) * dx : j * 2 * dx, 0]) {
-            children();
-          }
+    for (i = [0:rows - 1])
+      for (j = [0:cols - 1]) {
+        if (inner_control) {
+          $polygon_x = i;
+          $polygon_y = j;
+          children();
         } else {
-          translate([i / 2 * dy, j * dx + ( (i + 1) % 2) * (side_length / 2), 0]) {
-            if (i % 2 == 1) {
-              translate([triangle_height - side_length, 0, 0]) mirror([1, 0, 0]) children();
-            } else {
-              children();
-            }
+
+          translate([i * dy - radius, ( (i % 2) == 0 ? (j * 2 + 1) * dx : j * 2 * dx) - radius, 0]) {
+            children();
           }
         }
       }
-    }
+  } else if (shape_edges == 3) {
+    side_length = radius * sqrt(3);
+    triangle_height = sqrt(3) * side_length / 2;
+
+    dx = side_length;
+    dy = triangle_height;
+
+    for (i = [0:rows - 1])
+      for (j = [0:cols - 1]) {
+        if (inner_control) {
+          $polygon_x = i;
+          $polygon_y = j;
+          children();
+        } else {
+          translate([i * dy - radius, j * dx - radius, 0]) {
+            children();
+            //  translate([0, side_length / 2]) mirror([1, 0, 0]) children();
+          }
+        }
+      }
+  }
 }
 
 // Module: HexGridWithCutouts()

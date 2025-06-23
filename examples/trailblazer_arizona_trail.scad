@@ -21,7 +21,7 @@ box_length = 283;
 box_height = 70;
 
 default_lid_thickness = 3;
-default_lid_shape_type = SHAPE_TYPE_PENTAGON_R7;
+default_lid_shape_type = SHAPE_TYPE_LEAF;
 
 board_thickness = 17.5;
 player_board_thickness = 10;
