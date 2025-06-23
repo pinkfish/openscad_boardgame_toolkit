@@ -355,7 +355,7 @@ module ShieldBox(generate_lid = true) // `make` me
           width=shield_box_width, length=shield_box_length, height=shield_box_height,
           foot=2, text_str=text_str,
           shape_type=SHAPE_TYPE_CIRCLE, layout_width=10, shape_width=14,
-          lid_thickness=1.5, wall_thickness=1.5, label_rotated=true,
+          lid_thickness=1.5, wall_thickness=1.5,
           finger_hole_length=true, finger_hole_width=false
         );
         union() {

@@ -272,7 +272,7 @@ module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=card_box_width, length=card_box_length, height=card_box_height,
-    text_str="Cards", label_rotated=true, label_colour="blue"
+    text_str="Cards", label_colour="blue"
   );
 }
 

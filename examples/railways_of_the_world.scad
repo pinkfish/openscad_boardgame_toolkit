@@ -351,7 +351,7 @@ module PlayerBoxWithPlasticExtrasLid() // `make` me
     InsetLidTabbedWithLabel(
       width=player_box_width, length=player_box_plastic_extra_length,
       lid_thickness=lid_thickness,
-      text_str=text_str, label_rotated=true, label_colour="black"
+      text_str=text_str, label_colour="black"
     );
     translate([player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5])
       cube([50, player_box_silo_lid_hole_size, lid_thickness + 1]);
@@ -477,7 +477,7 @@ module MoneyBoxLid(extra_length = 0, extra_width = 0) // `make` me
   SlidingBoxLidWithLabel(
     width=money_section_width + extra_width, length=money_section_length + extra_length,
     lid_thickness=lid_thickness,
-    text_str=text_str, label_rotated=true, label_colour="black"
+    text_str=text_str, label_colour="black"
   );
 }
 

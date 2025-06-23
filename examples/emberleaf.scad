@@ -202,7 +202,7 @@ module BlackPlayerBox() // `make` me
 module RedPlayerBox() // `make` me
 {
   PlayerBoxInside() {
-    translate([25, 50, $inner_height - token_thickness - 0.5])
+    translate([25, 51, $inner_height - token_thickness - 0.5])
       RedHero(height=player_box_height);
   }
 }
@@ -414,7 +414,7 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BlackPlayerBox();
+  RedPlayerBox();
   /*
   TesselationLeafOutline(50);
   translate([0, 50 / 4 * 3])

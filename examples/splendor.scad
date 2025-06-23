@@ -187,81 +187,82 @@ module SplendorBoxInside() // `make` me
         );
     }
   }
-  difference() {
-    union() {
-      cuboid(
-        [
-          splendor_box_length - default_wall_thickness * 2,
-          splendor_box_width - default_wall_thickness * 2,
-          default_lid_thickness,
-        ], anchor=BOTTOM
-      );
+  color(default_material_colour)
+    difference() {
+      union() {
+        cuboid(
+          [
+            splendor_box_length - default_wall_thickness * 2,
+            splendor_box_width - default_wall_thickness * 2,
+            default_lid_thickness,
+          ], anchor=BOTTOM
+        );
 
-      // Cyls
-      for (i = [0:2]) {
-        translate(
-          [
-            splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
-            splendor_box_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness - 0.25,
-            default_lid_thickness,
-          ]
-        )
-          TokenCylinder();
-        translate(
-          [
-            splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
-            -splendor_box_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness + 0.25,
-            default_lid_thickness,
-          ]
-        )
-          TokenCylinder();
+        // Cyls
+        for (i = [0:2]) {
+          translate(
+            [
+              splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
+              splendor_box_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness - 0.25,
+              default_lid_thickness,
+            ]
+          )
+            TokenCylinder();
+          translate(
+            [
+              splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
+              -splendor_box_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness + 0.25,
+              default_lid_thickness,
+            ]
+          )
+            TokenCylinder();
+        }
       }
+      // Edge cutoffs.
+      translate(
+        [
+          0,
+          splendor_box_width / 2,
+          default_lid_thickness - 0.01,
+        ]
+      )
+        cuboid(
+          [
+            splendor_box_length,
+            10,
+            splendor_box_height,
+          ], anchor=BOTTOM
+        );
+      // Edge cutoffs.
+      translate(
+        [
+          0,
+          -splendor_box_width / 2,
+          default_lid_thickness - 0.01,
+        ]
+      )
+        cuboid(
+          [
+            splendor_box_length,
+            10,
+            splendor_box_height,
+          ], anchor=BOTTOM
+        );
+      translate(
+        [
+          0,
+          0,
+          default_lid_thickness,
+        ]
+      )
+        cuboid(
+          [
+            splendor_box_length,
+            10,
+            splendor_box_height,
+          ], anchor=BOTTOM
+        );
     }
-    // Edge cutoffs.
-    translate(
-      [
-        0,
-        splendor_box_width / 2,
-        default_lid_thickness - 0.01,
-      ]
-    )
-      cuboid(
-        [
-          splendor_box_length,
-          10,
-          splendor_box_height,
-        ], anchor=BOTTOM
-      );
-    // Edge cutoffs.
-    translate(
-      [
-        0,
-        -splendor_box_width / 2,
-        default_lid_thickness - 0.01,
-      ]
-    )
-      cuboid(
-        [
-          splendor_box_length,
-          10,
-          splendor_box_height,
-        ], anchor=BOTTOM
-      );
-    translate(
-      [
-        0,
-        0,
-        default_lid_thickness,
-      ]
-    )
-      cuboid(
-        [
-          splendor_box_length,
-          10,
-          splendor_box_height,
-        ], anchor=BOTTOM
-      );
-  }
 }
 
 module SplendorBoxLid() // `make` me

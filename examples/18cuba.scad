@@ -201,7 +201,7 @@ module TrainBoxLid() // `make` me
   SlipoverLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Trains",
-    label_rotated=true, wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, foot=2, label_colour="blue"
   );
 }
 
@@ -240,7 +240,7 @@ module SharesBoxLid(offset = 0) // `make` me
   SlipoverLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Shares",
-    label_rotated=true, wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, foot=2, label_colour="blue"
   );
 }
 
@@ -353,7 +353,7 @@ module LastBoxLid() // `make` me
   SlipoverLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Machine/Minor",
-    label_rotated=true, wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, foot=2, label_colour="blue"
   );
 }
 

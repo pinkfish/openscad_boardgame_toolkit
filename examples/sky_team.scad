@@ -29,7 +29,6 @@ default_lid_layout_width = 10.3;
 default_lid_aspect_ratio = 1.5;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
-
 box_width = 177;
 box_length = 247;
 box_height = 49;
@@ -164,7 +163,7 @@ module BasePiecesOne() // `make` me
         finger_hole_radius=10
       );
       translate([kerosene_board_width / 2, kerosene_board_length / 2, -1]) rotate([0, 0, 90])
-          linear_extrude(height=2) text("Kerosene", halign="center", valign="center");
+          linear_extrude(height=2) text("Kerosene", halign="center", valign="center", size=10);
     }
     translate([$inner_width - intern_board_width, 10, $inner_height - single_board_thickness - 0.5]) {
       CuboidWithIndentsBottom(
@@ -173,15 +172,15 @@ module BasePiecesOne() // `make` me
         finger_hole_radius=15
       );
       translate([intern_board_width / 2, intern_board_length / 2, -1]) rotate([0, 0, 90])
-          linear_extrude(height=2) text("Intern", halign="center", valign="center");
+          linear_extrude(height=2) text("Intern", halign="center", valign="center", size=10);
     }
     for (i = [0:5]) {
       translate(
-        [$inner_width / 2 + 3, 20 + (intern_length + 14) * i, $inner_height - single_board_thickness - 0.5]
+        [$inner_width / 2 + 3, 19 + (intern_length + 14) * i, $inner_height - single_board_thickness - 0.5]
       ) {
         InternPiece(height=single_board_thickness + 1);
         translate([0, 0, -1]) linear_extrude(height=2)
-            text(str(i + 1), halign="center", valign="center");
+            text(str(i + 1), halign="center", valign="center", size=10);
 
         translate([0, intern_length / 2, 0]) cyl(r=9, h=20, rounding=5, anchor=BOTTOM);
       }
@@ -190,12 +189,12 @@ module BasePiecesOne() // `make` me
     translate(
       [
         $inner_width / 2 + 3 - intern_width - 5,
-        20 + (intern_length + 14) * 5,
+        19 + (intern_length + 14) * 5,
         $inner_height - single_board_thickness - 0.5,
       ]
     ) {
       InternPiece(height=single_board_thickness + 1);
-      translate([0, 0, -1]) linear_extrude(height=2) text(str(7), halign="center", valign="center");
+      translate([0, 0, -1]) linear_extrude(height=2) text(str(7), halign="center", valign="center", size=10);
 
       translate([0, intern_length / 2, 0]) cyl(r=9, h=20, rounding=5, anchor=BOTTOM);
     }
@@ -212,7 +211,7 @@ module BasePiecesTwo() // `make` me
         finger_hole_radius=20
       );
       translate([ice_brakes_width / 2, ice_brakes_length / 2, -1]) rotate([0, 0, 90])
-          linear_extrude(height=2) text("Ice Brakes", halign="center", valign="center");
+          linear_extrude(height=2) text("Ice Brakes", halign="center", valign="center", size=10);
     }
     translate([1, $inner_length - wind_speed_direction_length - 2, $inner_height - single_board_thickness - 0.5]) {
       WindSpeedPiece(height=single_board_thickness + 0.6);
@@ -220,7 +219,7 @@ module BasePiecesTwo() // `make` me
       translate([wind_speed_direction_width - 12, wind_speed_direction_length - 12, 0])
         cyl(r=20, h=40, rounding=20, anchor=BOTTOM);
       translate([wind_speed_direction_width / 2, wind_speed_direction_length / 2, -1]) rotate([0, 0, 135])
-          linear_extrude(height=2) text("Wind Speed", halign="center", valign="center");
+          linear_extrude(height=2) text("Wind Speed", halign="center", valign="center", size=10);
     }
   }
 }

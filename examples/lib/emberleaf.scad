@@ -15,7 +15,7 @@
 
 module BlackHero(height) {
   translate([-33 / 2, -50.8 + 28 / 2, 0])
-    linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+    linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
@@ -108,7 +108,7 @@ module BlackHero(height) {
 
 module RedHero(height) {
   translate([-34 / 2, -50.8 + 25 / 2, 0])
-    linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+    linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
@@ -198,7 +198,7 @@ module RedHero(height) {
 
 module YellowHero(height) {
   translate([-32 / 2, -50.8 + 26 / 2, 0])
-    linear_extrude(height=height) offset(0.25) scale([0.352806, 0.352806, 1])
+    linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
@@ -273,7 +273,7 @@ module YellowHero(height) {
 
 module GreyHero(height) {
   translate([-27 / 2, -50.8 + 33 / 2, 0])
-    linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+    linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
@@ -416,7 +416,7 @@ module GreyHero(height) {
 }
 
 module BlueHero(height) {
-  translate([-30 / 2, -50.8 + 23 / 2, 0]) linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+  translate([-30 / 2, -50.8 + 23 / 2, 0]) linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
@@ -558,7 +558,7 @@ module OwlWorker(height) {
 }
 
 module RabbitWorker(height) {
-  translate([-23 / 2, -50.8 + 14 / 2, 0]) linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+  translate([-23 / 2, -50.8 + 14 / 2, 0]) linear_extrude(height=height) offset(0.75) scale([0.352806, 0.352806, 1])
           polygon(
             bezpath_curve(
               [

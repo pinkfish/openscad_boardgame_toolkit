@@ -589,7 +589,7 @@ module FavourBox() // `make` me
       translate([favour_tile_length / 2 - favour_tile_top_dip, 0, 0]) color(default_material_colour)
           cyl(r=11, anchor=BOTTOM, h=favour_box_height * 2, rounding=9.5);
     }
-    translate([favour_box_width - wall_thickness * 2 - favour_tile_length / 2, favour_tile_width / 2, 0]) {
+    translate([favour_box_width - default_wall_thickness * 2 - favour_tile_length / 2, favour_tile_width / 2, 0]) {
       rotate([0, 0, 90]) color(default_material_colour)
           FavourTile(height=num_favour_tiles / 2 * player_layout_thickness + 1);
       translate([-favour_tile_length / 2 + favour_tile_top_dip, 0, 0]) color(default_material_colour)
@@ -612,8 +612,8 @@ module StuffBox() // `make` me
   MakeBoxWithSlidingLid(width=stuff_box_width, length=stuff_box_length, height=stuff_box_height) {
     color(default_material_colour)
       RoundedBoxAllSides(
-        width=stuff_box_width - wall_thickness * 2,
-        length=stuff_box_length - wall_thickness * 2, height=stuff_box_height, radius=10
+        width=stuff_box_width - default_wall_thickness * 2,
+        length=stuff_box_length - default_wall_thickness * 2, height=stuff_box_height, radius=10
       );
   }
 }
@@ -622,20 +622,20 @@ module StuffBoxLid() // `make` me
 {
   translate([stuff_box_width + 10, 0, 0]) {
     SlidingBoxLidWithLabel(
-      width=stuff_box_width, length=stuff_box_length, height=stuff_box_height,
-      text_str="Swords", label_rotated=true,
+      width=stuff_box_width, length=stuff_box_length,
+      text_str="Swords",
       label_colour="black"
     );
     translate([stuff_box_width + 10, 0, 0]) {
       SlidingBoxLidWithLabel(
-        width=stuff_box_width, length=stuff_box_length, height=stuff_box_height,
-        text_str="Apples", label_rotated=true,
+        width=stuff_box_width, length=stuff_box_length,
+        text_str="Apples",
         label_colour="black"
       );
       translate([stuff_box_width + 10, 0, 0]) {
         SlidingBoxLidWithLabel(
-          width=stuff_box_width, length=stuff_box_length, height=stuff_box_height,
-          text_str="Crystals", label_rotated=true,
+          width=stuff_box_width, length=stuff_box_length,
+          text_str="Crystals",
           label_colour="black"
         );
       }
@@ -678,7 +678,7 @@ module BagBox() // `make` me
         cuboid([bag_box_width, bag_box_length, bag_box_height], rounding=2, anchor=BOTTOM);
       translate([0, 0, lid_thickness]) color(default_material_colour)
           cuboid(
-            [bag_box_width - wall_thickness * 2, bag_box_length - wall_thickness * 2, bag_box_height],
+            [bag_box_width - default_wall_thickness * 2, bag_box_length - default_wall_thickness * 2, bag_box_height],
             anchor=BOTTOM
           );
     }
