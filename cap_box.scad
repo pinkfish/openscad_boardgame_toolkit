@@ -149,15 +149,15 @@ module MakeBoxWithCapLid(
       if (lid_catch == CATCH_LENGTH) {
         catch_width = width - wall_thickness * 2;
         translate([(catch_width * 2 / 8) + wall_thickness, 0, 0]) color(material_colour)
-            wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]);
+            wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
         translate([(catch_width * 6 / 8) + wall_thickness, length, 0]) rotate(180) color(material_colour)
-              wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]);
+              wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
       } else if (lid_catch == CATCH_WIDTH) {
         catch_length = length - wall_thickness * 2;
         translate([width, catch_length * 2 / 8 + wall_thickness, 0]) rotate(90) color(material_colour)
-              wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]);
+              wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
         translate([0, catch_length * 6 / 8 + wall_thickness, 0]) rotate(270) color(material_colour)
-              wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]);
+              wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
       }
     }
 
@@ -316,16 +316,16 @@ module CapBoxLid(
     if (lid_catch == CATCH_LENGTH) {
       catch_width = width - wall_thickness * 2;
       translate([(catch_width * 6 / 8) + wall_thickness, 0, 0]) color(material_colour) rotate([0, 180, 0])
-            wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness]);
+            wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
       translate([(catch_width * 2 / 8) + wall_thickness, length, 0]) rotate(180) rotate([0, 180, 0])
-            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness]);
+            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
     } else if (lid_catch == CATCH_WIDTH) {
       catch_length = length - wall_thickness * 2;
       translate([width, catch_length * 6 / 8 + wall_thickness + size_spacing, 0]) rotate(90)
           color(material_colour) rotate([0, 180, 0])
-              wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness]);
+              wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
       translate([0, catch_length * 2 / 8 + wall_thickness + size_spacing, 0]) rotate(270) color(material_colour)
-            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness, lid_thickness]);
+            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
     }
   }
 }
@@ -530,7 +530,7 @@ module CapBoxLidWithLabel(
   CapBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, font=font, text_str=text_str,
-    text_length=text_length, text_scale=text_scale,  label_type=label_type,label_radius=label_radius,
+    text_length=text_length, text_scale=text_scale, label_type=label_type, label_radius=label_radius,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, lid_rounding=undef, lid_inner_rounding=undef,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),

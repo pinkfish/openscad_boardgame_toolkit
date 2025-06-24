@@ -35,7 +35,7 @@ box_width = 287;
 box_length = 287;
 box_height = 79;
 
-hex_size = 38;
+hex_size = 38.5;
 trophy_width = 26;
 trophy_length = 36;
 wood_token_diameter = 15.5;
@@ -80,9 +80,9 @@ module PlayerBoxInside() {
       translate([24, 12 * i, 0])
         rotate(180 * (i % 2))
           RabbitWorker(height=player_box_length);
-      translate([45.5, 14 * i, 0])
+      translate([45.5, 14.5 * i+1, 0])
         FrogWorker(height=player_box_height);
-      translate([65, 14 * i, 0])
+      translate([65, 14.5 * i+1, 0])
         rotate(180 * (i % 2))
           RatWorker(height=player_box_height);
     }
@@ -113,7 +113,7 @@ module PlayerBoxInside() {
     // victory.
     translate(
       [
-        $inner_width - 13,
+        $inner_width - 12.5,
         $inner_length - hex_size - 14,
         $inner_height - single_card_thickness * 6 - 0.3 - cardboard_token_thickness - 0.5,
       ]
@@ -414,14 +414,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  RedPlayerBox();
-  /*
-  TesselationLeafOutline(50);
-  translate([0, 50 / 4 * 3])
-    rotate(180)
-      TesselationLeafOutline(50);
-      */
-  //linear_extrude(2)
-  //Voronoi(100, 100, 2);
-  //EscherLizardRepeat(rows=10, cols=10, size=465, thickness=10);
+  PlayerBoxLid();
 }
