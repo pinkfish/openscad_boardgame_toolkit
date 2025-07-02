@@ -623,7 +623,7 @@ module RabbitWorker(height) {
 }
 
 module RatWorker(height) {
-  translate([-21 / 2, -50.8 + 15 / 2, 0]) linear_extrude(height=height) offset(0.5) scale([0.352806, 0.352806, 1])
+  translate([-21 / 2, -50.8 + 15 / 2, 0]) linear_extrude(height=height) offset(0.5) scale([0.365, 0.352806, 1])
           polygon(
             bezpath_curve(
               [
