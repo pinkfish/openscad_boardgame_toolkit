@@ -261,7 +261,7 @@ module MaterialBox(colour) // `make` me
   MakeBoxWithCapLid(
     width=material_box_width,
     length=material_box_length, height=material_box_height,
-    material_colour = colour
+    material_colour=colour
   ) {
     RoundedBoxAllSides(
       width=$inner_width,
@@ -403,7 +403,7 @@ module CardBoxPlayer(colour) // `make` me
   MakeBoxWithSlidingLid(
     width=player_card_box_width,
     length=player_card_box_length, height=player_card_box_height,
-    material_colour = colour
+    material_colour=colour
   ) {
     translate([($inner_width - card_width) / 2, 0, 0])
       cube([card_width + 1, card_length + 1, card_box_height]);
@@ -432,6 +432,10 @@ module SpacerFront() // `make` me
           [spacer_front_width - default_wall_thickness * 2, spacer_front_length - default_wall_thickness * 2, spacer_front_height],
           anchor=BOTTOM + FRONT + LEFT, rounding=2
         );
+      translate([0, spacer_front_length / 2, spacer_front_height - 20])
+        FingerHoleWall(20, 20, spin=90);
+      translate([spacer_front_width - 2, spacer_front_length / 2, spacer_front_height - 20])
+        FingerHoleWall(20, 20, spin=90);
     }
 }
 
@@ -448,6 +452,10 @@ module SpacerSide() // `make` me
           [spacer_side_width - default_wall_thickness * 2, spacer_side_length - default_wall_thickness * 2, spacer_side_height],
           anchor=BOTTOM + FRONT + LEFT, rounding=2
         );
+      translate([0, spacer_side_length / 2, spacer_side_height - 20])
+        FingerHoleWall(20, 20, spin=90);
+      translate([spacer_side_width - 2, spacer_side_length/ 2, spacer_side_height - 20])
+        FingerHoleWall(20, 20, spin=90);
     }
 }
 
@@ -484,7 +492,7 @@ module BoxLayout() {
     for (i = [0:4]) {
       translate([player_box_width * 2, 0, i * player_card_box_height])
         CardBoxPlayer(
-          ["black", "blue","yellow","grey","red"][i]
+          ["black", "blue", "yellow", "grey", "red"][i]
         );
     }
     translate([player_box_width * 2, player_card_box_length, 0]) SpacerFront();

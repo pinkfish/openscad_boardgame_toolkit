@@ -562,7 +562,7 @@ module MakeLidLabel(
     MakeFramelessLidLabel(
       width=width, length=length, label_type=calc_label_type,
       label=text_str, lid_thickness=lid_thickness, font=font, text_scale=text_scale,
-      label_colour=label_colour, label_background_colour=label_background_colour
+      label_colour=label_colour, label_background_colour=label_background_colour, angle=undef
     );
   }
 }

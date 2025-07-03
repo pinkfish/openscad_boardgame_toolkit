@@ -281,29 +281,28 @@ module SlidingBoxLidWithLabelAndCustomShape(
           color(material_colour) square([10, 10]);
         }
       }
-    translate([label_length_offset, label_width_offset, 0])
+    translate([label_length_offset + default_wall_thickness, label_width_offset + default_wall_thickness, 0]) {
       MakeLidLabel(
-        width=width, length=length,
+        width=width - default_wall_thickness * 2, length=length - default_wall_thickness * 2,
         lid_thickness=lid_thickness, border=label_border, offset=label_offset,
         full_height=false, font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str,
         label_radius=label_radius, label_colour=label_colour, material_colour=material_colour,
         label_background_colour=label_background_colour,
         finger_hole_size=finger_hole_size
       );
+    }
 
     // Fingernail pull
     if (lid_on_length) {
       intersection() {
-
         color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
-        translate([width - label_border - 3, length / 2, 0]) rotate(270)
+        translate([width - label_border - 3, length / 2 - default_wall_thickness / 2, 0]) rotate(270)
             SlidingLidFingernail(lid_thickness, material_colour=material_colour);
       }
     } else {
       intersection() {
-
         color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
-        translate([(width) / 2, length - label_border - 3, 0])
+        translate([(width) / 2 - default_wall_thickness / 2, length - label_border - 3, 0])
           SlidingLidFingernail(lid_thickness, material_colour=material_colour);
       }
     }
@@ -408,12 +407,13 @@ module SlidingBoxLidWithLabel(
     finger_hole_size=finger_hole_size,
     pattern_inner_control=ShapeNeedsInnerControl(shape_type)
   ) {
-    translate([lid_boundary, lid_boundary, 0])
+    translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)
         ShapeByType(
           shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
           shape_aspect_ratio=aspect_ratio, rounding=shape_rounding,
         );
+    }
 
     if ($children > 0) {
       children(0);

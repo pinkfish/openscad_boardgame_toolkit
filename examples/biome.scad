@@ -110,7 +110,7 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height,
-    text_str="Player", label_rotated=true
+    text_str="Player",
   );
 }
 
@@ -125,35 +125,34 @@ module ResourceBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=resource_box_width, length=resource_box_length, height=resource_box_height,
-    text_str="Mouse", label_rotated=true
+    text_str="Mouse",
   );
   translate([resource_box_width + 10, 0, 0]) {
     CapBoxLidWithLabel(
       width=resource_box_width, length=resource_box_length, height=resource_box_height,
-      text_str="Sun", label_rotated=true
+      text_str="Sun",
     );
     translate([resource_box_width + 10, 0, 0]) {
       CapBoxLidWithLabel(
         width=resource_box_width, length=resource_box_length, height=resource_box_height,
-        text_str="Fish", label_rotated=true
+        text_str="Fish",
       );
       translate([resource_box_width + 10, 0, 0]) {
         CapBoxLidWithLabel(
           width=resource_box_width, length=resource_box_length,
           height=resource_box_height, text_str="Leaf",
-          label_rotated=true
         );
         translate([resource_box_width + 10, 0, 0]) {
           CapBoxLidWithLabel(
             width=resource_box_width, length=resource_box_length,
             height=resource_box_height,
-            text_str="Spider", label_rotated=true
+            text_str="Spider",
           );
           translate([resource_box_width + 10, 0, 0]) {
             CapBoxLidWithLabel(
               width=resource_box_width, length=resource_box_length,
               height=resource_box_height,
-              text_str="Fruit", label_rotated=true
+              text_str="Fruit",
             );
           }
         }
@@ -173,7 +172,7 @@ module NestBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=nest_box_width, length=nest_box_length, height=nest_box_height,
-    text_str="Nests", label_rotated=true
+    text_str="Nests",
   );
 }
 
@@ -242,7 +241,7 @@ module ExtraBitsBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=extra_bits_box_width, length=extra_bits_box_length, height=extra_bits_box_height,
-    text_str="Biome", label_rotated=true
+    text_str="Biome",
   );
 }
 

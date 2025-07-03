@@ -230,11 +230,11 @@ LABEL_TYPE_FRAMELESS_ANGLE = 4;
 // Constant: LABEL_TYPE_FRAMELESS
 // Description:
 //   The label across the lid on the long lenfth.
-LABEL_TYPE_FRAMELESS = 4;
+LABEL_TYPE_FRAMELESS = 5;
 // Constant: LABEL_TYPE_FRAMELESS
 // Description:
 //   The label across the lid on the short length.
-LABEL_TYPE_FRAMELESS_SHORT = 4;
+LABEL_TYPE_FRAMELESS_SHORT = 6;
 
 // Constant: default_label_font
 // Description: The default font to use for labels

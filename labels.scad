@@ -423,7 +423,9 @@ module MakeFramedLidLabel(
       calc_radius = DefaultValue(radius, min(5, calc_text_width / 4));
 
       rotate(width > length && !short_length || short_length && width < length ? 90 : 0) {
-        if (calc_finger_hole_size > 0) {
+        if (
+          calc_finger_hole_size > 0 && calc_text_width + calc_finger_hole_size * 2 < width && calc_text_width + calc_finger_hole_size * 2 < length
+        ) {
           color(material_colour)
             difference() {
               union() {
@@ -504,18 +506,24 @@ module MakeFramelessLidLabel(
 ) {
   cross_angle = asin(min(width, length) / sqrt(width * width + length * length));
   metrics = textmetrics(label, font=font);
-  text_width = length > width ? length * 3 / 4 : width * 3 / 4;
+  text_length = length > width ? length * 3 / 4 : width * 3 / 4;
+  temp_text_width = metrics.size[1] / metrics.size[0] * text_length * text_scale;
+  tenp_text_length =
+    length < width ?
+      (temp_text_width > length * 3 / 4 ? text_length * (length * 3 / 4) / temp_text_width : text_length)
+    : (temp_text_width > width * 3 / 4 ? text_length * (width * 3 / 4) / temp_text_width : text_length);
+  calc_text_length = min(tenp_text_length, text_length);
   angle = DefaultValue(angle, label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
   color(DefaultValue(label_background_colour, default_label_background_colour))
-    translate([(width) / 2, (length) / 2, 0])
+    translate([(width) / 2 + (sin(angle) * metrics.descent / 2), (length) / 2 + (cos(angle) * metrics.descent / 2), 0])
       linear_extrude(lid_thickness - default_slicing_layer_height)
         rotate(angle)
-          resize([text_width, metrics.size[1] / metrics.size[0] * text_width * text_scale])
+          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * text_scale])
             text(label, font=font, halign="center", valign="center");
   color(DefaultValue(label_colour, default_label_colour))
-    translate([(width) / 2, (length) / 2, lid_thickness - default_slicing_layer_height])
-      linear_extrude(default_slicing_layer_height)
+    translate([(width) / 2 + (sin(angle) * metrics.descent / 2), (length) / 2 + (cos(angle) * metrics.descent / 2), lid_thickness - default_slicing_layer_height])
+      linear_extrude(default_slicing_layer_height + 0.01)
         rotate(angle)
-          resize([text_width, metrics.size[1] / metrics.size[0] * text_width * text_scale])
+          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * text_scale])
             text(label, font=font, halign="center", valign="center");
 }
