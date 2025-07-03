@@ -187,13 +187,15 @@ module SplendorBoxInside() // `make` me
         );
     }
   }
+  inner_length = splendor_box_length - default_wall_thickness * 2 - 1;
+  inner_width = splendor_box_width - default_wall_thickness * 2 - 1;
   color(default_material_colour)
     difference() {
       union() {
         cuboid(
           [
-            splendor_box_length - default_wall_thickness * 2,
-            splendor_box_width - default_wall_thickness * 2,
+            inner_length,
+            inner_width,
             default_lid_thickness,
           ], anchor=BOTTOM
         );
@@ -202,27 +204,43 @@ module SplendorBoxInside() // `make` me
         for (i = [0:2]) {
           translate(
             [
-              splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
-              splendor_box_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness - 0.25,
+              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness/2 - i * (splendor_disc_diameter + default_wall_thickness),
+              inner_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness / 2 + 1,
               default_lid_thickness,
             ]
           )
             TokenCylinder();
           translate(
             [
-              splendor_box_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness * 2 - i * (splendor_disc_diameter + default_wall_thickness),
-              -splendor_box_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness + 0.25,
+              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness/2 - i * (splendor_disc_diameter + default_wall_thickness),
+              -inner_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness / 2 - 1,
               default_lid_thickness,
             ]
           )
             TokenCylinder();
         }
       }
+      // End cutoff.
+      translate([inner_length / 2, 0, -1]) cuboid(
+          [
+            inner_width,
+            inner_width + 1,
+            splendor_box_height,
+          ], anchor=BOTTOM + LEFT
+        );
+      translate([-inner_length / 2, 0, -1]) cuboid(
+          [
+            inner_width,
+            inner_width + 1,
+            splendor_box_height,
+          ], anchor=BOTTOM + RIGHT
+        );
       // Edge cutoffs.
+
       translate(
         [
           0,
-          splendor_box_width / 2,
+          inner_width / 2,
           default_lid_thickness - 0.01,
         ]
       )
@@ -233,17 +251,18 @@ module SplendorBoxInside() // `make` me
             splendor_box_height,
           ], anchor=BOTTOM
         );
+
       // Edge cutoffs.
       translate(
         [
           0,
-          -splendor_box_width / 2,
+          -inner_width / 2,
           default_lid_thickness - 0.01,
         ]
       )
         cuboid(
           [
-            splendor_box_length,
+            inner_length,
             10,
             splendor_box_height,
           ], anchor=BOTTOM
@@ -257,7 +276,7 @@ module SplendorBoxInside() // `make` me
       )
         cuboid(
           [
-            splendor_box_length,
+            inner_length,
             10,
             splendor_box_height,
           ], anchor=BOTTOM
@@ -275,5 +294,5 @@ module SplendorBoxLid() // `make` me
 }
 
 if (FROM_MAKE != 1) {
-  SplendorBoxLid();
+  SplendorBoxInside();
 }
