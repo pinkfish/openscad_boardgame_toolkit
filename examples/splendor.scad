@@ -204,16 +204,16 @@ module SplendorBoxInside() // `make` me
         for (i = [0:2]) {
           translate(
             [
-              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness/2 - i * (splendor_disc_diameter + default_wall_thickness),
-              inner_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness / 2 + 1,
+              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness / 2 - i * (splendor_disc_diameter + default_wall_thickness),
+              inner_width / 2 - splendor_disc_diameter / 2 - default_wall_thickness / 2 + 0.6,
               default_lid_thickness,
             ]
           )
             TokenCylinder();
           translate(
             [
-              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness/2 - i * (splendor_disc_diameter + default_wall_thickness),
-              -inner_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness / 2 - 1,
+              inner_length / 2 - splendor_disc_diameter / 2 - default_wall_thickness / 2 - i * (splendor_disc_diameter + default_wall_thickness),
+              -inner_width / 2 + splendor_disc_diameter / 2 + default_wall_thickness / 2 - 0.6,
               default_lid_thickness,
             ]
           )
@@ -253,6 +253,7 @@ module SplendorBoxInside() // `make` me
         );
 
       // Edge cutoffs.
+
       translate(
         [
           0,
@@ -267,6 +268,8 @@ module SplendorBoxInside() // `make` me
             splendor_box_height,
           ], anchor=BOTTOM
         );
+
+      // Middle cutoff
       translate(
         [
           0,

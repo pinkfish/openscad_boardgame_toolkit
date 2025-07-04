@@ -134,7 +134,7 @@ module TentToken(height) {
         [-tent_token_width / 2, -tent_token_length / 2],
         [0, tent_token_length / 2],
       ],
-      paths=[[0, 1, 2]]
+      paths=[[0, 1, 2, 0]]
     );
 }
 
@@ -324,43 +324,43 @@ module WeatherTokensBox() // `make` me
   MakeBoxWithSlidingLid(
     width=weather_tokens_box_width, length=weather_tokens_box_length,
     height=weather_tokens_box_height, lid_on_length=true
-  ) {
-    translate([weather_token_width / 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]) {
-      cuboid(
-        [weather_token_width, weather_token_width, card_board_token_thickness * 7], anchor=BOTTOM,
-        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
-      );
-      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
-      translate([-weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
+  ) union() {
+      translate([weather_token_width / 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]) union() {
+          cuboid(
+            [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
+            rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+          );
+          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([-weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+        }
+      translate(
+        [weather_token_width * 3 / 2 + 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]
+      ) union() {
+          cuboid(
+            [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
+            rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+          );
+          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+        }
+      translate(
+        [weather_token_width * 5 / 2 + 4, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+      ) union() {
+          cuboid(
+            [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
+            rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+          );
+          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+        }
+      translate(
+        [weather_token_width * 7 / 2 + 6, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+      ) union() {
+          cuboid(
+            [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
+            rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
+          );
+          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+        }
     }
-    translate(
-      [weather_token_width * 3 / 2 + 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]
-    ) {
-      cuboid(
-        [weather_token_width, weather_token_width, card_board_token_thickness * 7], anchor=BOTTOM,
-        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
-      );
-      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
-    }
-    translate(
-      [weather_token_width * 5 / 2 + 4, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
-    ) {
-      cuboid(
-        [weather_token_width, weather_token_width, card_board_token_thickness * 6], anchor=BOTTOM,
-        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
-      );
-      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
-    }
-    translate(
-      [weather_token_width * 7 / 2 + 6, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
-    ) {
-      cuboid(
-        [weather_token_width, weather_token_width, card_board_token_thickness * 6], anchor=BOTTOM,
-        rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
-      );
-      translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=30, anchor=BOTTOM, rounding=9);
-    }
-  }
 }
 module WeatherTokensBoxLid() // `make` me
 {
@@ -488,5 +488,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  ResourceBoxLid();
+  WeatherTokensBox();
 }
