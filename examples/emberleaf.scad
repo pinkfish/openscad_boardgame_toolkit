@@ -39,7 +39,7 @@ box_height = 79;
 hex_size = 38.5;
 trophy_width = 26;
 trophy_length = 36;
-wood_token_diameter = 16;
+wood_token_diameter = 16.5;
 wood_token_thickness = 4;
 
 frog_height = 17;
@@ -98,7 +98,7 @@ module PlayerBoxInside(colour = "pink") {
           RabbitWorker(height=player_box_length);
       translate([45.5, 14.5 * i + 1, 0])
         FrogWorker(height=player_box_height);
-      translate([65, 14.5 * i + 1, 0])
+      translate([65, 15 * i + 1, 0])
         rotate(180 * (i % 2))
           RatWorker(height=player_box_height);
     }
@@ -117,6 +117,8 @@ module PlayerBoxInside(colour = "pink") {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([-wood_token_diameter / 2, 0, 0])
         cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
+      translate([0, -wood_token_diameter / 2, 0])
+        cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
     }
     translate(
       [
@@ -127,6 +129,8 @@ module PlayerBoxInside(colour = "pink") {
     ) {
       cyl(d=wood_token_diameter, h=player_box_height, anchor=BOTTOM);
       translate([wood_token_diameter / 2, 0, 0])
+        cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
+      translate([0, -wood_token_diameter / 2, 0])
         cyl(d=13, rounding=6, h=player_box_height, anchor=BOTTOM);
     }
 
@@ -189,7 +193,7 @@ module PlayerBoxInside(colour = "pink") {
       [
         $inner_width - hex_size / 2 - 2.5,
         $inner_length - hex_size / 2,
-        $inner_height - 0.3 - cardboard_token_thickness * 3,
+        $inner_height - 0.3 - cardboard_token_thickness * 5,
       ]
     ) {
       RegularPolygon(
@@ -454,7 +458,7 @@ module SpacerSide() // `make` me
         );
       translate([0, spacer_side_length / 2, spacer_side_height - 20])
         FingerHoleWall(20, 20, spin=90);
-      translate([spacer_side_width - 2, spacer_side_length/ 2, spacer_side_height - 20])
+      translate([spacer_side_width - 2, spacer_side_length / 2, spacer_side_height - 20])
         FingerHoleWall(20, 20, spin=90);
     }
 }
@@ -500,5 +504,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  YellowPlayerBox();
 }

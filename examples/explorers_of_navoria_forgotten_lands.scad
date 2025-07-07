@@ -18,7 +18,7 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-include <explorers_of_navoria_shared.scad>
+include <lib/explorers_of_navoria_shared.scad>
 
 $fn = 128;
 

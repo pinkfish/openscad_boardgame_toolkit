@@ -19,7 +19,7 @@ include <BOSL2/beziers.scad>
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-include <root_shared.scad>
+include <lib/root_shared.scad>
 
 default_lid_thickness = 3;
 default_floor_thickness = 2;

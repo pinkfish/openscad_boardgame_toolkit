@@ -205,7 +205,7 @@ module SplendorBoxInside() // `make` me
           [
             inner_length,
             inner_width,
-            default_lid_thickness,
+            inner_wall_thickness,
           ], anchor=BOTTOM
         );
 
@@ -221,9 +221,9 @@ module SplendorBoxInside() // `make` me
             if (i == 2) {
               translate([0, 0, -0.01])
                 cyl(
-                  d=splendor_disc_diameter + inner_wall_thickness * 2 - 1,
+                  d=splendor_disc_diameter  + inner_wall_thickness * 2 - 1,
                   anchor=BOTTOM,
-                  h=splendor_disc_thickness
+                  h=splendor_disc_thickness*2
                 );
             }
             TokenCylinder();
@@ -235,33 +235,25 @@ module SplendorBoxInside() // `make` me
               default_lid_thickness,
             ]
           ) {
-            if (i == 2) {
-              translate([0, 0, -0.01])
-                cyl(
-                  d=splendor_disc_diameter + inner_wall_thickness * 2 - 1,
-                  anchor=BOTTOM,
-                  h=splendor_disc_thickness
-                );
-            }
             TokenCylinder();
           }
         }
       }
       // End cutoff.
-      translate([inner_length / 2, 0, -1]) cuboid(
+      translate([inner_length / 2, 0, 0]) cuboid(
           [
             inner_width,
             inner_width + 1,
             splendor_box_height,
           ], anchor=BOTTOM + LEFT
         );
-      translate([-inner_length / 2, 0, -1]) cuboid(
+      translate([-inner_length / 2, 0, 0]) cuboid(
           [
             inner_width,
             inner_width + 1,
             splendor_box_height,
           ], anchor=BOTTOM + RIGHT
-        );
+        ); 
 
       // Edge cutoffs.
       translate(
@@ -300,7 +292,7 @@ module SplendorBoxInside() // `make` me
         [
           0,
           0,
-          inner_wall_thickness,
+          default_floor_thickness,
         ]
       )
         cuboid(
@@ -323,5 +315,5 @@ module SplendorBoxLid() // `make` me
 }
 
 if (FROM_MAKE != 1) {
-  SplendorBox();
+  SplendorBoxInside();
 }
