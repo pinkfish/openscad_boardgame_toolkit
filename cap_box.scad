@@ -185,25 +185,25 @@ module MakeBoxWithCapLid(
         // Finger hole bits.
         translate([calc_lid_finger_hold_len, 0, -0.1]) color(material_colour)
             cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness, calc_finger_hold_height + 0.2],
+              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness+1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1]) color(material_colour)
             cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness, calc_finger_hold_height + 0.2],
+              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness+1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([0, calc_lid_finger_hold_len, -0.1]) color(material_colour)
             cuboid(
-              [wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+              [wall_thickness+1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1]) color(material_colour)
             cuboid(
-              [wall_thickness, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+              [wall_thickness+1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );

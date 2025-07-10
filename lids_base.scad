@@ -29,6 +29,10 @@ under the License.
 // Section: Lid
 //   Building blocks for making various kinds of lids and labels.
 
+// Constant: COLORSCAD_SLICE
+// Description: Used by colorscad to mark the color of the current set being generated.
+COLORSCAD_SLICE=undef;
+
 // Constant: default_lid_shape_width
 // Description: Set this at the top of the file to change the default shape width of the box lid.
 default_lid_shape_width = 12;
@@ -358,10 +362,11 @@ module internal_build_lid(width, length, lid_thickness, wall_thickness, size_spa
       // Carve out holes for the children.
       if ($children > 1) {
         for (i = [1:$children - 1]) {
-          translate([0, 0, -0.5]) linear_extrude(height=lid_thickness + 1) offset(r=-size_spacing)
-                fill() projection(cut=false) {
-                    children(i);
-                  }
+          color(COLORSCAD_SLICE)
+            translate([0, 0, -0.5]) linear_extrude(height=lid_thickness + 1) offset(r=-size_spacing)
+                  fill() projection(cut=false) {
+                      children(i);
+                    }
         }
       }
     }
@@ -373,10 +378,11 @@ module internal_build_lid(width, length, lid_thickness, wall_thickness, size_spa
           children(i);
           if (i + 1 < $children) {
             for (j = [i + 1:$children - 1]) {
-              translate([0, 0, -0.5]) linear_extrude(height=lid_thickness + 1)
-                  offset(r=-size_spacing) fill() projection(cut=false) {
-                        children(j);
-                      }
+              color(COLORSCAD_SLICE)
+                translate([0, 0, -0.5]) linear_extrude(height=lid_thickness + 1)
+                    offset(r=-size_spacing) fill() projection(cut=false) {
+                          children(j);
+                        }
             }
           }
         }

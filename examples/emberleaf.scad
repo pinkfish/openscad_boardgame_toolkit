@@ -90,7 +90,7 @@ module PlayerBoxInside(colour = "pink") {
     length=player_box_length, height=player_box_height, material_colour=colour
   ) {
     // workers
-    translate([12, 7, $inner_height - token_thickness - 0.5])for (i = [0:4]) {
+    translate([12, 8, $inner_height - token_thickness - 0.5])for (i = [0:4]) {
       translate([0, 12 * i, 0])
         OwlWorker(height=player_box_height);
       translate([24, 12 * i, 0])
@@ -188,19 +188,26 @@ module PlayerBoxInside(colour = "pink") {
         finger_holes=[0]
       );
     }
-
-    translate(
-      [
-        $inner_width - hex_size / 2 - 2.5,
-        $inner_length - hex_size / 2,
-        $inner_height - 0.3 - cardboard_token_thickness * 5,
-      ]
-    ) {
-      RegularPolygon(
-        width=hex_size,
-        shape_edges=6, height=player_box_height,
-        finger_holes=[2]
-      );
+    difference() {
+      translate(
+        [
+          $inner_width - hex_size / 2 - 2.5,
+          $inner_length - hex_size / 2,
+          $inner_height - 0.3 - cardboard_token_thickness * 5,
+        ]
+      ) {
+        RegularPolygon(
+          width=hex_size,
+          shape_edges=6, height=player_box_height,
+          finger_holes=[2]
+        );
+      }
+      
+      difference() {
+        translate([10,10,0])
+        cube([$inner_width+20, $inner_length+20, player_box_height*2]);
+      cube([$inner_width, $inner_length, player_box_height*2]);
+      }
     }
 
     // Depth to pull out pieces.
@@ -504,5 +511,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  YellowPlayerBox();
+  BlackPlayerBox();
 }
