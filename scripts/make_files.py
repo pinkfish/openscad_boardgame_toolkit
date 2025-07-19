@@ -29,7 +29,7 @@ with open("generate.makefile", "w") as mfile:
     for d in data:
         # Frog
         mfile.write("release/{0}/{1}.3mf: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
-        mfile.write("\t-mkdir -p release/{0}\n\t../scripts/colorscad/colorscad.sh -f -p $(SCAD) -i $< -o $@ --  --enable predictible-output --enable textmetrics -d output/{0}__{1}.deps  -D FROM_MAKE=1 -D MAKE_MMU=1\n".format(d.basename, d.module))
+        mfile.write("\t-mkdir -p release/{0}\n\t../scripts/colorscad/colorscad.sh -f -p $(SCAD) -c \"[0.184314, 0.309804, 0.309804, 1]\" -i $< -o $@ --  --enable predictible-output --enable textmetrics -d output/{0}__{1}.deps  -D FROM_MAKE=1 -D MAKE_MMU=1\n".format(d.basename, d.module))
         # Extra frogs
         mfile.write("release/{0}/{1}.stl: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
         mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make --export-format binstl --enable manifold --enable predictible-output --enable textmetrics -o $@ -d output/{0}__{1}.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))

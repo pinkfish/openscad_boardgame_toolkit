@@ -45,13 +45,13 @@ module MakeStripedGrid(width, length, bar_width = 1) {
   dx = bar_width * 2;
   x_count = (width + length) / (bar_width + dx);
 
-  intersection() {
-    square([width, length]);
-    for (j = [0:x_count]) {
-
-      translate([j * (bar_width + dx), -bar_width]) rotate([0, 0, 45]) square([bar_width, length * 2]);
+  for (j = [0:x_count])
+    intersection() {
+      square([width, length]);
+      {
+        translate([j * (bar_width + dx), -bar_width]) rotate(45) square([bar_width, length * 2]);
+      }
     }
-  }
 }
 
 // Module: Make3dStripedGrid()
@@ -251,8 +251,8 @@ module MakeMainLidLabelStriped(
   label_background_colour = undef
 ) {
 
-  module TextShape(calc_font, text_height = lid_thickness, edge_offset = 0) {
-    linear_extrude(text_height) union() {
+  module TextShape(calc_font, text_thickness = lid_thickness, edge_offset = 0) {
+    linear_extrude(text_thickness) union() {
         // Edge box.
         offset(edge_offset) translate([offset, offset, 0])
             resize([width - offset * 2.5, length - offset * 2, 0], auto=true) {
@@ -325,9 +325,12 @@ module MakeMainLidLabelStriped(
         full_height ? 0
         : 0,
       ]
-    ) color(material_colour) TextShape(calc_font=calc_font, text_height=full_height ? lid_thickness - default_slicing_layer_height : lid_thickness / 2, edge_offset=0.01);
+    ) color(material_colour) TextShape(
+          calc_font=calc_font,
+          text_thickness=full_height ? lid_thickness - default_slicing_layer_height : lid_thickness / 2,
+          edge_offset=0.01
+        );
 
-    
     translate(
       [
         0,
@@ -335,9 +338,12 @@ module MakeMainLidLabelStriped(
         full_height ? lid_thickness - default_slicing_layer_height
         : lid_thickness / 2,
       ]
-    ) color(label_colour) TextShape(calc_font=calc_font, text_height=full_height ? default_slicing_layer_height : default_slicing_layer_height * 2, edge_offset=0.01);
+    ) color(label_colour) TextShape(
+          calc_font=calc_font,
+          text_thickness=full_height ? default_slicing_layer_height : default_slicing_layer_height * 2,
+          edge_offset=0.01
+        );
 
-    
     translate(
       [
         0,
@@ -345,17 +351,26 @@ module MakeMainLidLabelStriped(
         full_height ? 0
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
-    ) color(material_colour) TextShape(calc_font=calc_font, text_height=full_height ? lid_thickness - default_slicing_layer_height : default_slicing_layer_height * 2, edge_offset=0.01);
+    ) color(material_colour) TextShape(
+          calc_font=calc_font,
+          text_thickness=full_height ? lid_thickness - default_slicing_layer_height : default_slicing_layer_height * 2,
+          edge_offset=0.01
+        );
+
     difference() {
       StripedBackground(calc_background_color=calc_background_color);
       translate(
         [
           0,
           0,
-          full_height ? 0
+          full_height ? -lid_thickness / 2
           : lid_thickness / 2 - default_slicing_layer_height * 2,
         ]
-      ) color(material_colour) TextShape(calc_font=calc_font, text_height=lid_thickness * 4, edge_offset=0.01);
+      ) color(material_colour) TextShape(
+            calc_font=calc_font,
+            text_thickness=lid_thickness * 4,
+            edge_offset=0.01
+          );
     }
   }
 }
@@ -365,7 +380,7 @@ module MakeMainLidLabelStriped(
 //   Makes a label inside a solid or striped grid to use in the lid.  It makes a label with a border and a stripped
 //   or solid grid in the background to keep the label in place.
 // Usage:
-//   MakeMainLiMakeFramedLidLabelLabel(20, 80, 2, label="Australia", border = 2, offset = 4);
+//   MakeFramedLidLabel(20, 80, 2, label="Australia", border = 2, offset = 4);
 // Arguments:
 //   width = width of the label section
 //   length = length of the label section

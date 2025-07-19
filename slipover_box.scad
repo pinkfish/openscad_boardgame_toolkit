@@ -189,8 +189,7 @@ module SlipoverBoxLid(
             }
           }
         }
-        finger_height = min(10, (height - foot_offset - lid_thickness) / 2);
-        echo([finger_height]);
+        finger_height = min(20, (height - foot_offset - lid_thickness) / 2);
         difference() {
           color(material_colour) cuboid(
               [width, length, height - foot_offset], anchor=BOTTOM + FRONT + LEFT,
@@ -201,15 +200,15 @@ module SlipoverBoxLid(
               cube([width - wall_thickness * 2, length - wall_thickness * 2, height + 1]);
           if (finger_hole_length) {
             translate([width / 2, 1, finger_height - 0.01]) mirror([0, 0, 1]) color(material_colour)
-                  FingerHoleWall(radius=7, height=finger_height);
+                  FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
             translate([width / 2, length - 1, finger_height - 0.01]) mirror([0, 0, 1])
-                color(material_colour) FingerHoleWall(radius=7, height=finger_height);
+                color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
           }
           if (finger_hole_width) {
             translate([1, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=7, height=finger_height);
+                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
             translate([width - 1, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=7, height=finger_height);
+                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
           }
         }
 
@@ -259,7 +258,7 @@ module SlipoverBoxLid(
     }
 }
 
-// Module: SlipoverLidWithLabelAndCustomShape()
+// Module: SlipoverBoxLidWithLabelAndCustomShape()
 // Topics: SlipoverBox
 // Description:
 //    Lid for a slipover box.  This uses the first
@@ -292,13 +291,13 @@ module SlipoverBoxLid(
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
 //       {{CATCH_LENGTH}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
+// Usage: SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
 // Example:
-//    SlipoverLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog") {
+//    SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog") {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module SlipoverLidWithLabelAndCustomShape(
+module SlipoverBoxLidWithLabelAndCustomShape(
   width,
   length,
   height,
@@ -311,6 +310,7 @@ module SlipoverLidWithLabelAndCustomShape(
   label_border = 2,
   label_offset = 4,
   layout_width = undef,
+  label_type = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
@@ -339,7 +339,7 @@ module SlipoverLidWithLabelAndCustomShape(
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control
+        dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control,
       ) {
         if ($children > 0) {
           children(0);
@@ -350,10 +350,11 @@ module SlipoverLidWithLabelAndCustomShape(
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, text_str=text_str,
+      label_radius=label_radius,
       material_colour=material_colour, label_colour=label_colour,
       label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size
+      finger_hole_size=finger_hole_size, label_type=label_type,
     );
 
     // Don't include the first child since is it used for the lid shape.
@@ -378,9 +379,9 @@ module SlipoverLidWithLabelAndCustomShape(
   }
 }
 
-// Module: SlipoverLidWithLabel()
+// Module: SlipoverBoxLidWithLabel()
 // Topics: SlipoverBox
-// Usage: SlipoverLidWithLabel(20, 100, 10, text_str = "Marmoset", shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14) 
+// Usage: SlipoverBoxLidWithLabel(20, 100, 10, text_str = "Marmoset", shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14) 
 // Arguments:
 //   width = width of the lid (outside width)
 //   length = of the lid (outside length)
@@ -407,9 +408,9 @@ module SlipoverLidWithLabelAndCustomShape(
 //   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
 //       {{CATCH_LENGTH}})
 // Example:
-//   SlipoverLidWithLabel(20, 100, 10, text_str = "Marmoset",
+//   SlipoverBoxLidWithLabel(20, 100, 10, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14);
-module SlipoverLidWithLabel(
+module SlipoverBoxLidWithLabel(
   width,
   length,
   height,
@@ -422,6 +423,7 @@ module SlipoverLidWithLabel(
   label_radius = undef,
   label_border = 2,
   label_offset = 4,
+  label_type = undef,
   foot = 0,
   layout_width = undef,
   shape_width = undef,
@@ -441,10 +443,10 @@ module SlipoverLidWithLabel(
   lid_catch = CATCH_LENGTH,
   finger_hole_size = undef,
 ) {
-  SlipoverLidWithLabelAndCustomShape(
+  SlipoverBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     font=font, text_str=text_str,
-    label_radius=label_radius, text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width,
+    label_radius=label_radius, text_length=text_length, text_scale=text_scale, layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
     finger_hole_length=finger_hole_length, finger_hole_width=finger_hole_width, foot=foot,
@@ -452,7 +454,7 @@ module SlipoverLidWithLabel(
     material_colour=material_colour,
     label_background_colour=label_background_colour, lid_catch=lid_catch,
     finger_hole_size=finger_hole_size,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type), label_type=label_type
   ) {
     color(material_colour)
       ShapeByType(

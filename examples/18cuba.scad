@@ -144,7 +144,7 @@ module MoneyBox(offset = 0) // `make` me
 
 module MoneyBoxLid(offset = 0) // `make` me
 {
-  translate([money_box_width + 10, 0, 0]) SlipoverLidWithLabel(
+  translate([money_box_width + 10, 0, 0]) SlipoverBoxLidWithLabel(
       width=money_box_width, length=money_box_length, height=money_box_height, text_str="18Cuba", label_colour="blue"
     );
 }
@@ -198,7 +198,7 @@ module TrainBox() // `make` me
 
 module TrainBoxLid() // `make` me
 {
-  SlipoverLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Trains",
     wall_thickness=wall_thickness, foot=2, label_colour="blue"
@@ -237,7 +237,7 @@ module SharesBox(offset = 0) // `make` me
 }
 module SharesBoxLid(offset = 0) // `make` me
 {
-  SlipoverLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Shares",
     wall_thickness=wall_thickness, foot=2, label_colour="blue"
@@ -350,7 +350,7 @@ module LastBox() // `make` me
 
 module LastBoxLid() // `make` me
 {
-  SlipoverLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Machine/Minor",
     wall_thickness=wall_thickness, foot=2, label_colour="blue"

@@ -202,11 +202,11 @@ module PlayerBoxInside(colour = "pink") {
           finger_holes=[2]
         );
       }
-      
+
       difference() {
-        translate([10,10,0])
-        cube([$inner_width+20, $inner_length+20, player_box_height*2]);
-      cube([$inner_width, $inner_length, player_box_height*2]);
+        translate([10, 10, 0])
+          cube([$inner_width + 20, $inner_length + 20, player_box_height * 2]);
+        cube([$inner_width, $inner_length, player_box_height * 2]);
       }
     }
 
@@ -511,5 +511,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BlackPlayerBox();
+  PlayerBoxLid();
 }

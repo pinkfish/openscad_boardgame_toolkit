@@ -204,7 +204,7 @@ module LaurelsBox(num_laurels, num_rows = 5, generate_lid = true) {
 
   if (generate_lid) {
     translate([laurel_box_width + 10, 0, 0])
-      SlipoverLidWithLabel(
+      SlipoverBoxLidWithLabel(
         width=laurel_box_width, length=laurel_box_length, height=laurel_box_height,
         text_str=text_str, foot=2,
         wall_thickness=wall_thickness, lid_thickness=lid_thickness
@@ -351,7 +351,7 @@ module ShieldBox(generate_lid = true) // `make` me
         width=shield_box_width, length=shield_box_length, height=shield_box_height, orient=LEFT,
         spin=90, y=[2]
       ) {
-        SlipoverLidWithLabel(
+        SlipoverBoxLidWithLabel(
           width=shield_box_width, length=shield_box_length, height=shield_box_height,
           foot=2, text_str=text_str,
           shape_type=SHAPE_TYPE_CIRCLE, layout_width=10, shape_width=14,

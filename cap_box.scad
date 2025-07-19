@@ -185,25 +185,25 @@ module MakeBoxWithCapLid(
         // Finger hole bits.
         translate([calc_lid_finger_hold_len, 0, -0.1]) color(material_colour)
             cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness+1, calc_finger_hold_height + 0.2],
+              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([calc_lid_finger_hold_len, length - calc_lid_wall_thickness, -0.1]) color(material_colour)
             cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness+1, calc_finger_hold_height + 0.2],
+              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([0, calc_lid_finger_hold_len, -0.1]) color(material_colour)
             cuboid(
-              [wall_thickness+1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+              [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
         translate([width - calc_lid_wall_thickness, calc_lid_finger_hold_len, -0.1]) color(material_colour)
             cuboid(
-              [wall_thickness+1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+              [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
               rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
               anchor=BOTTOM + LEFT + FRONT, $fn=32
             );
@@ -412,7 +412,8 @@ module CapBoxLidWithLabelAndCustomShape(
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour, inner_control=pattern_inner_control
+        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour, 
+        inner_control=pattern_inner_control
       ) {
         if ($children > 0) {
           children(0);
@@ -422,7 +423,8 @@ module CapBoxLidWithLabelAndCustomShape(
       }
     translate([lid_boundary, lid_boundary, 0])
       MakeLidLabel(
-        width=width - lid_boundary * 2, length=length - lid_boundary * 2, text_length=text_length, text_scale=text_scale,
+        width=width - lid_boundary * 2, length=length - lid_boundary * 2, 
+        text_length=text_length, text_scale=text_scale,
         lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
         font=font, label_type=label_type, text_str=text_str, label_radius=label_radius,
         label_colour=label_colour, material_colour=material_colour,

@@ -31,11 +31,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-// Constant: COLORSCAD_SLICE
-// Description: Used by colorscad to mark the color of the current set being generated.
-//   This is internal and should not be changed.
-COLORSCAD_SLICE=undef;
-
 // Constant: m_piece_wiggle_room
 // Description:
 //   How many mm to use as gaps for when things join.

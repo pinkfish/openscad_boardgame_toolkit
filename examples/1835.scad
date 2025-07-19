@@ -233,7 +233,7 @@ module AllShareBoxes() // `make` me
 module AllShareBoxesLid() // `make` me
 {
 
-  SlipoverLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=shares_box_width, length=shares_box_length,
     text_str="Shares", wall_thickness=1.5, height=shares_height,
     label_colour="black"
@@ -353,7 +353,7 @@ module LastSectionFirstPlayer() // `make` me
 
 module LastSectionFirstPlayerLid() // `make` me
 {
-  SlipoverLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=first_player_box_width, length=first_player_box_length,
     height=first_player_box_height, wall_thickness=3, foot=2, label_colour="black",
     text_str="First", label_radius=2, 
