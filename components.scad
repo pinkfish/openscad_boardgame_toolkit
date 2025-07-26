@@ -46,7 +46,6 @@
 // Topics: Recess
 // Example:
 //   RoundedBoxOnLength(30, 20, 10, 7);
-
 module RoundedBoxOnLength(width, length, height, radius) {
   hull() {
     difference() {
@@ -126,6 +125,22 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
       }
 }
 
+// Function: PolygonRadiusFromApothem()
+// Description:
+//   Find the radius of the polygon from apothem.
+// Arguments:
+//   apothem = apothem of the shape
+//   shape_edges = the number of edges on the shape
+function PolygonRadiusFromApothem(apothem, shape_edges) = apothem / cos(180 / shape_edges) / 2;
+
+// Function: PolygonRadiusFromApothem()
+// Description:
+//   Find the apothem of the polygon from radius.
+// Arguments:
+//   radius = radius of the shape
+//   shape_edges = the number of edges on the shape
+function PolygonApothemFromRadius(radius, shape_edges) = radius * cos(180 / shape_edges) * 2;
+
 // Module: RegularPolygon()
 // Usage:
 //   RegularPolygon(10, 5, 6);
@@ -143,20 +158,21 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
 //   RegularPolygon(10, 5, shape_edges = 6);
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6, finger_holes = [0, 3]);
-module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef) {
+module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef, rounding = 0, radius = undef) {
   rotate_deg = ( (shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
-  apothem = width / 2;
-  radius = apothem / cos(180 / shape_edges);
 
-  side_length = 2 * apothem * tan(180 / shape_edges);
+  calc_radius = DefaultValue(radius, PolygonRadiusFromApothem(width, shape_edges));
+  calc_width = DefaultValue(width, PolygonApothemFromRadius(calc_radius, shape_edges));
+
+  side_length = width * tan(180 / shape_edges) / 2;
 
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, side_length * 9 / 10);
 
-  rotate([0, 0, rotate_deg]) linear_extrude(height=height) regular_ngon(n=shape_edges, or=radius);
+  rotate([0, 0, rotate_deg]) linear_extrude(height=height) regular_ngon(n=shape_edges, or=calc_radius, rounding=rounding);
   degree = 360 / shape_edges;
   for (i = [0:1:len(finger_holes) - 1]) {
-    x = width / 2 * cos(degree * finger_holes[i] + rotate_deg + degree / 2);
-    y = width / 2 * sin(degree * finger_holes[i] + rotate_deg + degree / 2);
+    x = calc_width / 2 * cos(degree * finger_holes[i] + rotate_deg + degree / 2);
+    y = calc_width / 2 * sin(degree * finger_holes[i] + rotate_deg + degree / 2);
     translate([x, y, finger_hole_height]) {
       cyl(
         r=calc_finger_hole_radius, h=max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
@@ -201,6 +217,12 @@ module CylinderWithIndents(
   children();
 }
 
+// Function: HoleToPosition()
+// Description:
+//   Where the whole should be based on the position number.  Used by the various
+//   indent methods below for putting holes in cuboids/things.
+// Arguments:
+//   pos = position to put the hole in
 function HoleToPosition(pos) =
   (
     pos == 0 ? FRONT
