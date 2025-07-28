@@ -113,8 +113,7 @@ function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE 
 //      ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE,  shape_width = $layout_width);
 //   }
 module LidMeshDense(
-  width,
-  length,
+  path,
   lid_thickness,
   boundary,
   radius,
@@ -122,6 +121,12 @@ module LidMeshDense(
   material_colour = default_material_colour,
   inner_control = false
 ) {
+  x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
+  y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
+
+  width = max(x_arr) - min(x_arr);
+  length = max(y_arr) - min(y_arr);
+
   cell_width = cos(180 / shape_edges) * radius;
   rows = width / cell_width + 2;
   cols = length / cell_width + 2;
@@ -129,26 +134,13 @@ module LidMeshDense(
   shape_thickness = 2;
 
   $layout_width = radius * 2;
-  intersection() {
-    translate([0, 0, -0.5]) union() {
-        linear_extrude(height=lid_thickness + 1)
-          RegularPolygonGridDense(radius=radius, rows=rows, cols=cols, shape_edges=shape_edges, inner_control=inner_control) {
-            children();
-          }
-
-        difference() {
-          color(material_colour) cube([width - boundary * 2, length - boundary * 2, lid_thickness + 1]);
-          translate([shape_thickness / 2, shape_thickness / 2, 0]) color(material_colour) cube(
-                [
-                  width - boundary * 2 - shape_thickness,
-                  length - boundary * 2 - shape_thickness,
-                  lid_thickness + 1,
-                ]
-              );
+  translate([0, 0, -0.5])
+    union() {
+      linear_extrude(height=lid_thickness + 1)
+        RegularPolygonGridDense(radius=radius, rows=rows, cols=cols, shape_edges=shape_edges, inner_control=inner_control) {
+          children();
         }
-      }
-    color(material_colour) cube([width - boundary * 2, length - boundary * 2, lid_thickness]);
-  }
+    }
 }
 
 // Module: LidMeshHex()
@@ -201,8 +193,7 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //   LidMeshRepeating(width = 50, length = 50, lid_thickness = 3, boundary = 5, layout_width = 10, inner_control = 2)
 //      Voronoi(width = 50, length = 50, thickness = 2, cellsize = 10);
 module LidMeshRepeating(
-  width,
-  length,
+  path,
   lid_thickness,
   boundary,
   layout_width,
@@ -211,34 +202,27 @@ module LidMeshRepeating(
   material_colour = default_material_colour,
   inner_control = 0
 ) {
-  rows = width / layout_width;
-  cols = length / layout_width * aspect_ratio;
+
+  x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
+  y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
+
+  width = max(x_arr) - min(x_arr);
+  length = max(y_arr) - min(y_arr);
+
+  rows = width / layout_width + 2;
+  cols = length / layout_width * aspect_ratio + 2;
 
   $layout_width = layout_width;
-  intersection() {
-    translate([0, 0, -0.5]) union() {
-        linear_extrude(height=lid_thickness + 1)
-          RegularPolygonGrid(
-            width=layout_width, rows=rows + (inner_control ? 11 : 1), cols=cols + (inner_control ? 11 : 1), spacing=0,
-            shape_edges=shape_edges, aspect_ratio=aspect_ratio, inner_control=inner_control,
-            space_width=width, space_length=length
-          ) {
-            children();
-          }
-        difference() {
-          translate([0, 0, -0.5]) color(material_colour) cube([width, length, lid_thickness + 1]);
-          translate([m_piece_wiggle_room, m_piece_wiggle_room, -0.5 + m_piece_wiggle_room])
-            color(material_colour) cube(
-                [
-                  width - boundary * 2 - m_piece_wiggle_room * 2,
-                  length - boundary * 2 - m_piece_wiggle_room * 2,
-                  lid_thickness + 1 + m_piece_wiggle_room * 2,
-                ]
-              );
+  translate([0, 0, -0.5]) union() {
+      linear_extrude(height=lid_thickness + 1)
+        RegularPolygonGrid(
+          width=layout_width, rows=rows + (inner_control ? 11 : 1), cols=cols + (inner_control ? 11 : 1), spacing=0,
+          shape_edges=shape_edges, aspect_ratio=aspect_ratio, inner_control=inner_control,
+          space_width=width, space_length=length
+        ) {
+          children();
         }
-      }
-    color(material_colour) cube([width - boundary * 2, length - boundary * 2, lid_thickness]);
-  }
+    }
 }
 
 // Module: LidMeshBasic()
@@ -319,38 +303,51 @@ module LidMeshRepeating(
 //       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //   }
 module LidMeshBasic(
-  width,
-  length,
+  width = undef,
+  length = undef,
   lid_thickness,
   boundary,
   layout_width,
+  path = undef,
   aspect_ratio = 1.0,
   dense = false,
   dense_shape_edges = 6,
   material_colour = default_material_colour,
   inner_control = false
 ) {
+  assert((width != undef && length != undef) || path != undef, "\nInvalid path in MakePathBoxWithCapLid.");
+
   calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
   calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
-  if (dense) {
-    LidMeshDense(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=boundary,
-      radius=calc_layout_width / 2, shape_edges=dense_shape_edges, material_colour=material_colour, inner_control=inner_control
-    ) {
-      children();
+  intersection() {
+    union() {
+      if (dense) {
+        LidMeshDense(
+          path=width == undef ? path : square([width, length]), lid_thickness=lid_thickness, boundary=boundary,
+          radius=calc_layout_width / 2, shape_edges=dense_shape_edges, material_colour=material_colour, inner_control=inner_control
+        ) {
+          children();
+        }
+      } else {
+        LidMeshRepeating(
+          path=width == undef ? path : square([width, length]),
+          lid_thickness=lid_thickness, boundary=boundary,
+          layout_width=calc_layout_width, shape_edges=4, aspect_ratio=calc_aspect_ratio,
+          material_colour=material_colour, inner_control=inner_control
+        ) {
+          children();
+        }
+      }
+      difference() {
+        color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(path);
+        color(material_colour) translate([0, 0, -0.5]) linear_extrude(lid_thickness + 1) offset(-boundary - 0.01) polygon(path);
+      }
     }
-  } else {
-    LidMeshRepeating(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=boundary,
-      layout_width=calc_layout_width, shape_edges=4, aspect_ratio=calc_aspect_ratio,
-      material_colour=material_colour, inner_control=inner_control
-    ) {
-      children();
-    }
+    color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(path);
   }
 }
 
-module internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing = m_piece_wiggle_room) {
+module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
   union() {
     difference() {
       children(0);
@@ -562,7 +559,7 @@ module MakeLidLabel(
     calc_label_type == LABEL_TYPE_FRAMELESS_ANGLE || calc_label_type == LABEL_TYPE_FRAMELESS || calc_label_type == LABEL_TYPE_FRAMELESS_SHORT
   ) {
     MakeFramelessLidLabel(
-      width=width, length=length, label_type=calc_label_type,
+      width=width, length=length, label_type=calc_label_type, text_length=text_length,
       label=text_str, lid_thickness=lid_thickness, font=font, text_scale=text_scale,
       label_colour=label_colour, label_background_colour=label_background_colour, angle=undef
     );

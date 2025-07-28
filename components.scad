@@ -470,11 +470,12 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   anchor = anchor for the hole (default CENTER)
 //   depth_of_hole = how deep to make the cut through the wall (default 6)
 //   rounding_radious = how round to make the top in the wall (default 3)
+//   material_colour = the material colour to use (default {{default_material_colour}})
 // Example:
 //   FingerHoleWall(10, 20)
 // Example:
 //   FingerHoleWall(10, 9)
-module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0) {
+module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0, material_colour = default_material_colour) {
   tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
   multmatrix(m=tmat) union() {
       if (height >= radius + rounding_radius) {

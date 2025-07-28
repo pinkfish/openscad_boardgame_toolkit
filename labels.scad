@@ -512,6 +512,7 @@ module MakeFramelessLidLabel(
   lid_thickness,
   label,
   label_type,
+  text_length = undef,
   font = default_label_font,
   text_scale = 1.0,
   angle = undef,
@@ -521,13 +522,13 @@ module MakeFramelessLidLabel(
 ) {
   cross_angle = asin(min(width, length) / sqrt(width * width + length * length));
   metrics = textmetrics(label, font=font);
-  text_length = length > width ? length * 3 / 4 : width * 3 / 4;
+  calc_text_length_start = DefaultValue(text_length, length > width ? length * 3 / 4 : width * 3 / 4);
   temp_text_width = metrics.size[1] / metrics.size[0] * text_length * text_scale;
   tenp_text_length =
     length < width ?
       (temp_text_width > length * 3 / 4 ? text_length * (length * 3 / 4) / temp_text_width : text_length)
     : (temp_text_width > width * 3 / 4 ? text_length * (width * 3 / 4) / temp_text_width : text_length);
-  calc_text_length = min(tenp_text_length, text_length);
+  calc_text_length = min(tenp_text_length, calc_text_length_start);
   angle = DefaultValue(angle, label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
   color(DefaultValue(label_background_colour, default_label_background_colour))
     translate([(width) / 2 + (sin(angle) * metrics.descent / 2), (length) / 2 + (cos(angle) * metrics.descent / 2), 0])

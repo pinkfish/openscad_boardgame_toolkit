@@ -48,6 +48,8 @@ upgrade_width = 86;
 upgrade_length = 102;
 upgrade_thickness = 3.5;
 
+favor_token_diameter = 20;
+
 player_token_diameter = 14;
 
 screen_length = 204;
@@ -80,10 +82,10 @@ cargo_thickness = 10;
 
 ambassador_card_box_width = box_width / 2 - 1;
 ambassador_card_box_length = small_card_length + default_wall_thickness * 2;
-ambassador_card_box_height = single_card_thickness * 25 + default_floor_thickness + default_lid_thickness;
-faction_card_box_height = single_card_thickness * 5 + default_floor_thickness + default_lid_thickness;
-rival_card_box_height = single_card_thickness * 4 + default_floor_thickness + default_lid_thickness;
-bonus_card_box_height = single_card_thickness * (10 + 10) + default_floor_thickness + default_lid_thickness;
+ambassador_card_box_height = single_card_thickness * 25 + default_floor_thickness + default_lid_thickness + 0.5;
+faction_card_box_height = single_card_thickness * 5 + default_floor_thickness + default_lid_thickness + 0.5;
+rival_card_box_height = single_card_thickness * 4 + default_floor_thickness + default_lid_thickness + 0.5;
+bonus_card_box_height = single_card_thickness * (5 + 10) + default_floor_thickness + default_lid_thickness + 0.5;
 
 action_card_box_width = ambassador_card_box_width;
 action_card_box_length = small_card_length + default_wall_thickness * 2;
@@ -92,32 +94,36 @@ rider_card_box_height = single_card_thickness * 20 / 2 + default_floor_thickness
 
 player_box_width = box_width - 2;
 player_box_length = default_wall_thickness * 2 + class_ii_ship_length + voting_board_width + 32;
-player_box_height = (box_height - board_thickness - cardboard_token_thickness - 1) / 5;
+player_box_height = (box_height - board_thickness - cardboard_token_thickness - 0.5) / 5;
 
 hex_box_width = box_width - 2;
 hex_box_length = default_wall_thickness * 2 + hex_width * 3 / 2 + 6;
 hex_box_height = ceil(25 / 3) * cardboard_token_thickness + default_floor_thickness + default_lid_thickness;
 hex_bonus_box_height = ceil(8 / 3) * cardboard_token_thickness + default_floor_thickness + default_lid_thickness;
 
-resource_box_length = hex_box_length;
-resource_box_width = (box_width - 2) / 5;
-resource_box_height = marker_cube_width + default_floor_thickness + default_lid_thickness + 2;
+middle_height = box_height - board_thickness - hex_box_height - hex_bonus_box_height - 0.5 - cardboard_token_thickness - upgrade_thickness * 5;
 
 faction_box_width = hex_box_width;
 faction_box_length = hex_box_length;
 faction_box_height = default_floor_thickness + default_lid_thickness + marker_cube_width + 1;
 
-ua_box_width = ambassador_card_box_width;
-ua_box_length = ambassador_card_box_length;
-ua_box_height = box_height - ambassador_card_box_height - faction_card_box_height - rival_card_box_height - bonus_card_box_height * 2 - 1;
+spacer_card_back_width = ambassador_card_box_width;
+spacer_card_back_length = ambassador_card_box_length;
+spacer_card_back_height = box_height - ambassador_card_box_height - faction_card_box_height - rival_card_box_height - bonus_card_box_height * 2 - 1;
+
+upgrade_board_box_width = default_wall_thickness * 2 + upgrade_width;
+upgrade_board_box_length = hex_box_length;
+upgrade_board_box_height = middle_height;
+
+resource_box_length = hex_box_length;
+resource_box_width = (box_width - upgrade_board_box_width - 1) / 3;
+resource_box_height = middle_height / 2;
 
 spacer_card_back = box_height - action_card_box_height - rider_card_box_height - 1;
 
-spacer_hexes_width = hex_box_width;
+spacer_hexes_width = hex_box_width - upgrade_board_box_width;
 spacer_hexes_length = hex_box_length;
-spacer_hexes_height = box_height - board_thickness - hex_box_height - hex_bonus_box_height - 1 - resource_box_height;
-
-echo([hex_box_width, hex_box_length, spacer_hexes]);
+spacer_hexes_height = upgrade_board_box_height;
 
 module AmbassadorCardBox() // `make` me
 {
@@ -559,6 +565,15 @@ module ResourceBoxLid() // `make` me
   );
 }
 
+module UABoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="UA",
+    text_scale=0.4
+  );
+}
+
 module StartTile(thickness) {
   translate([PolygonRadiusFromApothem(hex_width, shape_edges=6) * 1.5, hex_width / 2, 0]) {
     RegularPolygon(shape_edges=6, width=hex_width, height=thickness);
@@ -575,44 +590,59 @@ module StartTile(thickness) {
   }
 }
 
-module UABox() // `make` me
+module SpacerCardFront() // `make` me
 {
-  MakeBoxWithCapLid(width=ua_box_width, length=ua_box_length, height=ua_box_height, material_colour="red") {
-    color("red")
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=ua_box_height, radius=5);
+  MakeBoxWithNoLid(length=spacer_card_back_length, width=spacer_card_back_width, height=spacer_card_back_height, hollow=true);
+}
+
+module UpgradeBoardsBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=upgrade_board_box_width,
+    length=upgrade_board_box_length,
+    height=upgrade_board_box_height
+  ) {
+    translate([0, 0, $inner_height - upgrade_thickness * 5 - 1])
+      cube([upgrade_width, upgrade_length, upgrade_board_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=upgrade_board_box_height);
+
+    // tokens
+    translate([$inner_width / 2, $inner_length / 2 - favor_token_diameter - 3, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
+      CylinderWithIndents(
+        radius=favor_token_diameter / 2,
+        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
+      );
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
+      CylinderWithIndents(
+        radius=favor_token_diameter / 2,
+        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
+      );
+    translate([$inner_width / 2, $inner_length / 2 + favor_token_diameter + 3, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
+      CylinderWithIndents(
+        radius=favor_token_diameter / 2,
+        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
+      );
   }
 }
 
-module UABoxLid() // `make` me
+module UpgradeBoardsBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=ua_box_width, length=ua_box_length, height=ua_box_height,
-    text_str="UA",
-    text_scale=0.4
+  SlidingBoxLidWithLabel(
+    width=upgrade_board_box_width,
+    length=upgrade_board_box_length,
+    text_str="Upgrades"
   );
 }
 
 module SpacerCardBack() // `make` me
 {
-  color("grey")
-    difference() {
-      cuboid([action_card_box_width, action_card_box_length, spacer_card_back], rounding=2, anchor=FRONT + LEFT + BOTTOM);
-      translate([default_wall_thickness, default_wall_thickness, default_floor_thickness])
-        cuboid([action_card_box_width - default_wall_thickness * 2, action_card_box_length - default_wall_thickness * 2, spacer_card_back], rounding=2, anchor=FRONT + LEFT + BOTTOM);
-    }
+  MakeBoxWithNoLid(width=action_card_box_width, length=action_card_box_length, height=spacer_card_back, hollow=true);
 }
 
 module SpacerCardHexes() // `make` me
 {
-  color("grey")
-    difference() {
-      cuboid([spacer_hexes_width, spacer_hexes_length, spacer_hexes_height], rounding=2, anchor=FRONT + LEFT + BOTTOM);
-      translate([default_wall_thickness, default_wall_thickness, default_floor_thickness])
-        cuboid([spacer_hexes_width - default_wall_thickness * 2, spacer_hexes_length - default_wall_thickness * 2, spacer_hexes_height], rounding=2, anchor=FRONT + LEFT + BOTTOM);
-      translate([spacer_hexes_width / 2, hex_box_length - hex_width, spacer_hexes_length - cardboard_token_thickness - 0.5]) {
-        StartTile(thickness=cardboard_token_thickness + 1);
-      }
-    }
+  MakeBoxWithNoLid(width=spacer_hexes_width, length=spacer_hexes_length, height=spacer_hexes_height, hollow=true);
 }
 
 module BoxLayout() {
@@ -629,7 +659,7 @@ module BoxLayout() {
   translate([0, 0, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height])
     BonusCardBox();
   translate([0, 0, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
-    UABox();
+    SpacerCardFront();
   translate([ambassador_card_box_width, 0, 0])
     ActionCardBox();
   translate([ambassador_card_box_width, 0, action_card_box_height])
@@ -644,14 +674,43 @@ module BoxLayout() {
     HexBox();
   translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness])
     HexBonusBox();
-  for (i = [0:4]) {
-    translate([i * resource_box_width, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height])
-      ResourceBox(colour=["orange", "yellow", "pink", "lightblue", "lightgreen"][i]);
+
+  for (j = [0:1]) {
+    for (i = [0:2]) {
+      translate([i * resource_box_width + upgrade_board_box_width, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height + j * resource_box_height])
+        ResourceBox(colour=["orange", "yellow", "pink", "lightblue", "lightgreen", "red"][i + j * 3]);
+    }
   }
-  translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height + resource_box_height])
-    SpacerCardHexes();
+
+  translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height])
+    UpgradeBoardsBox();
+
+  translate([0, ambassador_card_box_length + player_box_length, box_height - upgrade_thickness * 5 - cardboard_token_thickness - 0.5])
+    cube([screen_length, screen_width, upgrade_thickness * 5]);
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  // UpgradeBoardsBoxLid();
+  CapBoxPathLidWithLabel(
+    [[0, 0], [150, 150], [150, 0]],
+    height=20, text_str="Frog",
+    label_type=LABEL_TYPE_FRAMELESS_ANGLE,
+    text_length=50, 
+    label_width_offset=20,
+    label_length_offset=-20,
+  );
+  /*
+  //BoxLayout();
+  p = ;
+  p2 = offset(p, r=-2, closed=true);
+  difference() {
+    polygon(p);
+    polygon(p2);
+  }
+
+  for (i = [0:1:1]) {
+    SegmentCutout(path=[p[i], p[i + 1]], radius=5, height=7, wall_thickness=2);
+  }
+  SegmentCutout(path=[p[2], p[0]], radius=5, height=7, wall_thickness=2);
+  */
 }

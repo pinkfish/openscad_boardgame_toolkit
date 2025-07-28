@@ -269,7 +269,7 @@ module MagneticBoxLid(
   material_colour = default_material_colour
 ) {
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
-  internal_build_lid(width, length, lid_thickness, wall_thickness) {
+  internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
     difference() {
       color(material_colour)
         cuboid(

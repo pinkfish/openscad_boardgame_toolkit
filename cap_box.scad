@@ -271,7 +271,7 @@ module CapBoxLid(
   translate([0, length, calc_cap_height]) rotate([180, 0, 0]) {
       union() {
         translate([0, 0, calc_cap_height - lid_thickness])
-          internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing=size_spacing) {
+          internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
             difference() {
               // Top piece
               color(material_colour) cuboid(
@@ -412,7 +412,7 @@ module CapBoxLidWithLabelAndCustomShape(
       LidMeshBasic(
         width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour, 
+        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
         inner_control=pattern_inner_control
       ) {
         if ($children > 0) {
@@ -423,7 +423,7 @@ module CapBoxLidWithLabelAndCustomShape(
       }
     translate([lid_boundary, lid_boundary, 0])
       MakeLidLabel(
-        width=width - lid_boundary * 2, length=length - lid_boundary * 2, 
+        width=width - lid_boundary * 2, length=length - lid_boundary * 2,
         text_length=text_length, text_scale=text_scale,
         lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
         font=font, label_type=label_type, text_str=text_str, label_radius=label_radius,

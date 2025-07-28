@@ -173,7 +173,7 @@ module SlidingCatchBoxLid(
   calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
   calc_lid_rounding = DefaultValue(lid_roudning, top_thickness / 2);
 
-  internal_build_lid(width, length, calc_lid_thickness, wall_thickness) {
+  internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
     difference() {
       union() {
         color(material_colour) cube([width, length - wall_thickness, lid_thickness - size_spacing]);

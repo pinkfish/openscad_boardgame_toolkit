@@ -55,6 +55,8 @@ include <magnetic_box.scad>
 include <sliding_box.scad>
 include <sliding_catch_box.scad>
 include <slipover_box.scad>
+include <no_lid.scad>
+include <cap_box_polygon.scad>
 
 // extra stuff
 include <flags.scad>

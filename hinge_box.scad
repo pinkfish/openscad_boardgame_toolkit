@@ -261,7 +261,7 @@ module HingeBoxLidLabel(
   finger_hole_size = 0,
   size_spacing = default_slicing_layer_height
 ) {
-  internal_build_lid($inner_width, $inner_length, lid_thickness, 0, size_spacing=size_spacing) {
+  internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
     difference() {
       // Top piece
       color(material_colour) cuboid(

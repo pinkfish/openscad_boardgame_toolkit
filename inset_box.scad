@@ -62,7 +62,7 @@ module InsetLid(
   calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
   $inner_width = width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
   $inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
-  internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing=size_spacing) {
+  internal_build_lid(lid_thicknes=lid_thickness, size_spacing=size_spacing) {
     translate([wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0])
       color(material_colour) cuboid(
           [$inner_width, $inner_length, lid_thickness],
@@ -245,9 +245,9 @@ module InsetLidTabbedWithLabelAndCustomShape(
         }
       }
     MakeLidLabel(
-      width=width, length=length, 
+      width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font,   text_length=text_length, text_scale=text_scale,  label_type=label_type, text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
       label_background_colour=label_background_colour,
       finger_hole_size=finger_hole_size
@@ -345,8 +345,8 @@ module InsetLidTabbedWithLabel(
   InsetLidTabbedWithLabelAndCustomShape(
     width=width, length=length, lid_thickness=lid_thickness, tab_length=tab_length,
     prism_width=prism_width, tab_height=tab_height, make_tab_width=make_tab_width,
-    make_tab_length=make_tab_length, font=font, text_str=text_str,  label_radius=label_radius,   text_length=text_length,
-     text_scale=text_scale,  label_type=label_type,
+    make_tab_length=make_tab_length, font=font, text_str=text_str, label_radius=label_radius, text_length=text_length,
+    text_scale=text_scale, label_type=label_type,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, material_colour=material_colour,
     label_background_colour=label_background_colour,
@@ -392,8 +392,8 @@ module InsetLidTabbedWithLabel(
 //   width = width of the box (outside width)
 //   length = length of the box (outside length)
 //   height = height of the box (outside height)
-//   wall_thickness = how thick the walls are (default 2)
-//   lid_thickness = how hight the lid is (default 2)
+//   wall_thickness = how thick the walls are (default {{default_wall_thickness}})
+//   lid_thickness = how hight the lid is (default {{default_lid_thickness}})
 //   tab_height = how heigh to make the tabs (default 6)
 //   inset = how far to inset the lid (default 1)
 //   make_tab_width = make the tabs on the width (default false)
@@ -402,7 +402,7 @@ module InsetLidTabbedWithLabel(
 //   tab_length = how long the tab is (default 10)
 //   stackable = should we pull a piece out the bottom of the box to let this stack (default false)
 //   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
-//   floor_thickness = thickness of the floor (default 2)
+//   floor_thickness = thickness of the floor (default {{defalt_floor_thickness}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: TabbedBox, TabbedLid
@@ -412,8 +412,8 @@ module MakeBoxWithInsetLidTabbed(
   width,
   length,
   height,
-  wall_thickness = 2,
-  lid_thickness = 2,
+  wall_thickness = default_wall_thickness,
+  lid_thickness = default_lid_thickness,
   tab_height = 8,
   inset = 1,
   make_tab_width = false,
@@ -422,7 +422,7 @@ module MakeBoxWithInsetLidTabbed(
   tab_length = 10,
   stackable = false,
   size_spacing = m_piece_wiggle_room,
-  floor_thickness = 2,
+  floor_thickness = default_floor_thickness,
   tab_offset = 0.45,
   material_colour = default_material_colour,
   finger_hole_size = undef
@@ -657,7 +657,7 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font,   text_length=text_length, text_scale=text_scale,  label_type=label_type, text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
       material_colour=material_colour,
       label_background_colour=label_background_colour,
       finger_hole_size=finger_hole_size
@@ -767,10 +767,10 @@ module InsetLidRabbitClipWithLabel(
     rabbit_lock=rabbit_lock, rabbit_offset=rabbit_offset, rabbit_thickness=rabbit_thickness,
     rabbit_compression=rabbit_compression, rabbit_depth=rabbit_depth, lid_rounding=lid_rounding, font=font,
     text_str=text_str, label_radius=label_radius,
-     text_length=text_length, text_scale=text_scale,  label_type=label_type, layout_width=layout_width, size_spacing=size_spacing,
+    text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, label_border=label_border, label_offset=label_offset,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    material_colour=material_colour, 
+    material_colour=material_colour,
     label_background_colour=label_background_colour,
     finger_hole_size=finger_hole_size
   ) {
@@ -813,8 +813,8 @@ module InsetLidRabbitClipWithLabel(
 //   width = width of the box (outside width)
 //   length = length of the box (outside length)
 //   height = height of the box (outside height)
-//   wall_thickness = how thick the walls are (default 2)
-//   lid_thickness = how hight the lid is (default 2)
+//   wall_thickness = how thick the walls are (default {{default_wall_thickness}})
+//   lid_thickness = how hight the lid is (default {{default_lid_thickness}})
 //   tab_height = how heigh to make the tabs (default 6)
 //   inset = how far to inset the lid (default 1)
 //   make_rabbit_width = makes tabes on thr width (default false)
@@ -827,7 +827,7 @@ module InsetLidRabbitClipWithLabel(
 //   rabbit_offset = how much of an offset on each side of the rabbit to attach to the lid (default 3)
 //   rabbit_depth = extrustion depth of the rabbit (default 1.5)
 //   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
-//   floor_thickness = thickness of the floor (default 2)
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 // Topics: RabbitClipBox
 // Example:
 //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
@@ -835,10 +835,10 @@ module MakeBoxWithInsetLidRabbitClip(
   width,
   length,
   height,
-  wall_thickness = 2,
-  lid_thickness = 2,
+  wall_thickness = default_wall_thickness,
+  lid_thickness = default_lid_thickness,
   tab_height = 8,
-  floor_thickness = 2,
+  floor_thickness = default_floor_thickness,
   inset = 1,
   make_rabbit_width = false,
   make_rabbit_length = true,
@@ -854,7 +854,10 @@ module MakeBoxWithInsetLidRabbitClip(
   material_colour = default_material_colour
 ) {
   difference() {
-    color(material_colour) cube([width, length, height]);
+    color(material_colour) cuboid(
+        [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
+        rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+      );
     translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness]) color(material_colour)
         cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1]);
     translate([0, 0, height - lid_thickness]) color(material_colour)

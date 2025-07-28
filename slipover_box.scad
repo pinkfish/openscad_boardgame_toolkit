@@ -162,7 +162,7 @@ module SlipoverBoxLid(
   translate([0, length, height - foot]) rotate([180, 0, 0]) {
       union() {
         translate([0, 0, height - foot_offset - lid_thickness]) {
-          internal_build_lid(width, length, lid_thickness, wall_thickness, size_spacing=size_spacing) {
+          internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
             // Top piece
             color(material_colour) cuboid(
                 [width, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT,

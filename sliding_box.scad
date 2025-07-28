@@ -109,7 +109,7 @@ module SlidingLid(
             }
         }
   } else {
-    internal_build_lid(width, length, calc_lid_thickness, calc_wall_thickness) {
+    internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
       difference() {
         // Lip and raised bit
         union() {
