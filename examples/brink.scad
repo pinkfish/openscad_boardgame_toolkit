@@ -125,6 +125,18 @@ spacer_hexes_width = hex_box_width - upgrade_board_box_width;
 spacer_hexes_length = hex_box_length;
 spacer_hexes_height = upgrade_board_box_height;
 
+long_player_box_gap = 60;
+long_player_box_upgrade_buffer = 5;
+long_player_box_length = box_length - 2;
+long_player_box_width = (box_width - 2 - long_player_box_gap) / 2 + long_player_box_gap;
+long_player_box_height = default_floor_thickness + default_lid_thickness + class_i_ship_thickness + upgrade_thickness + 1;
+
+long_resource_box_length = (box_length - 7 - upgrade_width * 2 - long_player_box_upgrade_buffer * 2 - default_wall_thickness * 2) / 2;
+long_resource_box_width = long_player_box_gap - 1;
+long_resource_box_height = long_player_box_height;
+
+echo([long_resource_box_length, long_resource_box_width]);
+
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -340,7 +352,7 @@ module HexBoxBonusLid() // `make` me
   );
 }
 
-module CompletePlayerBox(colour = "green") // `make` me
+module PlayerBox(colour = "green") // `make` me
 {
   MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height, material_colour=colour) {
     // class i ship
@@ -574,6 +586,194 @@ module UABoxLid() // `make` me
   );
 }
 
+module LongPlayerBox(colour = "green") // 'make' me
+{
+  MakePathBoxWithCapLid(
+    path=[
+      [0, 0],
+      [0, long_player_box_length],
+      [long_player_box_width, long_player_box_length],
+      [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, 0],
+    ],
+    height=long_player_box_height,
+    material_colour=colour,
+  ) {
+    // PLayer tokens
+    translate(
+      [
+        $inner_width - 14,
+        $inner_length - upgrade_width / 2 - 7,
+        $inner_height - cardboard_token_thickness * 2 - 1,
+      ]
+    ) {
+      color(colour)
+        CylinderWithIndents(
+          player_token_diameter / 2,
+          height=player_box_height, finger_holes=[90, 270], finger_hole_radius=7
+        );
+    }
+
+    // Upgrade bit.
+    translate(
+      [
+        10,
+        $inner_length - upgrade_width - 7,
+        0,
+      ]
+    ) {
+      color(colour) translate([0, 0, $inner_height - upgrade_thickness - 0.5]) {
+          cuboid([upgrade_length, upgrade_width, long_player_box_height], anchor=BOTTOM + LEFT + FRONT);
+        }
+
+      // Railgun stuff.
+      for (i = [0:2]) {
+        translate(
+          [
+            class_ii_ship_length + railgun_length / 2 + 14,
+            railgun_width / 2 + 10 + (railgun_width + 5) * i,
+            $inner_height - upgrade_thickness - 1 - railgun_thickness,
+          ]
+        ) {
+          color(colour) CuboidWithIndentsBottom(size=[railgun_length, railgun_width, player_box_height], finger_holes=[2, 6], finger_hole_radius=7);
+          color(colour) translate([railgun_length / 2 - railgun_nub_offset, 0, -round_nub_thickness])
+              cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+        }
+        translate(
+          [
+            class_ii_ship_length + railgun_length + cargo_width / 2 + 25,
+            cargo_width / 2 + 10 + (cargo_width + 12) * i,
+            $inner_height - upgrade_thickness - 1 - cargo_thickness,
+          ]
+        ) {
+          color(colour)
+            CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0, 4], finger_hole_radius=5);
+          color(colour) translate([0, 0, -round_nub_thickness])
+              cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+        }
+      }
+
+      // space for under stuff
+      translate([3, 3, $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness / 2]) {
+        color(colour)
+          RoundedBoxAllSides(width=upgrade_length - 6, length=upgrade_width - 6, height=player_box_height, radius=5);
+      }
+
+      // class i ship
+      translate(
+        [
+          upgrade_length / 2 + 5,
+          upgrade_width - class_i_ship_diameter / 2 - 9,
+          $inner_height - upgrade_thickness - 1 - class_i_ship_thickness,
+        ]
+      ) color(colour)
+          CylinderWithIndents(
+            radius=class_i_ship_diameter / 2, height=player_box_height,
+            finger_hole_radius=10,
+            finger_holes=[0, 180]
+          );
+
+      // class ii ship
+      translate(
+        [
+          class_ii_ship_length / 2 + 6,
+          class_ii_ship_width / 2 + 20,
+          $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness,
+        ]
+      ) {
+        color(colour)
+          rotate(30)
+            CuboidWithIndentsBottom(
+              size=[class_ii_ship_length, class_ii_ship_width, player_box_height],
+              rounding=2,
+              edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
+              finger_holes=[0, 4]
+            );
+      }
+
+      // class iii ship
+      translate(
+        [
+          class_iii_ship_radius / 2 + 10,
+          class_ii_ship_width + 17 + class_iii_ship_radius,
+          $inner_height - upgrade_thickness - 1 - class_iii_ship_thickness,
+        ]
+      ) {
+        color(colour)
+          sphere(r=20, anchor=BOTTOM);
+        color(colour)
+          rotate(90)
+            RegularPolygon(
+              shape_edges=3, width=class_iii_ship_apothem / 2, height=player_box_height, rounding=2
+            );
+      }
+    }
+
+    // voting bit.
+    translate(
+      [
+        voting_board_width / 2 + 25,
+        voting_board_length / 2 + 8,
+        $inner_height - cardboard_token_thickness - 1,
+      ]
+    ) {
+      color(colour)
+        cuboid([voting_board_width, voting_board_length, long_player_box_height], anchor=BOTTOM);
+    }
+
+    // Back of screen.
+    translate(
+      [
+        cardboard_token_thickness / 2 + 0.5 + voting_board_width + 27,
+        screen_length / 2 + (screen_length - voting_board_length) / 2,
+        $inner_height - cardboard_token_thickness - 5,
+      ]
+    ) {
+      color(colour)
+        cuboid([cardboard_token_thickness + 1, screen_length, long_player_box_height], anchor=BOTTOM);
+    }
+
+    translate(
+      [
+        voting_board_width / 2 + 10.5,
+        (screen_length - voting_board_length) / 2,
+        $inner_height - cardboard_token_thickness - 5,
+      ]
+    ) {
+      color(colour)
+        cuboid([voting_board_width * 2, cardboard_token_thickness + 2, long_player_box_height], anchor=BOTTOM);
+    }
+
+    translate(
+      [
+        voting_board_width / 2 + 10.5,
+        screen_length + 3,
+        $inner_height - cardboard_token_thickness - 5,
+      ]
+    ) {
+      color(colour)
+        cuboid([voting_board_width * 2, cardboard_token_thickness + 2, player_box_height], anchor=BOTTOM);
+    }
+
+    box_section = ( (voting_board_length + 1) / 5) - 1.5;
+    for (i = [0:4]) {
+      color(colour)
+        translate([-1, (box_section + 1.5) * i + 8, 0]) {
+          RoundedBoxAllSides(length=(voting_board_length / 5) - 1, width=voting_board_width + 17, height=player_box_height, radius=5);
+        }
+    }
+  }
+}
+
+module LongResourceBox(colour = "lightblue") // `make` me
+{
+  MakeBoxWithCapLid(width=long_resource_box_width, length=long_resource_box_length, height=long_resource_box_height, material_colour=colour) {
+    color(colour)
+      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=long_resource_box_height, radius=5);
+  }
+}
+
 module StartTile(thickness) {
   translate([PolygonRadiusFromApothem(hex_width, shape_edges=6) * 1.5, hex_width / 2, 0]) {
     RegularPolygon(shape_edges=6, width=hex_width, height=thickness);
@@ -668,7 +868,7 @@ module BoxLayout() {
     SpacerCardBack();
   for (i = [0:4]) {
     translate([0, ambassador_card_box_length, player_box_height * i + board_thickness])
-      CompletePlayerBox(colour=["yellow", "orange", "purple", "blue", "green"][i]);
+      PlayerBox(colour=["yellow", "orange", "purple", "blue", "green"][i]);
   }
   translate([0, ambassador_card_box_length + player_box_length, board_thickness])
     HexBox();
@@ -689,28 +889,67 @@ module BoxLayout() {
     cube([screen_length, screen_width, upgrade_thickness * 5]);
 }
 
-if (FROM_MAKE != 1) {
-  // UpgradeBoardsBoxLid();
-  CapBoxPathLidWithLabel(
-    [[0, 0], [150, 150], [150, 0]],
-    height=20, text_str="Frog",
-    label_type=LABEL_TYPE_FRAMELESS_ANGLE,
-    text_length=50, 
-    label_width_offset=20,
-    label_length_offset=-20,
-  );
-  /*
-  //BoxLayout();
-  p = ;
-  p2 = offset(p, r=-2, closed=true);
-  difference() {
-    polygon(p);
-    polygon(p2);
+module BoxLayoutLong() {
+  cube([1, box_length, box_height]);
+  cube([box_width, box_length, 1]);
+  translate([0, ambassador_card_box_length, box_height - board_thickness])
+    cube([board_width, board_length, board_thickness]);
+  //  translate([0, ambassador_card_box_length, 0])
+  //  cube([board_width, board_length, board_thickness]);
+  player_colour = ["yellow", "orange", "purple", "blue", "green"];
+  for (i = [0:2]) {
+    translate([0, 0, long_player_box_height * i])
+      LongPlayerBox(player_colour[0 + i * 2]);
+    if (i != 2) {
+      translate(
+        [
+          long_player_box_width + long_player_box_width - long_player_box_gap,
+          long_player_box_length,
+          long_player_box_height * i,
+        ]
+      )
+        rotate(180)
+          LongPlayerBox(player_colour[1 + i * 2]);
+    }
   }
+  resource_colour = ["orange", "yellow", "pink", "lightblue", "lightgreen", "red"];
+  for (i = [0:2]) {
+    translate(
+      [
+        long_player_box_width - long_player_box_gap,
+        upgrade_width + default_wall_thickness * 2 + long_player_box_upgrade_buffer,
+        long_player_box_height * i,
+      ]
+    )
+      LongResourceBox(resource_colour[0 + i * 2]);
+    translate(
+      [
+        long_player_box_width - long_player_box_gap,
+        upgrade_width + default_wall_thickness * 2 + long_player_box_upgrade_buffer + long_resource_box_length,
+        long_player_box_height * i,
+      ]
+    )
+      LongResourceBox(resource_colour[1 + i * 2]);
+  }
+  translate([0, ambassador_card_box_length + player_box_length, long_player_box_height * 3])
+    HexBox();
+  translate([0, 0, long_player_box_height * 3]) {
+    AmbassadorCardBox();
+    translate([0, 0, ambassador_card_box_height])
+      FactionCardBox();
+    translate([0, 0, ambassador_card_box_height + faction_card_box_height])
+      RivalCardBox();
+    translate([0, ambassador_card_box_length, 0])
+      BonusCardBox();
+    translate([ambassador_card_box_width, ambassador_card_box_length, 0])
+      BonusCardBox();
+    translate([ambassador_card_box_width, 0, 0])
+      ActionCardBox();
+    translate([ambassador_card_box_width, 0, action_card_box_height])
+      RiderCardBox();
+  }
+}
 
-  for (i = [0:1:1]) {
-    SegmentCutout(path=[p[i], p[i + 1]], radius=5, height=7, wall_thickness=2);
-  }
-  SegmentCutout(path=[p[2], p[0]], radius=5, height=7, wall_thickness=2);
-  */
+if (FROM_MAKE != 1) {
+  BoxLayoutLong();
 }

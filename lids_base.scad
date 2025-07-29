@@ -102,14 +102,14 @@ function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE 
 //   shape_thickness = how thick to generate the gaps between the hexes (default 2)
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Usage:
-//   LidMeshDense(width = 70, length = 50, lid_thickness = 3, boundary = 10, radius = 5, shape_edges = 6);
+//   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 5, shape_edges = 6);
 // Topics: PatternFill
 // Example:
-//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 6) {
+//   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 6) {
 //      ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX,  shape_width = $layout_width);
 //   }
 // Example:
-//   LidMeshDense(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 3) {
+//   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 3) {
 //      ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE,  shape_width = $layout_width);
 //   }
 module LidMeshDense(
@@ -160,7 +160,7 @@ module LidMeshDense(
 //   LidMeshHex(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10);
 module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thickness = 2, inner_control = false) {
   LidMeshDense(
-    width=width, length=length, lid_thickness=lid_thickness, boundary=boundary, radius=radius,
+    path=square([width, length]), lid_thickness=lid_thickness, boundary=boundary, radius=radius,
     shape_edges=6, inner_control=inner_control
   ) {
     ShapeByType(shape_type=SHAPE_TYPE_DENSE_HEX, shape_width=$layout_width);
@@ -181,16 +181,16 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //   shape_edges = the number of edges on the shape (default 4)
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Usage:
-//   LidMeshRepeating(50, 20, 3, 5, 10);
+//   LidMeshRepeating(square([50,20]), 3, 5, 10);
 // Topics: PatternFill
 // Example:
-//   LidMeshRepeating(width = 50, length = 50, lid_thickness = 3, boundary = 5, layout_width = 10)
+//   LidMeshRepeating(path=square([50,50]), lid_thickness = 3, boundary = 5, layout_width = 10)
 //      difference() {
 //        circle(r = 7);
 //        circle(r = 6);
 //      }
 // Example:
-//   LidMeshRepeating(width = 50, length = 50, lid_thickness = 3, boundary = 5, layout_width = 10, inner_control = 2)
+//   LidMeshRepeating(path=square([50,50]), lid_thickness = 3, boundary = 5, layout_width = 10, inner_control = 2)
 //      Voronoi(width = 50, length = 50, thickness = 2, cellsize = 10);
 module LidMeshRepeating(
   path,
@@ -319,18 +319,19 @@ module LidMeshBasic(
 
   calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
   calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
+  calc_path = width == undef ? path : square([width, length]);
   intersection() {
     union() {
       if (dense) {
         LidMeshDense(
-          path=width == undef ? path : square([width, length]), lid_thickness=lid_thickness, boundary=boundary,
+          path=calc_path, lid_thickness=lid_thickness, boundary=boundary,
           radius=calc_layout_width / 2, shape_edges=dense_shape_edges, material_colour=material_colour, inner_control=inner_control
         ) {
           children();
         }
       } else {
         LidMeshRepeating(
-          path=width == undef ? path : square([width, length]),
+          path=calc_path,
           lid_thickness=lid_thickness, boundary=boundary,
           layout_width=calc_layout_width, shape_edges=4, aspect_ratio=calc_aspect_ratio,
           material_colour=material_colour, inner_control=inner_control
@@ -339,11 +340,11 @@ module LidMeshBasic(
         }
       }
       difference() {
-        color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(path);
-        color(material_colour) translate([0, 0, -0.5]) linear_extrude(lid_thickness + 1) offset(-boundary - 0.01) polygon(path);
+        color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(calc_path);
+        color(material_colour) translate([0, 0, -0.5]) linear_extrude(lid_thickness + 1) offset(-boundary - 0.01) polygon(calc_path);
       }
     }
-    color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(path);
+    color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(calc_path);
   }
 }
 

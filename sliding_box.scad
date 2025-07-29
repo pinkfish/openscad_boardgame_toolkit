@@ -34,7 +34,7 @@ under the License.
 //   Creates a sliding lid for a sliding lid box, the children to this module are inserted into the lid.
 //   This does all the right things on the edges, uses some
 //   wiggle room to add in a buffer and also does a small amount of angling on the ends to make them easier
-//   to insert.
+//   to insert. 
 // Usage:
 //   SlidingLid(width=10, length=30, lid_thickness=3, wall_thickness = 2, size_spacing = 0.2);
 // Arguments:

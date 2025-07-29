@@ -19,6 +19,12 @@
 //    The boxex which have no lids with them.
 //
 
+// FileSummary: Boxes with no lids.
+// FileGroup: Boxes
+
+// Includes:
+//   include <boardgame_toolkit.scad>
+
 // Module: MakeBoxWithNoLid()
 // Description:
 //   Makes a box with no lid, useful for spacers and other things in games.
@@ -90,3 +96,4 @@ module MakeBoxWithNoLid(
     translate([wall_thickness, wall_thickness, floor_thickness]) children();
   }
 }
+

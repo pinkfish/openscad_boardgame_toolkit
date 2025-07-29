@@ -62,7 +62,7 @@ module InsetLid(
   calc_lid_rounding = lid_rounding == undef ? wall_thickness / 2 : lid_rounding;
   $inner_width = width - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
   $inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2;
-  internal_build_lid(lid_thicknes=lid_thickness, size_spacing=size_spacing) {
+  internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
     translate([wall_thickness - inset + m_piece_wiggle_room, wall_thickness - inset + m_piece_wiggle_room, 0])
       color(material_colour) cuboid(
           [$inner_width, $inner_length, lid_thickness],
@@ -402,7 +402,7 @@ module InsetLidTabbedWithLabel(
 //   tab_length = how long the tab is (default 10)
 //   stackable = should we pull a piece out the bottom of the box to let this stack (default false)
 //   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
-//   floor_thickness = thickness of the floor (default {{defalt_floor_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Topics: TabbedBox, TabbedLid
