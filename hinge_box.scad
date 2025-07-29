@@ -270,22 +270,21 @@ module HingeBoxLidLabel(
         );
     }
 
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=$inner_width, length=$inner_length,
-        lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio,
-        dense=IsDenseShapeType(shape_type),
-        dense_shape_edges=DenseShapeEdges(shape_type),
-        material_colour=material_colour,
-        inner_control=ShapeNeedsInnerControl(shape_type)
-      ) {
-        color(material_colour)
-          ShapeByType(
-            shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-            shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
-          );
-      }
+    LidMeshBasic(
+      width=$inner_width, length=$inner_length,
+      lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio,
+      dense=IsDenseShapeType(shape_type),
+      dense_shape_edges=DenseShapeEdges(shape_type),
+      material_colour=material_colour,
+      inner_control=ShapeNeedsInnerControl(shape_type)
+    ) {
+      color(material_colour)
+        ShapeByType(
+          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        );
+    }
     rotate([0, 180, 0])
       translate([-$inner_width, 0, -lid_thickness])
         MakeLidLabel(

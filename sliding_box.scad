@@ -268,19 +268,18 @@ module SlidingBoxLidWithLabelAndCustomShape(
     lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
     lid_on_length=lid_on_length, material_colour=material_colour
   ) {
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
-        inner_control=pattern_inner_control
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
+      inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
+    }
     translate([label_length_offset + default_wall_thickness, label_width_offset + default_wall_thickness, 0]) {
       MakeLidLabel(
         width=width - default_wall_thickness * 2, length=length - default_wall_thickness * 2,

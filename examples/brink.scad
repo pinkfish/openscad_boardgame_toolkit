@@ -135,8 +135,6 @@ long_resource_box_length = (box_length - 7 - upgrade_width * 2 - long_player_box
 long_resource_box_width = long_player_box_gap - 1;
 long_resource_box_height = long_player_box_height;
 
-echo([long_resource_box_length, long_resource_box_width]);
-
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -951,5 +949,5 @@ module BoxLayoutLong() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutLong();
+  RivalCardBoxLid();
 }

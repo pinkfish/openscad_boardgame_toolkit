@@ -408,19 +408,18 @@ module CapBoxLidWithLabelAndCustomShape(
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
     material_colour=material_colour
   ) {
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
-        inner_control=pattern_inner_control
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
+      inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
+    }
     translate([lid_boundary, lid_boundary, 0])
       MakeLidLabel(
         width=width - lid_boundary * 2, length=length - lid_boundary * 2,

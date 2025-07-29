@@ -304,7 +304,7 @@ module CapBoxPathLid(
           internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
             difference() {
               // Top piece
-              color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=wall_thickness));
+              color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=wall_thickness / 2));
             }
             if ($children > 0) {
               children(0);
@@ -327,7 +327,7 @@ module CapBoxPathLid(
           }
         }
         difference() {
-          color(material_colour) offset_sweep(calc_path, height=calc_cap_height, top=os_smooth(joint=wall_thickness));
+          color(material_colour) offset_sweep(calc_path, height=calc_cap_height, top=os_smooth(joint=wall_thickness / 2));
           translate([0, 0, -0.5])
             color(material_colour) linear_extrude(height=calc_cap_height + 1) offset(-wall_thickness / 2 + size_spacing) polygon(calc_path);
         }

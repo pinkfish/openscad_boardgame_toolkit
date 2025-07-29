@@ -335,18 +335,17 @@ module SlipoverBoxLidWithLabelAndCustomShape(
     finger_hole_length=finger_hole_length, finger_hole_width=finger_hole_width,
     material_colour=material_colour, lid_catch=lid_catch
   ) {
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control,
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control,
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
+    }
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,

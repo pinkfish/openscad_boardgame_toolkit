@@ -372,18 +372,17 @@ module MagneticBoxLidWithLabelAndCustomShape(
     lid_rounding=lid_rounding, size_spacing=size_spacing, magnet_diameter=magnet_diameter,
     magnet_thickness=magnet_thickness, material_colour=material_colour
   ) {
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
+    }
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,

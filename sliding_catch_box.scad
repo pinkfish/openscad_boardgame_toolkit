@@ -287,17 +287,16 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
     lid_rounding=lid_rounding, size_spacing=size_spacing, top_thickness=top_thickness,
     fill_middle=fill_middle, material_colour=material_colour
   ) {
-    translate([lid_boundary, lid_boundary, 0])
-      LidMeshBasic(
-        width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, inner_control=pattern_inner_control
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
+    }
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
