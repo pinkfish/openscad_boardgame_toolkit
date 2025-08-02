@@ -87,27 +87,32 @@ module FingerHoleSegmentCutout(path, radius, height, wall_thickness) {
 //.   follows the specified line segment making sure we are in the correct lengths.
 // Arguments:
 //    path = the path to generate for (this should be one line segment)
-//    radius = the radius of the rounding on the fingerhole
+//    offset = the offset of the rounding on the fingerhole
 //    wall_thickness = the thickness of the walls
 //    delta = how much to offset the segment by
 // Example:
-//    PolygonBoxLidCatch(path=[[0,0], [50,50]], radius=5, wall_thickness = 2, delta=0);
+//    PolygonBoxLidCatch(path=[[0,0], [50,50]], offset=5, wall_thickness = 2, delta=0);
 // Example:
-//    PolygonBoxLidCatch(path=[[0,0], [50,50]], radius=5, wall_thickness = 2, delta=2);
-module PolygonBoxLidCatch(path, wall_thickness, radius, delta) {
+//    PolygonBoxLidCatch(path=[[0,0], [50,50]], offset=5, wall_thickness = 2, delta=2);
+module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
   assert(is_path(path), "\nInvalid path in MakePathBoxWithCapLid.");
   assert(delta != undef, "\ndelta undef in MakePathBoxWithCapLid.");
   split_length = path_length(path);
   normal = path_normals(path);
   calc_len = split_length / 5;
 
-  if (calc_len * 4 - radius - wall_thickness - (calc_len + wall_thickness + radius) > 5) {
-    pts = path_cut_points(
-      path=path,
-      cutdist=[calc_len + wall_thickness + radius, calc_len * 4 - radius - wall_thickness]
-    );
+  if (calc_len * 4 - offset - wall_thickness + delta - (calc_len + wall_thickness + offset - delta) > 5 && lid_catch != CATCH_NONE) {
+    vec_m = abs(path[0][0] - path[1][0]) / abs(path[0][1] - path[1][1]);
+    if (
+      lid_catch == CATCH_ALL || (lid_catch == CATCH_LENGTH && vec_m > 1000000) || (lid_catch == CATCH_WIDTH && vec_m < 0.01)
+    ) {
+      pts = path_cut_points(
+        path=path,
+        cutdist=[calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
+      );
 
-    path_sweep([[-delta, -delta], [-wall_thickness - delta, -delta], [-delta, wall_thickness + delta]], [pts[0][0], pts[1][0]]);
+      path_sweep([[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]], [pts[0][0], pts[1][0]]);
+    }
   }
 }
 
@@ -162,9 +167,10 @@ module MakePathBoxWithCapLid(
   calc_finger_hold_height = finger_hold_height == undef ? CapBoxDefaultFingerHoldHeight(height) : finger_hold_height;
   calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
   calc_path = round_corners(path, radius=wall_thickness);
+  inner_path = offset(path, r=-wall_thickness);
 
-  x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
-  y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
+  x_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][0]];
+  y_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][1]];
 
   calc_width = max(x_arr) - min(x_arr);
   calc_length = max(y_arr) - min(y_arr);
@@ -174,7 +180,8 @@ module MakePathBoxWithCapLid(
       linear_extrude(height=height - lid_thickness - size_spacing) polygon(calc_path);
 
     // lid diff.
-    translate([0, 0, height - calc_cap_height]) difference() {
+    translate([0, 0, height - calc_cap_height]) {
+      difference() {
         difference() {
           color(material_colour)
             linear_extrude(height=height) offset(size_spacing) polygon(calc_path);
@@ -183,9 +190,11 @@ module MakePathBoxWithCapLid(
               linear_extrude(height + 1) offset(-calc_lid_wall_thickness - size_spacing) polygon(calc_path);
         }
       }
+    }
 
     // Finger cutouts.
-    translate([0, 0, height - calc_cap_height - calc_finger_hold_height]) difference() {
+    translate([0, 0, height - calc_cap_height - calc_finger_hold_height]) {
+      difference() {
         // Remove the edge around the outside where the finger bits go.
         difference() {
           color(material_colour)
@@ -209,21 +218,25 @@ module MakePathBoxWithCapLid(
           wall_thickness=wall_thickness
         );
       }
+    }
 
+    // Catches
     translate([0, 0, height - calc_cap_height]) {
       for (i = [0:1:len(calc_path) - 2]) {
         PolygonBoxLidCatch(
           path=[calc_path[i], calc_path[i + 1]],
-          radius=calc_finger_hole_rounding,
+          offset=calc_finger_hole_rounding,
           wall_thickness=wall_thickness,
-          delta=size_spacing
+          delta=size_spacing,
+          lid_catch=lid_catch
         );
       }
       PolygonBoxLidCatch(
         path=[calc_path[len(calc_path) - 1], calc_path[0]],
-        radius=calc_finger_hole_rounding,
+        offset=calc_finger_hole_rounding,
         wall_thickness=wall_thickness,
-        delta=size_spacing
+        delta=size_spacing,
+        lid_catch=lid_catch
       );
     }
 
@@ -249,7 +262,7 @@ module MakePathBoxWithCapLid(
   }
 }
 
-// Module: CapBoxPathLid()
+// Module: CapPathBoxLid()
 // Topics: CapBox
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
@@ -266,14 +279,14 @@ module MakePathBoxWithCapLid(
 //    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: CapBoxPathLid(path=[[0,0], [0,100], [100,100]], 20);
+// Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
 // Example:
-//    CapBoxPathLid(path=[[0,0], [0,100], [100,100]], 30);
+//    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 30);
 // Example:
-//    CapBoxPathLid(path=[[0,0], [0,100], [100,100]], 10);
+//    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 10);
 // Example:
-//    CapBoxPathLid(path=[[0,0], [0,100], [100,100]], 10, cap_height = 3);
-module CapBoxPathLid(
+//    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 10, cap_height = 3);
+module CapPathBoxLid(
   path,
   height,
   cap_height = undef,
@@ -300,12 +313,12 @@ module CapBoxPathLid(
   translate([0, calc_length, calc_cap_height])
     rotate([180, 0, 0]) {
       union() {
+
         translate([0, 0, calc_cap_height - lid_thickness]) {
           internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
-            difference() {
-              // Top piece
-              color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=wall_thickness / 2));
-            }
+            // Top piece
+            color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=wall_thickness / 2));
+
             if ($children > 0) {
               children(0);
             }
@@ -326,10 +339,14 @@ module CapBoxPathLid(
             }
           }
         }
+
         difference() {
-          color(material_colour) offset_sweep(calc_path, height=calc_cap_height, top=os_smooth(joint=wall_thickness / 2));
+          color(material_colour) linear_extrude(height=calc_cap_height - lid_thickness / 2)
+              polygon(calc_path);
           translate([0, 0, -0.5])
-            color(material_colour) linear_extrude(height=calc_cap_height + 1) offset(-wall_thickness / 2 + size_spacing) polygon(calc_path);
+            color(material_colour) linear_extrude(height=calc_cap_height - lid_thickness / 2 + 1)
+                offset(-wall_thickness + size_spacing)
+                  polygon(calc_path);
         }
 
         // lid catches
@@ -337,7 +354,7 @@ module CapBoxPathLid(
           color(material_colour)
             PolygonBoxLidCatch(
               path=[calc_path[i], calc_path[i + 1]],
-              radius=calc_finger_hole_rounding,
+              offset=calc_finger_hole_rounding,
               wall_thickness=wall_thickness,
               delta=0
             );
@@ -345,7 +362,7 @@ module CapBoxPathLid(
         color(material_colour)
           PolygonBoxLidCatch(
             path=[calc_path[len(calc_path) - 1], calc_path[0]],
-            radius=calc_finger_hole_rounding,
+            offset=calc_finger_hole_rounding,
             wall_thickness=wall_thickness,
             delta=0
           );
@@ -353,7 +370,7 @@ module CapBoxPathLid(
     }
 }
 
-// Module: CapBoxPathLidWithLabelAndCustomShape()
+// Module: CapPathBoxLidWithLabelAndCustomShape()
 // Topics: CapBox
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
@@ -375,6 +392,8 @@ module CapBoxPathLid(
 //    label_type = the type of the label (default {{default_label_type}})
 //    label_border= border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
+//    label_width_offset = the width to move the label by (default 0})
+//    label_length_offset = the length to move the label by (default 0)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -387,15 +406,15 @@ module CapBoxPathLid(
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    inner_control = if the shape needs inner control (default false)
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: CapBoxPathLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog",  text_length=50, label_width_offset=20, label_length_offset=-20);
+// Usage: CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog",  text_length=50, label_width_offset=20, label_length_offset=-20);
 // Example:
-//    CapBoxPathLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
+//    CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //        text_length=50, label_width_offset=20,
 //        label_length_offset=-20) {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
 //    }
-module CapBoxPathLidWithLabelAndCustomShape(
+module CapPathBoxLidWithLabelAndCustomShape(
   path,
   height,
   text_length,
@@ -435,7 +454,7 @@ module CapBoxPathLidWithLabelAndCustomShape(
   calc_width = max(x_arr) - min(x_arr);
   calc_length = max(y_arr) - min(y_arr);
 
-  CapBoxPathLid(
+  CapPathBoxLid(
     path=path, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness,
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
@@ -485,7 +504,7 @@ module CapBoxPathLidWithLabelAndCustomShape(
   }
 }
 
-// Module: CapBoxPathLidWithLabel()
+// Module: CapPathBoxLidWithLabel()
 // Topics: CapBox
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
@@ -497,6 +516,8 @@ module CapBoxPathLidWithLabelAndCustomShape(
 //    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
 //    label_radius = radius of the label corners (default text_width/4)
 //    label_type = the type of the label (default {{default_label_type}})
+//    label_width_offset = the width to move the label by (default 0})
+//    label_length_offset = the length to move the label by (default 0)
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
@@ -515,21 +536,21 @@ module CapBoxPathLidWithLabelAndCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
-// Usage: CapBoxPathLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", text_length=50,  label_width_offset=20,  label_length_offset=-20);
+// Usage: CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", text_length=50,  label_width_offset=20,  label_length_offset=-20);
 // Example:
-//    CapBoxPathLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", text_length=50,  label_width_offset=20,  label_length_offset=-20);
+//    CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", text_length=50,  label_width_offset=20,  label_length_offset=-20);
 // Example:
-//    CapBoxPathLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog",  text_length=50, label_width_offset=20,  label_length_offset=-20);
+//    CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog",  text_length=50, label_width_offset=20,  label_length_offset=-20);
 // Example:
-//    CapBoxPathLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", material_colour =
+//    CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", material_colour =
 //    "lightblue", label_colour = "black", text_length=50, label_width_offset=20,  label_length_offset=-20);
 // Example:
 //    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 //    default_lid_shape_thickness = 1;
 //    default_lid_shape_width = 13;
 //    default_lid_layout_width = 10;
-//    CapBoxPathLidWithLabel(path=[[0,0], [0,120], [70,120]], height=30, text_str = "Cards", text_length=50,  label_width_offset=20,  label_length_offset=-20);
-module CapBoxPathLidWithLabel(
+//    CapPathBoxLidWithLabel(path=[[0,0], [0,120], [70,120]], height=30, text_str = "Cards", text_length=50,  label_width_offset=20,  label_length_offset=-20);
+module CapPathBoxLidWithLabel(
   path,
   height,
   text_str,
@@ -561,7 +582,7 @@ module CapBoxPathLidWithLabel(
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
-  CapBoxPathLidWithLabelAndCustomShape(
+  CapPathBoxLidWithLabelAndCustomShape(
     path=path, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, font=font, text_str=text_str,
     text_length=text_length, text_scale=text_scale, label_type=label_type, label_radius=label_radius,

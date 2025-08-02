@@ -204,6 +204,11 @@ CATCH_LENGTH = 1;
 // Description:
 //   Catch on the width side.
 CATCH_WIDTH = 2;
+// Constant: CATCH_ALL
+// Description:
+//   Catch on the all sides.
+CATCH_ALL = 3;
+
 
 // Constant: LABEL_TYPE_FRAMED
 // Description:

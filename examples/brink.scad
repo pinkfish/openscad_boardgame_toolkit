@@ -949,5 +949,20 @@ module BoxLayoutLong() {
 }
 
 if (FROM_MAKE != 1) {
-  RivalCardBoxLid();
+  CapPathBoxLidWithLabel(
+    [
+      [0, 0],
+      [0, long_player_box_length],
+      [long_player_box_width, long_player_box_length],
+      [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, 0],
+    ],
+    height=long_player_box_height,
+    material_colour="orange",
+    text_str="frog",
+    text_length=50,
+    text_scale=0.5,
+    label_width_offset=-28
+  );
 }

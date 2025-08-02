@@ -121,10 +121,16 @@ module MakeBoxWithCapLid(
   calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
   difference() {
     color(material_colour)
-      cuboid(
-        [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
-        rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-      );
+      diff()
+        cuboid(
+          [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
+          rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        ) {
+          face_profile(BOTTOM, r=wall_thickness / 2)
+            mask2d_roundover(wall_thickness / 2);
+          corner_profile(BOTTOM, r=wall_thickness / 2) mask2d_roundover(wall_thickness / 2);
+        }
+
     // lid diff.
     translate([0, 0, height - calc_cap_height]) difference() {
         translate([-size_spacing, -size_spacing, 0]) color(material_colour)
@@ -272,14 +278,15 @@ module CapBoxLid(
       union() {
         translate([0, 0, calc_cap_height - lid_thickness])
           internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
-            difference() {
-              // Top piece
-              color(material_colour) cuboid(
+            // Top piece
+            color(material_colour) diff() cuboid(
                   [width, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT,
                   rounding=calc_lid_rounding,
                   edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-                );
-            }
+                ) {
+                  face_profile(TOP, r=wall_thickness / 2)
+                    mask2d_roundover(wall_thickness / 2);
+                }
             if ($children > 0) {
               children(0);
             }
@@ -300,11 +307,11 @@ module CapBoxLid(
             }
           }
         difference() {
-          color(material_colour) cuboid(
-              [width, length, calc_cap_height], anchor=BOTTOM + FRONT + LEFT,
-              rounding=calc_lid_wall_thickness / 2,
-              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-            );
+          color(material_colour) diff() cuboid(
+                [width, length, calc_cap_height], anchor=BOTTOM + FRONT + LEFT,
+                rounding=calc_lid_wall_thickness / 2,
+                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + FRONT, TOP + BACK, TOP + LEFT, TOP + RIGHT]
+              );
           translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5]) color(material_colour) cube(
                 [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1]
               );
@@ -316,16 +323,16 @@ module CapBoxLid(
     if (lid_catch == CATCH_LENGTH) {
       catch_width = width - wall_thickness * 2;
       translate([(catch_width * 6 / 8) + wall_thickness, 0, 0]) color(material_colour) rotate([0, 180, 0])
-            wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
+            wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
       translate([(catch_width * 2 / 8) + wall_thickness, length, 0]) rotate(180) rotate([0, 180, 0])
-            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
+            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
     } else if (lid_catch == CATCH_WIDTH) {
       catch_length = length - wall_thickness * 2;
       translate([width, catch_length * 6 / 8 + wall_thickness + size_spacing, 0]) rotate(90)
           color(material_colour) rotate([0, 180, 0])
-              wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
+              wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
       translate([0, catch_length * 2 / 8 + wall_thickness + size_spacing, 0]) rotate(270) color(material_colour)
-            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness, wall_thickness]);
+            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
     }
   }
 }

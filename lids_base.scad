@@ -341,7 +341,7 @@ module LidMeshBasic(
       }
       difference() {
         color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(calc_path);
-        color(material_colour) translate([0, 0, -0.5]) linear_extrude(lid_thickness + 1) offset(-boundary - 0.01) polygon(calc_path);
+        color(material_colour) translate([0, 0, -0.5]) linear_extrude(lid_thickness + 1) offset(-boundary - 0.02) polygon(calc_path);
       }
     }
     color(material_colour) linear_extrude(lid_thickness) offset(-boundary) polygon(calc_path);

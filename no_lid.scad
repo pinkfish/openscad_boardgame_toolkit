@@ -60,10 +60,18 @@ module MakeBoxWithNoLid(
   calc_make_finger_width = make_finger_width == undef && make_finger_length == undef ? width > length : false;
   calc_make_finger_length = make_finger_width == undef && make_finger_length == undef ? length > width : false;
   difference() {
-    color(material_colour) cuboid(
-        [width, length, height], anchor=BOTTOM + FRONT + LEFT,
-        rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-      );
+    color(material_colour) diff() {
+        cuboid(
+          [width, length, height], anchor=BOTTOM + FRONT + LEFT,
+          rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        ) {
+          face_profile(TOP, r=wall_thickness / 2)
+            mask2d_roundover(wall_thickness / 2);
+          face_profile(BOTTOM, r=wall_thickness / 2)
+            mask2d_roundover(wall_thickness / 2);
+          corner_profile("ALL", r=wall_thickness / 2) mask2d_roundover(wall_thickness / 2);
+        }
+      }
 
     if (hollow) {
       translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour) {
@@ -96,4 +104,3 @@ module MakeBoxWithNoLid(
     translate([wall_thickness, wall_thickness, floor_thickness]) children();
   }
 }
-

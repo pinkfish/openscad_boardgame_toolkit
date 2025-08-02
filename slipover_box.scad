@@ -290,7 +290,6 @@ module SlipoverBoxLid(
 //    finger_hole_width = finger hole on the width side (default true)
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
 //       {{CATCH_LENGTH}})
-//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
 // Example:
 //    SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog") {
@@ -326,7 +325,6 @@ module SlipoverBoxLidWithLabelAndCustomShape(
   material_colour = default_material_colour,
   label_background_colour = undef,
   lid_catch = CATCH_LENGTH,
-  finger_hole_size = undef,
   pattern_inner_control
 ) {
   SlipoverBoxLid(
@@ -353,7 +351,7 @@ module SlipoverBoxLidWithLabelAndCustomShape(
       label_radius=label_radius,
       material_colour=material_colour, label_colour=label_colour,
       label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size, label_type=label_type,
+      label_type=label_type,
     );
 
     // Don't include the first child since is it used for the lid shape.
@@ -440,7 +438,6 @@ module SlipoverBoxLidWithLabel(
   material_colour = default_material_colour,
   label_background_colour = undef,
   lid_catch = CATCH_LENGTH,
-  finger_hole_size = undef,
 ) {
   SlipoverBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
@@ -452,7 +449,6 @@ module SlipoverBoxLidWithLabel(
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour,
     label_background_colour=label_background_colour, lid_catch=lid_catch,
-    finger_hole_size=finger_hole_size,
     pattern_inner_control=ShapeNeedsInnerControl(shape_type), label_type=label_type
   ) {
     color(material_colour)
