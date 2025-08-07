@@ -317,9 +317,9 @@ module CommonBox() // `make` me
     width=common_box_width,
     length=common_box_length, height=common_box_height
   ) {
-    for (i = [0:1]) {
-      for (j = [0:2]) {
-        translate([(trophy_length / 2 + 5) * (1 + i * 2), (trophy_width / 2 + 2) * (1 + j * 2), $inner_height - cardboard_token_thickness + 0.5]) {
+    for (i = [1:1]) {
+      for (j = [0:0]) {
+        translate([(trophy_length / 2 + 5) * (1 + i * 2), (trophy_width / 2 + 2) * (1 + j * 2), $inner_height - cardboard_token_thickness * 6 + 0.5]) {
           cuboid([trophy_length, trophy_width, common_box_height], anchor=BOTTOM);
           translate([trophy_length / 2, 0, 0])
             sphere(r=15, anchor=BOTTOM);
@@ -327,10 +327,23 @@ module CommonBox() // `make` me
             sphere(r=15, anchor=BOTTOM);
         }
       }
+      for (i = [0:1]) {
+        for (j = [0:2]) {
+          translate([(trophy_length / 2 + 5) * (1 + i * 2), (trophy_width*(i) + hex_size/2 + 10) + (hex_size + 1) * ( j ), $inner_height - cardboard_token_thickness * 3 + 0.5]) {
+            if (!(j == 2 && i== 1)) {
+            RegularPolygon(
+              width=hex_size, shape_edges=6, height=player_box_height,
+              finger_holes=i == 1?[8, 9]:[0,11]
+            );
+            }
+          }
+        }
+      }
+
       translate(
         [
-          $inner_width / 2,
-          $inner_length - wood_token_diameter / 2 - 10,
+          $inner_width *3/ 4,
+          $inner_length - wood_token_diameter / 2 - 3,
           $inner_height - wood_token_thickness - 0.5,
         ]
       ) {
@@ -424,7 +437,7 @@ module CardBoxPlayer(colour) // `make` me
 module CardBoxPlayerLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, text_str="Player"
+    width=player_card_box_width, length=player_card_box_length, text_str="Player"
   );
 }
 
@@ -509,5 +522,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxLid();
+  CardBoxPlayerLid();
 }

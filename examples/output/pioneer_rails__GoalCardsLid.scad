@@ -1,5 +1,5 @@
 MAKE_MMU = 0;
 FROM_MAKE = 0;
-$fn = 128;
+$fn = 64;
 include <../pioneer_rails.scad>
 GoalCardsLid();
