@@ -41,7 +41,7 @@ board_length = 231;
 
 cardboard_token_thickness = 2;
 
-voting_board_width = 39;
+voting_board_width = 40;
 voting_board_length = 196;
 
 upgrade_width = 86;
@@ -55,13 +55,13 @@ player_token_diameter = 14;
 screen_length = 204;
 screen_width = 102;
 
-class_i_ship_diameter = 23;
+class_i_ship_diameter = 24;
 class_i_ship_thickness = 10;
 
-class_iii_ship_edge_length = 35;
+class_iii_ship_edge_length = 40;
 class_iii_ship_thickness = 10;
-class_iii_ship_radius = 35 / sqrt(3);
-class_iii_ship_apothem = 35 * sqrt(3) / 3 * 2;
+class_iii_ship_radius = class_iii_ship_edge_length / sqrt(3);
+class_iii_ship_apothem = class_iii_ship_edge_length * sqrt(3) / 3 * 2;
 
 class_ii_ship_length = 38;
 class_ii_ship_width = 19;
@@ -74,10 +74,10 @@ railgun_width = 10;
 railgun_thickness = 8;
 railgun_nub_offset = 4;
 
-round_nub = 3;
+round_nub = 4.5;
 round_nub_thickness = 3;
 
-cargo_width = 13;
+cargo_width = 13.5;
 cargo_thickness = 10;
 
 ambassador_card_box_width = box_width / 2 - 1;
@@ -129,7 +129,7 @@ long_player_box_gap = 60;
 long_player_box_upgrade_buffer = 5;
 long_player_box_length = box_length - 2;
 long_player_box_width = (box_width - 2 - long_player_box_gap) / 2 + long_player_box_gap;
-long_player_box_height = default_floor_thickness + default_lid_thickness + class_i_ship_thickness + upgrade_thickness + 1;
+long_player_box_height = default_floor_thickness + default_lid_thickness + class_i_ship_thickness + upgrade_thickness + 1.5;
 
 long_resource_box_length = (box_length - 7 - upgrade_width * 2 - long_player_box_upgrade_buffer * 2 - default_wall_thickness * 2) / 2;
 long_resource_box_width = long_player_box_gap - 1;
@@ -642,7 +642,7 @@ module LongPlayerBox(colour = "green") // 'make' me
           [
             class_ii_ship_length + railgun_length + cargo_width / 2 + 25,
             cargo_width / 2 + 10 + (cargo_width + 12) * i,
-            $inner_height - upgrade_thickness - 1 - cargo_thickness,
+            $inner_height - upgrade_thickness - cargo_thickness,
           ]
         ) {
           color(colour)
@@ -661,7 +661,7 @@ module LongPlayerBox(colour = "green") // 'make' me
       // class i ship
       translate(
         [
-          upgrade_length / 2 + 5,
+          upgrade_length / 2 + 9,
           upgrade_width - class_i_ship_diameter / 2 - 9,
           $inner_height - upgrade_thickness - 1 - class_i_ship_thickness,
         ]
@@ -760,6 +760,53 @@ module LongPlayerBox(colour = "green") // 'make' me
         translate([-1, (box_section + 1.5) * i + 8, 0]) {
           RoundedBoxAllSides(length=(voting_board_length / 5) - 1, width=voting_board_width + 17, height=player_box_height, radius=5);
         }
+    }
+  }
+}
+
+module LongFactionBox(colour = "green") // 'make' me
+{
+  MakePathBoxWithCapLid(
+    path=[
+      [0, 0],
+      [0, long_player_box_length],
+      [long_player_box_width, long_player_box_length],
+      [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, 0],
+    ],
+    height=long_player_box_height,
+    material_colour=colour,
+  ) {
+        translate([0, (small_card_length - card_width) / 2, $inner_height - 10 * single_card_thickness])
+      cube([card_length, card_width, ambassador_card_box_height]);
+
+  }
+}
+
+
+module LongHexBox(colour = "green") // 'make' me
+{
+  MakePathBoxWithCapLid(
+    path=[
+      [0, 0],
+      [0, long_player_box_length],
+      [long_player_box_width, long_player_box_length],
+      [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, 0],
+    ],
+    height=long_player_box_height,
+    material_colour=colour,
+  ) {
+    echo([$inner_height, $inner_height / cardboard_token_thickness, 7 * 3]);
+    for (i = [0:2]) {
+      translate([hex_width / 2 + 0.5, (PolygonRadiusFromApothem(hex_width, shape_edges=6) + 1) * (i * 2 + 1), 0]) {
+        rotate(30)
+          RegularPolygon(shape_edges=6, width=hex_width, height=hex_box_height);
+        translate([0, -PolygonRadiusFromApothem(hex_width, shape_edges=6), 0])
+          cuboid([25, 20, hex_box_height + 20], rounding=10, anchor=BOTTOM);
+      }
     }
   }
 }
@@ -929,6 +976,7 @@ module BoxLayoutLong() {
     )
       LongResourceBox(resource_colour[1 + i * 2]);
   }
+  /*
   translate([0, ambassador_card_box_length + player_box_length, long_player_box_height * 3])
     HexBox();
   translate([0, 0, long_player_box_height * 3]) {
@@ -946,23 +994,9 @@ module BoxLayoutLong() {
     translate([ambassador_card_box_width, 0, action_card_box_height])
       RiderCardBox();
   }
+  */
 }
 
 if (FROM_MAKE != 1) {
-  CapPathBoxLidWithLabel(
-    [
-      [0, 0],
-      [0, long_player_box_length],
-      [long_player_box_width, long_player_box_length],
-      [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
-      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
-      [long_player_box_width - long_player_box_gap, 0],
-    ],
-    height=long_player_box_height,
-    material_colour="orange",
-    text_str="frog",
-    text_length=50,
-    text_scale=0.5,
-    label_width_offset=-28
-  );
+  LongFactionBox();
 }
