@@ -32,6 +32,7 @@ disk_middle_thickness = 1.5;
 
 leopard_length = 100;
 leopard_width = 40;
+leopard_thickness = 10;
 
 board_thickness = 7;
 
@@ -52,12 +53,16 @@ hunter_card_box_length = card_width + default_wall_thickness * 2;
 hunter_card_box_height = resource_box_height;
 
 dial_box_height = disk_diameter + default_wall_thickness + default_floor_thickness + 1;
-dial_box_width = (box_width - hunter_card_box_width - 2) / 2;
-dial_box_length = (box_length - resource_box_length - 2);
+dial_box_width = disk_thickness / 2 + 5 + (disk_thickness + 4.5) * 10 + default_wall_thickness * 2;
+dial_box_length = (box_width - hunter_card_box_width - 2) / 2;
 
 card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
 card_box_height = box_height - board_thickness - 1;
+
+leopard_box_width = dial_box_width;
+leopard_box_length = box_length - 2 - dial_box_length * 2 - resource_box_length;
+leopard_box_height = dial_box_height;
 
 spacer_card_width = box_width - hunter_card_box_width - 1;
 spacer_card_length = hunter_card_box_length;
@@ -67,9 +72,15 @@ spacer_side_width = hunter_card_box_width;
 spacer_side_length = box_length - hunter_card_box_length - resource_box_length - 2;
 spacer_side_height = box_height - board_thickness - 2;
 
-spacer_dial_box_width = dial_box_width * 2;
-spacer_dial_box_length = dial_box_length;
+spacer_dial_box_width = dial_box_width;
+spacer_dial_box_length = box_length - 2 - resource_box_length;
 spacer_dial_box_height = box_height - board_thickness - 2 - dial_box_height;
+
+spacer_extra_box_width = dial_box_width;
+spacer_extra_box_length = box_length - 2 - dial_box_length * 2 - resource_box_length;
+spacer_extra_box_height = dial_box_height;
+
+echo([dial_box_width, dial_box_length]);
 
 module ResourceBox() // `make` me
 {
@@ -119,24 +130,24 @@ module DialBox() // `make` me
     length=dial_box_length,
     height=dial_box_height
   ) {
-    translate([$inner_width / 2, dial_box_length / 2, $inner_height - disk_diameter / 2])
+    translate([dial_box_width / 2, $inner_length / 2, $inner_height - disk_diameter / 2])
       cuboid(
-        [disk_diameter / 2, dial_box_length + 10, disk_diameter], anchor=BOTTOM,
+        [dial_box_width + 10, disk_diameter / 2, disk_diameter], anchor=BOTTOM,
         rounding=disk_diameter / 4,
-        edges=[LEFT + BOTTOM, RIGHT + BOTTOM]
+        edges=[FRONT + BOTTOM, BACK + BOTTOM]
       );
-    translate([$inner_width / 2, dial_box_length / 2, $inner_height - disk_diameter / 4])
+    translate([dial_box_width / 2, $inner_length / 2, $inner_height - disk_diameter / 4])
       cuboid(
-        [disk_diameter / 2, dial_box_length + 10, disk_diameter / 4], anchor=BOTTOM,
+        [dial_box_width + 10, disk_diameter / 2, disk_diameter / 4], anchor=BOTTOM,
         rounding=-disk_diameter / 4,
-        edges=[LEFT + TOP, RIGHT + TOP]
+        edges=[FRONT + TOP, BACK + TOP]
       );
-    for (i = [0:14]) {
-      translate([$inner_width / 2, disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_height - disk_diameter])
+    for (i = [0:9]) {
+      translate([disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_length / 2, $inner_height - disk_diameter])
         cuboid(
-          [disk_diameter, disk_thickness + 0.5, disk_diameter], anchor=BOTTOM,
+          [disk_thickness + 0.5, disk_diameter, disk_diameter], anchor=BOTTOM,
           rounding=disk_diameter / 4,
-          edges=[LEFT + BOTTOM, RIGHT + BOTTOM]
+          edges=[FRONT + BOTTOM, FRONT + BOTTOM]
         );
     }
   }
@@ -150,6 +161,27 @@ module DialBoxLid() // `make` me
     height=dial_box_height,
     text_str="Population",
     label_type=LABEL_TYPE_FRAMELESS
+  );
+}
+
+module LeopardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=leopard_box_width,
+    length=leopard_box_length,
+    height=leopard_box_height,
+    lid_on_length=true
+  ) {
+    cube([leopard_length, leopard_width, leopard_box_height]);
+  }
+}
+
+module LeopardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width,
+    length=card_box_length,
+    text_str="Leopard"
   );
 }
 
@@ -215,6 +247,15 @@ module SpacerSideBox() // `make` me
   );
 }
 
+module SpacerExtraBox() // `make` me
+{
+  MakeBoxWithNoLid(
+    width=spacer_extra_box_width,
+    length=spacer_extra_box_length,
+    height=spacer_extra_box_height,
+    hollow=true
+  );
+}
 module SpacerDialBox() // `make` me
 {
   MakeBoxWithNoLid(
@@ -248,18 +289,21 @@ module BoxLayout() {
     translate([0, resource_box_length, 0]) {
       DialBox();
     }
-    translate([dial_box_width, resource_box_length, 0]) {
+    translate([0, resource_box_length + dial_box_length, 0]) {
       DialBox();
     }
-    translate([dial_box_width * 2, resource_box_length, 0]) {
+    translate([0, resource_box_length + dial_box_length * 2, 0]) {
+      SpacerExtraBox();
+    }
+    translate([dial_box_width, resource_box_length, 0]) {
       NatureCardBox();
     }
-    translate([dial_box_width * 2, resource_box_length + hunter_card_box_length, 0]) {
+    translate([dial_box_width, resource_box_length + hunter_card_box_length, 0]) {
       SpacerSideBox();
     }
   }
 }
 
 if (FROM_MAKE != 1) {
-  DialBoxLid();
+  BoxLayout();
 }
