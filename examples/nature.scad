@@ -24,6 +24,8 @@ box_height = 75;
 
 default_label_solid_background = MAKE_MMU == 1;
 default_label_type = LABEL_TYPE_FRAMELESS_ANGLE;
+default_lid_shape_type = SHAPE_TYPE_LEAF;
+default_lid_shape_width = 20;
 
 disk_diameter = 46;
 disk_thickness = 4;
@@ -44,11 +46,11 @@ card_width = 67;
 card_20_thickness = 14;
 single_card_thickness = card_20_thickness / 20;
 
-hunter_card_box_width = card_length + default_wall_thickness * 2;
+hunter_card_box_width = (box_width - 2) / 2;
 hunter_card_box_length = card_width + default_wall_thickness * 2;
 hunter_card_box_height = single_card_thickness * 20 + default_floor_thickness + default_lid_thickness + 1;
 
-solo_card_box_width = card_length + default_wall_thickness * 2;
+solo_card_box_width = (box_width - 2) / 2;
 solo_card_box_length = card_width + default_wall_thickness * 2;
 solo_card_box_height = single_card_thickness * 6 + default_floor_thickness + default_lid_thickness + 1;
 
@@ -56,7 +58,7 @@ dial_box_height = disk_diameter + default_wall_thickness + default_floor_thickne
 dial_box_width = disk_thickness / 2 + 5 + (disk_thickness + 4.5) * 10 + default_wall_thickness * 2;
 dial_box_length = (box_width - hunter_card_box_width - 2) / 2;
 
-card_box_width = card_length + default_wall_thickness * 2;
+card_box_width = (box_width - 2) / 2;
 card_box_length = card_width + default_wall_thickness * 2;
 card_box_height = box_height - board_thickness - 1;
 
@@ -69,11 +71,9 @@ leopard_box_width = leopard_length + default_wall_thickness * 2 + 1;
 leopard_box_length = box_length - 2 - dial_box_length * 2 - card_box_length;
 leopard_box_height = dial_box_height;
 
-echo([leopard_box_width, leopard_box_length, leopard_box_height]);
-
 spacer_card_width = box_width - hunter_card_box_width - 1;
 spacer_card_length = hunter_card_box_length;
-spacer_card_height = hunter_card_box_height;
+spacer_card_height = card_box_height - solo_card_box_height - hunter_card_box_height;
 
 spacer_side_width = box_width - 2 - leopard_box_width;
 spacer_side_length = leopard_box_length;
@@ -82,10 +82,6 @@ spacer_side_height = leopard_box_height;
 spacer_dial_box_width = box_width - 2;
 spacer_dial_box_length = box_length - 2 - card_box_length;
 spacer_dial_box_height = box_height - board_thickness - 2 - dial_box_height;
-
-spacer_extra_box_width = dial_box_width;
-spacer_extra_box_length = box_length - 2 - dial_box_length * 2 - resource_box_length;
-spacer_extra_box_height = dial_box_height;
 
 module ResourceBox() // `make` me
 {
@@ -214,7 +210,7 @@ module NatureCardBox() // `make` me
     height=card_box_height,
     lid_on_length=true
   ) {
-    cube([$inner_width, $inner_length, card_box_height]);
+    cube([card_length, card_width, card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=card_box_height);
   }
@@ -238,7 +234,7 @@ module HunterCardBox() // `make` me
     height=hunter_card_box_height,
     lid_on_length=true
   ) {
-    cube([$inner_width, $inner_length, card_box_height]);
+    cube([card_length, card_width, card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=hunter_card_box_height);
   }
@@ -262,7 +258,7 @@ module SoloCardBox() // `make` me
     height=solo_card_box_height,
     lid_on_length=true
   ) {
-    cube([$inner_width, $inner_length, card_box_height]);
+    cube([card_length, card_width, card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=solo_card_box_height);
   }
@@ -297,15 +293,6 @@ module SpacerSideBox() // `make` me
   );
 }
 
-module SpacerExtraBox() // `make` me
-{
-  MakeBoxWithNoLid(
-    width=spacer_extra_box_width,
-    length=spacer_extra_box_length,
-    height=spacer_extra_box_height,
-    hollow=true
-  );
-}
 module SpacerDialBox() // `make` me
 {
   MakeBoxWithNoLid(
@@ -325,18 +312,13 @@ module BoxLayout() {
       HunterCardBox();
     translate([card_box_width, 0, hunter_card_box_height])
       SoloCardBox();
+    translate([card_box_width, 0, hunter_card_box_height + solo_card_box_height])
+      SpacerCardBox();
 
     translate([0, card_box_length, dial_box_height]) {
       SpacerDialBox();
     }
 
-    /*
-    translate([resource_box_width, 0, 0]) {
-      ResourceBox();
-      translate([0, 0, resource_box_height])
-        ResourceBox();
-    }
-    */
     translate([0, card_box_length, 0]) {
       DialBox();
     }
