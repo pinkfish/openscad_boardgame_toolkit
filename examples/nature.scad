@@ -142,7 +142,7 @@ module DialBox() // `make` me
     length=dial_box_length,
     height=dial_box_height
   ) {
-    translate([dial_box_width / 2, $inner_length / 2, $inner_height - disk_diameter / 2])
+    translate([dial_box_width / 2, $inner_length / 2, $inner_height - disk_diameter / 2 - 5])
       cuboid(
         [dial_box_width + 10, disk_diameter / 2, disk_diameter], anchor=BOTTOM,
         rounding=disk_diameter / 4,
@@ -155,7 +155,7 @@ module DialBox() // `make` me
         edges=[FRONT + TOP, BACK + TOP]
       );
     for (i = [0:9]) {
-      translate([disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_length / 2, $inner_height - disk_diameter])
+      translate([disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_length / 2, $inner_height - disk_diameter - 1])
         cuboid(
           [disk_thickness + 0.5, disk_diameter, disk_diameter], anchor=BOTTOM,
           rounding=disk_diameter / 4,
@@ -316,7 +316,7 @@ module BoxLayout() {
       SpacerCardBox();
 
     translate([0, card_box_length, dial_box_height]) {
-      SpacerDialBox();
+     // SpacerDialBox();
     }
 
     translate([0, card_box_length, 0]) {

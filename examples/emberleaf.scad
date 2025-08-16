@@ -5,7 +5,9 @@
 // to you under the Apache License, Version 2.0 (the
 // "License"); you may not use this file except in compliance
 // with the License.  You may obtain a copy of the License at
+//
 //   http://www.apache.org/licenses/LICENSE-2.0
+//
 // Unless required by applicable law or agreed to in writing,
 // software distributed under the License is distributed on an
 // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -329,12 +331,18 @@ module CommonBox() // `make` me
       }
       for (i = [0:1]) {
         for (j = [0:2]) {
-          translate([(trophy_length / 2 + 5) * (1 + i * 2), (trophy_width*(i) + hex_size/2 + 10) + (hex_size + 1) * ( j ), $inner_height - cardboard_token_thickness * 3 + 0.5]) {
-            if (!(j == 2 && i== 1)) {
-            RegularPolygon(
-              width=hex_size, shape_edges=6, height=player_box_height,
-              finger_holes=i == 1?[8, 9]:[0,11]
-            );
+          translate(
+            [
+              (trophy_length / 2 + 5) * (1 + i * 2),
+              (trophy_width * (i) + hex_size / 2 + 10) + (hex_size + 1) * (j),
+              $inner_height - cardboard_token_thickness * 5 + 0.5,
+            ]
+          ) {
+            if (!(j == 2 && i == 1)) {
+              RegularPolygon(
+                width=hex_size, shape_edges=6, height=player_box_height * 5,
+                finger_holes=i == 1 ? [8, 9] : [0, 11]
+              );
             }
           }
         }
@@ -342,7 +350,7 @@ module CommonBox() // `make` me
 
       translate(
         [
-          $inner_width *3/ 4,
+          $inner_width * 3 / 4,
           $inner_length - wood_token_diameter / 2 - 3,
           $inner_height - wood_token_thickness - 0.5,
         ]
@@ -355,6 +363,14 @@ module CommonBox() // `make` me
       }
     }
   }
+}
+
+module CommonBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=player_box_width, length=player_box_length, height=player_box_height,
+    text_str="Trophy", text_scale=0.5, font="Impact"
+  );
 }
 
 module CardBoxHero() // `make` me
@@ -522,5 +538,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  CardBoxPlayerLid();
+  BoxLayout();
 }
