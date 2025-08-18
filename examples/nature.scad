@@ -55,7 +55,7 @@ solo_card_box_length = card_width + default_wall_thickness * 2;
 solo_card_box_height = single_card_thickness * 6 + default_floor_thickness + default_lid_thickness + 1;
 
 dial_box_height = disk_diameter + default_wall_thickness + default_floor_thickness + 1;
-dial_box_width = disk_thickness / 2 + 5 + (disk_thickness + 4.5) * 10 + default_wall_thickness * 2;
+dial_box_width = leopard_length + default_wall_thickness * 2 + 1;
 dial_box_length = (box_width - hunter_card_box_width - 2) / 2;
 
 card_box_width = (box_width - 2) / 2;
@@ -63,9 +63,9 @@ card_box_length = card_width + default_wall_thickness * 2;
 card_box_height = box_height - board_thickness - 1;
 
 resource_box_width = (box_length - dial_box_width - 2);
-resource_box_length = dial_box_length;
+resource_box_length = (box_length - 2 - solo_card_box_length) / 2;
 resource_box_height = dial_box_height / 2;
-resource_box_double_length = dial_box_length * 2;
+resource_box_double_length = (box_length - 2 - solo_card_box_length);
 
 leopard_box_width = leopard_length + default_wall_thickness * 2 + 1;
 leopard_box_length = box_length - 2 - dial_box_length * 2 - card_box_length;
@@ -283,16 +283,6 @@ module SpacerCardBox() // `make` me
   );
 }
 
-module SpacerSideBox() // `make` me
-{
-  MakeBoxWithNoLid(
-    width=spacer_side_width,
-    length=spacer_side_length,
-    height=spacer_side_height,
-    hollow=true
-  );
-}
-
 module SpacerDialBox() // `make` me
 {
   MakeBoxWithNoLid(
@@ -316,7 +306,7 @@ module BoxLayout() {
       SpacerCardBox();
 
     translate([0, card_box_length, dial_box_height]) {
-     // SpacerDialBox();
+      SpacerDialBox();
     }
 
     translate([0, card_box_length, 0]) {
@@ -328,7 +318,7 @@ module BoxLayout() {
     translate([dial_box_width, card_box_length, 0]) {
       ResourceBox();
     }
-    translate([dial_box_width, card_box_length + dial_box_length, 0]) {
+    translate([dial_box_width, card_box_length + resource_box_length, 0]) {
       ResourceBox();
     }
     translate([dial_box_width, card_box_length, resource_box_height]) {
@@ -336,9 +326,6 @@ module BoxLayout() {
     }
     translate([0, card_box_length + dial_box_length * 2, 0]) {
       LeopardBox();
-    }
-    translate([leopard_box_width, card_box_length + dial_box_length * 2, 0]) {
-      SpacerSideBox();
     }
   }
 }
