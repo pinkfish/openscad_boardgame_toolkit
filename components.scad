@@ -133,7 +133,7 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
 //   shape_edges = the number of edges on the shape
 function PolygonRadiusFromApothem(apothem, shape_edges) = apothem / cos(180 / shape_edges) / 2;
 
-// Function: PolygonRadiusFromApothem()
+// Function: PolygonApothemFromRadius()
 // Description:
 //   Find the apothem of the polygon from radius.
 // Arguments:
