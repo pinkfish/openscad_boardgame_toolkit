@@ -461,7 +461,7 @@ module CommonBox() // `make` me
 module CommonBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    width=common_box_width, length=common_box_length, height=common_box_height,
     text_str="Trophy", text_scale=0.5, font="Impact"
   );
 }
@@ -534,5 +534,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  CardBoxPlayer(colour="blue");
+  CommonBoxLid();
 }

@@ -90,7 +90,8 @@ module ResourceBox() // `make` me
     length=resource_box_length,
     height=resource_box_height
   ) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+    translate([1, 1, 0])
+      RoundedBoxAllSides(width=$inner_width - 2, length=$inner_length - 2, height=resource_box_height, radius=5);
   }
 }
 
@@ -157,7 +158,7 @@ module DialBox() // `make` me
     for (i = [0:9]) {
       translate([disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_length / 2, $inner_height - disk_diameter - 1])
         cuboid(
-          [disk_thickness + 0.5, disk_diameter, disk_diameter], anchor=BOTTOM,
+          [disk_thickness + 0.5, disk_diameter, disk_diameter * 2], anchor=BOTTOM,
           rounding=disk_diameter / 4,
           edges=[FRONT + BOTTOM, FRONT + BOTTOM]
         );
@@ -331,5 +332,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  BoxLayout();;
 }
