@@ -677,20 +677,10 @@ module TrackBoxLid() // `make` me
 }
 module SpacerSide() // `make` me
 {
-  difference() {
-    color("yellow") cuboid(
-        [spacer_width, spacer_length, spacer_height], anchor=BOTTOM + LEFT + FRONT,
-        rounding=2, $fn=32
-      );
-    translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) cuboid(
-        [
-          spacer_width - default_wall_thickness * 2,
-          spacer_length - default_wall_thickness * 2,
-          spacer_height + 10,
-        ],
-        anchor=BOTTOM + LEFT + FRONT
-      );
-  }
+  MakeBoxWithNoLid(
+    width=spacer_width, length=spacer_length, height=spacer_height,
+    hollow=true
+  );
 }
 
 module BoxLayout() {
@@ -742,5 +732,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  TrainBox();
+  BoxLayout();
 }

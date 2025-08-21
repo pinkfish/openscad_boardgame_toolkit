@@ -156,7 +156,7 @@ module DialBox() // `make` me
         edges=[FRONT + TOP, BACK + TOP]
       );
     for (i = [0:9]) {
-      translate([disk_thickness / 2 + 5 + (disk_thickness + 4.5) * i, $inner_length / 2, $inner_height - disk_diameter - 1])
+      translate([disk_thickness / 2 + 5 + (disk_thickness + 5.6) * i, $inner_length / 2, $inner_height - disk_diameter - 1])
         cuboid(
           [disk_thickness + 0.5, disk_diameter, disk_diameter * 2], anchor=BOTTOM,
           rounding=disk_diameter / 4,
@@ -332,5 +332,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();;
+  DialBox();
 }
