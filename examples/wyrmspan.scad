@@ -27,6 +27,7 @@ default_floor_thickness = 2;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 inner_wall = 1;
 board_thickness = 27;
+default_label_font = "Impact";
 
 eggs_box_width = 75;
 eggs_box_length = 112;

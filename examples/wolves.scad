@@ -27,7 +27,7 @@ default_wall_thickness = 3;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
-
+default_label_font = "Impact";
 
 box_length = 285;
 box_width = 285;

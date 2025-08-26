@@ -24,6 +24,7 @@ box_height = 75;
 
 default_label_solid_background = MAKE_MMU == 1;
 default_label_type = LABEL_TYPE_FRAMELESS_ANGLE;
+default_label_font = "Impact";
 default_lid_shape_type = SHAPE_TYPE_LEAF;
 default_lid_shape_width = 20;
 
@@ -270,7 +271,8 @@ module SoloCardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     width=solo_card_box_width,
     length=solo_card_box_length,
-    text_str="Solo"
+    text_str="Solo",
+    lid_on_length=true
   );
 }
 

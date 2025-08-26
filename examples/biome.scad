@@ -25,6 +25,7 @@ box_height = 73;
 default_lid_shape_type = SHAPE_TYPE_ESCHER_LIZARD;
 default_lid_shape_thickness = 1;
 default_lid_shape_width = 10;
+default_label_font = "Impact";
 
 board_thickness = 20;
 board_width = 255;
@@ -121,44 +122,53 @@ module ResourceBox() // `make` me
   }
 }
 
-module ResourceBoxLid() // `make` me
+module ResourceBoxMouseLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=resource_box_width, length=resource_box_length, height=resource_box_height,
     text_str="Mouse",
   );
-  translate([resource_box_width + 10, 0, 0]) {
-    CapBoxLidWithLabel(
-      width=resource_box_width, length=resource_box_length, height=resource_box_height,
-      text_str="Sun",
-    );
-    translate([resource_box_width + 10, 0, 0]) {
-      CapBoxLidWithLabel(
-        width=resource_box_width, length=resource_box_length, height=resource_box_height,
-        text_str="Fish",
-      );
-      translate([resource_box_width + 10, 0, 0]) {
-        CapBoxLidWithLabel(
-          width=resource_box_width, length=resource_box_length,
-          height=resource_box_height, text_str="Leaf",
-        );
-        translate([resource_box_width + 10, 0, 0]) {
-          CapBoxLidWithLabel(
-            width=resource_box_width, length=resource_box_length,
-            height=resource_box_height,
-            text_str="Spider",
-          );
-          translate([resource_box_width + 10, 0, 0]) {
-            CapBoxLidWithLabel(
-              width=resource_box_width, length=resource_box_length,
-              height=resource_box_height,
-              text_str="Fruit",
-            );
-          }
-        }
-      }
-    }
-  }
+}
+
+module ResourceBoxSunLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Sun",
+  );
+}
+
+module ResourceBoxFishLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Fish",
+  );
+}
+
+module ResourceBoxLeafLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length,
+    height=resource_box_height, text_str="Leaf",
+  );
+}
+module ResourceBoxSpiderLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length,
+    height=resource_box_height,
+    text_str="Spider",
+  );
+}
+
+module ResourceBoFruitLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length,
+    height=resource_box_height,
+    text_str="Fruit",
+  );
 }
 
 module NestBox() // `make` me

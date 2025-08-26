@@ -24,6 +24,7 @@ box_height = 99;
 
 default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_label_font = "Impact";
 
 card_length = 91;
 card_width = 66;
@@ -58,10 +59,10 @@ screen_width = 102;
 class_i_ship_diameter = 24;
 class_i_ship_thickness = 10;
 
-class_iii_ship_edge_length = 40;
+class_iii_ship_edge_length = 43;
 class_iii_ship_thickness = 10;
 class_iii_ship_radius = class_iii_ship_edge_length / sqrt(3);
-class_iii_ship_apothem = class_iii_ship_edge_length * sqrt(3) / 3 * 2;
+class_iii_ship_apothem = class_iii_ship_edge_length * sqrt(3) / 6;
 
 class_ii_ship_length = 38;
 class_ii_ship_width = 19;
@@ -125,7 +126,7 @@ spacer_hexes_width = hex_box_width - upgrade_board_box_width;
 spacer_hexes_length = hex_box_length;
 spacer_hexes_height = upgrade_board_box_height;
 
-long_player_box_gap = 60;
+long_player_box_gap = 30;
 long_player_box_upgrade_buffer = 5;
 long_player_box_length = box_length - 2;
 long_player_box_width = (box_width - 2 - long_player_box_gap) / 2 + long_player_box_gap;
@@ -135,11 +136,42 @@ long_resource_box_length = (box_length - 7 - upgrade_width * 2 - long_player_box
 long_resource_box_width = long_player_box_gap - 1;
 long_resource_box_height = long_player_box_height;
 
+module ClassIIIShip(thickness) {
+  linear_extrude(height=thickness) {
+    polygon(
+      round_corners(
+        [
+          [class_iii_ship_edge_length / 2, class_iii_ship_apothem * 1.5],
+          [0, -class_iii_ship_apothem * 1.5],
+          [-class_iii_ship_edge_length / 2, class_iii_ship_apothem * 1.5],
+        ],
+        radius=3
+      )
+    );
+  }
+}
+
+module ClassIIShip(thickness) {
+  CuboidWithIndentsBottom(
+    size=[class_ii_ship_length, class_ii_ship_width, thickness],
+    rounding=2,
+    edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
+    finger_holes=[0]
+  );
+}
+
+module ClassIShip(thickness) {
+  CylinderWithIndents(
+    radius=class_i_ship_diameter / 2, height=thickness,
+  );
+}
+
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     width=ambassador_card_box_width,
-    length=ambassador_card_box_length, height=ambassador_card_box_height,
+    length=ambassador_card_box_length,
+    height=ambassador_card_box_height,
     lid_on_length=true
   ) {
     translate([0, (small_card_length - card_width) / 2, 0])
@@ -361,9 +393,7 @@ module PlayerBox(colour = "green") // `make` me
         $inner_height - class_i_ship_thickness,
       ]
     )
-      CylinderWithIndents(
-        radius=class_i_ship_diameter / 2, height=player_box_height,
-      );
+      ClassIShip(player_box_height);
 
     // class ii ship
     translate(
@@ -373,11 +403,7 @@ module PlayerBox(colour = "green") // `make` me
         $inner_height - class_iii_ship_thickness,
       ]
     ) {
-      CuboidWithIndentsBottom(
-        size=[class_ii_ship_width, class_ii_ship_length, player_box_height],
-        rounding=2,
-        edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
-      );
+      ClassIIShip(player_box_height);
     }
 
     // class iii ship
@@ -388,10 +414,7 @@ module PlayerBox(colour = "green") // `make` me
         $inner_height - class_ii_ship_thickness,
       ]
     )
-      rotate(90)
-        RegularPolygon(
-          shape_edges=3, width=class_iii_ship_apothem / 2, height=player_box_height, rounding=2
-        );
+      ClassIIIShip(player_box_height);
 
     // indent for the ships.
     hull() {
@@ -592,32 +615,18 @@ module LongPlayerBox(colour = "green") // 'make' me
       [0, long_player_box_length],
       [long_player_box_width, long_player_box_length],
       [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
-      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, default_wall_thickness * 2 + upgrade_width + long_player_box_upgrade_buffer + 2],
       [long_player_box_width - long_player_box_gap, 0],
     ],
     height=long_player_box_height,
     material_colour=colour,
   ) {
-    // PLayer tokens
-    translate(
-      [
-        $inner_width - 14,
-        $inner_length - upgrade_width / 2 - 7,
-        $inner_height - cardboard_token_thickness * 2 - 1,
-      ]
-    ) {
-      color(colour)
-        CylinderWithIndents(
-          player_token_diameter / 2,
-          height=player_box_height, finger_holes=[90, 270], finger_hole_radius=7
-        );
-    }
 
     // Upgrade bit.
     translate(
       [
         10,
-        $inner_length - upgrade_width - 7,
+        $inner_length - upgrade_width - 2,
         0,
       ]
     ) {
@@ -629,8 +638,8 @@ module LongPlayerBox(colour = "green") // 'make' me
       for (i = [0:2]) {
         translate(
           [
-            class_ii_ship_length + railgun_length / 2 + 14,
-            railgun_width / 2 + 10 + (railgun_width + 5) * i,
+            railgun_length / 2 + 18,
+            railgun_width / 2 + 20 + (railgun_width + 9) * i,
             $inner_height - upgrade_thickness - 1 - railgun_thickness,
           ]
         ) {
@@ -640,72 +649,75 @@ module LongPlayerBox(colour = "green") // 'make' me
         }
         translate(
           [
-            class_ii_ship_length + railgun_length + cargo_width / 2 + 25,
-            cargo_width / 2 + 10 + (cargo_width + 12) * i,
+            railgun_length + cargo_width / 2 + 32,
+            cargo_width / 2 + 15 + (cargo_width + 9) * i,
             $inner_height - upgrade_thickness - cargo_thickness,
           ]
         ) {
           color(colour)
-            CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0, 4], finger_hole_radius=5);
+            CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[2, 6], finger_hole_radius=5);
           color(colour) translate([0, 0, -round_nub_thickness])
               cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
         }
       }
 
+      // PLayer tokens
+      translate(
+        [
+          railgun_length + cargo_width + 50 + player_token_diameter / 2,
+          cargo_width / 2 + 38,
+          $inner_height - upgrade_thickness - cardboard_token_thickness * 2 - 1,
+        ]
+      ) {
+        color(colour)
+          CylinderWithIndents(
+            player_token_diameter / 2,
+            height=player_box_height, finger_holes=[90, 270], finger_hole_radius=7
+          );
+      }
+
       // space for under stuff
       translate([3, 3, $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness / 2]) {
         color(colour)
-          RoundedBoxAllSides(width=upgrade_length - 6, length=upgrade_width - 6, height=player_box_height, radius=5);
+          RoundedBoxAllSides(width=upgrade_length - 26, length=upgrade_width - 6, height=player_box_height, radius=5);
       }
+    }
 
-      // class i ship
-      translate(
-        [
-          upgrade_length / 2 + 9,
-          upgrade_width - class_i_ship_diameter / 2 - 9,
-          $inner_height - upgrade_thickness - 1 - class_i_ship_thickness,
-        ]
-      ) color(colour)
-          CylinderWithIndents(
-            radius=class_i_ship_diameter / 2, height=player_box_height,
-            finger_hole_radius=10,
-            finger_holes=[0, 180]
-          );
+    // class i ship
+    translate(
+      [
+        $inner_width - class_ii_ship_length / 2 - 16,
+        $inner_length - upgrade_width - 20 - class_iii_ship_apothem * 3 - class_ii_ship_length,
+        $inner_height - upgrade_thickness - 1 - class_i_ship_thickness,
+      ]
+    ) color(colour)
+        ClassIShip(player_box_height);
 
-      // class ii ship
-      translate(
-        [
-          class_ii_ship_length / 2 + 6,
-          class_ii_ship_width / 2 + 20,
-          $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness,
-        ]
-      ) {
-        color(colour)
-          rotate(30)
-            CuboidWithIndentsBottom(
-              size=[class_ii_ship_length, class_ii_ship_width, player_box_height],
-              rounding=2,
-              edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
-              finger_holes=[0, 4]
-            );
-      }
+    // class ii ship
+    translate(
+      [
+        $inner_width - class_ii_ship_length / 2 - 17,
+        $inner_length - upgrade_width - 25 - class_iii_ship_apothem * 3,
+        $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness,
+      ]
+    ) {
+      color(colour)
+        rotate(90)
+          ClassIIShip(player_box_height);
+    }
 
-      // class iii ship
-      translate(
-        [
-          class_iii_ship_radius / 2 + 10,
-          class_ii_ship_width + 17 + class_iii_ship_radius,
-          $inner_height - upgrade_thickness - 1 - class_iii_ship_thickness,
-        ]
-      ) {
-        color(colour)
-          sphere(r=20, anchor=BOTTOM);
-        color(colour)
-          rotate(90)
-            RegularPolygon(
-              shape_edges=3, width=class_iii_ship_apothem / 2, height=player_box_height, rounding=2
-            );
-      }
+    // class iii ship
+    translate(
+      [
+        $inner_width - class_iii_ship_radius / 2 - 15,
+        $inner_length - upgrade_width - 25,
+        $inner_height - upgrade_thickness - 1 - class_iii_ship_thickness,
+      ]
+    ) {
+      color(colour)
+        sphere(r=20, anchor=BOTTOM);
+      color(colour)
+        ClassIIIShip(thickness=player_box_height);
     }
 
     // voting bit.
@@ -756,10 +768,11 @@ module LongPlayerBox(colour = "green") // 'make' me
 
     box_section = ( (voting_board_length + 1) / 5) - 1.5;
     for (i = [0:4]) {
-      color(colour)
+      color(colour) {
         translate([-1, (box_section + 1.5) * i + 8, 0]) {
-          RoundedBoxAllSides(length=(voting_board_length / 5) - 1, width=voting_board_width + 17, height=player_box_height, radius=5);
+          RoundedBoxAllSides(length=(voting_board_length / 5) - 1, width=voting_board_width + 25, height=player_box_height, radius=5);
         }
+      }
     }
   }
 }
@@ -772,18 +785,22 @@ module LongFactionBox(colour = "green") // 'make' me
       [0, long_player_box_length],
       [long_player_box_width, long_player_box_length],
       [long_player_box_width, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
-      [long_player_box_width - long_player_box_gap, long_player_box_length - default_wall_thickness * 2 - upgrade_width - long_player_box_upgrade_buffer],
+      [long_player_box_width - long_player_box_gap, default_wall_thickness * 2 + upgrade_width + long_player_box_upgrade_buffer + 2],
       [long_player_box_width - long_player_box_gap, 0],
     ],
     height=long_player_box_height,
     material_colour=colour,
   ) {
-        translate([0, (small_card_length - card_width) / 2, $inner_height - 10 * single_card_thickness])
-      cube([card_length, card_width, ambassador_card_box_height]);
-
+    translate([0, 5, $inner_height - 10 * single_card_thickness])
+      color(colour)
+        cube([card_width, card_length, ambassador_card_box_height]);
+    translate([0, 10 + card_length, $inner_height - 10 * single_card_thickness])
+      color(colour)
+        cube([card_width, card_length, ambassador_card_box_height]);
+    translate([card_width / 2, 10 + card_length, $inner_height - 10 * single_card_thickness])
+      cuboid([card_width / 2, card_length, ambassador_card_box_height], anchor=BOTTOM, rounding=5);
   }
 }
-
 
 module LongHexBox(colour = "green") // 'make' me
 {
@@ -934,11 +951,26 @@ module BoxLayout() {
     cube([screen_length, screen_width, upgrade_thickness * 5]);
 }
 
+module TestLayout() {
+  difference() {
+    cube([100, 40, 5]);
+    translate([0, 0, 2]) {
+      translate([20, 18, 0])
+        ClassIIIShip(thickness=10);
+      translate([55, 20, 0])
+        rotate(90)
+          ClassIIShip(10);
+      translate([80, 20, 0])
+          ClassIShip(10);
+    }
+  }
+}
+
 module BoxLayoutLong() {
   cube([1, box_length, box_height]);
   cube([box_width, box_length, 1]);
-  translate([0, ambassador_card_box_length, box_height - board_thickness])
-    cube([board_width, board_length, board_thickness]);
+  //translate([0, ambassador_card_box_length, box_height - board_thickness])
+  //cube([board_width, board_length, board_thickness]);
   //  translate([0, ambassador_card_box_length, 0])
   //  cube([board_width, board_length, board_thickness]);
   player_colour = ["yellow", "orange", "purple", "blue", "green"];
@@ -957,6 +989,7 @@ module BoxLayoutLong() {
           LongPlayerBox(player_colour[1 + i * 2]);
     }
   }
+  /*
   resource_colour = ["orange", "yellow", "pink", "lightblue", "lightgreen", "red"];
   for (i = [0:2]) {
     translate(
@@ -998,5 +1031,6 @@ module BoxLayoutLong() {
 }
 
 if (FROM_MAKE != 1) {
-  LongFactionBox();
+  TestLayout();
+  //  ClassIIIShip(5);
 }

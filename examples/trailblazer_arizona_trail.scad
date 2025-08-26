@@ -22,6 +22,8 @@ box_height = 70;
 
 default_lid_thickness = 3;
 default_lid_shape_type = SHAPE_TYPE_LEAF;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_label_font = "Impact";
 
 board_thickness = 17.5;
 player_board_thickness = 10;
