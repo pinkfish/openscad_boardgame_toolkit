@@ -50,7 +50,11 @@ class OpenScadOutput():
         elif isinstance(segment, Line):
             if cur == None:
                 print("line = [[{0}, {1}], ".format(segment.start.x, segment.start.y));
-            print("[{0}, {1}], [{2}, {3}], [{2}, {3}], ".format(segment.start.x, segment.start.y, segment.end.x, segment.end.y))
+            else:
+              if segment.start.x == cur.x and segment.start.y == cur.y:
+                print("[{0}, {1}], ".format(segment.end.x, segment.end.y))
+              else:
+                print("[{0}, {1}], [{2}, {3}], ".format(segment.start.x, segment.start.y, segment.end.x, segment.end.y))
             return segment.end
         return cur
 
@@ -65,5 +69,5 @@ class OpenScadOutput():
 
        
 
-os = OpenScadOutput("../svg/Asset 1.svg")
+os = OpenScadOutput("../examples/svg/escher_lizard.svg")
 os.PrintAllObjects()

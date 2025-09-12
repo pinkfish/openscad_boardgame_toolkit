@@ -20,97 +20,18 @@ under the License.
 // LibFile: tesselations.scad
 //    This file has all the modules needed to make a variety of tesselations.
 
-escher_lizard_points =
-[
-  [14.54, 26.29],
-  [12.63, 29.6],
-  [15.62, 34.88],
-  [26.43, 30.43],
-  [28.0, 27.22],
-  [14.86, 17.16],
-  [16.24, 2.83],
-  [20.92, 0.0],
-  [37.7, 4.76],
-  [41.97, 21.66],
-  [46.75, 24.28],
-  [59.82, 18.32],
-  [61.97, 1.91],
-  [65.56, 1.66],
-  [74.84, 8.82],
-  [71.74, 14.07],
-  [67.93, 14.07],
-  [67.58, 25.06],
-  [52.81, 31.38],
-  [47.37, 45.22],
-  [55.94, 37.25],
-  [67.65, 35.17],
-  [73.29, 38.25],
-  [75.31, 48.91],
-  [79.69, 52.68],
-  [79.35, 63.07],
-  [67.8, 56.94],
-  [67.34, 43.9],
-  [58.21, 48.78],
-  [57.13, 54.46],
-  [48.92, 61.53],
-  [49.07, 67.94],
-  [56.71, 77.04],
-  [65.41, 79.7],
-  [68.43, 80.49],
-  [53.19, 82.72],
-  [40.31, 73.08],
-  [36.18, 65.48],
-  [28.81, 65.88],
-  [18.22, 62.8],
-  [12.57, 80.7],
-  [0.0, 78.14],
-  [5.4, 69.7],
-  [7.57, 56.92],
-  [19.72, 52.41],
-  [29.7, 52.86],
-  [25.65, 40.74],
-  [7.33, 44.8],
-  [4.69, 34.07],
-  [0.66, 27.89],
-  [5.18, 20.48],
-];
-
-function EscherLizardSize() =
-  [
-    max(
-      [for (i = [0:len(escher_lizard_points) - 1]) escher_lizard_points[i][0]]
-    ),
-    max(
-      [for (i = [0:len(escher_lizard_points) - 1]) escher_lizard_points[i][1]],
-    ),
-  ];
+// Includes:
+//   include <boardgame_toolkit.scad>
 
 // Module: EscherLizardSingle()
 // Description:
 //   Creates a single escher lizard.
 // Arguments:
 //   size = the size of the lizard
+// Example:
+//    EscherLizardSingle(size=20);
 module EscherLizardSingle(size) {
-  escher_size = EscherLizardSize();
-
-  ratio = escher_size[1] / escher_size[0];
-  centroid = [
-    -(escher_lizard_points[8][0] + escher_lizard_points[26][0] + escher_lizard_points[43][0]) / 3,
-    -(escher_lizard_points[8][1] + escher_lizard_points[26][1] + escher_lizard_points[43][1]) / 3,
-  ];
-  resize([size, size * ratio])
-    translate(centroid) {
-      polygon(escher_lizard_points);
-
-      color("red") polygon(
-          [
-            escher_lizard_points[8],
-            escher_lizard_points[26],
-            escher_lizard_points[43],
-            escher_lizard_points[8],
-          ]
-        );
-    }
+  EscherLizardHexTesselation(radius=size / 2);
 }
 
 // Module: EscherLizardTrangle()
@@ -121,45 +42,38 @@ module EscherLizardSingle(size) {
 // Arguments:
 //    size = size the lizard
 //    thickness = thickness of the walls/edges
+// Example:
+//    EscherLizardTriangle(size=20, thickness=1);
 module EscherLizardTriangle(size, thickness) {
   module SingleLizard() {
-
-    translate(centroid) {
-
-      difference() {
-        polygon(escher_lizard_points);
-        offset(-thickness / scale_size) polygon(escher_lizard_points);
-      }
+    difference() {
+      offset(delta=0.05, chamfer=true)
+        EscherLizardHexTesselation(radius=size / 2);
+      offset(delta=-thickness, chamfer=true) EscherLizardHexTesselation(radius=size / 2);
     }
   }
 
-  escher_size = EscherLizardSize();
-  scale_size = size / escher_size[0];
+  side_length = 2 * size * sin(30);
+  apothem = sqrt(3) / 2 * side_length;
 
-  ratio = escher_size[1] / escher_size[0];
-  p8 = escher_lizard_points[8];
-  p26 = escher_lizard_points[26];
-  p42 = escher_lizard_points[43];
-  centroid = [
-    -(p8[0] + p26[0] + p42[0]) / 3,
-    -(p8[1] + p26[1] + p42[1]) / 3,
-  ];
-  scale([scale_size, scale_size]) {
-    SingleLizard();
-    translate(
-      p26 - p8
-    )
-      rotate(240)
-        SingleLizard();
+  translate([-apothem / 2, size]) {
+    union() {
+      SingleLizard();
+      translate(
+        [apothem / 2, size * 3 / 4]
+      )
+        rotate(240)
+          SingleLizard();
 
-    translate(
-      [
-        ( (p26[0] - p42[0]) ),
-        ( (p26[1] - p42[1]) ),
-      ]
-    )
-      rotate(120)
-        SingleLizard();
+      translate(
+        [
+          apothem,
+          0,
+        ]
+      )
+        rotate(120)
+          SingleLizard();
+    }
   }
 }
 
@@ -168,6 +82,8 @@ module EscherLizardTriangle(size, thickness) {
 //   Creates a single escher lizard with an outline.
 // Arguments:
 //   size = the size of the lizard
+// Example:
+//    EscherLizardSingleOutline(size=20, thickness=1);
 module EscherLizardSingleOutline(size, thickness) {
   difference() {
     EscherLizardSingle(size=size);
@@ -184,33 +100,22 @@ module EscherLizardSingleOutline(size, thickness) {
 //   y = the y location to generate at
 //   size = the size of the lizard
 //   thickness = the thickness of the lines
+// Example:
+//    EscherLizardRepeatAtLocation(x=0, y=0, size=20, thickness=1);
 module EscherLizardRepeatAtLocation(x, y, size, thickness) {
-  escher_size = EscherLizardSize();
-  p8 = escher_lizard_points[8];
-  p26 = escher_lizard_points[26];
-  p42 = escher_lizard_points[43];
-  centroid = [
-    -(p8[0] + p26[0] + p42[0]) / 3,
-    -(p8[1] + p26[1] + p42[1]) / 3,
-  ];
-  scale_size = size / escher_size[0];
-
-  // Magic numbers, yay.
-  radius = size * 1.558;
+  radius = size / 2;
   shape_edges = 3;
-  apothem = radius * cos(180 / shape_edges);
-  side_length = (shape_edges == 3) ? radius * sqrt(3) : 2 * apothem * tan(180 / shape_edges);
+  side_length = radius * sqrt(3);
+  apothem = sqrt(3) / 2 * side_length;
   extra_edge = 2 * side_length * cos(360 / shape_edges);
   triangle_height = sqrt(3) / 2 * side_length;
 
-  // This number here is a bit iffy, but it would be based on some real data.
-  dx = side_length * 0.775;
+  dx = apothem * 2;
   col_x = apothem + radius;
-  // This number here is a bit iffy, but it would be based on some real data.
-  dy = (shape_edges == 3) ? triangle_height * 1.552 : 0.75 * (radius + radius);
+  dy = radius * 4 + apothem * 0.8;
 
-  translate([x / 2 * dy, y * dx + ( (x + 1) % 2) * (dx / 2), 0]) {
-    EscherLizardTriangle(size=size * 1.6, thickness=thickness);
+  translate([x / 2 * dy, y * dx + ( (x + 1) % 2) * (dx / 2)]) {
+    EscherLizardTriangle(size=size, thickness=thickness);
   }
 }
 
@@ -219,35 +124,25 @@ module EscherLizardRepeatAtLocation(x, y, size, thickness) {
 //   Creates an escher lizard blob that can be repeated.
 // Arguments:
 //   size = the size of the lizard
+// Example:
+//    EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
 module EscherLizardRepeat(rows, cols, size, thickness) {
-  escher_size = EscherLizardSize();
-  p8 = escher_lizard_points[8];
-  p26 = escher_lizard_points[26];
-  p42 = escher_lizard_points[43];
-  centroid = [
-    -(p8[0] + p26[0] + p42[0]) / 3,
-    -(p8[1] + p26[1] + p42[1]) / 3,
-  ];
-  scale_size = size / escher_size[0];
-
   // Magic numbers, yay.
-  radius = size * 1.558;
+  radius = size / 2;
   shape_edges = 3;
-  apothem = radius * cos(180 / shape_edges);
-  side_length = (shape_edges == 3) ? radius * sqrt(3) : 2 * apothem * tan(180 / shape_edges);
+  side_length = radius * sqrt(3);
+  apothem = sqrt(3) / 2 * side_length;
   extra_edge = 2 * side_length * cos(360 / shape_edges);
   triangle_height = sqrt(3) / 2 * side_length;
 
-  // This number here is a bit iffy, but it would be based on some real data.
-  dx = side_length * 0.775;
+  dx = apothem * 2;
   col_x = apothem + radius;
-  // This number here is a bit iffy, but it would be based on some real data.
-  dy = (shape_edges == 3) ? triangle_height * 1.552 : 0.75 * (radius + radius);
+  dy = radius * 4 + apothem * 0.8;
 
   for (i = [0:rows - 1]) {
     for (j = [0:cols - 1]) {
-      translate([i / 2 * dy, j * dx + ( (i + 1) % 2) * (dx / 2), 0]) {
-        EscherLizardTriangle(size=size * 1.6, thickness=thickness);
+      translate([i / 2 * dy, j * dx + ( (i + 1) % 2) * (dx / 2)]) {
+        EscherLizardTriangle(size=size, thickness=thickness);
       }
     }
   }
@@ -290,6 +185,8 @@ function NormalizeVector(v) = v / (sqrt(v[0] * v[0] + v[1] * v[1]));
 //   cellsize = the size of the cells in the space
 //   seed = the seed to use for the random number (degault {{default_voronoi_seed}})
 //   allowable = how much space to randomize within the cell
+// Example:
+//    Voronoi(width=100, length=100, thickness=1.5);
 module Voronoi(
   width,
   length,
@@ -322,4 +219,95 @@ module Voronoi(
       }
     }
   }
+}
+
+// Module: HexagonalTesselation()
+// Description:
+//   Make a tessealation around a hex.  It will distort the sides using
+//   the input sets for each side.  Each goes from -0.5 - 0.5 in the x
+//   direction using the set of points to create the line.
+// Arguments:
+//   points = set of three lines to use as points on the hex.
+//   radius = the radius of the hex.
+// Example:
+//   HexagonalTesselation(
+//     points=[
+//       [[-0.5, 0], [0, 0.2], [0.5, 0]],
+//       [[-0.5, 0], [0, -0.2], [0.5, 0]],
+//       [[-0.5, 0], [0.3, 0.2], [0.5, 0]],
+//     ]
+//   );
+module HexagonalTesselation(points, radius = 10) {
+  assert(len(points) == 3, "points must have three arrays");
+  for (c = [0:len(points) - 1]) {
+    assert(len(points[c]) > 1, "Each array must have more than two elements");
+  }
+  side_length = 2 * radius * sin(30);
+  apothem = sqrt(3) / 2 * side_length;
+  function GenerateEdge(pts) = [for (i = [0:len(pts) - 1]) (pts[i] * side_length)];
+
+  // List of 3 sets of points to work as the exterior points on the line
+  // represented as a percentage of the side.
+
+  poly = [
+    for (i = [0:5]) each move(
+      rot(a=60 * i, p=[[apothem, 0]])[0],
+      rot(a=60 * i + 90, p=GenerateEdge(pts=i % 2 == 0 ? reverse(rot(a=180, p=points[i / 2 % 3])) : points[i / 2 % 3]))
+    ),
+  ];
+  polygon(poly);
+}
+
+// Module: EscherLizardHexTesselation()
+// Description:
+//    A hex tesselation of the esched lizard, this can be rotated and used
+//    to fill in hex spaces when doing tesselations.
+// Arguments:
+//    radius = the radius of the hex to use
+// Example:
+//    EscherLizardHexTesselation(radius=29);
+module EscherLizardHexTesselation(radius) {
+  top = [
+    [-0.5, 0.0],
+    [-0.15, -0.3],
+    [-0.0, -0.3],
+    [0.25, -0.05],
+    [0.05, 0.35],
+    [0.2, 0.4],
+    [0.45, 0.35],
+    [0.45, 0.2],
+    [0.35, 0.15],
+    [0.5, 0.0],
+  ];
+  tail = [
+    [-0.5, 0],
+    [-0.65, -0.35],
+    [-0.4, -0.35],
+    [-0.25, -0.25],
+    [0, -0.2],
+    [0.1, 0],
+    [0.05, 0.3],
+    [-0.15, 0.5],
+    [0.25, 0.35],
+    [0.35, 0.1],
+    [0.4, 0.0],
+  ];
+  other_leg = [
+    [-0.5, 0],
+    [-0.35, -0.25],
+    [-0.35, -0.55],
+    [-0.05, -0.45],
+    [-0.15, -0.05],
+    [0.15, 0.05],
+    [0.3, 0.15],
+    [0.5, 0],
+  ];
+  HexagonalTesselation(
+    points=[
+      tail,
+      top,
+      other_leg,
+    ],
+    radius=radius
+  );
 }

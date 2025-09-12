@@ -24,7 +24,7 @@ box_height = 73;
 
 default_lid_shape_type = SHAPE_TYPE_ESCHER_LIZARD;
 default_lid_shape_thickness = 1;
-default_lid_shape_width = 10;
+default_lid_shape_width = 15;
 default_label_font = "Impact";
 
 board_thickness = 20;
@@ -443,5 +443,9 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  //NestBoxLid();
+   // EscherLizardRepeatAtLocation(size=20, thickness=1, x=0, y=0);
+  //  EscherLizardRepeatAtLocation(size=20, thickness=1, x=0, y=1);
+  //EscherLizardRepeat(4, 4, 20,0.5);
+   PortugalCastle(0.2, 50);
 }

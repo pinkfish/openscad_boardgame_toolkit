@@ -3837,7 +3837,7 @@ module ShapeByType(
 //   stroke_width = width of the stroke to use for the castle outline
 //   width = the final width of the castle.
 // Example:
-//   PortugalCastle(0.2, 50)
+//   PortugalCastle(0.2, 50);
 module PortugalCastle(stroke_width, width) {
   max_height = 155.62545;
   min_height = 135.882;

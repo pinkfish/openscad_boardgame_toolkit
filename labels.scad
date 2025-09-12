@@ -427,13 +427,23 @@ module MakeFramedLidLabel(
 ) {
   rotate([0, 0, 90]) translate([length / 2, -width / 2, 0]) {
       metrics = textmetrics(label, font=font);
-      calc_text_length = DefaultValue(
+      max_width =
+        length > width && !short_length || short_length && length < width ?
+          width - offset * 2
+        : length - offset * 2;
+      max_length =
+        length > width && !short_length || short_length && length < width ?
+          length * 3 / 4 - offset * 2
+        : width * 3 / 4 - offset * 2;
+      temp_calc_text_length = DefaultValue(
         text_length,
         length > width && !short_length || short_length && length < width ?
           length * 3 / 4 - offset * 2
         : width * 3 / 4 - offset * 2
       );
-      calc_text_width = metrics.size[1] / metrics.size[0] * calc_text_length * text_scale + offset * 2;
+      temp_calc_text_width = metrics.size[1] / metrics.size[0] * temp_calc_text_length * text_scale + offset * 2;
+      calc_text_width = temp_calc_text_width > max_width ? max_width : temp_calc_text_width;
+      calc_text_length = temp_calc_text_width > max_width ? temp_calc_text_length * max_width / temp_calc_text_width : temp_calc_text_length;
       calc_finger_hole_size = DefaultValue(finger_hole_size, (short_length ? min(length, width) : max(length, width)) - calc_text_length - 10 > 0 ? 10 : 0);
       calc_radius = DefaultValue(radius, min(5, calc_text_width / 4));
 
