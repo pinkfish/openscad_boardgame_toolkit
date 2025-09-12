@@ -16,7 +16,7 @@ construction.
 
 ## Installation
 
-Pre-requisite for using this toolkit is to install [BSOL2](https://github.com/BelfrySCAD/BOSL2/wiki).
+Pre-requisite for using this toolkit is to install [BOSL2](https://github.com/BelfrySCAD/BOSL2/wiki).
 
 Copy the boardgame_toolkit.scad file into the same directory as the inserts you wish to create, you can also
 install it into the shared directory on the mac or windows to use with all flows and no need to import directly.
