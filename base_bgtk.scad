@@ -191,6 +191,26 @@ SHAPE_TYPE_LEAF = 29;
 //   Make a shape with leaf veins, use a wider shape for this it will take
 //   forever to render.
 SHAPE_TYPE_LEAF_VEINS = 30;
+// Constant: SHAPE_TYPE_DROP
+// Description:
+//   Make a shape that looks a bit like a drop and rendered as a tesselation.
+SHAPE_TYPE_DROP = 31;
+// Constant: SHAPE_TYPE_DELTOID_TRIHEXAGONAL
+// Description:
+//   Make a shape that is a deltoid trihexagon.
+SHAPE_TYPE_DELTOID_TRIHEXAGONAL = 32;
+// Constant: SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE
+// Description:
+//   Make a shape that is a deltoid trihexagon with kiting.
+SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE = 33;
+// Constant: SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE
+// Description:
+//   Make a shape that is a half regular hexagon.
+SHAPE_TYPE_HALF_REGULAR_HEXAGON = 34;
+// Constant: SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL
+// Description:
+//   Make a shape that is a rhombitrihexagon.
+SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL = 35;
 
 // Constant: CATCH_NONE
 // Description:
@@ -208,7 +228,6 @@ CATCH_WIDTH = 2;
 // Description:
 //   Catch on the all sides.
 CATCH_ALL = 3;
-
 
 // Constant: LABEL_TYPE_FRAMED
 // Description:

@@ -82,7 +82,8 @@ default_lid_supershape_b = 1;
 // Arguments:
 //   shape_type = the shape_type to check
 function IsDenseShapeType(shape_type) =
-  DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_HEX || DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_TRIANGLE;
+  DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_HEX || DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DENSE_TRIANGLE || DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE || DefaultValue(shape_type, default_lid_shape_type) == SHAPE_TYPE_DELTOID_TRIHEXAGONAL;
+
 // Function: DenseShapeEdges()
 // Description:
 //   The number of edges on the dense shape.
@@ -172,8 +173,7 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //   Make a mesh for the lid with a repeating shape.  It uses the children of this to repeat the shape.
 //   Sets $layout_width as the layout width
 // Arguments:
-//   width = width of the mesh section
-//   length = the length of the mesh section
+//   path = the size of the layout grid [x,y]
 //   lid_thickness = how high the lid is
 //   boundary = how wide of a boundary edge to put on the side of the lid
 //   layout_width = the width to use between each shape.
@@ -373,10 +373,17 @@ module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
           if (i + 1 < $children) {
             for (j = [i + 1:$children - 1]) {
               color("darkslategrey")
-                translate([0, 0, -0.5]) linear_extrude(height=lid_thickness + 1)
-                    offset(r=-size_spacing) fill() projection(cut=false) {
+                translate([0, 0, -0.5]) {
+                  linear_extrude(height=lid_thickness + 1) {
+                    offset(r=-size_spacing) {
+                      fill() {
+                        projection(cut=false) {
                           children(j);
                         }
+                      }
+                    }
+                  }
+                }
             }
           }
         }

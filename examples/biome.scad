@@ -443,9 +443,6 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  //NestBoxLid();
-   // EscherLizardRepeatAtLocation(size=20, thickness=1, x=0, y=0);
-  //  EscherLizardRepeatAtLocation(size=20, thickness=1, x=0, y=1);
-  //EscherLizardRepeat(4, 4, 20,0.5);
-   PortugalCastle(0.2, 50);
+  //   ExtraBitsBoxLid();
+  PlayerBoxLid();
 }

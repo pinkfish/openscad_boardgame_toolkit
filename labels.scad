@@ -130,6 +130,8 @@ module MakeMainLidLabelSolid(
   solid_background = false,
   label_background_colour = undef
 ) {
+  assert(width > offset * 2 + border * 2, str("Width must be wider than double the offset width=", width, " offset=", offset, "border=", border));
+  assert(length > offset * 2 + border * 2, str("Length must be wider than double the offset length=", length, " offset=", offset, "border=", border));
   module TextShape(calc_font, text_height = lid_thickness, edge_offset = 0) {
     linear_extrude(text_height) union() {
         // Edge box.
@@ -250,6 +252,8 @@ module MakeMainLidLabelStriped(
   solid_background = false,
   label_background_colour = undef
 ) {
+  assert(width > border * 2, str("Width must be wider than double the border width=", width, " offset=", offset, " border=", border));
+  assert(length > border * 2, str("Length must be wider than double the border length=", length, " offset=", offset, " border=", border));
 
   module TextShape(calc_font, text_thickness = lid_thickness, edge_offset = 0) {
     linear_extrude(text_thickness) union() {
@@ -447,49 +451,53 @@ module MakeFramedLidLabel(
       calc_finger_hole_size = DefaultValue(finger_hole_size, (short_length ? min(length, width) : max(length, width)) - calc_text_length - 10 > 0 ? 10 : 0);
       calc_radius = DefaultValue(radius, min(5, calc_text_width / 4));
 
-      rotate(width > length && !short_length || short_length && width < length ? 90 : 0) {
-        if (
-          calc_finger_hole_size > 0 && calc_text_width + calc_finger_hole_size * 2 < width && calc_text_width + calc_finger_hole_size * 2 < length
-        ) {
-          color(material_colour)
-            difference() {
-              union() {
-                translate([0, -calc_text_width / 2, 0]) difference() {
-                    cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
-                    translate([0, 0, -0.5])
-                      cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
-                  }
+      if (calc_text_width > 10 && calc_text_length > 1) {
+        rotate(width > length && !short_length || short_length && width < length ? 90 : 0) {
+          if (
+            calc_finger_hole_size > 0 && calc_text_width + calc_finger_hole_size * 2 < width && calc_text_width + calc_finger_hole_size * 2 < length
+          ) {
+            color(material_colour)
+              difference() {
+                union() {
+                  translate([0, -calc_text_width / 2, 0]) difference() {
+                      cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
+                      translate([0, 0, -0.5])
+                        cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
+                    }
 
-                translate([0, calc_text_width / 2, 0]) difference() {
-                    cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
-                    translate([0, 0, -0.5])
-                      cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
-                  }
+                  translate([0, calc_text_width / 2, 0]) difference() {
+                      cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
+                      translate([0, 0, -0.5])
+                        cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
+                    }
+                }
+                translate([0, 0, -0.5])
+                  cuboid([calc_text_length, calc_text_width, lid_thickness + 1], anchor=BOTTOM);
               }
-              translate([0, 0, -0.5])
-                cuboid([calc_text_length, calc_text_width, lid_thickness + 1], anchor=BOTTOM);
-            }
-        }
+          }
 
-        if (solid_background) {
-          MakeMainLidLabelSolid(
-            width=calc_text_length, length=calc_text_width,
-            lid_thickness=lid_thickness, label=label,
-            border=border, offset=offset, font=font, radius=calc_radius,
-            full_height=full_height,
-            label_colour=label_colour, material_colour=material_colour,
-            background_colour=background_colour, label_background_colour=label_background_colour
-          );
-        } else {
-          MakeMainLidLabelStriped(
-            width=calc_text_length, length=calc_text_width,
-            lid_thickness=lid_thickness, label=label,
-            border=border, offset=offset, font=font, radius=calc_radius,
-            full_height=full_height, label_colour=label_colour,
-            material_colour=material_colour, background_colour=background_colour,
-            label_background_colour=label_background_colour
-          );
+          if (solid_background) {
+            MakeMainLidLabelSolid(
+              width=calc_text_length, length=calc_text_width,
+              lid_thickness=lid_thickness, label=label,
+              border=border, offset=offset, font=font, radius=calc_radius,
+              full_height=full_height,
+              label_colour=label_colour, material_colour=material_colour,
+              background_colour=background_colour, label_background_colour=label_background_colour
+            );
+          } else {
+            MakeMainLidLabelStriped(
+              width=calc_text_length, length=calc_text_width,
+              lid_thickness=lid_thickness, label=label,
+              border=border, offset=offset, font=font, radius=calc_radius,
+              full_height=full_height, label_colour=label_colour,
+              material_colour=material_colour, background_colour=background_colour,
+              label_background_colour=label_background_colour
+            );
+          }
         }
+      } else {
+        echo("WARNING: Lid too narrow for a label");
       }
     }
 }

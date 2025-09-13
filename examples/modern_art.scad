@@ -26,22 +26,20 @@ board_thickness = 6;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 default_wall_thickness = 3;
-default_lid_shape_type = SHAPE_TYPE_SQUARE;
-default_lid_shape_thickness = 1.5;
-default_lid_shape_rounding = 2;
-default_lid_shape_width = 15;
-default_lid_layout_width = 10;
+default_lid_shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL;
+default_lid_shape_width = 25;
+default_lid_shape_thickness = 0.75;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 card_width = 61;
 card_length = 93;
 
 card_box_width = default_wall_thickness * 2 + card_length;
-card_box_length = box_width - 1;
+card_box_length = box_width - 3;
 card_box_height = box_height - board_thickness;
 
-token_box_width = box_length - card_box_width - 1;
-token_box_length = box_width - 1;
+token_box_width = box_length - card_box_width - 3;
+token_box_length = box_width - 3;
 token_box_height = card_box_height;
 
 module CardBox() // `make` me
@@ -58,11 +56,10 @@ module CardBox() // `make` me
 
 module CardBoxLid() // `make` me
 {
-  translate([card_box_width + 10, 0, 0])
-    CapBoxLidWithLabel(
-      width=card_box_width, length=card_box_length, height=card_box_height,
-      text_str="Tokens"
-    );
+  CapBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, height=card_box_height,
+    text_str="Tokens"
+  );
 }
 
 module TokensBox() // `make` me
@@ -74,12 +71,16 @@ module TokensBox() // `make` me
 
 module TokensBoxLid() // `make` me
 {
-  translate([token_box_width + 10, 0, 0]) CapBoxLidWithLabel(
-      width=token_box_width, length=token_box_length, height=token_box_height,
-      text_str="Modern Art", font="Marker Felt:style=Regular"
-    );
+  CapBoxLidWithLabel(
+    width=token_box_width, length=token_box_length, height=token_box_height,
+    text_str="Modern Art", font="Marker Felt:style=Regular"
+  );
 }
 
 if (FROM_MAKE != 1) {
-  CardBox();
+  TokensBoxLid();
+  //TriangleTesselationRepeat(rows=4, cols=4, size=20)
+  // HalfRegularHexagon(20);
+  //HexagonTesselationRepeat(rows=4, cols=4, size=20)
+  //    RhombiTriHexagonal(40);
 }

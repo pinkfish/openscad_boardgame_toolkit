@@ -536,11 +536,6 @@ module StartTile(thickness) {
   }
 }
 
-module SpacerCardFront() // `make` me
-{
-  MakeBoxWithNoLid(length=spacer_card_length, width=spacer_card_width, height=spacer_card_front_height, hollow=true);
-}
-
 module UpgradeBoardsBox() // `make` me
 {
   MakeBoxWithSlidingLid(

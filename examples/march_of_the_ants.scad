@@ -20,6 +20,7 @@ include <boardgame_toolkit.scad>
 
 default_label_font = "Impact";
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_DROP;
 
 box_width = 195;
 box_length = 275;
