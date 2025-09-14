@@ -18,8 +18,6 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-$fn = 128;
-
 default_lid_thickness = 3;
 
 default_lid_shape_type = SHAPE_TYPE_CLOUD;

@@ -18,8 +18,6 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-$fn = 128;
-
 default_lid_thickness = 3;
 default_label_font = "Impact";
 default_lid_shape_width = 18;
@@ -44,8 +42,6 @@ single_card_thickness = card_10_thickness / 10;
 splendor_box_width = splendor_card_length + default_wall_thickness * 2 + 1;
 splendor_box_length = default_wall_thickness * 4 + (splendor_disc_diameter + 1) * 3;
 splendor_box_height = splendor_disc_thickness * ceil(splendor_disc_number / 6) + default_lid_thickness * 3 + splendor_nobel_thickness * 5 + (single_card_thickness * 45) + 1;
-
-echo([splendor_box_width, splendor_box_length, splendor_box_height, single_card_thickness * 45]);
 
 module SplendorBox() // `make` me
 {
@@ -221,9 +217,9 @@ module SplendorBoxInside() // `make` me
             if (i == 2) {
               translate([0, 0, -0.01])
                 cyl(
-                  d=splendor_disc_diameter  + inner_wall_thickness * 2 - 1,
+                  d=splendor_disc_diameter + inner_wall_thickness * 2 - 1,
                   anchor=BOTTOM,
-                  h=splendor_disc_thickness*2
+                  h=splendor_disc_thickness * 2
                 );
             }
             TokenCylinder();
@@ -253,7 +249,7 @@ module SplendorBoxInside() // `make` me
             inner_width + 1,
             splendor_box_height,
           ], anchor=BOTTOM + RIGHT
-        ); 
+        );
 
       // Edge cutoffs.
       translate(

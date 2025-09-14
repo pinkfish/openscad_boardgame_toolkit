@@ -211,6 +211,14 @@ SHAPE_TYPE_HALF_REGULAR_HEXAGON = 34;
 // Description:
 //   Make a shape that is a rhombitrihexagon.
 SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL = 35;
+// Constant: SHAPE_TYPE_PENROSE_TILING_5
+// Description:
+//   Make a shape that is a penrose tiling.
+SHAPE_TYPE_PENROSE_TILING_5 = 36;
+// Constant: SHAPE_TYPE_PENROSE_TILING_7
+// Description:
+//   Make a shape that is a penrose tiling.
+SHAPE_TYPE_PENROSE_TILING_7 = 37;
 
 // Constant: CATCH_NONE
 // Description:

@@ -650,7 +650,7 @@ module CardBox() // `make` me
     lid_on_length=true
   ) {
     cube([card_length + 2, $inner_length, card_box_height]);
-    translate([0, $inner_length / 2, -lid_thickness - 0.01]) color(default_material_colour)
+    translate([0, $inner_length / 2, -default_lid_thickness - 0.01]) color(default_material_colour)
         FingerHoleBase(radius=20, height=card_box_height);
     translate([$inner_width - ($inner_width - card_length - 2) / 2, $inner_length / 2, $inner_height - 1])
       color(default_material_colour) linear_extrude(card_box_height) rotate(270)
@@ -665,7 +665,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    width=card_box_width, length=card_box_length,
     text_str="Cards", label_colour="black",
     lid_on_length=true
   );
@@ -676,7 +676,7 @@ module BagBox() // `make` me
   translate([bag_box_width / 2, bag_box_length / 2, 0]) difference() {
       color(default_material_colour)
         cuboid([bag_box_width, bag_box_length, bag_box_height], rounding=2, anchor=BOTTOM);
-      translate([0, 0, lid_thickness]) color(default_material_colour)
+      translate([0, 0, default_lid_thickness]) color(default_material_colour)
           cuboid(
             [bag_box_width - default_wall_thickness * 2, bag_box_length - default_wall_thickness * 2, bag_box_height],
             anchor=BOTTOM

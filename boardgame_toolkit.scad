@@ -65,3 +65,4 @@ include <shapes.scad>
 include <shapes3d.scad>
 include <pentagon_tilings.scad>
 include <tesselations.scad>
+include <penrose_tiling.scad>

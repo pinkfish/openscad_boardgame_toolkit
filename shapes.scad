@@ -3558,7 +3558,7 @@ module Sign2d(size) {
 function ShapeNeedsInnerControl(shape_type) =
   (shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_ESCHER_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL) ?
     1
-  : (shape_type == SHAPE_TYPE_VORONOI ? 2 : 0);
+  : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 ? 2 : 0);
 
 // Module: ShapeByType()
 // Description:
@@ -3663,7 +3663,7 @@ function ShapeNeedsInnerControl(shape_type) =
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGON, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL, shape_thickness = 1, shape_width = 10);
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
@@ -3673,9 +3673,17 @@ function ShapeNeedsInnerControl(shape_type) =
 //   $polygon_y = 0;
 //   ShapeByType(shape_type = SHAPE_TYPE_DROP, shape_thickness = 1, shape_width = 10);
 // Example:
-//   $polygon_x = 0;
-//   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_VORONI, shape_thickness = 1, shape_width = 10);
+//   $polygon_width = 100;
+//   $polygon_length = 100;
+//   ShapeByType(shape_type = SHAPE_TYPE_VORONOI, shape_thickness = 1, shape_width = 10);
+// Example:
+//   $polygon_width = 100;
+//   $polygon_length = 100;
+//   ShapeByType(shape_type = SHAPE_TYPE_PENROSE_TILING_5, shape_thickness = 1, shape_width = 10);
+// Example:
+//   $polygon_width = 100;
+//   $polygon_length = 100;
+//   ShapeByType(shape_type = SHAPE_TYPE_PENROSE_TILING_7, shape_thickness = 1, shape_width = 10);
 // Example:
 //   ShapeByType(shape_type = SHAPE_TYPE_DELTOID_TRIHEXAGONAL, shape_thickness = 1, shape_width = 10);
 // Example:
@@ -3790,6 +3798,12 @@ module ShapeByType(
       EscherLizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_VORONOI) {
       Voronoi(width=$polygon_width, length=$polygon_length, cellsize=calc_shape_width, thickness=calc_shape_thickness);
+    } else if (calc_shape_type == SHAPE_TYPE_PENROSE_TILING_5) {
+      max_width = max($polygon_width, $polygon_length);
+      PenroseTiling(max_width * 1.5, divisions=ceil((max_width * 2 / calc_shape_width) / 3), base=5, thickness=calc_shape_thickness);
+    } else if (calc_shape_type == SHAPE_TYPE_PENROSE_TILING_7) {
+      max_width = max($polygon_width, $polygon_length);
+      PenroseTiling(max_width * 1.5, divisions=ceil((max_width * 2 / calc_shape_width) / 3), base=7, thickness=calc_shape_thickness);
     } else if (calc_shape_type == SHAPE_TYPE_DROP) {
       TesselationDrop(size=[calc_shape_width, calc_shape_width * calc_aspect_ratio], thickness=calc_shape_thickness / 2, outer_offset=0.1);
     } else if (calc_shape_type == SHAPE_TYPE_DELTOID_TRIHEXAGONAL) {

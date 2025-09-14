@@ -26,7 +26,7 @@ board_thickness = 6;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 default_wall_thickness = 3;
-default_lid_shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL;
+default_lid_shape_type = SHAPE_TYPE_PENROSE_TILING_5;
 default_lid_shape_width = 25;
 default_lid_shape_thickness = 0.75;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
@@ -83,4 +83,6 @@ if (FROM_MAKE != 1) {
   // HalfRegularHexagon(20);
   //HexagonTesselationRepeat(rows=4, cols=4, size=20)
   //    RhombiTriHexagonal(40);
+ // linear_extrude(height = 5) 
+ // PenroseTiling(100,  divisions=1, thickness=1);
 }
