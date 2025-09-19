@@ -19,9 +19,9 @@ include <lib/emberleaf.scad>
 
 $fn = 128;
 
-default_lid_shape_type = SHAPE_TYPE_DENSE_HEX;
+default_lid_shape_type = SHAPE_TYPE_PENROSE_TILING_7;
+default_lid_shape_width = 25;
 default_lid_shape_thickness = 1;
-default_lid_shape_width = 10;
 default_wall_thickness = 3;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
@@ -94,6 +94,14 @@ module PencilBox() // `make` me
   }
 }
 
+module PencilBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    length=pencil_box_length, width=pencil_box_width, height=pencil_box_height,
+    text_str="Pencils"
+  ){}
+}
+
 module GoalCardsBox() // `make` me
 {
   translate([0, 0, goal_card_box_width])
@@ -132,7 +140,6 @@ module PlayingCardsBox() // `make` me
 
 module PlayingCardsLid() // `make` me
 {
-  echo([playing_card_box_width, playing_card_box_length]);
   SlidingBoxLidWithLabel(
     width=playing_card_box_width, length=playing_card_box_length, text_str="Playing",
     label_type=LABEL_TYPE_FRAMELESS,
@@ -221,7 +228,7 @@ module SpacerSide() // `make` me
         );
       translate([spacer_side_width / 2, 1, spacer_side_height - 10])
         FingerHoleWall(20, 10);
-      translate([spacer_side_width / 2, spacer_side_length-2, spacer_side_height - 10])
+      translate([spacer_side_width / 2, spacer_side_length - 2, spacer_side_height - 10])
         FingerHoleWall(20, 10);
     }
 }
@@ -247,5 +254,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  PencilBoxLid();
 }

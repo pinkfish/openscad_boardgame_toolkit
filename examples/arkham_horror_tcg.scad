@@ -26,6 +26,7 @@ default_lid_thickness = 3;
 default_wall_thickness = 3;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_VORONOI;
 
 num_investigator_cards = 34;
 

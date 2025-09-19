@@ -22,6 +22,8 @@ include <lib/brink.scad>
 default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_label_font = "Impact";
+default_lid_shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL;
+default_lid_shape_width = 20;
 
 ambassador_card_box_width = box_width / 2 - 1;
 ambassador_card_box_length = small_card_length + default_wall_thickness * 2;
@@ -35,9 +37,9 @@ action_card_box_length = small_card_length + default_wall_thickness * 2;
 action_card_box_height = single_card_thickness * 52 / 2 + default_floor_thickness + default_lid_thickness;
 rider_card_box_height = single_card_thickness * 20 / 2 + default_floor_thickness + default_lid_thickness;
 
-player_box_width = box_width - 2;
-player_box_length = default_wall_thickness * 2 + class_ii_ship_length + voting_board_width + 32;
-player_box_height = (box_height - board_thickness - cardboard_token_thickness - 0.5) / 5;
+player_box_width = (box_width - 3) / 2;
+player_box_length = default_wall_thickness * 2 + upgrade_length;
+player_box_height = upgrade_thickness + cargo_thickness + round_nub_thickness + default_floor_thickness + default_lid_thickness + 2;
 
 hex_box_width = box_width - 2;
 hex_box_length = default_wall_thickness * 2 + hex_width * 3 / 2 + 6;
@@ -50,27 +52,19 @@ faction_box_width = hex_box_width;
 faction_box_length = hex_box_length;
 faction_box_height = default_floor_thickness + default_lid_thickness + marker_cube_width + 1;
 
-upgrade_board_box_width = default_wall_thickness * 2 + upgrade_width;
-upgrade_board_box_length = hex_box_length;
-upgrade_board_box_height = middle_height;
-
 resource_box_length = hex_box_length;
-resource_box_width = (box_width - upgrade_board_box_width - 1) / 2;
-resource_box_height = middle_height / 2;
+resource_box_width = (box_width - 2) / 4;
+resource_box_height = middle_height;
 
-resource_box_2_length = ambassador_card_box_length;
-resource_box_2_width = (ambassador_card_box_width) / 2;
-resource_box_2_height = box_height - ambassador_card_box_height - faction_card_box_height - rival_card_box_height - bonus_card_box_height * 2 - 1;
+resource_box_2_length = player_box_length;
+resource_box_2_width = (player_box_width) / 2;
+resource_box_2_height = player_box_height;
 
 spacer_card_width = ambassador_card_box_width;
 spacer_card_length = ambassador_card_box_length;
 spacer_card_back_height = box_height - action_card_box_height - rider_card_box_height - 1;
 
-spacer_hexes_width = hex_box_width - upgrade_board_box_width;
-spacer_hexes_length = hex_box_length;
-spacer_hexes_height = upgrade_board_box_height;
-
-echo([upgrade_board_box_height, cargo_thickness + round_nub_thickness + upgrade_thickness, player_box_height]);
+echo([player_box_height, upgrade_thickness + cargo_thickness + round_nub_thickness + default_floor_thickness + default_lid_thickness]);
 
 module AmbassadorCardBox() // `make` me
 {
@@ -291,12 +285,20 @@ module HexBoxBonusLid() // `make` me
 module PlayerBox(colour = "green") // `make` me
 {
   MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height, material_colour=colour) {
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - upgrade_thickness - 1])
+      cuboid([upgrade_width + 0.5, upgrade_length + 0.5, player_box_height], anchor=BOTTOM);
+
+    translate([5, 5, $inner_height - upgrade_thickness - 3])
+      RoundedBoxAllSides(upgrade_width - 10, upgrade_length - 25, player_box_height, 5);
+    translate([33, 5, $inner_height - upgrade_thickness - 3])
+      RoundedBoxAllSides(class_ii_ship_length + 10, upgrade_length - 10, player_box_height, 5);
     // class i ship
+
     translate(
       [
-        class_i_ship_diameter / 2 + 5,
-        $inner_length - class_i_ship_diameter / 2 - 10,
-        $inner_height - class_i_ship_thickness,
+        class_i_ship_diameter - 1,
+        railgun_length + cargo_width + 17 + class_i_ship_diameter / 2,
+        $inner_height - class_i_ship_thickness - upgrade_thickness - 2,
       ]
     )
       ClassIShip(player_box_height);
@@ -304,9 +306,9 @@ module PlayerBox(colour = "green") // `make` me
     // class ii ship
     translate(
       [
-        class_ii_ship_width / 2 + class_i_ship_diameter + 7,
-        $inner_length - class_ii_ship_length / 2 - 5,
-        $inner_height - class_iii_ship_thickness,
+        class_ii_ship_length + class_i_ship_diameter - 5,
+        $inner_length - class_ii_ship_width / 2 - 10,
+        $inner_height - class_ii_ship_thickness - upgrade_thickness - 2,
       ]
     ) {
       ClassIIShip(player_box_height);
@@ -315,165 +317,55 @@ module PlayerBox(colour = "green") // `make` me
     // class iii ship
     translate(
       [
-        class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius,
-        $inner_length - class_iii_ship_edge_length / 2 - 5,
-        $inner_height - class_ii_ship_thickness,
+        class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius - 10,
+        $inner_length - class_ii_ship_width - class_iii_ship_edge_length / 2 - 10,
+        $inner_height - class_iii_ship_thickness - upgrade_thickness - 2,
       ]
     )
       ClassIIIShip(player_box_height);
 
-    // indent for the ships.
-    hull() {
-      translate(
-        [
-          class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius * 2,
-          $inner_length - class_iii_ship_edge_length / 2 - 5,
-          $inner_height - class_ii_ship_thickness + 2,
-        ]
-      )
-        sphere(r=class_ii_ship_thickness, anchor=BOTTOM);
-
-      translate(
-        [
-          class_i_ship_diameter + class_ii_ship_width + 10,
-          $inner_length - class_ii_ship_thickness,
-          $inner_height - class_ii_ship_thickness + 2,
-        ]
-      )
-        sphere(r=class_ii_ship_thickness, anchor=BOTTOM);
-      translate(
-        [
-          class_i_ship_diameter + class_ii_ship_width + 10,
-          $inner_length - class_ii_ship_length - 2,
-          $inner_height - class_ii_ship_thickness + 2,
-        ]
-      )
-        sphere(r=class_ii_ship_thickness, anchor=BOTTOM);
-      translate(
-        [
-          class_ii_ship_thickness,
-          $inner_length - class_ii_ship_length - 2,
-          $inner_height - class_ii_ship_thickness + 2,
-        ]
-      )
-        sphere(r=class_ii_ship_thickness, anchor=BOTTOM);
-      translate(
-        [
-          class_ii_ship_thickness,
-          $inner_length - class_ii_ship_thickness,
-          $inner_height - class_ii_ship_thickness + 2,
-        ]
-      )
-        sphere(r=class_ii_ship_thickness, anchor=BOTTOM);
-    }
-
-    // voting bit.
-    translate(
-      [
-        $inner_width / 2,
-        voting_board_width / 2 + 18,
-        $inner_height - cardboard_token_thickness - 1,
-      ]
-    ) {
-      cuboid([voting_board_length, voting_board_width, player_box_height], anchor=BOTTOM);
-    }
-
-    translate(
-      [
-        $inner_width / 2,
-        cardboard_token_thickness / 2 + 0.5 + voting_board_width + 20,
-        $inner_height - cardboard_token_thickness - 5,
-      ]
-    ) {
-      cuboid([screen_length, cardboard_token_thickness + 1, player_box_height], anchor=BOTTOM);
-    }
-    translate(
-      [
-        $inner_width / 2 - screen_length / 2,
-        voting_board_width / 2 + 3.5,
-        $inner_height - cardboard_token_thickness - 5,
-      ]
-    ) {
-      cuboid([cardboard_token_thickness + 2, voting_board_width * 2, player_box_height], anchor=BOTTOM);
-    }
-    translate(
-      [
-        $inner_width / 2 + screen_length / 2,
-        voting_board_width / 2 + 3.5,
-        $inner_height - cardboard_token_thickness - 5,
-      ]
-    ) {
-      cuboid([cardboard_token_thickness + 2, voting_board_width * 2, player_box_height], anchor=BOTTOM);
-    }
-
-    box_section = ( (voting_board_length + 1) / 5) - 1.5;
-    for (i = [0:4]) {
-      translate([($inner_width - voting_board_length) / 2 + (box_section + 1.5) * i, -1, 0]) {
-        RoundedBoxAllSides(length=voting_board_width + 17, width=(voting_board_length / 5) - 1, height=player_box_height, radius=5);
-      }
-    }
-
     // Cargo stuff
-    translate([$inner_width - cargo_width / 2 - 5, $inner_length - cargo_width / 2 - 3, $inner_height - cargo_thickness]) {
-      CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0], finger_hole_radius=5);
-      translate([0, 0, -round_nub_thickness])
-        cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
-    }
-    translate([$inner_width - cargo_width / 2 - 5, $inner_length - cargo_width * 3 / 2 - 5, $inner_height - cargo_thickness]) {
-      CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0], finger_hole_radius=5);
-      translate([0, 0, -round_nub_thickness])
-        cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
-    }
-    translate([$inner_width - cargo_width / 2 - 5, $inner_length - cargo_width * 5 / 2 - 7, $inner_height - cargo_thickness]) {
-      CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height]);
-      translate([0, 0, -round_nub_thickness])
-        cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+    for (i = [0:2]) {
+      translate(
+        [
+          (cargo_width + 3) * i + cargo_width / 2 + 10,
+          cargo_width / 2 + 10,
+          $inner_height - cargo_thickness - upgrade_thickness - 2,
+        ]
+      ) {
+        CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0], finger_hole_radius=5);
+        translate([0, 0, -round_nub_thickness])
+          cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+      }
     }
 
     // Railgun stuff.
     for (i = [0:2]) {
       translate(
         [
-          $inner_width - cargo_width * 3 / 2 - railgun_length / 2,
-          $inner_length - railgun_width / 2 - 4 - (railgun_width + 5) * i,
-          $inner_height - railgun_thickness,
+          (railgun_width + 3) * i + railgun_width / 2 + 15,
+          railgun_length / 2 + cargo_width + 15,
+          $inner_height - railgun_thickness - upgrade_thickness - 2,
         ]
       ) {
-        CuboidWithIndentsBottom(size=[railgun_length, railgun_width, player_box_height], finger_holes=[2], finger_hole_radius=7);
-        translate([railgun_length / 2 - railgun_nub_offset, 0, -round_nub_thickness])
+        CuboidWithIndentsBottom(size=[railgun_width, railgun_length, player_box_height], finger_holes=[2], finger_hole_radius=7);
+        translate([0, railgun_length / 2 - railgun_nub_offset, -round_nub_thickness])
           cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
       }
-    }
-    // Indent for all the upgrades.
-    translate(
-      [
-        $inner_width - cargo_width - railgun_length - 10,
-        $inner_length - railgun_width * 5 + 1,
-        $inner_height - railgun_thickness + 1.5,
-      ]
-    ) {
-      RoundedBoxAllSides(width=railgun_length + cargo_width + 10, length=cargo_width * 3 + 9, height=player_box_height, radius=5);
     }
 
     // PLayer tokens
     translate(
       [
-        $inner_width / 2 - 7,
-        $inner_length - class_ii_ship_length / 2 - 4,
-        $inner_height - cardboard_token_thickness * 2 - 1,
+        player_token_diameter / 2 + 15,
+        $inner_length - player_token_diameter / 2 - 3,
+        $inner_height - cardboard_token_thickness * 2 - upgrade_thickness - 2,
       ]
     ) {
-      CylinderWithIndents(player_token_diameter / 2, height=player_box_height, finger_holes=[90, 270], finger_hole_radius=10);
-    }
-    // Storage for stuff.
-    translate(
-      [
-        $inner_width - cargo_width - railgun_length - 65,
-        $inner_length - railgun_width * 5 + 4,
-        0,
-      ]
-    ) {
-      RoundedBoxAllSides(width=50, length=cargo_width * 3 + 7, height=player_box_height, radius=10);
+      CylinderWithIndents(
+        player_token_diameter / 2,
+        height=player_box_height, finger_holes=[0, 180], finger_hole_radius=10
+      );
     }
   }
 }
@@ -536,54 +428,9 @@ module StartTile(thickness) {
   }
 }
 
-module UpgradeBoardsBox() // `make` me
-{
-  MakeBoxWithSlidingLid(
-    width=upgrade_board_box_width,
-    length=upgrade_board_box_length,
-    height=upgrade_board_box_height
-  ) {
-    translate([0, 0, $inner_height - upgrade_thickness * 5 - 1])
-      cube([upgrade_width, upgrade_length, upgrade_board_box_height]);
-    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
-      FingerHoleBase(radius=15, height=upgrade_board_box_height);
-
-    // tokens
-    translate([$inner_width / 2, $inner_length / 2 - favor_token_diameter - 3, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
-      CylinderWithIndents(
-        radius=favor_token_diameter / 2,
-        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
-      );
-    translate([$inner_width / 2, $inner_length / 2, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
-      CylinderWithIndents(
-        radius=favor_token_diameter / 2,
-        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
-      );
-    translate([$inner_width / 2, $inner_length / 2 + favor_token_diameter + 3, $inner_height - upgrade_thickness * 5 - 1 - cardboard_token_thickness - 0.5])
-      CylinderWithIndents(
-        radius=favor_token_diameter / 2,
-        height=upgrade_board_box_height, finger_hole_radius=10, finger_holes=[0, 180]
-      );
-  }
-}
-
-module UpgradeBoardsBoxLid() // `make` me
-{
-  SlidingBoxLidWithLabel(
-    width=upgrade_board_box_width,
-    length=upgrade_board_box_length,
-    text_str="Upgrades"
-  );
-}
-
 module SpacerCardBack() // `make` me
 {
   MakeBoxWithNoLid(width=spacer_card_width, length=spacer_card_length, height=spacer_card_back_height, hollow=true);
-}
-
-module SpacerCardHexes() // `make` me
-{
-  MakeBoxWithNoLid(width=spacer_hexes_width, length=spacer_hexes_length, height=spacer_hexes_height, hollow=true);
 }
 
 module BoxLayout() {
@@ -599,35 +446,37 @@ module BoxLayout() {
     BonusCardBox();
   translate([0, 0, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height])
     BonusCardBox();
-  translate([0, 0, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
-    Resource2Box(colour="lightgreen");
-  translate([resource_box_2_width, 0, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
-    Resource2Box(colour="red");
   translate([ambassador_card_box_width, 0, 0])
     ActionCardBox();
   translate([ambassador_card_box_width, 0, action_card_box_height])
     RiderCardBox();
   translate([ambassador_card_box_width, 0, action_card_box_height + rider_card_box_height])
     SpacerCardBack();
-  for (i = [0:4]) {
+  for (i = [0:2]) {
     translate([0, ambassador_card_box_length, player_box_height * i + board_thickness])
-      PlayerBox(colour=["yellow", "orange", "purple", "blue", "green"][i]);
+      PlayerBox(colour=["lightbrown", "orange", "red"][i]);
   }
+  for (i = [0:1]) {
+    translate([player_box_width, ambassador_card_box_length, player_box_height * i + board_thickness])
+      PlayerBox(colour=["purple", "blue"][i]);
+  }
+  translate([player_box_width, ambassador_card_box_length, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
+    Resource2Box(colour="purple");
+  translate([player_box_width + resource_box_2_width, ambassador_card_box_length, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
+    Resource2Box(colour="red");
+
   translate([0, 0, upgrade_thickness * 5]) {
     translate([0, ambassador_card_box_length + player_box_length, board_thickness])
       HexBox();
     translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness])
       HexBonusBox();
 
-    for (j = [0:1]) {
-      for (i = [0:1]) {
-        translate([i * resource_box_width + upgrade_board_box_width, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height + j * resource_box_height])
+    for (j = [0:0]) {
+      for (i = [0:3]) {
+        translate([i * resource_box_width, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height + j * resource_box_height])
           ResourceBox(colour=["orange", "yellow", "pink", "lightblue"][i + j * 2]);
       }
     }
-
-    translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness + hex_bonus_box_height])
-      UpgradeBoardsBox();
   }
 
   translate([0, ambassador_card_box_length + player_box_length, board_thickness])
@@ -650,5 +499,5 @@ module TestLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  EscherLizardSingle(20);
+  BoxLayout();
 }

@@ -55,11 +55,11 @@ player_token_diameter = 10;
 other_token_thickness = 6.5;
 cresent_diameter = 16;
 leaf_width = 9;
-leaf_length = 28;
+leaf_length = 29;
 leaf_stem = 5;
 leaf_stem_width = 2;
-die_size = 16;
-coin_diamter = 25.5;
+die_size = 17;
+coin_diamter = 26;
 coin_thickness = 3;
 
 player_box_width = default_wall_thickness * 4 + nest_width;
@@ -194,12 +194,11 @@ module ExtraBitsBox() // `make` me
   ) {
     // Phase and year token.
     translate([$inner_width / 2, 15, $inner_height - 9.5]) {
-      cuboid([8, 8, 10], anchor=BOTTOM);
+      cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
       translate([0, 7.5, 4]) ycyl(d=30, h=40, rounding=10, anchor=BOTTOM);
     }
     translate([$inner_width / 2, 30, $inner_height - 9.5]) {
-      cuboid([8, 8, 10], anchor=BOTTOM);
-      // translate([ 0, 0, 4 ]) sphere(d = 20, anchor = BOTTOM);
+      cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
     }
 
     // Coin.

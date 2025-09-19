@@ -76,6 +76,10 @@ module RoundedBoxOnLength(width, length, height, radius) {
 // Example:
 //   RoundedBoxAllSides(30, 20, 10, 7);
 module RoundedBoxAllSides(width, length, height, radius) {
+  assert(width > 0, str("Need width > 0 width=", width));
+  assert(length > 0, str("Need length > 0 length=", length));
+  assert(height > 0, str("Need height > 0 height=", height));
+  assert(radius > 0, str("Need radius < 0 radius=", radius));
   hull() {
     difference() {
       hull() {
