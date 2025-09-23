@@ -39,7 +39,8 @@ under the License.
 // Example:
 //    FingerHoleSegmentCutout([[0,0], [50,50]], radius=5, height=7, wall_thickness=2);
 module FingerHoleSegmentCutout(path, radius, height, wall_thickness) {
-  assert(is_path(path), "\nInvalid path in MakePathBoxWithCapLid.");
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) ==2, str("Path must be at least exactly 2 elements long path_length=", len(path)));
   split_length = path_length(path);
   normal = path_normals(path);
   calc_len = split_length / 5;
@@ -95,7 +96,8 @@ module FingerHoleSegmentCutout(path, radius, height, wall_thickness) {
 // Example:
 //    PolygonBoxLidCatch(path=[[0,0], [50,50]], offset=5, wall_thickness = 2, delta=2);
 module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
-  assert(is_path(path), "\nInvalid path in MakePathBoxWithCapLid.");
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) == 2, str("Path must be exactly 2 elements. path_length=", len(path)));
   assert(delta != undef, "\ndelta undef in MakePathBoxWithCapLid.");
   split_length = path_length(path);
   normal = path_normals(path);
@@ -104,7 +106,7 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
   if (calc_len * 4 - offset - wall_thickness + delta - (calc_len + wall_thickness + offset - delta) > 5 && lid_catch != CATCH_NONE) {
     vec_m = abs(path[0][0] - path[1][0]) / abs(path[0][1] - path[1][1]);
     if (
-      lid_catch == CATCH_ALL || (lid_catch == CATCH_LENGTH && vec_m > 1000000) || (lid_catch == CATCH_WIDTH && vec_m < 0.01)
+      lid_catch == CATCH_ALL || (lid_catch == CATCH_LONG && vec_m > 1000000) || (lid_catch == CATCH_SHORT && vec_m < 0.01)
     ) {
       pts = path_cut_points(
         path=path,
@@ -135,8 +137,8 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Topics: CapBox
 // Usage: MakePathBoxWithCapLid(path=[[0,0], [0,100], [100,100]], height=20);
 // Example:
@@ -157,9 +159,12 @@ module MakePathBoxWithCapLid(
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour,
   last_child_positive = false,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
-  assert(is_path(path), "\nInvalid path in MakePathBoxWithCapLid.");
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+
   calc_lid_wall_thickness =
     lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
   calc_floor_thickness = floor_thickness == undef ? wall_thickness : floor_thickness;
@@ -297,8 +302,12 @@ module CapPathBoxLid(
   lid_rounding = undef,
   lid_inner_rounding = undef,
   material_colour = default_material_colour,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+
   calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness / 2);
@@ -446,6 +455,11 @@ module CapPathBoxLidWithLabelAndCustomShape(
   pattern_inner_control = false,
   finger_hole_size = undef
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+  assert(text_str != undef, "text_str must be set");
+
   calc_path = round_corners(path, radius=wall_thickness, $fn=16);
 
   x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
@@ -582,6 +596,11 @@ module CapPathBoxLidWithLabel(
   label_background_colour = undef,
   finger_hole_size = undef
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+  assert(text_str != undef, "text_str must be set");
+
   CapPathBoxLidWithLabelAndCustomShape(
     path=path, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, font=font, text_str=text_str,

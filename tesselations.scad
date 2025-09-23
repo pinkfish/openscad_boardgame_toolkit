@@ -98,7 +98,7 @@ module HexagonalTesselationTriangle(size) {
 module EscherLizardSingleOutline(size, thickness) {
   assert(size > 0, str("Need to have a size specified size=", size));
   assert(thickness > 0, str("Need to have a thickness specified thickness=", thickness));
-  EscherLizardHexTesselation(radius=size/2, thickness=thickness);
+  EscherLizardHexTesselation(radius=size / 2, thickness=thickness);
 }
 
 // Module: EscherLizardRepeatAtLocation()
@@ -110,11 +110,14 @@ module EscherLizardSingleOutline(size, thickness) {
 //   y = the y location to generate at
 //   size = the size of the lizard
 //   thickness = the thickness of the lines
+//   outer_offset = extra space to put around the shape.
 // Example:
 //   EscherLizardRepeatAtLocation(x=0, y=0, size=20, thickness=1);
-module EscherLizardRepeatAtLocation(x, y, size, thickness) {
+// Example:
+//   EscherLizardRepeatAtLocation(x=0, y=0, size=20, thickness=1, outer_offset=0.1);
+module EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) {
   HexagonTesselationRepeatAtLocation(x=x, y=y, size=size)
-    EscherLizardTriangle(size=size, thickness=thickness);
+    EscherLizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset);
 }
 
 // Module: EscherLizardRepeat()
@@ -124,9 +127,9 @@ module EscherLizardRepeatAtLocation(x, y, size, thickness) {
 //   size = the size of the lizard
 // Example:
 //   EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
-module EscherLizardRepeat(rows, cols, size, thickness) {
+module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {
   HexagonTesselationRepeat(rows=rows, cols=cols, size=size)
-    EscherLizardTriangle(size=size, thickness=thickness);
+    EscherLizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset);
 }
 
 // Module: HexagonTesselationRepeatAtLocation()

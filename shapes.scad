@@ -3795,7 +3795,7 @@ module ShapeByType(
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R15) {
       PentagonTesselation(pentagon_type="R15", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_ESCHER_LIZARD) {
-      EscherLizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+      EscherLizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, outer_offset=0.1);
     } else if (calc_shape_type == SHAPE_TYPE_VORONOI) {
       Voronoi(width=$polygon_width, length=$polygon_length, cellsize=calc_shape_width, thickness=calc_shape_thickness);
     } else if (calc_shape_type == SHAPE_TYPE_PENROSE_TILING_5) {

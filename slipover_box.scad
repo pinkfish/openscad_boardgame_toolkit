@@ -50,8 +50,8 @@ under the License.
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    last_child_postitive = if the last child in the list should be a postive, not negative
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   MakeBoxWithSlipoverLid(100, 50, 10);
 module MakeBoxWithSlipoverLid(
@@ -66,8 +66,10 @@ module MakeBoxWithSlipoverLid(
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
   last_child_positive = false,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+
   wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
   difference() {
     union() {
@@ -90,18 +92,81 @@ module MakeBoxWithSlipoverLid(
       }
     }
 
-    if (lid_catch == CATCH_LENGTH) {
+    if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
       catch_width = width - wall_thickness * 2;
       translate([(catch_width * 2 / 8) + wall_thickness, wall_thickness, foot]) color(material_colour)
           wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]);
       translate([(catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot]) rotate(180)
           color(material_colour) wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]);
-    } else if (lid_catch == CATCH_WIDTH) {
+    }
+    if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
       catch_length = length - wall_thickness * 2;
       translate([width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot]) rotate(90)
           color(material_colour) wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]);
       translate([wall_thickness, catch_length * 6 / 8 + wall_thickness, foot]) rotate(270)
           color(material_colour) wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]);
+    }
+    if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+      catch_offset = width - wall_thickness * 2;
+      translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness + foot]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 5 / 6 + size_spacing);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+          }
+        }
+        color(material_colour) translate([0, length, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+            }
+          }
+      }
+      translate([(catch_offset * 2 / 8) + wall_thickness, 0, wall_thickness + foot]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 5 / 6 + size_spacing);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+          }
+        }
+        color(material_colour) translate([0, length, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+            }
+          }
+      }
+    }
+    if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+      catch_offset = length - wall_thickness * 2;
+      translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness + foot]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 5 / 6 + size_spacing);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+          }
+        }
+        color(material_colour) translate([width, 0, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + m_piece_wiggle_room);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+            }
+          }
+      }
+      translate([0, (catch_offset * 2 / 8) + wall_thickness, wall_thickness + foot]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 5 / 6 + size_spacing);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+          }
+        }
+        color(material_colour) translate([width, 0, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+            }
+          }
+      }
     }
 
     $inner_width = width - wall_thickness * 4;
@@ -139,8 +204,8 @@ module MakeBoxWithSlipoverLid(
 //   foot = size of the foot on the box.
 //   lid_rounding = how much to round the lid (default wall_thickness)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   SlipoverBoxLid(100, 50, 10);
 module SlipoverBoxLid(
@@ -155,8 +220,10 @@ module SlipoverBoxLid(
   finger_hole_width = true,
   lid_rounding = undef,
   material_colour = default_material_colour,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+
   foot_offset = foot > 0 ? foot + size_spacing : 0;
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
   translate([0, length, height - foot]) rotate([180, 0, 0]) {
@@ -213,7 +280,7 @@ module SlipoverBoxLid(
         }
 
         // lid catch
-        if (lid_catch == CATCH_LENGTH) {
+        if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
           catch_width = width - wall_thickness * 2;
           translate([(catch_width * 2 / 8) + size_spacing + wall_thickness, wall_thickness, 0]) {
             color(material_colour) rotate([0, 0, 0]) wedge(
@@ -233,7 +300,8 @@ module SlipoverBoxLid(
                     ]
                   );
           }
-        } else if (lid_catch == CATCH_WIDTH) {
+        }
+        if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
           catch_length = length - wall_thickness * 2;
           translate([width - wall_thickness, catch_length * 2 / 8 + size_sizeing + wall_thickness, 0]) {
             rotate(90) color(material_colour) wedge(
@@ -252,6 +320,68 @@ module SlipoverBoxLid(
                     lid_thickness - size_spacing,
                   ]
                 );
+          }
+        }
+        if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+          catch_offset = width - wall_thickness * 2;
+          translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
+            color(material_colour) {
+              intersection() {
+                sphere(r=wall_thickness * 4 / 6);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+              }
+            }
+            color(material_colour) translate([0, length, 0]) {
+                intersection() {
+                  sphere(r=wall_thickness * 4 / 6);
+                  cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+                }
+              }
+          }
+          translate([(catch_offset * 2 / 8) + wall_thickness, 0, -wall_thickness]) {
+            color(material_colour) {
+              intersection() {
+                sphere(r=wall_thickness * 4 / 6);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+              }
+            }
+            color(material_colour) translate([0, length, 0]) {
+                intersection() {
+                  sphere(r=wall_thickness * 4 / 6);
+                  cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+                }
+              }
+          }
+        }
+        if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+          catch_offset = length - wall_thickness * 2;
+          translate([0, (catch_offset * 6 / 8) + wall_thickness, -wall_thickness]) {
+            color(material_colour) {
+              intersection() {
+                sphere(r=wall_thickness * 4 / 6);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+              }
+            }
+            color(material_colour) translate([width, 0, 0]) {
+                intersection() {
+                  sphere(r=wall_thickness * 4 / 6);
+                  cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+                }
+              }
+          }
+          translate([0, (catch_offset * 2 / 8) + wall_thickness, -wall_thickness]) {
+            color(material_colour) {
+              intersection() {
+                sphere(r=wall_thickness * 4 / 6);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+              }
+            }
+            color(material_colour) translate([width, 0, 0]) {
+                intersection() {
+                  sphere(r=wall_thickness * 4 / 6);
+                  cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+                }
+              }
           }
         }
       }
@@ -288,8 +418,8 @@ module SlipoverBoxLid(
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_length = finger hole on the length side (default6 false)
 //    finger_hole_width = finger hole on the width side (default true)
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - length catch, {{CATCH_LONG}} - width catch (default
+//       {{default_lid_catch_type}})
 // Usage: SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
 // Example:
 //    SlipoverBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog") {
@@ -324,9 +454,12 @@ module SlipoverBoxLidWithLabelAndCustomShape(
   label_colour = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  lid_catch = CATCH_LENGTH,
+  lid_catch = default_lid_catch_type,
   pattern_inner_control
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(text_str != undef, "text_str must not be undefined");
+
   SlipoverBoxLid(
     width, length, height, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, foot=foot,
@@ -402,8 +535,8 @@ module SlipoverBoxLidWithLabelAndCustomShape(
 //   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //   finger_hole_length = finger hole on the length side (default6 false)
 //   finger_hole_width = finger hole on the width side (default true)
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   SlipoverBoxLidWithLabel(20, 100, 10, text_str = "Marmoset",
 //      shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14);
@@ -437,8 +570,10 @@ module SlipoverBoxLidWithLabel(
   label_colour = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  lid_catch = CATCH_LENGTH,
+  lid_catch = default_lid_catch_type,
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(text_str != undef, "text_str must not be undefined");
   SlipoverBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     font=font, text_str=text_str,

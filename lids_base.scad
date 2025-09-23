@@ -75,6 +75,9 @@ default_lid_supershape_a = 1;
 // Description: Set this at the top of the file to change the default supershape b element
 // for [Superformula](https://en.wikipedia.org/wiki/Superformula) shape
 default_lid_supershape_b = 1;
+// Constant: default_lid_catch_type
+// Description: The default type of catch to use on boxes that support catches.
+default_lid_catch_type = CATCH_BUMPS_SHORT;
 
 // Function: IsDenseShapeType()
 // Description:

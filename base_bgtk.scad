@@ -224,18 +224,26 @@ SHAPE_TYPE_PENROSE_TILING_7 = 37;
 // Description:
 //   No catch associated with the lid.
 CATCH_NONE = 0;
-// Constant: CATCH_LENGTH
+// Constant: CATCH_SHORT
 // Description:
-//   Catch on the length side
-CATCH_LENGTH = 1;
-// Constant: CATCH_WIDTH
+//   Catch on the shortest side, wedge style
+CATCH_SHORT = 1;
+// Constant: CATCH_LONG
 // Description:
-//   Catch on the width side.
-CATCH_WIDTH = 2;
+//   Catch on the longest side, wedge style.
+CATCH_LONG = 2;
 // Constant: CATCH_ALL
 // Description:
-//   Catch on the all sides.
+//   Catch on the all sides, wedge style.
 CATCH_ALL = 3;
+// Constant: CATCH_BUMPS_SHORT
+// Description:
+//   Small bumbs on the side of the box to hold the lid in place, not a wedge.
+CATCH_BUMPS_SHORT = 4;
+// Constant: CATCH_BUMPS_LONG
+// Description:
+//   Small bumbs on the side of the box to hold the lid in place, not a wedge.
+CATCH_BUMPS_LONG = 5;
 
 // Constant: LABEL_TYPE_FRAMED
 // Description:

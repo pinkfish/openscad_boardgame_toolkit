@@ -27,6 +27,7 @@ default_lid_thickness = 2;
 default_floor_thickness = 2;
 default_label_font = "Impact";
 default_material_colour = "grey";
+default_lid_catch_type = CATCH_BUMPS_LONG;
 
 default_label_type = LABEL_TYPE_FRAMELESS;
 
@@ -254,5 +255,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PencilBoxLid();
+  PencilBox();
 }

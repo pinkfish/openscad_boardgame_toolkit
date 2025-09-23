@@ -40,12 +40,13 @@ under the License.
 // Example:
 //    FingerHoleWallSegmentCutout([[0,0], [50,50]], radius=5, height=7, depth=6, finger_catch=CATCH_ALL);
 module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
-  assert(is_path(path), "\nInvalid path in MakePathBoxWithCapLid.");
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) == 2, str("Path must be at least 3 elements long path_length=", len(path)));
   split_length = path_length(path);
   normal = path_normals(path);
   vec_m = abs(path[0][0] - path[1][0]) / abs(path[0][1] - path[1][1]);
   if (
-    finger_catch == CATCH_ALL || (finger_catch == CATCH_LENGTH && vec_m > 1000000) || (finger_catch == CATCH_WIDTH && vec_m < 0.01)
+    finger_catch == CATCH_ALL || (finger_catch == CATCH_LONG && vec_m > 1000000) || (finger_catch == CATCH_SHORT && vec_m < 0.01)
   ) {
     if (split_length > radius * 3) {
       pts = path_cut_points(
@@ -81,8 +82,8 @@ module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    last_child_postitive = if the last child in the list should be a postive, not negative
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   MakePathBoxWithSlipoverLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10);
 module MakePathBoxWithSlipoverLid(
@@ -96,8 +97,12 @@ module MakePathBoxWithSlipoverLid(
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
   last_child_positive = false,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+
   wall_height_calc = wall_height == undef ? height - lid_thickness - size_spacing : wall_height;
   inner_path = offset(path, r=-wall_thickness - size_spacing);
   calc_inner_path = round_corners(inner_path, radius=wall_thickness / 2);
@@ -169,13 +174,13 @@ module MakePathBoxWithSlipoverLid(
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   finger_catch = where to put the catches (default {{CATCH_WIDTH}})
+//   finger_catch = where to put the catches (default {{CATCH_SHORT}})
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   lid_rounding = how much to round the lid (default wall_thickness)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   SlipoverPathBoxLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10);
 module SlipoverPathBoxLid(
@@ -185,11 +190,15 @@ module SlipoverPathBoxLid(
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
   foot = 0,
-  finger_catch = CATCH_WIDTH,
+  finger_catch = CATCH_SHORT,
   lid_rounding = undef,
   material_colour = default_material_colour,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+
   foot_offset = foot > 0 ? foot + size_spacing : 0;
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
 
@@ -321,8 +330,8 @@ module SlipoverPathBoxLid(
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Usage: SlipoverPathBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
 // Example:
 //   long_player_box_width = 136.5;
@@ -373,15 +382,20 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
   lid_rounding = undef,
   wall_thickness = default_wall_thickness,
   foot = 0,
-  finger_catch = CATCH_WIDTH,
+  finger_catch = CATCH_SHORT,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   label_colour = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  lid_catch = CATCH_LENGTH,
+  lid_catch = default_lid_catch_type,
   pattern_inner_control
 ) {
+  assert(is_path(path, 2), "Path must be an array of length 3 or more");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+  assert(text_str != undef, "text_str must be set");
+
   calc_path = round_corners(path, radius=wall_thickness, $fn=16);
 
   x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
@@ -466,8 +480,8 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+//       {{default_lid_catch_type}})
 // Example:
 //   long_player_box_width = 136.5;
 //   long_player_box_length = 305;
@@ -521,8 +535,13 @@ module SlipoverPathBoxLidWithLabel(
   label_colour = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  lid_catch = CATCH_LENGTH,
+  lid_catch = default_lid_catch_type,
 ) {
+  assert(is_path(path, 2), "Path must be a 2d path");
+  assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
+  assert(height > 0, str("Height must be >0 height=", height));
+  assert(text_str != undef, "text_str must be set");
+
   SlipoverPathBoxLidWithLabelAndCustomShape(
     path=path, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     font=font, text_str=text_str,

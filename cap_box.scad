@@ -81,13 +81,12 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
-//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LENGTH}} - length catch, {{CATCH_WIDTH}} - width catch (default
-//       {{CATCH_LENGTH}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
+//       {{CATCH_LONG})
 // Usage: MakeBoxWithCapLid(100, 50, 20);
 // Example:
 //    MakeBoxWithCapLid(100, 50, 20);
@@ -103,16 +102,17 @@ module MakeBoxWithCapLid(
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
-  lid_wall_thickness = undef,
   lid_finger_hold_len = undef,
   finger_hold_height = 5,
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour,
   last_child_positive = false,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+
   calc_lid_wall_thickness =
-    lid_wall_thickness == undef ? CapBoxDefaultLidWallThickness(wall_thickness) : lid_wall_thickness;
+  CapBoxDefaultLidWallThickness(wall_thickness);
   calc_lid_finger_hold_len =
     lid_finger_hold_len == undef ? CapBoxDefaultFingerHoldLen(width, length) : lid_finger_hold_len;
   calc_floor_thickness = floor_thickness == undef ? wall_thickness : floor_thickness;
@@ -152,18 +152,81 @@ module MakeBoxWithCapLid(
 
     // lid catches
     translate([0, 0, height - calc_cap_height]) {
-      if (lid_catch == CATCH_LENGTH) {
+      if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
         catch_width = width - wall_thickness * 2;
         translate([(catch_width * 2 / 8) + wall_thickness, 0, 0]) color(material_colour)
             wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
         translate([(catch_width * 6 / 8) + wall_thickness, length, 0]) rotate(180) color(material_colour)
               wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
-      } else if (lid_catch == CATCH_WIDTH) {
+      }
+      if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
         catch_length = length - wall_thickness * 2;
         translate([width, catch_length * 2 / 8 + wall_thickness, 0]) rotate(90) color(material_colour)
               wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
         translate([0, catch_length * 6 / 8 + wall_thickness, 0]) rotate(270) color(material_colour)
               wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
+      }
+      if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+        catch_offset = width - wall_thickness * 2;
+        translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness]) {
+          color(material_colour) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+            }
+          }
+          color(material_colour) translate([0, length, 0]) {
+              intersection() {
+                sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+              }
+            }
+        }
+        translate([(catch_offset * 2 / 8) + wall_thickness, 0, wall_thickness]) {
+          color(material_colour) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+            }
+          }
+          color(material_colour) translate([0, length, 0]) {
+              intersection() {
+                sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+              }
+            }
+        }
+      }
+      if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+        catch_offset = length - wall_thickness * 2;
+        translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness]) {
+          color(material_colour) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+            }
+          }
+          color(material_colour) translate([width, 0, 0]) {
+              intersection() {
+                sphere(r=wall_thickness * 5 / 6 + m_piece_wiggle_room);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+              }
+            }
+        }
+        translate([0, (catch_offset * 2 / 8) + wall_thickness, wall_thickness]) {
+          color(material_colour) {
+            intersection() {
+              sphere(r=wall_thickness * 5 / 6 + size_spacing);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+            }
+          }
+          color(material_colour) translate([width, 0, 0]) {
+              intersection() {
+                sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+              }
+            }
+        }
       }
     }
 
@@ -244,11 +307,12 @@ module MakeBoxWithCapLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    lid_catch = the type of catch to use, use {{CATCH_BUMPS_LONG}} for a bumps catch and {{CATCH_SHORT}}
+//      for a wedge catch.  Default {{default_lid_catch_type}}
 // Usage: CapBoxLid(100, 50, 20);
 // Example:
 //    CapBoxLid(100, 50, 30);
@@ -256,6 +320,8 @@ module MakeBoxWithCapLid(
 //    CapBoxLid(100, 50, 10);
 // Example:
 //    CapBoxLid(100, 50, 10, cap_height = 3);
+// Example:
+//    CapBoxLid(100, 50, 10, cap_height = 3, lid_catch  = CATCH_BUMPS_LONG);
 module CapBoxLid(
   width,
   length,
@@ -264,13 +330,14 @@ module CapBoxLid(
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
-  lid_wall_thickness = undef,
   lid_rounding = undef,
   lid_inner_rounding = undef,
   material_colour = default_material_colour,
-  lid_catch = CATCH_LENGTH
+  lid_catch = default_lid_catch_type
 ) {
-  calc_lid_wall_thickness = lid_wall_thickness == undef ? wall_thickness / 2 : lid_wall_thickness;
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+
+  calc_lid_wall_thickness = wall_thickness / 2;
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness / 2);
   calc_lid_inner_rounding = DefaultValue(lid_rounding, calc_lid_wall_thickness / 2);
@@ -320,19 +387,82 @@ module CapBoxLid(
     }
   // lid catches
   translate([0, 0, calc_cap_height]) {
-    if (lid_catch == CATCH_LENGTH) {
+    if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
       catch_width = width - wall_thickness * 2;
       translate([(catch_width * 6 / 8) + wall_thickness, 0, 0]) color(material_colour) rotate([0, 180, 0])
-            wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
+            wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, calc_lid_wawall_thicknessll_thickness * 5 / 8]);
       translate([(catch_width * 2 / 8) + wall_thickness, length, 0]) rotate(180) rotate([0, 180, 0])
-            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
-    } else if (lid_catch == CATCH_WIDTH) {
+            color(material_colour) wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, wall_thickness * 5 / 8]);
+    }
+    if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
       catch_length = length - wall_thickness * 2;
       translate([width, catch_length * 6 / 8 + wall_thickness + size_spacing, 0]) rotate(90)
           color(material_colour) rotate([0, 180, 0])
-              wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
+              wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, wall_thickness * 5 / 8]);
       translate([0, catch_length * 2 / 8 + wall_thickness + size_spacing, 0]) rotate(270) color(material_colour)
-            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 3 / 4, wall_thickness * 3 / 4]);
+            rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, wall_thickness * 5 / 8]);
+    }
+    if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+      catch_offset = width - wall_thickness * 2;
+      translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 4 / 6);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+          }
+        }
+        color(material_colour) translate([0, length, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 4 / 6);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+            }
+          }
+      }
+      translate([(catch_offset * 2 / 8) + wall_thickness, 0, -wall_thickness]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 4 / 6);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+          }
+        }
+        color(material_colour) translate([0, length, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 4 / 6);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+            }
+          }
+      }
+    }
+    if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+      catch_offset = length - wall_thickness * 2;
+      translate([0, (catch_offset * 6 / 8) + wall_thickness, -wall_thickness]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 4 / 6);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+          }
+        }
+        color(material_colour) translate([width, 0, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 4 / 6);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+            }
+          }
+      }
+      translate([0, (catch_offset * 2 / 8) + wall_thickness, -wall_thickness]) {
+        color(material_colour) {
+          intersection() {
+            sphere(r=wall_thickness * 4 / 6);
+            cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+          }
+        }
+        color(material_colour) translate([width, 0, 0]) {
+            intersection() {
+              sphere(r=wall_thickness * 4 / 6);
+              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+            }
+          }
+      }
     }
   }
 }
@@ -351,7 +481,6 @@ module CapBoxLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    text_str = the string to use for the label
 //    text_length = the length of the text to use (defaults to 3/4 of length/width)
@@ -395,7 +524,6 @@ module CapBoxLidWithLabelAndCustomShape(
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
-  lid_wall_thickness = undef,
   aspect_ratio = 1.0,
   font = undef,
   lid_rounding = undef,
@@ -407,13 +535,17 @@ module CapBoxLidWithLabelAndCustomShape(
   material_colour = default_material_colour,
   label_background_colour = undef,
   pattern_inner_control = false,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  lid_catch = default_lid_catch_type
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(text_str != undef, "text_str must not be undefined");
+
   CapBoxLid(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
-    lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness,
+    lid_thickness=lid_thickness,
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
-    material_colour=material_colour
+    material_colour=material_colour, lid_catch=lid_catch
   ) {
     LidMeshBasic(
       width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
@@ -477,7 +609,6 @@ module CapBoxLidWithLabelAndCustomShape(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    border= border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
@@ -524,7 +655,6 @@ module CapBoxLidWithLabel(
   shape_thickness = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
-  lid_wall_thickness = undef,
   aspect_ratio = 1.0,
   font = undef,
   lid_rounding = undef,
@@ -533,18 +663,22 @@ module CapBoxLidWithLabel(
   material_colour = default_material_colour,
   label_colour = undef,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  lid_catch = default_lid_catch_type
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(text_str != undef, "text_str must not be undefined");
+
   CapBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
-    lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, font=font, text_str=text_str,
+    lid_thickness=lid_thickness, font=font, text_str=text_str,
     text_length=text_length, text_scale=text_scale, label_type=label_type, label_radius=label_radius,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, lid_rounding=undef, lid_inner_rounding=undef,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour, label_colour=label_colour,
     label_background_colour=label_background_colour, pattern_inner_control=ShapeNeedsInnerControl(shape_type),
-    finger_hole_size=finger_hole_size
+    finger_hole_size=finger_hole_size, lid_catch=lid_catch
   ) {
     color(material_colour)
       ShapeByType(
