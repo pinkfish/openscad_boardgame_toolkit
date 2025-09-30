@@ -75,27 +75,29 @@ nest_box_length = box_length - 2;
 nest_box_width = nest_width + default_floor_thickness + default_lid_thickness + 2;
 nest_box_height = box_height - board_thickness - 1;
 
-spinner_box_width = box_width - player_box_width - nest_box_width - 2;
-spinner_box_length = box_length - 2;
 spinner_box_height = spinner_thickness + default_floor_thickness;
 
 card_box_length = card_length + 1 + default_wall_thickness * 2;
 card_box_width = card_width + 1 + default_wall_thickness * 2;
 card_box_height = box_height - spinner_box_height - board_thickness - 1;
 
+spinner_box_width = box_width - player_box_width - nest_box_width - 2;
+spinner_box_length = box_length - 2 - card_box_length;
+
 starting_card_box_height = single_card_thickness * 14 + default_lid_thickness + default_floor_thickness + 1;
 achievment_card_box_height = single_card_thickness * 13 + default_lid_thickness + default_floor_thickness + 1;
 changing_condition_card_box_height = single_card_thickness * 11 + default_lid_thickness + default_floor_thickness + 1;
 legend_card_box_height = single_card_thickness * 9 + default_lid_thickness + default_floor_thickness + 1;
 plant_animal_extra_card_box_height = card_box_height - legend_card_box_height;
+big_card_box_height = box_height - board_thickness - 1;
 
 extra_bits_box_height = board_thickness;
 extra_bits_box_width = box_width - board_width - 1;
 extra_bits_box_length = box_length - 1;
 
-spacer_side_width = box_width - nest_box_width - player_box_width - 2;
+spacer_side_width = box_width - nest_box_width - player_box_width - 2 - card_box_length;
 spacer_side_length = box_length - card_box_length * 2 - 2;
-spacer_side_height = card_box_height;
+spacer_side_height = box_height - board_thickness - 1;
 
 spacer_front_width = box_width - nest_box_width - player_box_width - card_box_width * 2;
 spacer_front_length = box_length - spacer_side_length - 2;
@@ -344,157 +346,167 @@ module ChangingConditionCardBox() // `make` me
   MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=changing_condition_card_box_height) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
-        FingerHoleBase(radius=15, height=changing_condition_card_box_height);
-    }
+      FingerHoleBase(radius=15, height=changing_condition_card_box_height);
   }
+}
 
-  module ChangingConditionCardBoxLid() // `make` me
-  {
-    SlidingBoxLidWithLabel(
-      width=card_box_width, length=card_box_length,
-      text_str="Change",
-    );
+module ChangingConditionCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Change",
+  );
+}
+
+module LegendCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=legend_card_box_height) {
+    cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=legend_card_box_height);
   }
+}
 
-  module LegendCardBox() // `make` me
-  {
-    MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=legend_card_box_height) {
-      cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
-      translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
-          FingerHoleBase(radius=15, height=legend_card_box_height);
-      }
-    }
+module BigCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(width=card_box_length, length=card_box_width, height=big_card_box_height, lid_on_length=true) {
+    cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
+    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=big_card_box_height);
+  }
+}
 
-    module LegendCardBoxLid() // `make` me
-    {
-      SlidingBoxLidWithLabel(
-        width=card_box_width, length=card_box_length,
-        text_str="Legend",
+module LegendCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Legend",
+  );
+}
+
+module PlantAnimalCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+    cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=card_box_height);
+  }
+}
+
+module PlantAnimalCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Play",
+  );
+}
+
+module PlantAnimalExtraCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=plant_animal_extra_card_box_height) {
+    cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
+  }
+}
+
+module SpacerSide() // `make` me
+{
+  color(default_material_colour) {
+    difference() {
+      cuboid(
+        [spacer_side_width, spacer_side_length, spacer_side_height], anchor=BOTTOM + LEFT + FRONT,
+        rounding=2
       );
-    }
-
-    module PlantAnimalCardBox() // `make` me
-    {
-      MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=card_box_height) {
-        cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
-        translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
-            FingerHoleBase(radius=15, height=card_box_height);
-        }
-      }
-
-      module PlantAnimalCardBoxLid() // `make` me
-      {
-        SlidingBoxLidWithLabel(
-          width=card_box_width, length=card_box_length,
-          text_str="Play",
+      translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) {
+        cube(
+          [
+            spacer_side_width - default_wall_thickness * 2,
+            spacer_side_length - default_wall_thickness * 2,
+            spacer_side_height,
+          ]
         );
       }
+    }
+  }
+}
 
-      module PlantAnimalExtraCardBox() // `make` me
-      {
-        MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=plant_animal_extra_card_box_height) {
-          cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
-        }
+module SpacerFront() // `make` me
+{
+  color(default_material_colour) {
+    difference() {
+      cuboid(
+        [spacer_front_width, spacer_front_length, spacer_front_height], anchor=BOTTOM + LEFT + FRONT,
+        rounding=2
+      );
+      translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) {
+        cube(
+          [
+            spacer_front_width - default_wall_thickness * 2,
+            spacer_front_length - default_wall_thickness * 2,
+            spacer_front_height,
+          ]
+        );
       }
+    }
+  }
+}
 
-      module SpacerSide() // `make` me
-      {
-        color(default_material_colour) {
-          difference() {
-            cuboid(
-              [spacer_side_width, spacer_side_length, spacer_side_height], anchor=BOTTOM + LEFT + FRONT,
-              rounding=2
-            );
-            translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) {
-              cube(
-                [
-                  spacer_side_width - default_wall_thickness * 2,
-                  spacer_side_length - default_wall_thickness * 2,
-                  spacer_side_height,
-                ]
-              );
-            }
-          }
-        }
-      }
+module BoxLayout() {
+  //    cube([ box_width, box_length, board_thickness ]);
+  cube([1, box_length, box_height]);
+  //  translate([ 0, 0, board_thickness ])
+  {
+    PlayerBox();
+    translate([0, player_box_length, 0]) PlayerBox();
+    translate([0, player_box_length * 2, 0]) PlayerBox();
+    translate([0, player_box_length * 3, 0]) PlayerBox();
+    translate([0, 0, player_box_height]) ResourceBox();
+    translate([0, player_box_length, player_box_height]) ResourceBox();
+    translate([0, player_box_length * 2, player_box_height]) ResourceBox();
+    translate([0, player_box_length * 3, player_box_height]) ResourceBox();
+    translate([0, 0, player_box_height * 2]) ResourceBox();
+    translate([0, player_box_length, player_box_height * 2]) ResourceBox();
+    translate([0, player_box_length * 2, player_box_height * 2]) ResourceBox();
+    translate([0, player_box_length * 3, player_box_height * 2]) ResourceBox();
+    translate([player_box_width, 0, 0]) NestBox();
+    translate([player_box_width + nest_box_width, 0, card_box_height]) SpinnerHolder();
+    translate(
+      [
+        player_box_width + nest_box_width,
+        0,
+      ]
+    ) PlantAnimalCardBox();
+    translate(
+      [
+        player_box_width + nest_box_width + card_box_width,
+        0,
+      ]
+    ) PlantAnimalCardBox();
+    translate([player_box_width + nest_box_width, card_box_length, 0]) StartingCardBox();
+    translate([player_box_width + nest_box_width, card_box_length, starting_card_box_height]) AchievmentCardBox();
+    translate(
+      [
+        player_box_width + nest_box_width,
+        card_box_length,
+        starting_card_box_height + achievment_card_box_height,
+      ]
+    ) ChangingConditionCardBox();
+    translate([player_box_width + nest_box_width + card_box_width, card_box_length, 0]) LegendCardBox();
+    translate([player_box_width + nest_box_width + card_box_width, card_box_length, legend_card_box_height])
+      PlantAnimalExtraCardBox();
+    translate([player_box_width + nest_box_width, card_box_length * 2, 0]) BigCardBox();
+    translate([player_box_width + nest_box_width + card_box_length, card_box_length * 2, 0]) SpacerSide();
+    translate([player_box_width + nest_box_width + card_box_width * 2, 0, 0]) SpacerFront();
+    translate([board_width, 0, card_box_height + spinner_box_height]) ExtraBitsBox();
+  }
+  translate([0, 0, box_height - board_thickness - 1]) cube([board_width, box_length, board_thickness]);
+}
 
-      module SpacerFront() // `make` me
-      {
-        color(default_material_colour) {
-          difference() {
-            cuboid(
-              [spacer_front_width, spacer_front_length, spacer_front_height], anchor=BOTTOM + LEFT + FRONT,
-              rounding=2
-            );
-            translate([default_wall_thickness, default_wall_thickness, default_floor_thickness]) {
-              cube(
-                [
-                  spacer_front_width - default_wall_thickness * 2,
-                  spacer_front_length - default_wall_thickness * 2,
-                  spacer_front_height,
-                ]
-              );
-            }
-          }
-        }
-      }
+if (FROM_MAKE != 1) {
+  //   ExtraBitsBoxLid();
+  BoxLayout();
+  //  linear_extrude(height=2)for (i = [0:4])
+  //  for (j = [0:4])
+  //  EscherLizardRepeatAtLocation(i, j, 20, 1, outer_offset=0.1);
 
-      module BoxLayout() {
-        //    cube([ box_width, box_length, board_thickness ]);
-        cube([1, box_length, box_height]);
-        //  translate([ 0, 0, board_thickness ])
-        {
-          PlayerBox();
-          translate([0, player_box_length, 0]) PlayerBox();
-          translate([0, player_box_length * 2, 0]) PlayerBox();
-          translate([0, player_box_length * 3, 0]) PlayerBox();
-          translate([0, 0, player_box_height]) ResourceBox();
-          translate([0, player_box_length, player_box_height]) ResourceBox();
-          translate([0, player_box_length * 2, player_box_height]) ResourceBox();
-          translate([0, player_box_length * 3, player_box_height]) ResourceBox();
-          translate([0, 0, player_box_height * 2]) ResourceBox();
-          translate([0, player_box_length, player_box_height * 2]) ResourceBox();
-          translate([0, player_box_length * 2, player_box_height * 2]) ResourceBox();
-          translate([0, player_box_length * 3, player_box_height * 2]) ResourceBox();
-          translate([player_box_width, 0, 0]) NestBox();
-          translate([player_box_width + nest_box_width, 0, card_box_height]) SpinnerHolder();
-          translate(
-            [
-              player_box_width + nest_box_width,
-              0,
-            ]
-          ) PlantAnimalCardBox();
-          translate(
-            [
-              player_box_width + nest_box_width + card_box_width,
-              0,
-            ]
-          ) PlantAnimalCardBox();
-          translate([player_box_width + nest_box_width, card_box_length, 0]) StartingCardBox();
-          translate([player_box_width + nest_box_width, card_box_length, starting_card_box_height]) AchievmentCardBox();
-          translate(
-            [
-              player_box_width + nest_box_width,
-              card_box_length,
-              starting_card_box_height + achievment_card_box_height,
-            ]
-          ) ChangingConditionCardBox();
-          translate([player_box_width + nest_box_width + card_box_width, card_box_length, 0]) LegendCardBox();
-          translate([player_box_width + nest_box_width + card_box_width, card_box_length, legend_card_box_height])
-            PlantAnimalExtraCardBox();
-          translate([player_box_width + nest_box_width, card_box_length * 2, 0]) SpacerSide();
-          translate([player_box_width + nest_box_width + card_box_width * 2, 0, 0]) SpacerFront();
-          translate([board_width, 0, card_box_height + spinner_box_height]) ExtraBitsBox();
-        }
-        translate([0, 0, box_height - board_thickness - 1]) cube([board_width, box_length, board_thickness]);
-      }
-
-      if (FROM_MAKE != 1) {
-        //   ExtraBitsBoxLid();
-        StartingCardBox();
-        //  linear_extrude(height=2)for (i = [0:4])
-        //  for (j = [0:4])
-        //  EscherLizardRepeatAtLocation(i, j, 20, 1, outer_offset=0.1);
-
-        // translate([default_wall_thickness, default_wall_thickness, -1])
-      }
+  // translate([default_wall_thickness, default_wall_thickness, -1])
+}

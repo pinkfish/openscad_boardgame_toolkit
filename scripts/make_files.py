@@ -34,7 +34,7 @@ with open("generate.makefile", "w") as mfile:
         mfile.write("release/{0}/{1}.stl: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
         mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make --export-format binstl  --backend=manifold --enable predictible-output --enable textmetrics -o $@ -d output/{0}__{1}.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
         # Create the scad file.
-        scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\n$fn = 64;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
+        scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\n$fn = 128;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
         file_data = ""
         output_fname = "output/{0}__{1}.scad".format(d.basename, d.module)
         if os.path.exists(output_fname):
