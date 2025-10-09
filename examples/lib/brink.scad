@@ -44,7 +44,7 @@ upgrade_thickness = 3.5;
 
 favor_token_diameter = 20;
 
-player_token_diameter = 14;
+player_token_diameter = 14.5;
 
 screen_length = 204;
 screen_width = 102;

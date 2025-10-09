@@ -50,7 +50,7 @@ single_card_thickness = ten_cards_thickness / 10;
 nest_width = 45;
 nest_total_length = 180;
 
-player_cube = 8;
+player_cube = 9;
 player_token_diameter = 10;
 
 other_token_thickness = 6.5;
@@ -91,17 +91,17 @@ legend_card_box_height = single_card_thickness * 9 + default_lid_thickness + def
 plant_animal_extra_card_box_height = card_box_height - legend_card_box_height;
 big_card_box_height = box_height - board_thickness - 1;
 
-extra_bits_box_height = board_thickness;
+extra_bits_box_height = card_box_height;
 extra_bits_box_width = box_width - board_width - 1;
 extra_bits_box_length = box_length - 1;
 
-spacer_side_width = box_width - nest_box_width - player_box_width - 2 - card_box_length;
+spacer_side_width = box_width - nest_box_width - player_box_width - 2 - card_box_length - extra_bits_box_width;
 spacer_side_length = box_length - card_box_length * 2 - 2;
 spacer_side_height = box_height - board_thickness - 1;
 
 spacer_front_width = box_width - nest_box_width - player_box_width - card_box_width * 2;
-spacer_front_length = box_length - spacer_side_length - 2;
-spacer_front_height = card_box_height;
+spacer_front_length = box_length - 1;
+spacer_front_height = board_thickness;
 
 module PlayerBox() // `make` me
 {
@@ -214,11 +214,11 @@ module ExtraBitsBox() // `make` me
     last_child_positive=default_label_solid_background
   ) {
     // Phase and year token.
-    translate([$inner_width / 2, 15, $inner_height - 9.5]) {
+    translate([$inner_width / 2, 15, $inner_height - player_cube - 0.5]) {
       cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
       translate([0, 7.5, 4]) ycyl(d=30, h=40, rounding=10, anchor=BOTTOM);
     }
-    translate([$inner_width / 2, 30, $inner_height - 9.5]) {
+    translate([$inner_width / 2, 30, $inner_height - player_cube - 0.5]) {
       cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
     }
 
@@ -245,7 +245,7 @@ module ExtraBitsBox() // `make` me
       translate([0, 0, $inner_height - other_token_thickness - 0.5]) {
         difference() {
           cyl(d=cresent_diameter, h=other_token_thickness + 2, anchor=BOTTOM);
-          translate([0, -7, 0]) cyl(d=cresent_diameter, h=other_token_thickness + 2, anchor=BOTTOM);
+          translate([0, -7, 0]) cyl(d=cresent_diameter-1, h=other_token_thickness + 2, anchor=BOTTOM);
         }
       }
       translate([0, 20, $inner_height - other_token_thickness / 2])
@@ -495,15 +495,15 @@ module BoxLayout() {
       PlantAnimalExtraCardBox();
     translate([player_box_width + nest_box_width, card_box_length * 2, 0]) BigCardBox();
     translate([player_box_width + nest_box_width + card_box_length, card_box_length * 2, 0]) SpacerSide();
-    translate([player_box_width + nest_box_width + card_box_width * 2, 0, 0]) SpacerFront();
-    translate([board_width, 0, card_box_height + spinner_box_height]) ExtraBitsBox();
+    translate([player_box_width + nest_box_width + card_box_width * 2, 0, card_box_height + spinner_box_height]) SpacerFront();
+    translate([board_width, 0, 0]) ExtraBitsBox();
   }
   translate([0, 0, box_height - board_thickness - 1]) cube([board_width, box_length, board_thickness]);
 }
 
 if (FROM_MAKE != 1) {
-  //   ExtraBitsBoxLid();
-  BoxLayout();
+  ExtraBitsBox();
+  //BoxLayout();
   //  linear_extrude(height=2)for (i = [0:4])
   //  for (j = [0:4])
   //  EscherLizardRepeatAtLocation(i, j, 20, 1, outer_offset=0.1);

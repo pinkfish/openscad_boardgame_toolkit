@@ -64,8 +64,6 @@ spacer_card_width = ambassador_card_box_width;
 spacer_card_length = ambassador_card_box_length;
 spacer_card_back_height = box_height - action_card_box_height - rider_card_box_height - 1;
 
-echo([player_box_height, upgrade_thickness + cargo_thickness + round_nub_thickness + default_floor_thickness + default_lid_thickness]);
-
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -288,84 +286,86 @@ module PlayerBox(colour = "green") // `make` me
     translate([$inner_width / 2, $inner_length / 2, $inner_height - upgrade_thickness - 1])
       cuboid([upgrade_width + 0.5, upgrade_length + 0.5, player_box_height], anchor=BOTTOM);
 
-    translate([5, 5, $inner_height - upgrade_thickness - 3])
-      RoundedBoxAllSides(upgrade_width - 10, upgrade_length - 25, player_box_height, 5);
-    translate([33, 5, $inner_height - upgrade_thickness - 3])
-      RoundedBoxAllSides(class_ii_ship_length + 10, upgrade_length - 10, player_box_height, 5);
-    // class i ship
+    translate([7.5, 0, 0]) {
+      translate([5, 5, $inner_height - upgrade_thickness - 6.5])
+        RoundedBoxAllSides(upgrade_width - 10, upgrade_length - 25, player_box_height, 5);
+      translate([33, 5, $inner_height - upgrade_thickness - 6.5])
+        RoundedBoxAllSides(class_ii_ship_length + 10, upgrade_length - 10, player_box_height, 5);
 
-    translate(
-      [
-        class_i_ship_diameter - 1,
-        railgun_length + cargo_width + 17 + class_i_ship_diameter / 2,
-        $inner_height - class_i_ship_thickness - upgrade_thickness - 2,
-      ]
-    )
-      ClassIShip(player_box_height);
-
-    // class ii ship
-    translate(
-      [
-        class_ii_ship_length + class_i_ship_diameter - 5,
-        $inner_length - class_ii_ship_width / 2 - 10,
-        $inner_height - class_ii_ship_thickness - upgrade_thickness - 2,
-      ]
-    ) {
-      ClassIIShip(player_box_height);
-    }
-
-    // class iii ship
-    translate(
-      [
-        class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius - 10,
-        $inner_length - class_ii_ship_width - class_iii_ship_edge_length / 2 - 10,
-        $inner_height - class_iii_ship_thickness - upgrade_thickness - 2,
-      ]
-    )
-      ClassIIIShip(player_box_height);
-
-    // Cargo stuff
-    for (i = [0:2]) {
+      // class i ship
       translate(
         [
-          (cargo_width + 3) * i + cargo_width / 2 + 10,
-          cargo_width / 2 + 10,
-          $inner_height - cargo_thickness - upgrade_thickness - 2,
+          class_i_ship_diameter - 1,
+          railgun_length + cargo_width + 17 + class_i_ship_diameter / 2,
+          $inner_height - class_i_ship_thickness - upgrade_thickness - 2,
         ]
-      ) {
-        CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0], finger_hole_radius=5);
-        translate([0, 0, -round_nub_thickness])
-          cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
-      }
-    }
+      )
+        ClassIShip(player_box_height);
 
-    // Railgun stuff.
-    for (i = [0:2]) {
+      // class ii ship
       translate(
         [
-          (railgun_width + 3) * i + railgun_width / 2 + 15,
-          railgun_length / 2 + cargo_width + 15,
-          $inner_height - railgun_thickness - upgrade_thickness - 2,
+          class_ii_ship_length + class_i_ship_diameter - 5,
+          $inner_length - class_ii_ship_width / 2 - 10,
+          $inner_height - class_ii_ship_thickness - upgrade_thickness - 2,
         ]
       ) {
-        CuboidWithIndentsBottom(size=[railgun_width, railgun_length, player_box_height], finger_holes=[2], finger_hole_radius=7);
-        translate([0, railgun_length / 2 - railgun_nub_offset, -round_nub_thickness])
-          cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+        ClassIIShip(player_box_height);
       }
-    }
 
-    // PLayer tokens
-    translate(
-      [
-        player_token_diameter / 2 + 15,
-        $inner_length - player_token_diameter / 2 - 3,
-        $inner_height - cardboard_token_thickness * 2 - upgrade_thickness - 2,
-      ]
-    ) {
-      CylinderWithIndents(
-        player_token_diameter / 2,
-        height=player_box_height, finger_holes=[0, 180], finger_hole_radius=10
-      );
+      // class iii ship
+      translate(
+        [
+          class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius - 10,
+          $inner_length - class_ii_ship_width - class_iii_ship_edge_length / 2 - 10,
+          $inner_height - class_iii_ship_thickness - upgrade_thickness - 2,
+        ]
+      )
+        ClassIIIShip(player_box_height);
+
+      // Cargo stuff
+      for (i = [0:2]) {
+        translate(
+          [
+            (cargo_width + 3) * i + cargo_width / 2 + 10,
+            cargo_width / 2 + 10,
+            $inner_height - cargo_thickness - upgrade_thickness - 2,
+          ]
+        ) {
+          CuboidWithIndentsBottom(size=[cargo_width, cargo_width, player_box_height], finger_holes=[0], finger_hole_radius=5);
+          translate([0, 0, -round_nub_thickness])
+            cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+        }
+      }
+
+      // Railgun stuff.
+      for (i = [0:2]) {
+        translate(
+          [
+            (railgun_width + 3) * i + railgun_width / 2 + 15,
+            railgun_length / 2 + cargo_width + 15,
+            $inner_height - railgun_thickness - upgrade_thickness - 2,
+          ]
+        ) {
+          CuboidWithIndentsBottom(size=[railgun_width, railgun_length, player_box_height], finger_holes=[2], finger_hole_radius=7);
+          translate([0, railgun_length / 2 - railgun_nub_offset, -round_nub_thickness])
+            cyl(d=round_nub, h=cargo_thickness, rounding=1, anchor=BOTTOM);
+        }
+      }
+
+      // PLayer tokens
+      translate(
+        [
+          player_token_diameter / 2 + 10.5,
+          $inner_length - player_token_diameter / 2 - 3,
+          $inner_height - cardboard_token_thickness * 2 - upgrade_thickness - 2,
+        ]
+      ) {
+        CylinderWithIndents(
+          player_token_diameter / 2,
+          height=player_box_height, finger_holes=[0, 180], finger_hole_radius=10
+        );
+      }
     }
   }
 }
@@ -499,5 +499,5 @@ module TestLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  PlayerBox();
 }
