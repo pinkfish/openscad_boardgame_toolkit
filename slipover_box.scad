@@ -137,7 +137,7 @@ module MakeBoxWithSlipoverLid(
           }
       }
     }
-    if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+    if ( (lid_catch == CATCH_BUMPS_SHORT && length <= width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
       catch_offset = length - wall_thickness * 2;
       translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness + foot]) {
         color(material_colour) {
@@ -322,7 +322,7 @@ module SlipoverBoxLid(
                 );
           }
         }
-        if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+        if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
           catch_offset = width - wall_thickness * 2;
           translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
             color(material_colour) {

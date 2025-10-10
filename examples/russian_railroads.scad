@@ -29,6 +29,7 @@ default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED
 default_lid_thickness = 3;
 default_floor_thickness = 2;
 default_wall_thickness = 3;
+default_lid_shape_type = SHAPE_TYPE_PENTAGON_R2;
 
 middle_height = box_height - board_thickness;
 
@@ -124,7 +125,7 @@ train_box_length = train_tile_width * 3 + 0.5 + default_wall_thickness * 2 + 2;
 train_box_width = box_width - 2 - card_box_width;
 train_box_height = tile_thickness * 5 + default_floor_thickness + default_lid_thickness + 2;
 
-engineer_box_length = 82 + default_wall_thickness * 2 + 5;
+engineer_box_length = train_box_length;
 engineer_box_width = train_box_width;
 engineer_box_height = tile_thickness * 3 + default_floor_thickness + default_lid_thickness + 2;
 

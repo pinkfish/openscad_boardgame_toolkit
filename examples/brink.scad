@@ -24,6 +24,7 @@ default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED
 default_label_font = "Impact";
 default_lid_shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL;
 default_lid_shape_width = 20;
+default_lid_catch_type = CATCH_BUMPS_SHORT;
 
 ambassador_card_box_width = box_width / 2 - 1;
 ambassador_card_box_length = small_card_length + default_wall_thickness * 2;
@@ -38,7 +39,7 @@ action_card_box_height = single_card_thickness * 52 / 2 + default_floor_thicknes
 rider_card_box_height = single_card_thickness * 20 / 2 + default_floor_thickness + default_lid_thickness;
 
 player_box_width = (box_width - 3) / 2;
-player_box_length = default_wall_thickness * 2 + upgrade_length;
+player_box_length = default_wall_thickness * 2 + upgrade_length+2;
 player_box_height = upgrade_thickness + cargo_thickness + round_nub_thickness + default_floor_thickness + default_lid_thickness + 2;
 
 hex_box_width = box_width - 2;
@@ -454,7 +455,7 @@ module BoxLayout() {
     SpacerCardBack();
   for (i = [0:2]) {
     translate([0, ambassador_card_box_length, player_box_height * i + board_thickness])
-      PlayerBox(colour=["lightbrown", "orange", "red"][i]);
+      PlayerBox(colour=["brown", "orange", "red"][i]);
   }
   for (i = [0:1]) {
     translate([player_box_width, ambassador_card_box_length, player_box_height * i + board_thickness])
@@ -499,5 +500,5 @@ module TestLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBox();
+  BoxLayout();
 }

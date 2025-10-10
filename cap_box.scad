@@ -166,7 +166,7 @@ module MakeBoxWithCapLid(
         translate([0, catch_length * 6 / 8 + wall_thickness, 0]) rotate(270) color(material_colour)
               wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
       }
-      if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+      if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
         catch_offset = width - wall_thickness * 2;
         translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness]) {
           color(material_colour) {
@@ -402,7 +402,7 @@ module CapBoxLid(
       translate([0, catch_length * 2 / 8 + wall_thickness + size_spacing, 0]) rotate(270) color(material_colour)
             rotate([0, 180, 0]) wedge([catch_length * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, wall_thickness * 5 / 8]);
     }
-    if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+    if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
       catch_offset = width - wall_thickness * 2;
       translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
         color(material_colour) {
