@@ -23,6 +23,7 @@ box_width = 225;
 box_height = 68;
 box_hexes = 20;
 
+default_label_solid_background = true; //MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 money_biggest_thickness = 8.5;
@@ -90,21 +91,13 @@ train_box_height = rest_height / 2;
 
 rest_section_width = box_length - train_box_width * 2 - money_box_width - 1;
 
-train_svg_width = 200;
-train_svg_length = 200;
+train_svg_width = 268;
+train_svg_length = 699;
 wagon_svg_length = 1308.800;
 wagon_svg_width = 909.375;
 max_size = max(wagon_svg_length, wagon_svg_width);
 wagon_ratio_len = wagon_svg_length / max_size;
 wagon_ratio_wid = wagon_svg_width / max_size;
-
-module TrainOutline() {
-  resize([train_svg_width, train_svg_length]) import("svg/train_engine.svg");
-}
-
-module WagonOutline() {
-  resize([wagon_svg_length, wagon_svg_width]) import("svg/railway_wagon.svg");
-}
 
 module Outline(height = 5, outline = 1.5, offset = 0.5) {
 
@@ -119,7 +112,7 @@ module MoneyBox(offset = 0) // `make` me
   MakeBoxWithSlipoverLid(
     length=money_box_length, width=money_box_width, height=money_box_height,
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=MAKE_MMU == 1
+    last_child_positive=default_label_solid_background
   ) {
     for (i = [0:1:3]) {
       translate([-0.2, i * (money_width + inner_wall + 0.5) + 12, 0]) {
@@ -128,14 +121,14 @@ module MoneyBox(offset = 0) // `make` me
           FingerHoleBase(radius=10, height=money_box_height * 2, spin=270);
       }
       translate([money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.2])
-        linear_extrude(height=2) text(money_types[i + offset], size=10, anchor=CENTER);
+        linear_extrude(height=2) text(money_types[i + offset], size=15, anchor=CENTER, font="Impact:style=Bold");
     }
-    if (MAKE_MMU == 1) {
+    if (default_label_solid_background) {
       union() {
         for (i = [0:1:3]) {
           color("black")
             translate([money_length / 2, i * (money_width + inner_wall) + money_width / 2 + 12, -0.2])
-              linear_extrude(height=0.2) text(money_types[i + offset], size=10, anchor=CENTER);
+              linear_extrude(height=0.2) text(money_types[i + offset], size=15, anchor=CENTER, font="Impact:style=Bold");
         }
       }
     }
@@ -156,39 +149,40 @@ module TrainBox() // `make` me
       if (show_everything) {
         translate([-0.2, i * (train_card_width + inner_wall + 2), 0]) {
           cube([train_card_length + 0.5, train_card_width + 0.5, train_box_height]);
-          translate([-1, train_card_width / 2, 0])
-            FingerHoleBase(radius=10, height=money_box_height * 2, spin=270);
+          translate([0, train_card_width / 2, -1.1])
+            FingerHoleBase(radius=10, height=train_box_height - 1, spin=270, wall_thickness=3);
         }
       }
       if (i < 3) {
         translate(
           [
-            (train_card_length - train_card_width) / 2 + 5,
-            -5 + i * (train_card_width + inner_wall + 2),
+            (train_card_length - train_card_width) / 2 + 25,
+            i * (train_card_width + inner_wall + 2) + train_card_width / 2,
             -0.2,
           ]
-        ) Outline(offset=0.25, height=0.2) resize([train_card_width / 2, train_card_width / 2])
-              TrainOutline();
+        ) linear_extrude(height=0.2) offset(0.1)
+              TrainOutline(train_card_width);
       } else {
         translate(
           [
-            (train_card_length - train_card_width) / 2 + 7,
-            i * (train_card_width + inner_wall + 2) + 12,
+            (train_card_length - train_card_width) / 2 + 25,
+            i * (train_card_width + inner_wall + 2) + train_card_width / 2,
             -0.2,
           ]
-        ) Outline(offset=0.1, height=0.2)
-            resize([train_card_width / 2 * wagon_ratio_len, train_card_width / 2 * wagon_ratio_wid])
-              WagonOutline();
+        ) linear_extrude(height=0.2) offset(0.1)
+              WagonOutline(train_card_width);
       }
     }
   }
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=MAKE_MMU == 1
+    last_child_positive=default_label_solid_background
   ) {
     InnerPieces(true);
-    if (MAKE_MMU == 1) {
+    echo([default_label_solid_background]);
+    if (default_label_solid_background) {
+      echo(["boxed"]);
       color("black") union() {
           InnerPieces(false);
         }
@@ -212,23 +206,23 @@ module SharesBox(offset = 0) // `make` me
       if (show_everything) {
         translate([-0.2, i * (train_card_width + inner_wall + 2), 0]) {
           cube([train_card_length + 0.5, train_card_width + 0.5, train_box_height]);
-          translate([-1, train_card_width / 2, 0])
-            FingerHoleBase(radius=10, height=money_box_height * 2, spin=270);
+          translate([0, train_card_width / 2, -1.1])
+            FingerHoleBase(radius=10, height=train_box_height - 1, spin=270, wall_thickness=2.8);
         }
       }
       translate(
         [train_card_length / 2 - 2 + 5, i * (train_card_width + inner_wall + 2) + train_card_width / 2, -0.2]
       )
-        linear_extrude(height=0.2) text(company_names[i + offset], size=4, anchor=CENTER);
+        linear_extrude(height=0.2) text(company_names[i + offset], size=4, anchor=CENTER, font="Impact");
     }
   }
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=MAKE_MMU == 1
+    last_child_positive=default_label_solid_background
   ) {
     InnerPieces(true);
-    if (MAKE_MMU == 1) {
+    if (default_label_solid_background) {
       color("black") union() {
           InnerPieces(show_everything=false);
         }
@@ -251,7 +245,7 @@ module LastBox() // `make` me
       cube([train_card_length, train_card_width, train_box_height]);
     }
     translate([train_card_length / 2 - 2, train_card_width / 2, -0.2]) linear_extrude(height=0.2)
-        text("Concession", size=4.7, anchor=CENTER);
+        text("Concession", size=4.7, anchor=CENTER, font="Impact");
     for (i = [0:1:9]) {
       // Cylinder for tokens.
       if (show_everything) {
@@ -299,22 +293,19 @@ module LastBox() // `make` me
             cuboid([12, 12, 12]);
         }
         // finger indent for the middle secxtion
-        if (show_everything) {
-
-          translate([37, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5]) sphere(r=6, $fn=32);
-        }
-        // Text associated with the tokens.
-        translate(
-          [18.5, train_card_width + 9.4 + (token_diameter + 1) * i, train_box_height - lid_thickness - 0.2]
-        )
-          linear_extrude(height=0.2) text(minor_companies[i], size=3.2, anchor=CENTER);
+        translate([37, train_card_width + 9.4 + (token_diameter + 1) * i, 10.5]) sphere(r=6, $fn=32);
       }
+      // Text associated with the tokens.
+      translate(
+        [18.5, train_card_width + 9.4 + (token_diameter + 1) * i, train_box_height - lid_thickness - 0.2]
+      )
+        linear_extrude(height=0.2) text(minor_companies[i], size=3.2, anchor=CENTER, font="Impact");
     }
     // names for the tokens.
     translate([18.5, train_card_width + 9.5 + (token_diameter + 1) * 7, train_box_height - lid_thickness - 0.2])
-      linear_extrude(height=0.2) rotate([0, 0, 90]) text("Green", size=3.2, anchor=CENTER);
+      linear_extrude(height=0.2) rotate([0, 0, 90]) text("Green", size=3.2, anchor=CENTER, font="Impact");
     translate([18.5, train_card_width + 9.5 + (token_diameter + 1) * 9, train_box_height - lid_thickness - 0.2])
-      linear_extrude(height=0.2) rotate([0, 0, 90]) text("Brown", size=3.2, anchor=CENTER);
+      linear_extrude(height=0.2) rotate([0, 0, 90]) text("Brown", size=3.2, anchor=CENTER, font="Impact");
     // Rail locations.
     if (show_everything) {
       translate(
@@ -339,10 +330,10 @@ module LastBox() // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    last_child_positive=MAKE_MMU == 1, lid_catch=CATCH_LENGTH
+    last_child_positive=default_label_solid_background,
   ) {
     InnerPieces(show_everything=true);
-    if (MAKE_MMU == 1) {
+    if (default_label_solid_background) {
       color("black") InnerPieces(show_everything=false);
     }
   }
@@ -423,9 +414,9 @@ module InsideTokenTray() {
       }
       translate([38.5, 6.4 + (token_diameter + 3) * 1, rest_section_height - 0.94])
         color(default_material_colour) linear_extrude(height=0.2)
-            text("Ferrocarril Central", size=3.2, anchor=CENTER);
+            text("Ferrocarril Central", size=3.2, anchor=CENTER, font="Impact");
       translate([38.5, 6.4 + (token_diameter + 3) * 4, rest_section_height - 0.94])
-        color(default_material_colour) linear_extrude(height=0.2) text("Yellow", size=3.2, anchor=CENTER);
+        color(default_material_colour) linear_extrude(height=0.2) text("Yellow", size=3.2, anchor=CENTER, font="Impact");
       if (show_everything) {
         translate(
           [
@@ -469,7 +460,7 @@ module InsideTokenTray() {
 
     InnerPieces(true);
   }
-  if (MAKE_MMU == 1) {
+  if (default_label_solid_background) {
     color("black") InnerPieces(show_everything=false);
   }
 }
@@ -504,9 +495,9 @@ module LargeTokensBox() {
       }
       // Text associated with the tokens.
       if (i % 3 == 0 || i % 3 == 2) {
-        translate([18.5, 9.4 + (token_diameter + 3) * i, wall_height - lid_thickness - 0.2])
+        translate([18.5, 9.4 + (token_diameter + 3) * i, $inner_height  - 0.6])
           rotate([0, 0, 90]) linear_extrude(height=0.2)
-              text(major_companies[floor(i / 1.5)], size=3.2, anchor=CENTER);
+              text(major_companies[floor(i / 1.5)], size=3.2, anchor=CENTER, font="Impact");
       }
     }
   }
@@ -514,10 +505,10 @@ module LargeTokensBox() {
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=rest_section_width, height=rest_height,
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
-    wall_height=wall_height
+    wall_height=wall_height, last_child_positive=default_label_solid_background
   ) {
     InnerPieces(show_everything=true);
-    if (MAKE_MMU == 1) {
+    if (default_label_solid_background) {
       color("black") InnerPieces(false);
     }
   }
@@ -558,16 +549,6 @@ module BoxLayout() {
   }
 }
 
-module PrintLayout() {
-  MoneyBox(offset=0);
-  translate([0, money_box_length + 10]) MoneyBox(offset=4);
-  translate([0, money_box_length * 2 + 20]) SharesBox(offset=0);
-  translate([0, money_box_length * 2 + train_box_length + 30]) SharesBox(offset=0);
-  translate([0, money_box_length * 2 + train_box_length * 2 + 40]) SharesBox(offset=5);
-  translate([0, money_box_length * 2 + train_box_length * 3 + 50]) LastBox();
-  translate([0, money_box_length * 2 + train_box_length * 4 + 60]) LargeTokensToPrint();
-}
-
 if (FROM_MAKE != 1) {
-  LastBoxLid();
+  InsideTokenTray();
 }
