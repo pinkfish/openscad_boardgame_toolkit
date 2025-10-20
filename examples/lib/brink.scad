@@ -19,12 +19,12 @@ box_width = 215;
 box_length = 307;
 box_height = 96;
 
-card_length = 91;
-card_width = 66;
+card_length = 91.5;
+card_width = 66.5;
 card_10_thickness = 8;
 single_card_thickness = card_10_thickness / 10;
 
-small_card_width = 48.5;
+small_card_width = 49;
 small_card_length = 71.5;
 
 hex_width = 72;

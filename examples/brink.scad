@@ -39,7 +39,7 @@ action_card_box_height = single_card_thickness * 52 / 2 + default_floor_thicknes
 rider_card_box_height = single_card_thickness * 20 / 2 + default_floor_thickness + default_lid_thickness;
 
 player_box_width = (box_width - 3) / 2;
-player_box_length = default_wall_thickness * 2 + upgrade_length+2;
+player_box_length = default_wall_thickness * 2 + upgrade_length + 2;
 player_box_height = upgrade_thickness + cargo_thickness + round_nub_thickness + default_floor_thickness + default_lid_thickness + 2;
 
 hex_box_width = box_width - 2;
@@ -405,14 +405,60 @@ module ResourceBoxLid() // `make` me
   );
 }
 
-module UABoxLid() // `make` me
+module ResourceBoxKomekBlueLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Komek",
+    text_scale=0.4
+  );
+}
+
+module ResourceBoxVenusYellowLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Ventus",
+    text_scale=0.4
+  );
+}
+
+module ResourceBoxHenkoGreenLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Henko",
+    text_scale=0.4
+  );
+}
+
+module ResourceBoxMagnomieOrangeLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    text_str="Magnomi",
+    text_scale=0.4
+  );
+}
+
+module ResourceBox2SorelliaPurpleLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_2_width, length=resource_box_2_length, height=resource_box_2_height,
+    text_str="Sorellia",
+    text_scale=0.4
+  );
+}
+
+module ResourceBox2UARedLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_2_width, length=resource_box_2_length, height=resource_box_2_height,
     text_str="UA",
     text_scale=0.4
   );
 }
+
 module StartTile(thickness) {
   translate([PolygonRadiusFromApothem(hex_width, shape_edges=6) * 1.5, hex_width / 2, 0]) {
     RegularPolygon(shape_edges=6, width=hex_width, height=thickness);

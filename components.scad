@@ -47,6 +47,11 @@
 // Example:
 //   RoundedBoxOnLength(30, 20, 10, 7);
 module RoundedBoxOnLength(width, length, height, radius) {
+  assert(width > 0, str("Need width > 0 width=", width));
+  assert(length > 0, str("Need length > 0 length=", length));
+  assert(height > 0, str("Need height > 0 height=", height));
+  assert(radius > 0, str("Need radius < 0 radius=", radius));
+
   hull() {
     difference() {
       translate([width / 2, length / 2, radius]) hull() {
@@ -116,6 +121,12 @@ module RoundedBoxAllSides(width, length, height, radius) {
 // Example:
 //   RoundedBoxGrid(30, 20, 10, 7, rows=2, cols=1);
 module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false) {
+  assert(rows > 0, str("rows must be > 0 rows=", rows));
+  assert(cols > 0, str("cols must be > 0 cols=", cols));
+  assert(width > 0, str("width must be > 0 width=", width));
+  assert(height > 0, str("height must be > 0 height=", height));
+  assert(length > 0, str("length must be > 0 length=", length));
+
   row_length = (width - spacing * (rows - 1)) / rows;
   col_length = (length - spacing * (cols - 1)) / cols;
   for (x = [0:rows - 1])
@@ -163,6 +174,10 @@ function PolygonApothemFromRadius(radius, shape_edges) = radius * cos(180 / shap
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6, finger_holes = [0, 3]);
 module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole_height = 0, finger_hole_radius = undef, rounding = 0, radius = undef) {
+  assert(width > 0, str("width must be > 0 width=", width));
+  assert(height > 0, str("height must be > 0 height=", height));
+  assert(shape_edges > 0, str("shape_edges must be > 0 shape_edges=", shape_edges));
+
   rotate_deg = ( (shape_edges % 2) == 1) ? 180 / shape_edges + 90 : (shape_edges == 4 ? 45 : 0);
 
   calc_radius = DefaultValue(radius, PolygonRadiusFromApothem(width, shape_edges));
@@ -206,6 +221,9 @@ module CylinderWithIndents(
   finger_hole_radius = undef,
   anchor = BOTTOM
 ) {
+  assert(radius > 0, str("radius must be > 0. radius=", radius));
+  assert(height > 0, str("height must be > 0. height=", height));
+
   cyl(r=radius, h=height, anchor=anchor);
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
   for (i = [0:1:len(finger_holes) - 1]) {
@@ -264,6 +282,11 @@ module CuboidWithIndentsBottom(
   edges = undef,
   anchor = BOTTOM
 ) {
+  assert(len(size) == 3, str("len of size must be 3 len(size)=", len(size)));
+  assert(size[0] > 0, str("size[0] must be > 0 size=", size));
+  assert(size[1] > 0, str("size[1] must be > 0 size=", size));
+  assert(size[2] > 0, str("size[2] must be > 0 size=", size));
+
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
   mult = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
   poses = len(finger_positions) > 0 ? finger_positions : [for (x = finger_holes) HoleToPosition(x)];
@@ -308,6 +331,10 @@ module RegularPolygonGrid(
   space_width = undef,
   space_length = undef
 ) {
+  assert(rows > 0, "rows must be > 0");
+  assert(cols > 0, "cols must be > 0");
+  assert(width > 0, "width must be > 0");
+
   apothem = width / 2;
   radius = apothem / cos(180 / shape_edges);
   side_length = 2 * apothem * tan(180 / shape_edges);
@@ -371,6 +398,10 @@ module RegularPolygonGrid(
 //      RegularPolygon(width = 10, height = 5, shape_edges = 6);
 //
 module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6, inner_control = false) {
+  assert(rows > 0, str("rows must be > 0 rows=", rows));
+  assert(cols > 0, str("cols must be > 0 cols=", cols));
+  assert(radius > 0, str("radius must be > 0 radius=", radius));
+
   if (shape_edges == 6) {
     apothem = radius * cos(180 / shape_edges);
     side_length = 2 * apothem * tan(180 / shape_edges);
@@ -433,6 +464,12 @@ module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6, inner_contro
 // Example:
 //   HexGridWithCutouts(rows = 4, cols = 3, height = 10, spacing = 0, push_block_height = 1, tile_width = 29);
 module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_height = 0, wall_thickness = 2, inner_control = false) {
+  assert(rows > 0, str("rows must be > 0, rows=", rows));
+  assert(cols > 0, str("cols must be > 0 cols=2", cols));
+  assert(spacing >= 0, str("spacing must be >= 0 spacing=", spacing));
+  assert(height > 0, str("height must be > 0 height=", height));
+  assert(tile_width > 0, str("tile_width must be > 0 tile_width=", tile_width));
+
   width = tile_width;
   apothem = width / 2;
   radius = apothem / cos(180 / 6);
@@ -440,26 +477,29 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
   intersection() {
     // Narrow it down to being inside the box itself.
     translate([0, 0, -10]) cube([rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20]);
-    RegularPolygonGrid(width=width, rows=rows, cols=cols, spacing=0, shape_edges=6, inner_control=inner_control) {
-      union() {
-        difference() {
-          RegularPolygon(width=width, height=10 + height, shape_edges=6);
-          RegularPolygon(width=15, height=push_block_height, shape_edges=6);
+    translate([radius, tile_width / 2, 0])
+      RegularPolygonGrid(width=width, rows=rows, cols=cols, spacing=0, shape_edges=6, inner_control=inner_control) {
+        union() {
+          difference() {
+            RegularPolygon(width=width, height=10 + height, shape_edges=6);
+            if (push_block_height > 0) {
+              RegularPolygon(width=15, height=push_block_height, shape_edges=6);
+            }
+          }
+
+          translate([0, apothem, 0]) cuboid([radius, 10, 35], anchor=BOT);
+
+          // Put in all the finger holes in the grid.
+          translate([radius + 1, -apothem, -6])
+            cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+          translate([radius + 1, apothem, -6])
+            cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+          translate([-radius + 1, -apothem, -6])
+            cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
+          translate([-radius + 1, apothem, -6])
+            cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
         }
-
-        translate([0, apothem, 0]) cuboid([radius, 10, 35], anchor=BOT);
-
-        // Put in all the finger holes in the grid.
-        translate([radius + 1, -apothem, -6])
-          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
-        translate([radius + 1, apothem, -6])
-          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
-        translate([-radius + 1, -apothem, -6])
-          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
-        translate([-radius + 1, apothem, -6])
-          cuboid([radius + wall_thickness, 15, radius * 2], anchor=BOT, rounding=3);
       }
-    }
   }
 }
 
@@ -480,6 +520,9 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 // Example:
 //   FingerHoleWall(10, 9)
 module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0, material_colour = default_material_colour) {
+  assert(radius > 0, str("Radius must be > 0 radius=", radius));
+  assert(height > 0, str("Height must be > 0", height));
+
   tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
   multmatrix(m=tmat) union() {
       if (height >= radius + rounding_radius) {
@@ -579,6 +622,9 @@ module FingerHoleBase(
   orient = UP,
   spin = 0
 ) {
+  assert(height > 0, str("Need height > 0 height=", height));
+  assert(radius > 0, str("Need radius < 0 radius=", radius));
+
   tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
   multmatrix(m=tmat) union() {
       translate([-radius, -wall_thickness / 2, height]) {
@@ -612,6 +658,8 @@ module FingerHoleBase(
 // Example:
 //   HilbertCurve(3, 100);
 module HilbertCurve(order, size, line_thickness = 20, smoothness = 32) {
+  assert(order > 0, str("Need order > 0 order=", order));
+  assert(size > 0, str("Need size > 0 size=", size));
 
   module topline(order) {
     if (order > 0) {
