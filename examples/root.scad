@@ -29,7 +29,6 @@ default_lid_shape_type = SHAPE_TYPE_SQUARE;
 default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
-
 sliding_lid_thickness = 3;
 
 wall_thickness = default_wall_thickness;
@@ -944,7 +943,7 @@ module LizardBoxTop(generate_lid = true) // `make` me
   }
 }
 
-module ItemsBoxBottom(generate_lid = true) // `make` me
+module ItemsBoxBottom() // `make` me
 {
   module MakeItems(just_icon) {
     depths = [
@@ -1035,15 +1034,15 @@ module ItemsBoxBottom(generate_lid = true) // `make` me
       MakeItems(true);
     }
   }
-  if (generate_lid) {
-    translate([item_box_width + 10, 0, 0]) {
-      SlidingBoxLidWithLabel(
-        width=item_box_width, length=item_box_length,
-        text_str="Items", lid_thickness=sliding_lid_thickness,
-        material_colour="grey", label_background_colour="grey"
-      );
-    }
-  }
+}
+
+module ItemsBoxBottomLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=item_box_width, length=item_box_length,
+    text_str="Items", lid_thickness=sliding_lid_thickness,
+    material_colour="grey", label_background_colour="grey"
+  );
 }
 
 module GenerateIcon(icon, height = 2) {
@@ -1193,7 +1192,7 @@ module ItemsBoxWinter(generate_lid = true) // `make` me
   }
 }
 
-module DiceBox(generate_lid = true) // `make` me
+module DiceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     width=dice_box_width, length=dice_box_length, height=dice_box_height,
@@ -1211,27 +1210,26 @@ module DiceBox(generate_lid = true) // `make` me
     translate([0, 0, dice_width / 2]) color("grey")
         RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=dice_box_height, radius=10);
   }
-  if (generate_lid) {
-    translate([item_box_width + 10, 0, 0]) {
-      SlidingLid(
-        width=dice_box_width, length=dice_box_length, lid_thickness=sliding_lid_thickness,
-        material_colour="grey"
-      ) {
-        translate([10, 10, 0])
-          LidMeshBasic(
-            width=dice_box_width, length=dice_box_length, lid_thickness=lid_thickness,
-            boundary=10, layout_width=default_lid_layout_width, material_colour="grey"
-          )
-            color("grey")
-              ShapeByType(
-                shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-                shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=1.0
-              );
+}
+module DiceBoxLid() // `make` me
+{
+  SlidingLid(
+    width=dice_box_width, length=dice_box_length, lid_thickness=sliding_lid_thickness,
+    material_colour="grey"
+  ) {
+    translate([0, 0, 0])
+      LidMeshBasic(
+        width=$inner_width, length=$inner_length, lid_thickness=lid_thickness,
+        boundary=5, layout_width=default_lid_layout_width, material_colour="grey"
+      )
+        color("grey")
+          ShapeByType(
+            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=1.0
+          );
 
-        translate([(dice_box_width) / 2, (dice_box_length) / 2, 0]) color("black")
-            linear_extrude(height=lid_thickness) D20Outline2d(20, 1);
-      }
-    }
+    translate([(dice_box_width) / 2, (dice_box_length) / 2, 0]) color("black")
+        linear_extrude(height=lid_thickness) D20Outline2d(20, 1);
   }
 }
 
@@ -1361,5 +1359,6 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  DiceBox();
+  //DiceBoxLid();
+  ItemsBoxBottomLid();
 }

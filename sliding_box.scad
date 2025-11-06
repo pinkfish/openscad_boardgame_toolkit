@@ -176,6 +176,10 @@ module SlidingLid(
           color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
                 right_triangle([calc_wall_thickness / 2, 15]);
       }
+
+      $inner_width = width - (lid_on_length ? default_wall_thickness / 2 : default_wall_thickness);
+      $inner_length = length - (lid_on_length ? default_wall_thickness : default_wall_thickness / 2);
+
       if ($children > 0) {
         children(0);
       }
@@ -193,6 +197,107 @@ module SlidingLid(
       }
       if ($children > 5) {
         children(5);
+      }
+    }
+  }
+}
+
+// Module: SlidingBoxLidWithCustomShape()
+// Topics: SlidingBox, SlidingLid
+// Description:
+//    Lid for a sliding lid box.  This uses the first
+//    child as the shape for repeating on the lid and the rest as children for the lid.
+// Arguments:
+//    width = outside width of the box
+//    length = outside length of the box
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    lid_on_length = lid along the length of the box (default false)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
+// Usage: SlidingBoxLidWithCustomShape(100, 50);
+// Example:
+//    SlidingBoxLidWithCustomShape(100, 50) {
+//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//    }
+module SlidingBoxLidWithCustomShape(
+  width,
+  length,
+  lid_boundary = 10,
+  layout_width = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_thickness = default_lid_thickness,
+  aspect_ratio = 1.0,
+  label_border = 2,
+  wall_thickness = default_wall_thickness,
+  lid_rounding = undef,
+  wall_thickness = undef,
+  lid_chamfer = undef,
+  lid_pattern_dense = false,
+  lid_dense_shape_edges = 6,
+  lid_on_length = false,
+  material_colour = default_material_colour,
+  pattern_inner_control = false,
+) {
+  SlidingLid(
+    width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+    lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
+    lid_on_length=lid_on_length, material_colour=material_colour
+  ) {
+    LidMeshBasic(
+      width=width - (lid_on_length ? default_wall_thickness / 2 : default_wall_thickness),
+      length=length - (lid_on_length ? default_wall_thickness : default_wall_thickness / 2),
+      lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
+      inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
+      }
+    }
+
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+
+    // Fingernail pull
+    if (lid_on_length) {
+      intersection() {
+        color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
+        translate([width - label_border - 3, length / 2 - default_wall_thickness / 2, 0]) rotate(270)
+            SlidingLidFingernail(lid_thickness, material_colour=material_colour);
+      }
+    } else {
+      intersection() {
+        color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
+        translate([(width) / 2 - default_wall_thickness / 2, length - label_border - 3, 0])
+          SlidingLidFingernail(lid_thickness, material_colour=material_colour);
       }
     }
   }
@@ -250,7 +355,6 @@ module SlidingBoxLidWithLabelAndCustomShape(
   font = undef,
   wall_thickness = default_wall_thickness,
   lid_rounding = undef,
-  wall_thickness = undef,
   lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
@@ -263,24 +367,30 @@ module SlidingBoxLidWithLabelAndCustomShape(
   finger_hole_size = undef,
   pattern_inner_control = false,
 ) {
-  SlidingLid(
+  assert($children > 0, "Must be one child for the pattern");
+  assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
+  assert(text_str != undef, "Need to specify a label, text_str == undef");
+
+  SlidingBoxLidWithCustomShape(
     width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
-    lid_on_length=lid_on_length, material_colour=material_colour
+    lid_on_length=lid_on_length, material_colour=material_colour,
+    lid_boundary=lid_boundary,
+    layout_width=layout_width,
+    aspect_ratio=aspect_ratio,
+    label_border=label_border,
+    lid_pattern_dense=lid_pattern_dense, lid_dense_shape_edges=lid_dense_shape_edges,
+    pattern_inner_control=pattern_inner_control
   ) {
-    LidMeshBasic(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-      dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
-      inner_control=pattern_inner_control
-    ) {
-      if ($children > 0) {
-        children(0);
-      } else {
-        color(material_colour) square([10, 10]);
-      }
-    }
-    translate([label_length_offset + default_wall_thickness, label_width_offset + default_wall_thickness, 0]) {
+    // 0 child is the pattern for the lid.
+    children(0);
+
+    translate([label_length_offset + default_wall_thickness / 2, label_width_offset + default_wall_thickness / 2, 0]) {
       MakeLidLabel(
         width=width - default_wall_thickness * 2, length=length - default_wall_thickness * 2,
         lid_thickness=lid_thickness, border=label_border, offset=label_offset,
@@ -289,21 +399,6 @@ module SlidingBoxLidWithLabelAndCustomShape(
         label_background_colour=label_background_colour,
         finger_hole_size=finger_hole_size
       );
-    }
-
-    // Fingernail pull
-    if (lid_on_length) {
-      intersection() {
-        color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
-        translate([width - label_border - 3, length / 2 - default_wall_thickness / 2, 0]) rotate(270)
-            SlidingLidFingernail(lid_thickness, material_colour=material_colour);
-      }
-    } else {
-      intersection() {
-        color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
-        translate([(width) / 2 - default_wall_thickness / 2, length - label_border - 3, 0])
-          SlidingLidFingernail(lid_thickness, material_colour=material_colour);
-      }
     }
 
     // Don't include the first child since is it used for the lid shape.
@@ -378,7 +473,7 @@ module SlidingBoxLidWithLabel(
   layout_width = undef,
   shape_type = default_lid_shape_type,
   shape_thickness = undef,
-  wall_thickness = undef,
+  wall_thickness = default_wall_thickness,
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
@@ -394,6 +489,14 @@ module SlidingBoxLidWithLabel(
   label_length_offset = 0,
   finger_hole_size = undef,
 ) {
+  assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
+  assert(text_str != undef, "Need to specify a label, text_str == undef");
+
   SlidingBoxLidWithLabelAndCustomShape(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness, font=font,
     text_str=text_str, label_radius=label_radius,
