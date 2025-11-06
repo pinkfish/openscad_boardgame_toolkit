@@ -336,6 +336,9 @@ module CapBoxLid(
   lid_catch = default_lid_catch_type
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
 
   calc_lid_wall_thickness = wall_thickness / 2;
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;

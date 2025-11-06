@@ -33,7 +33,6 @@
 //   length = length of the box (outside length)
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   material_colour = the material colour to use (default {{default_material_colour}})
-//   size_spacing = the wiggle room in the lid generation (default {{m_piece_wiggle_room}})
 //.  floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   make_finger_width = makes finger dip on the width (default false)
 //   make_finger_length = makes finger dip on the length (default true)
@@ -51,11 +50,14 @@ module MakeBoxWithNoLid(
   floor_thickness = default_floor_thickness,
   make_finger_width = undef,
   make_finger_length = undef,
-  size_spacing = m_piece_wiggle_room,
   material_colour = "grey",
   finger_hole_size = undef,
   hollow = false
 ) {
+  assert(width > 0 && length > 0 && height > 0, str("Need width,length, height > 0 width=", width, " length=", length, " height=", height));
+  assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
+  assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
+
   calc_finger_hole_size = DefaultValue(finger_hole_size, min(20, min(min(length, width) / 4), height - floor_thickness + 1));
   calc_make_finger_width = make_finger_width == undef && make_finger_length == undef ? width > length : false;
   calc_make_finger_length = make_finger_width == undef && make_finger_length == undef ? length > width : false;
