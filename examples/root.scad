@@ -35,57 +35,61 @@ wall_thickness = default_wall_thickness;
 lid_thickness = default_lid_thickness;
 inner_thickness = 1;
 
-quarter_width = (boxData("box", "width") - 1) / 4;
+quarter_width = (box_data.box.width - 1) / 4;
 
 card_box_width = quarter_width * 3;
 card_box_length = card_length + wall_thickness * 2;
-card_box_height = boxData("box", "height") - boxData("board", "thickness");
+card_box_height = box_data.box.height - box_data.board.thickness;
 
 marquis_box_width = quarter_width * 2;
-marquis_box_length = (boxData("box", "length") - card_box_length - 2) / 3;
-marquis_box_height = boxData("marquis", "length") + lid_thickness * 2 + 0.5;
-marquis_box_top_height = boxData("box", "height") - boxData("board", "thickness") - marquis_box_height;
+marquis_box_length = (box_data.box.length - card_box_length - 2) / 3;
+marquis_box_height = box_data.marquis.length + lid_thickness * 2 + 0.5;
+marquis_box_top_height = box_data.box.height - box_data.board.thickness - marquis_box_height;
 
 erie_box_width = quarter_width * 2;
 erie_box_length = marquis_box_length;
-erie_box_height = boxData("erie", "width") + lid_thickness * 2 + 0.5;
+erie_box_height = box_data.erie.width + lid_thickness * 2 + 0.5;
 erie_box_top_width = quarter_width;
 erie_box_top_length = erie_box_length;
-erie_box_top_height = boxData("box", "height") - boxData("board", "thickness") - erie_box_height;
+erie_box_top_height = box_data.box.height - box_data.board.thickness - erie_box_height;
 
 alliance_box_width = quarter_width;
 alliance_box_length = erie_box_length;
-alliance_box_height = boxData("alliance", "width") + lid_thickness * 2 + 0.5;
-alliance_box_top_height = boxData("box", "height") - alliance_box_height - boxData("board", "thickness");
+alliance_box_height = box_data.alliance.width + lid_thickness * 2 + 0.5;
+alliance_box_top_height = box_data.box.height - alliance_box_height - box_data.board.thickness;
 
 riverfolk_box_width = quarter_width;
 riverfolk_box_length = erie_box_length;
-riverfolk_box_height = boxData("riverfolk", "length") + lid_thickness * 2 + 0.5;
-riverfolk_box_top_height = boxData("box", "height") - riverfolk_box_height - boxData("board", "thickness");
+riverfolk_box_height = box_data.riverfolk.length + lid_thickness * 2 + 0.5;
+riverfolk_box_top_height = box_data.box.height - riverfolk_box_height - box_data.board.thickness;
 riverfolk_box_top_width = quarter_width * 2;
 
-vagabond_box_height = boxData("token", "thickness") + lid_thickness * 2 + 1;
+vagabond_box_height = box_data.token.thickness + lid_thickness * 2 + 1;
 vagabond_box_length = erie_box_length;
 vagabond_box_width = quarter_width;
 
 lizard_box_width = quarter_width * 2;
 lizard_box_length = marquis_box_length;
-lizard_box_height = boxData("lizard", "length") + lid_thickness * 2 + 0.5;
+lizard_box_height = box_data.lizard.length + lid_thickness * 2 + 0.5;
 lizard_box_top_width = quarter_width * 2;
-lizard_box_top_height = boxData("box", "height") - lizard_box_height - boxData("board", "thickness");
+lizard_box_top_height = box_data.box.height - lizard_box_height - box_data.board.thickness;
 
 item_box_length = wall_thickness * 2 + (square_tile_size + 1) * 5;
 item_box_width = quarter_width;
 item_box_height = tile_thickness * 3 + 1 + lid_thickness * 2 + 0.5;
 item_box_middle_height = tile_thickness * 2 + 1 + lid_thickness * 2 + 0.5;
 item_box_winter_height = tile_thickness * 2 + 1 + lid_thickness * 2 + 0.5;
-item_box_extras_height = boxData("box", "height") - boxData("board", "thickness") - item_box_height - item_box_middle_height - item_box_winter_height;
+item_box_extras_height = box_data.box.height - box_data.board.thickness - item_box_height - item_box_middle_height - item_box_winter_height;
 
 dice_box_height = dice_width + lid_thickness * 2 + 1;
 dice_box_length = card_box_length + erie_box_length - item_box_length;
 dice_box_width = quarter_width;
 
-module CardBox(generate_lid = true) // `make` me
+spacer_box_height = box_data.box.height - box_data.board.thickness - 1;
+spacer_box_length = box_data.box.length - item_box_length - 2;
+spacer_box_width = quarter_width;
+
+module CardBox() // `make` me
 {
   MakeBoxWithCapLid(
     width=card_box_width, length=card_box_length, height=card_box_height,
@@ -102,73 +106,74 @@ module CardBox(generate_lid = true) // `make` me
         FingerHoleBase(radius=15, height=card_box_height);
     }
   }
-  if (generate_lid) {
-    translate([card_box_width + 10, 0, 0]) {
-      CapBoxLidWithLabel(
-        width=card_box_width, length=card_box_length, height=card_box_height,
-        text_width=70, text_height=20, text_str="Cards", label_rotated=false,
-        material_colour="grey"
-      );
-    }
-  }
 }
 
-module MarquisBoxBottom(generate_lid = true) // `make` me
+module CardBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, height=card_box_height,
+    text_str="Cards",
+    material_colour="grey"
+  );
+}
+
+module MarquisBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
     width=marquis_box_width, length=marquis_box_length, height=marquis_box_height,
     material_colour="orange"
   ) {
-    len = boxData("token", "thickness") * 8 + 1;
+    len = box_data.token.thickness * 8 + 1;
     // Put a bunch of places in for the marquis items
     translate([($inner_width - len) / 2, 1, -0.75]) {
-      translate([len / 2, boxData("marquis", "width") / 2 + 1, boxData("marquis", "length") / 2 + 1])
+      translate([len / 2, box_data.marquis.width / 2 + 1, box_data.marquis.length / 2 + 1])
         rotate([90, 0, 90]) MarquisCharacter(height=len);
-      translate([len / 2, boxData("marquis", "width") / 2, boxData("marquis", "length") / 2 + 10])
-        cuboid([len, boxData("marquis", "width"), boxData("marquis", "length")]);
+      translate([len / 2, box_data.marquis.width / 2, box_data.marquis.length / 2 + 10])
+        cuboid([len, box_data.marquis.width, box_data.marquis.length]);
       translate(
         [
           len / 2,
-          boxData("marquis", "width") / 2 + boxData("marquis", "width") + 2,
-          boxData("marquis", "length") / 2 + 1,
+          box_data.marquis.width / 2 + box_data.marquis.width + 2,
+          box_data.marquis.length / 2 + 1,
         ]
       ) rotate([90, 0, 90]) MarquisCharacter(height=len);
     }
     // Second smaller marquis bits
-    translate([($inner_width - len - boxData("token", "thickness")) / 2, 1, -0.75]) {
-      second_len = len + boxData("token", "thickness");
+    translate([($inner_width - len - box_data.token.thickness) / 2, 1, -0.75]) {
+      second_len = len + box_data.token.thickness;
       translate(
         [
           second_len / 2,
-          boxData("marquis", "width") / 2 + boxData("marquis", "width") * 2 + 3,
-          boxData("marquis", "length") / 2 + 1,
+          box_data.marquis.width / 2 + box_data.marquis.width * 2 + 3,
+          box_data.marquis.length / 2 + 1,
         ]
       ) rotate([90, 0, 90]) MarquisCharacter(height=second_len);
       translate(
         [
           second_len / 2,
-          boxData("marquis", "width") / 2 + boxData("marquis", "width") * 2 + 3,
-          boxData("marquis", "length") / 2 + 10,
+          box_data.marquis.width / 2 + box_data.marquis.width * 2 + 3,
+          box_data.marquis.length / 2 + 10,
         ]
-      ) cuboid([second_len, boxData("marquis", "width"), boxData("marquis", "length")]);
+      ) cuboid([second_len, box_data.marquis.width, box_data.marquis.length]);
     }
-    translate([0, 0, boxData("marquis", "length") / 2])
-      RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, boxData("marquis", "length"), 7);
-  }
-  if (generate_lid) {
-    translate([marquis_box_width + 10, 0, 0]) {
-      CapBoxLidWithEyes(
-        width=marquis_box_width, length=marquis_box_length, height=marquis_box_height,
-        material_colour="orange"
-      ) {
-        color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
-                MarquisEyes2d();
-      }
-    }
+    translate([0, 0, box_data.marquis.length / 2])
+      RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, box_data.marquis.length, 7);
   }
 }
 
-module MarquisBoxTop(generate_lid = true) // `make` me
+module MarquisBoxBottomLid() // `make` me
+{
+
+  CapBoxLidWithEyes(
+    width=marquis_box_width, length=marquis_box_length, height=marquis_box_height,
+    material_colour="orange"
+  ) {
+    color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
+            MarquisEyes2d();
+  }
+}
+
+module MarquisBoxTop() // `make` me
 {
   module BuildingSpots(finger_holes, icon, just_icons) {
     label_depth = just_icons ? -0.495 : -0.5;
@@ -326,20 +331,20 @@ module MarquisBoxTop(generate_lid = true) // `make` me
       InnerPieces(just_icons=true);
     }
   }
-  if (generate_lid) {
-    translate([marquis_box_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=marquis_box_width, length=marquis_box_length,
-        lid_thickness=sliding_lid_thickness, material_colour="orange"
-      ) {
-        color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
-                MarquisEyes2d();
-      }
-    }
+}
+
+module MarquisBoxTopLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=marquis_box_width, length=marquis_box_length,
+    lid_thickness=sliding_lid_thickness, material_colour="orange"
+  ) {
+    color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
+            MarquisEyes2d();
   }
 }
 
-module VagabondBox(generate_lid = true) // `make` me
+module VagabondBox() // `make` me
 {
   module InnerPieces(just_icons) {
     label_depth = just_icons ? -0.495 : -0.5;
@@ -347,16 +352,16 @@ module VagabondBox(generate_lid = true) // `make` me
     if (just_icons == false) {
       translate(
         [
-          boxData("vagabond", "width") / 2,
-          boxData("vagabond", "length") / 2 + 5,
-          $inner_height - boxData("token", "thickness") - 0.5 + (boxData("token", "thickness") + 1) / 2,
+          box_data.marquis.width / 2,
+          box_data.marquis.length / 2 + 5,
+          $inner_height - box_data.token.thickness - 0.5 + (box_data.token.thickness + 1) / 2,
         ]
       ) {
-        rotate([0, 0, 180]) VagabondCharacter(height=boxData("token", "thickness") + 1);
-        translate([0, boxData("vagabond", "length") / 2 - 3, 0])
-          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=boxData("box", "height"));
-        translate([0, -boxData("vagabond", "length") / 2, 0])
-          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=boxData("box", "height"));
+        rotate([0, 0, 180]) VagabondCharacter(height=box_data.token.thickness + 1);
+        translate([0, box_data.marquis.length / 2 - 3, 0])
+          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
+        translate([0, -box_data.marquis.length / 2, 0])
+          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
       }
     }
 
@@ -414,62 +419,62 @@ module VagabondBox(generate_lid = true) // `make` me
       InnerPieces(just_icons=true);
     }
   }
-  if (generate_lid) {
-    translate([vagabond_box_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=vagabond_box_width, length=vagabond_box_length,
-        lid_thickness=sliding_lid_thickness, material_colour="grey"
-      ) {
-        color("black") translate([0, -8, 0]) linear_extrude(height=default_lid_thickness) VagabondEyes2d();
-      }
-    }
+}
+
+module VagabondBoxLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=vagabond_box_width, length=vagabond_box_length,
+    lid_thickness=sliding_lid_thickness, material_colour="grey"
+  ) {
+    color("black") translate([0, -8, 0]) linear_extrude(height=default_lid_thickness) VagabondEyes2d();
   }
 }
 
-module ErieBoxBottom(generate_lid = true) // `make` me
+module ErieBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
     width=erie_box_width, length=erie_box_length, height=erie_box_height,
     material_colour="blue"
   ) {
-    len = boxData("token", "thickness") * 10 + 1;
+    len = box_data.token.thickness * 10 + 1;
 
     translate([($inner_width - len) / 2, 0, 0]) {
       translate(
-        [len / 2, boxData("erie", "length") / 2 + 3, $inner_height - boxData("erie", "width") / 2 - 0.5]
+        [len / 2, box_data.erie.length / 2 + 3, $inner_height - box_data.erie.width / 2 - 0.5]
       ) {
         rotate([0, 270, 0]) ErieCharacter(height=len);
-        translate([0, 0, 5 + boxData("erie", "width") / 2])
-          cuboid([len, boxData("erie", "length"), boxData("erie", "width") / 2], anchor=TOP);
+        translate([0, 0, 5 + box_data.erie.width / 2])
+          cuboid([len, box_data.erie.length, box_data.erie.width / 2], anchor=TOP);
       }
       translate(
         [
           len / 2,
-          boxData("erie", "length") / 2 + boxData("erie", "length") + 6,
-          $inner_height - boxData("erie", "width") / 2 - 0.5,
+          box_data.erie.length / 2 + box_data.erie.length + 6,
+          $inner_height - box_data.erie.width / 2 - 0.5,
         ]
       ) {
         rotate([0, 270, 0]) ErieCharacter(height=len);
-        translate([0, 0, 5 + boxData("erie", "width") / 2])
-          cuboid([len, boxData("erie", "length"), boxData("erie", "width") / 2], anchor=TOP);
+        translate([0, 0, 5 + box_data.erie.width / 2])
+          cuboid([len, box_data.erie.length, box_data.erie.width / 2], anchor=TOP);
       }
     }
-    translate([0, 0, $inner_height - boxData("erie", "width") / 2])
+    translate([0, 0, $inner_height - box_data.erie.width / 2])
       RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=erie_box_height, radius=5);
-  }
-  if (generate_lid) {
-    translate([erie_box_width + 10, 0, 0]) {
-      CapBoxLidWithEyes(
-        width=erie_box_width, length=erie_box_length, height=erie_box_height,
-        material_colour="blue"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
-      }
-    }
   }
 }
 
-module ErieBoxTop(generate_lid = true) // `make` me
+module ErieBoxBottomLid() // `make` me
+{
+  CapBoxLidWithEyes(
+    width=erie_box_width, length=erie_box_length, height=erie_box_height,
+    material_colour="blue"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
+  }
+}
+
+module ErieBoxTop() // `make` me
 {
   module InnerPieces(just_icons) {
     icon_height = just_icons ? 0.5 : 2;
@@ -518,68 +523,68 @@ module ErieBoxTop(generate_lid = true) // `make` me
       InnerPieces(just_icons=true);
     }
   }
-  if (generate_lid) {
-    translate([erie_box_top_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=erie_box_top_width, length=erie_box_top_length,
-        lid_thickness=sliding_lid_thickness, material_colour="blue"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
-      }
-    }
+}
+
+module ErieBoxTopLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=erie_box_top_width, length=erie_box_top_length,
+    lid_thickness=sliding_lid_thickness, material_colour="blue"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
   }
 }
 
-module AllianceBoxBottom(generate_lid = true) // `make` me
+module AllianceBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
     width=alliance_box_width, length=alliance_box_length, height=alliance_box_height,
     material_colour="green"
   ) {
-    len = boxData("token", "thickness") * 5 + 1;
+    len = box_data.token.thickness * 5 + 1;
 
     translate([($inner_width - len) / 2, 3.5, 0]) {
       translate(
         [
           len / 2,
-          boxData("alliance", "length") / 2 + 1.5,
-          $inner_height - boxData("alliance", "width") / 2 - 0.5,
+          box_data.alliance.length / 2 + 1.5,
+          $inner_height - box_data.alliance.width / 2 - 0.5,
         ]
       ) {
         rotate([0, 270, 0]) AllianceCharacter(height=len);
-        translate([0, 0, boxData("alliance", "width") / 2]) cuboid(
-            [len, boxData("alliance", "length"), boxData("alliance", "width") / 2 + 4.5], anchor=TOP
+        translate([0, 0, box_data.alliance.width / 2]) cuboid(
+            [len, box_data.alliance.length, box_data.alliance.width / 2 + 4.5], anchor=TOP
           );
       }
       translate(
         [
           len / 2,
-          boxData("alliance", "length") / 2 + 2 + boxData("alliance", "length") + 4,
-          $inner_height - boxData("alliance", "width") / 2 - 0.5,
+          box_data.alliance.length / 2 + 2 + box_data.alliance.length + 4,
+          $inner_height - box_data.alliance.width / 2 - 0.5,
         ]
       ) {
         rotate([0, 270, 0]) AllianceCharacter(height=len);
-        translate([0, 0, boxData("alliance", "width") / 2]) cuboid(
-            [len, boxData("alliance", "length"), boxData("alliance", "width") / 2 + 4.5], anchor=TOP
+        translate([0, 0, box_data.alliance.width / 2]) cuboid(
+            [len, box_data.alliance.length, box_data.alliance.width / 2 + 4.5], anchor=TOP
           );
       }
     }
-    translate([0, 0, $inner_height - boxData("alliance", "length") / 2])
+    translate([0, 0, $inner_height - box_data.alliance.length / 2])
       RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=erie_box_height, radius=5);
-  }
-  if (generate_lid) {
-    translate([alliance_box_width + 10, 0, 0]) {
-      CapBoxLidWithEyes(
-        width=alliance_box_width, length=alliance_box_length, height=alliance_box_height,
-        material_colour="green"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
-      }
-    }
   }
 }
 
-module AllianceBoxTop(generate_lid = true) // `make` me
+module AllianceBoxBottomLid() // `make` me
+{
+  CapBoxLidWithEyes(
+    width=alliance_box_width, length=alliance_box_length, height=alliance_box_height,
+    material_colour="green"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
+  }
+}
+
+module AllianceBoxTop() // `make` me
 {
   module InnerPieces(just_icon) {
     label_depth = just_icon ? -0.495 : -0.5;
@@ -657,56 +662,56 @@ module AllianceBoxTop(generate_lid = true) // `make` me
       InnerPieces(just_icon=true);
     }
   }
-  if (generate_lid) {
-    translate([alliance_box_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=alliance_box_width, length=alliance_box_length,
-        lid_thickness=sliding_lid_thickness, material_colour="green"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
-      }
-    }
+}
+
+module AllianceBoxTopLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=alliance_box_width, length=alliance_box_length,
+    lid_thickness=sliding_lid_thickness, material_colour="green"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
   }
 }
 
-module RiverfolkBoxBottom(generate_lid = true) // `make` me
+module RiverfolkBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
     width=riverfolk_box_width, length=riverfolk_box_length, height=riverfolk_box_height,
     material_colour="lightblue"
   ) {
-    len = boxData("token", "thickness") * 5 + 1;
+    len = box_data.token.thickness * 5 + 1;
     translate([0, 0, 0])for (i = [0:1:2]) {
       translate(
         [
           len / 2,
-          boxData("riverfolk", "width") / 2 + (boxData("riverfolk", "width") + 2) * i,
-          $inner_height - boxData("riverfolk", "length") / 2 - 0.5,
+          box_data.riverfolk.width / 2 + (box_data.riverfolk.width + 2) * i,
+          $inner_height - box_data.riverfolk.length / 2 - 0.5,
         ]
       ) {
         rotate([90, 0, 90]) RiverfolkCharacter(height=len + 1);
-        translate([0, 0, boxData("riverfolk", "length") / 2]) cuboid(
-            [len + 1, boxData("riverfolk", "width"), boxData("riverfolk", "length") - 3], anchor=TOP
+        translate([0, 0, box_data.riverfolk.length / 2]) cuboid(
+            [len + 1, box_data.riverfolk.width, box_data.riverfolk.length - 3], anchor=TOP
           );
       }
     }
-    translate([0, 0, $inner_height - boxData("riverfolk", "length") / 2]) RoundedBoxAllSides(
-        width=$inner_width, length=$inner_length, height=boxData("riverfolk", "length") / 2, radius=5
+    translate([0, 0, $inner_height - box_data.riverfolk.length / 2]) RoundedBoxAllSides(
+        width=$inner_width, length=$inner_length, height=box_data.riverfolk.length / 2, radius=5
       );
-  }
-  if (generate_lid) {
-    translate([riverfolk_box_width + 10, 0, 0]) {
-      CapBoxLidWithEyes(
-        width=riverfolk_box_width, length=riverfolk_box_length, height=riverfolk_box_height,
-        material_colour="lightblue"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(1.5) RiverfolkEyes2d();
-      }
-    }
   }
 }
 
-module RiverfolkBoxTop(generate_lid = true) // `make` me
+module RiverfolkBoxBottomLid() // `make` me
+{
+  CapBoxLidWithEyes(
+    width=riverfolk_box_width, length=riverfolk_box_length, height=riverfolk_box_height,
+    material_colour="lightblue"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(1.5) RiverfolkEyes2d();
+  }
+}
+
+module RiverfolkBoxTop() // `make` me
 {
   module InnerPieces(just_icon) {
     label_depth = just_icon ? -0.495 : -0.5;
@@ -777,19 +782,19 @@ module RiverfolkBoxTop(generate_lid = true) // `make` me
       InnerPieces(just_icon=true);
     }
   }
-  if (generate_lid) {
-    translate([riverfolk_box_top_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=riverfolk_box_top_width, length=riverfolk_box_length,
-        lid_thickness=sliding_lid_thickness, material_colour="lightblue"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(2.2) RiverfolkEyes2d();
-      }
-    }
+}
+
+module RiverfolkBoxTopLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=riverfolk_box_top_width, length=riverfolk_box_length,
+    lid_thickness=sliding_lid_thickness, material_colour="lightblue"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(2.2) RiverfolkEyes2d();
   }
 }
 
-module LizardBoxBottom(generate_lid = true) // `make` me
+module LizardBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
     width=lizard_box_width, length=lizard_box_length, height=lizard_box_height,
@@ -800,33 +805,33 @@ module LizardBoxBottom(generate_lid = true) // `make` me
       for (i = [0:1:4]) {
         translate(
           [
-            (boxData("lizard", "width") + 1.8) * i + boxData("lizard", "width") / 2,
-            (boxData("token", "thickness") + 0.1) * j + boxData("token", "thickness") / 2 + 1.5 + 2,
-            boxData("lizard", "length") / 2 - 0.25,
+            (box_data.lizard.width + 1.8) * i + box_data.lizard.width / 2,
+            (box_data.token.thickness + 0.1) * j + box_data.token.thickness / 2 + 1.5 + 2,
+            box_data.lizard.length / 2 - 0.25,
           ]
         ) {
-          rotate([90, 0, 0]) LizardCharacter(height=boxData("token", "thickness") + 0.5);
+          rotate([90, 0, 0]) LizardCharacter(height=box_data.token.thickness + 0.5);
           translate([0, 0, 4.5])
-            cuboid([boxData("lizard", "width"), boxData("token", "thickness") + 0.5, 20]);
+            cuboid([box_data.lizard.width, box_data.token.thickness + 0.5, 20]);
         }
       }
     }
-    translate([0, 0, boxData("lizard", "length") / 2])
-      RoundedBoxAllSides($inner_width, lizard_box_length - wall_thickness * 2, boxData("lizard", "length"), 7);
-  }
-  if (generate_lid) {
-    translate([lizard_box_width + 10, 0, 0]) {
-      CapBoxLidWithEyes(
-        width=lizard_box_width, length=lizard_box_length, height=lizard_box_height,
-        material_colour="yellow"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(2.5) LizardEyes2d();
-      }
-    }
+    translate([0, 0, box_data.lizard.length / 2])
+      RoundedBoxAllSides($inner_width, lizard_box_length - wall_thickness * 2, box_data.lizard.length, 7);
   }
 }
 
-module LizardBoxTop(generate_lid = true) // `make` me
+module LizardBoxBottomLid() // `make` me
+{
+  CapBoxLidWithEyes(
+    width=lizard_box_width, length=lizard_box_length, height=lizard_box_height,
+    material_colour="yellow"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(2.5) LizardEyes2d();
+  }
+}
+
+module LizardBoxTop() // `make` me
 {
   module InnerPieces(just_icons) {
     label_depth = just_icons ? -0.495 : -0.5;
@@ -931,15 +936,15 @@ module LizardBoxTop(generate_lid = true) // `make` me
       union() InnerPieces(just_icons=true);
     }
   }
-  if (generate_lid) {
-    translate([lizard_box_top_width + 10, 0, 0]) {
-      SlidingLidWithEyes(
-        width=lizard_box_top_width, length=lizard_box_length,
-        lid_thickness=sliding_lid_thickness, material_colour="yellow"
-      ) {
-        color("black") linear_extrude(height=default_lid_thickness) scale(2) LizardEyes2d();
-      }
-    }
+}
+
+module LizardBoxTopLid() // `make` me
+{
+  SlidingLidWithEyes(
+    width=lizard_box_top_width, length=lizard_box_length,
+    lid_thickness=sliding_lid_thickness, material_colour="yellow"
+  ) {
+    color("black") linear_extrude(height=default_lid_thickness) scale(2) LizardEyes2d();
   }
 }
 
@@ -1073,7 +1078,7 @@ module GenerateIcon(icon, height = 2) {
   }
 }
 
-module ItemsBoxMiddle(generate_lid = true) // `make` me
+module ItemsBoxMiddle() // `make` me
 {
 
   module MakeAllItems(just_icon) {
@@ -1145,7 +1150,7 @@ module ItemsBoxMiddle(generate_lid = true) // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_middle_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    last_child_positive=default_label_solid_background, label_background_colour="grey"
+    last_child_positive=default_label_solid_background,
   ) {
     MakeAllItems(false);
     if (default_label_solid_background) {
@@ -1154,42 +1159,44 @@ module ItemsBoxMiddle(generate_lid = true) // `make` me
       }
     }
   }
-  if (generate_lid) {
-    translate([item_box_width + 10, 0, 0]) {
-      SlidingBoxLidWithLabel(
-        width=item_box_width, length=item_box_length,
-        text_str="Items", lid_thickness=sliding_lid_thickness,
-        label_colour="blue", material_colour="grey", label_background_colour="grey"
-      );
+}
+
+module ItemsBoxMiddleLid() // `make` me
+{
+  translate([item_box_width + 10, 0, 0]) {
+    SlidingBoxLidWithLabel(
+      width=item_box_width, length=item_box_length,
+      text_str="Items", lid_thickness=sliding_lid_thickness,
+      label_colour="blue", material_colour="grey", label_background_colour="grey"
+    );
+  }
+}
+
+module ItemsBoxWinter() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=item_box_width, length=item_box_length, height=item_box_winter_height,
+    lid_thickness=sliding_lid_thickness, material_colour="grey"
+  ) {
+    for (i = [0:1:5]) {
+      translate(
+        [$inner_width / 2, box_data.winter.length / 2 + (box_data.winter.length + 0) * i + 3, 0]
+      ) {
+        rotate([0, 0, 90]) WinterToken(tile_thickness * 2 + 1);
+        translate([box_data.winter.width / 2, -5, 0]) sphere(r=8, anchor=BOTTOM);
+        translate([-box_data.winter.width / 2, -5, 0]) sphere(r=8, anchor=BOTTOM);
+      }
     }
   }
 }
 
-module ItemsBoxWinter(generate_lid = true) // `make` me
+module ItemsBoxWinterLid() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=item_box_width, length=item_box_length, height=item_box_winter_height,
-    finger_hold_height=3, lid_thickness=sliding_lid_thickness, material_colour="grey"
-  ) {
-    for (i = [0:1:5]) {
-      translate(
-        [$inner_width / 2, boxData("winter", "length") / 2 + (boxData("winter", "length") + 0) * i + 3, 0]
-      ) {
-        rotate([0, 0, 90]) WinterToken(tile_thickness * 2 + 1);
-        translate([boxData("winter", "width") / 2, -5, 0]) sphere(r=8, anchor=BOTTOM);
-        translate([-boxData("winter", "width") / 2, -5, 0]) sphere(r=8, anchor=BOTTOM);
-      }
-    }
-  }
-  if (generate_lid) {
-    translate([item_box_width + 10, 0, 0]) {
-      SlidingBoxLidWithLabel(
-        width=item_box_width, length=item_box_length,
-        text_str="Winter", lid_thickness=sliding_lid_thickness,
-        label_colour="blue", material_colour="grey", label_background_colour="grey"
-      );
-    }
-  }
+  SlidingBoxLidWithLabel(
+    width=item_box_width, length=item_box_length,
+    text_str="Winter", lid_thickness=sliding_lid_thickness,
+    label_colour="blue", material_colour="grey", label_background_colour="grey"
+  );
 }
 
 module DiceBox() // `make` me
@@ -1220,7 +1227,7 @@ module DiceBoxLid() // `make` me
     translate([0, 0, 0])
       LidMeshBasic(
         width=$inner_width, length=$inner_length, lid_thickness=lid_thickness,
-        boundary=5, layout_width=default_lid_layout_width, material_colour="grey"
+        boundary=10, layout_width=default_lid_layout_width, material_colour="grey"
       )
         color("grey")
           ShapeByType(
@@ -1233,7 +1240,7 @@ module DiceBoxLid() // `make` me
   }
 }
 
-module ItemsBoxExtras(generate_lid = true) // `make` me
+module ItemsBoxExtras() // `make` me
 {
   module RenderItem(item, just_icon) {
     if (just_icon) {
@@ -1317,48 +1324,59 @@ module ItemsBoxExtras(generate_lid = true) // `make` me
       }
     }
   }
-  if (generate_lid) {
-    translate([item_box_width + 10, 0, 0]) {
-      SlidingBoxLidWithLabel(
-        width=item_box_width, length=item_box_length,
-        text_str="Items", lid_thickness=sliding_lid_thickness,
-        label_colour="blue", material_colour="grey", label_background_colour="grey"
-      );
-    }
-  }
+}
+
+module ItemsBoxExtrasLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=item_box_width, length=item_box_length,
+    text_str="Items", lid_thickness=sliding_lid_thickness,
+    label_colour="blue", material_colour="grey", label_background_colour="grey"
+  );
+}
+
+module SpacerBox() // `make` me
+{
+  MakeBoxWithNoLid(
+    width=spacer_box_width,
+    length=spacer_box_length,
+    height=spacer_box_height,
+    hollow=true
+  );
 }
 
 module BoxLayout() {
-  cube([boxData("box", "width"), boxData("box", "length"), boxData("board", "thickness")]);
-  cube([1, boxData("box", "length"), boxData("box", "height")]);
-  translate([0, 0, boxData("board", "thickness")]) {
-    CardBox(generate_lid=false);
-    translate([card_box_width, 0, 0]) ItemsBoxBottom(generate_lid=false);
-    translate([card_box_width, 0, item_box_height]) ItemsBoxMiddle(generate_lid=false);
-    translate([card_box_width, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter(generate_lid=false);
+  cube([box_data.box.width, box_data.box.length, box_data.board.thickness]);
+  cube([1, box_data.box.length, box_data.box.height]);
+  translate([0, 0, box_data.board.thickness]) {
+    CardBox();
+    translate([card_box_width, 0, 0]) ItemsBoxBottom();
+    translate([card_box_width, 0, item_box_height]) ItemsBoxMiddle();
+    translate([card_box_width, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter();
     translate([card_box_width, 0, item_box_height + item_box_middle_height + item_box_winter_height])
-      ItemsBoxExtras(generate_lid=false);
-    translate([0, card_box_length, 0]) MarquisBoxBottom(generate_lid=false);
-    translate([marquis_box_width, card_box_length, 0]) AllianceBoxBottom(generate_lid=false);
-    translate([marquis_box_width, card_box_length, alliance_box_height]) AllianceBoxTop(generate_lid=false);
-    translate([0, card_box_length, marquis_box_height]) MarquisBoxTop(generate_lid=false);
-    translate([0, card_box_length + marquis_box_length, 0]) ErieBoxBottom(generate_lid=false);
-    translate([erie_box_width, card_box_length + erie_box_length, 0]) VagabondBox(generate_lid=false);
+      ItemsBoxExtras();
+    translate([0, card_box_length, 0]) MarquisBoxBottom();
+    translate([marquis_box_width, card_box_length, 0]) AllianceBoxBottom();
+    translate([marquis_box_width, card_box_length, alliance_box_height]) AllianceBoxTop();
+    translate([0, card_box_length, marquis_box_height]) MarquisBoxTop();
+    translate([0, card_box_length + marquis_box_length, 0]) ErieBoxBottom();
+    translate([erie_box_width, card_box_length + erie_box_length, 0]) VagabondBox();
     translate([erie_box_width, card_box_length + erie_box_length, vagabond_box_height])
-      VagabondBox(generate_lid=false);
-    translate([0, card_box_length + marquis_box_length, erie_box_height]) ErieBoxTop(generate_lid=false);
+      VagabondBox();
+    translate([0, card_box_length + marquis_box_length, erie_box_height]) ErieBoxTop();
     translate([erie_box_width, card_box_length + marquis_box_length + erie_box_length, 0])
-      RiverfolkBoxBottom(generate_lid=false);
+      RiverfolkBoxBottom();
     translate([0, card_box_length + marquis_box_length, riverfolk_box_height])
-      RiverfolkBoxTop(generate_lid=false);
+      RiverfolkBoxTop();
     translate([0, card_box_length + marquis_box_length + erie_box_length, 0])
-      LizardBoxBottom(generate_lid=false);
+      LizardBoxBottom();
     translate([0, card_box_length + marquis_box_length + erie_box_length, lizard_box_height])
-      LizardBoxTop(generate_lid=false);
+      LizardBoxTop();
+    translate([card_box_width, item_box_length, 0])
+      SpacerBox();
   }
 }
 
 if (FROM_MAKE != 1) {
-  //DiceBoxLid();
-  ItemsBoxBottomLid();
+  BoxLayout();
 }
