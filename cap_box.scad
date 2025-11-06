@@ -110,6 +110,11 @@ module MakeBoxWithCapLid(
   lid_catch = default_lid_catch_type
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(floor_thickness > 0, str("Need floor_thickness > 0, floor_thickness=", floor_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(cap_height == undef || cap_height > 0, str("Need cap height undef or > 0", cap_height));
 
   calc_lid_wall_thickness =
   CapBoxDefaultLidWallThickness(wall_thickness);
@@ -336,14 +341,18 @@ module CapBoxLid(
   lid_catch = default_lid_catch_type
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
-  assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(cap_height == undef || cap_height > 0, str("Need cap height undef or > 0", cap_height));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   calc_lid_wall_thickness = wall_thickness / 2;
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness / 2);
   calc_lid_inner_rounding = DefaultValue(lid_rounding, calc_lid_wall_thickness / 2);
+
   translate([0, length, calc_cap_height]) rotate([180, 0, 0]) {
       union() {
         translate([0, 0, calc_cap_height - lid_thickness])
@@ -543,6 +552,12 @@ module CapBoxLidWithLabelAndCustomShape(
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(cap_height == undef || cap_height > 0, str("Need cap height undef or > 0", cap_height));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLid(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
@@ -671,6 +686,12 @@ module CapBoxLidWithLabel(
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(cap_height == undef || cap_height > 0, str("Need cap height undef or > 0", cap_height));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
