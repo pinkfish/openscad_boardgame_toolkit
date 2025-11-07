@@ -3411,6 +3411,18 @@ module Anvil2d(size, with_hammer = false) {
 //   HalfEye2d(30);
 // Example:
 //   HalfEye2d(60);
+// Example:
+//   translate([-6, 0, 0]) HalfEye2d(60);
+//   translate([6, 0, 0]) mirror([1, 0]) HalfEye2d(60);
+//   // Nose.
+//   translate([0, -4, 0]) {
+//     circle(d=3);
+//     translate([0, -2]) {
+//       rect([1, 3]);
+//       translate([-3, -1.5]) ring(r1=2.5, r2=3, angle=[360, 180], n=32);
+//       translate([3, -1.5]) mirror([1, 0]) ring(r1=2.5, r2=3, angle=[360, 180], n=32);
+//     }
+//   }
 module HalfEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5) {
   difference() {
     union() {
@@ -3438,6 +3450,14 @@ module HalfEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5) {
 //   SideEye2d(30);
 // Example:
 //   SideEye2d(90);
+// Example:
+//   translate([6, 0, 0]) SideEye2d(90);
+//   translate([-6, 0, 0]) SideEye2d(90);
+//   translate([0, -4, 0]) {
+//     translate([1, 0.6]) rotate(30) rect([4, 1]);
+//     translate([-1, 0.6]) rotate(150) rect([4, 1]);
+//     circle(d=3);
+//   }
 module SideEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5) {
   difference() {
     circle(d=outer_size);
