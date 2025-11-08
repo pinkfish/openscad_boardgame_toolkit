@@ -45,7 +45,7 @@ round_winter_thing_diameter = 50;
 round_winter_thing_top_round = 10.5;
 
 // Sleeved card size.
-card_width = 68.5;
+card_width = 69;
 card_length = 92.5;
 ten_cards_thickness = 6;
 single_card_thickness = ten_cards_thickness / 10;
@@ -107,8 +107,9 @@ vagabond_num = 1;
 riverfolk_num = 15;
 lizard_num = 25;
 erie_card_num = 6;
-vagabond_card_num = 18;
+vagabond_card_num = 15 /*quest*/ + 9 /*character*/;
 overview_example_cards_num = 5;
+duchy_card_num = 9;
 marquis_wood_token_num = 8;
 marquis_building_token_num = 6;
 erie_roost_building_num = 7;
@@ -126,7 +127,6 @@ clearing_board_marker_per_type_num = 4;
 shared_cards_num = 54;
 
 dice_num = 2;
-
 
 module CylBothWidth(width_offset, len_offset, height, r = 1) {
   translate([width_offset - r, len_offset, 0]) cyl(r=r, h=height);

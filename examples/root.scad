@@ -37,9 +37,12 @@ inner_thickness = 1;
 
 quarter_width = (box_data.box.width - 1) / 4;
 
-card_box_width = quarter_width * 3;
+card_box_width = (quarter_width * 3) / 2;
 card_box_length = card_length + wall_thickness * 2;
 card_box_height = box_data.box.height - box_data.board.thickness;
+erie_card_box_height = default_lid_thickness + default_floor_thickness + single_card_thickness * erie_card_num + 1;
+vagabond_card_box_height = default_lid_thickness + default_floor_thickness + single_card_thickness * vagabond_card_num + 1;
+overview_card_box_height = box_data.box.height - box_data.board.thickness - vagabond_card_box_height - erie_card_box_height;
 
 marquis_box_width = quarter_width * 2;
 marquis_box_length = (box_data.box.length - card_box_length - 2) / 3;
@@ -89,30 +92,90 @@ spacer_box_height = box_data.box.height - box_data.board.thickness - 1;
 spacer_box_length = box_data.box.length - item_box_length - 2;
 spacer_box_width = quarter_width;
 
-module CardBox() // `make` me
+module BaseCardBox() // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithSlidingLid(
     width=card_box_width, length=card_box_length, height=card_box_height,
     material_colour="grey"
   ) {
-    $inner_width = card_box_width - wall_thickness * 2;
-    middle = card_width * 2 + 3;
-    translate([($inner_width - middle) / 2, 0, 0]) {
-      cube([card_width, card_length, card_box_height]);
-      translate([card_width + 3, 0, 0]) cube([card_width, card_length, card_box_height]);
-      translate([card_width / 2, -1, -lid_thickness - 0.01])
-        FingerHoleBase(radius=15, height=card_box_height);
-      translate([card_width / 2 + card_width + 3, -1, -lid_thickness - 0.01])
-        FingerHoleBase(radius=15, height=card_box_height);
-    }
+    translate([$inner_width / 2, $inner_length / 2, 0])
+      cuboid([card_width, card_length, card_box_height], anchor=BOTTOM);
+    translate([$inner_width / 2, -1, -lid_thickness - 0.01])
+      FingerHoleBase(radius=15, height=card_box_height);
   }
 }
 
-module CardBoxLid() // `make` me
+module BaseCardBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
-    text_str="Cards",
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Shared",
+    material_colour="grey"
+  );
+}
+
+module ErieCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width, length=card_box_length, height=erie_card_box_height,
+    material_colour="grey"
+  ) {
+    translate([$inner_width / 2, $inner_length / 2, 0])
+      cuboid([card_width, card_length, card_box_height], anchor=BOTTOM);
+    translate([$inner_width / 2, -1, -lid_thickness - 0.01])
+      FingerHoleBase(radius=15, height=card_box_height);
+  }
+}
+
+module ErieCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Erie",
+    material_colour="grey"
+  );
+}
+
+module VagabondCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width, length=card_box_length, height=vagabond_card_box_height,
+    material_colour="grey"
+  ) {
+    translate([$inner_width / 2, $inner_length / 2, 0])
+      cuboid([card_width, card_length, card_box_height], anchor=BOTTOM);
+    translate([$inner_width / 2, -1, -lid_thickness - 0.01])
+      FingerHoleBase(radius=15, height=card_box_height);
+  }
+}
+
+module VagabondCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Vagabond",
+    material_colour="grey"
+  );
+}
+
+module OverviewCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=card_box_width, length=card_box_length, height=overview_card_box_height,
+    material_colour="grey"
+  ) {
+    translate([$inner_width / 2, $inner_length / 2, 0])
+      cuboid([card_width, card_length, card_box_height], anchor=BOTTOM);
+    translate([$inner_width / 2, -1, -lid_thickness - 0.01])
+      FingerHoleBase(radius=15, height=card_box_height);
+  }
+}
+
+module OverviewCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width, length=card_box_length,
+    text_str="Overview",
     material_colour="grey"
   );
 }
@@ -1349,11 +1412,17 @@ module BoxLayout() {
   cube([box_data.box.width, box_data.box.length, box_data.board.thickness]);
   cube([1, box_data.box.length, box_data.box.height]);
   translate([0, 0, box_data.board.thickness]) {
-    CardBox();
-    translate([card_box_width, 0, 0]) ItemsBoxBottom();
-    translate([card_box_width, 0, item_box_height]) ItemsBoxMiddle();
-    translate([card_box_width, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter();
-    translate([card_box_width, 0, item_box_height + item_box_middle_height + item_box_winter_height])
+    BaseCardBox();
+    translate([card_box_width, 0, 0])
+      ErieCardBox();
+    translate([card_box_width, 0, erie_card_box_height])
+      VagabondCardBox();
+    translate([card_box_width, 0, erie_card_box_height + vagabond_card_box_height])
+      OverviewCardBox();
+    translate([card_box_width * 2, 0, 0]) ItemsBoxBottom();
+    translate([card_box_width * 2, 0, item_box_height]) ItemsBoxMiddle();
+    translate([card_box_width * 2, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter();
+    translate([card_box_width * 2, 0, item_box_height + item_box_middle_height + item_box_winter_height])
       ItemsBoxExtras();
     translate([0, card_box_length, 0]) MarquisBoxBottom();
     translate([marquis_box_width, card_box_length, 0]) AllianceBoxBottom();
@@ -1372,7 +1441,7 @@ module BoxLayout() {
       LizardBoxBottom();
     translate([0, card_box_length + marquis_box_length + erie_box_length, lizard_box_height])
       LizardBoxTop();
-    translate([card_box_width, item_box_length, 0])
+    translate([card_box_width * 2, item_box_length, 0])
       SpacerBox();
   }
 }
