@@ -3752,8 +3752,8 @@ module ShapeByType(
       }
     } else if (calc_shape_type == SHAPE_TYPE_CIRCLE) {
       difference() {
-        circle(r=calc_shape_width / 2);
-        circle(r=(calc_shape_width - calc_shape_thickness) / 2);
+        circle(r=calc_shape_width / 2 + calc_shape_thickness / 4);
+        circle(r=(calc_shape_width - calc_shape_thickness / 2) / 2);
       }
     } else if (
       calc_shape_type == SHAPE_TYPE_TRIANGLE || calc_shape_type == SHAPE_TYPE_HEX || calc_shape_type == SHAPE_TYPE_OCTOGON || calc_shape_type == SHAPE_TYPE_SQUARE
@@ -3762,9 +3762,13 @@ module ShapeByType(
         calc_shape_type == SHAPE_TYPE_TRIANGLE ? 3
         : (calc_shape_type == SHAPE_TYPE_HEX ? 6 : (calc_shape_type == SHAPE_TYPE_SQUARE ? 4 : 8));
       difference() {
-        regular_ngon(r=calc_shape_width / 2, n=shape_edges, rounding=calc_rounding);
         regular_ngon(
-          r=(calc_shape_width - calc_shape_thickness) / 2, n=shape_edges,
+          r=calc_shape_width / 2 + (calc_shape_type == SHAPE_TYPE_TRIANGLE ? calc_shape_thickness * 1.5 : calc_shape_thickness / 4),
+          n=shape_edges, rounding=calc_rounding
+        );
+        regular_ngon(
+          r=(calc_shape_width - (calc_shape_type == SHAPE_TYPE_TRIANGLE ? calc_shape_thickness * 0.5 : calc_shape_thickness/2)) / 2,
+          n=shape_edges,
           rounding=calc_rounding,
         );
       }

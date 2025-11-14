@@ -245,7 +245,7 @@ module ExtraBitsBox() // `make` me
       translate([0, 0, $inner_height - other_token_thickness - 0.5]) {
         difference() {
           cyl(d=cresent_diameter, h=other_token_thickness + 2, anchor=BOTTOM);
-          translate([0, -7, 0]) cyl(d=cresent_diameter-1, h=other_token_thickness + 2, anchor=BOTTOM);
+          translate([0, -7, 0]) cyl(d=cresent_diameter - 1, h=other_token_thickness + 2, anchor=BOTTOM);
         }
       }
       translate([0, 20, $inner_height - other_token_thickness / 2])
