@@ -110,6 +110,11 @@ module HexBox1() // `make` me
   }
 }
 
+module HexBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(width=hex_box_width, length=hex_box_length, height=hex_box_height, "1899 Daihan");
+}
+
 module HexBox2() // `make` me
 {
   MakeBoxWithCapLid(width=hex_box_width, length=hex_box_length, height=hex_box_height_2) {
@@ -137,6 +142,14 @@ module MoneyBox() // `make` me
   }
 }
 
+module MoneyBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=money_box_width, length=money_box_length, height=money_box_height,
+    text_str="Money"
+  );
+}
+
 module ShareBox() // `make` me
 {
   MakeBoxWithCapLid(width=share_box_width, length=share_box_length, height=share_box_height) {
@@ -153,6 +166,14 @@ module ShareBox() // `make` me
   }
 }
 
+module ShareBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=share_box_width, length=share_box_length, height=share_box_height,
+    text_str="Shared"
+  );
+}
+
 module TrainCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -163,6 +184,15 @@ module TrainCardBox() // `make` me
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=13, height=train_card_box_height - default_lid_thickness + 0.01, spin=270);
   }
+}
+
+module TrainCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=train_card_box_width,
+    length=train_card_box_length, lid_on_length=true,
+    text_str="Trains"
+  );
 }
 
 module CompanyMarkerBox() // `make` me
@@ -189,12 +219,30 @@ module CompanyMarkerBox() // `make` me
   }
 }
 
+module CompanyMarkerBoxLid() // `make` me
+{
+  SlipoverBoxLidWithLabel(
+    width=company_marker_box_width, length=company_marker_box_length,
+    height=company_marker_box_height, foot=default_floor_thickness,
+    text_str="Company"
+  );
+}
+
 module ExtraBitsBox() // `make` me
 {
   MakeBoxWithSlipoverLid(
     width=company_marker_box_width, length=company_marker_box_length,
     height=company_marker_box_height, foot=default_floor_thickness
   ){}
+}
+
+module ExtraBitsBoxLid() // `make` me
+{
+  SlipoverBoxLidWithLabel(
+    width=company_marker_box_width, length=company_marker_box_length,
+    height=company_marker_box_height, foot=default_floor_thickness,
+    text_str="Extra"
+  );
 }
 
 module PrivateCompanyCardBox() // `make` me
@@ -207,6 +255,15 @@ module PrivateCompanyCardBox() // `make` me
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=13, height=private_company_card_box_height - default_lid_thickness + 0.01, spin=270);
   }
+}
+
+module PrivateCompanyCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=private_company_card_box_width, length=private_company_card_box_length,
+    lid_on_length=true,
+    text_str="Private"
+  );
 }
 
 module BoxLayout() {

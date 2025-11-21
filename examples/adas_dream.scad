@@ -18,6 +18,12 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_label_font = "Impact";
+default_label_solid_background = MAKE_MMU == 1;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_catch_type = CATCH_BUMPS_LONG;
+default_lid_shape_type = SHAPE_TYPE_PENTAGON_R1;
+
 box_length = 291;
 box_width = 212;
 box_height = 90;
@@ -111,6 +117,24 @@ first_player_head_arm_width = 13;
 first_player_shoulder_length = 19;
 first_player_thickness = 11.5;
 
+man_player_height = 25.5;
+man_player_coat_width = 11.5;
+man_player_coat_height_from_top = 12;
+man_player_head_width = 4.5;
+man_player_head_height = 5;
+man_player_trouser_top_width = 10.5;
+man_player_trouser_middle_width = 6.5;
+man_player_foot_height = 2;
+woman_player_height = 21.5;
+woman_player_width = 12.5;
+woman_player_dress_height = 12.5;
+woman_player_dress_top_width = 9.5;
+woman_player_top_widht = 6.5;
+woman_player_head_width = 5.2;
+woman_player_head_height = 3;
+woman_player_shoulder_width = 6;
+woman_man_player_thickness = 8.5;
+
 score_pad_width = 83.5;
 score_pad_length = 96.5;
 score_pad_thickness = 6;
@@ -192,7 +216,7 @@ objective_box_width = card_box_width;
 objective_box_length = box_length - card_box_length * 2 - 1;
 objective_box_height = program_box_height;
 
-alternative_objective_box_height = box_height - board_thickness - great_exhibition_board_thickness - 1 - objective_box_height - program_box_height - steam_box_height;
+alternative_objective_box_height = default_floor_thickness + default_lid_thickness + cardboard_thickness * 4 + 0.5;
 alternative_objective_box_width = card_box_width;
 alternative_objective_box_length = default_wall_thickness * 2 + (alternative_objective_length + 2) * 2;
 
@@ -212,12 +236,6 @@ cog_box_width = box_width - card_box_width;
 cog_box_length = box_length - card_box_length * 2 - score_pad_box_length;
 cog_box_height = (box_height - board_thickness - great_exhibition_board_thickness - 1) / 3;
 
-/*
-resource_box_width = box_height - board_thickness - great_exhibition_board_thickness - 1;
-resource_box_height = assignment_tiles_width;
-resource_box_length = assignment_tiles_length / 2;
-*/
-
 resource_box_width = score_pad_box_width / 2;
 resource_box_length = score_pad_box_length;
 resource_box_height = (box_height - board_thickness - great_exhibition_board_thickness - score_pad_box_height - dice_box_height - 1) / 2;
@@ -228,7 +246,7 @@ money_box_height = resource_box_height;
 
 spacer_side_box_length = score_pad_box_length + card_box_length * 2;
 spacer_side_box_width = box_width - card_box_width * 2 - 1;
-spacer_side_box_height = box_height - board_thickness - great_exhibition_board_thickness - assignment_tiles_thickness;
+spacer_side_box_height = (box_height - board_thickness - great_exhibition_board_thickness - assignment_tiles_thickness) / 2;
 
 module FirstPlayerToken() {
   translate([-first_player_width / 2, -first_player_length / 2]) {
@@ -294,6 +312,57 @@ module SteamToken() {
   //steam_num = 4;
 }
 
+module ManPlayerToken() {
+  translate([0, -man_player_height / 2]) {
+    translate([0, 0])
+      rect(
+        [man_player_head_width, man_player_head_height],
+        rounding=[0, 0, 1, 1],
+        anchor=FRONT
+      );
+    translate([0, man_player_head_height])
+      rect(
+        [man_player_coat_width, man_player_coat_height_from_top], anchor=FRONT,
+        rounding=0.5
+      );
+    translate([0, man_player_head_height])
+      rect(
+        [man_player_trouser_middle_width, man_player_height - man_player_head_height],
+        anchor=FRONT,
+      );
+    translate([0, man_player_height - man_player_foot_height])
+      rect(
+        [man_player_trouser_top_width, man_player_foot_height], anchor=FRONT,
+        rounding=0.5
+      );
+  }
+}
+
+module WomanPlayerToken() {
+  translate([0, -woman_player_height / 2]) {
+    translate([0, 0])
+      rect(
+        [woman_player_head_width, woman_player_head_height],
+        rounding=[0, 0, 1, 1],
+        anchor=FRONT
+      );
+    translate([0, woman_player_head_height])
+      rect(
+        [woman_player_shoulder_width, woman_player_height - woman_player_head_height],
+        rounding=1,
+        anchor=FRONT
+      );
+    translate([0, woman_player_height - woman_player_dress_height])
+      trapezoid(
+        h=woman_player_dress_height,
+        w2=woman_player_width,
+        w1=woman_player_dress_top_width,
+        rounding=0.5,
+        anchor=FRONT,
+      );
+  }
+}
+
 module InnovationToken(height) {
   cyl(d=innovation_diameter, h=height, anchor=BOTTOM);
   translate([0, innovation_length / 2 - innovation_min_width / 2, 0])
@@ -317,6 +386,17 @@ module AssignmentCardBox() // `make` me
   }
 }
 
+module AssignmentCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width,
+    length=card_box_length,
+    lid_on_length=true,
+    material_colour="purple",
+    text_str="Assignment"
+  );
+}
+
 module TierCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -334,6 +414,17 @@ module TierCardBox() // `make` me
   }
 }
 
+module TierCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width,
+    length=card_box_length,
+    lid_on_length=true,
+    material_colour="purple",
+    text_str="Tier"
+  );
+}
+
 module SoloCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -349,6 +440,17 @@ module SoloCardBox() // `make` me
     )
       FingerHoleBase(radius=15, height=card_box_height, spin=270);
   }
+}
+
+module SoloCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width,
+    length=card_box_length,
+    lid_on_length=true,
+    material_colour="purple",
+    text_str="Solo"
+  );
 }
 
 module SteamInnovationBox() // `make` me
@@ -383,7 +485,23 @@ module SteamInnovationBox() // `make` me
           linear_extrude(height=steam_box_height) SteamToken();
         }
     }
+    translate([0, 0, $inner_height - cardboard_thickness * 2])
+      RoundedBoxAllSides(
+        width=$inner_width,
+        length=$inner_length, height=steam_box_height, radius=5,
+      );
   }
+}
+
+module SteamInnovationBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=steam_box_width,
+    length=steam_box_length,
+    height=steam_box_height,
+    material_colour="yellow",
+    text_str="Steam"
+  );
 }
 
 module AssignmentBox() // `make` me
@@ -403,10 +521,25 @@ module AssignmentBox() // `make` me
             $inner_height - cardboard_thickness * 4 - 0.5,
           ]
         )
-          cube([assignment_width, assignment_length, cardboard_thickness * 4 + 1]);
+          CuboidWithIndentsBottom(
+            [assignment_width, assignment_length, cardboard_thickness * 4 + 1],
+            anchor=BOTTOM + FRONT + LEFT,
+            finger_holes=[j == 0 ? 2 : 6]
+          );
       }
     }
   }
+}
+
+module AssignmentBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=assignment_box_width,
+    length=assignment_box_length,
+    height=assignment_box_height,
+    material_colour="lightblue",
+    "Assignment"
+  );
 }
 
 module UniversityBox() // `make` me
@@ -425,14 +558,29 @@ module UniversityBox() // `make` me
             (university_length + 1) * i + 1,
             $inner_height - cardboard_thickness * (j == 3 ? 3 : 4) - 0.5,
           ]
-        )
+        ) {
           difference() {
-            cube([university_width, university_length, cardboard_thickness * 4 + 1]);
+            CuboidWithIndentsBottom(
+              [university_width, university_length, cardboard_thickness * 4 + 1],
+              anchor=BOTTOM + FRONT + LEFT,
+              finger_holes=[j == 0 ? 2 : 6]
+            );
             cyl(d=university_cutout, anchor=BOTTOM, h=university_box_height);
           }
+        }
       }
     }
   }
+}
+
+module UniversityBoxLid() // `make` me
+{
+  CapBoxLidWithShape(
+    width=university_box_width,
+    length=univeristy_box_length,
+    height=university_box_height,
+    material_colour="aqua"
+  );
 }
 
 module BookBox() // `make` me
@@ -452,10 +600,25 @@ module BookBox() // `make` me
             $inner_height - book_thickness - 0.5,
           ]
         )
-          cube([book_width, book_length, book_thickness + 1]);
+          CuboidWithIndentsBottom(
+            [book_width, book_length, book_thickness + 1],
+            anchor=BOTTOM + FRONT + LEFT,
+            finger_holes=[j == 0 ? 2 : 6]
+          );
       }
     }
   }
+}
+
+module BookBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=book_box_width,
+    length=book_box_length,
+    height=book_box_height,
+    material_colour="red",
+    text_str="Book"
+  );
 }
 
 module ProgramBox() // `make` me
@@ -480,6 +643,17 @@ module ProgramBox() // `make` me
       }
     }
   }
+}
+
+module ProgramBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=program_box_width,
+    length=program_box_length,
+    height=program_box_height,
+    material_colour="brown",
+    text_str="Program"
+  );
 }
 
 module ScoringBox() // `make` me
@@ -521,8 +695,18 @@ module ScoringBox() // `make` me
   }
 }
 
-module PlayerBox() // `make` me
+module ScoringBoxLid() // `make` me
 {
+  CapBoxLidWithLabel(
+    width=scoring_box_width,
+    length=scoring_box_length,
+    height=scoring_box_height,
+    material_colour="lightgrey",
+    text_str="Scoring"
+  );
+}
+
+module PlayerBoxInternal() {
   MakeBoxWithSlidingLid(
     width=card_box_width,
     length=card_box_length,
@@ -555,19 +739,56 @@ module PlayerBox() // `make` me
           $inner_height - card_height - player_token_thickness,
         ]
       )
-        linear_extrude(height=player_token_thickness + 1)
-          circle(d=player_token_diameter);
+        CylinderWithIndents(
+          height=player_token_thickness + 1,
+          d=player_token_diameter,
+          finger_holes=[180],
+          finger_hole_radius=10
+        );
       translate(
         [
           $inner_width - player_token_diameter / 2 - 3 - player_token_diameter,
           player_token_diameter / 2 + (player_token_diameter + 1) * i,
           $inner_height - card_height - player_token_thickness * 2,
         ]
-      )
-        linear_extrude(height=player_token_thickness * 2 + 1)
-          circle(d=player_token_diameter);
+      ) CylinderWithIndents(
+          height=player_token_thickness * 2 + 1,
+          d=player_token_diameter,
+          finger_holes=[180],
+          finger_hole_radius=10
+        );
     }
+    translate([15, research_token_diameter * 5.2, $inner_height - woman_man_player_thickness - 0.5])
+      linear_extrude(player_token_thickness + 20)
+        children(0);
   }
+}
+
+module PlayerBoxMan() // `make` me
+{
+  PlayerBoxInternal()
+    translate([man_player_height / 2, 0])
+      rotate(90)
+        ManPlayerToken();
+}
+
+module PlayerBoxWoman() // `make` me
+{
+  PlayerBoxInternal()
+    translate([woman_player_height / 2, 0])
+      rotate(90)
+        WomanPlayerToken();
+}
+
+module PlayerBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=card_box_width,
+    length=card_box_length,
+    lid_on_length=true,
+    material_colour="blue",
+    text_str="Player"
+  );
 }
 
 module ObjectiveBox() // `make` me
@@ -588,10 +809,25 @@ module ObjectiveBox() // `make` me
             $inner_height - cardboard_thickness * 4,
           ]
         )
-          cube([objective_width, objective_length, objective_box_height]);
+          CuboidWithIndentsBottom(
+            [objective_width, objective_length, objective_box_height],
+            anchor=BOTTOM + FRONT + LEFT,
+            finger_holes=[j % 2 == 0 ? 2 : 6]
+          );
       }
     }
   }
+}
+
+module ObjectiveBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=objective_box_width,
+    length=objective_box_length,
+    height=objective_box_height,
+    material_colour="orange",
+    "Objective"
+  );
 }
 
 module AlternativeObjectiveBox() // `make` me
@@ -612,10 +848,25 @@ module AlternativeObjectiveBox() // `make` me
             $inner_height - cardboard_thickness * 4,
           ]
         )
-          cube([alternative_objective_width, alternative_objective_length, alternative_objective_box_height]);
+          CuboidWithIndentsBottom(
+            [alternative_objective_width, alternative_objective_length, alternative_objective_box_height],
+            anchor=BOTTOM + FRONT + LEFT,
+            finger_holes=[j % 2 == 0 ? 2 : 6]
+          );
       }
     }
   }
+}
+
+module AlternativeObjectiveBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=alternative_objective_box_width,
+    length=alternative_objective_box_length,
+    height=alternative_objective_box_height,
+    material_colour="purple",
+    text_str="Alt Objective"
+  );
 }
 
 module VisitorBox() // `make` me
@@ -647,6 +898,17 @@ module VisitorBox() // `make` me
   }
 }
 
+module VisitorBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=visitor_box_width,
+    length=visitor_box_length,
+    height=visitor_box_height,
+    material_colour="pink",
+    text_str="Visitor"
+  );
+}
+
 module DiceBox() // `make` me
 {
   MakeBoxWithCapLid(
@@ -663,6 +925,17 @@ module DiceBox() // `make` me
     translate([$inner_width / 2, $inner_length / 2, $inner_height - 4])
       cuboid([$inner_width - 2, $inner_length - 2, 20], rounding=4, anchor=BOTTOM);
   }
+}
+
+module DiceBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=dice_box_width,
+    length=dice_box_length,
+    height=dice_box_height,
+    material_colour="green",
+    text_str="Dice"
+  );
 }
 
 module ScorePadBox() // `make` me
@@ -682,13 +955,23 @@ module ScorePadBox() // `make` me
   }
 }
 
+module ScorePadBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=score_pad_box_width,
+    length=score_pad_box_length,
+    material_colour="white",
+    text_str="Score Pad"
+  );
+}
+
 module GearBox(top_box = false) // `make` me
 {
   MakeBoxWithCapLid(
     width=cog_box_width,
     length=cog_box_length,
     height=cog_box_height,
-    material_colour = "blue"
+    material_colour="blue"
   ) {
     for (i = [0:1])
       for (j = [0:1]) {
@@ -699,7 +982,10 @@ module GearBox(top_box = false) // `make` me
             $inner_height - gear_thickness * 3,
           ]
         ) {
-          cyl(d=gear_width, h=cog_box_height, anchor=BOTTOM);
+          CylinderWithIndents(
+            d=gear_width, h=cog_box_height, anchor=BOTTOM,
+            finger_holes=[0], finger_hole_radius=10
+          );
         }
       }
     translate(
@@ -709,7 +995,10 @@ module GearBox(top_box = false) // `make` me
         $inner_height - gear_thickness * (top_box ? 2 : 3),
       ]
     ) {
-      cyl(d=gear_width, h=cog_box_height, anchor=BOTTOM);
+      CylinderWithIndents(
+        d=gear_width, h=cog_box_height, anchor=BOTTOM,
+        finger_holes=[180], finger_hole_radius=10
+      );
     }
   }
 }
@@ -719,15 +1008,36 @@ module GearBoxTop() // `make` me
   GearBox(top_box=true);
 }
 
+module GearBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=cog_box_width,
+    length=cog_box_length,
+    height=cog_box_height,
+    material_colour="blue",
+    text_str="Addition"
+  );
+}
+
+module GearBoxTopLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=cog_box_width,
+    length=cog_box_length,
+    height=cog_box_height,
+    material_colour="blue",
+    text_str="Multiplier"
+  );
+}
+
 module ResourceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     width=resource_box_width,
     length=resource_box_length,
     height=resource_box_height,
-    material_colour= "gold"
+    material_colour="gold"
   ) {
-    echo([$inner_height, $inner_width, $inner_length]);
     RoundedBoxAllSides(
       width=$inner_width,
       length=$inner_length, height=resource_box_height, radius=5
@@ -735,20 +1045,46 @@ module ResourceBox() // `make` me
   }
 }
 
+module ResourceBoxBrassLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=resource_box_width,
+    length=resource_box_length,
+    text_str="Brass"
+  );
+}
+
+module ResourceBoxCoalLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=resource_box_width,
+    length=resource_box_length,
+    text_str="Coal"
+  );
+}
+
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     width=money_box_width,
     length=money_box_length,
-    height=money_box_height
+    height=money_box_height,
+    material_colour="silver"
   ) {
-    echo([$inner_height, $inner_width, $inner_length]);
     RoundedBoxAllSides(
       width=$inner_width,
-      length=$inner_length, height=money_box_height, radius=5, 
-      material_colour = "silver"
+      length=$inner_length, height=money_box_height, radius=5,
     );
   }
+}
+
+module MoneyBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=money_box_width,
+    length=money_box_length,
+    text_str="Money"
+  );
 }
 
 module SpacerSide() // `make` me
@@ -780,9 +1116,9 @@ module BoxLayout() {
       TierCardBox();
     for (i = [0:1]) {
       translate([0, 0, player_box_height * i])
-        PlayerBox();
+        PlayerBoxMan();
       translate([card_box_width, 0, player_box_height * i])
-        PlayerBox();
+        PlayerBoxWoman();
     }
     translate([solo_reward_width_thin, card_box_length, 0])
       BookBox();
@@ -820,14 +1156,8 @@ module BoxLayout() {
     }
     translate([card_box_width * 2, 0, assignment_tiles_thickness])
       SpacerSide();
-    /*
-    translate([card_box_width * 2, 0, assignment_tiles_thickness+resource_box_width])
-      rotate([0, 90, 0])
-        ResourceBox();
-    translate([card_box_width * 2, resource_box_length, assignment_tiles_thickness+resource_box_width])
-      rotate([0, 90, 0])
-        ResourceBox();
-        */
+    translate([card_box_width * 2, 0, assignment_tiles_thickness + spacer_side_box_height])
+      SpacerSide();
   }
 }
 

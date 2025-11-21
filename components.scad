@@ -216,22 +216,28 @@ module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole
 module CylinderWithIndents(
   radius,
   height,
+  d = undef,
+  r = undef,
+  h = undef,
   finger_holes = [],
   finger_hole_height = 0,
   finger_hole_radius = undef,
   anchor = BOTTOM
 ) {
-  assert(radius > 0, str("radius must be > 0. radius=", radius));
-  assert(height > 0, str("height must be > 0. height=", height));
+  assert(radius != undef && radius > 0 || d != undef && d > 0 || r != undef && r > 0, str("radius must be != undef && > 0. radius=", radius, " r=", r, " d=", d, " h=", h));
+  assert(height != undef && height > 0 || h != undef && h > 0, str("height must be > 0. height=", height));
 
-  cyl(r=radius, h=height, anchor=anchor);
-  calc_finger_hole_radius = DefaultValue(finger_hole_radius, radius / 3);
+  calc_height = height != undef && height > 0 ? height : h;
+  calc_radius = radius != undef && radius > 0 ? radius : (d != undef && d > 0 ? d / 2 : r);
+
+  cyl(r=calc_radius, h=calc_height, anchor=anchor);
+  calc_finger_hole_radius = DefaultValue(finger_hole_radius, calc_radius / 3);
   for (i = [0:1:len(finger_holes) - 1]) {
-    x = radius * cos(finger_holes[i]);
-    y = radius * sin(finger_holes[i]);
+    x = calc_radius * cos(finger_holes[i]);
+    y = calc_radius * sin(finger_holes[i]);
     translate([x, y, finger_hole_height]) {
       cyl(
-        r=calc_finger_hole_radius, h=height + calc_finger_hole_radius * 2, anchor=BOTTOM,
+        r=calc_finger_hole_radius, h=calc_height + calc_finger_hole_radius * 2, anchor=BOTTOM,
         rounding=calc_finger_hole_radius,
       );
     }

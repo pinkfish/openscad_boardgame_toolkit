@@ -42,8 +42,6 @@ top_width = ( (box_width - gap) - 40) / 2;
 top_length = top_width;
 herald_width = 40;
 
-$fn = 180;
-
 first_width = 40;
 radius = 10;
 
@@ -79,7 +77,7 @@ module FarmerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     herald_width, top_length, lid_thickness=lid_thickness,
-    text_str="Farmer", label_colour="blue", 
+    text_str="Farmer", label_colour="blue",
   );
 }
 
@@ -96,7 +94,7 @@ module HeraldBoxLid() // `make` me
 {
   SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
       herald_width, top_length, lid_thickness=lid_thickness, text_str="Herald",
-      label_colour="blue", 
+      label_colour="blue",
     );
 }
 
