@@ -541,6 +541,100 @@ module SlidingBoxLidWithLabel(
   }
 }
 
+// Module: SlidingBoxLidWithShape
+// Description:
+//   This is a composite method that joins together the other pieces to make a simple lid with a label and a hex
+//   grid. The children to this as also pulled out of the lid so can be used to build more complicated lids.
+// Usage:
+//    SlidingBoxLidWithShape(width = 100, length = 100, lid_thickness = 3);
+// Arguments:
+//    width = width of the box (outside dimension)
+//    length = length of the box (outside dimension)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//    lid_boundary = how much boundary should be around the pattern (default 10)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    shape_width = width of the shape (default {{default_lid_shape_width}})
+//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
+//    {{m_piece_wiggle_room}}
+//    lid_on_length = lid along the length of the box (default false)
+//    label_colour = the color of the label (default undef)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+// Topics: SlidingBox, SlidingLid
+// Example:
+//    SlidingBoxLidWithShape(
+//        width = 100, length = 100, lid_thickness = 3);
+module SlidingBoxLidWithShape(
+  width,
+  length,
+  lid_thickness = default_lid_thickness,
+  lid_boundary = 10,
+  shape_width = undef,
+  layout_width = undef,
+  label_border = 2,
+  shape_type = default_lid_shape_type,
+  shape_thickness = undef,
+  wall_thickness = default_wall_thickness,
+  aspect_ratio = undef,
+  size_spacing = m_piece_wiggle_room,
+  lid_chamfer = undef,
+  lid_rounding = undef,
+  shape_rounding = undef,
+  lid_on_length = false,
+  material_colour = default_material_colour,
+) {
+  assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
+  assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
+  assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
+  assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
+  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
+
+  SlidingBoxLidWithCustomShape(
+    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness, 
+    layout_width=layout_width, size_spacing=size_spacing,
+    aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
+    lid_boundary=lid_boundary, label_border=label_border,
+    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    lid_on_length=lid_on_length, material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
+  ) {
+    translate([lid_boundary, lid_boundary, 0]) {
+      color(material_colour)
+        ShapeByType(
+          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
+          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding,
+        );
+    }
+
+    if ($children > 0) {
+      children(0);
+    }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
+}
+
 // Module: MakeBoxWithSlidingLid()
 // Description:
 //   Makes a box with a sliding lid, this just creates the box itself with the cutouts for the

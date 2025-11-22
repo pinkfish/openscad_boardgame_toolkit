@@ -130,8 +130,8 @@ module MakeMainLidLabelSolid(
   solid_background = false,
   label_background_colour = undef
 ) {
-  assert(width > offset * 2 + border * 2, str("Width must be wider than double the offset width=", width, " offset=", offset, "border=", border));
-  assert(length > offset * 2 + border * 2, str("Length must be wider than double the offset length=", length, " offset=", offset, "border=", border));
+  assert(width > border * 2, str("Width must be wider than double the offset width=", width, " offset=", offset, "border=", border));
+  assert(length > border * 2, str("Length must be wider than double the offset length=", length, " offset=", offset, "border=", border));
   module TextShape(calc_font, text_height = lid_thickness, edge_offset = 0) {
     linear_extrude(text_height) union() {
         // Edge box.
