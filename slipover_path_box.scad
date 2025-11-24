@@ -81,7 +81,8 @@ module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    last_child_postitive = if the last child in the list should be a postive, not negative
+//    postivie_only_children = the list of children to be positive only
+//    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
 // Example:
@@ -96,7 +97,8 @@ module MakePathBoxWithSlipoverLid(
   floor_thickness = default_floor_thickness,
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
-  last_child_positive = false,
+  positive_only_children = [],
+  positive_negative_children = [],
   lid_catch = default_lid_catch_type
 ) {
   assert(is_path(path, 2), "Path must be a 2d path");
@@ -149,17 +151,22 @@ module MakePathBoxWithSlipoverLid(
     $inner_width = calc_width;
     $inner_length = calc_length;
     $inner_height = height - lid_thickness - floor_thickness;
-    if (last_child_positive) {
-      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children([0:$children - 2]);
-    } else {
-      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children();
+    for (i = [0:$children - 1]) {
+      if (!in_list(i, positive_only_children)) {
+        translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children();
+      }
     }
   }
-  if (last_child_positive) {
+  if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
     $inner_width = calc_width;
     $inner_length = calc_length;
     $inner_height = height - lid_thickness - floor_thickness;
-    translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children($children - 1);
+    for (i = positive_only_children) {
+      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
+    }
   }
 }
 

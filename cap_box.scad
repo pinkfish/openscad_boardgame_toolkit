@@ -84,7 +84,8 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
+//    positive_only_children = the list of children to be positive only
+//    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
 //       {{CATCH_LONG})
 // Usage: MakeBoxWithCapLid(100, 50, 20);
@@ -106,7 +107,8 @@ module MakeBoxWithCapLid(
   finger_hold_height = 5,
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour,
-  last_child_positive = false,
+  positive_only_children = [],
+  positive_negative_children = [],
   lid_catch = default_lid_catch_type
 ) {
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
@@ -286,17 +288,22 @@ module MakeBoxWithCapLid(
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
-    if (last_child_positive) {
-      translate([wall_thickness, wall_thickness, calc_floor_thickness]) children([0:$children - 2]);
-    } else {
-      translate([wall_thickness, wall_thickness, calc_floor_thickness]) children();
+    for (i = [0:$children - 1]) {
+      if (!in_list(i, positive_only_children)) {
+        translate([wall_thickness, wall_thickness, calc_floor_thickness]) children(i);
+      }
     }
   }
-  if (last_child_positive) {
+  if (len(positive_negative_children) > 0 || len(positive_only_children) > 0) {
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
-    translate([wall_thickness, wall_thickness, calc_floor_thickness]) children($children - 1);
+    for (i = positive_only_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
   }
 }
 

@@ -40,7 +40,7 @@ under the License.
 //    FingerHoleSegmentCutout([[0,0], [50,50]], radius=5, height=7, wall_thickness=2);
 module FingerHoleSegmentCutout(path, radius, height, wall_thickness) {
   assert(is_path(path, 2), "Path must be a 2d path");
-  assert(len(path) ==2, str("Path must be at least exactly 2 elements long path_length=", len(path)));
+  assert(len(path) == 2, str("Path must be at least exactly 2 elements long path_length=", len(path)));
   split_length = path_length(path);
   normal = path_normals(path);
   calc_len = split_length / 5;
@@ -136,7 +136,8 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    last_child_positive = if the last child in the list is a positive add to the box, not negative (default false)
+//    positive_only_children = the list of children to be positive only
+//    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
 // Topics: CapBox
@@ -158,7 +159,8 @@ module MakePathBoxWithCapLid(
   finger_hold_height = 5,
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour,
-  last_child_positive = false,
+  positive_only_children = [],
+  positive_negative_children = [],
   lid_catch = default_lid_catch_type
 ) {
   assert(is_path(path, 2), "Path must be a 2d path");
@@ -251,19 +253,24 @@ module MakePathBoxWithCapLid(
       $inner_path = calc_path;
       $inner_width = calc_width;
       $inner_length = calc_length;
-      if (last_child_positive) {
-        translate([wall_thickness, wall_thickness, calc_floor_thickness]) children([0:$children - 2]);
-      } else {
-        translate([wall_thickness, wall_thickness, calc_floor_thickness]) children([0:$children - 1]);
+      for (i = [0:$children - 1]) {
+        if (!in_list(i, positive_only_children)) {
+          translate([wall_thickness, wall_thickness, calc_floor_thickness]) children(i);
+        }
       }
     }
   }
-  if (last_child_positive) {
+  if (len(positive_negative_children) > 0 || len(positive_only_children) > 0) {
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_path = calc_path;
     $inner_width = calc_width;
     $inner_length = calc_length;
-    translate([wall_thickness, wall_thickness, calc_floor_thickness]) children($children - 1);
+    for (i = positive_only_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
   }
 }
 

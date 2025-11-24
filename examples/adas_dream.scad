@@ -18,9 +18,8 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-
 default_label_font = "Impact";
-default_label_solid_background =  MAKE_MMU == 1;
+default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_lid_catch_type = CATCH_BUMPS_LONG;
 default_lid_shape_type = SHAPE_TYPE_PENTAGON_R1;
@@ -205,10 +204,6 @@ program_box_width = program_length + default_wall_thickness * 2;
 program_box_length = program_width * 2 + default_wall_thickness * 3;
 program_box_height = box_height - board_thickness - solo_reward_thickness - great_exhibition_board_thickness;
 
-assignment_card_box_width = assignment_card_length + default_wall_thickness * 2;
-assignment_card_box_length = assignment_card_width + default_wall_thickness * 2;
-assignment_card_box_height = box_height - board_thickness - great_exhibition_board_thickness - solo_reward_thickness - 1; //default_floor_thickness + default_lid_thickness + single_card_thickness * assignment_card_num + 1;
-
 assignment_box_width = book_box_width;
 assignment_box_length = box_length - solo_reward_length_thin - 2 - card_box_length - book_box_length;
 assignment_box_height = book_box_height;
@@ -223,16 +218,6 @@ dice_box_width = card_box_width;
 dice_box_length = default_wall_thickness * 2 + dice_thickness * 9 + 1.5;
 dice_box_height = dice_thickness + default_floor_thickness + default_lid_thickness;
 
-alternative_objective_box_height = box_height - board_thickness - great_exhibition_board_thickness - 1 - dice_box_height - solo_reward_thickness; //default_floor_thickness + default_lid_thickness + cardboard_thickness * 5 + 0.5;
-alternative_objective_box_width = card_box_width;
-alternative_objective_box_length = box_length - card_box_length - assignment_card_box_length - 1; // default_wall_thickness * 2 + (alternative_objective_length + 2) * 2 + 4;
-
-echo([box_length - card_box_length - dice_box_length - assignment_card_box_length, program_box_height, box_length - card_box_length - alternative_objective_box_length, assignment_card_box_width, assignment_card_box_width]);
-
-first_player_box_length = box_length - card_box_length - dice_box_length - assignment_card_box_length;
-first_player_box_width = card_box_width;
-first_player_box_height = dice_box_height;
-
 score_pad_box_width = dice_box_width;
 score_pad_box_length = score_pad_length + default_wall_thickness * 2;
 score_pad_box_height = default_floor_thickness + default_lid_thickness + score_pad_thickness;
@@ -241,25 +226,37 @@ university_box_width = program_box_width;
 univeristy_box_length = score_pad_box_length - program_box_length;
 university_box_height = program_box_height;
 
-visitor_box_width = card_box_width;
-visitor_box_length = card_box_length - univeristy_box_length;
-visitor_box_height = alternative_objective_box_height;
-
 cog_box_width = box_width - card_box_width;
 cog_box_length = box_length - card_box_length * 2 - score_pad_box_length;
 cog_box_height = (box_height - board_thickness - great_exhibition_board_thickness - 1) / 3;
+
+assignment_card_box_width = box_width - cog_box_width - 1;
+assignment_card_box_length = assignment_card_width + default_wall_thickness * 2;
+assignment_card_box_height = box_height - board_thickness - great_exhibition_board_thickness - solo_reward_thickness - 1; //default_floor_thickness + default_lid_thickness + single_card_thickness * assignment_card_num + 1;
+
+alternative_objective_box_height = box_height - board_thickness - great_exhibition_board_thickness - 1 - dice_box_height - solo_reward_thickness; //default_floor_thickness + default_lid_thickness + cardboard_thickness * 5 + 0.5;
+alternative_objective_box_width = card_box_width;
+alternative_objective_box_length = box_length - card_box_length - assignment_card_box_length - 1; // default_wall_thickness * 2 + (alternative_objective_length + 2) * 2 + 4;
+
+first_player_box_length = box_length - card_box_length - dice_box_length - assignment_card_box_length;
+first_player_box_width = card_box_width;
+first_player_box_height = dice_box_height;
+
+visitor_box_width = card_box_width;
+visitor_box_length = card_box_length - univeristy_box_length;
+visitor_box_height = alternative_objective_box_height;
 
 resource_box_width = score_pad_box_width / 2;
 resource_box_length = score_pad_box_length;
 resource_box_height = (box_height - board_thickness - great_exhibition_board_thickness - score_pad_box_height - 1) / 2;
 
-money_box_width = score_pad_width;
-money_box_length = score_pad_length;
-money_box_height = resource_box_height;
+money_box_width = box_width - card_box_width - 1;
+money_box_length = card_box_length;
+money_box_height = steam_box_height;
 
 spacer_side_box_length = score_pad_box_length + card_box_length * 2;
 spacer_side_box_width = box_width - card_box_width * 2 - 1;
-spacer_side_box_height = ( player_box_height*2 - assignment_tiles_thickness);
+spacer_side_box_height = (player_box_height * 2 - assignment_tiles_thickness);
 
 module FirstPlayerToken() {
   translate([-first_player_width / 2, -first_player_length / 2]) {
@@ -410,7 +407,7 @@ module AssignmentCardBox() // `make` me
     lid_on_length=true,
     material_colour="purple"
   ) {
-    cube([$inner_width, $inner_length, assignment_card_box_height]);
+    cube([assignment_card_length, $inner_length, assignment_card_box_height]);
     translate(
       [0, $inner_length / 2, $inner_height - assignment_card_box_height]
     )
@@ -1217,6 +1214,8 @@ module BoxLayout() {
       SteamInnovationBox();
     translate([0, steam_box_length, player_box_height * 2])
       ScoringBox();
+    translate([card_box_width, 0, player_box_height * 2])
+      MoneyBox();
     translate([solo_reward_width_thin, card_box_length, 0])
       BookBox();
     translate([solo_reward_width_thin, card_box_length + book_box_length, 0])
@@ -1244,11 +1243,11 @@ module BoxLayout() {
       translate([card_box_width, card_box_length * 2 + score_pad_box_length, cog_box_height * i])
         GearBox();
     }
-     translate([card_box_width * 2, 0, assignment_tiles_thickness])
-       SpacerSide();
+    translate([card_box_width * 2, 0, assignment_tiles_thickness])
+      SpacerSide();
   }
 }
 
 if (FROM_MAKE != 1) {
-  ScoringBoxLid();
+  AssignmentCardBox();
 }

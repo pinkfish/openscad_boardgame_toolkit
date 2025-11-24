@@ -206,7 +206,8 @@ module BonusCardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     width=action_card_box_width,
     length=action_card_box_length,
-    text_str="Community"
+    text_str="Community",
+    lid_on_length=true
   );
 }
 
@@ -276,7 +277,7 @@ module HexBonusBox() // `make` me
 module HexBoxBonusLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=hex_box_width, length=hex_box_length, height=hex_box_height,
+    width=hex_box_width, length=hex_box_length, height=hex_bonus_box_height,
     text_str="Bonus"
   );
 }

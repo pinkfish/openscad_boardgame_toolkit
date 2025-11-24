@@ -388,7 +388,7 @@ module MarquisBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=marquis_box_width, length=marquis_box_length, height=marquis_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="orange",
-    last_child_positive=default_label_solid_background
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -416,16 +416,16 @@ module VagabondBox() // `make` me
     if (just_icons == false) {
       translate(
         [
-          box_data.marquis.width / 2,
-          box_data.marquis.length / 2 + 5,
+          box_data.vagabond.width / 2,
+          box_data.vagabond.length / 2 + 5,
           $inner_height - box_data.token.thickness - 0.5 + (box_data.token.thickness + 1) / 2,
         ]
       ) {
         rotate([0, 0, 180]) VagabondCharacter(height=box_data.token.thickness + 1);
-        translate([0, box_data.marquis.length / 2 - 3, 0])
-          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
-        translate([0, -box_data.marquis.length / 2, 0])
-          cyl(r=6, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
+        translate([0, box_data.vagabond.length / 2 - 3, 0])
+          cyl(r=8, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
+        translate([0, -box_data.vagabond.length / 2, 0])
+          cyl(r=7, anchor=BOTTOM, rounding=5.75, h=box_data.box.height);
       }
     }
 
@@ -436,7 +436,7 @@ module VagabondBox() // `make` me
       if (just_icons == false) {
         CuboidWithIndentsBottom(
           [square_tile_size, square_tile_size, tile_thickness + 1],
-          finger_hole_radius=10, finger_holes=[2]
+          finger_hole_radius=11, finger_holes=[6]
         );
       }
       translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
@@ -476,7 +476,7 @@ module VagabondBox() // `make` me
   MakeBoxWithSlidingLid(
     width=vagabond_box_width, length=vagabond_box_length, height=vagabond_box_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    last_child_positive=default_label_solid_background
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -580,7 +580,7 @@ module ErieBoxTop() // `make` me
     width=erie_box_top_width, length=erie_box_top_length, height=erie_box_top_height,
     wall_thickness=wall_thickness, floor_thickness=lid_thickness,
     lid_thickness=sliding_lid_thickness, material_colour="blue",
-    last_child_positive=default_label_solid_background
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -719,7 +719,8 @@ module AllianceBoxTop() // `make` me
 
   MakeBoxWithSlidingLid(
     width=alliance_box_width, length=alliance_box_length, height=alliance_box_top_height,
-    lid_thickness=sliding_lid_thickness, material_colour="green", last_child_positive=true
+    lid_thickness=sliding_lid_thickness, material_colour="green",
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(false);
     if (default_label_solid_background) {
@@ -839,7 +840,7 @@ module RiverfolkBoxTop() // `make` me
     width=riverfolk_box_top_width, length=riverfolk_box_length,
     height=riverfolk_box_top_height, lid_thickness=sliding_lid_thickness,
     lid_on_length=true, material_colour="lightblue",
-    last_child_positive=default_label_solid_background
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(false);
     if (default_label_solid_background) {
@@ -993,7 +994,7 @@ module LizardBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=lizard_box_top_width, length=lizard_box_length, height=lizard_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="yellow",
-    last_child_positive=default_label_solid_background
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -1096,7 +1097,7 @@ module ItemsBoxBottom() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    last_child_positive=default_label_solid_background
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     MakeItems(false);
     if (default_label_solid_background) {
@@ -1214,7 +1215,7 @@ module ItemsBoxMiddle() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_middle_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    last_child_positive=default_label_solid_background,
+    postive_only_children=default_label_solid_background ? [1] : []
   ) {
     MakeAllItems(false);
     if (default_label_solid_background) {
@@ -1375,7 +1376,8 @@ module ItemsBoxExtras() // `make` me
 
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_extras_height,
-    lid_thickness=sliding_lid_thickness, last_child_positive=default_label_solid_background,
+    lid_thickness=sliding_lid_thickness,
+    postive_only_children=default_label_solid_background ? [1] : [],
     material_colour="grey"
   ) {
     $inner_height = item_box_extras_height - lid_thickness * 2;
@@ -1448,5 +1450,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BaseCardBoxLid();
+  VagabondBox();
 }

@@ -424,6 +424,8 @@ module MakeBoxWithInsetLidTabbed(
   floor_thickness = default_floor_thickness,
   tab_offset = 0.45,
   material_colour = default_material_colour,
+  positive_only_children = [],
+  positive_negative_children = [],
   finger_hole_size = undef
 ) {
   difference() {
@@ -451,7 +453,12 @@ module MakeBoxWithInsetLidTabbed(
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
-    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+    for (i = [0:$children - 1]) {
+      if (!in_list(i, positive_only_children)) {
+        translate([wall_thickness, wall_thickness, floor_thickness]) children();
+      }
+    }
+
     // Cuff off the bit on the bottom to allow for stacking.
     if (stackable) {
       difference() {
@@ -466,6 +473,17 @@ module MakeBoxWithInsetLidTabbed(
               ]
             );
       }
+    }
+  }
+  if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    for (i = positive_only_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
   }
 }
@@ -849,6 +867,8 @@ module MakeBoxWithInsetLidRabbitClip(
   rabbit_snap = 0.25,
   size_spacing = m_piece_wiggle_room,
   rabbit_depth = 1.5,
+  positive_only_children = [],
+  positive_negative_children = [],
   material_colour = default_material_colour
 ) {
   difference() {
@@ -889,6 +909,22 @@ module MakeBoxWithInsetLidRabbitClip(
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
-    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+    for (i = [0:$children - 1]) {
+      if (!in_list(i, positive_only_children)) {
+        translate([wall_thickness, wall_thickness, floor_thickness]) children();
+      }
+    }
+  }
+
+  if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    for (i = positive_only_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
   }
 }

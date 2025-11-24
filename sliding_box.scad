@@ -595,7 +595,7 @@ module SlidingBoxLidWithShape(
   assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
 
   SlidingBoxLidWithCustomShape(
-    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness, 
+    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary, label_border=label_border,
@@ -657,7 +657,8 @@ module SlidingBoxLidWithShape(
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    last_child_positive = if the last child should be a positive addition to the box (default false)
+//    positive_only_children = the list of children to be positive only
+//    positive_negative_children = the list of children to be positive and negative
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
@@ -671,7 +672,8 @@ module MakeBoxWithSlidingLid(
   size_spacing = m_piece_wiggle_room,
   lid_on_length = false,
   material_colour = default_material_colour,
-  last_child_positive = false
+  positive_only_children = [],
+  positive_negative_children = [],
 ) {
   difference() {
     color(material_colour)
@@ -716,16 +718,21 @@ module MakeBoxWithSlidingLid(
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
-    if (last_child_positive) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children([0:$children - 2]);
-    } else {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children();
+    for (i = [0:$children - 1]) {
+      if (!in_list(i, positive_only_children)) {
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      }
     }
   }
-  if (last_child_positive) {
+  if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
-    translate([wall_thickness, wall_thickness, floor_thickness]) children($children - 1);
+    for (i = positive_only_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
   }
 }
