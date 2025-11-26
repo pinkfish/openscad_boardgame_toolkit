@@ -659,6 +659,7 @@ module SlidingBoxLidWithShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
+//    positive_colour = colour of the postive pieces {{default_positive_colour}}
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid(50, 100, 20);
@@ -672,6 +673,7 @@ module MakeBoxWithSlidingLid(
   size_spacing = m_piece_wiggle_room,
   lid_on_length = false,
   material_colour = default_material_colour,
+  positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
 ) {
@@ -729,10 +731,12 @@ module MakeBoxWithSlidingLid(
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
     for (i = positive_only_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
     for (i = positive_negative_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
   }
 }

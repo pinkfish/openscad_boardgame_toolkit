@@ -404,6 +404,9 @@ module InsetLidTabbedWithLabel(
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   finger_hole_size = size of the finger hole to use in the lid (default 10)
+//   positive_only_children = the list of children to be positive only
+//   positive_negative_children = the list of children to be positive and negative
+//   positive_colour = colour of the postive pieces {{default_positive_colour}}
 // Topics: TabbedBox, TabbedLid
 // Example:
 //   MakeBoxWithInsetLidTabbed(width = 30, length = 100, height = 20);
@@ -424,6 +427,7 @@ module MakeBoxWithInsetLidTabbed(
   floor_thickness = default_floor_thickness,
   tab_offset = 0.45,
   material_colour = default_material_colour,
+  positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
   finger_hole_size = undef
@@ -480,10 +484,12 @@ module MakeBoxWithInsetLidTabbed(
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
     for (i = positive_only_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
     for (i = positive_negative_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
   }
 }
@@ -844,6 +850,9 @@ module InsetLidRabbitClipWithLabel(
 //   rabbit_depth = extrustion depth of the rabbit (default 1.5)
 //   size_spacing = wiggle room to use when generatiung box (default {{m_piece_wiggle_room}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   positive_only_children = the list of children to be positive only
+//   positive_negative_children = the list of children to be positive and negative
+//   positive_colour = colour of the postive pieces {{default_positive_colour}}
 // Topics: RabbitClipBox
 // Example:
 //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
@@ -869,6 +878,7 @@ module MakeBoxWithInsetLidRabbitClip(
   rabbit_depth = 1.5,
   positive_only_children = [],
   positive_negative_children = [],
+  positive_colour = default_positive_colour,
   material_colour = default_material_colour
 ) {
   difference() {
@@ -921,10 +931,12 @@ module MakeBoxWithInsetLidRabbitClip(
     $inner_length = length - wall_thickness * 2;
     $inner_height = height - lid_thickness - floor_thickness;
     for (i = positive_only_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
     for (i = positive_negative_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
   }
 }

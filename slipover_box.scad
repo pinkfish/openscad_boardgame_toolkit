@@ -51,6 +51,7 @@ under the License.
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
+//    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
 // Example:
@@ -66,6 +67,7 @@ module MakeBoxWithSlipoverLid(
   floor_thickness = default_floor_thickness,
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
+  positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
   lid_catch = default_lid_catch_type
@@ -185,10 +187,12 @@ module MakeBoxWithSlipoverLid(
     $inner_length = length - wall_thickness * 2;
     $inner_height = wall_height_calc;
     for (i = positive_only_children) {
-      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
     }
     for (i = positive_negative_children) {
-      translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
     }
   }
 }

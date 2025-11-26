@@ -1249,5 +1249,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  AssignmentCardBox();
+  DiceBoxLid();
 }

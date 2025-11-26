@@ -3767,7 +3767,7 @@ module ShapeByType(
           n=shape_edges, rounding=calc_rounding
         );
         regular_ngon(
-          r=(calc_shape_width - (calc_shape_type == SHAPE_TYPE_TRIANGLE ? calc_shape_thickness * 0.5 : calc_shape_thickness/2)) / 2,
+          r=(calc_shape_width - (calc_shape_type == SHAPE_TYPE_TRIANGLE ? calc_shape_thickness * 0.5 : calc_shape_thickness / 2)) / 2,
           n=shape_edges,
           rounding=calc_rounding,
         );
@@ -3789,7 +3789,8 @@ module ShapeByType(
             }
         }
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R1) {
-      PentagonTesselation(pentagon_type="R1", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
+      translate([($polygon_grid_rows * calc_shape_width) / 2, 0])
+        PentagonTesselation(pentagon_type="R1", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R2) {
       PentagonTesselation(pentagon_type="R2", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0);
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R3) {

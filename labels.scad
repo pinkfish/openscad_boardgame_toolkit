@@ -497,7 +497,7 @@ module MakeFramedLidLabel(
           }
         }
       } else {
-        echo("WARNING: Lid too narrow for a label");
+        echo("WARNING: Lid too narrow for a label (ignoring label)");
       }
     }
 }

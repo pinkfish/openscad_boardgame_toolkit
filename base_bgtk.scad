@@ -61,6 +61,9 @@ default_label_colour = "black";
 // Constant: default_label_background_colour
 // Description: The default colour to use for the label background when making boxes.
 default_label_background_colour = "lime";
+// Constant: default_positive_colour
+// Description: The default colour to use for postivie pieces.
+default_positive_colour = "black";
 
 // Function: DefaultValue()
 // Description:

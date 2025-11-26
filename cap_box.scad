@@ -86,6 +86,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
+//    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
 //       {{CATCH_LONG})
 // Usage: MakeBoxWithCapLid(100, 50, 20);
@@ -107,6 +108,7 @@ module MakeBoxWithCapLid(
   finger_hold_height = 5,
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour,
+  positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
   lid_catch = default_lid_catch_type
@@ -299,10 +301,12 @@ module MakeBoxWithCapLid(
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
     for (i = positive_only_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
     for (i = positive_negative_children) {
-      translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
     }
   }
 }

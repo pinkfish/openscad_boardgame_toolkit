@@ -251,14 +251,14 @@ module MarquisBoxTop() // `make` me
       }
 
       if (icon == "anvil") {
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-              Anvil2d(size=10, with_hammer=true);
+        translate([0, 0, label_depth]) linear_extrude(height=label_height)
+            Anvil2d(size=10, with_hammer=true);
       } else if (icon == "saw") {
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-              SawBlade2d(size=10, $fn=32);
+        translate([0, 0, label_depth]) linear_extrude(height=label_height)
+            SawBlade2d(size=10, $fn=32);
       } else if (icon == "handshake") {
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-              Handshake2d(size=10);
+        translate([0, 0, label_depth]) linear_extrude(height=label_height)
+            Handshake2d(size=10);
       }
 
       translate([square_tile_size + 1, 0, 0]) {
@@ -269,14 +269,14 @@ module MarquisBoxTop() // `make` me
           );
         }
         if (icon == "anvil") {
-          translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-                Anvil2d(size=10, with_hammer=true);
+          translate([0, 0, label_depth]) linear_extrude(height=label_height)
+              Anvil2d(size=10, with_hammer=true);
         } else if (icon == "saw") {
-          translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-                SawBlade2d(size=10);
+          translate([0, 0, label_depth]) linear_extrude(height=label_height)
+              SawBlade2d(size=10);
         } else if (icon == "handshake") {
-          translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height)
-                Handshake2d(size=10);
+          translate([0, 0, label_depth]) linear_extrude(height=label_height)
+              Handshake2d(size=10);
         }
       }
     }
@@ -301,7 +301,7 @@ module MarquisBoxTop() // `make` me
         );
       }
 
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) SingleLog2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) SingleLog2d(15);
     }
     translate(
       [
@@ -317,7 +317,7 @@ module MarquisBoxTop() // `make` me
           finger_holes=[110]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) SingleLog2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) SingleLog2d(15);
     }
 
     // Keep token
@@ -334,8 +334,8 @@ module MarquisBoxTop() // `make` me
           finger_hole_radius=10, finger_holes=[135]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) rotate(-90)
-              Keep2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) rotate(-90)
+            Keep2d(15);
     }
 
     // Score marker.
@@ -353,7 +353,7 @@ module MarquisBoxTop() // `make` me
         );
       }
 
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) LaurelWreath2d(15);
     }
 
     // Buildings.
@@ -388,7 +388,7 @@ module MarquisBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=marquis_box_width, length=marquis_box_length, height=marquis_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="orange",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -439,7 +439,7 @@ module VagabondBox() // `make` me
           finger_hole_radius=11, finger_holes=[6]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) LaurelWreath2d(15);
     }
 
     // Relationship markers.
@@ -455,8 +455,8 @@ module VagabondBox() // `make` me
         translate([-5, square_tile_size / 2, 0]) xcyl(r=7, h=vagabond_box_height, anchor=BOTTOM);
       }
 
-      translate([square_tile_size / 2, square_tile_size / 2, label_depth]) color("black")
-          linear_extrude(height=label_height) text("Relation", valign="center", halign="center", size=3);
+      translate([square_tile_size / 2, square_tile_size / 2, label_depth])
+        linear_extrude(height=label_height) text("Relation", valign="center", halign="center", size=3);
     }
     translate(
       [
@@ -469,8 +469,8 @@ module VagabondBox() // `make` me
 
         cube([square_tile_size, square_tile_size, tile_thickness * vagabond_relationship_num_each / 2 + 1]);
       }
-      translate([square_tile_size / 2, square_tile_size / 2, label_depth]) color("black")
-          linear_extrude(height=label_height) text("Relation", valign="center", halign="center", size=3);
+      translate([square_tile_size / 2, square_tile_size / 2, label_depth])
+        linear_extrude(height=label_height) text("Relation", valign="center", halign="center", size=3);
     }
   }
   MakeBoxWithSlidingLid(
@@ -552,7 +552,7 @@ module ErieBoxTop() // `make` me
         );
       }
 
-      translate([0, 0, icon_depth]) color("black") linear_extrude(height=icon_height) LaurelWreath2d(15);
+      translate([0, 0, icon_depth]) linear_extrude(height=icon_height) LaurelWreath2d(15);
     }
 
     // Roosts.
@@ -572,7 +572,7 @@ module ErieBoxTop() // `make` me
           );
         }
 
-        translate([0, 0, icon_depth]) color("black") linear_extrude(height=icon_height) ErieTree2d(15);
+        translate([0, 0, icon_depth]) linear_extrude(height=icon_height) ErieTree2d(15);
       }
     }
   }
@@ -580,7 +580,7 @@ module ErieBoxTop() // `make` me
     width=erie_box_top_width, length=erie_box_top_length, height=erie_box_top_height,
     wall_thickness=wall_thickness, floor_thickness=lid_thickness,
     lid_thickness=sliding_lid_thickness, material_colour="blue",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -662,7 +662,7 @@ module AllianceBoxTop() // `make` me
         );
       }
 
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) LaurelWreath2d(15);
     }
 
     // Sympathy tokens.
@@ -680,7 +680,7 @@ module AllianceBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[135]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) Fist2d(12);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) Fist2d(12);
     }
     translate(
       [
@@ -696,7 +696,7 @@ module AllianceBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[225]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) Fist2d(12);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) Fist2d(12);
     }
 
     // Bases.
@@ -713,14 +713,14 @@ module AllianceBoxTop() // `make` me
           finger_hole_radius=7, finger_holes=[0]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) AllianceCamp2d(12);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) AllianceCamp2d(12);
     }
   }
 
   MakeBoxWithSlidingLid(
     width=alliance_box_width, length=alliance_box_length, height=alliance_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="green",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(false);
     if (default_label_solid_background) {
@@ -790,7 +790,7 @@ module RiverfolkBoxTop() // `make` me
         );
       }
 
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) LaurelWreath2d(15);
     }
 
     // trading posts.
@@ -810,7 +810,7 @@ module RiverfolkBoxTop() // `make` me
           );
         }
 
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) Sign2d(15);
+        translate([0, 0, label_depth]) linear_extrude(height=label_height) Sign2d(15);
       }
     }
 
@@ -831,7 +831,7 @@ module RiverfolkBoxTop() // `make` me
           );
         }
 
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) egg(13, 4, 4, 20);
+        translate([0, 0, label_depth]) linear_extrude(height=label_height) egg(13, 4, 4, 20);
       }
     }
   }
@@ -840,7 +840,7 @@ module RiverfolkBoxTop() // `make` me
     width=riverfolk_box_top_width, length=riverfolk_box_length,
     height=riverfolk_box_top_height, lid_thickness=sliding_lid_thickness,
     lid_on_length=true, material_colour="lightblue",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(false);
     if (default_label_solid_background) {
@@ -917,11 +917,11 @@ module LizardBoxTop() // `make` me
           );
         }
 
-        translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) if (i == 0) {
-              Fox2d(10);
-            } else {
-              Rabbit2d(10);
-            }
+        translate([0, 0, label_depth]) linear_extrude(height=label_height) if (i == 0) {
+            Fox2d(10);
+          } else {
+            Rabbit2d(10);
+          }
       }
     }
     translate(
@@ -937,7 +937,7 @@ module LizardBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[6]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) Mouse2d(10);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) Mouse2d(10);
     }
 
     // no go marker
@@ -954,14 +954,14 @@ module LizardBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[6]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) union() {
-              difference() {
-                circle(d=15);
-                circle(d=13);
-              }
-              rotate(45) rect([2, 14.5]);
-              rotate(-45) rect([2, 14.5]);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) union() {
+            difference() {
+              circle(d=15);
+              circle(d=13);
             }
+            rotate(45) rect([2, 14.5]);
+            rotate(-45) rect([2, 14.5]);
+          }
     }
 
     // lizard marker
@@ -974,8 +974,8 @@ module LizardBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[2]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) scale(0.5)
-              LizardEyes2d();
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) scale(0.5)
+            LizardEyes2d();
     }
 
     // Score marker.
@@ -988,13 +988,13 @@ module LizardBoxTop() // `make` me
           finger_hole_radius=8, finger_holes=[6]
         );
       }
-      translate([0, 0, label_depth]) color("black") linear_extrude(height=label_height) LaurelWreath2d(15);
+      translate([0, 0, label_depth]) linear_extrude(height=label_height) LaurelWreath2d(15);
     }
   }
   MakeBoxWithSlidingLid(
     width=lizard_box_top_width, length=lizard_box_length, height=lizard_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="yellow",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     InnerPieces(just_icons=false);
     if (default_label_solid_background) {
@@ -1055,13 +1055,13 @@ module ItemsBoxBottom() // `make` me
             );
           }
           translate([0, 0, just_icon ? -0.495 : -0.5]) {
-            color("black") GenerateIcon(depths[i * 4], height=just_icon ? 0.5 : 2);
-            translate([square_tile_size * 4 / 10, 0, 0]) color("black")
-                linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
-                    text(
-                      text=depths[i * 4] == "ruins" ? "R" : "S", font="Stencil Std:style=Bold",
-                      size=2, halign="center", valign="center"
-                    );
+            GenerateIcon(depths[i * 4], height=just_icon ? 0.5 : 2);
+            translate([square_tile_size * 4 / 10, 0, 0])
+              linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
+                  text(
+                    text=depths[i * 4] == "ruins" ? "R" : "S", font="Stencil Std:style=Bold",
+                    size=2, halign="center", valign="center"
+                  );
           }
         }
       }
@@ -1082,13 +1082,13 @@ module ItemsBoxBottom() // `make` me
             );
           }
           translate([0, 0, just_icon ? -0.495 : -0.5]) {
-            color("black") GenerateIcon(depths[i * 4 + 2], height=just_icon ? 0.5 : 2);
-            translate([square_tile_size * 4 / 10, 0, 0]) color("black")
-                linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
-                    text(
-                      text=depths[i * 4 + 2] == "ruins" ? "R" : "S", font="Stencil Std:style=Bold",
-                      size=2, halign="center", valign="center"
-                    );
+            GenerateIcon(depths[i * 4 + 2], height=just_icon ? 0.5 : 2);
+            translate([square_tile_size * 4 / 10, 0, 0])
+              linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
+                  text(
+                    text=depths[i * 4 + 2] == "ruins" ? "R" : "S", font="Stencil Std:style=Bold",
+                    size=2, halign="center", valign="center"
+                  );
           }
         }
       }
@@ -1097,11 +1097,15 @@ module ItemsBoxBottom() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
-    MakeItems(false);
+    union() {
+      MakeItems(false);
+    }
     if (default_label_solid_background) {
-      MakeItems(true);
+      union() {
+        MakeItems(true);
+      }
     }
   }
 }
@@ -1187,8 +1191,8 @@ module ItemsBoxMiddle() // `make` me
             );
           }
 
-          translate([0, 0, just_icon ? -0.48 : -0.5]) color("black")
-              GenerateIcon(depths[i * 4], height=just_icon ? 0.5 : 2);
+          translate([0, 0, just_icon ? -0.48 : -0.5])
+            GenerateIcon(depths[i * 4], height=just_icon ? 0.5 : 2);
         }
       }
       if (depths[i * 4 + 3] != 0) {
@@ -1206,8 +1210,8 @@ module ItemsBoxMiddle() // `make` me
               finger_hole_radius=6, finger_holes=[4]
             );
           }
-          translate([0, 0, just_icon ? -0.48 : -0.5]) color("black")
-              GenerateIcon(depths[i * 4 + 2], height=just_icon ? 0.5 : 2);
+          translate([0, 0, just_icon ? -0.48 : -0.5])
+            GenerateIcon(depths[i * 4 + 2], height=just_icon ? 0.5 : 2);
         }
       }
     }
@@ -1215,7 +1219,7 @@ module ItemsBoxMiddle() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_middle_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    postive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_solid_background ? [1] : []
   ) {
     MakeAllItems(false);
     if (default_label_solid_background) {
@@ -1333,8 +1337,8 @@ module ItemsBoxExtras() // `make` me
         slightly_larger_round_tile_diameter / 2,
         just_icon ? -0.48 : -0.5,
       ]
-    ) color("black") linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
-            text(text=item[0], font="Stencil Std:style=Bold", size=2.5, halign="center", valign="center");
+    ) linear_extrude(height=just_icon ? 0.5 : 2) rotate(90)
+          text(text=item[0], font="Stencil Std:style=Bold", size=2.5, halign="center", valign="center");
   }
 
   module MakeAllItems(just_icon) {
@@ -1377,7 +1381,7 @@ module ItemsBoxExtras() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_extras_height,
     lid_thickness=sliding_lid_thickness,
-    postive_only_children=default_label_solid_background ? [1] : [],
+    positive_only_children=default_label_solid_background ? [1] : [],
     material_colour="grey"
   ) {
     $inner_height = item_box_extras_height - lid_thickness * 2;

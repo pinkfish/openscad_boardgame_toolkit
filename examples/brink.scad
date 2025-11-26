@@ -32,6 +32,7 @@ ambassador_card_box_height = single_card_thickness * 25 + default_floor_thicknes
 faction_card_box_height = single_card_thickness * 5 + default_floor_thickness + default_lid_thickness + 0.5;
 rival_card_box_height = single_card_thickness * 4 + default_floor_thickness + default_lid_thickness + 0.5;
 bonus_card_box_height = single_card_thickness * (5 + 10) + default_floor_thickness + default_lid_thickness + 0.5;
+helper_card_box_height = single_card_thickness * (4) + default_floor_thickness + default_lid_thickness + 0.5;
 
 action_card_box_width = ambassador_card_box_width;
 action_card_box_length = small_card_length + default_wall_thickness * 2;
@@ -63,7 +64,7 @@ resource_box_2_height = player_box_height;
 
 spacer_card_width = ambassador_card_box_width;
 spacer_card_length = ambassador_card_box_length;
-spacer_card_back_height = box_height - action_card_box_height - rider_card_box_height - 1;
+spacer_card_back_height = box_height - action_card_box_height + rider_card_box_height - 1;
 
 module AmbassadorCardBox() // `make` me
 {
@@ -86,6 +87,29 @@ module AmbassadorCardBoxLid() // `make` me
     width=ambassador_card_box_width,
     length=ambassador_card_box_length,
     lid_on_length=true, text_str="Ambassador"
+  );
+}
+
+module HelperCardBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=ambassador_card_box_width,
+    length=ambassador_card_box_length, height=helper_card_box_height,
+    lid_on_length=true
+  ) {
+    translate([0, (small_card_length - card_width) / 2, 0])
+      cube([card_length, card_width, ambassador_card_box_height]);
+    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=helper_card_box_height);
+  }
+}
+
+module HelperCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=ambassador_card_box_width,
+    length=ambassador_card_box_length,
+    lid_on_length=true, text_str="Helper"
   );
 }
 
@@ -284,7 +308,54 @@ module HexBoxBonusLid() // `make` me
 
 module PlayerBox(colour = "green") // `make` me
 {
-  MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height, material_colour=colour) {
+  MakeBoxWithCapLid(
+    width=player_box_width,
+    length=player_box_length,
+    height=player_box_height,
+    material_colour=colour,
+    positive_negative_children=[0]
+  ) {
+    // Text in the base of the ship cutouts.
+    union() {
+      // class i ship
+      translate(
+        [
+          class_i_ship_diameter - 1 + 5,
+          railgun_length + cargo_width + 17 + class_i_ship_diameter / 2,
+          $inner_height - class_i_ship_thickness - upgrade_thickness - 2 - 0.2,
+        ]
+      )
+        linear_extrude(h=0.2)
+          rotate(90)
+            text("1", font="Impact", halign="center", valign="center");
+
+      // class ii ship
+      translate(
+        [
+          class_ii_ship_length + class_i_ship_diameter - 5 + 5,
+          $inner_length - class_ii_ship_width / 2 - 10,
+          $inner_height - class_ii_ship_thickness - upgrade_thickness - 2 - 0.2,
+        ]
+      ) {
+        linear_extrude(h=0.2)
+          rotate(90)
+            text("2", font="Impact", halign="center", valign="center");
+      }
+
+      // class iii ship
+      translate(
+        [
+          class_i_ship_diameter + class_ii_ship_width + class_iii_ship_radius - 10 + 5,
+          $inner_length - class_ii_ship_width - class_iii_ship_edge_length / 2 - 10 + 5,
+          $inner_height - class_iii_ship_thickness - upgrade_thickness - 2 - 0.2,
+        ]
+      ) {
+        linear_extrude(h=0.2)
+          rotate(90)
+            text("3", font="Impact", halign="center", valign="center");
+      }
+    }
+
     translate([$inner_width / 2, $inner_length / 2, $inner_height - upgrade_thickness - 1])
       cuboid([upgrade_width + 0.5, upgrade_length + 0.5, player_box_height], anchor=BOTTOM);
 
@@ -500,20 +571,21 @@ module BoxLayout() {
     RiderCardBox();
   translate([ambassador_card_box_width, 0, action_card_box_height + rider_card_box_height])
     SpacerCardBack();
-  for (i = [0:2]) {
-    translate([0, ambassador_card_box_length, player_box_height * i + board_thickness])
-      PlayerBox(colour=["brown", "orange", "red"][i]);
-  }
-  for (i = [0:1]) {
-    translate([player_box_width, ambassador_card_box_length, player_box_height * i + board_thickness])
-      PlayerBox(colour=["purple", "blue"][i]);
-  }
-  translate([player_box_width, ambassador_card_box_length, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
-    Resource2Box(colour="purple");
-  translate([player_box_width + resource_box_2_width, ambassador_card_box_length, ambassador_card_box_height + faction_card_box_height + rival_card_box_height + bonus_card_box_height * 2])
-    Resource2Box(colour="red");
 
-  translate([0, 0, upgrade_thickness * 5]) {
+  translate([0, 0, upgrade_thickness * 3]) {
+    for (i = [0:2]) {
+      translate([0, ambassador_card_box_length, player_box_height * i + board_thickness])
+        PlayerBox(colour=["brown", "orange", "red"][i]);
+    }
+    for (i = [0:1]) {
+      translate([player_box_width, ambassador_card_box_length, player_box_height * i + board_thickness])
+        PlayerBox(colour=["purple", "blue"][i]);
+    }
+    translate([player_box_width, ambassador_card_box_length, player_box_height * 2 + board_thickness])
+      Resource2Box(colour="purple");
+    translate([player_box_width + resource_box_2_width, ambassador_card_box_length, player_box_height * 2 + board_thickness])
+      Resource2Box(colour="red");
+
     translate([0, ambassador_card_box_length + player_box_length, board_thickness])
       HexBox();
     translate([0, ambassador_card_box_length + player_box_length, hex_box_height + board_thickness])
@@ -527,8 +599,8 @@ module BoxLayout() {
     }
   }
 
-  translate([0, ambassador_card_box_length + player_box_length, board_thickness])
-    cube([screen_length, screen_width, upgrade_thickness * 5]);
+  translate([0, ambassador_card_box_length, board_thickness])
+    cube([screen_length, screen_width * 2, upgrade_thickness * 3]);
 }
 
 module TestLayout() {
@@ -547,5 +619,5 @@ module TestLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  PlayerBox();
 }

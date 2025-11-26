@@ -333,7 +333,7 @@ module PlayerBoxWithPlasticExtras() // `make` me
         0,
       ]
     ) FingerHoleBase(
-        radius=10, height=player_box_height - 1 + 0.01, default_wall_thickness=default_wall_thickness * 2,
+        radius=10, height=player_box_height - 1 + 0.01, wall_thickness=default_wall_thickness * 2,
         spin=270, rounding_radius=5, floor_thickness=1
       );
   }
@@ -422,7 +422,7 @@ module PlayerBoxTrainsLid() // `make` me
   SlidingBoxLidWithLabel(
     width=player_box_width, length=player_box_trains_length,
     text_str=text_str,
-    label_rotated=false, label_colour="black"
+    label_colour="black"
   );
 }
 
@@ -514,7 +514,7 @@ module NewCityBoxLid(extra_width = 0, extra_length = 0) // `make` me
   CapBoxLidWithLabel(
     width=new_city_box_width + extra_width, length=new_city_box_length + extra_length,
     height=top_section_height,
-    text_str=text_str, label_rotated=false, label_colour="black"
+    text_str=text_str, label_colour="black"
   );
 }
 
@@ -525,10 +525,10 @@ module SwedenBox() // `make` me
 
   MakeBoxWithCapLid(
     width=sweden_box_width, length=sweden_box_length, height=top_section_height,
-    default_wall_thickness=default_wall_thickness
+    wall_thickness=default_wall_thickness
   ) {
     HexGridWithCutouts(
-      rows=6, cols=3, tile_width=tile_width, spacing=0, default_wall_thickness=default_wall_thickness,
+      rows=6, cols=3, tile_width=tile_width, spacing=0, wall_thickness=default_wall_thickness,
       push_block_height=0.75, height=top_section_height
     );
     // bonus bit (top)
@@ -566,7 +566,7 @@ module SwedenBoxLid() // `make` me
   text_str = "Sweden";
   CapBoxLidWithLabel(
     width=sweden_box_width, length=sweden_box_length, height=top_section_height,
-    text_str=text_str, label_rotated=false, label_colour="black"
+    text_str=text_str, label_colour="black"
   ) {
     translate([74, 5, 0]) {
       scale(0.35) color("lightblue") linear_extrude(height=default_lid_thickness) {
@@ -697,7 +697,7 @@ module AustraliaBoxLid() // `make` me
   text_str = "Australia";
   CapBoxLidWithLabel(
     width=australia_box_width, length=australia_box_length, height=top_section_height,
-    text_str=text_str, label_rotated=false, label_colour="black"
+    text_str=text_str, label_colour="black"
   ) translate([44, 15, 0])
       color("blue") linear_extrude(height=default_lid_thickness) scale(0.3) difference() {
               fill() import("svg/australia.svg");
