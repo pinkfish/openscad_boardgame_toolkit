@@ -3619,6 +3619,7 @@ function ShapeNeedsInnerControl(shape_type) =
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
+//   $polygon_grid_rows = 2;
 //   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R1, shape_thickness = 1, shape_width = 10);
 // Example:
 //   $polygon_x = 0;

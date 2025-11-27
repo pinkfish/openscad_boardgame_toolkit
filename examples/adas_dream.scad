@@ -52,8 +52,8 @@ research_token_thin = 4;
 research_token_thickness = 6;
 resrarch_num = 4;
 
-alternative_objective_width = 37.5;
-alternative_objective_length = 77.5;
+alternative_objective_width = 38.5;
+alternative_objective_length = 78.5;
 alternative_objective_num = 12;
 
 objective_width = 33;
@@ -92,8 +92,8 @@ multiply_gear_num = 12;
 dice_thickness = 14.5;
 dice_num = 50;
 
-book_width = 13.5;
-book_length = 21;
+book_width = 14;
+book_length = 21.25;
 book_thickness = 6;
 book_num = 12;
 
@@ -645,11 +645,11 @@ module BookBox() // `make` me
           [
             (book_width + 2) * j + 4,
             (book_length + 1) * i,
-            $inner_height - book_thickness - 0.5,
+            $inner_height - book_thickness * (i < 2 || i == 2 && j < 2 ? 2 : 1) - 0.5,
           ]
         )
           CuboidWithIndentsBottom(
-            [book_width, book_length, book_thickness + 1],
+            [book_width, book_length, book_thickness * 3 + 1],
             anchor=BOTTOM + FRONT + LEFT,
             finger_holes=[j == 0 ? 2 : 6]
           );
@@ -972,7 +972,7 @@ module AlternativeObjectiveBox() // `make` me
         translate(
           [
             (alternative_objective_width + 11) * j + 2,
-            1 + (alternative_objective_length + 1.5) * i,
+            1 + (alternative_objective_length + 1.5) * i + 3,
             $inner_height - cardboard_thickness * 4,
           ]
         )
@@ -1249,5 +1249,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  DiceBoxLid();
+  AlternativeObjectiveBox();
 }
