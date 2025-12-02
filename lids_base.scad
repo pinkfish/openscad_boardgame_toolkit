@@ -527,13 +527,11 @@ module MakeTabs(
 // Example:
 //    MakeLidLabel(100, 20, text_length = 50, text_scale = 0.5, lid_thickness = 2, text_str =
 //    "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = false,
-//       solid_background = true);
+//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = false);
 // Example:
 //    MakeLidLabel(100, 30, text_length = 50, text_scale = 0.3, lid_thickness = 2, text_str =
 //    "frog", border = 1,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = true,
-//       solid_background = true);
+//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = true);
 module MakeLidLabel(
   width,
   length,
