@@ -23,7 +23,6 @@ box_width = 225;
 box_height = 68;
 box_hexes = 20;
 
-default_label_solid_background = true; //MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 money_biggest_thickness = 8.5;
@@ -112,7 +111,7 @@ module MoneyBox(offset = 0) // `make` me
   MakeBoxWithSlipoverLid(
     length=money_box_length, width=money_box_width, height=money_box_height,
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     union() {
       for (i = [0:1:3]) {
@@ -125,7 +124,7 @@ module MoneyBox(offset = 0) // `make` me
           linear_extrude(height=2) text(money_types[i + offset], size=15, anchor=CENTER, font="Impact:style=Bold");
       }
     }
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() {
         for (i = [0:1:3]) {
           color("black")
@@ -179,10 +178,10 @@ module TrainBox() // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") union() {
           InnerPieces(false);
         }
@@ -219,10 +218,10 @@ module SharesBox(offset = 0) // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") union() {
           InnerPieces(show_everything=false);
         }
@@ -330,10 +329,10 @@ module LastBox() // `make` me
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=train_box_width, height=train_box_height,
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerPieces(show_everything=false);
     }
   }
@@ -460,7 +459,7 @@ module InsideTokenTray() {
 
     InnerPieces(true);
   }
-  if (default_label_solid_background) {
+  if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
     color("black") InnerPieces(show_everything=false);
   }
 }
@@ -505,10 +504,10 @@ module LargeTokensBox() {
   MakeBoxWithSlipoverLid(
     length=train_box_length, width=rest_section_width, height=rest_height,
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
-    wall_height=wall_height, positive_only_children=default_label_solid_background ? [1] : []
+    wall_height=wall_height, positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerPieces(false);
     }
   }

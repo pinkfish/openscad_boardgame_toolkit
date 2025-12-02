@@ -33,7 +33,6 @@ board_width = 255;
 
 default_wall_thickness = 3;
 default_lid_thickness = 3;
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 tile_thickness = 2;
@@ -211,7 +210,7 @@ module ExtraBitsBox() // `make` me
 {
   MakeBoxWithCapLid(
     width=extra_bits_box_width, length=extra_bits_box_length, height=extra_bits_box_height,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     // Phase and year token.
     translate([$inner_width / 2, 15, $inner_height - player_cube - 0.5]) {
@@ -260,7 +259,7 @@ module ExtraBitsBox() // `make` me
       }
     }
 
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") translate([$inner_width / 2, $inner_length / 4 + 8, $inner_height - 0.4])
           linear_extrude(height=0.21) rotate(90) text("Biome", halign="center", valign="center", size=15);
     }

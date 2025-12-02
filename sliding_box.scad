@@ -107,6 +107,16 @@ module SlidingLid(
                 children(5);
               }
             }
+          translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
+              if ($children > 6) {
+                children(6);
+              }
+            }
+          translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
+              if ($children > 7) {
+                children(7);
+              }
+            }
         }
   } else {
     internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
@@ -197,6 +207,12 @@ module SlidingLid(
       }
       if ($children > 5) {
         children(5);
+      }
+      if ($children > 6) {
+        children(6);
+      }
+      if ($children > 7) {
+        children(7);
       }
     }
   }

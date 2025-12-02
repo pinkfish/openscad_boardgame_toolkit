@@ -19,7 +19,6 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
 default_label_font = "Impact";
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_lid_catch_type = CATCH_BUMPS_LONG;
 default_lid_shape_type = SHAPE_TYPE_PENTAGON_R1;
@@ -60,7 +59,7 @@ objective_width = 33;
 objective_length = 47;
 objective_num = 24;
 
-program_width = 25;
+program_width = 25.5;
 program_length = 41;
 program_num = 28;
 
@@ -110,7 +109,7 @@ steam_bottom_radius = 3;
 steam_num = 4;
 
 first_player_width = 25;
-first_player_length = 45.5;
+first_player_length = 46.5;
 first_player_head_height = 9;
 first_player_head_width = 5.5;
 first_player_head_arm_width = 13;
@@ -135,7 +134,7 @@ woman_player_head_height = 3;
 woman_player_shoulder_width = 6;
 woman_man_player_thickness = 8.5;
 
-score_pad_width = 83.5;
+score_pad_width = 84.5;
 score_pad_length = 96.5;
 score_pad_thickness = 6;
 
@@ -180,7 +179,7 @@ visitor_purple_length = 27.5;
 visitor_yellow_width = 12;
 visitor_yellow_length = 28;
 
-visitor_thickness = 6.5;
+visitor_thickness = 8.5;
 
 card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
@@ -192,13 +191,9 @@ book_box_height = solo_reward_thickness;
 book_box_length = default_wall_thickness * 2 + (book_length + 1) * 4;
 book_box_width = card_box_width - solo_reward_width_thin;
 
-steam_box_width = card_box_width;
-steam_box_length = default_wall_thickness * 2 + steam_length + 9;
-steam_box_height = box_height - player_box_height * 2 - board_thickness;
-
 scoring_box_width = card_box_width;
-scoring_box_length = card_box_length - steam_box_length; //box_length - book_box_length - card_box_length - solo_reward_length_thin - 2;
-scoring_box_height = steam_box_height;
+scoring_box_length = card_box_length; //box_length - book_box_length - card_box_length - solo_reward_length_thin - 2;
+scoring_box_height = box_height - player_box_height * 2 - board_thickness;
 
 assignment_box_width = book_box_width;
 assignment_box_length = box_length - solo_reward_length_thin - 2 - card_box_length - book_box_length;
@@ -226,9 +221,13 @@ cog_box_width = box_width - card_box_width;
 cog_box_length = box_length - card_box_length * 2 - score_pad_box_length;
 cog_box_height = (box_height - board_thickness - great_exhibition_board_thickness - 1) / 3;
 
-assignment_card_box_width = box_width - cog_box_width - 1;
+assignment_card_box_width = assignment_card_length + default_wall_thickness * 2;
 assignment_card_box_length = assignment_card_width + default_wall_thickness * 2;
 assignment_card_box_height = default_floor_thickness + default_lid_thickness + single_card_thickness * assignment_card_num + 1; // box_height - board_thickness - great_exhibition_board_thickness - solo_reward_thickness - 1; 
+
+breakthrough_box_width = box_width - cog_box_width - assignment_card_box_width - 1;
+breakthrough_box_length = assignment_card_box_length;
+breakthgough_box_height = assignment_box_height;
 
 alternative_objective_box_height = box_height - board_thickness - great_exhibition_board_thickness - 1 - dice_box_height - solo_reward_thickness;
 alternative_objective_box_width = card_box_width;
@@ -252,7 +251,7 @@ resource_box_height = (box_height - board_thickness - great_exhibition_board_thi
 
 money_box_width = box_width - card_box_width - 1;
 money_box_length = card_box_length;
-money_box_height = steam_box_height;
+money_box_height = scoring_box_height;
 
 spacer_side_box_length = score_pad_box_length + card_box_length * 2 - objective_box_length;
 spacer_side_box_width = box_width - card_box_width * 2 - 1;
@@ -353,7 +352,6 @@ module ManPlayerToken() {
         [man_player_coat_width, man_player_coat_height_from_top], anchor=FRONT,
         rounding=0.5
       );
-    echo([man_player_trouser_middle_width]);
     translate([0, man_player_head_height])
       rect(
         [man_player_trouser_middle_width, man_player_height - man_player_head_height],
@@ -485,64 +483,6 @@ module OtherCardBoxLid() // `make` me
   );
 }
 
-module SteamInnovationBox() // `make` me
-{
-  MakeBoxWithCapLid(
-    width=steam_box_width,
-    length=steam_box_length,
-    height=steam_box_height,
-    material_colour="yellow"
-  ) {
-    for (i = [0:0]) {
-      for (j = [0:3]) {
-        translate(
-          [
-            (innovation_diameter / 2 + 2.6) * j + innovation_diameter / 2 - 0.5,
-            (innovation_diameter + 1) * i + innovation_diameter / 2 + (j % 2) * (innovation_diameter - 3),
-            $inner_height - cardboard_thickness * 4 - 0.5,
-          ]
-        ) {
-          if (j != 3) {
-            rotate((j % 2) * 180) {
-              InnovationToken(steam_box_height);
-            }
-          } else {
-            rotate(-70)
-            InnovationToken(steam_box_height);
-          }
-        }
-      }
-    }
-    for (i = [0:3]) {
-      translate(
-        [
-          $inner_width - (steam_width / 2 + 1) * i - steam_width / 2,
-          steam_length - steam_round_radius / 2 + (i % 2) * 3.2 - 2.5,
-          $inner_height - cardboard_thickness * 4 - 0.5,
-        ]
-      ) rotate((i % 2) * 180) {
-          linear_extrude(height=steam_box_height) SteamToken();
-        }
-    }
-    translate([0, 0, $inner_height - cardboard_thickness * 2])
-      RoundedBoxAllSides(
-        width=$inner_width,
-        length=$inner_length, height=steam_box_height, radius=5,
-      );
-  }
-}
-
-module SteamInnovationBoxLid() // `make` me
-{
-  CapBoxLidWithLabel(
-    width=steam_box_width,
-    length=steam_box_length,
-    height=steam_box_height,
-    material_colour="yellow",
-    text_str="Steam"
-  );
-}
-
 module AssignmentBox() // `make` me
 {
   MakeBoxWithCapLid(
@@ -555,8 +495,8 @@ module AssignmentBox() // `make` me
       for (j = [0:1]) {
         translate(
           [
-            (assignment_width + 1) * j + 1,
-            (assignment_length + 1) * i + 1,
+            (assignment_width + 5) * j + 3,
+            (assignment_length + 24) * i + 3,
             $inner_height - cardboard_thickness * 4 - 0.5,
           ]
         )
@@ -567,21 +507,6 @@ module AssignmentBox() // `make` me
           );
       }
     }
-    /*
-    translate([$inner_width / 2, $inner_length - first_player_width / 2 - 1, $inner_height - first_player_thickness - 0.5]) {
-      translate([first_player_length / 2, 0, 0])
-        cyl(r=5, anchor=BOTTOM, h=assignment_box_height, rounding=2.5);
-      linear_extrude(h=assignment_box_height)
-        rotate(90)
-          FirstPlayerToken();
-      translate([-$inner_width / 2, -first_player_width / 2 - 2, $inner_height - first_player_thickness / 2])
-        RoundedBoxAllSides(
-          width=$inner_width, length=first_player_width + 4,
-          height=assignment_box_height,
-          radius=5
-        );
-    }
-    */
   }
 }
 
@@ -594,6 +519,43 @@ module AssignmentBoxLid() // `make` me
     material_colour="lightblue",
     "Assignment"
   );
+}
+
+module BreakthroughBox() // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=breakthrough_box_width,
+    length=breakthrough_box_length,
+    height=breakthgough_box_height,
+    material_colour="magenta"
+  ) {
+    for (i = [0:1]) {
+      for (j = [0:0]) {
+        translate(
+          [
+            $inner_width / 2,
+            (breakthrough_length + 5) * i,
+            $inner_height - cardboard_thickness * (i == 0 ? 5 : 4) - 0.5,
+          ]
+        ) {
+          difference() {
+            CuboidWithIndentsBottom(
+              [breakthrough_width, breakthrough_length, cardboard_thickness * 17 + 1],
+              anchor=BOTTOM + FRONT,
+              finger_holes=i == 0 ? [4] : [0],
+              finger_hole_radius=8
+            );
+            translate([-university_width / 2, university_length, 0])
+              cyl(d=university_cutout, anchor=BOTTOM, h=university_box_height);
+          }
+        }
+      }
+    }
+    translate(
+      [$inner_width / 2, 0, $inner_height - university_box_height]
+    )
+      FingerHoleBase(radius=6.5, height=university_box_height, spin=0);
+  }
 }
 
 module UniversityBox() // `make` me
@@ -706,9 +668,9 @@ module ProgramBox() // `make` me
       cube([program_length, program_width, cardboard_thickness * 14 + 1]);
 
     translate(
-      [0, $inner_length / 2, $inner_height - assignment_card_box_height]
+      [0, $inner_length / 2, $inner_height - program_box_height]
     )
-      FingerHoleBase(radius=15, height=assignment_card_box_height, spin=270);
+      FingerHoleBase(radius=15, height=program_box_height, spin=270);
   }
 }
 
@@ -732,33 +694,15 @@ module ScoringBox() // `make` me
     height=scoring_box_height,
     material_colour="lightgrey"
   ) {
-    // breakthrough tiles.
-    for (i = [0:1]) {
-      for (j = [0:0]) {
-        translate(
-          [
-            (breakthrough_length + 1) * j + 1.5,
-            (breakthrough_width + 1) * i + 0.55,
-            $inner_height - cardboard_thickness * (i == 0 ? 4 : 5) - 0.5,
-          ]
-        )
-          CuboidWithIndentsBottom(
-            [breakthrough_length, breakthrough_width, cardboard_thickness * 8 + 1],
-            anchor=BOTTOM + FRONT + LEFT,
-            finger_hole_radius=8,
-            finger_holes=[i == 0 ? 4 : 0]
-          );
-      }
-    }
     // Scoring tiles.
-    translate([breakthrough_length + 3, 0, 0]) {
+    {
       for (i = [0:0]) {
-        for (j = [0:2]) {
+        for (j = [0:3]) {
           translate(
             [
-              (scoring_width + 4) * j + 1,
+              (scoring_width + 4) * j + 3,
               (scoring_length + 3) * i,
-              $inner_height - cardboard_thickness * (j == 0 ? 6 : 5) - 0.5,
+              $inner_height - cardboard_thickness * (j <= 1 ? 4 : 3) - 0.5,
             ]
           )
             CuboidWithIndentsBottom(
@@ -800,7 +744,7 @@ module PlayerBoxInternal(material_colour) {
       // research tokens
       translate(
         [
-          research_token_length / 2 + 2,
+          research_token_length / 2 + 9,
           research_token_diameter / 2 + 4 + (research_token_diameter + 1) * i,
           $inner_height - card_height - research_token_thickness,
         ]
@@ -809,7 +753,7 @@ module PlayerBoxInternal(material_colour) {
       }
       translate(
         [
-          research_token_length * 3 / 2 + 4,
+          research_token_length * 3 / 2 + 10,
           research_token_diameter / 2 + 4 + (research_token_diameter + 1) * i,
           $inner_height - card_height - research_token_thickness,
         ]
@@ -829,7 +773,7 @@ module PlayerBoxInternal(material_colour) {
         CylinderWithIndents(
           height=player_token_thickness * 2 + 1,
           d=player_token_diameter,
-          finger_holes=[180],
+          finger_holes=[i == 2 ? 270 : 90],
           finger_hole_radius=10
         );
       translate(
@@ -841,13 +785,20 @@ module PlayerBoxInternal(material_colour) {
       ) CylinderWithIndents(
           height=player_token_thickness * 2 + 1,
           d=player_token_diameter,
-          finger_holes=[180],
+          finger_holes=[i == 2 ? 270 : 90],
           finger_hole_radius=10
         );
     }
-    translate([10, research_token_diameter * 4.9, $inner_height - card_height - woman_man_player_thickness - 0.5]) {
+    translate([22, research_token_diameter * 4.9, $inner_height - card_height - woman_man_player_thickness - 0.5]) {
       children(0);
     }
+    translate([innovation_diameter / 2, research_token_diameter * 3 - 2.5, $inner_height - card_height - woman_man_player_thickness])
+      rotate(160)
+        InnovationToken(height=player_token_thickness + 1);
+    translate([steam_length / 2 - 2, research_token_diameter * 4 + 2, $inner_height - card_height - woman_man_player_thickness])
+      linear_extrude(height=player_token_thickness + 1)
+        rotate(270)
+          SteamToken();
     translate(
       [
         visitor_blue_width / 2 + 10,
@@ -860,8 +811,16 @@ module PlayerBoxInternal(material_colour) {
 
     translate([2, 2, $inner_height - research_token_thickness / 2 - card_height])
       RoundedBoxAllSides(
-        width=research_token_length * 2 + 4,
+        width=research_token_length * 2 + 13,
         length=$inner_length - 4,
+        radius=5,
+        height=player_box_height
+      );
+    player_section_length = 40;
+    translate([2, $inner_length - player_section_length - 2, $inner_height - woman_man_player_thickness / 2 - card_height])
+      RoundedBoxAllSides(
+        width=research_token_length * 2 + 13,
+        length=player_section_length,
         radius=5,
         height=player_box_height
       );
@@ -878,7 +837,8 @@ module PlayerBoxYellow() // `make` me
             ManPlayerToken();
     }
     union() {
-      VisitorTokenYellow();
+      translate([0, -15, 0])
+        VisitorTokenYellow();
     }
   }
 }
@@ -893,7 +853,7 @@ module PlayerBoxBlue() // `make` me
             ManPlayerToken();
     }
     union() {
-      translate([0, -5, 0])
+      translate([0, -17, 0])
         VisitorTokenBlue();
     }
   }
@@ -909,8 +869,8 @@ module PlayerBoxGreen() // `make` me
             WomanPlayerToken();
     }
     union() {
-      translate([2, -14, 0])
-        rotate(90)
+      translate([1, -23, 0])
+        rotate(80)
           VisitorTokenGreen();
     }
   }
@@ -926,7 +886,7 @@ module PlayerBoxPurple() // `make` me
             WomanPlayerToken();
     }
     union() {
-      translate([0, -5, 0])
+      translate([0, -17, 0])
         VisitorTokenPurple();
     }
   }
@@ -1273,8 +1233,6 @@ module BoxLayout() {
     translate([card_box_width, 0, player_box_height])
       PlayerBoxPurple();
     translate([0, 0, player_box_height * 2])
-      SteamInnovationBox();
-    translate([0, steam_box_length, player_box_height * 2])
       ScoringBox();
     translate([card_box_width, 0, player_box_height * 2])
       MoneyBox();
@@ -1313,5 +1271,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  SteamInnovationBox();
+  PlayerBoxLid();
 }

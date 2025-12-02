@@ -24,7 +24,6 @@ box_height = 70;
 
 board_thickness = 15;
 
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_lid_thickness = 3;
 default_floor_thickness = 2;
@@ -438,10 +437,10 @@ module ExtraTokensBox() // `make` me
     width=extra_tokens_box_width, length=extra_tokens_box_length,
     height=extra_tokens_box_height, wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerBits(true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerBits(false);
     }
   }
@@ -556,10 +555,10 @@ module TrainBox() // `make` me
     width=train_box_width, length=train_box_length, height=train_box_height,
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
     floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerBits(true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() {
         color("black") InnerBits(false);
       }
@@ -659,10 +658,10 @@ module TrackBox() // `make` me
     width=track_box_width, length=track_box_length, height=track_box_height,
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
     floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerPieces(show_everything=false);
     }
   }

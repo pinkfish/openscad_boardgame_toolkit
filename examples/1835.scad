@@ -26,7 +26,6 @@ default_wall_thickness = 2;
 default_lid_thickness = 2;
 default_floor_thickness = 2;
 
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 inner_wall = 1;
@@ -118,7 +117,7 @@ module MoneyBox1() // `make` me
   }
   MakeBoxWithCapLid(
     width=money_box_width, length=money_box_length, height=money_box_height_1,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerPieces(show_everything=true);
     color("black") InnerPieces(show_everything=false);
@@ -148,7 +147,7 @@ module MoneyBox2() // `make` me
   }
   MakeBoxWithCapLid(
     width=money_box_width, length=money_box_length, height=money_box_height_2,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerPieces(show_everything=true);
     color("black") InnerPieces(show_everything=false);
@@ -214,10 +213,10 @@ module SharesBox(offset) {
   }
   MakeBoxWithSlipoverLid(
     width=shares_box_width, length=shares_box_length, height=shares_height,
-    wall_thickness=1.5, foot=2, last_child_positive=default_label_solid_background
+    wall_thickness=1.5, foot=2, last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerPieces(show_everything=false);
     }
   }
@@ -296,10 +295,10 @@ module MiddleBox() // `make` me
   }
   MakeBoxWithCapLid(
     width=middle_width, length=middle_length, height=middle_height,
-    last_child_positive=default_label_solid_background
+    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     InnerPieces(show_everything=true);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       color("black") InnerPieces(show_everything=false);
     }
   }

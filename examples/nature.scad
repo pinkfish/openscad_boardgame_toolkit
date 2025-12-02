@@ -22,8 +22,7 @@ box_width = 210;
 box_length = 210;
 box_height = 75;
 
-default_label_solid_background = MAKE_MMU == 1;
-default_label_type = LABEL_TYPE_FRAMELESS_ANGLE;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_label_font = "Impact";
 default_lid_shape_type = SHAPE_TYPE_LEAF;
 default_lid_shape_width = 20;

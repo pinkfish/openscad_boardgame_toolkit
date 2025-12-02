@@ -19,7 +19,6 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 include <lib/brink.scad>
 
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_label_font = "Impact";
 

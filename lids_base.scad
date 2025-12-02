@@ -509,12 +509,12 @@ module MakeTabs(
 //    text_length = the width of the text to use
 //    lid_thickness = thickness of the lid
 //    label_radius = radius of the label corners
+//    label_type = type of the label to display
 //    border= border of the item
 //    offset = offset in from the edge for the label
 //    label_type = the type of the label
 //    full_height = if the label grid is the full height (when flipped upsidedown)
 //    label_colour = the colout of the label (default {{default_label_colour}})
-//    solid_background = if the background should be solid (default false)
 //    finger_hole_size = if we put in finger holes or not (default 10)
 // Example:
 //    MakeLidLabel(100, 20, text_length = 50, text_scale = 1.0, lid_thickness = 2,  text_str =
@@ -550,7 +550,6 @@ module MakeLidLabel(
   label_colour = undef,
   material_colour = default_material_colour,
   label_background_colour = default_label_background_colour,
-  solid_background = default_label_solid_background,
   finger_hole_size = 10
 ) {
   calc_label_type = DefaultValue(label_type, default_label_type);

@@ -27,7 +27,6 @@ default_wall_thickness = 3;
 default_lid_shape_type = SHAPE_TYPE_SQUARE;
 default_lid_shape_thickness = 3;
 
-default_label_solid_background = MAKE_MMU == 1;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
 sliding_lid_thickness = 3;
@@ -388,10 +387,10 @@ module MarquisBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=marquis_box_width, length=marquis_box_length, height=marquis_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="orange",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(just_icons=false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       InnerPieces(just_icons=true);
     }
   }
@@ -476,10 +475,10 @@ module VagabondBox() // `make` me
   MakeBoxWithSlidingLid(
     width=vagabond_box_width, length=vagabond_box_length, height=vagabond_box_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(just_icons=false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       InnerPieces(just_icons=true);
     }
   }
@@ -580,10 +579,10 @@ module ErieBoxTop() // `make` me
     width=erie_box_top_width, length=erie_box_top_length, height=erie_box_top_height,
     wall_thickness=wall_thickness, floor_thickness=lid_thickness,
     lid_thickness=sliding_lid_thickness, material_colour="blue",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(just_icons=false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       InnerPieces(just_icons=true);
     }
   }
@@ -720,10 +719,10 @@ module AllianceBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=alliance_box_width, length=alliance_box_length, height=alliance_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="green",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       InnerPieces(just_icon=true);
     }
   }
@@ -840,10 +839,10 @@ module RiverfolkBoxTop() // `make` me
     width=riverfolk_box_top_width, length=riverfolk_box_length,
     height=riverfolk_box_top_height, lid_thickness=sliding_lid_thickness,
     lid_on_length=true, material_colour="lightblue",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       InnerPieces(just_icon=true);
     }
   }
@@ -994,10 +993,10 @@ module LizardBoxTop() // `make` me
   MakeBoxWithSlidingLid(
     width=lizard_box_top_width, length=lizard_box_length, height=lizard_box_top_height,
     lid_thickness=sliding_lid_thickness, material_colour="yellow",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(just_icons=false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() InnerPieces(just_icons=true);
     }
   }
@@ -1097,12 +1096,12 @@ module ItemsBoxBottom() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     union() {
       MakeItems(false);
     }
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() {
         MakeItems(true);
       }
@@ -1219,10 +1218,10 @@ module ItemsBoxMiddle() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_middle_height,
     lid_thickness=sliding_lid_thickness, material_colour="grey",
-    positive_only_children=default_label_solid_background ? [1] : []
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     MakeAllItems(false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() {
         MakeAllItems(true);
       }
@@ -1381,14 +1380,14 @@ module ItemsBoxExtras() // `make` me
   MakeBoxWithSlidingLid(
     width=item_box_width, length=item_box_length, height=item_box_extras_height,
     lid_thickness=sliding_lid_thickness,
-    positive_only_children=default_label_solid_background ? [1] : [],
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : [],
     material_colour="grey"
   ) {
     $inner_height = item_box_extras_height - lid_thickness * 2;
     $inner_width = item_box_width - wall_thickness * 2;
     // 12 craftable items (2× bag, 2× boot, 1× crossbow, 1× hammer, 2× sword, 2× teapot, 2× coins)
     MakeAllItems(just_icon=false);
-    if (default_label_solid_background) {
+    if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
       union() {
         MakeAllItems(just_icon=true);
       }
