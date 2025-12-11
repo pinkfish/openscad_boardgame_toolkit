@@ -643,9 +643,9 @@ module BreakthroughBox() // `make` me
 module BreakthroughBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=assignment_box_width,
-    length=assignment_box_length,
-    material_colour="lightblue",
+    width=breakthrough_box_width,
+    length=breakthrough_box_length,
+    material_colour="magenta",
     "Breakthrough"
   );
 }
@@ -773,7 +773,7 @@ module ProgramBox() // `make` me
 
 module ProgramBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
+  SlidingBoxLidWithLabel(
     width=program_box_width,
     length=program_box_length,
     height=program_box_height,
@@ -1382,6 +1382,8 @@ module BoxLayout() {
 
     translate([0, card_box_length + alternative_objective_box_length, book_box_height])
       AssignmentCardBox();
+    translate([assignment_card_box_width, card_box_length + alternative_objective_box_length, book_box_height])
+      BreakthroughBox();
     translate([card_box_width, card_box_length * 2, 0])
       ScorePadBox();
     translate([card_box_width + program_box_width, card_box_length * 2, score_pad_box_height])
@@ -1404,5 +1406,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxBlue();
+  BoxLayout();
 }
