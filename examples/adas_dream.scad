@@ -579,11 +579,11 @@ module AssignmentBox() // `make` me
           [
             (assignment_width + 5) * j + 3,
             (assignment_length + 24) * i + 3,
-            $inner_height - cardboard_thickness * (i == 0 ? 5 : 4) - 0.5,
+            $inner_height - cardboard_thickness * (i == 0 ? 4 : 4) - 0.5,
           ]
         )
           CuboidWithIndentsBottom(
-            [assignment_width, assignment_length, cardboard_thickness * (i == 0 ? 5 : 4) + 1],
+            [assignment_width, assignment_length, cardboard_thickness * (i == 0 ? 4 : 4) + 1],
             anchor=BOTTOM + FRONT + LEFT,
             finger_holes=[j == 0 ? 2 : 6]
           );
@@ -858,7 +858,7 @@ module ScoringBox() // `make` me
             [
               (scoring_width + 4) * j + 3,
               (scoring_length + 3) * i,
-              $inner_height - cardboard_thickness * (j <= 1 ? 4 : 3) - 1,
+              $inner_height - cardboard_thickness * (j <= 1 ? 4 : 4) - 1,
             ]
           )
             CuboidWithIndentsBottom(
