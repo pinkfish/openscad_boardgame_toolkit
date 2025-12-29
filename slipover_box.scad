@@ -112,28 +112,28 @@ module MakeBoxWithSlipoverLid(
     }
     if ( (lid_catch == CATCH_BUMPS_SHORT && width < length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
       catch_offset = width - wall_thickness * 2;
-      translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness + foot]) {
+      translate([(catch_offset * 6 / 8) + wall_thickness, wall_thickness, wall_thickness + foot]) {
         color(material_colour) {
           intersection() {
             sphere(r=wall_thickness * 5 / 6 + size_spacing);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
           }
         }
-        color(material_colour) translate([0, length, 0]) {
+        color(material_colour) translate([0, length - wall_thickness * 2, 0]) {
             intersection() {
               sphere(r=wall_thickness * 5 / 6 + size_spacing);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
             }
           }
       }
-      translate([(catch_offset * 2 / 8) + wall_thickness, 0, wall_thickness + foot]) {
+      translate([(catch_offset * 2 / 8) + wall_thickness, wall_thickness, wall_thickness + foot]) {
         color(material_colour) {
           intersection() {
             sphere(r=wall_thickness * 5 / 6 + size_spacing);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
           }
         }
-        color(material_colour) translate([0, length, 0]) {
+        color(material_colour) translate([0, length - wall_thickness * 2, 0]) {
             intersection() {
               sphere(r=wall_thickness * 5 / 6 + size_spacing);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
@@ -143,28 +143,28 @@ module MakeBoxWithSlipoverLid(
     }
     if ( (lid_catch == CATCH_BUMPS_SHORT && length <= width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
       catch_offset = length - wall_thickness * 2;
-      translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness + foot]) {
+      translate([wall_thickness, (catch_offset * 6 / 8) + wall_thickness, wall_thickness + foot]) {
         color(material_colour) {
           intersection() {
             sphere(r=wall_thickness * 5 / 6 + size_spacing);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
           }
         }
-        color(material_colour) translate([width, 0, 0]) {
+        color(material_colour) translate([width - wall_thickness * 2, 0, 0]) {
             intersection() {
               sphere(r=wall_thickness * 5 / 6 + m_piece_wiggle_room);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
             }
           }
       }
-      translate([0, (catch_offset * 2 / 8) + wall_thickness, wall_thickness + foot]) {
+      translate([wall_thickness, (catch_offset * 2 / 8) + wall_thickness, wall_thickness + foot]) {
         color(material_colour) {
           intersection() {
             sphere(r=wall_thickness * 5 / 6 + size_spacing);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
           }
         }
-        color(material_colour) translate([width, 0, 0]) {
+        color(material_colour) translate([width - wall_thickness * 2, 0, 0]) {
             intersection() {
               sphere(r=wall_thickness * 5 / 6 + size_spacing);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
@@ -335,28 +335,28 @@ module SlipoverBoxLid(
         }
         if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
           catch_offset = width - wall_thickness * 2;
-          translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
+          translate([(catch_offset * 6 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
                 cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
               }
             }
-            color(material_colour) translate([0, length, 0]) {
+            color(material_colour) translate([0, length - wall_thickness * 10 / 8, 0]) {
                 intersection() {
                   sphere(r=wall_thickness * 4 / 6);
                   cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
                 }
               }
           }
-          translate([(catch_offset * 2 / 8) + wall_thickness, 0, -wall_thickness]) {
+          translate([(catch_offset * 2 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
                 cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
               }
             }
-            color(material_colour) translate([0, length, 0]) {
+            color(material_colour) translate([0, length - wall_thickness * 10 / 8, 0]) {
                 intersection() {
                   sphere(r=wall_thickness * 4 / 6);
                   cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
@@ -366,28 +366,28 @@ module SlipoverBoxLid(
         }
         if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
           catch_offset = length - wall_thickness * 2;
-          translate([0, (catch_offset * 6 / 8) + wall_thickness, -wall_thickness]) {
+          translate([wall_thickness * 5 / 8, (catch_offset * 6 / 8) + wall_thickness, wall_thickness]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
                 cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
               }
             }
-            color(material_colour) translate([width, 0, 0]) {
+            color(material_colour) translate([width - wall_thickness * 10 / 8, 0, 0]) {
                 intersection() {
                   sphere(r=wall_thickness * 4 / 6);
                   cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
                 }
               }
           }
-          translate([0, (catch_offset * 2 / 8) + wall_thickness, -wall_thickness]) {
+          translate([wall_thickness * 5 / 8, (catch_offset * 2 / 8) + wall_thickness, wall_thickness]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
                 cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
               }
             }
-            color(material_colour) translate([width, 0, 0]) {
+            color(material_colour) translate([width - wall_thickness * 10 / 8, 0, 0]) {
                 intersection() {
                   sphere(r=wall_thickness * 4 / 6);
                   cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);

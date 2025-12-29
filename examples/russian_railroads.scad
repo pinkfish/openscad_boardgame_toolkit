@@ -536,7 +536,7 @@ module TrainBox() // `make` me
         if (show_everything) {
           rotate([0, 0, 270]) TrainTile(height=tile_thickness * 5 + 1);
         }
-        translate([0, 0, -0.19]) rotate([0, 0, 180]) linear_extrude(height=label_height)
+        translate([0, 0, -0.19])  linear_extrude(height=label_height)
               text(str(i * 3 + 3), valign="center", halign="center", size=15);
       }
     }
@@ -732,5 +732,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  TrainBox();
 }

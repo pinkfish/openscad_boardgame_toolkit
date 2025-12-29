@@ -117,7 +117,7 @@ module MoneyBox1() // `make` me
   }
   MakeBoxWithCapLid(
     width=money_box_width, length=money_box_length, height=money_box_height_1,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
     color("black") InnerPieces(show_everything=false);
@@ -147,7 +147,7 @@ module MoneyBox2() // `make` me
   }
   MakeBoxWithCapLid(
     width=money_box_width, length=money_box_length, height=money_box_height_2,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
     color("black") InnerPieces(show_everything=false);
@@ -195,10 +195,10 @@ module SharesBox(offset) {
             color("yellow") cube([share_width, share_length, main_height]);
           }
           translate([share_width / 2, share_length / 2, -0.2]) linear_extrude(height=0.2) rotate(90)
-                text(share_names[i + offset], font="Stencil Std:style=Bold", anchor=CENTER, size=4);
+                text(share_names[i + offset], font="Impact:style=Bold", anchor=CENTER, size=4);
         } else {
           translate([share_width / 2, share_length / 2, $inner_height - 0.2]) linear_extrude(height=0.2)
-              rotate(90) text("1835", font="Stencil Std:style=Bold", anchor=CENTER, size=20);
+              rotate(90) text("1835", font="Impact:style=Bold", anchor=CENTER, size=20);
         }
       }
     }
@@ -213,7 +213,7 @@ module SharesBox(offset) {
   }
   MakeBoxWithSlipoverLid(
     width=shares_box_width, length=shares_box_length, height=shares_height,
-    wall_thickness=1.5, foot=2, last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    wall_thickness=1.5, foot=2, positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
     if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
@@ -222,14 +222,27 @@ module SharesBox(offset) {
   }
 }
 
-module AllShareBoxes() // `make` me
+module ShareBox1() // `make` me
 {
   SharesBox(0);
-  translate([0, shares_box_length + 10, 0]) SharesBox(2);
-  translate([0, shares_box_length * 2 + 20, 0]) SharesBox(4);
-  translate([0, shares_box_length * 3 + 30, 0]) SharesBox(6);
 }
-module AllShareBoxesLid() // `make` me
+
+module ShareBox2() // `make` me
+{
+  SharesBox(2);
+}
+
+module ShareBox3() // `make` me
+{
+  SharesBox(4);
+}
+
+module ShareBox4() // `make` me
+{
+  SharesBox(6);
+}
+
+module ShareBoxLid() // `make` me
 {
 
   SlipoverBoxLidWithLabel(
@@ -246,14 +259,14 @@ module MiddleBox() // `make` me
 
   module InnerPieces(show_everything) {
     translate([insert_width / 2, 11.5, $inner_height - 0.19]) linear_extrude(height=0.2)
-        text("1835", font="Stencil Std:style=Bold", anchor=CENTER, size=20);
+        text("1835", font="Impact:style=Bold", anchor=CENTER, size=20);
     translate([47, first_player_box_height + default_wall_thickness + 15, 0]) {
       if (show_everything) {
         cube([share_width + 0.5, share_length + 0.5, middle_height]);
         translate([share_width / 2, 0, 18]) cyl(r=20, h=middle_height * 2, rounding=12);
       }
       translate([share_width / 2, share_length / 2, -0.19]) linear_extrude(height=0.2) rotate(90)
-            text("Trains", font="Stencil Std:style=Bold", anchor=CENTER, size=10);
+            text("Trains", font="Impact:style=Bold", anchor=CENTER, size=10);
     }
     private_company_cards = share_thickness_twenty * 10 / 20 + 1;
     translate(
@@ -295,7 +308,7 @@ module MiddleBox() // `make` me
   }
   MakeBoxWithCapLid(
     width=middle_width, length=middle_length, height=middle_height,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
     if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
