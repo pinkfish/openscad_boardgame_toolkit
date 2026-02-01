@@ -437,7 +437,7 @@ module ExtraTokensBox() // `make` me
     width=extra_tokens_box_width, length=extra_tokens_box_length,
     height=extra_tokens_box_height, wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerBits(true);
     if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
@@ -536,8 +536,8 @@ module TrainBox() // `make` me
         if (show_everything) {
           rotate([0, 0, 270]) TrainTile(height=tile_thickness * 5 + 1);
         }
-        translate([0, 0, -0.19])  linear_extrude(height=label_height)
-              text(str(i * 3 + 3), valign="center", halign="center", size=15);
+        translate([0, 0, -0.19]) linear_extrude(height=label_height)
+            text(str(i * 3 + 3), valign="center", halign="center", size=15);
       }
     }
 
@@ -555,7 +555,7 @@ module TrainBox() // `make` me
     width=train_box_width, length=train_box_length, height=train_box_height,
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
     floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerBits(true);
     if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
@@ -658,7 +658,7 @@ module TrackBox() // `make` me
     width=track_box_width, length=track_box_length, height=track_box_height,
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
     floor_thickness=default_floor_thickness,
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
     if (default_label_type == LABEL_TYPE_FRAMED_SOLID) {
