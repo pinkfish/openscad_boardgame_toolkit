@@ -374,7 +374,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    width=card_box_width, length=card_box_length, 
     lid_on_length=true,
     text_str="Athletes", label_colour="black"
   );
@@ -619,7 +619,8 @@ module SpacerBox() // `make` me
   MakeBoxWithNoLid(
     width=spacer_box_width,
     length=spacer_box_length,
-    height=spacer_box_height
+    height=spacer_box_height,
+    hollow=true
   );
 }
 
