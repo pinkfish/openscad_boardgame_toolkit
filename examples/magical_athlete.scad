@@ -50,16 +50,12 @@ big_baby_width = 39;
 big_baby_length = 35.5;
 big_baby_thickness = 32;
 
-gold_height = [24, 22, 22, 20];
-gold_width = [31, 28, 28, 25];
-gold_base_width = [23.5, 21.5, 21.5, 19];
-gold_middle_width = [13, 12, 12, 11];
-gold_base_height = [10, 9, 9, 8];
-gold_top_diameter = [11, 10, 10, 9];
+gold_height = [25, 23, 23, 21];
+gold_width = [32, 29, 29, 26];
 
-silver_diameter = [21, 19, 19, 15];
+silver_diameter = [21.75, 19.75, 19.75, 15.75];
 silver_tag_width = [10, 8, 8, 7];
-silver_tag_diameter = [22, 20, 20, 16.5];
+silver_tag_diameter = [25.5, 23.5, 23.5, 18.5];
 
 card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
@@ -73,7 +69,7 @@ award_box_width = dice_box_width;
 award_box_length = dice_box_length;
 award_box_height = box_height - board_thickness - dice_box_height;
 
-big_baby_box_width = box_width;
+big_baby_box_width = big_baby_length + 20 + default_wall_thickness * 2;
 big_baby_box_length = big_baby_width + default_wall_thickness * 2 + 1;
 big_baby_box_height = box_height - board_thickness;
 
@@ -81,31 +77,42 @@ piece_box_width = box_width;
 piece_box_length = box_length - card_box_length - big_baby_box_length;
 piece_box_height = (box_height - board_thickness) / 2;
 
+award_tokens_length = big_baby_box_length;
+award_tokens_width = 30;
+award_tokens_height = (box_height - board_thickness) / 2;
+
+spacer_box_width = box_width - award_tokens_width - big_baby_box_width;
+spacer_box_length = award_tokens_length;
+spacer_box_height = box_height - board_thickness;
+
+
 module SilverMedal(index) {
   circle(d=silver_diameter[index]);
   rotate(25)
-    translate([0, silver_tag_diameter[index] / 4])
-      polygon(
+    polygon(
+      round_corners(
         [
-          [silver_tag_width[index] / 2, -silver_tag_diameter[index] / 4],
-          [silver_tag_width[index] / 2, silver_tag_diameter[index] / 4],
-          [0, silver_tag_diameter[index] / 4 - 1],
-          [-silver_tag_width[index] / 2, silver_tag_diameter[index] / 4],
-          [-silver_tag_width[index] / 2, -silver_tag_diameter[index] / 4],
-        ]
-      );
+          [silver_tag_width[index] / 2, 0],
+          [silver_tag_width[index] / 2, silver_tag_diameter[index] / 2],
+          [0, silver_tag_diameter[index] / 2 - 1],
+          [-silver_tag_width[index] / 2, silver_tag_diameter[index] / 2],
+          [-silver_tag_width[index] / 2, 0],
+        ], radius=1
+      )
+    );
 
   rotate(-25)
-    translate([0, silver_tag_diameter[index] / 4])
-      polygon(
+    polygon(
+      round_corners(
         [
-          [silver_tag_width[index] / 2, -silver_tag_diameter[index] / 4],
-          [silver_tag_width[index] / 2, silver_tag_diameter[index] / 4],
-          [0, silver_tag_diameter[index] / 4 - 1],
-          [-silver_tag_width[index] / 2, silver_tag_diameter[index] / 4],
-          [-silver_tag_width[index] / 2, -silver_tag_diameter[index] / 4],
-        ]
-      );
+          [silver_tag_width[index] / 2, 0],
+          [silver_tag_width[index] / 2, silver_tag_diameter[index] / 2],
+          [0, silver_tag_diameter[index] / 2 - 1],
+          [-silver_tag_width[index] / 2, silver_tag_diameter[index] / 2],
+          [-silver_tag_width[index] / 2, 0],
+        ], radius=1
+      )
+    );
 }
 
 module GoldMedal(index) {
@@ -408,50 +415,79 @@ module DiceBoxLid() // `make` me
 
 module AwardBox() // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithSlipoverLid(
     width=award_box_width,
     length=award_box_length,
-    height=award_box_height
+    height=award_box_height,
+    foot=2,
+    positive_negative_children=[1],
+    positive_colour="black",
   ) {
-    for (i = [0:3]) {
-      translate(
-        [
-          gold_width[0] / 2,
-          gold_height[0] / 2,
-          $inner_height - cardboard_thickness * (i + 1),
-        ]
-      ) {
-        linear_extrude(height=cardboard_thickness + 1) {
-          GoldMedal(index=i);
+    union() {
+      for (i = [0:2]) {
+        translate(
+          [
+            (gold_height[0] + 1) * (i + 0.5),
+            gold_width[0] / 2,
+            $inner_height - cardboard_thickness * (i == 1 ? 2 : 1),
+          ]
+        ) {
+          linear_extrude(height=cardboard_thickness * 3 + 1) {
+            rotate(90)
+              GoldMedal(index=i);
+          }
+          if (i == 1) {
+            translate([(gold_width[i] / 2 - cardboard_thickness * 2), 0, 0])
+              sphere(d=cardboard_thickness * 10, anchor=BOTTOM);
+            translate([(gold_width[i] / 2 - cardboard_thickness * 2) * (-1), 0, 0])
+              sphere(d=cardboard_thickness * 10, anchor=BOTTOM);
+          }
         }
-        translate([0, gold_width[i] / 2 - cardboard_thickness * 2, 0])
-          sphere(d=cardboard_thickness * 8, anchor=BOTTOM);
-      }
-      translate(
-        [
-          silver_diameter[0] / 2,
-          $inner_length - silver_diameter[0] / 2 - 3,
-          $inner_height - cardboard_thickness * (i + 1),
-        ]
-      ) {
-        linear_extrude(height=cardboard_thickness + 1) {
-          SilverMedal(index=i);
+        translate(
+          [
+            (silver_diameter[0] + 5) * (i + 0.5),
+            $inner_length - silver_diameter[0] / 2 - 1.5,
+            $inner_height - cardboard_thickness * (i == 1 ? 2 : 1),
+          ]
+        ) {
+          linear_extrude(height=cardboard_thickness * 4 + 1) {
+            SilverMedal(index=i);
+          }
+          translate([0, -silver_diameter[i] / 2 + cardboard_thickness, -1])
+            sphere(d=cardboard_thickness * 10, anchor=BOTTOM);
         }
-        translate([0, -silver_diameter[i] / 2 + cardboard_thickness, 0])
-          sphere(d=cardboard_thickness * 8, anchor=BOTTOM);
       }
     }
-    translate([gold_width[0] + 1, 0, 0]) {
-      RoundedBoxAllSides($inner_width - gold_width[0] - 1, $inner_length, $inner_height, 10);
+    union() {
+      translate([(gold_height[0] + 3) * (0 + 0) + 4, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+        linear_extrude(h=default_slicing_layer_height + 0.01)
+          rotate(270)
+            text("1st", valign="center", halign="center", size=5);
+      }
+      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 15, $inner_height - default_slicing_layer_height]) {
+        linear_extrude(h=default_slicing_layer_height + 0.01)
+          rotate(270)
+            text("2nd", valign="center", halign="center", size=5);
+      }
+      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+        linear_extrude(h=default_slicing_layer_height + 0.01)
+          rotate(270)
+            text("3rd", valign="center", halign="center", size=5);
+      }
+      translate([(gold_height[0] + 3) * (2) - 0.5, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+        linear_extrude(h=default_slicing_layer_height + 0.01)
+          rotate(270)
+            text("4th", valign="center", halign="center", size=5);
+      }
     }
   }
 }
 
 module AwardBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
+  SlipoverBoxLidWithLabel(
     width=award_box_width, length=award_box_length, height=award_box_height,
-    text_str="Awards", label_colour="black"
+    text_str="Awards", label_colour="black", foot=2
   );
 }
 
@@ -551,6 +587,42 @@ module BigBabyBoxLid() // `make` me
   );
 }
 
+module AwardsTokensBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    width=award_tokens_width,
+    length=award_tokens_length,
+    height=award_tokens_height
+  ) {
+    RoundedBoxAllSides($inner_width, $inner_length, award_tokens_height, 5);
+  }
+}
+
+module AwardsTokensBoxOneLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
+    text_str="Award 1", label_colour="black"
+  );
+}
+
+module AwardsTokensBoxThreeLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
+    text_str="Award 3", label_colour="black"
+  );
+}
+
+module SpacerBox() // `make` me
+{
+  MakeBoxWithNoLid(
+    width=spacer_box_width,
+    length=spacer_box_length,
+    height=spacer_box_height
+  );
+}
+
 module BoxLayout() {
   cube([box_width, box_length, 1]);
   cube([1, box_length, box_height]);
@@ -566,6 +638,12 @@ module BoxLayout() {
       PieceBoxTwo();
     translate([0, card_box_length + piece_box_length, 0])
       BigBabyBox();
+    translate([big_baby_box_width, card_box_length + piece_box_length, 0])
+      AwardsTokensBox();
+    translate([big_baby_box_width, card_box_length + piece_box_length, award_tokens_height])
+      AwardsTokensBox();
+    translate([big_baby_box_width + award_tokens_width, card_box_length + piece_box_length, 0])
+      SpacerBox();
   }
 }
 

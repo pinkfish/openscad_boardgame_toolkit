@@ -175,7 +175,7 @@ module MakeBoxWithSlipoverLid(
 
     $inner_width = width - wall_thickness * 4;
     $inner_length = length - wall_thickness * 4;
-    $inner_height = wall_height_calc;
+    $inner_height = wall_height_calc - default_floor_thickness;
     for (i = [0:$children - 1]) {
       if (!in_list(i, positive_only_children)) {
         translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
@@ -183,9 +183,9 @@ module MakeBoxWithSlipoverLid(
     }
   }
   if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
-    $inner_width = width - wall_thickness * 2;
-    $inner_length = length - wall_thickness * 2;
-    $inner_height = wall_height_calc;
+    $inner_width = width - wall_thickness * 4;
+    $inner_length = length - wall_thickness * 4;
+    $inner_height = wall_height_calc - default_floor_thickness;
     for (i = positive_only_children) {
       color(positive_colour)
         translate([wall_thickness * 2, wall_thickness * 2, floor_thickness]) children(i);
