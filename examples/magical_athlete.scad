@@ -525,7 +525,7 @@ module PieceboxOneLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=piece_box_width, length=piece_box_length, height=piece_box_height,
-    text_str="Pieces", label_colour="black"
+    text_str="Athletes", label_colour="black"
   );
 }
 
@@ -560,7 +560,7 @@ module PieceboxTwoLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=piece_box_width, length=piece_box_length, height=piece_box_height,
-    text_str="Pieces", label_colour="black"
+    text_str="Athletes", label_colour="black"
   );
 }
 
@@ -602,7 +602,7 @@ module AwardsTokensBoxOneLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
-    text_str="Award 1", label_colour="black"
+    text_str="1", label_colour="black"
   );
 }
 
@@ -610,7 +610,7 @@ module AwardsTokensBoxThreeLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
-    text_str="Award 3", label_colour="black"
+    text_str="3", label_colour="black"
   );
 }
 
