@@ -222,6 +222,7 @@ module CylinderWithIndents(
   finger_holes = [],
   finger_hole_height = 0,
   finger_hole_radius = undef,
+  cyl_fn = undef,
   anchor = BOTTOM
 ) {
   assert(radius != undef && radius > 0 || d != undef && d > 0 || r != undef && r > 0, str("radius must be != undef && > 0. radius=", radius, " r=", r, " d=", d, " h=", h));
@@ -230,7 +231,11 @@ module CylinderWithIndents(
   calc_height = height != undef && height > 0 ? height : h;
   calc_radius = radius != undef && radius > 0 ? radius : (d != undef && d > 0 ? d / 2 : r);
 
-  cyl(r=calc_radius, h=calc_height, anchor=anchor);
+  if (cyl_fn != undef) {
+    cyl(r=calc_radius, h=calc_height, anchor=anchor, $fn=cyl_fn);
+  } else {
+    cyl(r=calc_radius, h=calc_height, anchor=anchor);
+  }
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, calc_radius / 3);
   for (i = [0:1:len(finger_holes) - 1]) {
     x = calc_radius * cos(finger_holes[i]);

@@ -125,8 +125,7 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    $inner_height , $inner_width, $inner_length = length variables to
 //    deal with the box sizes.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    path = the path to generate for (this should be one line segment)
 //    height = outside height of the box
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
@@ -279,8 +278,7 @@ module MakePathBoxWithCapLid(
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    path = the path to generate for (this should be one line segment)
 //    height = outside height of the box
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})

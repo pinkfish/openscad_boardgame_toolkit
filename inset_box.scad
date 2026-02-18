@@ -194,6 +194,7 @@ module InsetLidTabbed(
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
+//    label_colour = the colour of the label (default {{default_label_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
@@ -226,7 +227,8 @@ module InsetLidTabbedWithLabelAndCustomShape(
   prism_width = 0.75,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  label_colour = undef,
 ) {
   InsetLidTabbed(
     width, length, lid_thickness=lid_thickness, tab_length=tab_length, tab_height=tab_height,
@@ -307,6 +309,7 @@ module InsetLidTabbedWithLabelAndCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
+//    label_colour = the color of the label (default {{default_label_colour}})
 // Topics: TabbedBox, TabbedLid
 // Example:
 //    InsetLidTabbedWithLabel(
@@ -339,7 +342,8 @@ module InsetLidTabbedWithLabel(
   shape_rounding = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  label_colour = undef,
 ) {
   InsetLidTabbedWithLabelAndCustomShape(
     width=width, length=length, lid_thickness=lid_thickness, tab_length=tab_length,
@@ -349,7 +353,7 @@ module InsetLidTabbedWithLabel(
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     label_border=label_border, label_offset=label_offset, material_colour=material_colour,
     label_background_colour=label_background_colour,
-    finger_hole_size=finger_hole_size
+    finger_hole_size=finger_hole_size, label_colour=label_colour, lid_rounding=lid_rounding, 
   ) {
     color(material_colour)
       ShapeByType(
@@ -617,6 +621,7 @@ module InsetLidRabbitClip(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
+//    label_colour = the color of the label (default {{default_label_colour}})
 // Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog") {
@@ -655,7 +660,8 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  label_colour = undef,
 ) {
   InsetLidRabbitClip(
     width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
@@ -679,10 +685,11 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
+      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str,
+      label_radius=label_radius,
       material_colour=material_colour,
       label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size
+      finger_hole_size=finger_hole_size, label_colour=label_colour
     );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -744,6 +751,7 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
+//    label_colour = the color of the label (default {{default_label_colour}})
 // Topics: RabbitClipBox
 // Example:
 //    InsetLidRabbitClipWithLabel(
@@ -781,7 +789,8 @@ module InsetLidRabbitClipWithLabel(
   shape_rounding = undef,
   material_colour = default_material_colour,
   label_background_colour = undef,
-  finger_hole_size = undef
+  finger_hole_size = undef,
+  label_colour = undef,
 ) {
   InsetLidRabbitClipWithLabelAndCustomShape(
     width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
@@ -794,7 +803,7 @@ module InsetLidRabbitClipWithLabel(
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour,
     label_background_colour=label_background_colour,
-    finger_hole_size=finger_hole_size
+    finger_hole_size=finger_hole_size, label_colour=label_colour,
   ) {
     color(material_colour)
       ShapeByType(

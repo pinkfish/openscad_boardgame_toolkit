@@ -85,10 +85,9 @@ spacer_box_width = box_width - award_tokens_width - big_baby_box_width;
 spacer_box_length = award_tokens_length;
 spacer_box_height = box_height - board_thickness;
 
-
 module SilverMedal(index) {
   circle(d=silver_diameter[index]);
-  rotate(25)
+  rotate(30)
     polygon(
       round_corners(
         [
@@ -101,7 +100,7 @@ module SilverMedal(index) {
       )
     );
 
-  rotate(-25)
+  rotate(-30)
     polygon(
       round_corners(
         [
@@ -374,7 +373,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, 
+    width=card_box_width, length=card_box_length,
     lid_on_length=true,
     text_str="Athletes", label_colour="black"
   );
@@ -420,7 +419,7 @@ module AwardBox() // `make` me
     length=award_box_length,
     height=award_box_height,
     foot=2,
-    positive_negative_children=[1],
+    positive_negative_children=MAKE_MMU == 1 ? [1] : [],
     positive_colour="black",
   ) {
     union() {
