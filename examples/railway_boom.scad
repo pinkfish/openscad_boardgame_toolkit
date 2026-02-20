@@ -417,6 +417,13 @@ module PlayerBox(material_colour = "yellow") // `make` me
   }
 }
 
+module PlayerBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=player_box_width, length=player_box_length, height=player_box_height, text_str="Player",
+  );
+}
+
 module ResourceBox(material_colour) // `make` me
 {
   MakeBoxWithCapLid(
@@ -425,6 +432,38 @@ module ResourceBox(material_colour) // `make` me
   ) {
     RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
   }
+}
+
+module ResourceBoxCoalLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="Coal",
+    material_colour="black", label_colour="white"
+  );
+}
+
+module ResourceBoxVPLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="VP",
+    material_colour="blue",
+  );
+}
+
+module ResourceBoxMaterialsLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="Materials",
+    material_colour="brown",
+  );
+}
+
+module ResourceBoxTechnologyLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="Tech",
+    material_colour="purple",
+  );
 }
 
 module IndicatorBox() // `make` me
@@ -451,11 +490,12 @@ module IndicatorBoxLid() // `make` me
   );
 }
 
-module ResourceBoxFive() // `make` me
+module ResourceBoxFive(material_colour) // `make` me
 {
   MakeBoxWithCapLid(
     width=resource_box_five_width, length=resource_box_five_length, height=resource_box_five_height,
     positive_negative_children=MAKE_MMU == 1 ? [1] : [],
+    material_colour=material_colour,
   ) {
     RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_five_height, radius=5);
     union() {
@@ -474,10 +514,10 @@ module ResourceBoxFive() // `make` me
 module ResourceBoxFiveLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=resource_box_five_width, length=resource_box_five_length, height=resource_box_five_height, text_str="Resource",
+    width=resource_box_five_width, length=resource_box_five_length, height=resource_box_five_height, text_str="Money",
+    material_colour="orange"
   );
 }
-
 module FrontSpacerBox() // `make` me
 {
   MakeBoxWithNoLid(width=spacer_front_width, length=spacer_front_length, height=spacer_front_height, hollow=true);
@@ -502,82 +542,128 @@ module SpacerPlayerBoardBox() // `make` me
   );
 }
 
-module BoxLayout() {
-  cube([1, box_length, box_height]);
-  cube([box_width, box_length, board_thickness]);
-  translate([0, 0, board_thickness]) {
-    cube([player_board_width, player_board_length, player_board_thickness * 4]);
+module BoxLayout(layout = 0) {
+  if (layout == 0) {
+    cube([1, box_length, box_height]);
   }
-  translate([0, 0, board_thickness + player_board_thickness * 4]) {
-
-    PlayerBox(material_colour="green");
-    translate([0, 0, player_box_height]) {
-      PlayerBox(material_colour="blue");
+  color("lightblue")
+    cube([box_width, box_length, board_thickness]);
+  color("aquamarine")
+    translate([0, 0, board_thickness]) {
+      cube([player_board_width, player_board_length, player_board_thickness * 4]);
     }
-    translate([player_box_width, 0, 0]) {
-      PlayerBox(material_colour="red");
-    }
-    translate([player_box_width, 0, player_box_height]) {
-      PlayerBox(material_colour="orange");
-    }
-    translate([player_board_width, 0, -player_board_thickness * 4]) {
-      SpacerPlayerBoardBox();
-    }
-    translate([0, player_box_length, 0]) {
-      StationCardBox();
-    }
-
-    translate([card_box_width, player_box_length, 0]) {
-      ObjectiveCardBox();
-      translate([0, 0, objective_card_box_height]) {
-        RouteCardBox();
+  if (layout < 3) {
+    translate([0, 0, board_thickness + player_board_thickness * 4]) {
+      PlayerBox(material_colour="green");
+      if (layout < 2) {
+        translate([0, 0, player_box_height]) {
+          PlayerBox(material_colour="blue");
+        }
       }
-      translate([card_box_width, 0, -player_board_thickness * 4]) {
-        TouristTileBox();
+      translate([player_box_width, 0, 0]) {
+        PlayerBox(material_colour="red");
       }
-    }
-    translate([0, player_box_length + card_box_length, 0]) {
-      CarriageCardBox();
-      translate([small_card_box_width, 0, 0]) {
-        LocomotiveCardBox();
-        translate([small_card_box_width, 0, 0]) {
-          CityTileBox();
-          translate([city_tile_box_width, 0, -player_board_thickness * 4]) {
-            FrontSpacerBox();
+      if (layout < 2) {
+        translate([player_box_width, 0, player_box_height]) {
+          PlayerBox(material_colour="white");
+        }
+      }
+      if (layout < 2) {
+        translate([0, player_box_length, 0]) {
+          StationCardBox();
+        }
+      }
+
+      translate([card_box_width, player_box_length, 0]) {
+        ObjectiveCardBox();
+        translate([0, 0, objective_card_box_height]) {
+          if (layout < 2) {
+            RouteCardBox();
+          }
+        }
+        if (layout < 2) {
+          translate([card_box_width, 0, -player_board_thickness * 4]) {
+            TouristTileBox();
           }
         }
       }
-    }
-    translate([0, player_box_length + card_box_length + small_card_box_length, -player_board_thickness * 4]) {
-      DevelopmentCardBox();
-      translate([small_card_box_width, 0, 0]) {
-        DevelopmentCardBox();
+
+      if (layout < 2) {
+        translate([0, player_box_length + card_box_length, 0]) {
+          CarriageCardBox();
+          translate([small_card_box_width, 0, 0]) {
+            if (layout < 2) {
+              LocomotiveCardBox();
+              translate([small_card_box_width, 0, 0]) {
+                CityTileBox();
+                translate([city_tile_box_width, 0, -player_board_thickness * 4]) {
+                  FrontSpacerBox();
+                }
+              }
+            }
+          }
+        }
+      }
+
+      translate([0, player_box_length + card_box_length + small_card_box_length, -player_board_thickness * 4]) {
+        if (layout < 2) {
+          DevelopmentCardBox();
+        }
         translate([small_card_box_width, 0, 0]) {
-          for (i = [0:1]) {
-            translate([0, 0, resource_box_height * i]) {
-              ResourceBox();
-              translate([0, resource_box_length, 0]) {
-                ResourceBox();
+          if (layout < 2) {
+            DevelopmentCardBox();
+          }
+          translate([small_card_box_width, 0, 0]) {
+            for (i = [0:1]) {
+              if (layout < 2 || i == 0) {
+                translate([0, 0, resource_box_height * i]) {
+                  ResourceBox(material_colour=["brown", "blue"][i]);
+                  translate([0, resource_box_length, 0]) {
+                    ResourceBox(material_colour=["purple", "black"][i]);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      if (layout < 2) {
+        translate([0, player_box_length + card_box_length + small_card_box_length * 2, -player_board_thickness * 4]) {
+          IndicatorBox();
+          translate([indicator_box_width, 0, 0]) {
+            translate([0, resource_box_five_height, 0]) {
+              rotate([90, 0, 0]) {
+                ResourceBoxFive(material_colour="orange");
               }
             }
           }
         }
       }
     }
-    translate([0, player_box_length + card_box_length + small_card_box_length * 2, -player_board_thickness * 4]) {
-      IndicatorBox();
-      translate([indicator_box_width, 0, 0]) {
-        translate([0, spacer_side_length, 0]) {
-          rotate([90, 0, 0]) {
+  }
+  translate([0, 0, board_thickness + player_board_thickness * 4]) {
 
-            ResourceBoxFive();
-          }
-        }
-      }
+    translate([player_board_width, 0, -player_board_thickness * 4]) {
+      SpacerPlayerBoardBox();
     }
   }
 }
 
+module BoxLayoutOne() // `document` me
+{
+  BoxLayout(layout=1);
+}
+
+module BoxLayoutTwo() // `document` me
+{
+  BoxLayout(layout=2);
+}
+
+module BoxLayoutThree() // `document` me
+{
+  BoxLayout(layout=3);
+}
+
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  BoxLayoutThree();
 }

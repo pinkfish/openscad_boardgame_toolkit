@@ -12,6 +12,7 @@ class ScadFile:
 
 onlyfiles =glob.glob("./*.scad")
 data: list[ScadFile] = []
+docs: list[ScadFile] = []
 for fname in onlyfiles:
     with open(fname, 'r') as file:
        for line in file:
@@ -21,9 +22,16 @@ for fname in onlyfiles:
                fdata = re.search(".*/(.*).scad", fname)
                # Search and replace.
                data.append(ScadFile(fname, x.group(1), fdata.group(1)))
+           x = re.search("^module *([a-zA-Z0-9_-]*)\\(.*\\).*`document` me", line)
+           if x:
+               fdata = re.search(".*/(.*).scad", fname)
+               # Search and replace.
+               docs.append(ScadFile(fname, x.group(1), fdata.group(1)))
 
 with open("generate.makefile", "w") as mfile:
-    mfile.write("all: 3mfmerge {0} {1}\n\n".format(" " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".3mf", data)), " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".stl", data))))
+    mfile.write("all: 3mfmerge {0} {1} {2}\n\n".format(" " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".3mf", data)), 
+                                                       " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".stl", data)),
+                                                       " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", docs))))
     mfile.write(".SECONDARY: {0}\n\n".format(" " .join(map(lambda x: "output/" + x.basename + "__" +  x.module + ".scad", data))))
 
     for d in data:
@@ -37,6 +45,23 @@ with open("generate.makefile", "w") as mfile:
         scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\n$fn = 128;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
         file_data = ""
         output_fname = "output/{0}__{1}.scad".format(d.basename, d.module)
+        if os.path.exists(output_fname):
+            with open(output_fname, 'r') as file:
+                file_data = file.read()
+        # Only write the file if it is different.
+        if file_data != scad_script:
+            with open(output_fname, "w") as f:
+                f.write(scad_script)
+                f.close()
+
+    for d in docs:
+        # Extra frogs
+        mfile.write("release/{0}/{1}.png: output/{0}__{1}_docs.scad {0}.scad\n".format(d.basename, d.module))
+        mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make --backend=manifold --csglimit=10000000 --enable textmetrics --enable object-function --viewall --imgsize=1024,1024 -o $@ -d output/{0}__{1}_docs.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
+        # Create the scad file.
+        scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
+        file_data = ""
+        output_fname = "output/{0}__{1}_docs.scad".format(d.basename, d.module)
         if os.path.exists(output_fname):
             with open(output_fname, 'r') as file:
                 file_data = file.read()
