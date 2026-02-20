@@ -83,6 +83,10 @@ station_cards = 36;
 objective_cards = 18;
 route_cards = 7;
 
+indicator_octogon_width = 16.5;
+indicator_octogon_length = 24;
+indicator_octogon_diameter = 17.318;
+
 card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
 station_card_box_height = usable_height;
@@ -105,11 +109,15 @@ tourist_tile_box_height = box_height - board_thickness;
 
 resource_box_length = (box_length - player_box_length - card_box_length - small_card_box_length) / 2;
 resource_box_width = box_width - 2 * small_card_box_width;
-resource_box_height = (box_height - board_thickness) / 3;
+resource_box_height = (box_height - board_thickness) / 2;
 
-spacer_side_length = box_length - player_box_length - card_box_length - small_card_box_length * 2 - 1;
-spacer_side_width = small_card_box_width * 2;
-spacer_side_height = box_height - board_thickness;
+indicator_box_length = box_length - player_box_length - card_box_length - small_card_box_length * 2 - 1;
+indicator_box_width = indicator_octogon_diameter * 4 + default_wall_thickness * 2 + 2;
+indicator_box_height = box_height - board_thickness;
+
+resource_box_five_width = small_card_box_width * 2 - indicator_box_width;
+resource_box_five_length = box_height - board_thickness;
+resource_box_five_height = indicator_box_length;
 
 spacer_front_length = small_card_box_length;
 spacer_front_width = tourist_tile_box_width;
@@ -351,22 +359,25 @@ module TouristTileBoxLid() // `make` me
   );
 }
 
-module PlayerBox() // `make` me
+module PlayerBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
     width=player_box_width, length=player_box_length, height=player_box_height,
     positive_negative_children=MAKE_MMU == 1 ? [1] : [],
+    material_colour=material_colour
   ) {
     union() {
       translate([0, 0, $inner_height - 4])
         RoundedBoxAllSides(width=$inner_width - train_length - 2, length=$inner_length, height=player_box_height, radius=3);
-      translate([1, 5, $inner_height - cube_size - 0.5]) {
+      translate([5 + cube_size * 3 + train_length * 3, 0, $inner_height - 4])
+        RoundedBoxAllSides(width=cube_size + 1 + 6, length=cube_size * 2 + 2, height=player_box_height, radius=3);
+      translate([1, 7, $inner_height - train_height - 0.5]) {
+        cuboid([train_length * 3, train_width * 10, train_height + 1], anchor=BOTTOM + LEFT + FRONT);
+      }
+      translate([train_length * 3 + 15, 5, $inner_height - cube_size - 0.5]) {
         cuboid([cube_size * 2, cube_size * 11, cube_size + 1], anchor=BOTTOM + LEFT + FRONT);
         translate([-0.25 + cube_size * 2, 0, 0])
-          cuboid([cube_size + 0.25, cube_size, cube_size + 1], anchor=BOTTOM + LEFT + FRONT);
-      }
-      translate([8 + cube_size * 3, 7, $inner_height - train_height - 0.5]) {
-        cuboid([train_length * 3, train_width * 10, train_height + 1], anchor=BOTTOM + LEFT + FRONT);
+          cuboid([cube_size + 1, cube_size, cube_size + 1], anchor=BOTTOM + LEFT + FRONT);
       }
       translate([17.5 + cube_size * 3 + train_length * 3, train_width * 3 + 16, $inner_height - disc_thickness - 0.5]) {
         CylinderWithIndents(
@@ -381,8 +392,8 @@ module PlayerBox() // `make` me
         );
       }
 
-      for (i = [0:3]) {
-        translate([cube_size * 2 + 2 + house_top_width / 2, cube_size * 2 + 23 + (house_length + 2) * i, $inner_height - 5]) {
+      for (i = [0:4]) {
+        translate([train_length * 3 + 2 + house_top_width / 2, 24 + (house_length + 2) * i, $inner_height - 5]) {
           rotate([90, 0, 0])
             StationPiece(house_length);
           translate([-house_top_width / 2, -4 - house_length, 0])
@@ -392,12 +403,12 @@ module PlayerBox() // `make` me
     }
 
     union() {
-      translate([1 + cube_size * 1, 3 + cube_size * 11 / 2, $inner_height - cube_size - 0.7]) {
+      translate([1 + cube_size * 8.2, 3 + cube_size * 11 / 2, $inner_height - cube_size - 0.7]) {
         rotate(90)
           linear_extrude(height=0.2)
             text("Cubes", size=5, font="Impact", halign="center", valign="center");
       }
-      translate([1 + cube_size * 6.5, 3 + cube_size * 11 / 2, $inner_height - train_height - 0.7]) {
+      translate([1 + train_length * 1.5, 3 + cube_size * 11 / 2, $inner_height - train_height - 0.7]) {
         rotate(90)
           linear_extrude(height=0.2)
             text("Trains", size=5, font="Impact", halign="center", valign="center");
@@ -406,23 +417,70 @@ module PlayerBox() // `make` me
   }
 }
 
-module ResourceBox() // `make` me
+module ResourceBox(material_colour) // `make` me
 {
   MakeBoxWithCapLid(
     width=resource_box_width, length=resource_box_length, height=resource_box_height,
+    material_colour=material_colour,
   ) {
     RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
   }
 }
 
+module IndicatorBox() // `make` me
+{
+  MakeBoxWithSlidingLid(width=indicator_box_width, length=indicator_box_length, height=indicator_box_height) {
+    for (i = [0:3]) {
+      translate([indicator_octogon_width / 2 + indicator_octogon_diameter * i, indicator_octogon_width / 2 - 1, $inner_height - indicator_octogon_length]) {
+        rotate(20)
+          cyl(
+            d=indicator_octogon_diameter, h=indicator_octogon_length * 2, $fn=8,
+            anchor=BOTTOM
+          );
+        translate([0, -5, 0])
+          cuboid([8, 20, indicator_octogon_length * 2], rounding=3, anchor=BOTTOM);
+      }
+    }
+  }
+}
+
+module IndicatorBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=indicator_box_width, length=indicator_box_length, text_str="Indicators",
+  );
+}
+
+module ResourceBoxFive() // `make` me
+{
+  MakeBoxWithCapLid(
+    width=resource_box_five_width, length=resource_box_five_length, height=resource_box_five_height,
+    positive_negative_children=MAKE_MMU == 1 ? [1] : [],
+  ) {
+    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_five_height, radius=5);
+    union() {
+      translate([$inner_width / 2, -default_wall_thickness + 0.4, 3])
+        rotate([90, 0, 0])
+          linear_extrude(height=40)
+            text("Resource", size=5, font="Impact", halign="center", valign="center");
+      translate([$inner_width / 2, $inner_length + default_wall_thickness - 0.398, 3])
+        rotate([90, 0, 180])
+          linear_extrude(height=0.4)
+            text("Resource", size=5, font="Impact", halign="center", valign="center");
+    }
+  }
+}
+
+module ResourceBoxFiveLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=resource_box_five_width, length=resource_box_five_length, height=resource_box_five_height, text_str="Resource",
+  );
+}
+
 module FrontSpacerBox() // `make` me
 {
   MakeBoxWithNoLid(width=spacer_front_width, length=spacer_front_length, height=spacer_front_height, hollow=true);
-}
-
-module SideSpacerBox() // `make` me
-{
-  MakeBoxWithNoLid(width=spacer_side_width, length=spacer_side_length, height=spacer_side_height, hollow=true);
 }
 
 module SpacerPlayerBoardBox() // `make` me
@@ -439,7 +497,7 @@ module SpacerPlayerBoardBox() // `make` me
     [spacer_box_width, 0],
   ];
   MakePathBoxWithNoLid(
-    path=box_path, height=player_board_thickness * 4, hollow=true, 
+    path=box_path, height=player_board_thickness * 4, hollow=true,
     $fn=16
   );
 }
@@ -452,15 +510,15 @@ module BoxLayout() {
   }
   translate([0, 0, board_thickness + player_board_thickness * 4]) {
 
-    PlayerBox();
+    PlayerBox(material_colour="green");
     translate([0, 0, player_box_height]) {
-      PlayerBox();
+      PlayerBox(material_colour="blue");
     }
     translate([player_box_width, 0, 0]) {
-      PlayerBox();
+      PlayerBox(material_colour="red");
     }
     translate([player_box_width, 0, player_box_height]) {
-      PlayerBox();
+      PlayerBox(material_colour="orange");
     }
     translate([player_board_width, 0, -player_board_thickness * 4]) {
       SpacerPlayerBoardBox();
@@ -470,9 +528,9 @@ module BoxLayout() {
     }
 
     translate([card_box_width, player_box_length, 0]) {
-      // ObjectiveCardBox();
+      ObjectiveCardBox();
       translate([0, 0, objective_card_box_height]) {
-        //   RouteCardBox();
+        RouteCardBox();
       }
       translate([card_box_width, 0, -player_board_thickness * 4]) {
         TouristTileBox();
@@ -495,7 +553,7 @@ module BoxLayout() {
       translate([small_card_box_width, 0, 0]) {
         DevelopmentCardBox();
         translate([small_card_box_width, 0, 0]) {
-          for (i = [0:2]) {
+          for (i = [0:1]) {
             translate([0, 0, resource_box_height * i]) {
               ResourceBox();
               translate([0, resource_box_length, 0]) {
@@ -507,11 +565,19 @@ module BoxLayout() {
       }
     }
     translate([0, player_box_length + card_box_length + small_card_box_length * 2, -player_board_thickness * 4]) {
-      SideSpacerBox();
+      IndicatorBox();
+      translate([indicator_box_width, 0, 0]) {
+        translate([0, spacer_side_length, 0]) {
+          rotate([90, 0, 0]) {
+
+            ResourceBoxFive();
+          }
+        }
+      }
     }
   }
 }
 
 if (FROM_MAKE != 1) {
-  SpacerPlayerBoardBox();
+  BoxLayout();
 }

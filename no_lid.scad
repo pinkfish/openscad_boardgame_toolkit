@@ -222,7 +222,6 @@ module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, wall_th
   angle = atan(normal[0][1] / normal[0][0]);
 
   if (split_length > finger_hole_size * 2.5 && (angle < 90 && angle > -90 ? make_finger_length : make_finger_width)) {
-    echo([split_length, finger_hole_size, angle]);
     pts = path_cut_points(
       path=path,
       cutdist=[split_length / 2]
