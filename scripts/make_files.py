@@ -13,25 +13,31 @@ class ScadFile:
 onlyfiles =glob.glob("./*.scad")
 data: list[ScadFile] = []
 docs: list[ScadFile] = []
+packing: dict[str, list[ScadFile]] = dict()
+
 for fname in onlyfiles:
     with open(fname, 'r') as file:
+       fdata = re.search(".*/(.*).scad", fname)
+       assert fdata
        for line in file:
            line = line.strip()
            x = re.search("^module *([a-zA-Z0-9_-]*)\\(.*\\).*`make` me", line)
            if x:
-               fdata = re.search(".*/(.*).scad", fname)
                # Search and replace.
                data.append(ScadFile(fname, x.group(1), fdata.group(1)))
            x = re.search("^module *([a-zA-Z0-9_-]*)\\(.*\\).*`document` me", line)
            if x:
-               fdata = re.search(".*/(.*).scad", fname)
                # Search and replace.
                docs.append(ScadFile(fname, x.group(1), fdata.group(1)))
+               if fdata.group(1) not in packing:
+                   packing[fdata.group(1)] = []
+               packing[fdata.group(1)].append(ScadFile(fname, x.group(1), fdata.group(1)))
 
 with open("generate.makefile", "w") as mfile:
-    mfile.write("all: 3mfmerge {0} {1} {2}\n\n".format(" " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".3mf", data)), 
+    mfile.write("all: 3mfmerge {0} {1} {2} {3}\n\n".format(" " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".3mf", data)), 
                                                        " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".stl", data)),
-                                                       " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", docs))))
+                                                       " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", docs)),
+                                                       " " .join(map(lambda x: "release/" + x + "/packing.pdf", packing))))
     mfile.write(".SECONDARY: {0}\n\n".format(" " .join(map(lambda x: "output/" + x.basename + "__" +  x.module + ".scad", data))))
 
     for d in data:
@@ -70,3 +76,10 @@ with open("generate.makefile", "w") as mfile:
             with open(output_fname, "w") as f:
                 f.write(scad_script)
                 f.close()
+
+    for d in packing:
+        # Extra frogs
+        mfile.write("release/{0}/packing.pdf: {1}\n".format(
+            d,
+            " ".join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", packing[d]))))
+        mfile.write("\t-../scripts/img2pdf/src/img2pdf.py $(shell printf \"%s \" $^ | sort -n) -o release/{0}/packing.pdf".format(d))

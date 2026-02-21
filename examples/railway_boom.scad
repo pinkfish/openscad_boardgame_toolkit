@@ -649,21 +649,21 @@ module BoxLayout(layout = 0) {
   }
 }
 
-module BoxLayoutOne() // `document` me
+module BoxLayoutA() // `document` me
 {
   BoxLayout(layout=1);
 }
 
-module BoxLayoutTwo() // `document` me
+module BoxLayoutB() // `document` me
 {
   BoxLayout(layout=2);
 }
 
-module BoxLayoutThree() // `document` me
+module BoxLayoutC() // `document` me
 {
   BoxLayout(layout=3);
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutThree();
+  BoxLayoutC();
 }
