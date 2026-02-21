@@ -163,7 +163,8 @@ module MakeMainLidLabelSolid(
           full_height ? lid_thickness - default_slicing_layer_height
           : lid_thickness / 2 - default_slicing_layer_height,
         ],
-        rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+        rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2,
+        edges="Z", anchor=FRONT + LEFT + BOTTOM
       );
 
     calc_background_colour = DefaultValue(label_background_colour, default_label_background_colour);
@@ -171,7 +172,7 @@ module MakeMainLidLabelSolid(
       color(material_colour)
         cuboid(
           size=[width, length, full_height || border > 0 ? lid_thickness : lid_thickness / 2],
-          rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+          rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
         );
 
       translate(
@@ -184,10 +185,14 @@ module MakeMainLidLabelSolid(
             )
           : -0.5,
         ]
-      ) color(material_colour) cuboid(
-            size=[width - border * 2, length - border * 2, lid_thickness + 1],
-            rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+      ) color(material_colour) {
+          w = width - border * 2;
+          l = length - border * 2;
+          cuboid(
+            size=[w, l, lid_thickness + 1],
+            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
+        }
     }
 
     translate(
@@ -198,11 +203,14 @@ module MakeMainLidLabelSolid(
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
     ) difference() {
-        translate([border + 0.01, border + 0.01, 0]) color(calc_background_colour)
+        translate([border + 0.01, border + 0.01, 0]) color(calc_background_colour) {
+            w = width - border * 2 - 0.02;
+            l = length - border * 2 - 0.02;
             cuboid(
-              size=[width - border * 2 - 0.02, length - border * 2 - 0.02, default_slicing_layer_height],
-              rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+              size=[w, l, default_slicing_layer_height],
+              rounding=radius * 2 < min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
             );
+          }
         translate([0, 0, -1]) color(calc_background_colour) TextShape(text_height=default_slicing_layer_height + 21, calc_font=calc_font);
       }
   }
@@ -273,10 +281,12 @@ module MakeMainLidLabelStriped(
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
     ) intersection() {
+        w = width - border * 2;
+        l = length - border * 2;
         translate([border + 0.01, border + 0.01, 0]) color(calc_background_color)
             cuboid(
-              size=[width - border * 2, length - border * 2, default_slicing_layer_height],
-              rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+              size=[w, l, default_slicing_layer_height],
+              rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
             );
         translate([0, 0, -default_slicing_layer_height / 2]) color(calc_background_color)
             linear_extrude(height=default_slicing_layer_height * 2)
@@ -284,16 +294,19 @@ module MakeMainLidLabelStriped(
       }
 
     intersection() {
-      translate([border, border, 0]) color(material_colour)
+      translate([border, border, 0]) color(material_colour) {
+          w = width - border * 2;
+          l = length - border * 2;
           cuboid(
             size=[
-              width - border * 2,
-              length - border * 2,
+              w,
+              l,
               full_height ? lid_thickness - default_slicing_layer_height
               : lid_thickness / 2 - default_slicing_layer_height,
             ],
-            rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
+        }
 
       color(material_colour) linear_extrude(height=lid_thickness)
           MakeStripedGrid(width=width, length=length);
@@ -304,10 +317,12 @@ module MakeMainLidLabelStriped(
     calc_font = DefaultValue(font, default_label_font);
     calc_background_color = DefaultValue(label_background_colour, default_label_background_colour);
     difference() {
+      z = full_height || border > 0 ? lid_thickness : lid_thickness / 2;
       color(material_colour)
         cuboid(
-          size=[width, length, full_height || border > 0 ? lid_thickness : lid_thickness / 2],
-          rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+          size=[width, length, z],
+          rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2, edges="Z",
+          anchor=FRONT + LEFT + BOTTOM
         );
 
       translate(
@@ -316,10 +331,15 @@ module MakeMainLidLabelStriped(
           border,
           -0.5,
         ]
-      ) color(material_colour) cuboid(
-            size=[width - border * 2, length - border * 2, lid_thickness + 1],
-            rounding=radius, edges="Z", anchor=FRONT + LEFT + BOTTOM
+      ) color(material_colour) {
+          w = width - border * 2;
+          l = length - border * 2;
+          cuboid(
+            size=[w, l, lid_thickness + 1],
+            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2,
+            edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
+        }
     }
 
     translate(

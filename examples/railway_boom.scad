@@ -546,16 +546,10 @@ module BoxLayout(layout = 0) {
   if (layout == 0) {
     cube([1, box_length, box_height]);
   }
-  color("lightblue")
-    cube([box_width, box_length, board_thickness]);
-  color("aquamarine")
-    translate([0, 0, board_thickness]) {
-      cube([player_board_width, player_board_length, player_board_thickness * 4]);
-    }
-  if (layout < 3) {
-    translate([0, 0, board_thickness + player_board_thickness * 4]) {
+  if (layout < 5) {
+    translate([0, 0, 0]) {
       PlayerBox(material_colour="green");
-      if (layout < 2) {
+      if (layout < 4) {
         translate([0, 0, player_box_height]) {
           PlayerBox(material_colour="blue");
         }
@@ -563,12 +557,12 @@ module BoxLayout(layout = 0) {
       translate([player_box_width, 0, 0]) {
         PlayerBox(material_colour="red");
       }
-      if (layout < 2) {
+      if (layout < 4) {
         translate([player_box_width, 0, player_box_height]) {
           PlayerBox(material_colour="white");
         }
       }
-      if (layout < 2) {
+      if (layout < 4) {
         translate([0, player_box_length, 0]) {
           StationCardBox();
         }
@@ -577,26 +571,26 @@ module BoxLayout(layout = 0) {
       translate([card_box_width, player_box_length, 0]) {
         ObjectiveCardBox();
         translate([0, 0, objective_card_box_height]) {
-          if (layout < 2) {
+          if (layout < 4) {
             RouteCardBox();
           }
         }
-        if (layout < 2) {
-          translate([card_box_width, 0, -player_board_thickness * 4]) {
+        if (layout < 3) {
+          translate([card_box_width, 0, 0]) {
             TouristTileBox();
           }
         }
       }
 
-      if (layout < 2) {
+      if (layout < 4) {
         translate([0, player_box_length + card_box_length, 0]) {
           CarriageCardBox();
           translate([small_card_box_width, 0, 0]) {
-            if (layout < 2) {
-              LocomotiveCardBox();
-              translate([small_card_box_width, 0, 0]) {
+            LocomotiveCardBox();
+            translate([small_card_box_width, 0, 0]) {
+              if (layout < 3) {
                 CityTileBox();
-                translate([city_tile_box_width, 0, -player_board_thickness * 4]) {
+                translate([city_tile_box_width, 0, 0]) {
                   FrontSpacerBox();
                 }
               }
@@ -605,17 +599,17 @@ module BoxLayout(layout = 0) {
         }
       }
 
-      translate([0, player_box_length + card_box_length + small_card_box_length, -player_board_thickness * 4]) {
-        if (layout < 2) {
+      translate([0, player_box_length + card_box_length + small_card_box_length, 0]) {
+        if (layout < 4) {
           DevelopmentCardBox();
         }
         translate([small_card_box_width, 0, 0]) {
-          if (layout < 2) {
+          if (layout < 4) {
             DevelopmentCardBox();
           }
           translate([small_card_box_width, 0, 0]) {
             for (i = [0:1]) {
-              if (layout < 2 || i == 0) {
+              if (layout < 3 || i == 0) {
                 translate([0, 0, resource_box_height * i]) {
                   ResourceBox(material_colour=["brown", "blue"][i]);
                   translate([0, resource_box_length, 0]) {
@@ -627,8 +621,8 @@ module BoxLayout(layout = 0) {
           }
         }
       }
-      if (layout < 2) {
-        translate([0, player_box_length + card_box_length + small_card_box_length * 2, -player_board_thickness * 4]) {
+      if (layout < 3) {
+        translate([0, player_box_length + card_box_length + small_card_box_length * 2, 0]) {
           IndicatorBox();
           translate([indicator_box_width, 0, 0]) {
             translate([0, resource_box_five_height, 0]) {
@@ -641,12 +635,22 @@ module BoxLayout(layout = 0) {
       }
     }
   }
-  translate([0, 0, board_thickness + player_board_thickness * 4]) {
-
-    translate([player_board_width, 0, -player_board_thickness * 4]) {
-      SpacerPlayerBoardBox();
+  if (layout < 3)
+    translate([0, 0, box_height - board_thickness - player_board_thickness * 4]) {
+      translate([player_board_width, 0, 0]) {
+        SpacerPlayerBoardBox();
+      }
     }
-  }
+
+  if (layout < 2)
+    color("lightblue")
+      translate([0, 0, box_height - board_thickness])
+        cube([box_width, box_length, board_thickness]);
+  if (layout < 3)
+    color("aquamarine")
+      translate([0, 0, box_height - board_thickness - player_board_thickness * 4]) {
+        cube([player_board_width, player_board_length, player_board_thickness * 4]);
+      }
 }
 
 module BoxLayoutA() // `document` me
@@ -664,6 +668,11 @@ module BoxLayoutC() // `document` me
   BoxLayout(layout=3);
 }
 
+module BoxLayoutD() // `document` me
+{
+  BoxLayout(layout=4);
+}
+
 if (FROM_MAKE != 1) {
-  BoxLayoutC();
+  BoxLayoutD();
 }
