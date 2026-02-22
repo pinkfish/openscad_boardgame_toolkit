@@ -50,8 +50,8 @@ big_baby_width = 39;
 big_baby_length = 35.5;
 big_baby_thickness = 32;
 
-gold_height = [25, 23, 23, 21];
-gold_width = [32, 29, 29, 26];
+gold_height = [25, 23, 21];
+gold_width = [32, 29, 26];
 
 silver_diameter = [21.75, 18.5, 15.5];
 silver_tag_width = [11, 10, 8.5];
@@ -448,7 +448,7 @@ module AwardBox() // `make` me
         translate(
           [
             (silver_diameter[0] + 5) * (i + 0.5),
-            $inner_length - silver_diameter[0] / 2 - 1.5,
+            $inner_length - silver_diameter[i] / 2 - 1.5,
             $inner_height - cardboard_thickness * (i == 1 ? 2 : 1),
           ]
         ) {
@@ -461,22 +461,22 @@ module AwardBox() // `make` me
       }
     }
     union() {
-      translate([(gold_height[0] + 3) * (0 + 0) + 4, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+      translate([(gold_height[0] + 3) * (0 + 0) + 4, $inner_length / 2 + 4, $inner_height - default_slicing_layer_height]) {
         linear_extrude(h=default_slicing_layer_height + 0.01)
           rotate(270)
             text("1st", valign="center", halign="center", size=5);
       }
-      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 15, $inner_height - default_slicing_layer_height]) {
+      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 18.5, $inner_height - default_slicing_layer_height]) {
         linear_extrude(h=default_slicing_layer_height + 0.01)
           rotate(270)
             text("2nd", valign="center", halign="center", size=5);
       }
-      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+      translate([(gold_height[0] + 3) * (1) - 0.5, $inner_length / 2 + 5, $inner_height - default_slicing_layer_height]) {
         linear_extrude(h=default_slicing_layer_height + 0.01)
           rotate(270)
             text("3rd", valign="center", halign="center", size=5);
       }
-      translate([(gold_height[0] + 3) * (2) - 0.5, $inner_length / 2 + 3, $inner_height - default_slicing_layer_height]) {
+      translate([(gold_height[0] + 3) * (2) - 0.5, $inner_length / 2 + 15, $inner_height - default_slicing_layer_height]) {
         linear_extrude(h=default_slicing_layer_height + 0.01)
           rotate(270)
             text("4th", valign="center", halign="center", size=5);
