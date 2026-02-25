@@ -61,6 +61,7 @@ card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
 card_box_height = box_height - board_thickness;
 
+
 dice_box_width = box_width - card_box_width;
 dice_box_length = card_box_length;
 dice_box_height = dice_size + default_floor_thickness + default_lid_thickness + 1;

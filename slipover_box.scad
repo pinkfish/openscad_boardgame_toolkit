@@ -411,12 +411,6 @@ module SlipoverBoxLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    label_border = border of the item (default 2)
-//    label_offset = offset in from the edge for the label (default 4)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -426,7 +420,6 @@ module SlipoverBoxLid(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    finger_hole_length = finger hole on the length side (default6 false)
 //    finger_hole_width = finger hole on the width side (default true)
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - length catch, {{CATCH_LONG}} - width catch (default
@@ -442,19 +435,11 @@ module SlipoverBoxLidWithLabelAndCustomShape(
   length,
   height,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
-  label_type = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
-  font = undef,
   lid_rounding = undef,
   wall_thickness = default_wall_thickness,
   foot = 0,
@@ -462,12 +447,17 @@ module SlipoverBoxLidWithLabelAndCustomShape(
   finger_hole_width = true,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
   lid_catch = default_lid_catch_type,
-  pattern_inner_control
+  pattern_inner_control,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
 
@@ -490,12 +480,8 @@ module SlipoverBoxLidWithLabelAndCustomShape(
     }
     MakeLidLabel(
       width=width, length=length,
-      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, text_str=text_str,
-      label_radius=label_radius,
-      material_colour=material_colour, label_colour=label_colour,
-      label_background_colour=label_background_colour,
-      label_type=label_type,
+      lid_thickness=lid_thickness,
+      options=object(calc_label_options, full_height=true), text_str=text_str
     );
 
     // Don't include the first child since is it used for the lid shape.
@@ -532,18 +518,11 @@ module SlipoverBoxLidWithLabelAndCustomShape(
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   text_str = the string to use for the label
-//   text_length = the length of the text to use (defaults to 3/4 of length/width)
-//   text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//   label_radius = radius of the label corners (default text_width/4)
-//   label_type = the type of the label (default {{default_label_type}})
-//   border= border of the item (default 2)
-//   offset = offset in from the edge for the label (default 4)
 //   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //   shape_width = width of the shape (default {{default_lid_shape_width}})
 //   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //   finger_hole_length = finger hole on the length side (default6 false)
 //   finger_hole_width = finger hole on the width side (default true)
 //   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
@@ -556,15 +535,8 @@ module SlipoverBoxLidWithLabel(
   length,
   height,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
-  label_type = undef,
   foot = 0,
   layout_width = undef,
   shape_width = undef,
@@ -575,27 +547,32 @@ module SlipoverBoxLidWithLabel(
   lid_thickness = default_lid_thickness,
   finger_hole_length = false,
   finger_hole_width = true,
-  font = undef,
   lid_rounding = undef,
   shape_rounding = default_lid_shape_rounding,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
   lid_catch = default_lid_catch_type,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
   SlipoverBoxLidWithLabelAndCustomShape(
     width=width, length=length, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
-    font=font, text_str=text_str,
-    label_radius=label_radius, text_length=text_length, text_scale=text_scale, layout_width=layout_width,
+    text_str=text_str,
+    layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
+    lid_boundary=lid_boundary,
     finger_hole_length=finger_hole_length, finger_hole_width=finger_hole_width, foot=foot,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour,
-    label_background_colour=label_background_colour, lid_catch=lid_catch,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type), label_type=label_type
+    lid_catch=lid_catch,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(

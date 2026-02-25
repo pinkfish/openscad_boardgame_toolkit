@@ -206,19 +206,12 @@ module InsetLidTabbedWithLabelAndCustomShape(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
-  font = undef,
   lid_rounding = undef,
   tab_length = 10,
   tab_height = 8,
@@ -226,10 +219,15 @@ module InsetLidTabbedWithLabelAndCustomShape(
   make_tab_length = true,
   prism_width = 0.75,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef,
-  label_colour = undef,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+      full_height=true
+    )
+  );
+
   InsetLidTabbed(
     width, length, lid_thickness=lid_thickness, tab_length=tab_length, tab_height=tab_height,
     lid_rounding=lid_rounding, prism_width=prism_width, make_tab_length=make_tab_length,
@@ -247,11 +245,9 @@ module InsetLidTabbedWithLabelAndCustomShape(
     }
     MakeLidLabel(
       width=width, length=length,
-      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
-      material_colour=material_colour,
-      label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size
+      options=object(calc_label_options, full_height=true),
+      lid_thickness=lid_thickness,
+      text_str=text_str,
     );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -318,13 +314,8 @@ module InsetLidTabbedWithLabel(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
   tab_length = 10,
   tab_height = 8,
   make_tab_width = false,
@@ -336,24 +327,26 @@ module InsetLidTabbedWithLabel(
   aspect_ratio = undef,
   shape_thickness = undef,
   lid_rounding = undef,
-  font = undef,
   size_spacing = m_piece_wiggle_room,
-  label_offset = 4,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef,
-  label_colour = undef,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+      full_height=true
+    )
+  );
+
   InsetLidTabbedWithLabelAndCustomShape(
     width=width, length=length, lid_thickness=lid_thickness, tab_length=tab_length,
     prism_width=prism_width, tab_height=tab_height, make_tab_width=make_tab_width,
-    make_tab_length=make_tab_length, font=font, text_str=text_str, label_radius=label_radius, text_length=text_length,
-    text_scale=text_scale, label_type=label_type,
+    make_tab_length=make_tab_length, text_str=text_str,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
-    label_border=label_border, label_offset=label_offset, material_colour=material_colour,
-    label_background_colour=label_background_colour,
-    finger_hole_size=finger_hole_size, label_colour=label_colour, lid_rounding=lid_rounding, 
+    material_colour=material_colour,
+    lid_rounding=lid_rounding,
+    label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(
@@ -632,19 +625,12 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
-  font = undef,
   lid_rounding = undef,
   make_rabbit_width = false,
   make_rabbit_length = true,
@@ -659,10 +645,15 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef,
-  label_colour = undef,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+      full_height=true
+    )
+  );
+
   InsetLidRabbitClip(
     width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
     make_rabbit_width=make_rabbit_width, rabbit_width=rabbit_width,
@@ -684,12 +675,8 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
     }
     MakeLidLabel(
       width=width, length=length,
-      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str,
-      label_radius=label_radius,
-      material_colour=material_colour,
-      label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size, label_colour=label_colour
+      options=object(calc_label_options, full_height=true),
+      lid_thickness=lid_thickness, text_str=text_str,
     );
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -759,15 +746,9 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
 module InsetLidRabbitClipWithLabel(
   width,
   length,
-  text_length,
   text_str,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_thickness = 3,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   make_rabbit_width = false,
   make_rabbit_length = true,
   rabbit_width = 7,
@@ -784,26 +765,29 @@ module InsetLidRabbitClipWithLabel(
   aspect_ratio = undef,
   rabbit_depth = 1.5,
   lid_rounding = undef,
-  font = undef,
   size_spacing = m_piece_wiggle_room,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef,
-  label_colour = undef,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+      full_height=true
+    )
+  );
+
   InsetLidRabbitClipWithLabelAndCustomShape(
     width, length, lid_thickness=lid_thickness, make_rabbit_length=make_rabbit_length,
     make_rabbit_width=make_rabbit_width, rabbit_width=rabbit_width, rabbit_length=rabbit_length,
     rabbit_lock=rabbit_lock, rabbit_offset=rabbit_offset, rabbit_thickness=rabbit_thickness,
-    rabbit_compression=rabbit_compression, rabbit_depth=rabbit_depth, lid_rounding=lid_rounding, font=font,
-    text_str=text_str, label_radius=label_radius,
-    text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width, size_spacing=size_spacing,
-    aspect_ratio=aspect_ratio, label_border=label_border, label_offset=label_offset,
+    rabbit_compression=rabbit_compression, rabbit_depth=rabbit_depth, lid_rounding=lid_rounding,
+    text_str=text_str,
+    layout_width=layout_width, size_spacing=size_spacing,
+    aspect_ratio=aspect_ratio,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour,
-    label_background_colour=label_background_colour,
-    finger_hole_size=finger_hole_size, label_colour=label_colour,
+    label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(

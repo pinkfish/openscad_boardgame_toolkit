@@ -29,6 +29,51 @@ under the License.
 // Section: Labels
 //   Building blocks for making labels.
 
+// Function: MakeLabelOptions()
+// Arguments:
+//   text_scale = the scale of the font to use
+//   font = the font to use for the text (default {{default_label_font}})
+//   label_colour = the label colour to use (default {{default_label_colour}})
+//   solid_background = if the background should be solid (default false)
+//   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
+//   label_diff = how much to move the label (default [0, 0])
+// Topics: Label
+function MakeLabelOptions(
+  text_scale = 1.0,
+  text_length = undef,
+  angle = 0,
+  label_colour = default_label_colour,
+  label_background_colour = default_label_background_colour,
+  short_length = false,
+  label_diff = [0, 0],
+  border = 2,
+  offset = 4,
+  radius = 5,
+  label_background_colour = default_label_background_colour,
+  font = default_label_font,
+  full_height = false,
+  finger_hole_size = 10,
+  material_colour = default_material_colour,
+  label_type = default_label_type
+) =
+  object(
+    text_scale=text_scale,
+    text_length=text_length,
+    angle=angle,
+    label_colour=label_colour,
+    label_background_colour=label_background_colour,
+    label_diff=label_diff,
+    border=border,
+    offset=offset,
+    radius=radius,
+    full_height=full_height,
+    font=font,
+    short_length=short_length,
+    finger_hole_size=finger_hole_size,
+    material_colour=material_colour,
+    label_type=label_type
+  );
+
 // Module: MakeStripedGrid()
 // Description:
 //   Creates a background striped grid, this is used in the label space generation.
@@ -105,92 +150,88 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   label_colour = the label colour to use (default {{default_label_colour}})
 //   solid_background = if the background should be solid (default false)
 //   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
+//   label_diff = how much to move the label (default [0, 0])
 // Topics: Label
 // Example(Render):
-//   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2, label = "Australia");
+//   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//     options=MakeLabelOptions());
 // Example(Render):
 //   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2, label = "Australia",
-//   full_height = true);
+//     options=MakeLabelOptions(full_height=true));
 // Example(Render):
 //   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2,label = "Australia",
-//   full_height = true, label_colour = "blue");
+//     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeMainLidLabelSolid(
   width,
   length,
   lid_thickness,
   label,
-  border = 2,
-  offset = 4,
-  font = default_label_font,
-  radius = 5,
-  full_height = false,
-  label_colour = undef,
-  material_colour = default_material_colour,
-  background_colour = undef,
-  solid_background = false,
-  label_background_colour = undef
+  options
 ) {
-  assert(width > border * 2, str("Width must be wider than double the offset width=", width, " offset=", offset, "border=", border));
-  assert(length > border * 2, str("Length must be wider than double the offset length=", length, " offset=", offset, "border=", border));
+  assert(width > options.border * 2, str("Width must be wider than double the offset width=", width, " offset=", options.offset, "border=", options.border));
+  assert(length > options.border * 2, str("Length must be wider than double the offset length=", length, " offset=", options.offset, "border=", options.border));
+  assert(label != undef, "Must specify a label");
+  assert(options != undef, "Must speify label options");
+
   module TextShape(calc_font, text_height = lid_thickness, edge_offset = 0) {
     linear_extrude(text_height) union() {
         // Edge box.
-        offset(edge_offset) translate([offset, offset, 0])
-            resize([width - offset * 2.5, length - offset * 2, 0], auto=true) {
+        offset(edge_offset) translate([options.offset, options.offset, 0])
+            resize([width - options.offset * 2.5, length - options.offset * 2, 0], auto=true) {
               text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom");
             }
       }
   }
-  translate([-width / 2, -length / 2, 0]) {
+  translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0]) {
 
-    calc_font = DefaultValue(font, default_label_font);
+    calc_font = DefaultValue(options.font, default_label_font);
 
     translate(
       [
         0,
         0,
-        full_height ? lid_thickness - default_slicing_layer_height
+        options.full_height ? lid_thickness - default_slicing_layer_height
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
-    ) color(DefaultValue(label_colour, default_label_colour))
+    ) color(DefaultValue(options.label_colour, default_label_colour))
         TextShape(text_height=default_slicing_layer_height + 0.01, calc_font=calc_font);
 
-    color(material_colour)
+    color(options.material_colour)
       cuboid(
         size=[
           width,
           length,
-          full_height ? lid_thickness - default_slicing_layer_height
+          options.full_height ? lid_thickness - default_slicing_layer_height
           : lid_thickness / 2 - default_slicing_layer_height,
         ],
-        rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2,
+        rounding=options.radius * 2 <= min(width, length) ? options.radius : min(width, length) / 2,
         edges="Z", anchor=FRONT + LEFT + BOTTOM
       );
 
-    calc_background_colour = DefaultValue(label_background_colour, default_label_background_colour);
+    calc_background_colour = DefaultValue(options.label_background_colour, default_label_background_colour);
     difference() {
-      color(material_colour)
+      color(options.material_colour)
         cuboid(
-          size=[width, length, full_height || border > 0 ? lid_thickness : lid_thickness / 2],
-          rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
+          size=[width, length, options.full_height || options.border > 0 ? lid_thickness : lid_thickness / 2],
+          rounding=options.radius * 2 <= min(width, length) ? options.radius : min(width, length) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
         );
 
       translate(
         [
-          border,
-          border,
-          solid_background ? (
-              full_height ? lid_thickness + default_slicing_layer_height
+          options.border,
+          options.border,
+          options.solid_background ? (
+              options.full_height ? lid_thickness + default_slicing_layer_height
               : lid_thickness / 2 + default_slicing_layer_height
             )
           : -0.5,
         ]
-      ) color(material_colour) {
-          w = width - border * 2;
-          l = length - border * 2;
+      ) color(options.material_colour) {
+          w = width - options.border * 2;
+          l = length - options.border * 2;
           cuboid(
             size=[w, l, lid_thickness + 1],
-            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            rounding=options.radius * 2 <= min(w, l) ? options.radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
         }
     }
@@ -199,16 +240,16 @@ module MakeMainLidLabelSolid(
       [
         0,
         0,
-        full_height ? lid_thickness - default_slicing_layer_height
+        options.full_height ? lid_thickness - default_slicing_layer_height
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
     ) difference() {
-        translate([border + 0.01, border + 0.01, 0]) color(calc_background_colour) {
-            w = width - border * 2 - 0.02;
-            l = length - border * 2 - 0.02;
+        translate([options.border + 0.01, options.border + 0.01, 0]) color(calc_background_colour) {
+            w = width - options.border * 2 - 0.02;
+            l = length - options.border * 2 - 0.02;
             cuboid(
               size=[w, l, default_slicing_layer_height],
-              rounding=radius * 2 < min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
+              rounding=options.radius * 2 < min(w, l) ? options.radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
             );
           }
         translate([0, 0, -1]) color(calc_background_colour) TextShape(text_height=default_slicing_layer_height + 21, calc_font=calc_font);
@@ -227,47 +268,34 @@ module MakeMainLidLabelSolid(
 //   length = length of the label section
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
-//   border = how wide the border is around the label (default 2)
-//   offset = how far in from the sides the text should be (default 4)
-//   font = the font to use for the text (default {{default_label_font}})
-//   radius = the radius of the corners on the label section (default 5)
-//   full_height = full height of the lid (default false)
-//   label_colour = the label colour to use (default {{default_label_colour}})
-//   solid_background = if the background should be solid (default false)
-//   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
+//   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2, label = "Australia");
+//   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//     options=MakeLabelOptions());
 // Example(Render):
 //   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2, label = "Australia",
-//   full_height = true);
+//     options=MakeLabelOptions(full_height = true));
 // Example(Render):
 //   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2,label = "Australia",
-//   full_height = true, label_colour = "blue");
+//     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeMainLidLabelStriped(
   width,
   length,
   lid_thickness,
   label,
-  border = 2,
-  offset = 4,
-  font = default_label_font,
-  radius = 5,
-  full_height = false,
-  label_colour = undef,
-  material_colour = default_material_colour,
-  background_colour = undef,
-  solid_background = false,
-  label_background_colour = undef
+  options
 ) {
-  assert(width > border * 2, str("Width must be wider than double the border width=", width, " offset=", offset, " border=", border));
-  assert(length > border * 2, str("Length must be wider than double the border length=", length, " offset=", offset, " border=", border));
+  assert(width > options.border * 2, str("Width must be wider than double the border width=", width, " offset=", options.offset, " border=", options.border));
+  assert(length > options.border * 2, str("Length must be wider than double the border length=", length, " offset=", options.offset, " border=", options.border));
+  assert(label != undef, "Must specify a label");
+  assert(options != undef, "Must speify label options");
 
   module TextShape(calc_font, text_thickness = lid_thickness, edge_offset = 0) {
     linear_extrude(text_thickness) union() {
         // Edge box.
-        offset(edge_offset) translate([offset, offset, 0])
-            resize([width - offset * 2.5, length - offset * 2, 0], auto=true) {
+        offset(edge_offset) translate([options.offset, options.offset, 0])
+            resize([width - options.offset * 2.5, length - options.offset * 2, 0], auto=true) {
               text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom");
             }
       }
@@ -277,16 +305,16 @@ module MakeMainLidLabelStriped(
       [
         0,
         0,
-        full_height ? lid_thickness - default_slicing_layer_height
+        options.full_height ? lid_thickness - default_slicing_layer_height
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
     ) intersection() {
-        w = width - border * 2;
-        l = length - border * 2;
-        translate([border + 0.01, border + 0.01, 0]) color(calc_background_color)
+        w = width - options.border * 2;
+        l = length - options.border * 2;
+        translate([options.border + 0.01, options.border + 0.01, 0]) color(calc_background_color)
             cuboid(
               size=[w, l, default_slicing_layer_height],
-              rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
+              rounding=options.radius * 2 <= min(w, l) ? options.radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
             );
         translate([0, 0, -default_slicing_layer_height / 2]) color(calc_background_color)
             linear_extrude(height=default_slicing_layer_height * 2)
@@ -294,49 +322,49 @@ module MakeMainLidLabelStriped(
       }
 
     intersection() {
-      translate([border, border, 0]) color(material_colour) {
-          w = width - border * 2;
-          l = length - border * 2;
+      translate([options.border, options.border, 0]) color(options.material_colour) {
+          w = width - options.border * 2;
+          l = length - options.border * 2;
           cuboid(
             size=[
               w,
               l,
-              full_height ? lid_thickness - default_slicing_layer_height
+              options.full_height ? lid_thickness - default_slicing_layer_height
               : lid_thickness / 2 - default_slicing_layer_height,
             ],
-            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            rounding=options.radius * 2 <= min(w, l) ? options.radius : min(w, l) / 2, edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
         }
 
-      color(material_colour) linear_extrude(height=lid_thickness)
+      color(options.material_colour) linear_extrude(height=lid_thickness)
           MakeStripedGrid(width=width, length=length);
     }
   }
 
-  translate([-width / 2, -length / 2, 0]) {
-    calc_font = DefaultValue(font, default_label_font);
-    calc_background_color = DefaultValue(label_background_colour, default_label_background_colour);
+  translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0]) {
+    calc_font = DefaultValue(options.font, default_label_font);
+    calc_background_color = DefaultValue(options.label_background_colour, default_label_background_colour);
     difference() {
-      z = full_height || border > 0 ? lid_thickness : lid_thickness / 2;
-      color(material_colour)
+      z = options.full_height || options.border > 0 ? lid_thickness : lid_thickness / 2;
+      color(options.material_colour)
         cuboid(
           size=[width, length, z],
-          rounding=radius * 2 <= min(width, length) ? radius : min(width, length) / 2, edges="Z",
+          rounding=options.radius * 2 <= min(width, length) ? options.radius : min(width, length) / 2, edges="Z",
           anchor=FRONT + LEFT + BOTTOM
         );
 
       translate(
         [
-          border,
-          border,
+          options.border,
+          options.border,
           -0.5,
         ]
-      ) color(material_colour) {
-          w = width - border * 2;
-          l = length - border * 2;
+      ) color(options.material_colour) {
+          w = width - options.border * 2;
+          l = length - options.border * 2;
           cuboid(
             size=[w, l, lid_thickness + 1],
-            rounding=radius * 2 <= min(w, l) ? radius : min(w, l) / 2,
+            rounding=options.radius * 2 <= min(w, l) ? options.radius : min(w, l) / 2,
             edges="Z", anchor=FRONT + LEFT + BOTTOM
           );
         }
@@ -346,12 +374,12 @@ module MakeMainLidLabelStriped(
       [
         0,
         0,
-        full_height ? 0
+        options.full_height ? 0
         : 0,
       ]
-    ) color(material_colour) TextShape(
+    ) color(options.material_colour) TextShape(
           calc_font=calc_font,
-          text_thickness=full_height ? lid_thickness - default_slicing_layer_height : lid_thickness / 2,
+          text_thickness=options.full_height ? lid_thickness - default_slicing_layer_height : lid_thickness / 2,
           edge_offset=0.01
         );
 
@@ -359,12 +387,12 @@ module MakeMainLidLabelStriped(
       [
         0,
         0,
-        full_height ? lid_thickness - default_slicing_layer_height
+        options.full_height ? lid_thickness - default_slicing_layer_height
         : lid_thickness / 2,
       ]
-    ) color(label_colour) TextShape(
+    ) color(options.label_colour) TextShape(
           calc_font=calc_font,
-          text_thickness=full_height ? default_slicing_layer_height : default_slicing_layer_height * 2,
+          text_thickness=options.full_height ? default_slicing_layer_height : default_slicing_layer_height * 2,
           edge_offset=0.01
         );
 
@@ -372,12 +400,12 @@ module MakeMainLidLabelStriped(
       [
         0,
         0,
-        full_height ? 0
+        options.full_height ? 0
         : lid_thickness / 2 - default_slicing_layer_height,
       ]
-    ) color(material_colour) TextShape(
+    ) color(options.material_colour) TextShape(
           calc_font=calc_font,
-          text_thickness=full_height ? lid_thickness - default_slicing_layer_height : default_slicing_layer_height * 2,
+          text_thickness=options.full_height ? lid_thickness - default_slicing_layer_height : default_slicing_layer_height * 2,
           edge_offset=0.01
         );
 
@@ -387,10 +415,10 @@ module MakeMainLidLabelStriped(
         [
           0,
           0,
-          full_height ? -lid_thickness / 2
+          options.full_height ? -lid_thickness / 2
           : lid_thickness / 2 - default_slicing_layer_height * 2,
         ]
-      ) color(material_colour) TextShape(
+      ) color(options.material_colour) TextShape(
             calc_font=calc_font,
             text_thickness=lid_thickness * 4,
             edge_offset=0.01
@@ -410,109 +438,85 @@ module MakeMainLidLabelStriped(
 //   length = length of the label section
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
-//   text_scale = the scale of the font to use (default 1.0)
-//   border = how wide the border is around the label (default 2)
-//   offset = how far in from the sides the text should be (default 4)
-//   font = the font to use for the text (default {{default_label_font}})
-//   radius = the radius of the corners on the label section (default 5)
-//   full_height = full height of the lid (default false)
-//   label_colour = the label colour to use (default {{default_label_colour}})
-//   solid_background = if the background should be solid (default false)
-//   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
-//   finger_holes = put in finger holes around the label {{default true}}
+//   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia");
+//   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//     options=MakeLabelOptions());
 // Example(Render):
 //   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia",
-//   full_height = true);
+//     options=MakeLabelOptions(full_height = true));
 // Example(Render):
 //   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2,label = "Australia",
-//   full_height = true, label_colour = "blue");
+//     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeFramedLidLabel(
   width,
   length,
-  text_length,
   lid_thickness,
   label,
-  short_length,
-  text_scale = 1.0,
-  border = 2,
-  offset = 4,
-  font = default_label_font,
-  radius = undef,
-  full_height = false,
-  label_colour = undef,
-  material_colour = default_material_colour,
-  background_colour = undef,
-  solid_background = false,
-  label_background_colour = undef,
-  finger_hole_size = 10
+  options,
 ) {
+  assert(label != undef, "Must specify a label");
+  assert(options != undef, "Must speify label options");
+
   rotate([0, 0, 90]) translate([length / 2, -width / 2, 0]) {
-      metrics = textmetrics(label, font=font);
+      metrics = textmetrics(label, font=options.font);
       max_width =
-        length > width && !short_length || short_length && length < width ?
-          width - offset * 2
-        : length - offset * 2;
+        length > width && !options.short_length || options.short_length && length < width ?
+          width - options.offset * 2
+        : length - options.offset * 2;
       max_length =
-        length > width && !short_length || short_length && length < width ?
-          length * 3 / 4 - offset * 2
-        : width * 3 / 4 - offset * 2;
+        length > width && !options.short_length || options.short_length && length < width ?
+          length * 3 / 4 - options.offset * 2
+        : width * 3 / 4 - options.offset * 2;
       temp_calc_text_length = DefaultValue(
-        text_length,
-        length > width && !short_length || short_length && length < width ?
-          length * 3 / 4 - offset * 2
-        : width * 3 / 4 - offset * 2
+        options.text_length,
+        length > width && !options.short_length || options.short_length && length < width ?
+          length * 3 / 4 - options.offset * 2
+        : width * 3 / 4 - options.offset * 2
       );
-      temp_calc_text_width = metrics.size[1] / metrics.size[0] * temp_calc_text_length * text_scale + offset * 2;
+      temp_calc_text_width = metrics.size[1] / metrics.size[0] * temp_calc_text_length * options.text_scale + options.offset * 2;
       calc_text_width = temp_calc_text_width > max_width ? max_width : temp_calc_text_width;
       calc_text_length = temp_calc_text_width > max_width ? temp_calc_text_length * max_width / temp_calc_text_width : temp_calc_text_length;
-      calc_finger_hole_size = DefaultValue(finger_hole_size, (short_length ? min(length, width) : max(length, width)) - calc_text_length - 10 > 0 ? 10 : 0);
-      calc_radius = DefaultValue(radius, min(5, calc_text_width / 4));
+      calc_finger_hole_size = DefaultValue(options.finger_hole_size, (options.short_length ? min(length, width) : max(length, width)) - calc_text_length - 10 > 0 ? 10 : 0);
+      calc_radius = DefaultValue(options.radius, min(5, calc_text_width / 4));
 
       if (calc_text_width > 10 && calc_text_length > 1) {
-        rotate(width > length && !short_length || short_length && width < length ? 90 : 0) {
+        rotate(width > length && !options.short_length || options.short_length && width < length ? 90 : 0) {
           if (
             calc_finger_hole_size > 0 && calc_text_width + calc_finger_hole_size * 2 < width && calc_text_width + calc_finger_hole_size * 2 < length
           ) {
-            color(material_colour)
+            color(options.material_colour)
               difference() {
                 union() {
-                  translate([0, -calc_text_width / 2, 0]) difference() {
+                  translate([options.label_diff[0], -calc_text_width / 2 + options.label_diff[1], 0]) difference() {
                       cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
                       translate([0, 0, -0.5])
-                        cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
+                        cyl(r=calc_finger_hole_size - options.border, h=lid_thickness + 1, anchor=BOTTOM);
                     }
 
-                  translate([0, calc_text_width / 2, 0]) difference() {
+                  translate([options.label_diff[0], calc_text_width / 2 + options.label_diff[1], 0]) difference() {
                       cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM);
                       translate([0, 0, -0.5])
-                        cyl(r=calc_finger_hole_size - border, h=lid_thickness + 1, anchor=BOTTOM);
+                        cyl(r=calc_finger_hole_size - options.border, h=lid_thickness + 1, anchor=BOTTOM);
                     }
                 }
-                translate([0, 0, -0.5])
+                translate([options.label_diff[0], options.label_diff[1], -0.5])
                   cuboid([calc_text_length, calc_text_width, lid_thickness + 1], anchor=BOTTOM);
               }
           }
 
-          if (solid_background) {
+          if (options.solid_background) {
             MakeMainLidLabelSolid(
               width=calc_text_length, length=calc_text_width,
               lid_thickness=lid_thickness, label=label,
-              border=border, offset=offset, font=font, radius=calc_radius,
-              full_height=full_height,
-              label_colour=label_colour, material_colour=material_colour,
-              background_colour=background_colour, label_background_colour=label_background_colour
+              options=options
             );
           } else {
             MakeMainLidLabelStriped(
               width=calc_text_length, length=calc_text_width,
               lid_thickness=lid_thickness, label=label,
-              border=border, offset=offset, font=font, radius=calc_radius,
-              full_height=full_height, label_colour=label_colour,
-              material_colour=material_colour, background_colour=background_colour,
-              label_background_colour=label_background_colour
+              options
             );
           }
         }
@@ -532,52 +536,42 @@ module MakeFramedLidLabel(
 //   length = length of the box without the walls
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
-//   text_scale = the scale of the font to use
-//   font = the font to use for the text (default {{default_label_font}})
-//   label_colour = the label colour to use (default {{default_label_colour}})
-//   solid_background = if the background should be solid (default false)
-//   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
+//   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
 //   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",
-//      label_type = LABEL_TYPE_FRAMELESS, font="Stencil Std:style=Bold");
+//       options=MakeLabelOptions(font="Stencil Std:style=Bold", label_type = LABEL_TYPE_FRAMELESS,));
 // Example(Render):
-//   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",
-//      label_colour = "blue", label_type = LABEL_TYPE_FRAMELESS_ANGLE, font="Stencil Std:style=Bold");
+//   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",      
+//      options=MakeLabelOptions(font="Stencil Std:style=Bold",
+//         label_colour = "blue", label_type = LABEL_TYPE_FRAMELESS_ANGLE, ));
 module MakeFramelessLidLabel(
   width,
   length,
   lid_thickness,
   label,
-  label_type,
-  text_length = undef,
-  font = default_label_font,
-  text_scale = 1.0,
-  angle = undef,
-  label_colour = default_label_colour,
-  material_colour = default_material_colour,
-  label_background_colour = default_label_background_colour,
+  options
 ) {
   cross_angle = asin(min(width, length) / sqrt(width * width + length * length));
-  metrics = textmetrics(label, font=font);
-  calc_text_length_start = DefaultValue(text_length, length > width ? length * 3 / 4 : width * 3 / 4);
-  temp_text_width = metrics.size[1] / metrics.size[0] * calc_text_length_start * text_scale;
+  metrics = textmetrics(label, font=options.font);
+  calc_text_length_start = DefaultValue(options.text_length, length > width ? length * 3 / 4 : width * 3 / 4);
+  temp_text_width = metrics.size[1] / metrics.size[0] * calc_text_length_start * options.text_scale;
   temp_text_length =
     length < width ?
       (temp_text_width > length * 3 / 4 ? calc_text_length_start * (length * 3 / 4) / temp_text_width : calc_text_length_start)
     : (temp_text_width > width * 3 / 4 ? calc_text_length_start * (width * 3 / 4) / temp_text_width : calc_text_length_start);
   calc_text_length = min(temp_text_length, calc_text_length_start);
-  angle = DefaultValue(angle, label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
-  color(DefaultValue(label_background_colour, default_label_background_colour))
-    translate([(width) / 2 + (sin(angle) * metrics.descent / 2), (length) / 2 + (cos(angle) * metrics.descent / 2), 0])
+  angle = DefaultValue(options.angle, options.label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
+  color(DefaultValue(options.label_background_colour, default_label_background_colour))
+    translate([(width) / 2 + (sin(angle) * metrics.descent / 2) + options.label_diff[0], (length) / 2 + (cos(angle) * metrics.descent / 2) + options.label_diff[1], 0])
       linear_extrude(lid_thickness - default_slicing_layer_height)
         rotate(angle)
-          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * text_scale])
-            text(label, font=font, halign="center", valign="center");
-  color(DefaultValue(label_colour, default_label_colour))
-    translate([(width) / 2 + (sin(angle) * metrics.descent / 2), (length) / 2 + (cos(angle) * metrics.descent / 2), lid_thickness - default_slicing_layer_height])
+          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * options.text_scale])
+            text(label, font=options.font, halign="center", valign="center");
+  color(DefaultValue(options.label_colour, default_label_colour))
+    translate([(width) / 2 + (sin(angle) * metrics.descent / 2) + options.label_diff[0], (length) / 2 + (cos(angle) * metrics.descent / 2) + options.label_diff[1], lid_thickness - default_slicing_layer_height])
       linear_extrude(default_slicing_layer_height + 0.01)
         rotate(angle)
-          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * text_scale])
-            text(label, font=font, halign="center", valign="center");
+          resize([calc_text_length, metrics.size[1] / metrics.size[0] * calc_text_length * options.text_scale])
+            text(label, font=options.font, halign="center", valign="center");
 }

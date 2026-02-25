@@ -82,4 +82,4 @@ with open("generate.makefile", "w") as mfile:
         mfile.write("release/{0}/packing.pdf: {1}\n".format(
             d,
             " ".join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", packing[d]))))
-        mfile.write("\t-../scripts/img2pdf/src/img2pdf.py $(shell printf \"%s \" $^ | sort -n) -o release/{0}/packing.pdf --title \"Packing for {0}\" --author openscad_boardgame_toolkit ".format(d))
+        mfile.write("\t-../scripts/img2pdf/src/img2pdf.py $(shell printf \"%s \" $^ | sort -n) -o release/{0}/packing.pdf --title \"Packing for {0}\" --author openscad_boardgame_toolkit \n".format(d))

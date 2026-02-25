@@ -505,71 +505,55 @@ module MakeTabs(
 // Arguments:
 //    width = inside width of the lid
 //    length = inside width of the lid
-//    text_scale = the scale of the text to the width
-//    text_length = the width of the text to use
+//    options = the options for the label
 //    lid_thickness = thickness of the lid
-//    label_radius = radius of the label corners
-//    label_type = type of the label to display
-//    border= border of the item
-//    offset = offset in from the edge for the label
-//    label_type = the type of the label
-//    full_height = if the label grid is the full height (when flipped upsidedown)
-//    label_colour = the colout of the label (default {{default_label_colour}})
-//    finger_hole_size = if we put in finger holes or not (default 10)
 // Example:
-//    MakeLidLabel(100, 20, text_length = 50, text_scale = 1.0, lid_thickness = 2,  text_str =
-//    "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = true);
+//    MakeLidLabel(100, 20, lid_thickness = 2, text_str = "frog", 
+//      options=MakeLabelOptions(text_length = 50, text_scale = 1.0, border = 2,
+//        offset = 4, font = default_label_font, radius = 2,
+//        label_type = LABEL_TYPE_FRAMED, full_height = true));
 // Example:
-//    MakeLidLabel(100, 20, text_length = 50, text_scale = 0.7, lid_thickness = 2,  text_str =
-//    "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED_SHORT, full_height = false);
+//    MakeLidLabel(100, 20, text_str = "frog",  lid_thickness = 2, 
+//       options=MakeLabelOptions(text_length = 50, 
+//       label_type = LABEL_TYPE_FRAMED_SHORT,text_scale = 0.7,
+//       border = 2,
+//       offset = 4, font = default_label_font, radius = 2, full_height = false));
 // Example:
-//    MakeLidLabel(100, 20, text_length = 50, text_scale = 0.5, lid_thickness = 2, text_str =
-//    "frog", border = 2,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = false);
+//    MakeLidLabel(100, 20, text_str = "frog", lid_thickness = 2, 
+//       options=MakeLabelOptions(text_length = 50, text_scale = 0.5, border = 2,
+//       offset = 4, font = default_label_font, label_type = LABEL_TYPE_FRAMED, 
+//       radius = 2, full_height = false));
 // Example:
-//    MakeLidLabel(100, 30, text_length = 50, text_scale = 0.3, lid_thickness = 2, text_str =
-//    "frog", border = 1,
-//       offset = 4, font = default_label_font, label_radius = 2, label_type = LABEL_TYPE_FRAMED, full_height = true);
+//    MakeLidLabel(100, 30,  text_str = "frog", lid_thickness = 2, 
+//       options=MakeLabelOptions(text_length = 50, text_scale = 0.3, border = 1,
+//       offset = 4, font = default_label_font, radius = 2, full_height = true,  
+//       label_type = LABEL_TYPE_FRAMED));
 module MakeLidLabel(
   width,
   length,
-  text_length,
   lid_thickness,
   text_str,
-  border,
-  offset,
-  font,
-  label_radius,
-  label_type,
-  full_height,
-  text_scale = 1.0,
-  label_colour = undef,
-  material_colour = default_material_colour,
-  label_background_colour = default_label_background_colour,
-  finger_hole_size = 10
+  options,
 ) {
-  calc_label_type = DefaultValue(label_type, default_label_type);
+  assert(options != undef, "Must specify label options");
+  assert(text_str != undef, "Must specify text string");
+
+  calc_label_type = DefaultValue(options.label_type, default_label_type);
   if (
     calc_label_type == LABEL_TYPE_FRAMED || calc_label_type == LABEL_TYPE_FRAMED_SHORT || calc_label_type == LABEL_TYPE_FRAMED_SHORT_SOLID || calc_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     MakeFramedLidLabel(
-      width=width, length=length, text_length=text_length, text_scale=text_scale,
+      width=width, length=length,
       lid_thickness=lid_thickness, label=text_str,
-      border=border, offset=offset, full_height=full_height, font=font,
-      radius=label_radius, label_colour=label_colour, material_colour=material_colour,
-      solid_background=calc_label_type == LABEL_TYPE_FRAMED_SOLID || calc_label_type == LABEL_TYPE_FRAMED_SHORT_SOLID,
-      label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size, short_length=calc_label_type == LABEL_TYPE_FRAMED_SHORT
+      options=options
     );
   } else if (
     calc_label_type == LABEL_TYPE_FRAMELESS_ANGLE || calc_label_type == LABEL_TYPE_FRAMELESS || calc_label_type == LABEL_TYPE_FRAMELESS_SHORT
   ) {
     MakeFramelessLidLabel(
-      width=width, length=length, label_type=calc_label_type, text_length=text_length,
-      label=text_str, lid_thickness=lid_thickness, font=font, text_scale=text_scale,
-      label_colour=label_colour, label_background_colour=label_background_colour, angle=undef
+      width=width, length=length, label_type=calc_label_type, // text_length=text_length,
+      label=text_str, lid_thickness=lid_thickness,
+      options=options,
     );
   }
 }

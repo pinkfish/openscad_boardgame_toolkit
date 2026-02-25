@@ -421,7 +421,31 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height, text_str="Player",
-  );
+    label_options=MakeLabelOptions(label_diff=[0, 15])
+  ) {
+    translate([default_wall_thickness, default_wall_thickness, 0])
+      color("yellow")
+        difference() {
+          union() {
+            for (i = [0:4]) {
+              translate([train_length * 3 + 2 + house_top_width / 2, 24 + (house_length + 2) * i - 5, 0]) {
+                cuboid([10, train_length + 6, default_lid_thickness], anchor=BOTTOM);
+              }
+            }
+          }
+          union() {
+            for (i = [0:4]) {
+              translate([train_length * 3 + 2 + house_top_width / 2, 24 + (house_length + 2) * i - 3, -0.01]) {
+                prismoid(
+                  size2=[3, train_length + (i != 4 ? 4 : 0)],
+                  size1=[6, train_length + (i != 4 ? 4 : 0)],
+                  h=default_lid_thickness + 0.02, anchor=BOTTOM,
+                );
+              }
+            }
+          }
+        }
+  }
 }
 
 module ResourceBox(material_colour) // `make` me
@@ -674,5 +698,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutD();
+  StationCardBoxLid();
 }

@@ -78,9 +78,10 @@ module MakeBoxWithNoLid(
 
     if (hollow) {
       translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour) {
-          cube(
+          cuboid(
             [width - (wall_thickness) * 2, length - (wall_thickness) * 2, height],
-            rounding=wall_thickness / 4
+            rounding=wall_thickness / 4,
+            anchor=BOTTOM + LEFT + FRONT
           );
         }
     }

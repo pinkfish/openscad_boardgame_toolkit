@@ -235,12 +235,6 @@ module SlidingCatchBoxLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    label_border = border of the item (default 2)
-//    label_offset = offset in from the edge for the label (default 4)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -249,8 +243,6 @@ module SlidingCatchBoxLid(
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    top_thickness = the thickness of the all above the catch (default 2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
-//    finger_hole_size = size of the finger hole to use in the lid (default 10)
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog") {
@@ -261,13 +253,7 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
@@ -278,10 +264,15 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
   top_thickness = 2,
   fill_middle = true,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef,
-  pattern_inner_control = false
+  pattern_inner_control = false,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   SlidingCatchBoxLid(
     width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, top_thickness=top_thickness,
@@ -299,17 +290,15 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
     }
     MakeLidLabel(
       width=width, length=length,
-      lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-      font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str, label_radius=label_radius,
-      material_colour=material_colour,
-      label_background_colour=label_background_colour,
-      finger_hole_size=finger_hole_size
+      lid_thickness=lid_thickness,
+      text_str=text_str, 
+      options=object(calc_label_options, full_height=false),
     );
 
     // Fingernail pull
     intersection() {
-      color(material_colour) cube([width - label_border, length - label_border, lid_thickness]);
-      translate([(width) / 2, length - label_border - 3, 0]) color(material_colour)
+      color(material_colour) cube([width - calc_label_options.border, length - calc_label_options.border, lid_thickness]);
+      translate([(width) / 2, length - calc_label_options.border - 3, 0]) color(material_colour)
           SlidingLidFingernail(lid_thickness);
     }
 
@@ -350,12 +339,6 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    text_str = the string to use for the label
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    border= border of the item (default 2)
-//    label_offset = offset in from the edge for the label (default 4)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -363,7 +346,6 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlidingCatchBoxLidWithLabel(100, 50, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabel(100, 50,  text_str = "Frog");
@@ -371,14 +353,8 @@ module SlidingCatchBoxLidWithLabel(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
   shape_width = undef,
   shape_type = default_lid_shape_type,
@@ -388,25 +364,27 @@ module SlidingCatchBoxLidWithLabel(
   lid_thickness = default_lid_thickness,
   top_thickness = 2,
   fill_middle = true,
-  font = undef,
   lid_rounding = undef,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  finger_hole_size = undef
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
   SlidingCatchBoxLidWithLabelAndCustomShape(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
-    font=font, text_str=text_str,
-    label_radius=label_radius, text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width,
+    text_str=text_str,
+    layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
-    top_thickness=top_thickness, fill_middle=fill_middle, material_colour=material_colour,
-    label_background_colour=label_background_colour,
-    finger_hole_size=finger_hole_size,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
+    lid_boundary=lid_boundary, top_thickness=top_thickness, fill_middle=fill_middle, material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(

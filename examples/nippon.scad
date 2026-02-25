@@ -472,7 +472,7 @@ module SoloBox() // `make` me
   }
 }
 
-module LateGameFactoryBoxLid() // `make` me
+module SoloBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     width=solo_box_width,

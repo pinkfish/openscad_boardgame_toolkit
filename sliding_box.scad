@@ -357,32 +357,27 @@ module SlidingBoxLidWithLabelAndCustomShape(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = undef,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
-  font = undef,
   wall_thickness = default_wall_thickness,
   lid_rounding = undef,
   lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   lid_on_length = false,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  label_width_offset = 0,
-  label_length_offset = 0,
-  finger_hole_size = undef,
   pattern_inner_control = false,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert($children > 0, "Must be one child for the pattern");
   assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
@@ -399,21 +394,18 @@ module SlidingBoxLidWithLabelAndCustomShape(
     lid_boundary=lid_boundary,
     layout_width=layout_width,
     aspect_ratio=aspect_ratio,
-    label_border=label_border,
     lid_pattern_dense=lid_pattern_dense, lid_dense_shape_edges=lid_dense_shape_edges,
     pattern_inner_control=pattern_inner_control
   ) {
     // 0 child is the pattern for the lid.
     children(0);
 
-    translate([label_length_offset + default_wall_thickness / 2, label_width_offset + default_wall_thickness / 2, 0]) {
+    translate([default_wall_thickness / 2, default_wall_thickness / 2, 0]) {
       MakeLidLabel(
         width=width - default_wall_thickness * 2, length=length - default_wall_thickness * 2,
-        lid_thickness=lid_thickness, border=label_border, offset=label_offset,
-        full_height=false, font=font, text_length=text_length, text_scale=text_scale, label_type=label_type, text_str=text_str,
-        label_radius=label_radius, label_colour=label_colour, material_colour=material_colour,
-        label_background_colour=label_background_colour,
-        finger_hole_size=finger_hole_size
+        lid_thickness=lid_thickness,
+        text_str=text_str,
+        options=object(calc_label_options, full_height=false),
       );
     }
 
@@ -478,14 +470,9 @@ module SlidingBoxLidWithLabel(
   width,
   length,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = undef,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
   shape_width = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
   shape_type = default_lid_shape_type,
   shape_thickness = undef,
@@ -494,17 +481,17 @@ module SlidingBoxLidWithLabel(
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
   lid_rounding = undef,
-  font = undef,
-  label_radius = undef,
   shape_rounding = undef,
   lid_on_length = false,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
-  label_width_offset = 0,
-  label_length_offset = 0,
-  finger_hole_size = undef,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
@@ -514,16 +501,15 @@ module SlidingBoxLidWithLabel(
   assert(text_str != undef, "Need to specify a label, text_str == undef");
 
   SlidingBoxLidWithLabelAndCustomShape(
-    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness, font=font,
-    text_str=text_str, label_radius=label_radius,
-    text_length=text_length, text_scale=text_scale, label_type=label_type, layout_width=layout_width, size_spacing=size_spacing,
+    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
+    text_str=text_str,
+    layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
+    lid_boundary=lid_boundary,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    lid_on_length=lid_on_length, label_colour=label_colour, material_colour=material_colour,
-    label_width_offset=label_width_offset, label_length_offset=label_length_offset,
-    finger_hole_size=finger_hole_size,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
+    lid_on_length=lid_on_length, material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    label_options=calc_label_options
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)

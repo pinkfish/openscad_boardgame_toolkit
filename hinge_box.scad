@@ -236,14 +236,8 @@ module InsetHinge(length, width, diameter, offset) {
 //    finger_hole_size = size of the finger hole to use in the lid (default 10)
 module HingeBoxLidLabel(
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
-  label_type = undef,
   cap_height = undef,
   layout_width = undef,
   shape_width = undef,
@@ -251,16 +245,20 @@ module HingeBoxLidLabel(
   shape_thickness = undef,
   lid_thickness = default_lid_thickness,
   aspect_ratio = 1.0,
-  font = undef,
   lid_rounding = undef,
   lid_inner_rounding = undef,
   shape_rounding = undef,
   material_colour = default_material_colour,
-  label_colour = undef,
-  label_background_colour = undef,
-  finger_hole_size = 0,
-  size_spacing = default_slicing_layer_height
+  size_spacing = default_slicing_layer_height,
+  label_options = undef
 ) {
+  calc_label_options = DefaultValue(
+   label_options, MakeLabelOptions(
+      material_colour=material_colour,
+      full_height = true
+    )
+  );
+
   internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
     difference() {
       // Top piece
@@ -289,13 +287,9 @@ module HingeBoxLidLabel(
       translate([-$inner_width, 0, -lid_thickness])
         MakeLidLabel(
           width=$inner_width, length=$inner_length,
-          lid_thickness=lid_thickness, border=label_border, offset=label_offset,
-          full_height=true, font=font, text_length=text_length,
-          text_scale=text_scale, label_type=label_type, text_str=text_str,
-          label_radius=label_radius, label_colour=label_colour,
-          material_colour=material_colour,
-          label_background_colour=label_background_colour,
-          finger_hole_size=finger_hole_size
+          lid_thickness=lid_thickness,
+         text_str=text_str,
+          options=object(calc_label_options, full_height=true),
         );
   }
 }

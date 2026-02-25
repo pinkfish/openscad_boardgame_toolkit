@@ -319,14 +319,6 @@ module SlipoverPathBoxLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    label_border = border of the item (default 2)
-//    label_offset = offset in from the edge for the label (default 4)
-//    label_width_offset = the width to move the label by (default 0})
-//    label_length_offset = the length to move the label by (default 0)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    shape_width = width of the shape (default {{default_lid_shape_width}})
 //    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
@@ -336,7 +328,6 @@ module SlipoverPathBoxLid(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
 // Usage: SlipoverPathBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
@@ -360,9 +351,11 @@ module SlipoverPathBoxLid(
 //    material_colour="orange",
 //    foot=2,
 //    text_str="frog",
-//    text_length=50,
-//    text_scale=0.5,
-//    label_width_offset=-28
+//    label_options=MakeLabelOptions(
+//         text_length=50,
+//         text_scale=0.5,
+//         label_diff=[-28, 0]
+//     )
 //    ) {
 //      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
@@ -371,13 +364,7 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
   path,
   height,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
   layout_width = undef,
   label_type = undef,
   size_spacing = m_piece_wiggle_room,
@@ -385,19 +372,23 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
   label_width_offset = 0,
   label_length_offset = 0,
   aspect_ratio = 1.0,
-  font = undef,
   lid_rounding = undef,
   wall_thickness = default_wall_thickness,
   foot = 0,
   finger_catch = CATCH_SHORT,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
   lid_catch = default_lid_catch_type,
-  pattern_inner_control
+  pattern_inner_control,
+  label_options = undef,
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert(is_path(path, 2), "Path must be an array of length 3 or more");
   assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
   assert(height > 0, str("Height must be >0 height=", height));
@@ -428,16 +419,12 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
         color(material_colour) square([10, 10]);
       }
     }
-    translate([label_width_offset, label_length_offset, 0])
-      MakeLidLabel(
-        length=calc_length, width=calc_width,
-        lid_thickness=lid_thickness, border=label_border, offset=label_offset, full_height=true,
-        font=font, text_length=text_length, text_scale=text_scale, text_str=text_str,
-        label_radius=label_radius,
-        material_colour=material_colour, label_colour=label_colour,
-        label_background_colour=label_background_colour,
-        label_type=label_type,
-      );
+    MakeLidLabel(
+      length=calc_length, width=calc_width,
+      lid_thickness=lid_thickness,
+      text_str=text_str,
+      options=object(calc_label_options, full_height=true),
+    );
 
     // Don't include the first child since is it used for the lid shape.
     if ($children > 1) {
@@ -473,20 +460,11 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   text_str = the string to use for the label
-//   text_length = the length of the text to use (defaults to 3/4 of length/width)
-//   text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//   label_radius = radius of the label corners (default text_width/4)
-//   label_type = the type of the label (default {{default_label_type}})
-//   label_width_offset = the width to move the label by (default 0})
-//   label_length_offset = the length to move the label by (default 0)
-//   border= border of the item (default 2)
-//   offset = offset in from the edge for the label (default 4)
 //   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //   shape_width = width of the shape (default {{default_lid_shape_width}})
 //   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 //   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
 // Example:
@@ -509,25 +487,17 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
 //    material_colour="orange",
 //    foot=2,
 //    text_str="frog",
-//    text_length=50,
-//    text_scale=0.5,
-//    label_width_offset=-28
+//    label_options=MakeLabelOptions(
+//      text_length=50,
+//      text_scale=0.5,
+//      label_diff=[-20,-28])
 //    );
 module SlipoverPathBoxLidWithLabel(
   path,
   height,
   text_str,
-  text_length = undef,
-  text_scale = 1.0,
-  label_type = default_label_type,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
-  label_radius = undef,
-  label_border = 2,
-  label_offset = 4,
-  label_width_offset = 0,
-  label_length_offset = 0,
-  label_type = undef,
   foot = 0,
   layout_width = undef,
   shape_width = undef,
@@ -536,14 +506,18 @@ module SlipoverPathBoxLidWithLabel(
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
-  font = undef,
   lid_rounding = undef,
   shape_rounding = default_lid_shape_rounding,
-  label_colour = undef,
   material_colour = default_material_colour,
-  label_background_colour = undef,
   lid_catch = default_lid_catch_type,
+  label_options = undef,
 ) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
   assert(is_path(path, 2), "Path must be a 2d path");
   assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
   assert(height > 0, str("Height must be >0 height=", height));
@@ -551,17 +525,15 @@ module SlipoverPathBoxLidWithLabel(
 
   SlipoverPathBoxLidWithLabelAndCustomShape(
     path=path, height=height, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
-    font=font, text_str=text_str,
-    label_radius=label_radius, text_length=text_length, text_scale=text_scale, layout_width=layout_width,
+    text_str=text_str,
+    layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, label_border=label_border, label_offset=label_offset,
+    lid_boundary=lid_boundary,
     foot=foot,
     lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
     material_colour=material_colour,
-    label_background_colour=label_background_colour, lid_catch=lid_catch,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type), label_type=label_type,
-    label_width_offset=label_width_offset,
-    label_length_offset=label_length_offset
+    lid_catch=lid_catch,
+    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
   ) {
     color(material_colour)
       ShapeByType(
