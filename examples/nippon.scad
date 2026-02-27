@@ -377,8 +377,10 @@ module PlayerBox() // `make` me
     for (i = [0:4]) {
       for (j = [0:1]) {
         if (j != 1 || i < 1) {
-          translate([1 + (ship_length + 1.5) * j, (ship_width + 1.5) * i + 1, $inner_height - ship_thickness])
-            cuboid([ship_length, ship_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
+          translate([1 + (ship_length + 1) * j + ship_length / 2, (ship_width + 1) * i + 1 + ship_width / 2, $inner_height - ship_thickness])
+            linear_extrude(ship_thickness + 1)
+              ShipItem();
+          //cuboid([ship_length, ship_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
         }
       }
     }
@@ -388,8 +390,10 @@ module PlayerBox() // `make` me
       for (i = [0:4]) {
         for (j = [0:1]) {
           if ( (j == 1 || i >= 1) && (j == 0 || i > 2)) {
-            translate([(train_length + 1.5) * j, 4 + (train_width + 1.5) * i + 1, $inner_height - ship_thickness])
-              cuboid([train_length, train_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
+            translate([(train_length + 1.5) * j + train_length / 2, 4 + (train_width + 1.5) * i + 1 + train_width / 2, $inner_height - ship_thickness])
+              linear_extrude(ship_thickness + 1)
+                TrainItem();
+            //cuboid([train_length, train_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
           }
         }
       }
@@ -807,5 +811,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  TestBox();
+  PlayerBox();
 }
