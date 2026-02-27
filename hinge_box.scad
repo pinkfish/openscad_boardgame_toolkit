@@ -240,22 +240,23 @@ module HingeBoxLidLabel(
   wall_thickness = default_wall_thickness,
   cap_height = undef,
   layout_width = undef,
-  shape_width = undef,
-  shape_type = default_lid_shape_type,
-  shape_thickness = undef,
+  aspect_ratio = undef,
   lid_thickness = default_lid_thickness,
-  aspect_ratio = 1.0,
   lid_rounding = undef,
   lid_inner_rounding = undef,
-  shape_rounding = undef,
   material_colour = default_material_colour,
   size_spacing = default_slicing_layer_height,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
-   label_options, MakeLabelOptions(
+    label_options, MakeLabelOptions(
       material_colour=material_colour,
-      full_height = true
+      full_height=true
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -272,15 +273,14 @@ module HingeBoxLidLabel(
       width=$inner_width, length=$inner_length,
       lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio,
-      dense=IsDenseShapeType(shape_type),
-      dense_shape_edges=DenseShapeEdges(shape_type),
+      dense=IsDenseShapeType(calc_shape_options.shape_type),
+      dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
       material_colour=material_colour,
-      inner_control=ShapeNeedsInnerControl(shape_type)
+      inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type)
     ) {
       color(material_colour)
         ShapeByType(
-          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+          options=calc_shape_options,
         );
     }
     rotate([0, 180, 0])
@@ -288,7 +288,7 @@ module HingeBoxLidLabel(
         MakeLidLabel(
           width=$inner_width, length=$inner_length,
           lid_thickness=lid_thickness,
-         text_str=text_str,
+          text_str=text_str,
           options=object(calc_label_options, full_height=true),
         );
   }

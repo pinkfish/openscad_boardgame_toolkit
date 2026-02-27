@@ -185,7 +185,7 @@ module PlayerBox() // `make` me
         }
       }
     color(default_material_colour) union(){}
-    HingeBoxLidLabel("Buckets", shape_width=9);
+    HingeBoxLidLabel("Buckets", shape_options=MakeShapeObject(shape_width=9));
   }
 }
 
@@ -196,13 +196,15 @@ module CardBox() // `make` me
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=10, height=card_box_height, spin=270);
   }
-  if (generate_lid) {
-    translate([card_box_width + 10, 0, 0])
-      CapBoxLidWithLabel(
-        width=card_box_width, length=card_box_length, height=card_box_height,
-        text_str="Bucket King", label_colour="black"
-      );
-  }
+}
+
+module CardBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=card_box_width, length=card_box_length, height=card_box_height,
+    text_str="Bucket King",
+    label_options=MakeLabelOptions(label_colour="black")
+  );
 }
 
 if (FROM_MAKE != 1) {

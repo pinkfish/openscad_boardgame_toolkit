@@ -377,7 +377,7 @@ module CardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     width=card_box_width, length=card_box_length,
     lid_on_length=true,
-    text_str="Athletes", label_colour="black"
+    text_str="Athletes", 
   );
 }
 
@@ -411,7 +411,7 @@ module DiceBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=dice_box_width, length=dice_box_length, height=dice_box_height,
-    text_str="Dice", label_colour="black"
+    text_str="Dice",
   );
 }
 
@@ -490,7 +490,7 @@ module AwardBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
     width=award_box_width, length=award_box_length, height=award_box_height,
-    text_str="Awards", label_colour="black", foot=2,
+    text_str="Awards", foot=2,
   );
 }
 
@@ -529,7 +529,7 @@ module PieceboxOneLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=piece_box_width, length=piece_box_length, height=piece_box_height,
-    text_str="Athletes", label_colour="black",
+    text_str="Athletes", 
     material_colour="aqua"
   );
 }
@@ -565,7 +565,7 @@ module PieceboxTwoLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=piece_box_width, length=piece_box_length, height=piece_box_height,
-    text_str="Athletes", label_colour="black"
+    text_str="Athletes",
   );
 }
 
@@ -589,7 +589,7 @@ module BigBabyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=big_baby_box_width, length=big_baby_box_length, height=big_baby_box_height,
-    text_str="Big Baby", label_colour="black",
+    text_str="Big Baby", 
   );
 }
 
@@ -610,7 +610,7 @@ module AwardsTokensBoxOneLid() // `make` me
   echo([award_tokens_height, award_tokens_length, award_tokens_width]);
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
-    text_str="1", label_colour="black"
+    text_str="1", 
   );
 }
 
@@ -618,7 +618,7 @@ module AwardsTokensBoxThreeLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
-    text_str="3", label_colour="black"
+    text_str="3",
   );
 }
 

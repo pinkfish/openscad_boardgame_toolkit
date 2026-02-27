@@ -320,8 +320,6 @@ module SlipoverPathBoxLid(
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
@@ -357,8 +355,8 @@ module SlipoverPathBoxLid(
 //         label_diff=[-28, 0]
 //     )
 //    ) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module SlipoverPathBoxLidWithLabelAndCustomShape(
   path,
@@ -499,22 +497,23 @@ module SlipoverPathBoxLidWithLabel(
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
   foot = 0,
-  layout_width = undef,
-  shape_width = undef,
-  shape_type = undef,
-  shape_thickness = undef,
   aspect_ratio = undef,
+  layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   lid_rounding = undef,
-  shape_rounding = default_lid_shape_rounding,
   material_colour = default_material_colour,
   lid_catch = default_lid_catch_type,
   label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -530,15 +529,15 @@ module SlipoverPathBoxLidWithLabel(
     size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary,
     foot=foot,
-    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     material_colour=material_colour,
     lid_catch=lid_catch,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
   ) {
     color(material_colour)
       ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        options=calc_shape_options,
       );
 
     if ($children > 1) {

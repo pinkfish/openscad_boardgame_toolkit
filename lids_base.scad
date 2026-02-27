@@ -110,11 +110,11 @@ function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE 
 // Topics: PatternFill
 // Example:
 //   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 6) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX,  shape_width = $layout_width);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX,  shape_width = $layout_width));
 //   }
 // Example:
 //   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 10, shape_edges = 3) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE,  shape_width = $layout_width);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_TRIANGLE,  shape_width = $layout_width));
 //   }
 module LidMeshDense(
   path,
@@ -167,7 +167,7 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
     path=square([width, length]), lid_thickness=lid_thickness, boundary=boundary, radius=radius,
     shape_edges=6, inner_control=inner_control
   ) {
-    ShapeByType(shape_type=SHAPE_TYPE_DENSE_HEX, shape_width=$layout_width);
+    ShapeByType(MakeShapeObject(shape_type=SHAPE_TYPE_DENSE_HEX, shape_width=$layout_width));
   }
 }
 
@@ -245,65 +245,65 @@ module LidMeshRepeating(
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10, dense = true) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = $layout_width);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
 //   LidMeshBasic(width = 70, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14));
 //   }
 // Example:
 //   LidMeshBasic(width = 70, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 //   }
 // Example:
 //   default_lid_shape_rounding = 3;
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 //   }
 // Example:
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = $layout_width+1);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = $layout_width+1));
 //   }
 // Example(2D,Med):
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2));
 //   }
 // Example(2D,Big):
 //   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //   }
 module LidMeshBasic(
   width = undef,
@@ -551,7 +551,7 @@ module MakeLidLabel(
     calc_label_type == LABEL_TYPE_FRAMELESS_ANGLE || calc_label_type == LABEL_TYPE_FRAMELESS || calc_label_type == LABEL_TYPE_FRAMELESS_SHORT
   ) {
     MakeFramelessLidLabel(
-      width=width, length=length, label_type=calc_label_type, // text_length=text_length,
+      width=width, length=length,  // text_length=text_length,
       label=text_str, lid_thickness=lid_thickness,
       options=options,
     );

@@ -27,6 +27,49 @@
 // Section: Shapes
 //    Shapes to use in boxes and stuff.
 
+// Function: MakeShapeObject()
+// Arguments:
+//   shape_type = The type of shape to use (default {{default_lid_shape_width}})
+//   shape_width = width of the shape (default {{default_lid_shape_width}})
+//   shape_thickness = thickness of the shape (default {{default_lid_shape_thickness}})
+//   shape_aspect_ratio = aspect ratio of the shape (default {{default_lid_aspect_ratio}})
+//   rounding = rounding of the shape (default {{default_lid_shape_rounding}})
+//   supershape_m1 = m1 of the supershape (default {{default_lid_supershape_m1}})
+//   supershape_m2 = m2 of the supershape (default {{default_lid_supershape_m2}})
+//   supershape_n1 = n1 of the supershape (default {{default_lid_supershape_n1}})
+//   supershape_n2 = n2 of the supershape (default {{default_lid_supershape_n2}})
+//   supershape_n3 = n3 of the supershape (default {{default_lid_supershape_n3}})
+//   supershape_a = a of the supershape (default {{default_lid_supershape_a}})
+//   supershape_b = b of the supershape (default {{default_lid_supershape_b}})
+function MakeShapeObject(
+  shape_type = default_lid_shape_type,
+  shape_width = default_lid_shape_width,
+  shape_thickness = default_lid_shape_thickness,
+  shape_aspect_ratio = default_lid_aspect_ratio,
+  rounding = default_lid_shape_rounding,
+  supershape_m1 = default_lid_supershape_m1,
+  supershape_m2 = default_lid_supershape_m2,
+  supershape_n1 = default_lid_supershape_n1,
+  supershape_n2 = default_lid_supershape_n2,
+  supershape_n3 = default_lid_supershape_n3,
+  supershape_a = default_lid_supershape_a,
+  supershape_b = default_lid_supershape_b
+) =
+  object(
+    shape_width=shape_width,
+    shape_thickness=shape_thickness,
+    shape_aspect_ratio=shape_aspect_ratio,
+    rounding=rounding,
+    supershape_m1=supershape_m1,
+    supershape_m2=supershape_m2,
+    supershape_n1=supershape_n1,
+    supershape_n2=supershape_n2,
+    supershape_n3=supershape_n3,
+    supershape_a=supershape_a,
+    supershape_b=supershape_b,
+    shape_type=shape_type
+  );
+
 calc_sqrt_three = sqrt(3);
 
 // Module: Sword2d()
@@ -3585,156 +3628,149 @@ function ShapeNeedsInnerControl(shape_type) =
 //   Creates shapes by a specific type to use in the lids.  This is pulled out so the shape creation
 //   layout are handled independantly.
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = 10));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = 10));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = 10));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 // Example:
 //   default_lid_shape_rounding = 3;
-//   ShapeByType(shape_type= SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11);
+//   ShapeByType(MakeShapeObject(shape_type= SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = 11);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = 11));
 // Example(2D,Med):
-//   ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2));
 // Example(2D,Big):
-//   ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
 //   $polygon_grid_rows = 2;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R1, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R1, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R2, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R2, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R3, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R3, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R4, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R4, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R5, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R5, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R6, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R6, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R7, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R7, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R8, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R8, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R9, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R9, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R10, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R10, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R11, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R11, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R12, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R12, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R13, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R13, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R14, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R14, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENTAGON_R15, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENTAGON_R15, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_ESCHER_LIZARD, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_ESCHER_LIZARD, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_HALF_REGULAR_HEXAGON, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HALF_REGULAR_HEXAGON, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(shape_type = SHAPE_TYPE_DROP, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DROP, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_width = 100;
 //   $polygon_length = 100;
-//   ShapeByType(shape_type = SHAPE_TYPE_VORONOI, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_VORONOI, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_width = 100;
 //   $polygon_length = 100;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENROSE_TILING_5, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENROSE_TILING_5, shape_thickness = 1, shape_width = 10));
 // Example:
 //   $polygon_width = 100;
 //   $polygon_length = 100;
-//   ShapeByType(shape_type = SHAPE_TYPE_PENROSE_TILING_7, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_PENROSE_TILING_7, shape_thickness = 1, shape_width = 10));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DELTOID_TRIHEXAGONAL, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DELTOID_TRIHEXAGONAL, shape_thickness = 1, shape_width = 10));
 // Example:
-//   ShapeByType(shape_type = SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE, shape_thickness = 1, shape_width = 10);
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE, shape_thickness = 1, shape_width = 10));
 module ShapeByType(
-  shape_type,
-  shape_width,
-  shape_thickness,
-  shape_aspect_ratio = 1.0,
-  rounding = undef,
-  supershape_m1 = undef,
-  supershape_m2 = undef,
-  supershape_n1 = undef,
-  supershape_n2 = undef,
-  supershape_n3 = undef,
-  supershape_a = undef,
-  supershape_b = undef
+  options
 ) {
-  calc_shape_type = DefaultValue(shape_type, default_lid_shape_type);
-  calc_shape_width = DefaultValue(shape_width, default_lid_shape_width);
-  calc_shape_thickness = DefaultValue(shape_thickness, default_lid_shape_thickness);
-  calc_aspect_ratio = DefaultValue(shape_aspect_ratio, default_lid_aspect_ratio);
-  calc_rounding = DefaultValue(rounding, default_lid_shape_rounding);
-  calc_supershape_m1 = DefaultValue(supershape_m1, default_lid_supershape_m1);
-  calc_supershape_m2 = DefaultValue(supershape_m2, default_lid_supershape_m2);
-  calc_supershape_n1 = DefaultValue(supershape_n1, default_lid_supershape_n1);
-  calc_supershape_n2 = DefaultValue(supershape_n2, default_lid_supershape_n2);
-  calc_supershape_n3 = DefaultValue(supershape_n3, default_lid_supershape_n3);
-  calc_supershape_a = DefaultValue(supershape_a, default_lid_supershape_a);
-  calc_supershape_b = DefaultValue(supershape_b, default_lid_supershape_b);
+  assert(options != undef, "Must specify options");
+
+  calc_shape_type = options.shape_type;
+  calc_shape_width = options.shape_width;
+  calc_shape_thickness = options.shape_thickness;
+  calc_rounding = options.rounding;
+  calc_aspect_ratio = options.shape_aspect_ratio;
+
+  calc_supershape_m1 = options.supershape_m1;
+  calc_supershape_m2 = options.supershape_m2;
+  calc_supershape_n1 = options.supershape_n1;
+  calc_supershape_n2 = options.supershape_n2;
+  calc_supershape_n3 = options.supershape_n3;
+  calc_supershape_a = options.supershape_a;
+  calc_supershape_b = options.supershape_b;
+
   if (calc_shape_type == SHAPE_TYPE_NONE) {
     // Don't do anything.
   } else {
@@ -3897,7 +3933,7 @@ module ShapeByType(
           );
       }
     } else {
-      assert(false, "Invalid shape type");
+      assert(false, str("Invalid shape type type=", calc_shape_type));
     }
   }
 }

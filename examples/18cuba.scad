@@ -139,7 +139,8 @@ module MoneyBox(offset = 0) // `make` me
 module MoneyBoxLid(offset = 0) // `make` me
 {
   translate([money_box_width + 10, 0, 0]) SlipoverBoxLidWithLabel(
-      width=money_box_width, length=money_box_length, height=money_box_height, text_str="18Cuba", label_colour="blue"
+      width=money_box_width, length=money_box_length, height=money_box_height, text_str="18Cuba",
+      label_options=MakeLabelOptions(label_colour="blue")
     );
 }
 
@@ -194,7 +195,8 @@ module TrainBoxLid() // `make` me
   SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Trains",
-    wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, foot=2,
+    label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 
@@ -233,7 +235,8 @@ module SharesBoxLid(offset = 0) // `make` me
   SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Shares",
-    wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, foot=2,
+    label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 
@@ -343,7 +346,7 @@ module LastBoxLid() // `make` me
   SlipoverBoxLidWithLabel(
     width=train_box_width, length=train_box_length, height=train_box_height,
     lid_thickness=1, text_str="Machine/Minor",
-    wall_thickness=wall_thickness, foot=2, label_colour="blue"
+    wall_thickness=wall_thickness, label_options=MakeLabelOptions(foot=2, label_colour="blue")
   );
 }
 
@@ -526,7 +529,7 @@ module LargeTokensToPrintLid() // `make` me
 {
   SlipoverBoxLid(
     length=train_box_length, width=rest_section_width, height=rest_height, lid_thickness=0.75,
-    foot=2, wall_thickness=wall_thickness, label_colour="blue"
+    foot=2, wall_thickness=wall_thickness, label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 

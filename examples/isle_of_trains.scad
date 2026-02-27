@@ -149,7 +149,8 @@ module DestinationBoxLid(generate_lid = true) // `make` me
   CapBoxLidWithLabel(
     width=destination_box_width, length=destination_box_length, lid_thickness=lid_thickness,
     height=destination_box_height,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -239,7 +240,8 @@ module VictoryBoxLid(generate_lid = true) // `make` me
   CapBoxLidWithLabel(
     width=victory_box_width, length=victory_box_length, height=victory_box_height,
     lid_thickness=lid_thickness,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -260,7 +262,8 @@ module CardBoxLid(generate_lid = true) // `make` me
   CapBoxLidWithLabel(
     width=card_box_width, length=card_box_length, height=card_box_height,
     lid_thickness=lid_thickness,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -297,7 +300,8 @@ module TicketBoxLid(generate_lid = true) // `make` me
   CapBoxLidWithLabel(
     width=ticket_box_width, length=ticket_box_length, height=ticket_box_height,
     lid_thickness=lid_thickness,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 

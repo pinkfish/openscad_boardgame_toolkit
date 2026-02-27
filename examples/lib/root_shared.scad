@@ -575,8 +575,10 @@ module CapBoxLidWithEyes(
         material_colour=material_colour
       ) {
         color(material_colour) ShapeByType(
-            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+            options=MakeShapeObject(
+              shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+              shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+            )
           );
       }
     translate([width / 2, length / 2, 0]) children();
@@ -601,8 +603,10 @@ module SlidingLidWithEyes(
         material_colour=material_colour
       ) {
         color(material_colour) ShapeByType(
-            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+            options=MakeShapeObject(
+              shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+              shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+            )
           );
       }
 

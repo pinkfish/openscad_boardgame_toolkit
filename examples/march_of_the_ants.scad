@@ -411,8 +411,10 @@ module MinionsOfTheMeadowBoxLid() // `make` me
   CapBoxLidWithLabel(
     width=minions_of_the_meadow_box_width, length=minions_of_the_meadow_box_length,
     height=minions_of_the_meadow_box_height,
-    text_length=minions_of_the_meadow_box_width - 25,
-    text_scale=1.5,
+    label_options=MakeLabelOptions(
+      text_length=minions_of_the_meadow_box_width - 25,
+      text_scale=1.5,
+    ),
     text_str="Minions of the Meadows", lid_thickness=lid_thickness,
     wall_thickness=wall_thickness
   );

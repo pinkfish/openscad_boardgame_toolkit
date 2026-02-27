@@ -1235,7 +1235,8 @@ module ItemsBoxMiddleLid() // `make` me
     SlidingBoxLidWithLabel(
       width=item_box_width, length=item_box_length,
       text_str="Items", lid_thickness=sliding_lid_thickness,
-      label_colour="blue", material_colour="grey", label_background_colour="grey"
+      label_options=MakeLabelOptions(label_colour="blue", label_background_color="grey"),
+      material_colour="grey",
     );
   }
 }
@@ -1263,7 +1264,8 @@ module ItemsBoxWinterLid() // `make` me
   SlidingBoxLidWithLabel(
     width=item_box_width, length=item_box_length,
     text_str="Winter", lid_thickness=sliding_lid_thickness,
-    label_colour="blue", material_colour="grey", label_background_colour="grey"
+    label_options=MakeLabelOptions(label_colour="blue", label_background_colour="grey"),
+    material_colour="grey",
   );
 }
 
@@ -1299,8 +1301,10 @@ module DiceBoxLid() // `make` me
       )
         color("grey")
           ShapeByType(
-            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=1.0
+            options=MakeShapeObject(
+              shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+              shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=1.0
+            )
           );
 
     translate([(dice_box_width) / 2, (dice_box_length) / 2, 0]) color("black")
@@ -1400,7 +1404,8 @@ module ItemsBoxExtrasLid() // `make` me
   SlidingBoxLidWithLabel(
     width=item_box_width, length=item_box_length,
     text_str="Items", lid_thickness=sliding_lid_thickness,
-    label_colour="blue", material_colour="grey", label_background_colour="grey"
+    material_colour="grey",
+    label_options=MakeLabelOptions(label_background_colour="grey", label_colour="blue")
   );
 }
 

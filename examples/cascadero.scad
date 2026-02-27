@@ -59,7 +59,8 @@ module SealsBoxLid() // `make` me
   SlidingLid(top_width, top_length)
     SlidingBoxLidWithLabel(
       top_width, top_length, lid_thickness=lid_thickness,
-      text_str="Seals", label_colour="blue", label_radius=5
+      text_str="Seals",
+      label_options=MakeLabelOptions(label_colour="blue", radius=5)
     );
 }
 
@@ -77,7 +78,7 @@ module FarmerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     herald_width, top_length, lid_thickness=lid_thickness,
-    text_str="Farmer", label_colour="blue",
+    text_str="Farmer", label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 
@@ -94,7 +95,7 @@ module HeraldBoxLid() // `make` me
 {
   SlidingLid(herald_width, top_length) SlidingBoxLidWithLabel(
       herald_width, top_length, lid_thickness=lid_thickness, text_str="Herald",
-      label_colour="blue",
+      label_options=MakeLabelOptions(label_colour="blue")
     );
 }
 
@@ -116,7 +117,8 @@ module PlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     player_width, player_width, lid_thickness=lid_thickness,
-    text_str="Player", label_colour="blue", label_radius=5
+    text_str="Player",
+    label_options=MakeLabelOptions(label_colour="blue", radius=5)
   );
 }
 

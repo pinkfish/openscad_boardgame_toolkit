@@ -603,7 +603,7 @@ module FavourBoxLid() // `make` me
   CapBoxLidWithLabel(
     width=favour_box_width, length=favour_box_length, height=favour_box_height,
     text_str="Favours",
-    label_colour="black"
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -624,19 +624,19 @@ module StuffBoxLid() // `make` me
     SlidingBoxLidWithLabel(
       width=stuff_box_width, length=stuff_box_length,
       text_str="Swords",
-      label_colour="black"
+      label_options=MakeLabelOptions(label_colour="black")
     );
     translate([stuff_box_width + 10, 0, 0]) {
       SlidingBoxLidWithLabel(
         width=stuff_box_width, length=stuff_box_length,
         text_str="Apples",
-        label_colour="black"
+        label_options=MakeLabelOptions(label_colour="black")
       );
       translate([stuff_box_width + 10, 0, 0]) {
         SlidingBoxLidWithLabel(
           width=stuff_box_width, length=stuff_box_length,
           text_str="Crystals",
-          label_colour="black"
+          label_options=MakeLabelOptions(label_colour="black")
         );
       }
     }
@@ -666,7 +666,8 @@ module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
     width=card_box_width, length=card_box_length,
-    text_str="Cards", label_colour="black",
+    text_str="Cards",
+    label_options=MakeLabelOptions(label_colour="black"),
     lid_on_length=true
   );
 }

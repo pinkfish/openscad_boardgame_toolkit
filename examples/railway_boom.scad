@@ -462,7 +462,8 @@ module ResourceBoxCoalLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="Coal",
-    material_colour="black", label_colour="white"
+    material_colour="black",
+    label_options=MakeLabelOptions(label_colour="white", material_colour="black")
   );
 }
 

@@ -263,7 +263,7 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height,
-    text_str="Player", text_scale=0.5, font="Impact"
+    text_str="Player", label_options=MakeLabelOptions(text_scale=0.5, font="Impact")
   );
 }
 
@@ -285,7 +285,7 @@ module MaterialHoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=material_box_width, length=material_box_length, height=material_box_height,
-    text_str="Honey", text_scale=0.5, font="Impact"
+    text_str="Honey", label_options=MakeLabelOptions(scale=0.5)
   );
 }
 
@@ -293,7 +293,7 @@ module MaterialWoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=material_box_width, length=material_box_length, height=material_box_height,
-    text_str="Wood", text_scale=0.5, font="Impact"
+    text_str="Wood", label_options=MakeLabelOptions(scale=0.5)
   );
 }
 
@@ -301,7 +301,7 @@ module MaterialFoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=material_box_width, length=material_box_length, height=material_box_height,
-    text_str="Food", text_scale=0.5, font="Impact"
+    text_str="Food", label_options=MakeLabelOptions(scale=0.5)
   );
 }
 
@@ -309,7 +309,7 @@ module MaterialStoneBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=material_box_width, length=material_box_length, height=material_box_height,
-    text_str="Stone", text_scale=0.5, font="Impact"
+    text_str="Stone", label_options=MakeLabelOptions(scale=0.5)
   );
 }
 
@@ -462,7 +462,7 @@ module CommonBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=common_box_width, length=common_box_length, height=common_box_height,
-    text_str="Trophy", text_scale=0.5, font="Impact"
+    text_str="Trophy", label_options=MakeLabelOptions(scale=0.5)
   );
 }
 

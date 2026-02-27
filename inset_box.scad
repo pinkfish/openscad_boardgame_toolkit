@@ -199,8 +199,8 @@ module InsetLidTabbed(
 // Usage: InsetLidTabbedWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    InsetLidTabbedWithLabelAndCustomShape(100, 50, text_str = "Frog") {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module InsetLidTabbedWithLabelAndCustomShape(
   width,
@@ -219,7 +219,10 @@ module InsetLidTabbedWithLabelAndCustomShape(
   make_tab_length = true,
   prism_width = 0.75,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  lid_pattern_dense = false,
+  lid_dense_shape_edges = false,
+  pattern_inner_control = false,
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
@@ -235,7 +238,8 @@ module InsetLidTabbedWithLabelAndCustomShape(
   ) {
     LidMeshBasic(
       width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
-      layout_width=layout_width, aspect_ratio=aspect_ratio
+      layout_width=layout_width, aspect_ratio=aspect_ratio, inner_control=pattern_inner_control,
+      dense=lid_pattern_dense, dense_shape_edges=lid_dense_shape_edges,
     ) {
       if ($children > 0) {
         children(0);
@@ -322,20 +326,21 @@ module InsetLidTabbedWithLabel(
   make_tab_length = true,
   prism_width = 0.75,
   layout_width = undef,
-  shape_width = undef,
-  shape_type = undef,
   aspect_ratio = undef,
-  shape_thickness = undef,
   lid_rounding = undef,
   size_spacing = m_piece_wiggle_room,
-  shape_rounding = undef,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
       full_height=true
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -346,12 +351,14 @@ module InsetLidTabbedWithLabel(
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     material_colour=material_colour,
     lid_rounding=lid_rounding,
-    label_options=calc_label_options
+    label_options=calc_label_options,
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
   ) {
     color(material_colour)
       ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        options=calc_shape_options,
       );
     if ($children > 0) {
       children(0);
@@ -618,8 +625,8 @@ module InsetLidRabbitClip(
 // Usage: InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    InsetLidRabbitClipWithLabelAndCustomShape(100, 50, text_str = "Frog") {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module InsetLidRabbitClipWithLabelAndCustomShape(
   width,
@@ -642,6 +649,7 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   rabbit_snap = 0.25,
   rabbit_offset = 3,
   rabbit_depth = 1.5,
+  pattern_inner_control = false,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
@@ -665,7 +673,8 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
     LidMeshBasic(
       width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-      dense_shape_edges=lid_dense_shape_edges
+      dense_shape_edges=lid_dense_shape_edges,
+      inner_control=pattern_inner_control
     ) {
       if ($children > 0) {
         children(0);
@@ -751,6 +760,7 @@ module InsetLidRabbitClipWithLabel(
   lid_boundary = 10,
   make_rabbit_width = false,
   make_rabbit_length = true,
+  aspect_ratio = 1.0,
   rabbit_width = 7,
   rabbit_length = 6,
   rabbit_lock = false,
@@ -759,21 +769,21 @@ module InsetLidRabbitClipWithLabel(
   rabbit_snap = 0.25,
   rabbit_offset = 3,
   layout_width = undef,
-  shape_width = undef,
-  shape_type = undef,
-  shape_thickness = undef,
-  aspect_ratio = undef,
   rabbit_depth = 1.5,
   lid_rounding = undef,
   size_spacing = m_piece_wiggle_room,
-  shape_rounding = undef,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
       full_height=true
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -785,14 +795,15 @@ module InsetLidRabbitClipWithLabel(
     text_str=text_str,
     layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio,
-    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     material_colour=material_colour,
     label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        options=calc_shape_options,
       );
     if ($children > 1) {
       children(1);

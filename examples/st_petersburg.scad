@@ -244,7 +244,8 @@ module MoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=money_box_width, length=money_box_length, height=money_box_height,
-    text_str="Money", label_colour="blue"
+    text_str="Money",
+    label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 module CardBox() // `make` me
@@ -266,7 +267,8 @@ module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=card_box_width, length=card_box_length, height=card_box_height,
-    text_str="Cards", label_colour="blue"
+    text_str="Cards",
+    label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 
@@ -332,7 +334,7 @@ module TokensBoxLid() // `make` me
   CapBoxLidWithLabel(
     width=tokens_box_width, length=tokens_box_length, height=tokens_box_height,
     text_str="Tokens",
-    label_colour="blue"
+    label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 

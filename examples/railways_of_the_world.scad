@@ -132,7 +132,8 @@ module CardBox(num_cards, text_str, generate_lid = true) {
     SlidingBoxLidWithLabel(
       width=card_box_width, length=box_length,
       text_str=text_str, wall_thickness=2,
-      lid_on_length=true, label_colour="black"
+      lid_on_length=true,
+      label_options=MakeLabelOptions(label_colour="black")
     ) children();
   } else {
     translate([box_length, 0, 0]) rotate([0, 0, 90]) {
@@ -195,7 +196,8 @@ module CardBoxEasternUSLid() // `make` me
   rotate([0, 0, 90]) {
     SlidingBoxLidWithLabel(
       width=card_box_width, length=eastern_us_card_box_length,
-      text_str=text_str, label_colour="black",
+      text_str=text_str,
+      label_options=MakeLabelOptions(label_colour="black"),
       label_width_offset=-5
     ) {
       translate([25, 40, 0]) rotate(270) {
@@ -347,7 +349,8 @@ module PlayerBoxWithPlasticExtrasLid() // `make` me
   difference() {
     InsetLidTabbedWithLabel(
       width=player_box_width, length=player_box_plastic_extra_length,
-      text_str=text_str, label_colour="black"
+      text_str=text_str,
+      label_options=MakeLabelOptions(label_colour="black")
     );
     translate([player_box_width - 56, player_box_silo_lid_hole_first - player_box_silo_lid_hole_size, 0.5])
       cube([50, player_box_silo_lid_hole_size, default_lid_thickness + 1]);
@@ -402,7 +405,7 @@ module PlayerBoxLid() // `make` me
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_small_height,
     text_str="Player", default_lid_thickness=1.7,
-    label_colour="black"
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -422,7 +425,7 @@ module PlayerBoxTrainsLid() // `make` me
   SlidingBoxLidWithLabel(
     width=player_box_width, length=player_box_trains_length,
     text_str=text_str,
-    label_colour="black"
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -459,7 +462,8 @@ module MoneyBoxLid(extra_length = 0, extra_width = 0) // `make` me
   text_str = "Money";
   SlidingBoxLidWithLabel(
     width=money_section_width + extra_width, length=money_section_length + extra_length,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -478,7 +482,8 @@ module HexBoxLid(extra_height = 0) // `make` me
   text_str = "Tracks";
   CapBoxLidWithLabel(
     width=hex_box_width, length=hex_box_length, height=top_section_height + extra_height,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -514,7 +519,8 @@ module NewCityBoxLid(extra_width = 0, extra_length = 0) // `make` me
   CapBoxLidWithLabel(
     width=new_city_box_width + extra_width, length=new_city_box_length + extra_length,
     height=top_section_height,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -566,7 +572,8 @@ module SwedenBoxLid() // `make` me
   text_str = "Sweden";
   CapBoxLidWithLabel(
     width=sweden_box_width, length=sweden_box_length, height=top_section_height,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   ) {
     translate([74, 5, 0]) {
       scale(0.35) color("lightblue") linear_extrude(height=default_lid_thickness) {
@@ -697,7 +704,8 @@ module AustraliaBoxLid() // `make` me
   text_str = "Australia";
   CapBoxLidWithLabel(
     width=australia_box_width, length=australia_box_length, height=top_section_height,
-    text_str=text_str, label_colour="black"
+    text_str=text_str,
+    label_options=MakeLabelOptions(label_colour="black")
   ) translate([44, 15, 0])
       color("blue") linear_extrude(height=default_lid_thickness) scale(0.3) difference() {
               fill() import("svg/australia.svg");

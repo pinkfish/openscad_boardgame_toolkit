@@ -126,7 +126,9 @@ module MoneyBox1() // `make` me
 
 module MoneyBox1Lid() // `make` me
 {
-  CapBoxLidWithLabel(width=money_box_width, length=money_box_length, height=money_box_height_1, text_str="Money", label_colour="black");
+  CapBoxLidWithLabel(
+    width=money_box_width, length=money_box_length, height=money_box_height_1, text_str="Money",
+  );
 }
 
 module MoneyBox2() // `make` me
@@ -158,7 +160,7 @@ module MoneyBox2Lid() // `make` me
 {
   CapBoxLidWithLabel(
     width=money_box_width, length=money_box_length, height=money_box_height_2,
-    text_str="Money", label_colour="black"
+    text_str="Money",
   );
 }
 
@@ -182,7 +184,7 @@ module HexBoxLid() // `make` me
 
   InsetLidTabbedWithLabel(
     width=hex_box_width, length=hex_box_length,
-    text_str="Tiles", label_colour="black"
+    text_str="Tiles",
   );
 }
 
@@ -248,7 +250,6 @@ module ShareBoxLid() // `make` me
   SlipoverBoxLidWithLabel(
     width=shares_box_width, length=shares_box_length,
     text_str="Shares", wall_thickness=1.5, height=shares_height,
-    label_colour="black"
   );
 }
 
@@ -319,7 +320,7 @@ module MiddleBox() // `make` me
 module MiddleBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=middle_width, length=middle_length, height=middle_height, text_str="Tokens/Trains", label_colour="black"
+    width=middle_width, length=middle_length, height=middle_height, text_str="Tokens/Trains",
   );
 }
 
@@ -367,8 +368,9 @@ module LastSectionFirstPlayerLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
     width=first_player_box_width, length=first_player_box_length,
-    height=first_player_box_height, wall_thickness=3, foot=2, label_colour="black",
-    text_str="First", label_radius=2, 
+    height=first_player_box_height, wall_thickness=3, foot=2,
+    label_options=MakeLabelOptions(label_colour="black", radius=2),
+    text_str="First",
   );
 }
 

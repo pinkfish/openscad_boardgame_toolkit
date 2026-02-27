@@ -414,8 +414,8 @@ module CapPathBoxLid(
 // Example:
 //    CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //        label_options=MakeLabelOptions(text_length=50, label_diff=[20,20])) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module CapPathBoxLidWithLabelAndCustomShape(
   path,
@@ -461,7 +461,7 @@ module CapPathBoxLidWithLabelAndCustomShape(
     path=path, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness,
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
-    material_colour=material_colour
+    material_colour=material_colour,
   ) {
     LidMeshBasic(
       path=path, lid_thickness=lid_thickness, boundary=lid_boundary,
@@ -549,19 +549,16 @@ module CapPathBoxLidWithLabel(
   wall_thickness = default_wall_thickness,
   cap_height = undef,
   layout_width = undef,
-  shape_width = undef,
-  shape_type = default_lid_shape_type,
-  shape_thickness = undef,
+  aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   lid_wall_thickness = undef,
-  aspect_ratio = 1.0,
-  lid_rounding = undef,
   lid_inner_rounding = undef,
-  shape_rounding = undef,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
+  calc_shape_options = DefaultValue(shape_options, MakeShapeObject());
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
@@ -578,14 +575,15 @@ module CapPathBoxLidWithLabel(
     lid_thickness=lid_thickness, lid_wall_thickness=lid_wall_thickness, text_str=text_str,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     lid_rounding=undef, lid_inner_rounding=undef,
-    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
-    material_colour=material_colour, pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        options=calc_shape_options,
       );
     if ($children > 0) {
       children(0);

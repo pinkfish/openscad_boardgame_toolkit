@@ -230,8 +230,6 @@ module SlidingLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
@@ -240,8 +238,8 @@ module SlidingLid(
 // Usage: SlidingBoxLidWithCustomShape(100, 50);
 // Example:
 //    SlidingBoxLidWithCustomShape(100, 50) {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module SlidingBoxLidWithCustomShape(
   width,
@@ -338,20 +336,16 @@ module SlidingBoxLidWithCustomShape(
 //    label_border = border of the item (default 2)
 //    label_offset = offset in from the edge for the label (default 4)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    lid_on_length = lid along the length of the box (default false)
-//    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Usage: SlidingBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    SlidingBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog") {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module SlidingBoxLidWithLabelAndCustomShape(
   width,
@@ -446,22 +440,12 @@ module SlidingBoxLidWithLabelAndCustomShape(
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    label_border = how wide the border strip on the label should be (default 2)
-//    label_offset = how far inside the border the label should be (default 4)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //    {{m_piece_wiggle_room}}
 //    lid_on_length = lid along the length of the box (default false)
-//    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
@@ -472,23 +456,24 @@ module SlidingBoxLidWithLabel(
   text_str,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
-  shape_width = undef,
   layout_width = undef,
-  shape_type = default_lid_shape_type,
-  shape_thickness = undef,
-  wall_thickness = default_wall_thickness,
   aspect_ratio = undef,
+  wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
   lid_rounding = undef,
-  shape_rounding = undef,
   lid_on_length = false,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -506,16 +491,16 @@ module SlidingBoxLidWithLabel(
     layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary,
-    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     lid_on_length=lid_on_length, material_colour=material_colour,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     label_options=calc_label_options
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)
         ShapeByType(
-          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding,
+          options=calc_shape_options,
         );
     }
 
@@ -557,15 +542,11 @@ module SlidingBoxLidWithLabel(
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    lid_boundary = how much boundary should be around the pattern (default 10)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = how much of an offset to use in generate the slides spacing on all four sides defaults to
 //    {{m_piece_wiggle_room}}
 //    lid_on_length = lid along the length of the box (default false)
-//    label_colour = the color of the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithShape(
@@ -575,19 +556,15 @@ module SlidingBoxLidWithShape(
   length,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
-  shape_width = undef,
   layout_width = undef,
-  label_border = 2,
-  shape_type = default_lid_shape_type,
-  shape_thickness = undef,
   wall_thickness = default_wall_thickness,
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
   lid_rounding = undef,
-  shape_rounding = undef,
   lid_on_length = false,
   material_colour = default_material_colour,
+  shape_options = undef
 ) {
   assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
@@ -595,21 +572,25 @@ module SlidingBoxLidWithShape(
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
   assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
   assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
+    )
+  );
 
   SlidingBoxLidWithCustomShape(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     layout_width=layout_width, size_spacing=size_spacing,
     aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, label_border=label_border,
-    lid_pattern_dense=IsDenseShapeType(shape_type), lid_dense_shape_edges=DenseShapeEdges(shape_type),
+    lid_boundary=lid_boundary, 
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     lid_on_length=lid_on_length, material_colour=material_colour,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type)
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)
         ShapeByType(
-          shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-          shape_aspect_ratio=aspect_ratio, rounding=shape_rounding,
+          options=calc_shape_options,
         );
     }
 

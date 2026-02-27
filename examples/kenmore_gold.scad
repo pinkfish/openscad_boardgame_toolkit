@@ -70,7 +70,10 @@ module SquareTileBox() // `make` me
 }
 module SquareTileBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(width=tile_box_width, length=tile_box_length, height=tile_box_height, text_str="Kenmore Gold", label_colour="black");
+  CapBoxLidWithLabel(
+    width=tile_box_width, length=tile_box_length, height=tile_box_height, text_str="Kenmore Gold",
+    label_options=MakeLabelOptions(label_colour="black")
+  );
 }
 
 module StartCaveBox() // `make` me
@@ -96,7 +99,8 @@ module StartCaveBoxLid() // `make` me
   translate([start_cave_box_width + 10, 0, 0])
     CapBoxLidWithLabel(
       width=start_cave_box_width, length=start_cave_box_length, height=start_cave_box_height,
-      text_str="Start Cave", label_colour="black"
+      text_str="Start Cave",
+      label_options=MakeLabelOptions(label_colour="black")
     );
 }
 
@@ -109,7 +113,10 @@ module LootBox() // `make` me
 
 module LootBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(width=loot_box_width, length=loot_box_length, height=loot_box_height, text_str="Loot", label_colour="black");
+  CapBoxLidWithLabel(
+    width=loot_box_width, length=loot_box_length, height=loot_box_height, text_str="Loot",
+    label_options=MakeLabelOptions(label_colour="black")
+  );
 }
 
 if (FROM_MAKE != 1) {

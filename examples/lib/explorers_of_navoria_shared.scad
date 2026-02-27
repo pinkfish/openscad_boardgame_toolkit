@@ -83,7 +83,8 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef) {
       SlidingBoxLidWithLabel(
         width=player_box_width, length=player_box_length,
         text_str="Player",
-        material_colour=material_colour, label_colour="black"
+        material_colour=material_colour,
+        label_options=MakeLabelOptions(label_colour="black", material_colour=material_colour)
       );
     }
   } else {
@@ -145,7 +146,7 @@ module PlayerBoxOneBase(generate_lid = true, material_colour = undef) {
     SlidingBoxLidWithLabel(
       width=player_box_width, length=player_box_length,
       text_str="Player", material_colour=material_colour,
-      label_colour="black"
+      label_options=MakeLabelOptions(label_colour="black", material_colour=material_colour)
     );
   } else {
     MakeBoxWithSlidingLid(

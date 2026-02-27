@@ -246,8 +246,8 @@ module SlidingCatchBoxLid(
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog") {
-//      ShapeByType(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
-//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15);
+//      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+//         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module SlidingCatchBoxLidWithLabelAndCustomShape(
   width,
@@ -291,7 +291,7 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
     MakeLidLabel(
       width=width, length=length,
       lid_thickness=lid_thickness,
-      text_str=text_str, 
+      text_str=text_str,
       options=object(calc_label_options, full_height=false),
     );
 
@@ -340,8 +340,6 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
@@ -356,22 +354,23 @@ module SlidingCatchBoxLidWithLabel(
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
   layout_width = undef,
-  shape_width = undef,
-  shape_type = default_lid_shape_type,
-  shape_thickness = undef,
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
   top_thickness = 2,
   fill_middle = true,
   lid_rounding = undef,
-  shape_rounding = undef,
   material_colour = default_material_colour,
-  label_options = undef
+  label_options = undef,
+  shape_options = undef
 ) {
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject(
     )
   );
 
@@ -381,15 +380,16 @@ module SlidingCatchBoxLidWithLabel(
     width=width, length=length, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
     text_str=text_str,
     layout_width=layout_width,
-    size_spacing=size_spacing, aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
-    lid_boundary=lid_boundary, top_thickness=top_thickness, fill_middle=fill_middle, material_colour=material_colour,
-    pattern_inner_control=ShapeNeedsInnerControl(shape_type),
+    size_spacing=size_spacing, aspect_ratio=aspect_ratio,
+    lid_rounding=lid_rounding,
+    lid_boundary=lid_boundary, top_thickness=top_thickness,
+    fill_middle=fill_middle, material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     label_options=calc_label_options
   ) {
     color(material_colour)
       ShapeByType(
-        shape_type=shape_type, shape_width=shape_width, shape_thickness=shape_thickness,
-        shape_aspect_ratio=aspect_ratio, rounding=shape_rounding
+        options=calc_shape_options,
       );
 
     if ($children > 1) {
