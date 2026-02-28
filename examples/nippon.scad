@@ -52,15 +52,15 @@ expert_worker_width = 16.5;
 machine_diameter = 15.5;
 machine_thickness = 6;
 
-ship_length = 25;
-ship_width = 16;
+ship_length = 21;
+ship_width = 13.5;
 ship_thickness = 10;
 
-train_length = 20.5;
-train_width = 13;
+train_length = 21;
+train_width = 13.5;
 
 worker_length = 18.5;
-worker_width = 14;
+worker_width = 14.5;
 
 upgrade_token_width = 16;
 
@@ -811,5 +811,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBox();
+  TestBox();
 }
