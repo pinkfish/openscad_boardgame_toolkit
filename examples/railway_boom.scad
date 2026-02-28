@@ -67,7 +67,7 @@ player_box_width = (box_width - 2) / 2;
 player_box_length = 108;
 
 city_tile_width = 14.5;
-city_tile_length = 32.5;
+city_tile_length = 33;
 city_tile_edge_width = 10.5;
 city_tile_middle_offset = 9;
 
@@ -423,7 +423,7 @@ module PlayerBoxLid() // `make` me
     width=player_box_width, length=player_box_length, height=player_box_height, text_str="Player",
     label_options=MakeLabelOptions(label_diff=[0, 15])
   ) {
-    translate([default_wall_thickness, default_wall_thickness, 0])
+    translate([default_wall_thickness, default_wall_thickness-3.5, 0])
       color("yellow")
         difference() {
           union() {
@@ -699,5 +699,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  StationCardBoxLid();
+  PlayerBoxLid();
 }
