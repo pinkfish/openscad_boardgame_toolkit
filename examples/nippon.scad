@@ -31,7 +31,7 @@ player_board_width = 235;
 player_board_length = 345;
 
 player_handbook_thickness = 6;
-player_handboook_length = 233;
+player_handbook_length = 233;
 player_handbook_width = 103;
 
 cube_size = 11;
@@ -48,6 +48,7 @@ round_marker_diameter = 12;
 round_marker_length = 16;
 
 expert_worker_width = 16.5;
+expert_worker_thickness = 7;
 
 machine_diameter = 15.5;
 machine_thickness = 6;
@@ -61,6 +62,7 @@ train_width = 13.5;
 
 worker_length = 18.5;
 worker_width = 14.5;
+worker_thickness = 10;
 
 upgrade_token_width = 16;
 
@@ -98,13 +100,19 @@ old_factory_tile_length = 57;
 action_token_width = 26;
 action_token_length = 41;
 
-player_box_width = box_width / 2;
-player_box_height = (box_height - board_thickness - player_board_thickness * 4) / 2;
+space_left = box_height - board_thickness - player_board_thickness * 4 - player_handbook_thickness;
+
+player_box_width = box_width / 4;
+player_box_height = default_floor_thickness + default_lid_thickness + 1 + ship_thickness;
 player_box_length = 92;
+
+player_box_bits_width = box_width / 2;
+player_box_bits_height = (space_left - player_box_height) / 2;
+player_box_bits_length = 92;
 
 factory_tile_box_width = default_wall_thickness * 2 + factory_token_width + 1;
 factory_tile_box_length = default_wall_thickness * 2 + factory_token_length + 1;
-factory_tile_box_height = box_height - board_thickness - player_board_thickness * 4;
+factory_tile_box_height = space_left;
 
 demand_tile_box_width = default_wall_thickness * 2 + demand_token_width + 1;
 demand_tile_box_length = factory_tile_box_length;
@@ -120,22 +128,31 @@ upgraded_tile_box_height = cardboard_token_thickness * (24 / 6) + default_floor_
 
 money_box_width = upgraded_tile_box_width;
 money_box_length = upgraded_tile_box_length;
-money_box_height = box_height - upgraded_tile_box_height - board_thickness - player_board_thickness * 4;
+money_box_height = space_left - upgraded_tile_box_height;
 
-solo_box_width = 100;
+solo_box_width = 89;
 solo_box_length = upgraded_tile_box_length;
 solo_box_height = default_floor_thickness + default_lid_thickness + 1 + cardboard_token_thickness * 5;
 
-late_game_factory_box_width = solo_box_width;
+late_game_factory_box_width = default_wall_thickness * 2 + factory_token_width + 1;
 late_game_factory_box_length = solo_box_length;
-late_game_factory_box_height = box_height - board_thickness - player_board_thickness * 4 - solo_box_height;
+late_game_factory_box_height = space_left - solo_box_height;
 
-middle_spacer_width = box_width - solo_box_width;
-middle_spacer_length = solo_box_length;
-middle_spacer_height = factory_tile_box_height;
+round_marker_box_width = solo_box_width - late_game_factory_box_width - 0.5;
+round_marker_box_length = solo_box_length;
+round_marker_box_height = space_left - solo_box_height;
+
+worker_box_width = (box_width - solo_box_width - 1) / 3;
+worker_box_length = upgraded_tile_box_length;
+worker_box_height = space_left / 2;
+
+resource_box_width = default_wall_thickness * 2 + cube_size * 8 + 24;
+resource_box_length = default_wall_thickness * 2 + cube_size * 3 + 2;
+resource_box_height = space_left / 2;
+resource_box_double_width = box_width - resource_box_width;
 
 front_spacer_width = box_width;
-front_spacer_length = box_length - solo_box_length - factory_tile_box_length - player_box_length;
+front_spacer_length = box_length - solo_box_length - factory_tile_box_length - player_box_length - resource_box_length;
 front_spacer_height = factory_tile_box_height;
 
 module TrainItem() {
@@ -358,16 +375,17 @@ module WorkerItem() {
       polygon(bezpath_curve(bez));
 }
 
-module PlayerBox() // `make` me
+module PlayerBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
     width=player_box_width,
     length=player_box_length,
-    height=player_box_height
+    height=player_box_height,
+    material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - ship_thickness / 2])
       RoundedBoxAllSides(
-        width=ship_length * 2 + train_length + 6,
+        width=$inner_width,
         length=$inner_length,
         height=ship_thickness,
         radius=5
@@ -377,7 +395,13 @@ module PlayerBox() // `make` me
     for (i = [0:4]) {
       for (j = [0:1]) {
         if (j != 1 || i < 1) {
-          translate([1 + (ship_length + 1) * j + ship_length / 2, (ship_width + 1) * i + 1 + ship_width / 2, $inner_height - ship_thickness])
+          translate(
+            [
+              3 + (ship_length + 0.5) * j + ship_length / 2,
+              (ship_width + 2.4) * i + 5 + ship_width / 2,
+              $inner_height - ship_thickness - 0.5,
+            ]
+          )
             linear_extrude(ship_thickness + 1)
               ShipItem();
           //cuboid([ship_length, ship_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
@@ -386,61 +410,82 @@ module PlayerBox() // `make` me
     }
 
     // trains in spaces
-    translate([(ship_length + 1.5) * 2 - train_length - 5, 8, 0]) {
+    translate([(ship_length + 0.5) * 1 + 3, 5, 0]) {
       for (i = [0:4]) {
         for (j = [0:1]) {
           if ( (j == 1 || i >= 1) && (j == 0 || i > 2)) {
-            translate([(train_length + 1.5) * j + train_length / 2, 4 + (train_width + 1.5) * i + 1 + train_width / 2, $inner_height - ship_thickness])
+            translate(
+              [
+                (train_length + 1) * j + train_length / 2,
+                (train_width + 2.4) * i + train_width / 2,
+                $inner_height - ship_thickness - 0.5,
+              ]
+            )
               linear_extrude(ship_thickness + 1)
                 TrainItem();
             //cuboid([train_length, train_width, ship_thickness + 1], anchor=BOTTOM + FRONT + LEFT);
           }
         }
       }
-      translate([(train_length + 1.5) * 1 + 9, 0, 0]) {
+      translate([(train_length + 1.5) * 1 + 2, 3, 0]) {
         for (i = [0:2]) {
-          translate([0, (track_marker_cylinder_diameter + 1.5) * i, $inner_height - track_marker_cylinder_length])
-            cyl(d=track_marker_cylinder_diameter, h=track_marker_cylinder_length + 1, anchor=BOTTOM + FRONT + LEFT);
+          translate([0, (track_marker_cylinder_diameter + 2.5) * i, $inner_height - track_marker_cylinder_diameter - 0.5])
+            xcyl(d=track_marker_cylinder_diameter + 0.5, h=track_marker_cylinder_length + 1, anchor=BOTTOM + FRONT + LEFT);
+        }
+      }
+    }
+  }
+}
+
+module PlayerBoxBits(material_colour = "yellow") // `make` me
+{
+  MakeBoxWithCapLid(
+    width=player_box_bits_width,
+    length=player_box_bits_length,
+    height=player_box_bits_height,
+    material_colour=material_colour
+  ) {
+
+    // machine disks
+    translate([machine_diameter / 2 + 1, 14, $inner_height - machine_thickness - 0.5]) {
+      for (i = [0:2]) {
+        for (j = [0:1]) {
+          translate([(machine_diameter + 1.5) * j, (machine_diameter + 1.5) * i, 0])
+            CylinderWithIndents(
+              d=machine_diameter, h=machine_thickness * 2 + 1,
+              anchor=BOTTOM,
+              finger_holes=[90, 270],
+              finger_hole_radius=6
+            );
         }
       }
     }
 
-    // machine disks
-    translate([$inner_width - machine_diameter / 2 - 1, 20, $inner_height - machine_thickness * 2 + 0.5]) {
-      for (i = [0:2]) {
-        translate([0, (machine_diameter + 1.5) * i, 0])
-          CylinderWithIndents(
-            d=machine_diameter, h=machine_thickness * 2 + 1,
-            anchor=BOTTOM,
-            finger_holes=[90, 270],
-            finger_hole_radius=6
-          );
-      }
-    }
-
     // influence tokens
-    translate([$inner_width - machine_diameter * 2 - 10, 25, $inner_height - cardboard_token_thickness * 5 + 0.5]) {
-      for (j = [0:1]) {
+    translate(
+      [
+        machine_diameter * 2 + 10,
+        2,
+        0,
+      ]
+    ) {
+      for (j = [0:4]) {
         for (i = [0:1]) {
-          translate([-(influence_token_width + 1.5) * j, (influence_token_width + 2) * i, 0]) {
+          translate(
+            [
+              (influence_token_width + 1.5) * j,
+              (influence_token_width + 2) * i,
+              $inner_height - cardboard_token_thickness * (j == 1 || j == 2 ? 2 : 2) - 0.5,
+            ]
+          ) {
             difference() {
-              if (j == 1 && i == 0) {
-                translate([0, 0, cardboard_token_thickness])
-                  CuboidWithIndentsBottom(
-                    [influence_token_width, influence_token_width, cardboard_token_thickness * 8],
-                    anchor=BOTTOM + FRONT + LEFT,
-                    finger_holes=[2, 6],
-                    finger_hole_radius=5.5
-                  );
-              } else {
-                CuboidWithIndentsBottom(
-                  [influence_token_width, influence_token_width, cardboard_token_thickness * 8],
-                  anchor=BOTTOM + FRONT + LEFT,
-                  finger_holes=[2, 6],
-                  finger_hole_radius=5.5
-                );
-              }
-              if (j == 0) {
+              CuboidWithIndentsBottom(
+                [influence_token_width, influence_token_width, cardboard_token_thickness * 8],
+                anchor=BOTTOM + FRONT + LEFT,
+                finger_holes=[2, 6],
+                finger_hole_radius=6.5
+              );
+              if (j <= 1 || (j == 2 && i == 0)) {
                 translate([influence_token_width / 2, 0, 0])
                   rotate(45)
                     cuboid(
@@ -454,7 +499,7 @@ module PlayerBox() // `make` me
                       rounding=2, edges=[FRONT + LEFT]
                     );
               }
-              if (j == 1) {
+              if (j > 3 && (j == 2 && i == 1)) {
                 cyl(d=favour_token_corner, h=player_box_height, anchor=BOTTOM);
                 translate([favour_token_width, 0, 0])
                   cyl(d=favour_token_corner, h=player_box_height, anchor=BOTTOM);
@@ -467,42 +512,50 @@ module PlayerBox() // `make` me
           }
         }
       }
-
-      // contract tokens
-      translate([-contract_token_length + 22, $inner_length - contract_token_width * 2 - 5, 0 - cardboard_token_thickness * 3]) {
-        cuboid(
-          [contract_token_length, contract_token_width, cardboard_token_thickness * 10],
-          anchor=BOTTOM + LEFT + FRONT
-        );
-        translate([0, contract_token_width / 2, 0])
-          cyl(
-            d=contract_token_width - 5, h=100,
-            anchor=BOTTOM,
-            rounding=(contract_token_width - 5) / 2
-          );
-        translate([contract_token_length, contract_token_width / 2, 0])
-          cyl(
-            d=contract_token_width - 5, h=100,
-            anchor=BOTTOM,
-            rounding=(contract_token_width - 5) / 2
-          );
-      }
     }
+
+    // contract tokens
+    for (i = [0:1])
+      for (j = [0:1])
+        translate(
+          [
+            machine_diameter * 2 + 15 + ( (contract_token_length + 2) * j),
+            $inner_length - contract_token_width * 2 - 5 + (contract_token_width + 2) * i,
+            $inner_height - cardboard_token_thickness * (i == 0 ? 2 : 2) - 0.5,
+          ]
+        ) {
+          cuboid(
+            [contract_token_length, contract_token_width, cardboard_token_thickness * 10],
+            anchor=BOTTOM + LEFT + FRONT
+          );
+          translate([0, contract_token_width / 2, 0])
+            cyl(
+              d=contract_token_width - 5, h=100,
+              anchor=BOTTOM,
+              rounding=(contract_token_width - 5) / 2
+            );
+          translate([contract_token_length, contract_token_width / 2, 0])
+            cyl(
+              d=contract_token_width - 5, h=100,
+              anchor=BOTTOM,
+              rounding=(contract_token_width - 5) / 2
+            );
+        }
 
     // scoring disks
     for (i = [0:1]) {
       translate(
         [
-          $inner_width - scoring_disk_diameter * 2 + -(scoring_disk_diameter + 1.5) * i,
-          scoring_disk_diameter / 2 + 4,
-          $inner_height - scoring_disk_thickness,
+          scoring_disk_diameter / 2 + (scoring_disk_diameter + 1) * i + 2,
+          $inner_length - scoring_disk_diameter / 2 - 2,
+          $inner_height - scoring_disk_thickness - 0.5,
         ]
       )
         CylinderWithIndents(
           d=scoring_disk_diameter,
           h=player_box_height,
-          finger_holes=[0, 180],
-          finger_hole_radius=5
+          finger_holes=[270],
+          finger_hole_radius=8
         );
     }
   }
@@ -514,6 +567,16 @@ module PlayerBoxLid() // `make` me
     width=player_box_width,
     length=player_box_length,
     height=player_box_height,
+    text_str="Ships & Trains"
+  );
+}
+
+module PlayerBoxBitsLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=player_box_bits_width,
+    length=player_box_bits_length,
+    height=player_box_bits_height,
     text_str="Player"
   );
 }
@@ -525,7 +588,7 @@ module FactoryTileBox() // `make` me
     length=factory_tile_box_length,
     height=factory_tile_box_height
   ) {
-    translate([0, 0, $inner_height - cardboard_token_thickness * 12])
+    translate([0, 0, $inner_height - cardboard_token_thickness * 12 - 1])
       cuboid([$inner_width, $inner_length, factory_tile_box_height], anchor=BOTTOM + LEFT + FRONT);
 
     translate([$inner_width / 2, 0, -2]) FingerHoleBase(
@@ -663,35 +726,35 @@ module SoloBox() // `make` me
     length=solo_box_length,
     height=solo_box_height
   ) {
-    translate([8, 5, $inner_height - cardboard_token_thickness * 4])
+    translate([10, 5, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=7
+        finger_hole_radius=9
       );
-    translate([8, 30, $inner_height - cardboard_token_thickness * 5])
+    translate([10, 30, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=7
-      );
-
-    translate([55, 5, $inner_height - cardboard_token_thickness * 4])
-      CuboidWithIndentsBottom(
-        [solo_goal_token_length, solo_goal_token_width, solo_box_height],
-        anchor=BOTTOM + LEFT + FRONT,
-        finger_holes=[2, 6],
-        finger_hole_radius=7
+        finger_hole_radius=9
       );
 
-    translate([55, 30, $inner_height - cardboard_token_thickness * 5])
+    translate([43, 5, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=7
+        finger_hole_radius=9
+      );
+
+    translate([43, 30, $inner_height - cardboard_token_thickness * 5])
+      CuboidWithIndentsBottom(
+        [solo_goal_token_length, solo_goal_token_width, solo_box_height],
+        anchor=BOTTOM + LEFT + FRONT,
+        finger_holes=[2, 6],
+        finger_hole_radius=9
       );
   }
 }
@@ -734,14 +797,122 @@ module LateGameFactoryBoxLid() // `make` me
   );
 }
 
-module SpacerMiddle() // `make` me
+module RoundMarkerBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    width=middle_spacer_width,
-    length=middle_spacer_length,
-    height=middle_spacer_height,
-    hollow=true
+  MakeBoxWithSlidingLid(
+    width=round_marker_box_width,
+    length=round_marker_box_length,
+    height=round_marker_box_height
+  ) {
+    translate(
+      [0, 0, $inner_height - round_marker_length / 2]
+    )
+      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=round_marker_box_height, radius=5);
+
+    translate([$inner_width / 2, $inner_length / 4, $inner_height - round_marker_length])
+      cyl(d=round_marker_diameter, anchor=BOTTOM, h=round_marker_length + 10);
+    translate([$inner_width / 2, $inner_length * 3 / 4, $inner_height - round_marker_length])
+      cyl(d=round_marker_diameter, anchor=BOTTOM, h=round_marker_length + 10);
+  }
+}
+
+module RoundMarkerBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=round_marker_box_width,
+    length=round_marker_box_length,
+    text_str="Round"
   );
+}
+
+module WorkerBox(material_colour = "yellow") // `make` me
+{
+  MakeBoxWithCapLid(
+    width=worker_box_width,
+    length=worker_box_length,
+    height=worker_box_height,
+    material_colour=material_colour
+  ) {
+    translate([0, 0, $inner_height - worker_thickness / 2])
+      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=worker_box_height, radius=5);
+    for (i = [0:1]) {
+      for (j = [0:2]) {
+        if (i != 2 || j != 2) {
+          translate(
+            [
+              worker_length / 2 + (worker_length + 1) * i + 4.5,
+              worker_width / 2 + (worker_width+1) * j + 7,
+              $inner_height - worker_thickness - 0.5,
+            ]
+          )
+            rotate(j == 1 ? 90 : 90)
+              linear_extrude(worker_box_height) WorkerItem();
+        }
+      }
+      translate(
+        [
+          worker_length / 2 + (worker_length + 1) * 1 + worker_length + 5.25,
+          worker_width / 2 + (worker_width * 2 + 4.5) * i + 5,
+          $inner_height - worker_thickness - 0.5,
+        ]
+      )
+        rotate(90)
+          linear_extrude(worker_box_height) WorkerItem();
+
+      
+      // exper worker.
+      translate(
+        [
+          $inner_width - expert_worker_width / 2-6,
+          $inner_length / 2,
+          $inner_height - expert_worker_thickness - 0.5,
+        ]
+      )
+        cuboid([expert_worker_width, expert_worker_width, expert_worker_thickness + 1], anchor=BOTTOM);
+    }
+  }
+}
+
+module WorkerBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    width=worker_box_width,
+    length=worker_box_length,
+    height=worker_box_height,
+    text_str="Workers"
+  );
+}
+
+module ResourceBox(material_colour = "yellow") // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=resource_box_width,
+    length=resource_box_length,
+    height=resource_box_height,
+    material_colour=material_colour
+  ) {
+    translate([0, 0, $inner_height - cube_size / 2])
+      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - cube_size - 0.5])
+      cuboid([cube_size * 8 + 1, cube_size * 3, cube_size + 1], anchor=BOTTOM);
+  }
+}
+
+module ResourceDoubleBox(material_colour = "yellow") // `make` me
+{
+  MakeBoxWithSlidingLid(
+    width=resource_box_double_width,
+    length=resource_box_length,
+    height=resource_box_height,
+    material_colour=material_colour
+  ) {
+    translate([0, 0, $inner_height - cube_size / 2])
+      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+    translate([$inner_width / 2 - cube_size / 2, $inner_length / 2, $inner_height - cube_size - 0.5])
+      cuboid([cube_size * 10 + 1, cube_size * 3 + 0.5, cube_size + 1], anchor=BOTTOM);
+    translate([$inner_width / 2 + cube_size * 5, $inner_length / 2, $inner_height - cube_size - 0.5])
+      cuboid([cube_size * 1 + 1, cube_size * 2 + 0.5, cube_size + 1], anchor=BOTTOM);
+  }
 }
 
 module SpacerFront() // `make` me
@@ -754,14 +925,41 @@ module SpacerFront() // `make` me
   );
 }
 
-module BoxLayout() {
-  cube([box_width, box_length, 1]);
-  cube([1, box_length, box_height]);
-  for (j = [0:1]) {
+module BoxLayout(layout = 0) {
+  if (layout == 0) {
+    cube([box_width, box_length, 1]);
+    cube([1, box_length, box_height]);
+  }
+  player_colours = ["purple", "yellow", "green", "red"];
+  worker_colours = ["white", "blue", "grey", "yellow", "red", "black"];
+  resource_colours = ["lightgrey", "red", "black", "palegoldenrod"];
+  if (layout == 1) {
+    translate([0, 0, player_box_height + player_box_bits_height * 2]) {
+      for (i = [0:3])
+        translate([0, 0, player_board_thickness * i])
+          color(player_colours[i])
+            cube([player_board_width, player_board_length, player_board_thickness]);
+      translate([0, 0, player_board_thickness * 4]) {
+        translate([3, 3, 4]) {
+          color("darkblue")
+            cube([board_width, board_length, board_thickness]);
+          translate([0, 0, board_thickness])
+            color("blue")
+              cube([player_handbook_length, player_handbook_width, player_handbook_thickness]);
+        }
+      }
+    }
+  }
+  for (j = [0:3]) {
     translate([player_box_width * j, player_box_length * 0, 0])
-      PlayerBox();
-    translate([player_box_width * j, player_box_length * 0, player_box_height])
-      PlayerBox();
+      PlayerBox(material_colour=player_colours[j]);
+  }
+  translate([0, 0, player_box_height])for (j = [0:1]) {
+    translate([player_box_bits_width * j, 0, 0])
+      PlayerBoxBits(material_colour=player_colours[j]);
+
+    translate([player_box_bits_width * j, 0, player_box_bits_height])
+      PlayerBoxBits(material_colour=player_colours[j + 2]);
   }
   translate([0, player_box_length, 0]) {
     FactoryTileBox();
@@ -785,14 +983,34 @@ module BoxLayout() {
     SoloBox();
     translate([0, 0, solo_box_height]) {
       LateGameFactoryBox();
+      translate([late_game_factory_box_width, 0, 0]) {
+        RoundMarkerBox();
+      }
     }
+
     translate([solo_box_width, 0, 0]) {
-      SpacerMiddle();
+      for (i = [0:2]) {
+        translate([worker_box_width * i, 0, 0])
+          WorkerBox(material_colour=worker_colours[i]);
+        translate([worker_box_width * i, 0, worker_box_height])
+          WorkerBox(material_colour=worker_colours[i + 3]);
+      }
     }
-    translate([0, solo_box_length, 0]) {
+    for (i = [0:1]) {
+      translate([0, solo_box_length, resource_box_height * i])
+        ResourceBox(material_colour=resource_colours[i]);
+      translate([resource_box_width, solo_box_length, resource_box_height * i])
+        ResourceDoubleBox(material_colour=resource_colours[i + 2]);
+    }
+    translate([0, solo_box_length + resource_box_length, 0]) {
       SpacerFront();
     }
   }
+}
+
+module BoxLayoutA() // `document` me
+{
+  BoxLayout(layout=1);
 }
 
 module TestBox() {
@@ -811,5 +1029,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  TestBox();
+  WorkerBox();
 }
