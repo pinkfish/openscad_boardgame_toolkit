@@ -392,7 +392,7 @@ module PlayerBox(material_colour = "yellow") // `make` me
         );
       }
 
-      for (i = [0:4]) {
+      for (i = [0:3]) {
         translate([train_length * 3 + 2 + house_top_width / 2, 24 + (house_length + 2) * i, $inner_height - 5]) {
           rotate([90, 0, 0])
             StationPiece(house_length);
@@ -423,7 +423,7 @@ module PlayerBoxLid() // `make` me
     width=player_box_width, length=player_box_length, height=player_box_height, text_str="Player",
     label_options=MakeLabelOptions(label_diff=[0, 15])
   ) {
-    translate([default_wall_thickness, default_wall_thickness-3.5, 0])
+    translate([default_wall_thickness, default_wall_thickness - 3.5, 0])
       color("yellow")
         difference() {
           union() {
@@ -625,11 +625,11 @@ module BoxLayout(layout = 0) {
       }
 
       translate([0, player_box_length + card_box_length + small_card_box_length, 0]) {
-        if (layout < 4) {
+        if (layout < 3) {
           DevelopmentCardBox();
         }
         translate([small_card_box_width, 0, 0]) {
-          if (layout < 4) {
+          if (layout < 3) {
             DevelopmentCardBox();
           }
           translate([small_card_box_width, 0, 0]) {
@@ -646,7 +646,7 @@ module BoxLayout(layout = 0) {
           }
         }
       }
-      if (layout < 3) {
+      if (layout < 5) {
         translate([0, player_box_length + card_box_length + small_card_box_length * 2, 0]) {
           IndicatorBox();
           translate([indicator_box_width, 0, 0]) {
@@ -699,5 +699,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxLid();
+  BoxLayoutB();
 }

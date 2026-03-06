@@ -70,7 +70,7 @@ favour_token_width = 16;
 favour_token_corner = 3;
 
 influence_token_width = 16;
-influence_token_middle_size = 5;
+influence_token_middle_size = 3.5;
 
 factory_token_width = 57;
 factory_token_length = 57;
@@ -499,7 +499,7 @@ module PlayerBoxBits(material_colour = "yellow") // `make` me
                       rounding=2, edges=[FRONT + LEFT]
                     );
               }
-              if (j > 3 && (j == 2 && i == 1)) {
+              if (j > 2 || (j == 2 && i == 1)) {
                 cyl(d=favour_token_corner, h=player_box_height, anchor=BOTTOM);
                 translate([favour_token_width, 0, 0])
                   cyl(d=favour_token_corner, h=player_box_height, anchor=BOTTOM);
@@ -1029,5 +1029,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  WorkerBox();
+  PlayerBoxBits();
 }
