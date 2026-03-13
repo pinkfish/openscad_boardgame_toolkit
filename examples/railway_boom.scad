@@ -452,7 +452,7 @@ module ResourceBox(material_colour) // `make` me
 {
   MakeBoxWithCapLid(
     width=resource_box_width, length=resource_box_length, height=resource_box_height,
-    material_colour=material_colour,
+    material_colour=material_colour, wall_thickness=3
   ) {
     RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
   }
@@ -463,7 +463,8 @@ module ResourceBoxCoalLid() // `make` me
   CapBoxLidWithLabel(
     width=resource_box_width, length=resource_box_length, height=resource_box_height, text_str="Coal",
     material_colour="black",
-    label_options=MakeLabelOptions(label_colour="white", material_colour="black")
+    label_options=MakeLabelOptions(label_colour="white", material_colour="black",
+     wall_thickness=3)
   );
 }
 
@@ -699,5 +700,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutB();
+  ResourceBox();
 }

@@ -150,8 +150,8 @@ module MakeBoxWithCapLid(
         translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
           color(material_colour) cuboid(
               [
-                width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                length - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                width - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
+                length - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
                 calc_cap_height,
               ],
               anchor=BOTTOM + FRONT + LEFT, rounding=calc_lid_wall_thickness,
