@@ -915,6 +915,24 @@ module ResourceDoubleBox(material_colour = "yellow") // `make` me
   }
 }
 
+module ResourceDoubleBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=resource_box_double_width,
+    length=resource_box_length,
+    text_str="Resources"
+  );
+}
+
+module ResourceBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    width=resource_box_width,
+    length=resource_box_length,
+    text_str="Resources"
+  );
+}
+
 module SpacerFront() // `make` me
 {
   MakeBoxWithNoLid(

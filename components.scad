@@ -73,33 +73,38 @@ module RoundedBoxOnLength(width, length, height, radius) {
 // Description:
 //   Creates a rounded box with all the sides rounded.
 // Arguments:
-//   width = width of the cube
+//   width = width of the cube, can also be a 3 size list with the width, length, height
 //   length = of the cube
 //   height = of the cube
 //   radius = radius of the curve on the edges
 // Topics: Recess
 // Example:
 //   RoundedBoxAllSides(30, 20, 10, 7);
+// Example:
+//   RoundedBoxAllSides([30,30,10], radius=5);
 module RoundedBoxAllSides(width, length, height, radius) {
-  assert(width > 0, str("Need width > 0 width=", width));
-  assert(length > 0, str("Need length > 0 length=", length));
-  assert(height > 0, str("Need height > 0 height=", height));
+  width_i = is_list(width) ? width[0] : width;
+  length_i = is_list(width) ? width[1] : length;
+  height_i = is_list(width) ? width[2] : height;
+  assert(width_i > 0, str("Need width > 0 width=", width));
+  assert(length_i > 0, str("Need length > 0 length=", length));
+  assert(height_i > 0, str("Need height > 0 height=", height));
   assert(radius > 0, str("Need radius < 0 radius=", radius));
   hull() {
     difference() {
       hull() {
         translate([radius, radius, radius]) sphere(radius);
 
-        translate([width - radius, radius, radius]) sphere(radius);
+        translate([width_i - radius, radius, radius]) sphere(radius);
 
-        translate([radius, length - radius, radius]) sphere(radius);
+        translate([radius, length_i - radius, radius]) sphere(radius);
 
-        translate([width - radius, length - radius, radius]) sphere(radius);
+        translate([width_i - radius, length_i - radius, radius]) sphere(radius);
       }
-      translate([-0.5, -0.5, radius]) cube([width + 1, length + 1, radius + 1]);
+      translate([-0.5, -0.5, radius]) cube([width_i + 1, length_i + 1, radius + 1]);
     }
 
-    translate([0, 0, height - 1]) cube([width, length, 1]);
+    translate([0, 0, height_i - 1]) cube([width_i, length_i, 1]);
   }
 }
 
