@@ -72,8 +72,8 @@ favour_token_corner = 3;
 influence_token_width = 16;
 influence_token_middle_size = 3.5;
 
-factory_token_width = 57;
-factory_token_length = 57;
+factory_token_width = 51;
+factory_token_length = 55.5;
 
 demand_token_width = 42;
 demand_token_length = 42;
@@ -118,7 +118,7 @@ demand_tile_box_width = default_wall_thickness * 2 + demand_token_width + 1;
 demand_tile_box_length = factory_tile_box_length;
 demand_tile_box_height = factory_tile_box_height;
 
-starting_tile_box_width = default_wall_thickness * 2 + old_factory_tile_width + 1;
+starting_tile_box_width = default_wall_thickness * 2 + starting_token_width + 1;
 starting_tile_box_length = factory_tile_box_length;
 starting_tile_box_height = factory_tile_box_height;
 
@@ -591,6 +591,7 @@ module FactoryTileBox() // `make` me
     translate([0, 0, $inner_height - cardboard_token_thickness * 12 - 1])
       cuboid([$inner_width, $inner_length, factory_tile_box_height], anchor=BOTTOM + LEFT + FRONT);
 
+
     translate([$inner_width / 2, 0, -2]) FingerHoleBase(
         radius=17, height=factory_tile_box_height - default_lid_thickness,
         spin=0
@@ -841,7 +842,7 @@ module WorkerBox(material_colour = "yellow") // `make` me
           translate(
             [
               worker_length / 2 + (worker_length + 1) * i + 4.5,
-              worker_width / 2 + (worker_width+1) * j + 7,
+              worker_width / 2 + (worker_width + 1) * j + 7,
               $inner_height - worker_thickness - 0.5,
             ]
           )
@@ -863,7 +864,7 @@ module WorkerBox(material_colour = "yellow") // `make` me
       // exper worker.
       translate(
         [
-          $inner_width - expert_worker_width / 2-6,
+          $inner_width - expert_worker_width / 2 - 6,
           $inner_length / 2,
           $inner_height - expert_worker_thickness - 0.5,
         ]
@@ -1047,5 +1048,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBoxBits();
+  BoxLayout();
 }
