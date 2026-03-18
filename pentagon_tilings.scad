@@ -1420,7 +1420,6 @@ module PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) {
     : [];
 
   pattern = PentagonPattern(pentagon_type);
- // echo(pattern[2], pattern[3], x, y);
   translate(pentagon_size * x * pattern[2])
     translate(pentagon_size * y * pattern[3])
       InnerPentagonTesselation(pattern);

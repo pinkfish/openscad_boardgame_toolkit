@@ -363,17 +363,6 @@ module PlayerBox() // `make` me
 {
   card_height = train_card_thickness * 4 + 1;
   default_lid_thickness = 1.7;
-  echo(
-    [
-      1111,
-      card_height + player_marker_thickness + 1.7 * 2,
-      player_box_height,
-      card_box_width,
-      player_box_length,
-      player_box_small_height,
-      default_lid_thickness,
-    ]
-  );
   MakeBoxWithCapLid(
     width=player_box_width, length=player_box_length, height=player_box_small_height,
   ) {

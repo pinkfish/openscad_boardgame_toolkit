@@ -34,7 +34,7 @@ player_handbook_thickness = 6;
 player_handbook_length = 233;
 player_handbook_width = 103;
 
-cube_size = 11;
+cube_size = 10.5;
 
 cardboard_token_thickness = 2.5;
 
@@ -93,7 +93,7 @@ solo_goal_token_length = 31;
 solo_goal_token_edge = 2;
 
 solo_action_token_width = 25.5;
-solo_action_token_length = 33;
+solo_action_token_length = 38;
 solo_action_token_edge = 2.5;
 
 starting_token_width = 32;
@@ -732,7 +732,7 @@ module SoloBox() // `make` me
     length=solo_box_length,
     height=solo_box_height
   ) {
-    translate([10, 5, $inner_height - cardboard_token_thickness * 4])
+    translate([8, 5, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -741,7 +741,7 @@ module SoloBox() // `make` me
         edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
         chamfer=solo_action_token_edge
       );
-    translate([10, 30, $inner_height - cardboard_token_thickness * 5])
+    translate([8, 30, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -751,7 +751,7 @@ module SoloBox() // `make` me
         chamfer=solo_action_token_edge
       );
 
-    translate([43, 2, $inner_height - cardboard_token_thickness * 4])
+    translate([40, 2, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -761,7 +761,7 @@ module SoloBox() // `make` me
         chamfer=solo_action_token_edge
       );
 
-    translate([43, 29, $inner_height - cardboard_token_thickness * 5])
+    translate([40, 29, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -1062,5 +1062,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  SoloBox();
+  ResourceDoubleBox();
 }

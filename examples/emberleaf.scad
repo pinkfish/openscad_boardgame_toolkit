@@ -386,7 +386,6 @@ module CardBoxPlayer(colour) // `make` me
     length=player_card_box_length, height=player_card_box_height,
     material_colour=colour
   ) {
-    echo([player_card_box_height - default_lid_thickness - default_floor_thickness, 6.5 / single_card_thickness]);
     translate([($inner_width - card_width) / 2, 0, 0])
       color(colour)
         cube([card_width + 1, card_length + 1, card_box_height]);

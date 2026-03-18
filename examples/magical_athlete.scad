@@ -606,7 +606,6 @@ module AwardsTokensBox() // `make` me
 
 module AwardsTokensBoxOneLid() // `make` me
 {
-  echo([award_tokens_height, award_tokens_length, award_tokens_width]);
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
     text_str="1",

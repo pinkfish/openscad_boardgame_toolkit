@@ -370,7 +370,6 @@ module EvidenceBox() // `make` me
     material_colour="LightSalmon"
   ) {
     RoundedBoxAllSides([$inner_width, $inner_length, player_box_height], radius=5);
-    echo([box_height - player_board_thickness, box_width - card_width * 4]);
   }
 }
 

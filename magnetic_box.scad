@@ -187,7 +187,6 @@ module MakeBoxWithMagneticLidInsideSpace(
             );
       }
       side_radius = box_size / 2 - wall_thickness;
-      echo(side_radius);
       if (side_radius > 0 && full_height) {
         difference() {
 
