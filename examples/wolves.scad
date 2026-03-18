@@ -153,7 +153,7 @@ module PlayerBoxLid(generate_lid = true) // `make` me
 
   CapBoxLidWithLabel(
     width=player_box_width, length=player_box_length, height=player_box_height,
-    text_str="Player", 
+    text_str="Player",
     label_options=MakeLabelOptions(label_colour="black")
   );
 }
@@ -189,7 +189,7 @@ module UnmetNeedsBoxLid(generate_lid = true) // `make` me
   CapBoxLidWithLabel(
     width=shared_box_width, length=shared_box_length, height=shared_box_height,
     text_str="Tokens",
-    label_options=MakeLabelOptions( label_colour="black")
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
@@ -244,7 +244,7 @@ module ExtraCardsBoxLid(generate_lid = false) // `make` me
 
   CapBoxLidWithLabel(
     width=shared_box_width, length=shared_box_length, height=shared_box_height,
-    text_str="Cards", 
+    text_str="Cards",
     label_options=MakeLabelOptions(label_colour="black")
   );
 }
@@ -252,7 +252,7 @@ module ExtraCardsBoxLid(generate_lid = false) // `make` me
 module ResourcesBox(generate_lid = true) // `make` me
 {
   MakeBoxWithCapLid(width=resources_box_width, length=resources_box_length, height=resources_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resources_box_height, radius=10);
+    RoundedBoxAllSides([$inner_width, $inner_length, resources_box_height], radius=10);
   }
 }
 

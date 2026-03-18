@@ -957,18 +957,18 @@ module PlayerBoxInternal(material_colour) {
 
     translate([1, 2, $inner_height - research_token_thickness / 2 - card_height])
       RoundedBoxAllSides(
-        width=research_token_length * 2 + 10,
-        length=$inner_length - 4,
+        [research_token_length * 2 + 10,
+        $inner_length - 4,
+        player_box_height],
         radius=5,
-        height=player_box_height
       );
     player_section_length = 40;
     translate([1, $inner_length - player_section_length - 2, $inner_height - woman_man_player_thickness / 2 - card_height])
       RoundedBoxAllSides(
-        width=research_token_length * 2 + 10,
-        length=player_section_length,
+        [research_token_length * 2 + 10,
+        player_section_length,
+        player_box_height],
         radius=5,
-        height=player_box_height
       );
   }
 }
@@ -1089,7 +1089,7 @@ module FirstPlayerBox() // `make` me
         rotate(90)
           FirstPlayerToken();
     translate([0, 0, $inner_height - first_player_thickness / 2])
-      RoundedBoxAllSides(width=$inner_width - 2, length=$inner_length - 2, height=20, radius=5);
+      RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, 20], radius=5);
   }
 }
 
@@ -1281,8 +1281,8 @@ module ResourceBox() // `make` me
     material_colour="gold"
   ) {
     RoundedBoxAllSides(
-      width=$inner_width,
-      length=$inner_length, height=resource_box_height, radius=5
+      [$inner_width,
+      $inner_length, resource_box_height], radius=5
     );
   }
 }
@@ -1314,8 +1314,8 @@ module MoneyBox() // `make` me
     material_colour="silver"
   ) {
     RoundedBoxAllSides(
-      width=$inner_width,
-      length=$inner_length, height=money_box_height, radius=5,
+      [$inner_width,
+      $inner_length, money_box_height], radius=5,
     );
   }
 }

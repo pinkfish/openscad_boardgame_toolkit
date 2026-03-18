@@ -143,16 +143,19 @@ module RiverfolkCharacterBox() {
 }
 
 module BoxLayout() {
-  //cube([box_data.box.width, box_data.box.length, only_board_height]);
+  cube([box_data.box.width, box_data.box.length, only_board_height]);
+  cube([box_data.box.width, 1, box_data.box.height]);
   translate([0, 0, only_board_height]) {
     MarquisCharacterBox();
-    /*
-    translate([0, marquis_box_length, 0]) ErieCharacterBox();
+    
+    translate([0, 0, marquis_box_height]) ErieCharacterBox();
     translate([0, marquis_box_length + erie_box_length, 0]) AllianceCharacterBox();
     translate([0, marquis_box_length + erie_box_length + alliance_box_length, 0]) RiverfolkCharacterBox();
-    translate([marquis_box_width, 0, 0]) LizardCharacterBox();
-    */
+    translate([marquis_box_width, 0, 0]) LizardCharacterBox();  
   }
 }
 
-BoxLayout();
+if (FROM_MAKE != 1) {
+  echo([box_data.box, card_length, card_width, box_data.box.height - only_board_height, 214-card_length*2]);
+  BoxLayout();
+}

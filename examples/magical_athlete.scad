@@ -61,7 +61,6 @@ card_box_width = card_length + default_wall_thickness * 2;
 card_box_length = card_width + default_wall_thickness * 2;
 card_box_height = box_height - board_thickness;
 
-
 dice_box_width = box_width - card_box_width;
 dice_box_length = card_box_length;
 dice_box_height = dice_size + default_floor_thickness + default_lid_thickness + 1;
@@ -377,7 +376,7 @@ module CardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     width=card_box_width, length=card_box_length,
     lid_on_length=true,
-    text_str="Athletes", 
+    text_str="Athletes",
   );
 }
 
@@ -403,7 +402,7 @@ module DiceBox() // `make` me
       }
     }
     translate([0, 0, dice_size / 2])
-      RoundedBoxAllSides($inner_width, $inner_length, dice_box_height, 8);
+      RoundedBoxAllSides([$inner_width, $inner_length, dice_box_height], 8);
   }
 }
 
@@ -521,7 +520,7 @@ module PieceBoxOne() // `make` me
     }
 
     translate([0, 0, piece_thickness / 2 + 1])
-      RoundedBoxAllSides($inner_width, $inner_length, piece_box_height, 8);
+      RoundedBoxAllSides([$inner_width, $inner_length, piece_box_height], 8);
   }
 }
 
@@ -529,7 +528,7 @@ module PieceboxOneLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=piece_box_width, length=piece_box_length, height=piece_box_height,
-    text_str="Athletes", 
+    text_str="Athletes",
     material_colour="aqua"
   );
 }
@@ -557,7 +556,7 @@ module PieceBoxTwo() // `make` me
     }
 
     translate([0, 0, piece_thickness / 2 + 1])
-      RoundedBoxAllSides($inner_width, $inner_length, piece_box_height, 8);
+      RoundedBoxAllSides([$inner_width, $inner_length, piece_box_height], 8);
   }
 }
 
@@ -581,7 +580,7 @@ module BigBabyBox() // `make` me
       cuboid([big_baby_length, big_baby_width, big_baby_thickness], anchor=BOTTOM + LEFT + FRONT, rounding=1);
 
     translate([0, 0, big_baby_thickness / 2 + 1])
-      RoundedBoxAllSides($inner_width, $inner_length, big_baby_box_height, 8);
+      RoundedBoxAllSides([$inner_width, $inner_length, big_baby_box_height], 8);
   }
 }
 
@@ -589,7 +588,7 @@ module BigBabyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     width=big_baby_box_width, length=big_baby_box_length, height=big_baby_box_height,
-    text_str="Big Baby", 
+    text_str="Big Baby",
   );
 }
 
@@ -601,7 +600,7 @@ module AwardsTokensBox() // `make` me
     height=award_tokens_height,
     material_colour="brown"
   ) {
-    RoundedBoxAllSides($inner_width, $inner_length, award_tokens_height, 5);
+    RoundedBoxAllSides([$inner_width, $inner_length, award_tokens_height], 5);
   }
 }
 
@@ -610,7 +609,7 @@ module AwardsTokensBoxOneLid() // `make` me
   echo([award_tokens_height, award_tokens_length, award_tokens_width]);
   CapBoxLidWithLabel(
     width=award_tokens_width, length=award_tokens_length, height=award_tokens_height,
-    text_str="1", 
+    text_str="1",
   );
 }
 

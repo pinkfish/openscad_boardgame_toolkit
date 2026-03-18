@@ -105,7 +105,7 @@ spacer_front_height = board_thickness;
 module PlayerBox() // `make` me
 {
   MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=player_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, player_box_height], radius=5);
   }
 }
 
@@ -120,7 +120,7 @@ module PlayerBoxLid() // `make` me
 module ResourceBox() // `make` me
 {
   MakeBoxWithCapLid(width=resource_box_width, length=resource_box_length, height=resource_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
   }
 }
 
@@ -194,7 +194,7 @@ module ResourceBoxRabbitsLid() // `make` me
 module NestBox() // `make` me
 {
   MakeBoxWithCapLid(width=nest_box_width, length=nest_box_length, height=nest_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=nest_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, nest_box_height], radius=5);
   }
 }
 

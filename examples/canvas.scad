@@ -54,8 +54,11 @@ module PiecesBox() // `make` me
     lid_finger_hold_len=14
   )
     RoundedBoxAllSides(
-      width=canvas_piece_box_width - wall_thickness * 2,
-      length=canvas_piece_box_length - wall_thickness * 2, height=canvas_piece_box_height,
+      [
+        canvas_piece_box_width - wall_thickness * 2,
+        canvas_piece_box_length - wall_thickness * 2,
+        canvas_piece_box_height,
+      ],
       radius=5
     );
 }

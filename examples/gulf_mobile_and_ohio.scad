@@ -149,7 +149,7 @@ module CubeBox(num = 0) {
       }
     }
     translate([2, 2, $inner_height - cube_size / 2])
-      RoundedBoxAllSides(width=$inner_width - 4, length=$inner_length - 4, height=cube_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width - 4, $inner_length - 4, cube_box_height], radius=5);
   }
 }
 
@@ -238,7 +238,7 @@ module PlayerTokenBox() // `make` me
         edges=BOTTOM
       );
     translate([1, 1, $inner_height - marker_thickness / 2])
-      RoundedBoxAllSides(width=$inner_width - 2, length=$inner_length - 2, height=player_token_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, player_token_box_height], radius=5);
   }
 }
 

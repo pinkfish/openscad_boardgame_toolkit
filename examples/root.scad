@@ -220,7 +220,7 @@ module MarquisBoxBottom() // `make` me
       ) cuboid([second_len, box_data.marquis.width, box_data.marquis.length]);
     }
     translate([0, 0, box_data.marquis.length / 2])
-      RoundedBoxAllSides($inner_width, marquis_box_length - wall_thickness * 2, box_data.marquis.length, 7);
+      RoundedBoxAllSides([$inner_width, marquis_box_length - wall_thickness * 2, box_data.marquis.length], 7);
   }
 }
 
@@ -523,7 +523,7 @@ module ErieBoxBottom() // `make` me
       }
     }
     translate([0, 0, $inner_height - box_data.erie.width / 2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=erie_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, erie_box_height], radius=5);
   }
 }
 
@@ -633,7 +633,7 @@ module AllianceBoxBottom() // `make` me
       }
     }
     translate([0, 0, $inner_height - box_data.alliance.length / 2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=erie_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, erie_box_height], radius=5);
   }
 }
 
@@ -760,7 +760,7 @@ module RiverfolkBoxBottom() // `make` me
       }
     }
     translate([0, 0, $inner_height - box_data.riverfolk.length / 2]) RoundedBoxAllSides(
-        width=$inner_width, length=$inner_length, height=box_data.riverfolk.length / 2, radius=5
+        [$inner_width, $inner_length, box_data.riverfolk.length / 2], radius=5
       );
   }
 }
@@ -881,7 +881,7 @@ module LizardBoxBottom() // `make` me
       }
     }
     translate([0, 0, box_data.lizard.length / 2])
-      RoundedBoxAllSides($inner_width, lizard_box_length - wall_thickness * 2, box_data.lizard.length, 7);
+      RoundedBoxAllSides([$inner_width, lizard_box_length - wall_thickness * 2, box_data.lizard.length], 7);
   }
 }
 
@@ -1285,7 +1285,7 @@ module DiceBox() // `make` me
       translate([0, 0, dice_width / 2]) color("grey") cyl(d=dice_length, h=dice_box_height);
     }
     translate([0, 0, dice_width / 2]) color("grey")
-        RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=dice_box_height, radius=10);
+        RoundedBoxAllSides([$inner_width, $inner_length, dice_box_height], radius=10);
   }
 }
 module DiceBoxLid() // `make` me
@@ -1419,44 +1419,96 @@ module SpacerBox() // `make` me
   );
 }
 
-module BoxLayout() {
-  cube([box_data.box.width, box_data.box.length, box_data.board.thickness]);
-  cube([1, box_data.box.length, box_data.box.height]);
-  translate([0, 0, box_data.board.thickness]) {
-    BaseCardBox();
-    translate([card_box_width, 0, 0])
-      ErieCardBox();
-    translate([card_box_width, 0, erie_card_box_height])
-      VagabondCardBox();
-    translate([card_box_width, 0, erie_card_box_height + vagabond_card_box_height])
-      OverviewCardBox();
+module BoxLayout(layout = 0) {
+  if (layout == 0) {
+    cube([box_data.box.width, box_data.box.length, box_data.board.thickness]);
+    cube([1, box_data.box.length, box_data.box.height]);
+  }
+  translate([0, 0, layout > 0 ? 0 : box_data.board.thickness]) {
+    if (layout < 5) {
+      BaseCardBox();
+      translate([card_box_width, 0, 0])
+        ErieCardBox();
+    }
+    if (layout < 3) {
+      translate([card_box_width, 0, erie_card_box_height])
+        VagabondCardBox();
+    }
+    if (layout < 2) {
+      translate([card_box_width, 0, erie_card_box_height + vagabond_card_box_height])
+        OverviewCardBox();
+    }
     translate([card_box_width * 2, 0, 0]) ItemsBoxBottom();
-    translate([card_box_width * 2, 0, item_box_height]) ItemsBoxMiddle();
-    translate([card_box_width * 2, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter();
-    translate([card_box_width * 2, 0, item_box_height + item_box_middle_height + item_box_winter_height])
-      ItemsBoxExtras();
-    translate([0, card_box_length, 0]) MarquisBoxBottom();
-    translate([marquis_box_width, card_box_length, 0]) AllianceBoxBottom();
-    translate([marquis_box_width, card_box_length, alliance_box_height]) AllianceBoxTop();
-    translate([0, card_box_length, marquis_box_height]) MarquisBoxTop();
-    translate([0, card_box_length + marquis_box_length, 0]) ErieBoxBottom();
-    translate([erie_box_width, card_box_length + erie_box_length, 0]) VagabondBox();
-    translate([erie_box_width, card_box_length + erie_box_length, vagabond_box_height])
-      VagabondBox();
-    translate([0, card_box_length + marquis_box_length, erie_box_height]) ErieBoxTop();
-    translate([erie_box_width, card_box_length + marquis_box_length + erie_box_length, 0])
-      RiverfolkBoxBottom();
-    translate([0, card_box_length + marquis_box_length, riverfolk_box_height])
-      RiverfolkBoxTop();
-    translate([0, card_box_length + marquis_box_length + erie_box_length, 0])
-      LizardBoxBottom();
-    translate([0, card_box_length + marquis_box_length + erie_box_length, lizard_box_height])
-      LizardBoxTop();
-    translate([card_box_width * 2, item_box_length, 0])
-      SpacerBox();
+    if (layout < 4) {
+      translate([card_box_width * 2, 0, item_box_height]) ItemsBoxMiddle();
+    }
+    if (layout < 3) {
+      translate([card_box_width * 2, 0, item_box_height + item_box_middle_height]) ItemsBoxWinter();
+    }
+    if (layout < 2) {
+      translate([card_box_width * 2, 0, item_box_height + item_box_middle_height + item_box_winter_height])
+        ItemsBoxExtras();
+    }
+    if (layout < 3) {
+      translate([0, card_box_length, 0]) MarquisBoxBottom();
+      translate([marquis_box_width, card_box_length, 0]) AllianceBoxBottom();
+    }
+    if (layout < 2) {
+      translate([marquis_box_width, card_box_length, alliance_box_height]) AllianceBoxTop();
+      translate([0, card_box_length, marquis_box_height]) MarquisBoxTop();
+    }
+    if (layout < 3) {
+      translate([0, card_box_length + marquis_box_length, 0]) ErieBoxBottom();
+      translate([erie_box_width, card_box_length + erie_box_length, 0]) VagabondBox();
+    }
+    if (layout < 2) {
+      translate([erie_box_width, card_box_length + erie_box_length, vagabond_box_height])
+        VagabondBox();
+      translate([0, card_box_length + marquis_box_length, erie_box_height]) ErieBoxTop();
+    }
+    if (layout < 3) {
+      translate([erie_box_width, card_box_length + marquis_box_length + erie_box_length, 0])
+        RiverfolkBoxBottom();
+    }
+    if (layout < 2) {
+      translate([0, card_box_length + marquis_box_length, riverfolk_box_height])
+        RiverfolkBoxTop();
+    }
+    if (layout < 3) {
+      translate([0, card_box_length + marquis_box_length + erie_box_length, 0])
+        LizardBoxBottom();
+    }
+    if (layout < 2) {
+      translate([0, card_box_length + marquis_box_length + erie_box_length, lizard_box_height])
+        LizardBoxTop();
+    }
+    if (layout < 3) {
+      translate([card_box_width * 2, item_box_length, 0])
+        SpacerBox();
+    }
   }
 }
 
+module BoxLayoutA() // `document` me
+{
+  BoxLayout(layout=1);
+}
+
+module BoxLayoutB() // `document` me
+{
+  BoxLayout(layout=2);
+}
+
+module BoxLayoutC() // `document` me
+{
+  BoxLayout(layout=3);
+}
+
+module BoxLayoutD() // `document` me
+{
+  BoxLayout(layout=4);
+}
+
 if (FROM_MAKE != 1) {
-  VagabondBox();
+  BoxLayoutD();
 }

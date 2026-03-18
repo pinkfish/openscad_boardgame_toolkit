@@ -274,7 +274,6 @@ module HexBoxLid() // `make` me
   );
 }
 
-
 module LongPlayerBox(colour = "green") // 'make' me
 {
   MakePathBoxWithCapLid(
@@ -347,7 +346,7 @@ module LongPlayerBox(colour = "green") // 'make' me
       // space for under stuff
       translate([3, 3, $inner_height - upgrade_thickness - 1 - class_ii_ship_thickness / 2]) {
         color(colour)
-          RoundedBoxAllSides(width=upgrade_length - 26, length=upgrade_width - 6, height=player_box_height, radius=5);
+          RoundedBoxAllSides([upgrade_length - 26, upgrade_width - 6, player_box_height], radius=5);
       }
     }
 
@@ -438,20 +437,18 @@ module LongPlayerBox(colour = "green") // 'make' me
     for (i = [0:4]) {
       color(colour) {
         translate([-1, (box_section + 1.5) * i + 8, 0]) {
-          RoundedBoxAllSides(length=(voting_board_length / 5) - 1, width=voting_board_width + 25, height=player_box_height, radius=5);
+          RoundedBoxAllSides([voting_board_width + 25, (voting_board_length / 5) - 1, player_box_height], radius=5);
         }
       }
     }
   }
 }
 
-
-
 module LongResourceBox(colour = "lightblue") // `make` me
 {
   MakeBoxWithCapLid(width=long_resource_box_width, length=long_resource_box_length, height=long_resource_box_height, material_colour=colour) {
     color(colour)
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=long_resource_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, long_resource_box_height], radius=5);
   }
 }
 
@@ -459,7 +456,7 @@ module LongResource2Box(colour = "lightblue") // `make` me
 {
   MakeBoxWithCapLid(width=long_resource_box_2_width, length=long_resource_box_2_length, height=long_resource_box_2_height, material_colour=colour) {
     color(colour)
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=long_resource_box_2_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, long_resource_box_2_height], radius=5);
   }
 }
 
@@ -479,7 +476,6 @@ module StartTile(thickness) {
   }
 }
 
-
 module SpacerMiddle() // `make` me
 {
   MakeBoxWithNoLid(length=spacer_middle_length, width=spacer_middle_width, height=spacer_middle_height, hollow=true);
@@ -496,10 +492,9 @@ module UrResourceBox() // `make` me
         );
     translate([0, favor_token_diameter + 5, 0])
       color("red")
-        RoundedBoxAllSides(width=$inner_width, length=$inner_length - favor_token_diameter - 5, height=ur_box_height, radius=6);
+        RoundedBoxAllSides([$inner_width, $inner_length - favor_token_diameter - 5, ur_box_height], radius=6);
   }
 }
-
 
 module TestLayout() {
   difference() {

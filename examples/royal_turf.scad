@@ -89,7 +89,7 @@ module MoneyBox() // `make` me
   MakeBoxWithCapLid(
     width=money_box_width, length=money_box_length, height=money_box_height, wall_thickness=3.5
   ) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=money_box_height, radius=money_box_height / 2);
+    RoundedBoxAllSides([$inner_width, $inner_length, money_box_height], radius=money_box_height / 2);
   }
 }
 

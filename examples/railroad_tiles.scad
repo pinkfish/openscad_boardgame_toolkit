@@ -64,7 +64,7 @@ spacer_box_height = box_height - cardboard_thickness - 1;
 
 module TokensBox() {
   MakeBoxWithCapLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=tokens_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, tokens_box_height], radius=5);
   }
 }
 

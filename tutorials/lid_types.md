@@ -10,14 +10,15 @@ include <boardgame_toolkit.scad>
 SlidingLid(width = 100, length = 50);
 ```
 
+
 ## Sliding lid with label
 
 ```openscad-3D;Big
 include <boardgame_toolkit.scad>
 
 SlidingBoxLidWithLabel(
-        width = 150, length = 50, lid_thickness = 3, text_width = 70,
-        text_height = 20, text_str = "Happy Fluff", label_rotated = false);
+        width = 150, length = 50, lid_thickness = 3, 
+        text_str = "Happy Fluff");
 ```
 
 
@@ -36,8 +37,8 @@ InsetLidTabbed(width = 100, length = 50);
 include <boardgame_toolkit.scad>
 
 InsetLidTabbedWithLabel(
-        width = 50, length = 150, lid_thickness = 3, text_width = 70,
-        text_height = 20, text_str = "Happy Fluff", label_rotated = true);
+        width = 50, length = 150, lid_thickness = 3, 
+        text_str = "Happy Fluff");
 ```
 
 
@@ -47,8 +48,8 @@ InsetLidTabbedWithLabel(
 include <boardgame_toolkit.scad>
 
 SlidingBoxLidWithLabel(
-        width = 50, length = 150, lid_thickness = 3, text_width = 70,
-        text_height = 20, text_str = "Happy", label_rotated = true) {
+        width = 50, length = 150, lid_thickness = 3, 
+        text_str = "Happy") {
         translate([ 45, 5, 0 ]) linear_extrude(height = 3) rotate([0,0,90]) scale(0.3) difference()
         {
             fill() import("svg/australia.svg");
@@ -72,7 +73,7 @@ wall_thickness = 3;
 module MakeLid(str)
 {
     CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, height = canvas_piece_box_height,
-                        text_width = len(str) * 10 + 5, text_height = 15, text_str = str, label_rotated = true,
+                        text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
 }
@@ -96,7 +97,7 @@ module MakeLid(str)
 {
     SlipoverLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, foot = 2, 
                         height = canvas_piece_box_height,
-                        text_width = len(str) * 10 + 5, text_height = 15, text_str = str, label_rotated = true,
+                        text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
 }
@@ -120,8 +121,8 @@ wall_thickness = 3;
 module MakeLid(str)
 {
     MagneticBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, magnet_diameter = 5,
-                        magnet_thickness = 1, text_width = len(str) * 10 + 5, text_height = 15, text_str = str, 
-                        label_rotated = true, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
+                        magnet_thickness = 1, text_str = str, 
+                        lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
 }
 MakeLid("Red");
@@ -143,8 +144,7 @@ wall_thickness = 3;
 module MakeLid(str)
 {
     SlidingCatchBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                        text_width = len(str) * 10 + 5, text_height = 15, text_str = str, 
-                        label_rotated = true, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
+                        text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
 }
 MakeLid("Red");
@@ -167,8 +167,7 @@ wall_thickness = 3;
 module MakeLid(str)
 {
     InsetLidRabbitWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
-                        text_width = len(str) * 10 + 5, text_height = 15, text_str = str, 
-                        label_rotated = true, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
+                        text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
 }
 MakeLid("Red");

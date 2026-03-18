@@ -314,7 +314,7 @@ module PlayerBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=player_box_width, length=player_box_length, height=player_box_height) {
     translate([0, 0, $inner_height - wood_token_thickness / 2 + 0.2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=wood_token_thickness / 2, radius=4);
+      RoundedBoxAllSides([$inner_width, $inner_length, wood_token_thickness / 2], radius=4);
     // SUperstition markers.
     translate([player_supersition_marker / 2 + 5, player_supersition_marker + 12, $inner_height - wood_token_thickness - 0.5])
       cyl(h=wood_token_thickness + 1, d=player_supersition_marker, anchor=BOTTOM);

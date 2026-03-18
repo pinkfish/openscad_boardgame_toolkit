@@ -212,9 +212,9 @@ module PlayerBoxInside(colour = "pink") {
 
     // Depth to pull out pieces.
     translate([0, 0, $inner_height - token_thickness / 2])
-      RoundedBoxAllSides(width=$inner_width, length=80, height=token_thickness, radius=5);
+      RoundedBoxAllSides([$inner_width, 80, token_thickness], radius=5);
     translate([0, 0, $inner_height - token_thickness / 2])
-      RoundedBoxAllSides(width=50, length=96, height=token_thickness, radius=5);
+      RoundedBoxAllSides([50, 96, token_thickness], radius=5);
   }
 }
 
@@ -275,8 +275,11 @@ module MaterialBox(colour) // `make` me
     material_colour=colour
   ) {
     RoundedBoxAllSides(
-      width=$inner_width,
-      length=$inner_length, height=$inner_height, radius=$inner_height - 2
+      [
+        $inner_width,
+        $inner_length,
+        $inner_height,
+      ], radius=$inner_height - 2
     );
   }
 }

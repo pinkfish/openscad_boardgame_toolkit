@@ -91,7 +91,7 @@ module ResourceBox() // `make` me
     height=resource_box_height
   ) {
     translate([1, 1, 0])
-      RoundedBoxAllSides(width=$inner_width - 2, length=$inner_length - 2, height=resource_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, resource_box_height], radius=5);
   }
 }
 
@@ -102,7 +102,7 @@ module ResourceBoxDouble() // `make` me
     length=resource_box_double_length,
     height=resource_box_height
   ) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
   }
 }
 

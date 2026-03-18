@@ -280,28 +280,28 @@ module DiceBoxLid() // `make` me
 module ButtonsBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length, height=buttons_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height + 5, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxDouble() // `make` me
 {
   MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 2, height=buttons_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height + 5, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxOnePointFive() // `make` me
 {
   MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 1.5, height=buttons_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height + 5, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxTripple() // `make` me
 {
   MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 3, height=buttons_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height + 5, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 

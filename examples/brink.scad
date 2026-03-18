@@ -360,9 +360,9 @@ module PlayerBox(colour = "green") // `make` me
 
     translate([7.5, 0, 0]) {
       translate([5, 5, $inner_height - upgrade_thickness - 6.5])
-        RoundedBoxAllSides(upgrade_width - 10, upgrade_length - 25, player_box_height, 5);
+        RoundedBoxAllSides([upgrade_width - 10, upgrade_length - 25, player_box_height], 5);
       translate([33, 5, $inner_height - upgrade_thickness - 6.5])
-        RoundedBoxAllSides(class_ii_ship_length + 10, upgrade_length - 10, player_box_height, 5);
+        RoundedBoxAllSides([class_ii_ship_length + 10, upgrade_length - 10, player_box_height], 5);
 
       // class i ship
       translate(
@@ -455,7 +455,7 @@ module ResourceBox(colour = "green") // `make` me
 {
   MakeBoxWithCapLid(width=resource_box_width, length=resource_box_length, height=resource_box_height, material_colour=colour) {
     color(colour)
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
   }
 }
 
@@ -463,7 +463,7 @@ module Resource2Box(colour = "green") // `make` me
 {
   MakeBoxWithCapLid(width=resource_box_2_width, length=resource_box_2_length, height=resource_box_2_height, material_colour=colour) {
     color(colour)
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_2_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, resource_box_2_height], radius=5);
   }
 }
 

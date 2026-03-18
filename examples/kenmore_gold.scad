@@ -107,7 +107,7 @@ module StartCaveBoxLid() // `make` me
 module LootBox() // `make` me
 {
   MakeBoxWithCapLid(width=loot_box_width, length=loot_box_length, height=loot_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height, radius=10);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height], radius=10);
   }
 }
 

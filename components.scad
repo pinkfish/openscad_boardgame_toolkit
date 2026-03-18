@@ -35,7 +35,7 @@
 
 // Module: RoundedBoxOnLength()
 // Usage:
-//   RoundedBoxOnLength(100, 50, 10, 5);
+//   RoundedBoxOnLength([100, 50, 10], 5);
 // Description:
 //   Creates a rounded box for use in the board game insert with a nice radius on two sides (length side).
 // Arguments:
@@ -45,8 +45,12 @@
 //   radius = radius of the curve on the edges
 // Topics: Recess
 // Example:
-//   RoundedBoxOnLength(30, 20, 10, 7);
-module RoundedBoxOnLength(width, length, height, radius) {
+//   RoundedBoxOnLength([30, 20, 10], 7);
+module RoundedBoxOnLength(size, radius) {
+  assert(is_list(size) && len(size) == 3, str("size must be an array of size 3", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0, str("Need width > 0 width=", width));
   assert(length > 0, str("Need length > 0 length=", length));
   assert(height > 0, str("Need height > 0 height=", height));
@@ -69,7 +73,7 @@ module RoundedBoxOnLength(width, length, height, radius) {
 
 // Module: RoundedBoxAllSides()
 // Usage:
-//   RoundedBoxAllSides(30,20,10,5);
+//   RoundedBoxAllSides([30,20,10],5);
 // Description:
 //   Creates a rounded box with all the sides rounded.
 // Arguments:
@@ -79,16 +83,15 @@ module RoundedBoxOnLength(width, length, height, radius) {
 //   radius = radius of the curve on the edges
 // Topics: Recess
 // Example:
-//   RoundedBoxAllSides(30, 20, 10, 7);
-// Example:
 //   RoundedBoxAllSides([30,30,10], radius=5);
-module RoundedBoxAllSides(width, length, height, radius) {
-  width_i = is_list(width) ? width[0] : width;
-  length_i = is_list(width) ? width[1] : length;
-  height_i = is_list(width) ? width[2] : height;
-  assert(width_i > 0, str("Need width > 0 width=", width));
-  assert(length_i > 0, str("Need length > 0 length=", length));
-  assert(height_i > 0, str("Need height > 0 height=", height));
+module RoundedBoxAllSides(size, radius) {
+  assert(is_list(size) && len(size) == 3, str("size must be an array of size 3", size));
+  width_i = size[0];
+  length_i = size[1];
+  height_i = size[2];
+  assert(width_i > 0, str("Need width > 0 width=", width_i));
+  assert(length_i > 0, str("Need length > 0 length=", length_i));
+  assert(height_i > 0, str("Need height > 0 height=", height_i));
   assert(radius > 0, str("Need radius < 0 radius=", radius));
   hull() {
     difference() {
@@ -124,13 +127,14 @@ module RoundedBoxAllSides(width, length, height, radius) {
 //   all_sides = round all the sides (default false)
 // Topics: Recess, Grid
 // Example:
-//   RoundedBoxGrid(30, 20, 10, 7, rows=2, cols=1);
-module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, all_sides = false) {
+//   RoundedBoxGrid([30, 20, 10], 7, rows=2, cols=1);
+module RoundedBoxGrid(size, radius, rows, cols, spacing = 2, all_sides = false) {
+  assert(is_list(size) && len(size) == 3, str("size must be an array of size 3", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(rows > 0, str("rows must be > 0 rows=", rows));
   assert(cols > 0, str("cols must be > 0 cols=", cols));
-  assert(width > 0, str("width must be > 0 width=", width));
-  assert(height > 0, str("height must be > 0 height=", height));
-  assert(length > 0, str("length must be > 0 length=", length));
 
   row_length = (width - spacing * (rows - 1)) / rows;
   col_length = (length - spacing * (cols - 1)) / cols;
@@ -138,9 +142,9 @@ module RoundedBoxGrid(width, length, height, radius, rows, cols, spacing = 2, al
     for (y = [0:cols - 1])
       translate([x * (row_length + spacing), y * (col_length + spacing), 0]) {
         if (all_sides) {
-          RoundedBoxAllSides(length=col_length, width=row_length, height=height, radius=radius);
+          RoundedBoxAllSides([row_length, col_length, height], radius=radius);
         } else {
-          RoundedBoxOnLength(length=col_length, width=row_length, height=height, radius=radius);
+          RoundedBoxOnLength([row_length, col_length, height], radius=radius);
         }
       }
 }
@@ -284,10 +288,16 @@ function HoleToPosition(pos) =
 //    finger_holes = finger holes at the specified places
 //    finger_hole_height = how much to move it up from the bottom finger_hole_radius =
 //    the radius to use for the finger holes
+//    rounding = rounding to use on the hole edges
+//    chamfer = chamfer to use on the hole edges
 // Examples:
-//    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [1, 5]);
+//    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [1, 5], finger_hole_radius=3);
 // Examples:
-//    CuboidWithIndentsBottom([15, 10, 5], finger_holes = [0, 4]);
+//    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [0, 4], finger_hole_radius=3);
+// Examples:
+//    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [0, 4], rounding=2, finger_hole_radius=3, edges=[FRONT+RIGHT, FRONT+LEFT]);
+// Examples:
+//    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [0, 4], chamfer=2, finger_hole_radius=3, edges=[FRONT+RIGHT, FRONT+LEFT]);
 module CuboidWithIndentsBottom(
   size,
   finger_holes = [],
@@ -295,6 +305,7 @@ module CuboidWithIndentsBottom(
   finger_hole_height = 0,
   finger_hole_radius = undef,
   rounding = undef,
+  chamfer = undef,
   edges = undef,
   anchor = BOTTOM
 ) {
@@ -302,11 +313,17 @@ module CuboidWithIndentsBottom(
   assert(size[0] > 0, str("size[0] must be > 0 size=", size));
   assert(size[1] > 0, str("size[1] must be > 0 size=", size));
   assert(size[2] > 0, str("size[2] must be > 0 size=", size));
+  assert(
+    (DefaultValue(chamfer, 0) == 0 || DefaultValue(rounding, 0) == 0) || edges != undef, str(
+      "edges must be set if chamfer or rounding > 0 chamfer=",
+      chamfer, " rounding=", rounding, "edges=", edges
+    )
+  );
 
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, min(size[0], size[1]) * 3 / 4);
   mult = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
   poses = len(finger_positions) > 0 ? finger_positions : [for (x = finger_holes) HoleToPosition(x)];
-  cuboid(size, anchor=anchor, rounding=rounding, edges=edges)for (i = [0:1:len(poses) - 1]) {
+  cuboid(size, anchor=anchor, rounding=rounding, edges=edges, chamfer=chamfer)for (i = [0:1:len(poses) - 1]) {
     //    data = mult[finger_holes[i]];
     position(poses[i]) translate([0, 0, finger_hole_height - size[2] / 2])
         cyl(

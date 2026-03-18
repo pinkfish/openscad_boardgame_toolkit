@@ -107,8 +107,11 @@ module FoodBox() // `make` me
 {
   MakeBoxWithCapLid(width=food_box_width, length=food_box_length, height=food_box_height) {
     translate([0, 0, 10]) RoundedBoxGrid(
-        width=food_box_width - 2 * default_wall_thickness, length=food_box_length - 2 * default_wall_thickness,
-        height=food_box_height - default_lid_thickness * 2, radius=10, rows=2, cols=1
+        [
+          food_box_width - 2 * default_wall_thickness,
+          food_box_length - 2 * default_wall_thickness,
+          food_box_height - default_lid_thickness * 2,
+        ], radius=10, rows=2, cols=1
       );
   }
 }
@@ -201,8 +204,11 @@ module CoinBox() // `make` me
 {
   MakeBoxWithCapLid(width=coin_box_width, length=coin_box_length, height=coin_box_height) {
     RoundedBoxAllSides(
-      width=coin_box_width - default_wall_thickness * 2,
-      length=coin_box_length - default_wall_thickness * 2, height=coin_box_height, radius=7
+      [
+        coin_box_width - default_wall_thickness * 2,
+        coin_box_length - default_wall_thickness * 2,
+        coin_box_height,
+      ], radius=7
     );
   }
 }
@@ -219,8 +225,11 @@ module BonusBox() // `make` me
 {
   MakeBoxWithCapLid(width=coin_box_width, length=coin_box_length, height=coin_box_height) {
     RoundedBoxAllSides(
-      width=coin_box_width - default_wall_thickness * 2,
-      length=coin_box_length - default_wall_thickness * 2, height=coin_box_height, radius=7
+      [
+        coin_box_width - default_wall_thickness * 2,
+        coin_box_length - default_wall_thickness * 2,
+        coin_box_height,
+      ], radius=7
     );
   }
 }

@@ -164,7 +164,7 @@ module PlayerBox() // `make` me
     color(default_material_colour) union() {
         difference() {
           RoundedBoxAllSides(
-            width=$inner_width, length=$inner_length, height=player_box_height,
+            [$inner_width, $inner_length, player_box_height],
             radius=5
           );
           for (j = [0:1:1]) {

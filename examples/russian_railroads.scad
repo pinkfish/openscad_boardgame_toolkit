@@ -249,7 +249,7 @@ module PlayerBox() // `make` me
 
     // Dip for all the workers and stuff.
     translate([0, 0, $inner_height - 5])
-      RoundedBoxAllSides(width=(worker_width + 1) * 4 + 2, length=$inner_length, height=6, radius=5);
+      RoundedBoxAllSides([(worker_width + 1) * 4 + 2, $inner_length, 6], radius=5);
 
     // Workers
     for (j = [0:1:3]) {
@@ -462,7 +462,7 @@ module MoneyBox() // `make` me
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
     floor_thickness=default_floor_thickness
   ) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=$inner_height + 1, radius=6);
+    RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 1], radius=6);
   }
 }
 
@@ -644,8 +644,11 @@ module TrackBox() // `make` me
                 }
                 translate([-rail_white_length / 2 - 8, -11.5, $inner_height - 5.8])
                   RoundedBoxAllSides(
-                    width=rail_white_length + 10, length=$inner_length,
-                    height=6, radius=5
+                    [
+                      rail_white_length + 10,
+                      $inner_length,
+                      6,
+                    ], radius=5
                   );
               }
             }

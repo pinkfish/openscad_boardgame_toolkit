@@ -94,7 +94,7 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef) {
     ) {
       marker_depth = $inner_height - marker_thickness - 0.5;
       translate([0, 0, $inner_height - 5]) color(material_colour) RoundedBoxAllSides(
-            width=$inner_width, length=$inner_length, height=5, radius=default_wall_thickness, $fn=64
+            [$inner_width, $inner_length, 5], radius=default_wall_thickness, $fn=64
           );
       translate([0, 0, marker_depth]) {
         // favour.
@@ -154,7 +154,7 @@ module PlayerBoxOneBase(generate_lid = true, material_colour = undef) {
       material_colour=material_colour
     ) {
       translate([0, 0, $inner_height - 5]) color(material_colour) RoundedBoxAllSides(
-            width=$inner_width, length=$inner_length, height=5, radius=default_wall_thickness, $fn=64
+            [$inner_width, $inner_length, 5], radius=default_wall_thickness, $fn=64
           );
       marker_depth = player_box_height - default_lid_thickness * 2 - marker_thickness - 0.5;
       // king marker

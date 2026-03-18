@@ -49,8 +49,11 @@ module SealsBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=top_width, length=top_length, height=section_height) {
     RoundedBoxAllSides(
-      length=top_length - wall_thickness * 2, width=top_width - wall_thickness * 2,
-      height=section_height, radius=15
+      [
+        top_width - wall_thickness * 2,
+        top_length - wall_thickness * 2,
+        section_height,
+      ], radius=15
     );
   }
 }
@@ -68,8 +71,11 @@ module FarmerBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=top_width, length=top_length, height=section_height) {
     RoundedBoxAllSides(
-      length=top_length - wall_thickness * 2, width=top_width - wall_thickness * 2,
-      height=section_height, radius=15
+      [
+        top_width - wall_thickness * 2,
+        top_length - wall_thickness * 2,
+        section_height,
+      ], radius=15
     );
   }
 }
@@ -86,8 +92,11 @@ module HeraldBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=herald_width, length=top_length, height=section_height) {
     RoundedBoxAllSides(
-      length=top_length - wall_thickness * 2, width=herald_width - wall_thickness * 2,
-      height=section_height, radius=15
+      [
+        herald_width - wall_thickness * 2,
+        top_length - wall_thickness * 2,
+        section_height,
+      ], radius=15
     );
   }
 }
@@ -104,11 +113,11 @@ module PlayerBox() // `make` me
   MakeBoxWithSlidingLid(width=player_width, length=player_length, height=section_height) {
 
     RoundedBoxGrid(
-      width=$inner_width, length=first_width, height=section_height, radius=radius, rows=2,
+      [$inner_width, first_width, section_height], radius=radius, rows=2,
       cols=1, all_sides=true
     );
     translate([0, first_width + wall_thickness, 0]) RoundedBoxAllSides(
-        width=$inner_width, length=$inner_length - first_width, height=section_height, radius=radius
+        [$inner_width, $inner_length - first_width, section_height], radius=radius
       );
   }
 }

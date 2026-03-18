@@ -42,11 +42,9 @@ module SquareBox()
         cube([ money_width, money_length, top_section_height ]);
     }
     text_str = "Square";
-    text_width = 80;
-    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = money_section_width, length = money_section_length, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, 
+        text_str = text_str);
 }
 
 SquareBox();
@@ -71,16 +69,14 @@ module TokensBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        RoundedBoxAllSides(width = money_section_width - wall_thickness * 2,
-            length = money_section_length - wall_thickness * 2, 
-            height = top_section_height, radius = 10);
+        RoundedBoxAllSides([ money_section_width - wall_thickness * 2,
+            money_section_length - wall_thickness * 2, 
+            top_section_height], radius = 10);
     }
     text_str = "Tokens";
-    text_width = 80;
-    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = money_section_width, length = money_section_length, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, 
+        text_str = text_str);
 }
 
 TokensBox();
@@ -114,11 +110,9 @@ module MoneyBox()
             FingerHoleBase(radius = 15, height = 20);
     }
     text_str = "Money";
-    text_width = 80;
-    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = money_section_width, length = money_section_length, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, 
+        text_str = text_str);
 }
 
 MoneyBox();
@@ -145,15 +139,15 @@ module GridBox()
 {
     MakeBoxWithSlidingLid(width = money_section_width, length = money_section_length, height = top_section_height)
     {
-        RoundedBoxGrid(width = money_section_width-wall_thickness * 2, length = money_section_length-wall_thickness * 2, 
-            height = top_section_height, rows = 2, cols = 2, radius = 4, all_sides = true);
+        RoundedBoxGrid([money_section_width-wall_thickness * 2, money_section_length-wall_thickness * 2, 
+            top_section_height], rows = 2, cols = 2, radius = 4, all_sides = true);
     }
     text_str = "Grid";
     text_width = 80;
-    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = money_section_width, length = money_section_length, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, 
+        text_str = text_str,
+        label_options=MakeLabelOptions(text_length = text_width));
 }
 
 GridBox();
@@ -186,11 +180,8 @@ module TabbedBox()
         cube([ money_width, money_length, top_section_height ]);
     }
     text_str = "Tabbed";
-    text_width = 80;
-    text_height = 20;
     translate([ money_section_width + 10, 0, 0 ]) InsetLidTabbedWithLabel(
-        width = money_section_width, length = money_section_length, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = true);
+        width = money_section_width, length = money_section_length, text_str = text_str);
 }
 
 TabbedBox();
@@ -214,8 +205,8 @@ wall_thickness = 3;
 MakeBoxWithCapLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2,
                     lid_finger_hold_len = 14)
-    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
-                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+    RoundedBoxAllSides([canvas_piece_box_width - wall_thickness * 2,
+                        canvas_piece_box_length - wall_thickness * 2, canvas_piece_box_height],
                         radius = 5);
 ```
 
@@ -235,8 +226,8 @@ wall_thickness = 3;
 
 MakeBoxWithSlipoverLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2)
-    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
-                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+    RoundedBoxAllSides([canvas_piece_box_width - wall_thickness * 2,
+                        canvas_piece_box_length - wall_thickness * 2, canvas_piece_box_height],
                         radius = 5);
 ```
 
@@ -255,8 +246,8 @@ wall_thickness = 3;
 
 MakeBoxWithSlidingCatchLid(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2)
-    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
-                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+    RoundedBoxAllSides([ canvas_piece_box_width - wall_thickness * 2,
+                        canvas_piece_box_length - wall_thickness * 2, canvas_piece_box_height],
                         radius = 5);
 ```
 
@@ -280,8 +271,8 @@ MakeBoxWithMagneticLid(width = canvas_piece_box_width, length = canvas_piece_box
     intersection() {
         MakeBoxWithMagneticLidInsideSpace(width = canvas_piece_box_width, length = canvas_piece_box_length, 
             height = canvas_piece_box_height, magnet_diameter = 5, magnet_thickness = 1);
-        RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
-                            length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+        RoundedBoxAllSides([canvas_piece_box_width - wall_thickness * 2,
+                            canvas_piece_box_length - wall_thickness * 2, canvas_piece_box_height],
                             radius = 5);
     }
 }
@@ -303,8 +294,8 @@ wall_thickness = 3;
 
 MakeBoxWithInsetLidRabbitClip(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2) {
-    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 2,
-                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+    RoundedBoxAllSides([canvas_piece_box_width - wall_thickness * 2,
+                        canvas_piece_box_length - wall_thickness * 2, canvas_piece_box_height],
                         radius = 5);
 }
 ```
@@ -324,12 +315,11 @@ canvas_piece_box_length = 73;
 canvas_piece_box_height = 29;
 wall_thickness = 3;
 
-
 MakeBoxAndLidWithInsetHinge(width = canvas_piece_box_width, length = canvas_piece_box_length,
                     height = canvas_piece_box_height, wall_thickness = wall_thickness, lid_thickness = 2) {
     // Box section.
-    RoundedBoxAllSides(width = canvas_piece_box_width - wall_thickness * 4,
-                        length = canvas_piece_box_length - wall_thickness * 2, height = canvas_piece_box_height,
+    RoundedBoxAllSides([canvas_piece_box_width - wall_thickness * 4,
+                        canvas_piece_box_length - wall_thickness * 2,  canvas_piece_box_height],
                         radius = 5);
     // Lid section.
     cube([canvas_piece_box_width - wall_thickness * 4,canvas_piece_box_length - wall_thickness * 2,canvas_piece_box_height]);

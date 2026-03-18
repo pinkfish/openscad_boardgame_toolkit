@@ -180,8 +180,11 @@ module PlayerBox() // `make` me
       );
     translate([0, -2, $inner_height - hiker_token_thickness + 4])
       RoundedBoxAllSides(
-        width=hiker_token_length + 6, length=hiker_token_width + achievment_token_diameter,
-        height=hiker_token_thickness, radius=10
+        [
+          hiker_token_length + 6,
+          hiker_token_width + achievment_token_diameter,
+          hiker_token_thickness,
+        ], radius=10
       );
 
     // hiker
@@ -242,7 +245,7 @@ function ResourceString(resource_num) =
 module ResourceBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=resource_box_width, length=resource_box_length, height=resource_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=10);
+    RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=10);
   }
 }
 module ResourceBoxLid() // `make` me

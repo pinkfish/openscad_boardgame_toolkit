@@ -13,6 +13,7 @@ Create a sliding lid box with more complicated cutouts, a hex grid and spaces fo
 some finger cutouts to get the items out.
 
 
+
 ```openscad-3D;Big
 include <boardgame_toolkit.scad>
 
@@ -81,8 +82,8 @@ module SwedenBox()
     text_width = 80;
     text_height = 20;
     translate([ sweden_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = sweden_box_width, length = sweden_box_length, lid_thickness = lid_thickness, text_width = text_width,
-        text_height = text_height, text_str = text_str, label_rotated = false);
+        width = sweden_box_width, length = sweden_box_length, lid_thickness = lid_thickness,
+         text_str = text_str);
 }
 
 SwedenBox();
@@ -234,6 +235,6 @@ text_str = "Tracks";
 text_width = 80;
 text_height = 20;
 translate([ hex_box_width+10, 0, 0 ])
-    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, tile_width = tile_width, text_width = text_width,
-                                    text_height = text_height, text_str = text_str);
+    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, tile_width = tile_width,
+                                   text_str = text_str);
 ```

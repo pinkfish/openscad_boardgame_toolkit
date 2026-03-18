@@ -65,7 +65,7 @@ module CardBoxLid() // `make` me
 module TokensBox() // `make` me
 {
   MakeBoxWithCapLid(width=token_box_width, length=token_box_length, height=token_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=token_box_height, radius=15);
+    RoundedBoxAllSides([$inner_width, $inner_length, token_box_height], radius=15);
   }
 }
 
@@ -83,6 +83,6 @@ if (FROM_MAKE != 1) {
   // HalfRegularHexagon(20);
   //HexagonTesselationRepeat(rows=4, cols=4, size=20)
   //    RhombiTriHexagonal(40);
- // linear_extrude(height = 5) 
- // PenroseTiling(100,  divisions=1, thickness=1);
+  // linear_extrude(height = 5) 
+  // PenroseTiling(100,  divisions=1, thickness=1);
 }

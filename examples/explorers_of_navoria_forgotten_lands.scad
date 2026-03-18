@@ -730,7 +730,7 @@ module BitsBoxLid() // `make` me
 module TokensBox() // `make` me
 {
   MakeBoxWithSlidingLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=tokens_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, tokens_box_height], radius=5);
   }
 }
 

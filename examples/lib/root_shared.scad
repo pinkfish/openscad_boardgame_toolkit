@@ -17,7 +17,7 @@ under the License.
 
 box_data = object(
   box=object(
-    length=278, width=214, height=67, length=278
+    length=278, width=214, height=67,
   ),
   board=object(thickness=28),
   marquis=object(length=22, width=26),

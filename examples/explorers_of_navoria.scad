@@ -612,8 +612,11 @@ module StuffBox() // `make` me
   MakeBoxWithSlidingLid(width=stuff_box_width, length=stuff_box_length, height=stuff_box_height) {
     color(default_material_colour)
       RoundedBoxAllSides(
-        width=stuff_box_width - default_wall_thickness * 2,
-        length=stuff_box_length - default_wall_thickness * 2, height=stuff_box_height, radius=10
+        [
+          stuff_box_width - default_wall_thickness * 2,
+          stuff_box_length - default_wall_thickness * 2,
+          stuff_box_height,
+        ], radius=10
       );
   }
 }

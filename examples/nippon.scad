@@ -90,7 +90,11 @@ automata_board_length = 182;
 
 solo_goal_token_width = 22;
 solo_goal_token_length = 31;
-solo_goal_token_edge = 2.5;
+solo_goal_token_edge = 2;
+
+solo_action_token_width = 25.5;
+solo_action_token_length = 33;
+solo_action_token_edge = 2.5;
 
 starting_token_width = 32;
 starting_token_length = 42;
@@ -118,7 +122,7 @@ demand_tile_box_width = default_wall_thickness * 2 + demand_token_width + 1;
 demand_tile_box_length = factory_tile_box_length;
 demand_tile_box_height = factory_tile_box_height;
 
-starting_tile_box_width = default_wall_thickness * 2 + starting_token_width + 1;
+starting_tile_box_width = default_wall_thickness * 2 + old_factory_tile_width + 1; // Also has the old factory.
 starting_tile_box_length = factory_tile_box_length;
 starting_tile_box_height = factory_tile_box_height;
 
@@ -385,9 +389,11 @@ module PlayerBox(material_colour = "yellow") // `make` me
   ) {
     translate([0, 0, $inner_height - ship_thickness / 2])
       RoundedBoxAllSides(
-        width=$inner_width,
-        length=$inner_length,
-        height=ship_thickness,
+        [
+          $inner_width,
+          $inner_length,
+          ship_thickness,
+        ],
         radius=5
       );
 
@@ -591,7 +597,6 @@ module FactoryTileBox() // `make` me
     translate([0, 0, $inner_height - cardboard_token_thickness * 12 - 1])
       cuboid([$inner_width, $inner_length, factory_tile_box_height], anchor=BOTTOM + LEFT + FRONT);
 
-
     translate([$inner_width / 2, 0, -2]) FingerHoleBase(
         radius=17, height=factory_tile_box_height - default_lid_thickness,
         spin=0
@@ -706,7 +711,7 @@ module MoneyBox() // `make` me
     length=money_box_length,
     height=money_box_height
   ) {
-    RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=money_box_height, radius=5);
+    RoundedBoxAllSides([$inner_width, $inner_length, money_box_height], radius=5);
   }
 }
 
@@ -732,39 +737,48 @@ module SoloBox() // `make` me
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=9
+        finger_hole_radius=9,
+        edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
+        chamfer=solo_action_token_edge
       );
     translate([10, 30, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=9
+        finger_hole_radius=9,
+        edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
+        chamfer=solo_action_token_edge
       );
 
-    translate([43, 5, $inner_height - cardboard_token_thickness * 4])
+    translate([43, 2, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
-        [solo_goal_token_length, solo_goal_token_width, solo_box_height],
+        [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=9
+        finger_hole_radius=9,
+        edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
+        chamfer=solo_action_token_edge
       );
 
-    translate([43, 30, $inner_height - cardboard_token_thickness * 5])
+    translate([43, 29, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
-        [solo_goal_token_length, solo_goal_token_width, solo_box_height],
+        [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
         finger_holes=[2, 6],
-        finger_hole_radius=9
+        finger_hole_radius=9,
+        edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
+        chamfer=solo_action_token_edge
       );
   }
 }
 
 module SoloBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
+  CapBoxLidWithLabel(
     width=solo_box_width,
     length=solo_box_length,
+    height=solo_box_height,
     text_str="Solo"
   );
 }
@@ -808,7 +822,7 @@ module RoundMarkerBox() // `make` me
     translate(
       [0, 0, $inner_height - round_marker_length / 2]
     )
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=round_marker_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, round_marker_box_height], radius=5);
 
     translate([$inner_width / 2, $inner_length / 4, $inner_height - round_marker_length])
       cyl(d=round_marker_diameter, anchor=BOTTOM, h=round_marker_length + 10);
@@ -835,7 +849,7 @@ module WorkerBox(material_colour = "yellow") // `make` me
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - worker_thickness / 2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=worker_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, worker_box_height], radius=5);
     for (i = [0:1]) {
       for (j = [0:2]) {
         if (i != 2 || j != 2) {
@@ -893,7 +907,7 @@ module ResourceBox(material_colour = "yellow") // `make` me
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - cube_size / 2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
     translate([$inner_width / 2, $inner_length / 2, $inner_height - cube_size - 0.5])
       cuboid([cube_size * 8 + 1, cube_size * 3, cube_size + 1], anchor=BOTTOM);
   }
@@ -908,7 +922,7 @@ module ResourceDoubleBox(material_colour = "yellow") // `make` me
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - cube_size / 2])
-      RoundedBoxAllSides(width=$inner_width, length=$inner_length, height=resource_box_height, radius=5);
+      RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
     translate([$inner_width / 2 - cube_size / 2, $inner_length / 2, $inner_height - cube_size - 0.5])
       cuboid([cube_size * 10 + 1, cube_size * 3 + 0.5, cube_size + 1], anchor=BOTTOM);
     translate([$inner_width / 2 + cube_size * 5, $inner_length / 2, $inner_height - cube_size - 0.5])
@@ -1048,5 +1062,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  SoloBox();
 }
