@@ -59,6 +59,12 @@ module MakeBoxWithMagneticLid(
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour
 ) {
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(height > 0, str("Height needs to be set", height));
+
   difference() {
     color(material_colour)
       cuboid(
@@ -141,6 +147,12 @@ module MakeBoxWithMagneticLidInsideSpace(
   full_height = false,
   material_colour = default_material_colour
 ) {
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(height > 0, str("Height needs to be set", height));
+
   module make_side_cylinder(box_size) {
     union() {
       actual_height = full_height ? height - lid_thickness - floor_thickness : box_size;
@@ -268,6 +280,11 @@ module MagneticBoxLid(
   size_spacing = m_piece_wiggle_room,
   material_colour = default_material_colour
 ) {
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
   internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
     difference() {
@@ -352,6 +369,12 @@ module MagneticBoxLidWithLabelAndCustomShape(
   material_colour = default_material_colour,
   label_options = undef,
 ) {
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(text_str != undef, str("Text string needs to be set", text_str));
+
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
@@ -452,6 +475,12 @@ module MagneticBoxLidWithLabel(
   label_options = undef,
   shape_options = undef
 ) {
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(text_str != undef, str("Text string needs to be set", text_str));
+
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,

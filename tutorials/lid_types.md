@@ -75,7 +75,7 @@ module MakeLid(str)
     CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, height = canvas_piece_box_height,
                         text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
-                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+                        shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
 MakeLid("Red");
 ```
@@ -95,11 +95,11 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    SlipoverLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, foot = 2, 
+    SlipoverBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, foot = 2, 
                         height = canvas_piece_box_height,
                         text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
-                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+                        shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
 MakeLid("Red");
 ```
@@ -123,7 +123,7 @@ module MakeLid(str)
     MagneticBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, magnet_diameter = 5,
                         magnet_thickness = 1, text_str = str, 
                         lid_thickness = 2, lid_boundary = 5, layout_width = 5,
-                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+                        shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
 MakeLid("Red");
 ```
@@ -145,7 +145,7 @@ module MakeLid(str)
 {
     SlidingCatchBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
                         text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
-                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+                        shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
 MakeLid("Red");
 ```
@@ -163,12 +163,11 @@ canvas_piece_box_length = 73;
 canvas_piece_box_height = 29;
 wall_thickness = 3;
 
-
 module MakeLid(str)
 {
-    InsetLidRabbitWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+    InsetLidRabbitClipWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
                         text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
-                        shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7);
+                        shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
 MakeLid("Red");
 ```

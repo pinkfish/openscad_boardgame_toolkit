@@ -6,7 +6,6 @@
   - [Box with finger cutouts](#box-with-finger-cutouts)
   - [Magnetic hex box](#magnetic-hex-box)
 
-
 ## Box with two types of compartments
 
 Create a sliding lid box with more complicated cutouts, a hex grid and spaces for specific sized items.  This also adds in 
@@ -105,7 +104,8 @@ SlidingLid(herald_width, top_length)
     translate([ 10, 10, 0 ])
         LidMeshHex(width = herald_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 7);
     translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
-        MakeStripedLidLabel(width = 50, length = 15, lid_thickness = 3, label = "Herald", border = 2, offset = 4);
+        MakeMainLidLabelStriped(width = 50, length = 15, lid_thickness = 3, label = "Herald", 
+        options = MakeLabelOptions(border = 2, offset = 4));
     intersection()
     {
         cube([ herald_width - 10, top_length - 5, 3 ]);
@@ -201,14 +201,14 @@ MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, heig
         wall_thickness - 0.3,
         roundhouse_height + inner_wall * 2 + silo_piece_height * 2 + crossing_length * 1.25 / 2 + 16, 0
     ]) FingerHoleBase(radius = 10, height = player_box_height - 1 + 0.01, wall_thickness = wall_thickness * 2,
-                        spin = 270, rounding_radius = 5, floor_thickness = 1);
+                        spin = 270, rounding_radius = 5);
 }
 text_str = "Player";
 text_width = 80;
 text_height = 30;
 translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-    width = player_box_width, length = player_box_length, lid_thickness = lid_thickness, text_width = text_width,
-    text_height = text_height, text_str = text_str, label_rotated = true);
+    width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
+    text_str = text_str);
 ```
 
 ## Magnetic hex box
@@ -217,13 +217,15 @@ This creates a box with a magnetic lid for hexes.
 
 
 ```openscad-3D;Big
+include <boardgame_toolkit.scad>
+
 hex_box_length = 207;
 hex_box_width = 172;
 top_section_height = 13;
 tile_width = 29;
 
-MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = top_section_height, push_block_height = 0.75,
-                            tile_width = tile_width, magnet_diameter = 5, magnet_thickness = 1) {
+MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = top_section_height,
+                       magnet_diameter = 5, magnet_thickness = 1) {
     intersection() {
         MakeBoxWithMagneticLidInsideSpace(width = hex_box_width, length = hex_box_length, height = top_section_height,
             magnet_diameter = 5, magnet_thickness = 1);
@@ -232,9 +234,7 @@ MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = 
     }
 }
 text_str = "Tracks";
-text_width = 80;
-text_height = 20;
 translate([ hex_box_width+10, 0, 0 ])
-    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, tile_width = tile_width,
-                                   text_str = text_str);
+    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, text_str = text_str, 
+                            magnet_diameter = 5, magnet_thickness = 1);
 ```
