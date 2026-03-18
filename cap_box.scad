@@ -396,6 +396,7 @@ module CapBoxLid(
               children(5);
             }
           }
+         
         difference() {
           color(material_colour) diff() cuboid(
                 [width, length, calc_cap_height], anchor=BOTTOM + FRONT + LEFT,
@@ -405,6 +406,7 @@ module CapBoxLid(
           translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5]) color(material_colour) cube(
                 [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1]
               );
+
         }
       }
     }
@@ -430,13 +432,13 @@ module CapBoxLid(
       translate([(catch_offset * 6 / 8) + wall_thickness, 0, -wall_thickness]) {
         color(material_colour) {
           intersection() {
-            sphere(r=wall_thickness * 4 / 6);
+            sphere(r=wall_thickness * 9 / 12);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
           }
         }
         color(material_colour) translate([0, length, 0]) {
             intersection() {
-              sphere(r=wall_thickness * 4 / 6);
+              sphere(r=wall_thickness * 9 / 12);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
             }
           }
@@ -444,13 +446,13 @@ module CapBoxLid(
       translate([(catch_offset * 2 / 8) + wall_thickness, 0, -wall_thickness]) {
         color(material_colour) {
           intersection() {
-            sphere(r=wall_thickness * 4 / 6);
+            sphere(r=wall_thickness * 9 / 12);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
           }
         }
         color(material_colour) translate([0, length, 0]) {
             intersection() {
-              sphere(r=wall_thickness * 4 / 6);
+              sphere(r=wall_thickness * 9 / 12);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
             }
           }
@@ -461,13 +463,13 @@ module CapBoxLid(
       translate([0, (catch_offset * 6 / 8) + wall_thickness, -wall_thickness]) {
         color(material_colour) {
           intersection() {
-            sphere(r=wall_thickness * 4 / 6);
+            sphere(r=wall_thickness * 9 / 12);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
           }
         }
         color(material_colour) translate([width, 0, 0]) {
             intersection() {
-              sphere(r=wall_thickness * 4 / 6);
+              sphere(r=wall_thickness * 9 / 12);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
             }
           }
@@ -475,13 +477,13 @@ module CapBoxLid(
       translate([0, (catch_offset * 2 / 8) + wall_thickness, -wall_thickness]) {
         color(material_colour) {
           intersection() {
-            sphere(r=wall_thickness * 4 / 6);
+            sphere(r=wall_thickness * 9 / 12);
             cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
           }
         }
         color(material_colour) translate([width, 0, 0]) {
             intersection() {
-              sphere(r=wall_thickness * 4 / 6);
+              sphere(r=wall_thickness * 9 / 12);
               cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
             }
           }
