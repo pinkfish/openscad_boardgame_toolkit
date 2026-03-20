@@ -130,17 +130,14 @@ module CardBox(num_cards, text_str, generate_lid = true) {
   box_length = CardBoxWidth(num_cards);
   if (generate_lid) {
     SlidingBoxLidWithLabel(
-      width=card_box_width, length=box_length,
+      size=[card_box_width, box_length, all_boxes_height],
       text_str=text_str, wall_thickness=2,
       lid_on_length=true,
       label_options=MakeLabelOptions(label_colour="black")
     ) children();
   } else {
     translate([box_length, 0, 0]) rotate([0, 0, 90]) {
-        MakeBoxWithSlidingLid(
-          width=card_box_width, length=box_length, height=all_boxes_height,
-          lid_on_length=true
-        ) {
+        MakeBoxWithSlidingLid(size=[card_box_width, box_length, all_boxes_height], lid_on_length=true) {
           cube([$inner_width, $inner_length, all_boxes_height - default_lid_thickness]);
           translate([card_box_width / 2, box_length / 2, all_boxes_height - 28 + 0.01 - default_lid_thickness / 2])
             FingerHoleWall(
@@ -156,10 +153,7 @@ module CardBoxEasternUS() // `make` me
 {
   translate([eastern_us_card_box_length, 0, 0]) rotate([0, 0, 90]) {
       union() {
-        MakeBoxWithSlidingLid(
-          width=card_box_width, length=eastern_us_card_box_length,
-          height=all_boxes_height,
-        ) {
+        MakeBoxWithSlidingLid(size=[card_box_width, eastern_us_card_box_length, all_boxes_height]) {
           cube(
             [
               $inner_width,
@@ -195,7 +189,7 @@ module CardBoxEasternUSLid() // `make` me
   text_str = "Eastern US";
   rotate([0, 0, 90]) {
     SlidingBoxLidWithLabel(
-      width=card_box_width, length=eastern_us_card_box_length,
+      size=[card_box_width, eastern_us_card_box_length, all_boxes_height],
       text_str=text_str,
       label_options=MakeLabelOptions(label_colour="black"),
       label_width_offset=-5
@@ -274,11 +268,7 @@ module CardBoxPortugalLid() // `make` me
 module PlayerBoxWithPlasticExtras() // `make` me
 {
   card_height = train_card_thickness * 4 + 0.5;
-  MakeBoxWithInsetLidTabbed(
-    width=player_box_width, length=player_box_plastic_extra_length,
-    height=player_box_height,
-    floor_thickness=1
-  ) {
+  MakeBoxWithInsetLidTabbed(size=[player_box_width, player_box_plastic_extra_length, player_box_height], floor_thickness=1) {
     // Round houses.
     difference() {
       cube([$inner_width, roundhouse_height, player_box_height]);
@@ -348,7 +338,7 @@ module PlayerBoxWithPlasticExtrasLid() // `make` me
 
   difference() {
     InsetLidTabbedWithLabel(
-      width=player_box_width, length=player_box_plastic_extra_length,
+      size=[player_box_width, player_box_plastic_extra_length, player_box_height],
       text_str=text_str,
       label_options=MakeLabelOptions(label_colour="black")
     );
@@ -363,9 +353,7 @@ module PlayerBox() // `make` me
 {
   card_height = train_card_thickness * 4 + 1;
   default_lid_thickness = 1.7;
-  MakeBoxWithCapLid(
-    width=player_box_width, length=player_box_length, height=player_box_small_height,
-  ) {
+  MakeBoxWithCapLid(size=[player_box_width, player_box_length, player_box_small_height]) {
     translate(
       [
         ($inner_width) / 2,
@@ -392,7 +380,7 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_small_height,
+    size=[player_box_width, player_box_length, player_box_small_height],
     text_str="Player", default_lid_thickness=1.7,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -400,10 +388,7 @@ module PlayerBoxLid() // `make` me
 
 module PlayerBoxTrains() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=player_box_width, length=player_box_trains_length, height=player_box_height,
-    floor_thickness=1
-  ) {
+  MakeBoxWithSlidingLid(size=[player_box_width, player_box_trains_length, player_box_height], floor_thickness=1) {
     cube([$inner_width, $inner_length, empty_city_height]);
   }
 }
@@ -412,7 +397,7 @@ module PlayerBoxTrainsLid() // `make` me
 {
   text_str = "Trains";
   SlidingBoxLidWithLabel(
-    width=player_box_width, length=player_box_trains_length,
+    size=[player_box_width, player_box_trains_length, player_box_height],
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -420,26 +405,20 @@ module PlayerBoxTrainsLid() // `make` me
 
 module EmptyCityBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=empty_city_width, length=empty_city_length, height=empty_city_height,
-  ) {
+  MakeBoxWithSlidingLid(size=[empty_city_width, empty_city_length, empty_city_height]) {
     cube([$inner_width, $inner_length, empty_city_height]);
   }
 }
 
 module EmptyCityBoxLid() // `make` me
 {
-  text_str = "Empty City";
-
-  SlidingBoxLidWithLabel(width=empty_city_width, length=empty_city_length, text_str="Empty City");
+  SlidingBoxLidWithLabel(size=[empty_city_width, empty_city_length, empty_city_height], text_str="Empty City");
 }
 
 module MoneyBox(extra_length = 0, extra_width = 0) // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=money_section_width + extra_width, length=money_section_length + extra_length,
-    height=top_section_height,
-  ) {
+  size = [money_section_width + extra_width, money_section_length + extra_length, top_section_height];
+  MakeBoxWithSlidingLid(size=size) {
     cube([money_width + extra_width, money_length + extra_length, empty_city_height]);
 
     translate([money_section_width / 2, 0, top_section_height - 20]) FingerHoleBase(radius=15, height=20);
@@ -449,8 +428,9 @@ module MoneyBox(extra_length = 0, extra_width = 0) // `make` me
 module MoneyBoxLid(extra_length = 0, extra_width = 0) // `make` me
 {
   text_str = "Money";
+  size = [money_section_width + extra_width, money_section_length + extra_length, top_section_height];
   SlidingBoxLidWithLabel(
-    width=money_section_width + extra_width, length=money_section_length + extra_length,
+    size=size,
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -458,7 +438,7 @@ module MoneyBoxLid(extra_length = 0, extra_width = 0) // `make` me
 
 module HexBox(extra_height = 0) // `make` me
 {
-  MakeBoxWithCapLid(width=hex_box_width, length=hex_box_length, height=top_section_height + extra_height) {
+  MakeBoxWithCapLid(size=[hex_box_width, hex_box_length, top_section_height + extra_height]) {
     HexGridWithCutouts(
       rows=4, cols=5, height=top_section_height + extra_height, spacing=0,
       push_block_height=0.25, tile_width=tile_width
@@ -470,7 +450,7 @@ module HexBoxLid(extra_height = 0) // `make` me
 {
   text_str = "Tracks";
   CapBoxLidWithLabel(
-    width=hex_box_width, length=hex_box_length, height=top_section_height + extra_height,
+    size=[hex_box_width, hex_box_length, top_section_height + extra_height],
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -478,10 +458,7 @@ module HexBoxLid(extra_height = 0) // `make` me
 
 module NewCityBox(extra_width = 0, extra_length = 0) // `make` me
 {
-  MakeBoxWithCapLid(
-    width=new_city_box_width + extra_width, length=new_city_box_length + extra_length,
-    height=top_section_height,
-  ) {
+  MakeBoxWithCapLid(size=[new_city_box_width + extra_width, new_city_box_length + extra_length, top_section_height]) {
     translate([2, 2.5, 0]) {
       translate([0, 0, $inner_height - tile_thickness * 4])
         RegularPolygonGrid(width=tile_width, rows=2, cols=2, spacing=0) {
@@ -506,8 +483,7 @@ module NewCityBoxLid(extra_width = 0, extra_length = 0) // `make` me
 {
   text_str = "New Cities";
   CapBoxLidWithLabel(
-    width=new_city_box_width + extra_width, length=new_city_box_length + extra_length,
-    height=top_section_height,
+    size=[new_city_box_width + extra_width, new_city_box_length + extra_length, top_section_height],
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -519,8 +495,7 @@ module SwedenBox() // `make` me
   radius = apothem / cos(180 / 6);
 
   MakeBoxWithCapLid(
-    width=sweden_box_width, length=sweden_box_length, height=top_section_height,
-    wall_thickness=default_wall_thickness
+    size=[sweden_box_width, sweden_box_length, top_section_height], wall_thickness=default_wall_thickness
   ) {
     HexGridWithCutouts(
       rows=6, cols=3, tile_width=tile_width, spacing=0, wall_thickness=default_wall_thickness,
@@ -560,7 +535,7 @@ module SwedenBoxLid() // `make` me
 {
   text_str = "Sweden";
   CapBoxLidWithLabel(
-    width=sweden_box_width, length=sweden_box_length, height=top_section_height,
+    size=[sweden_box_width, sweden_box_length, top_section_height],
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   ) {
@@ -590,8 +565,7 @@ module AustraliaBox() // `make` me
   }
 
   MakeBoxWithCapLid(
-    width=australia_box_width, length=australia_box_length, height=top_section_height,
-    floor_thickness=default_lid_thickness
+    size=[australia_box_width, australia_box_length, top_section_height], floor_thickness=default_lid_thickness
   ) {
     intersection() {
       translate([0, 0, -3]) cube([radius * 5 * 2, tile_width * 4, top_section_height + 1]);
@@ -692,7 +666,7 @@ module AustraliaBoxLid() // `make` me
 {
   text_str = "Australia";
   CapBoxLidWithLabel(
-    width=australia_box_width, length=australia_box_length, height=top_section_height,
+    size=[australia_box_width, australia_box_length, top_section_height],
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   ) translate([44, 15, 0])

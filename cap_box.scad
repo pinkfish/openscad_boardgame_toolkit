@@ -73,9 +73,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    $inner_height , $inner_width, $inner_length = length variables to
 //    deal with the box sizes.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
+//    size = [width, length, height] outside size of the box
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
@@ -89,17 +87,15 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
 //       {{CATCH_LONG})
-// Usage: MakeBoxWithCapLid(100, 50, 20);
+// Usage: MakeBoxWithCapLid([100, 50, 20]);
 // Example:
-//    MakeBoxWithCapLid(100, 50, 20);
+//    MakeBoxWithCapLid([100, 50, 20]);
 // Example:
-//    MakeBoxWithCapLid(100, 50, 10, lid_finger_hold_len = 4);
+//    MakeBoxWithCapLid([100, 50, 10], lid_finger_hold_len = 4);
 // Example:
-//    MakeBoxWithCapLid(100, 50, 5, cap_height = 2, finger_hold_height = 1);
+//    MakeBoxWithCapLid([100, 50, 5], cap_height = 2, finger_hold_height = 1);
 module MakeBoxWithCapLid(
-  width,
-  length,
-  height,
+  size,
   cap_height = undef,
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
@@ -113,6 +109,11 @@ module MakeBoxWithCapLid(
   positive_negative_children = [],
   lid_catch = default_lid_catch_type
 ) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
+
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(floor_thickness > 0, str("Need floor_thickness > 0, floor_thickness=", floor_thickness));
@@ -296,7 +297,7 @@ module MakeBoxWithCapLid(
       }
     }
   }
-  if (len(positive_negative_children) > 0 || len(positive_only_children) > 0) {
+  if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;
@@ -316,9 +317,7 @@ module MakeBoxWithCapLid(
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
+//    size = [width, length, height] outside size of the box
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
@@ -329,19 +328,17 @@ module MakeBoxWithCapLid(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    lid_catch = the type of catch to use, use {{CATCH_BUMPS_LONG}} for a bumps catch and {{CATCH_SHORT}}
 //      for a wedge catch.  Default {{default_lid_catch_type}}
-// Usage: CapBoxLid(100, 50, 20);
+// Usage: CapBoxLid([100, 50, 20]);
 // Example:
-//    CapBoxLid(100, 50, 30);
+//    CapBoxLid([100, 50, 30]);
 // Example:
-//    CapBoxLid(100, 50, 10);
+//    CapBoxLid([100, 50, 10]);
 // Example:
-//    CapBoxLid(100, 50, 10, cap_height = 3);
+//    CapBoxLid([100, 50, 10], cap_height = 3);
 // Example:
-//    CapBoxLid(100, 50, 10, cap_height = 3, lid_catch  = CATCH_BUMPS_LONG);
+//    CapBoxLid([100, 50, 10], cap_height = 3, lid_catch  = CATCH_BUMPS_LONG);
 module CapBoxLid(
-  width,
-  length,
-  height,
+  size,
   cap_height = undef,
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
@@ -351,6 +348,10 @@ module CapBoxLid(
   material_colour = default_material_colour,
   lid_catch = default_lid_catch_type
 ) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
@@ -396,7 +397,7 @@ module CapBoxLid(
               children(5);
             }
           }
-         
+
         difference() {
           color(material_colour) diff() cuboid(
                 [width, length, calc_cap_height], anchor=BOTTOM + FRONT + LEFT,
@@ -406,7 +407,6 @@ module CapBoxLid(
           translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5]) color(material_colour) cube(
                 [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1]
               );
-
         }
       }
     }
@@ -498,9 +498,7 @@ module CapBoxLid(
 //    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
+//    size = [width, length, height] outside size of the box
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
@@ -513,17 +511,16 @@ module CapBoxLid(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    inner_control = if the shape needs inner control (default false)
-// Usage: CapBoxLidWithCustomShape(100, 50);
+//    pattern_inner_control = if the shape needs inner control (default false)
+//    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+// Usage: CapBoxLidWithCustomShape([100, 50, 20]);
 // Example:
-//    CapBoxLidWithCustomShape(100, 50, 30) {
+//    CapBoxLidWithCustomShape([100, 50, 30]) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module CapBoxLidWithCustomShape(
-  width,
-  length,
-  height,
+  size,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
   cap_height = undef,
@@ -539,7 +536,8 @@ module CapBoxLidWithCustomShape(
   pattern_inner_control = false,
   lid_catch = default_lid_catch_type
 ) {
-  assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  assert(size[0] > 0 && size[1] > 0 && size[2] > 0, str("Need width,lenght, height > 0 size=", size));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
@@ -548,13 +546,13 @@ module CapBoxLidWithCustomShape(
   assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLid(
-    width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
+    size=size, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness,
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
     material_colour=material_colour, lid_catch=lid_catch
   ) {
     LidMeshBasic(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      size=size, lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
       dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
       inner_control=pattern_inner_control
@@ -593,33 +591,31 @@ module CapBoxLidWithCustomShape(
 //    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
+//    size = [width, length, height] outside size of the box
+//    text_str = the string to use for the label
+//    label_options = options for the label
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
+//    lid_inner_rounding = how much to round the inside of the box
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    inner_control = if the shape needs inner control (default false)
-// Usage: CapBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
+//    pattern_inner_control = if the shape needs inner control (default false)
+//    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+// Usage: CapBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabelAndCustomShape(100, 50, 30, text_str = "Frog") {
+//    CapBoxLidWithLabelAndCustomShape([100, 50, 30], text_str = "Frog") {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module CapBoxLidWithLabelAndCustomShape(
-  width,
-  length,
-  height,
+  size,
   text_str,
   label_options,
   wall_thickness = default_wall_thickness,
@@ -643,6 +639,10 @@ module CapBoxLidWithLabelAndCustomShape(
       material_colour=material_colour,
     )
   );
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
@@ -653,7 +653,7 @@ module CapBoxLidWithLabelAndCustomShape(
   assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLidWithCustomShape(
-    width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
+    size=size, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness,
     size_spacing=m_piece_wiggle_room, lid_rounding=lid_rounding, lid_inner_rounding=lid_inner_rounding,
     lid_catch=lid_catch,
@@ -669,8 +669,10 @@ module CapBoxLidWithLabelAndCustomShape(
     }
     translate([lid_boundary, lid_boundary, 0])
       MakeLidLabel(
-        width=width - lid_boundary * 2,
-        length=length - lid_boundary * 2,
+        size=[
+          width - lid_boundary * 2,
+          length - lid_boundary * 2,
+        ],
         options=object(calc_label_options, full_height=true), lid_thickness=lid_thickness,
         text_str=text_str,
       );
@@ -701,39 +703,35 @@ module CapBoxLidWithLabelAndCustomShape(
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
 // Arguments:
-//   width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
+//    size = [width, length, height] outside size of the box
 //    text_str = the string to use for the label
 //    lid_boundary = boundary around the outside for the lid (default 10)
-//    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    border= border of the item (default 2)
-//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    cap_height = height of the cap on the box (default 10)
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
+//    lid_inner_rounding = how much to round the inside of the box
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: CapBoxLidWithLabel(100, 50, text_str = "Frog");
+//    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+//    label_options = options for the label (default undef)
+//    shape_options = options for the shape (default undef)
+// Usage: CapBoxLidWithLabel([100, 50, 20], text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog");
+//    CapBoxLidWithLabel([100, 50, 30], text_str = "Frog");
 // Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog");
-// Example:
-//    CapBoxLidWithLabel(100, 50, 30, text_str = "Frog", material_colour =
+//    CapBoxLidWithLabel([100, 50, 30], text_str = "Frog", material_colour =
 //    "lightblue", label_options=MakeLabelOptions(label_colour = "black"));
 // Example:
 //    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 //    default_lid_shape_thickness = 1;
 //    default_lid_shape_width = 13;
 //    default_lid_layout_width = 10;
-//    CapBoxLidWithLabel(120, 70, 30, text_str = "Cards");
+//    CapBoxLidWithLabel([120, 70, 30], text_str = "Cards");
 module CapBoxLidWithLabel(
-  width,
-  length,
-  height,
+  size,
   text_str,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
@@ -759,6 +757,10 @@ module CapBoxLidWithLabel(
     )
   );
 
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(text_str != undef, "text_str must not be undefined");
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
@@ -769,7 +771,7 @@ module CapBoxLidWithLabel(
   assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLidWithLabelAndCustomShape(
-    width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
+    size=size, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness, text_str=text_str,
     label_options=calc_label_options,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
@@ -810,38 +812,35 @@ module CapBoxLidWithLabel(
 // Description:
 //    Lid for a cap box, small cap to go on the box with finger cutouts.
 // Arguments:
-//   width = outside width of the box
-//    length = inside width of the box
-//    height = outside height of the box
-//    text_str = the string to use for the label
+//    size = [width, length, height] outside size of the box
+//    text_str = the string to use for the label (unused)
 //    lid_boundary = boundary around the outside for the lid (default 10)
-//    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    cap_height = height of the cap on the box (default 10)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
+//    lid_inner_rounding = how much to round the inside of the box
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: CapBoxLidWithShape(100, 50);
+//    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+//    shape_options = options for the shape (default undef)
+//    label_options = options for the label (default undef)
+// Usage: CapBoxLidWithShape([100, 50, 20]);
 // Example:
-//    CapBoxLidWithShape(100, 50, 30);
+//    CapBoxLidWithShape([100, 50, 30]);
 // Example:
-//    CapBoxLidWithShape(100, 50, 30);
-// Example:
-//    CapBoxLidWithShape(100, 50, 30, material_colour =
+//    CapBoxLidWithShape([100, 50, 30], material_colour =
 //    "lightblue");
 // Example:
 //    default_lid_shape_type = SHAPE_TYPE_CIRCLE;
 //    default_lid_shape_thickness = 1;
 //    default_lid_shape_width = 13;
 //    default_lid_layout_width = 10;
-//    CapBoxLidWithShape(120, 70, 30);
+//    CapBoxLidWithShape([120, 70, 30]);
 module CapBoxLidWithShape(
-  width,
-  length,
-  height,
+  size,
   text_str,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
@@ -867,6 +866,10 @@ module CapBoxLidWithShape(
     )
   );
 
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0 && length > 0 && height > 0, str("Need width,lenght, height > 0 width=", width, " length=", length, " height=", height));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
@@ -876,7 +879,7 @@ module CapBoxLidWithShape(
   assert(lid_inner_rounding == undef || lid_inner_rounding > 0, str("Need lid_inner_rounding undef or > 0", lid_inner_rounding));
 
   CapBoxLidWithCustomShape(
-    width=width, length=length, height=height, cap_height=cap_height, wall_thickness=wall_thickness,
+    size=size, cap_height=cap_height, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,
     lid_rounding=undef, lid_inner_rounding=undef,

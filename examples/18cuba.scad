@@ -109,7 +109,7 @@ module Outline(height = 5, outline = 1.5, offset = 0.5) {
 module MoneyBox(offset = 0) // `make` me
 {
   MakeBoxWithSlipoverLid(
-    length=money_box_length, width=money_box_width, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -139,7 +139,7 @@ module MoneyBox(offset = 0) // `make` me
 module MoneyBoxLid(offset = 0) // `make` me
 {
   translate([money_box_width + 10, 0, 0]) SlipoverBoxLidWithLabel(
-      width=money_box_width, length=money_box_length, height=money_box_height, text_str="18Cuba",
+      size=[money_box_width, money_box_length, money_box_height], text_str="18Cuba",
       label_options=MakeLabelOptions(label_colour="blue")
     );
 }
@@ -177,7 +177,7 @@ module TrainBox() // `make` me
     }
   }
   MakeBoxWithSlipoverLid(
-    length=train_box_length, width=train_box_width, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -193,7 +193,7 @@ module TrainBox() // `make` me
 module TrainBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=train_box_width, length=train_box_length, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, text_str="Trains",
     wall_thickness=wall_thickness, foot=2,
     label_options=MakeLabelOptions(label_colour="blue")
@@ -218,7 +218,7 @@ module SharesBox(offset = 0) // `make` me
     }
   }
   MakeBoxWithSlipoverLid(
-    length=train_box_length, width=train_box_width, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -233,7 +233,7 @@ module SharesBox(offset = 0) // `make` me
 module SharesBoxLid(offset = 0) // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=train_box_width, length=train_box_length, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, text_str="Shares",
     wall_thickness=wall_thickness, foot=2,
     label_options=MakeLabelOptions(label_colour="blue")
@@ -330,7 +330,7 @@ module LastBox() // `make` me
     }
   }
   MakeBoxWithSlipoverLid(
-    length=train_box_length, width=train_box_width, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, floor_thickness=1, foot=2, wall_thickness=wall_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -344,7 +344,7 @@ module LastBox() // `make` me
 module LastBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=train_box_width, length=train_box_length, height=train_box_height,
+    size=[train_box_width, train_box_length, train_box_height],
     lid_thickness=1, text_str="Machine/Minor",
     wall_thickness=wall_thickness, label_options=MakeLabelOptions(foot=2, label_colour="blue")
   );
@@ -505,7 +505,7 @@ module LargeTokensBox() {
   }
 
   MakeBoxWithSlipoverLid(
-    length=train_box_length, width=rest_section_width, height=rest_height,
+    size=[rest_section_width, train_box_length, rest_height],
     lid_thickness=0.75, floor_thickness=0.75, foot=2, wall_thickness=wall_thickness,
     wall_height=wall_height, positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -528,7 +528,7 @@ module LargeTokensToPrint() // `make` me
 module LargeTokensToPrintLid() // `make` me
 {
   SlipoverBoxLid(
-    length=train_box_length, width=rest_section_width, height=rest_height, lid_thickness=0.75,
+    size=[rest_section_width, train_box_length, rest_height], lid_thickness=0.75,
     foot=2, wall_thickness=wall_thickness, label_options=MakeLabelOptions(label_colour="blue")
   );
 }

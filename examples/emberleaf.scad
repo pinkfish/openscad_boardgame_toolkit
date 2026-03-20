@@ -86,8 +86,7 @@ spacer_side_length = box_length - card_box_length * 3 - 1;
 
 module PlayerBoxInside(colour = "pink") {
   MakeBoxWithCapLid(
-    width=player_box_width,
-    length=player_box_length, height=player_box_height, material_colour=colour
+    size=[player_box_width, player_box_length, player_box_height], material_colour=colour
   ) {
     // workers
     translate([12, 8, $inner_height - token_thickness - 0.5])for (i = [0:4]) {
@@ -262,7 +261,7 @@ module GreyPlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Player", label_options=MakeLabelOptions(text_scale=0.5, font="Impact")
   );
 }
@@ -270,8 +269,7 @@ module PlayerBoxLid() // `make` me
 module MaterialBox(colour) // `make` me
 {
   MakeBoxWithCapLid(
-    width=material_box_width,
-    length=material_box_length, height=material_box_height,
+    size=[material_box_width, material_box_length, material_box_height],
     material_colour=colour
   ) {
     RoundedBoxAllSides(
@@ -287,7 +285,7 @@ module MaterialBox(colour) // `make` me
 module MaterialHoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=material_box_width, length=material_box_length, height=material_box_height,
+    size=[material_box_width, material_box_length, material_box_height],
     text_str="Honey", label_options=MakeLabelOptions(scale=0.5)
   );
 }
@@ -295,7 +293,7 @@ module MaterialHoneyBoxLid() // `make` me
 module MaterialWoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=material_box_width, length=material_box_length, height=material_box_height,
+    size=[material_box_width, material_box_length, material_box_height],
     text_str="Wood", label_options=MakeLabelOptions(scale=0.5)
   );
 }
@@ -303,7 +301,7 @@ module MaterialWoodBoxLid() // `make` me
 module MaterialFoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=material_box_width, length=material_box_length, height=material_box_height,
+    size=[material_box_width, material_box_length, material_box_height],
     text_str="Food", label_options=MakeLabelOptions(scale=0.5)
   );
 }
@@ -311,7 +309,7 @@ module MaterialFoodBoxLid() // `make` me
 module MaterialStoneBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=material_box_width, length=material_box_length, height=material_box_height,
+    size=[material_box_width, material_box_length, material_box_height],
     text_str="Stone", label_options=MakeLabelOptions(scale=0.5)
   );
 }
@@ -319,8 +317,7 @@ module MaterialStoneBoxLid() // `make` me
 module CardBoxHero() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     lid_on_length=true
   ) {
     translate([0, 0, 0])
@@ -333,8 +330,7 @@ module CardBoxHero() // `make` me
 module CardBoxFavor() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     lid_on_length=true
   ) {
     translate([0, 0, $inner_height - single_card_thickness * 88 + 2])
@@ -347,8 +343,7 @@ module CardBoxFavor() // `make` me
 module CardBoxSolo() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     lid_on_length=true
   ) {
     translate([0, 0, 0])
@@ -361,29 +356,28 @@ module CardBoxSolo() // `make` me
 module CardBoxSoloLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, text_str="Solo", lid_on_length=true
+    size=[card_box_width, card_box_length, card_box_height], text_str="Solo", lid_on_length=true
   );
 }
 
 module CardBoxFavorLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, text_str="Favors", lid_on_length=true
+    size=[card_box_width, card_box_length, card_box_height], text_str="Favors", lid_on_length=true
   );
 }
 
 module CardBoxHerosLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, text_str="Heros", lid_on_length=true
+    size=[card_box_width, card_box_length, card_box_height], text_str="Heros", lid_on_length=true
   );
 }
 
 module CardBoxPlayer(colour) // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=player_card_box_width,
-    length=player_card_box_length, height=player_card_box_height,
+    size=[player_card_box_width, player_card_box_length, player_card_box_height],
     material_colour=colour
   ) {
     translate([($inner_width - card_width) / 2, 0, 0])
@@ -398,14 +392,14 @@ module CardBoxPlayer(colour) // `make` me
 module CardBoxPlayerLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=player_card_box_width, length=player_card_box_length, text_str="Player"
+    size=[player_card_box_width, player_card_box_length, player_card_box_height], text_str="Player"
   );
 }
 
 module CommonBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=common_box_width, length=common_box_length, height=common_box_height
+    size=[common_box_width, common_box_length, common_box_height]
   ) {
     hex_apothem = PolygonApothemFromRadius(radius=hex_size / 2, shape_edges=6);
     for (i = [0:1]) {
@@ -463,7 +457,7 @@ module CommonBox() // `make` me
 module CommonBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=common_box_width, length=common_box_length, height=common_box_height,
+    size=[common_box_width, common_box_length, common_box_height],
     text_str="Trophy", label_options=MakeLabelOptions(scale=0.5)
   );
 }
@@ -471,7 +465,7 @@ module CommonBoxLid() // `make` me
 module SpacerFront() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_front_width, height=spacer_front_height, length=spacer_front_length,
+    size=[spacer_front_width, spacer_front_length, spacer_front_height],
     hollow=true
   );
 }
@@ -479,7 +473,7 @@ module SpacerFront() // `make` me
 module SpacerSide() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_side_width, height=spacer_side_height, length=spacer_side_length,
+    size=[spacer_side_width, spacer_side_length, spacer_side_height],
     hollow=true
   );
 }
@@ -487,7 +481,7 @@ module SpacerSide() // `make` me
 module SpacerPlayer() // `make` me
 {
   MakeBoxWithNoLid(
-    width=player_box_width, height=player_box_height, length=player_box_length,
+    size=[player_box_width, player_box_length, player_box_height],
     hollow=true
   );
 }

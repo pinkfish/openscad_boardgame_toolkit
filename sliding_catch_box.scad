@@ -41,22 +41,18 @@ under the License.
 //   $inner_height , $inner_width, $inner_length = length variables to
 //   deal with the box sizes.
 // Arguments:
-//   width = outside width of the box
-//   length = inside width of the box
-//   height = outside height of the box
+//   size = [width, length, height] of the box
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //   top_thickness = the thickness of the all above the catch (default 2)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: MakeBoxWithSlidingCatchLid(100, 50, 20);
+// Usage: MakeBoxWithSlidingCatchLid([100, 50, 20]);
 // Example:
-//    MakeBoxWithSlidingCatchLid(100, 50, 20);
+//    MakeBoxWithSlidingCatchLid([100, 50, 20]);
 module MakeBoxWithSlidingCatchLid(
-  width,
-  length,
-  height,
+  size,
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
@@ -64,6 +60,11 @@ module MakeBoxWithSlidingCatchLid(
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour
 ) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
+
   calc_sliding_len = (length - wall_thickness) / 6;
   difference() {
 
@@ -147,19 +148,19 @@ module MakeBoxWithSlidingCatchLid(
 // Module: SlidingCatchBoxLid()
 // Topics: SlidingCatch
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    size = [width, length] of the lid
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    fill_middle = if the middle of the lid should be filled (default true)
+//    lid_rounding = how much rounding on the edge of the lid (default top_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: SlidingCatchBoxLid(100, 50);
+// Usage: SlidingCatchBoxLid([100, 50]);
 // Example:
-//    SlidingCatchBoxLid(100, 50);
+//    SlidingCatchBoxLid([100, 50]);
 module SlidingCatchBoxLid(
-  width,
-  length,
+  size,
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
@@ -169,6 +170,10 @@ module SlidingCatchBoxLid(
   lid_rounding = undef,
   material_colour = default_material_colour
 ) {
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+
   calc_sliding_len = (length - wall_thickness) / 6;
   calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
   calc_lid_rounding = DefaultValue(lid_roudning, top_thickness / 2);
@@ -229,29 +234,28 @@ module SlidingCatchBoxLid(
 //    Lid for a sliding catch box.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    width = outside width of the box
-//    length = outside length of the box
+//    size = [width, length] of the lid
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    fill_middle = if the middle of the lid should be filled (default true)
+//    pattern_inner_control = if the pattern needs inner control (default false)
+//    label_options = options for the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog");
+// Usage: SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog");
 // Example:
-//    SlidingCatchBoxLidWithLabelAndCustomShape(100, 50, text_str = "Frog") {
+//    SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog") {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module SlidingCatchBoxLidWithLabelAndCustomShape(
-  width,
-  length,
+  size,
   text_str,
   lid_boundary = 10,
   layout_width = undef,
@@ -267,6 +271,10 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
   pattern_inner_control = false,
   label_options = undef
 ) {
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
@@ -274,12 +282,12 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
   );
 
   SlidingCatchBoxLid(
-    width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+    size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, top_thickness=top_thickness,
     fill_middle=fill_middle, material_colour=material_colour
   ) {
     LidMeshBasic(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      size=size, lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio, inner_control=pattern_inner_control
     ) {
       if ($children > 0) {
@@ -289,7 +297,7 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
       }
     }
     MakeLidLabel(
-      width=width, length=length,
+      size=[width, length],
       lid_thickness=lid_thickness,
       text_str=text_str,
       options=object(calc_label_options, full_height=false),
@@ -329,27 +337,25 @@ module SlidingCatchBoxLidWithLabelAndCustomShape(
 // Description:
 //    Lid for a sliding catch with a label on top of it.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    size = [width, length] of the lid
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    top_thickness = thickness of the top above the lid (default 1)
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    top_thickness = the thickness of the all above the catch (default 2)
+//    fill_middle = if the middle of the lid should be filled (default true)
+//    lid_rounding = how much rounding on the edge of the lid (default undef)
+//    label_options = options for the label (default undef)
+//    shape_options = options for the shape (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: SlidingCatchBoxLidWithLabel(100, 50, text_str = "Frog");
+// Usage: SlidingCatchBoxLidWithLabel([100, 50], text_str = "Frog");
 // Example:
-//    SlidingCatchBoxLidWithLabel(100, 50,  text_str = "Frog");
+//    SlidingCatchBoxLidWithLabel([100, 50],  text_str = "Frog");
 module SlidingCatchBoxLidWithLabel(
-  width,
-  length,
+  size,
   text_str,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
@@ -364,6 +370,10 @@ module SlidingCatchBoxLidWithLabel(
   label_options = undef,
   shape_options = undef
 ) {
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+
   calc_label_options = DefaultValue(
     label_options, MakeLabelOptions(
       material_colour=material_colour,
@@ -377,7 +387,7 @@ module SlidingCatchBoxLidWithLabel(
   calc_lid_thickness = fill_middle ? lid_thickness + top_thickness : lid_thickness;
 
   SlidingCatchBoxLidWithLabelAndCustomShape(
-    width=width, length=length, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
+    size=size, wall_thickness=wall_thickness, lid_thickness=calc_lid_thickness,
     text_str=text_str,
     layout_width=layout_width,
     size_spacing=size_spacing, aspect_ratio=aspect_ratio,

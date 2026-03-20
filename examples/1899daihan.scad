@@ -101,7 +101,7 @@ module PriorityDealMarker(height) {
 
 module HexBox1() // `make` me
 {
-  MakeBoxWithCapLid(width=hex_box_width, length=hex_box_length, height=hex_box_height) {
+  MakeBoxWithCapLid(size=[hex_box_width, hex_box_length, hex_box_height]) {
     translate([default_wall_thickness / 2, default_wall_thickness / 2, 0])
       HexGridWithCutouts(
         rows=3, cols=3, height=hex_box_height, spacing=0,
@@ -112,12 +112,12 @@ module HexBox1() // `make` me
 
 module HexBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(width=hex_box_width, length=hex_box_length, height=hex_box_height, "1899 Daihan");
+  CapBoxLidWithLabel(size=[hex_box_width, hex_box_length, hex_box_height], text_str="1899 Daihan");
 }
 
 module HexBox2() // `make` me
 {
-  MakeBoxWithCapLid(width=hex_box_width, length=hex_box_length, height=hex_box_height_2) {
+  MakeBoxWithCapLid(size=[hex_box_width, hex_box_length, hex_box_height_2]) {
     translate([default_wall_thickness / 2, default_wall_thickness / 2, 0])
       HexGridWithCutouts(
         rows=3, cols=3, height=hex_box_height, spacing=0,
@@ -128,7 +128,7 @@ module HexBox2() // `make` me
 
 module MoneyBox() // `make` me
 {
-  MakeBoxWithCapLid(width=money_box_width, length=money_box_length, height=money_box_height) {
+  MakeBoxWithCapLid(size=[money_box_width, money_box_length, money_box_height]) {
     for (i = [0:4]) {
       translate([3, (money_width + 3) * i + 7, 0]) {
         cuboid([money_length, money_width, money_box_height], anchor=BOTTOM + LEFT + FRONT);
@@ -145,14 +145,14 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     text_str="Money"
   );
 }
 
 module ShareBox() // `make` me
 {
-  MakeBoxWithCapLid(width=share_box_width, length=share_box_length, height=share_box_height) {
+  MakeBoxWithCapLid(size=[share_box_width, share_box_length, share_box_height]) {
     for (i = [0:3]) {
       translate([3, (small_card_width + 7) * i + 17, 0]) {
         cuboid([small_card_length, small_card_width, share_box_height], anchor=BOTTOM + LEFT + FRONT);
@@ -169,7 +169,7 @@ module ShareBox() // `make` me
 module ShareBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=share_box_width, length=share_box_length, height=share_box_height,
+    size=[share_box_width, share_box_length, share_box_height],
     text_str="Shared"
   );
 }
@@ -177,8 +177,7 @@ module ShareBoxLid() // `make` me
 module TrainCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=train_card_box_width,
-    length=train_card_box_length, height=train_card_box_height, lid_on_length=true
+    size=[train_card_box_width, train_card_box_length, train_card_box_height], lid_on_length=true
   ) {
     cube([$inner_width, $inner_length, train_card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
@@ -189,8 +188,7 @@ module TrainCardBox() // `make` me
 module TrainCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=train_card_box_width,
-    length=train_card_box_length, lid_on_length=true,
+    size=[train_card_box_width, train_card_box_length, train_card_box_height], lid_on_length=true,
     text_str="Trains"
   );
 }
@@ -198,8 +196,7 @@ module TrainCardBoxLid() // `make` me
 module CompanyMarkerBox() // `make` me
 {
   MakeBoxWithSlipoverLid(
-    width=company_marker_box_width, length=company_marker_box_length,
-    height=company_marker_box_height, foot=default_floor_thickness
+    size=[company_marker_box_width, company_marker_box_length, company_marker_box_height], foot=default_floor_thickness
   ) {
     for (i = [0:7]) {
       translate([disc_diameter / 2 + (disc_diameter + 3.5) * i, disc_diameter / 2, $inner_height - disc_thickness * 2 - 1]) {
@@ -222,8 +219,7 @@ module CompanyMarkerBox() // `make` me
 module CompanyMarkerBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=company_marker_box_width, length=company_marker_box_length,
-    height=company_marker_box_height, foot=default_floor_thickness,
+    size=[company_marker_box_width, company_marker_box_length, company_marker_box_height], foot=default_floor_thickness,
     text_str="Company"
   );
 }
@@ -231,16 +227,14 @@ module CompanyMarkerBoxLid() // `make` me
 module ExtraBitsBox() // `make` me
 {
   MakeBoxWithSlipoverLid(
-    width=company_marker_box_width, length=company_marker_box_length,
-    height=company_marker_box_height, foot=default_floor_thickness
+    size=[company_marker_box_width, company_marker_box_length, company_marker_box_height], foot=default_floor_thickness
   ){}
 }
 
 module ExtraBitsBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=company_marker_box_width, length=company_marker_box_length,
-    height=company_marker_box_height, foot=default_floor_thickness,
+    size=[company_marker_box_width, company_marker_box_length, company_marker_box_height], foot=default_floor_thickness,
     text_str="Extra"
   );
 }
@@ -248,8 +242,7 @@ module ExtraBitsBoxLid() // `make` me
 module PrivateCompanyCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=private_company_card_box_width, length=private_company_card_box_length,
-    height=private_company_card_box_height, lid_on_length=true
+    size=[private_company_card_box_width, private_company_card_box_length, private_company_card_box_height], lid_on_length=true
   ) {
     cube([$inner_width, $inner_length, private_company_card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
@@ -260,8 +253,7 @@ module PrivateCompanyCardBox() // `make` me
 module PrivateCompanyCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=private_company_card_box_width, length=private_company_card_box_length,
-    lid_on_length=true,
+    size=[private_company_card_box_width, private_company_card_box_length, private_company_card_box_height], lid_on_length=true,
     text_str="Private"
   );
 }

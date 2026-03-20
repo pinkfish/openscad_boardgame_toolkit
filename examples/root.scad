@@ -95,7 +95,7 @@ spacer_box_width = quarter_width;
 module BaseCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     material_colour="grey"
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -108,7 +108,7 @@ module BaseCardBox() // `make` me
 module BaseCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Shared",
     material_colour="grey"
   );
@@ -117,7 +117,7 @@ module BaseCardBoxLid() // `make` me
 module ErieCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=erie_card_box_height,
+    size=[card_box_width, card_box_length, erie_card_box_height],
     material_colour="grey"
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -130,7 +130,7 @@ module ErieCardBox() // `make` me
 module ErieCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
+    size=[card_box_width, card_box_length, erie_card_box_height],
     text_str="Erie",
     material_colour="grey"
   );
@@ -139,7 +139,7 @@ module ErieCardBoxLid() // `make` me
 module VagabondCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=vagabond_card_box_height,
+    size=[card_box_width, card_box_length, vagabond_card_box_height],
     material_colour="grey"
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -152,7 +152,7 @@ module VagabondCardBox() // `make` me
 module VagabondCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
+    size=[card_box_width, card_box_length, vagabond_card_box_height],
     text_str="Vagabond",
     material_colour="grey"
   );
@@ -161,7 +161,7 @@ module VagabondCardBoxLid() // `make` me
 module OverviewCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=overview_card_box_height,
+    size=[card_box_width, card_box_length, overview_card_box_height],
     material_colour="grey"
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -174,7 +174,7 @@ module OverviewCardBox() // `make` me
 module OverviewCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
+    size=[card_box_width, card_box_length, overview_card_box_height],
     text_str="Overview",
     material_colour="grey"
   );
@@ -183,7 +183,7 @@ module OverviewCardBoxLid() // `make` me
 module MarquisBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
-    width=marquis_box_width, length=marquis_box_length, height=marquis_box_height,
+    size=[marquis_box_width, marquis_box_length, marquis_box_height],
     material_colour="orange"
   ) {
     len = box_data.token.thickness * 8 + 1;
@@ -228,7 +228,7 @@ module MarquisBoxBottomLid() // `make` me
 {
 
   CapBoxLidWithEyes(
-    width=marquis_box_width, length=marquis_box_length, height=marquis_box_height,
+    size=[marquis_box_width, marquis_box_length, marquis_box_height],
     material_colour="orange"
   ) {
     color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
@@ -385,7 +385,7 @@ module MarquisBoxTop() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=marquis_box_width, length=marquis_box_length, height=marquis_box_top_height,
+    size=[marquis_box_width, marquis_box_length, marquis_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="orange",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -399,7 +399,7 @@ module MarquisBoxTop() // `make` me
 module MarquisBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=marquis_box_width, length=marquis_box_length,
+    size=[marquis_box_width, marquis_box_length, marquis_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="orange"
   ) {
     color("black") translate([0, 10, 0]) linear_extrude(height=default_lid_thickness) scale(2)
@@ -473,7 +473,7 @@ module VagabondBox() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=vagabond_box_width, length=vagabond_box_length, height=vagabond_box_height,
+    size=[vagabond_box_width, vagabond_box_length, vagabond_box_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -487,7 +487,7 @@ module VagabondBox() // `make` me
 module VagabondBoxLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=vagabond_box_width, length=vagabond_box_length,
+    size=[vagabond_box_width, vagabond_box_length, vagabond_box_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey"
   ) {
     color("black") translate([0, -8, 0]) linear_extrude(height=default_lid_thickness) VagabondEyes2d();
@@ -497,7 +497,7 @@ module VagabondBoxLid() // `make` me
 module ErieBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
-    width=erie_box_width, length=erie_box_length, height=erie_box_height,
+    size=[erie_box_width, erie_box_length, erie_box_height],
     material_colour="blue"
   ) {
     len = box_data.token.thickness * 10 + 1;
@@ -530,7 +530,7 @@ module ErieBoxBottom() // `make` me
 module ErieBoxBottomLid() // `make` me
 {
   CapBoxLidWithEyes(
-    width=erie_box_width, length=erie_box_length, height=erie_box_height,
+    size=[erie_box_width, erie_box_length, erie_box_height],
     material_colour="blue"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
@@ -576,7 +576,7 @@ module ErieBoxTop() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=erie_box_top_width, length=erie_box_top_length, height=erie_box_top_height,
+    size=[erie_box_top_width, erie_box_top_length, erie_box_top_height],
     wall_thickness=wall_thickness, floor_thickness=lid_thickness,
     lid_thickness=sliding_lid_thickness, material_colour="blue",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
@@ -591,7 +591,7 @@ module ErieBoxTop() // `make` me
 module ErieBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=erie_box_top_width, length=erie_box_top_length,
+    size=[erie_box_top_width, erie_box_top_length, erie_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="blue"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2) ErieEyes2d();
@@ -601,7 +601,7 @@ module ErieBoxTopLid() // `make` me
 module AllianceBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
-    width=alliance_box_width, length=alliance_box_length, height=alliance_box_height,
+    size=[alliance_box_width, alliance_box_length, alliance_box_height],
     material_colour="green"
   ) {
     len = box_data.token.thickness * 5 + 1;
@@ -640,7 +640,7 @@ module AllianceBoxBottom() // `make` me
 module AllianceBoxBottomLid() // `make` me
 {
   CapBoxLidWithEyes(
-    width=alliance_box_width, length=alliance_box_length, height=alliance_box_height,
+    size=[alliance_box_width, alliance_box_length, alliance_box_height],
     material_colour="green"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
@@ -717,7 +717,7 @@ module AllianceBoxTop() // `make` me
   }
 
   MakeBoxWithSlidingLid(
-    width=alliance_box_width, length=alliance_box_length, height=alliance_box_top_height,
+    size=[alliance_box_width, alliance_box_length, alliance_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="green",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -731,7 +731,7 @@ module AllianceBoxTop() // `make` me
 module AllianceBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=alliance_box_width, length=alliance_box_length,
+    size=[alliance_box_width, alliance_box_length, alliance_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="green"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(1.5) AllianceEyes2d();
@@ -741,7 +741,7 @@ module AllianceBoxTopLid() // `make` me
 module RiverfolkBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
-    width=riverfolk_box_width, length=riverfolk_box_length, height=riverfolk_box_height,
+    size=[riverfolk_box_width, riverfolk_box_length, riverfolk_box_height],
     material_colour="lightblue"
   ) {
     len = box_data.token.thickness * 5 + 1;
@@ -768,7 +768,7 @@ module RiverfolkBoxBottom() // `make` me
 module RiverfolkBoxBottomLid() // `make` me
 {
   CapBoxLidWithEyes(
-    width=riverfolk_box_width, length=riverfolk_box_length, height=riverfolk_box_height,
+    size=[riverfolk_box_width, riverfolk_box_length, riverfolk_box_height],
     material_colour="lightblue"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(1.5) RiverfolkEyes2d();
@@ -836,8 +836,7 @@ module RiverfolkBoxTop() // `make` me
   }
 
   MakeBoxWithSlidingLid(
-    width=riverfolk_box_top_width, length=riverfolk_box_length,
-    height=riverfolk_box_top_height, lid_thickness=sliding_lid_thickness,
+    size=[riverfolk_box_top_width, riverfolk_box_length, riverfolk_box_top_height], lid_thickness=sliding_lid_thickness,
     lid_on_length=true, material_colour="lightblue",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -851,7 +850,7 @@ module RiverfolkBoxTop() // `make` me
 module RiverfolkBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=riverfolk_box_top_width, length=riverfolk_box_length,
+    size=[riverfolk_box_top_width, riverfolk_box_length, riverfolk_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="lightblue"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2.2) RiverfolkEyes2d();
@@ -861,7 +860,7 @@ module RiverfolkBoxTopLid() // `make` me
 module LizardBoxBottom() // `make` me
 {
   MakeBoxWithCapLid(
-    width=lizard_box_width, length=lizard_box_length, height=lizard_box_height,
+    size=[lizard_box_width, lizard_box_length, lizard_box_height],
     material_colour="yellow"
   ) {
     //  Put a bunch of places in for the lizard items
@@ -888,7 +887,7 @@ module LizardBoxBottom() // `make` me
 module LizardBoxBottomLid() // `make` me
 {
   CapBoxLidWithEyes(
-    width=lizard_box_width, length=lizard_box_length, height=lizard_box_height,
+    size=[lizard_box_width, lizard_box_length, lizard_box_height],
     material_colour="yellow"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2.5) LizardEyes2d();
@@ -991,7 +990,7 @@ module LizardBoxTop() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=lizard_box_top_width, length=lizard_box_length, height=lizard_box_top_height,
+    size=[lizard_box_top_width, lizard_box_length, lizard_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="yellow",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -1005,7 +1004,7 @@ module LizardBoxTop() // `make` me
 module LizardBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
-    width=lizard_box_top_width, length=lizard_box_length,
+    size=[lizard_box_top_width, lizard_box_length, lizard_box_top_height],
     lid_thickness=sliding_lid_thickness, material_colour="yellow"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2) LizardEyes2d();
@@ -1094,7 +1093,7 @@ module ItemsBoxBottom() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=item_box_width, length=item_box_length, height=item_box_height,
+    size=[item_box_width, item_box_length, item_box_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -1112,7 +1111,7 @@ module ItemsBoxBottom() // `make` me
 module ItemsBoxBottomLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=item_box_width, length=item_box_length,
+    size=[item_box_width, item_box_length, item_box_height],
     text_str="Items", lid_thickness=sliding_lid_thickness,
     material_colour="grey", label_background_colour="grey"
   );
@@ -1216,7 +1215,7 @@ module ItemsBoxMiddle() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=item_box_width, length=item_box_length, height=item_box_middle_height,
+    size=[item_box_width, item_box_length, item_box_middle_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
@@ -1233,7 +1232,7 @@ module ItemsBoxMiddleLid() // `make` me
 {
   translate([item_box_width + 10, 0, 0]) {
     SlidingBoxLidWithLabel(
-      width=item_box_width, length=item_box_length,
+      size=[item_box_width, item_box_length, item_box_middle_height],
       text_str="Items", lid_thickness=sliding_lid_thickness,
       label_options=MakeLabelOptions(label_colour="blue", label_background_color="grey"),
       material_colour="grey",
@@ -1244,7 +1243,7 @@ module ItemsBoxMiddleLid() // `make` me
 module ItemsBoxWinter() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=item_box_width, length=item_box_length, height=item_box_winter_height,
+    size=[item_box_width, item_box_length, item_box_winter_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey"
   ) {
     for (i = [0:1:5]) {
@@ -1262,7 +1261,7 @@ module ItemsBoxWinter() // `make` me
 module ItemsBoxWinterLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=item_box_width, length=item_box_length,
+    size=[item_box_width, item_box_length, item_box_winter_height],
     text_str="Winter", lid_thickness=sliding_lid_thickness,
     label_options=MakeLabelOptions(label_colour="blue", label_background_colour="grey"),
     material_colour="grey",
@@ -1272,7 +1271,7 @@ module ItemsBoxWinterLid() // `make` me
 module DiceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=dice_box_width, length=dice_box_length, height=dice_box_height,
+    size=[dice_box_width, dice_box_length, dice_box_height],
     lid_thickness=sliding_lid_thickness, material_colour="grey"
   ) {
     translate([dice_width / 2 + 3, dice_width / 2 + 3, dice_width / 2]) {
@@ -1291,12 +1290,12 @@ module DiceBox() // `make` me
 module DiceBoxLid() // `make` me
 {
   SlidingLid(
-    width=dice_box_width, length=dice_box_length, lid_thickness=sliding_lid_thickness,
+    size=[dice_box_width, dice_box_length, dice_box_height], lid_thickness=sliding_lid_thickness,
     material_colour="grey"
   ) {
     translate([0, 0, 0])
       LidMeshBasic(
-        width=$inner_width, length=$inner_length, lid_thickness=lid_thickness,
+        size=[$inner_width, $inner_length], lid_thickness=lid_thickness,
         boundary=10, layout_width=default_lid_layout_width, material_colour="grey"
       )
         color("grey")
@@ -1382,7 +1381,7 @@ module ItemsBoxExtras() // `make` me
   }
 
   MakeBoxWithSlidingLid(
-    width=item_box_width, length=item_box_length, height=item_box_extras_height,
+    size=[item_box_width, item_box_length, item_box_extras_height],
     lid_thickness=sliding_lid_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : [],
     material_colour="grey"
@@ -1402,7 +1401,7 @@ module ItemsBoxExtras() // `make` me
 module ItemsBoxExtrasLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=item_box_width, length=item_box_length,
+    size=[item_box_width, item_box_length, item_box_extras_height],
     text_str="Items", lid_thickness=sliding_lid_thickness,
     material_colour="grey",
     label_options=MakeLabelOptions(label_background_colour="grey", label_colour="blue")
@@ -1412,9 +1411,7 @@ module ItemsBoxExtrasLid() // `make` me
 module SpacerBox() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_box_width,
-    length=spacer_box_length,
-    height=spacer_box_height,
+    size=[spacer_box_width, spacer_box_length, spacer_box_height],
     hollow=true
   );
 }

@@ -85,11 +85,7 @@ spacer_dial_box_height = box_height - board_thickness - 2 - dial_box_height;
 
 module ResourceBox() // `make` me
 {
-  MakeBoxWithCapLid(
-    width=resource_box_width,
-    length=resource_box_length,
-    height=resource_box_height
-  ) {
+  MakeBoxWithCapLid(size=[resource_box_width, resource_box_length, resource_box_height]) {
     translate([1, 1, 0])
       RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, resource_box_height], radius=5);
   }
@@ -97,11 +93,7 @@ module ResourceBox() // `make` me
 
 module ResourceBoxDouble() // `make` me
 {
-  MakeBoxWithCapLid(
-    width=resource_box_width,
-    length=resource_box_double_length,
-    height=resource_box_height
-  ) {
+  MakeBoxWithCapLid(size=[resource_box_width, resource_box_double_length, resource_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
   }
 }
@@ -109,9 +101,7 @@ module ResourceBoxDouble() // `make` me
 module ResourceGrassBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_length,
-    height=resource_box_height,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     text_str="Grass"
   );
 }
@@ -119,9 +109,7 @@ module ResourceGrassBoxLid() // `make` me
 module ResourceMeatBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_length,
-    height=resource_box_height,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     text_str="Meat"
   );
 }
@@ -129,20 +117,14 @@ module ResourceMeatBoxLid() // `make` me
 module ResourcePopulationBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_double_length,
-    height=resource_box_height,
+    size=[resource_box_width, resource_box_double_length, resource_box_height],
     text_str="Population"
   );
 }
 
 module DialBox() // `make` me
 {
-  MakeBoxWithCapLid(
-    width=dial_box_width,
-    length=dial_box_length,
-    height=dial_box_height
-  ) {
+  MakeBoxWithCapLid(size=[dial_box_width, dial_box_length, dial_box_height]) {
     translate([dial_box_width / 2, $inner_length / 2, $inner_height - disk_diameter / 2 - 5])
       cuboid(
         [dial_box_width + 10, disk_diameter / 2, disk_diameter], anchor=BOTTOM,
@@ -169,9 +151,7 @@ module DialBox() // `make` me
 module DialBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=dial_box_width,
-    length=dial_box_length,
-    height=dial_box_height,
+    size=[dial_box_width, dial_box_length, dial_box_height],
     text_str="Population",
     label_type=LABEL_TYPE_FRAMELESS
   );
@@ -180,9 +160,7 @@ module DialBoxLid() // `make` me
 module LeopardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=leopard_box_width,
-    length=leopard_box_length,
-    height=leopard_box_height,
+    size=[leopard_box_width, leopard_box_length, leopard_box_height],
     lid_on_length=true
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -195,8 +173,7 @@ module LeopardBox() // `make` me
 module LeopardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=leopard_box_width,
-    length=leopard_box_length,
+    size=[leopard_box_width, leopard_box_length, leopard_box_height],
     text_str="Leopard",
     label_type=LABEL_TYPE_FRAMELESS,
     lid_on_length=true
@@ -206,9 +183,7 @@ module LeopardBoxLid() // `make` me
 module NatureCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length,
-    height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     lid_on_length=true
   ) {
     cube([card_length, card_width, card_box_height]);
@@ -220,8 +195,7 @@ module NatureCardBox() // `make` me
 module NatureCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Nature",
     lid_on_length=true
   );
@@ -230,9 +204,7 @@ module NatureCardBoxLid() // `make` me
 module HunterCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=hunter_card_box_width,
-    length=hunter_card_box_length,
-    height=hunter_card_box_height,
+    size=[hunter_card_box_width, hunter_card_box_length, hunter_card_box_height],
     lid_on_length=true
   ) {
     cube([card_length, card_width, card_box_height]);
@@ -244,8 +216,7 @@ module HunterCardBox() // `make` me
 module HunterCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=hunter_card_box_width,
-    length=hunter_card_box_length,
+    size=[hunter_card_box_width, hunter_card_box_length, hunter_card_box_height],
     text_str="Hunter",
     lid_on_length=true
   );
@@ -254,9 +225,7 @@ module HunterCardBoxLid() // `make` me
 module SoloCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=solo_card_box_width,
-    length=solo_card_box_length,
-    height=solo_card_box_height,
+    size=[solo_card_box_width, solo_card_box_length, solo_card_box_height],
     lid_on_length=true
   ) {
     cube([card_length, card_width, card_box_height]);
@@ -268,8 +237,7 @@ module SoloCardBox() // `make` me
 module SoloCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=solo_card_box_width,
-    length=solo_card_box_length,
+    size=[solo_card_box_width, solo_card_box_length, solo_card_box_height],
     text_str="Solo",
     lid_on_length=true
   );
@@ -277,22 +245,12 @@ module SoloCardBoxLid() // `make` me
 
 module SpacerCardBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    width=spacer_card_width,
-    length=spacer_card_length,
-    height=spacer_card_height,
-    hollow=true
-  );
+  MakeBoxWithNoLid(size=[spacer_card_width, spacer_card_length, spacer_card_height], hollow=true);
 }
 
 module SpacerDialBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    width=spacer_dial_box_width,
-    length=spacer_dial_box_length,
-    height=spacer_dial_box_height,
-    hollow=true
-  );
+  MakeBoxWithNoLid(size=[spacer_dial_box_width, spacer_dial_box_length, spacer_dial_box_height], hollow=true);
 }
 
 module BoxLayout() {

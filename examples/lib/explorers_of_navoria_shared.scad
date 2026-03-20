@@ -81,7 +81,7 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef) {
   if (generate_lid) {
     translate([player_box_width + 10, 0, 0]) {
       SlidingBoxLidWithLabel(
-        width=player_box_width, length=player_box_length,
+        size=[player_box_width, player_box_length, player_box_height],
         text_str="Player",
         material_colour=material_colour,
         label_options=MakeLabelOptions(label_colour="black", material_colour=material_colour)
@@ -89,7 +89,7 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef) {
     }
   } else {
     MakeBoxWithSlidingLid(
-      width=player_box_width, length=player_box_length, height=player_box_height,
+      size=[player_box_width, player_box_length, player_box_height],
       material_colour=material_colour
     ) {
       marker_depth = $inner_height - marker_thickness - 0.5;
@@ -144,13 +144,13 @@ module PlayerBoxTwoBase(generate_lid = true, material_colour = undef) {
 module PlayerBoxOneBase(generate_lid = true, material_colour = undef) {
   if (generate_lid) {
     SlidingBoxLidWithLabel(
-      width=player_box_width, length=player_box_length,
+      size=[player_box_width, player_box_length, player_box_height],
       text_str="Player", material_colour=material_colour,
       label_options=MakeLabelOptions(label_colour="black", material_colour=material_colour)
     );
   } else {
     MakeBoxWithSlidingLid(
-      width=player_box_width, length=player_box_length, height=player_box_height,
+      size=[player_box_width, player_box_length, player_box_height],
       material_colour=material_colour
     ) {
       translate([0, 0, $inner_height - 5]) color(material_colour) RoundedBoxAllSides(

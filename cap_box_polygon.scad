@@ -91,6 +91,7 @@ module FingerHoleSegmentCutout(path, radius, height, wall_thickness) {
 //    offset = the offset of the rounding on the fingerhole
 //    wall_thickness = the thickness of the walls
 //    delta = how much to offset the segment by
+//    lid_catch = the type of catch to use
 // Example:
 //    PolygonBoxLidCatch(path=[[0,0], [50,50]], offset=5, wall_thickness = 2, delta=0);
 // Example:
@@ -259,7 +260,7 @@ module MakePathBoxWithCapLid(
       }
     }
   }
-  if (len(positive_negative_children) > 0 || len(positive_only_children) > 0) {
+  if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_path = calc_path;
     $inner_width = calc_width;
@@ -284,10 +285,10 @@ module MakePathBoxWithCapLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
+//    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
+//    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
+//    lid_catch = the type of catch to use
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
 // Example:
@@ -397,18 +398,16 @@ module CapPathBoxLid(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    inner_control = if the shape needs inner control (default false)
+//    pattern_inner_control = if the shape needs inner control (default false)
+//    label_options = options for the label
+//    label_background_colour = the colour of the label background
 // Usage: CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));
 // Example:
@@ -476,7 +475,7 @@ module CapPathBoxLidWithLabelAndCustomShape(
       }
     }
     MakeLidLabel(
-      length=calc_length, width=calc_width,
+      size=[calc_width, calc_length],
       text_str=text_str,
       lid_thickness=lid_thickness,
       options=object(calc_label_options, full_height=true),
@@ -515,17 +514,16 @@ module CapPathBoxLidWithLabelAndCustomShape(
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_inner_rounding = how much to round the inside of the box
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    label_options = options for the label
+//    shape_options = options for the shape
 // Usage: CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog",
-//      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));
+//      label_options=MakeLabelOptions(text_length=50, label_diff=[20, -20]));
 // Example:
 //    CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));

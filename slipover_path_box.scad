@@ -81,7 +81,7 @@ module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    postivie_only_children = the list of children to be positive only
+//    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
@@ -157,7 +157,7 @@ module MakePathBoxWithSlipoverLid(
       }
     }
   }
-  if (len(positive_only_children) > 0 || len(positive_negative_children) > 0) {
+  if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_width = calc_width;
     $inner_length = calc_length;
     $inner_height = height - lid_thickness - floor_thickness;
@@ -313,21 +313,25 @@ module SlipoverPathBoxLid(
 //    Lid for a slipover box.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    width = outside width of the box
-//    length = outside length of the box
+//    path = the path for the outside of the box
+//    height = outside height of the box
 //    lid_boundary = boundary around the outside for the lid (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    foot = size of the foot on the box.
+//    finger_catch = where to put the catches (default {{CATCH_SHORT}})
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
+//    pattern_inner_control = if the pattern needs inner control (default false)
+//    label_options = options for the label (default undef)
 // Usage: SlipoverPathBoxLidWithLabelAndCustomShape(100, 50, 20, text_str = "Frog");
 // Example:
 //   long_player_box_width = 136.5;
@@ -364,11 +368,8 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
   text_str,
   lid_boundary = 10,
   layout_width = undef,
-  label_type = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
-  label_width_offset = 0,
-  label_length_offset = 0,
   aspect_ratio = 1.0,
   lid_rounding = undef,
   wall_thickness = default_wall_thickness,
@@ -418,7 +419,7 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
       }
     }
     MakeLidLabel(
-      length=calc_length, width=calc_width,
+      size=[calc_width, calc_length],
       lid_thickness=lid_thickness,
       text_str=text_str,
       options=object(calc_label_options, full_height=true),
@@ -450,21 +451,21 @@ module SlipoverPathBoxLidWithLabelAndCustomShape(
 // Topics: SlipoverBox
 // Usage: SlipoverPathBoxLidWithLabel(20, 100, 10, text_str = "Marmoset", shape_type = SHAPE_TYPE_CIRCLE, layout_width = 10, shape_width = 14) 
 // Arguments:
-//   width = width of the lid (outside width)
-//   length = of the lid (outside length)
-//   height = height of the lid (outside height)
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
-//   foot = size of the foot on the box.
-//   text_str = the string to use for the label
-//   layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//   shape_width = width of the shape (default {{default_lid_shape_width}})
-//   shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//   aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
-//       {{default_lid_catch_type}})
+//    path = the path for the outside of the box
+//    height = outside height of the box
+//    text_str = the string to use for the label
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    foot = size of the foot on the box.
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+//    size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    lid_rounding = how much to round the lid (default wall_thickness)
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default {{default_lid_catch_type}})
+//    label_options = options for the label (default undef)
+//    shape_options = options for the shape (default undef)
 // Example:
 //   long_player_box_width = 136.5;
 //   long_player_box_length = 305;

@@ -136,7 +136,7 @@ module Meeple(height) {
 
 module PlayerBox(generate_lid = true) // `make` me
 {
-  MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithCapLid(size=[player_box_width, player_box_length, player_box_height]) {
     cube([card_length, card_width, player_box_height]);
     translate([-1, card_width / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=10, height=player_box_height, spin=270);
@@ -152,7 +152,7 @@ module PlayerBoxLid(generate_lid = true) // `make` me
 {
 
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Player",
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -160,7 +160,7 @@ module PlayerBoxLid(generate_lid = true) // `make` me
 
 module UnmetNeedsBox(generate_lid = true) // `make` me
 {
-  MakeBoxWithCapLid(width=shared_box_width, length=shared_box_length, height=shared_box_height) {
+  MakeBoxWithCapLid(size=[shared_box_width, shared_box_length, shared_box_height]) {
     for (i = [0:1:2]) {
       translate(
         [
@@ -187,7 +187,7 @@ module UnmetNeedsBoxLid(generate_lid = true) // `make` me
 {
 
   CapBoxLidWithLabel(
-    width=shared_box_width, length=shared_box_length, height=shared_box_height,
+    size=[shared_box_width, shared_box_length, shared_box_height],
     text_str="Tokens",
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -195,7 +195,7 @@ module UnmetNeedsBoxLid(generate_lid = true) // `make` me
 
 module ExtraCardsBox(generate_lid = false) // `make` me
 {
-  MakeBoxWithCapLid(width=shared_box_width, length=shared_box_length, height=shared_box_height) {
+  MakeBoxWithCapLid(size=[shared_box_width, shared_box_length, shared_box_height]) {
     cube([card_length, card_width, shared_box_height]);
     translate([-1, card_width / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=10, height=player_box_height, spin=270);
@@ -243,7 +243,7 @@ module ExtraCardsBoxLid(generate_lid = false) // `make` me
 {
 
   CapBoxLidWithLabel(
-    width=shared_box_width, length=shared_box_length, height=shared_box_height,
+    size=[shared_box_width, shared_box_length, shared_box_height],
     text_str="Cards",
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -251,7 +251,7 @@ module ExtraCardsBoxLid(generate_lid = false) // `make` me
 
 module ResourcesBox(generate_lid = true) // `make` me
 {
-  MakeBoxWithCapLid(width=resources_box_width, length=resources_box_length, height=resources_box_height) {
+  MakeBoxWithCapLid(size=[resources_box_width, resources_box_length, resources_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, resources_box_height], radius=10);
   }
 }
@@ -260,17 +260,17 @@ module ResourcesBoxLid(generate_lid = true) // `make` me
 {
   translate([resources_box_width + 10, 0, 0])
     CapBoxLidWithLabel(
-      width=resources_box_width, length=resources_box_length, height=resources_box_height,
+      size=[resources_box_width, resources_box_length, resources_box_height],
       text_str="Corn"
     );
   translate([resources_box_width * 2 + 20, 0, 0])
     CapBoxLidWithLabel(
-      width=resources_box_width, length=resources_box_length, height=resources_box_height,
+      size=[resources_box_width, resources_box_length, resources_box_height],
       text_str="Buffalo"
     );
   translate([resources_box_width * 3 + 30, 0, 0])
     CapBoxLidWithLabel(
-      width=resources_box_width, length=resources_box_length, height=resources_box_height,
+      size=[resources_box_width, resources_box_length, resources_box_height],
       text_str="Fish"
     );
 }

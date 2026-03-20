@@ -33,7 +33,7 @@ module SwedenBox()
     apothem = tile_width / 2;
     radius = apothem / cos(180 / 6);
 
-    MakeBoxWithSlidingLid(width = sweden_box_width, length = sweden_box_length, height = top_section_height,
+    MakeBoxWithSlidingLid(size = [sweden_box_width, sweden_box_length, top_section_height],
                           lid_thickness = lid_thickness, wall_thickness = wall_thickness)
     {
          intersection()
@@ -81,8 +81,8 @@ module SwedenBox()
     text_width = 80;
     text_height = 20;
     translate([ sweden_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-        width = sweden_box_width, length = sweden_box_length, lid_thickness = lid_thickness,
-         text_str = text_str);
+        size = [sweden_box_width, sweden_box_length], lid_thickness = lid_thickness,
+        text_str = text_str);
 }
 
 SwedenBox();
@@ -99,12 +99,12 @@ include <boardgame_toolkit.scad>
 herald_width = 40;
 top_length = 100;
 
-SlidingLid(herald_width, top_length)
+SlidingLid(size = [herald_width, top_length])
 {
     translate([ 10, 10, 0 ])
-        LidMeshHex(width = herald_width, length = top_length, lid_thickness = 3, boundary = 10, radius = 7);
+        LidMeshHex(size = [herald_width, top_length], lid_thickness = 3, boundary = 10, radius = 7);
     translate([ (herald_width + 15) / 2, (top_length - 50) / 2, 0 ]) rotate([ 0, 0, 90 ])
-        MakeMainLidLabelStriped(width = 50, length = 15, lid_thickness = 3, label = "Herald", 
+        MakeMainLidLabelStriped(size = [50, 15], label = "Herald", lid_thickness = 3,
         options = MakeLabelOptions(border = 2, offset = 4));
     intersection()
     {
@@ -140,7 +140,7 @@ crossing_height = 14;
 crossing_length = 34;
 
 
-MakeBoxWithSlidingLid(width = player_box_width, length = player_box_length, height = player_box_height,
+MakeBoxWithSlidingLid(size = [player_box_width, player_box_length, player_box_height],
                         lid_thickness = lid_thickness, wall_thickness = wall_thickness)
 {
     // Round houses.
@@ -207,7 +207,7 @@ text_str = "Player";
 text_width = 80;
 text_height = 30;
 translate([ player_box_width + 10, 0, 0 ]) SlidingBoxLidWithLabel(
-    width = player_box_width, length = player_box_length, lid_thickness = lid_thickness,
+    size = [player_box_width, player_box_length], lid_thickness = lid_thickness,
     text_str = text_str);
 ```
 
@@ -224,10 +224,10 @@ hex_box_width = 172;
 top_section_height = 13;
 tile_width = 29;
 
-MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = top_section_height,
+MakeBoxWithMagneticLid([hex_box_width, hex_box_length, top_section_height],
                        magnet_diameter = 5, magnet_thickness = 1) {
     intersection() {
-        MakeBoxWithMagneticLidInsideSpace(width = hex_box_width, length = hex_box_length, height = top_section_height,
+        MakeBoxWithMagneticLidInsideSpace([hex_box_width, hex_box_length, top_section_height],
             magnet_diameter = 5, magnet_thickness = 1);
         HexGridWithCutouts(rows = 5, cols = 7, height = top_section_height, tile_width = tile_width, spacing = 0,
                             wall_thickness = 2);
@@ -235,6 +235,6 @@ MakeBoxWithMagneticLid(width = hex_box_width, length = hex_box_length, height = 
 }
 text_str = "Tracks";
 translate([ hex_box_width+10, 0, 0 ])
-    MagneticBoxLidWithLabel(width = hex_box_width, length = hex_box_length, text_str = text_str, 
+    MagneticBoxLidWithLabel([hex_box_width, hex_box_length], text_str = text_str, 
                             magnet_diameter = 5, magnet_thickness = 1);
 ```

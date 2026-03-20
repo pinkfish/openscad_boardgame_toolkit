@@ -84,7 +84,7 @@ coin_box_height = dragon_card_box_height / 2;
 
 module PlayerBox() // `make` me
 {
-  MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithCapLid(size=[player_box_width, player_box_length, player_box_height]) {
     cube(
       [
         player_box_width - 2 * default_wall_thickness,
@@ -98,14 +98,14 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Player"
   );
 }
 
 module FoodBox() // `make` me
 {
-  MakeBoxWithCapLid(width=food_box_width, length=food_box_length, height=food_box_height) {
+  MakeBoxWithCapLid(size=[food_box_width, food_box_length, food_box_height]) {
     translate([0, 0, 10]) RoundedBoxGrid(
         [
           food_box_width - 2 * default_wall_thickness,
@@ -118,12 +118,12 @@ module FoodBox() // `make` me
 
 module FoodBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(width=food_box_width, length=food_box_length, height=food_box_height, text_str="Edibles");
+  CapBoxLidWithLabel(size=[food_box_width, food_box_length, food_box_height], text_str="Edibles");
 }
 
 module DragonCardBox() // `make` me
 {
-  MakeBoxWithCapLid(width=dragon_card_box_width, length=dragon_card_box_length, height=dragon_card_box_height) {
+  MakeBoxWithCapLid(size=[dragon_card_box_width, dragon_card_box_length, dragon_card_box_height]) {
     for (i = [0:1:2]) {
       translate([0, (dragon_card_width + inner_wall + 0.5) * i, 0])
         cube([dragon_card_length + 0.5, dragon_card_width + 0.5, dragon_card_box_height]);
@@ -136,7 +136,7 @@ module DragonCardBox() // `make` me
 module DragonCardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=dragon_card_box_width, length=dragon_card_box_length, height=dragon_card_box_height,
+    size=[dragon_card_box_width, dragon_card_box_length, dragon_card_box_height],
     text_str="Dragons"
   );
 }
@@ -147,7 +147,7 @@ module ProvidedEggBox() {
 
 module CaveCardBox() // `make` me
 {
-  MakeBoxWithCapLid(width=cave_card_box_width, length=cave_card_box_length, height=cave_card_box_height) {
+  MakeBoxWithCapLid(size=[cave_card_box_width, cave_card_box_length, cave_card_box_height]) {
     // Cave cards.
     for (i = [0:1:2]) {
       translate([0, (cave_card_size + inner_wall + 0.5) * i, 0])
@@ -195,14 +195,14 @@ module CaveCardBox() // `make` me
 module CaveCardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=cave_card_box_width, length=cave_card_box_length, height=cave_card_box_height,
+    size=[cave_card_box_width, cave_card_box_length, cave_card_box_height],
     text_str="Caves + stuff"
   );
 }
 
 module CoinBox() // `make` me
 {
-  MakeBoxWithCapLid(width=coin_box_width, length=coin_box_length, height=coin_box_height) {
+  MakeBoxWithCapLid(size=[coin_box_width, coin_box_length, coin_box_height]) {
     RoundedBoxAllSides(
       [
         coin_box_width - default_wall_thickness * 2,
@@ -216,14 +216,14 @@ module CoinBox() // `make` me
 module CoinBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=coin_box_width, length=coin_box_length, height=coin_box_height, text_str="Coins", default_wall_thickness=default_wall_thickness,
+    size=[coin_box_width, coin_box_length, coin_box_height], text_str="Coins", default_wall_thickness=default_wall_thickness,
     default_lid_thickness=default_lid_thickness
   );
 }
 
 module BonusBox() // `make` me
 {
-  MakeBoxWithCapLid(width=coin_box_width, length=coin_box_length, height=coin_box_height) {
+  MakeBoxWithCapLid(size=[coin_box_width, coin_box_length, coin_box_height]) {
     RoundedBoxAllSides(
       [
         coin_box_width - default_wall_thickness * 2,
@@ -236,7 +236,7 @@ module BonusBox() // `make` me
 
 module BonusBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(width=coin_box_width, length=coin_box_length, height=coin_box_height, text_str="Bonus");
+  CapBoxLidWithLabel(size=[coin_box_width, coin_box_length, coin_box_height], text_str="Bonus");
 }
 
 module BoxLayout() {

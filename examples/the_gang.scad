@@ -40,9 +40,7 @@ tokens_box_length = box_length - card_box_length;
 module TokenBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    height=tokens_box_height,
-    width=tokens_box_width,
-    length=tokens_box_length
+    size=[tokens_box_width, tokens_box_length, tokens_box_height]
   ) {
     translate([token_diametter / 2, token_diametter / 2, 0]) {
       for (i = [0:1]) {
@@ -64,8 +62,7 @@ module TokenBox() // `make` me
 module TokenBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=tokens_box_width,
-    length=tokens_box_length,
+    size=[tokens_box_width, tokens_box_length, tokens_box_height],
     text_str="Tokens"
   );
 }
@@ -143,9 +140,7 @@ module TokenSix() // `make` me
 module MainDeckCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    height=main_deck_box_height,
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, main_deck_box_height],
     lid_on_length=true
   ) {
     translate([card_length / 2, $inner_length / 2, 0])
@@ -160,8 +155,7 @@ module MainDeckCardBox() // `make` me
 module MainDeckCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, main_deck_box_height],
     text_str="Main"
   );
 }
@@ -169,9 +163,7 @@ module MainDeckCardBoxLid() // `make` me
 module OtherCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    height=other_deck_box_height,
-    width=card_box_width,
-    length=card_box_length
+    size=[card_box_width, card_box_length, other_deck_box_height]
   ) {
     translate([card_length / 2, $inner_length / 2, 0])
       cuboid([card_length, card_width, main_deck_box_height], anchor=BOTTOM);
@@ -185,8 +177,7 @@ module OtherCardBox() // `make` me
 module OtherDeckCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, other_deck_box_height],
     text_str="Challenge"
   );
 }

@@ -52,7 +52,7 @@ loot_box_height = tile_box_height - start_cave_box_height;
 
 module SquareTileBox() // `make` me
 {
-  MakeBoxWithCapLid(width=tile_box_width, length=tile_box_length, height=tile_box_height) {
+  MakeBoxWithCapLid(size=[tile_box_width, tile_box_length, tile_box_height]) {
     cube([square_tile_width, square_tile_width, tile_box_height]);
     translate([square_tile_width + inner_thickness, 0, 0])
       cube([square_tile_width, square_tile_width, tile_box_height]);
@@ -71,14 +71,14 @@ module SquareTileBox() // `make` me
 module SquareTileBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=tile_box_width, length=tile_box_length, height=tile_box_height, text_str="Kenmore Gold",
+    size=[tile_box_width, tile_box_length, tile_box_height], text_str="Kenmore Gold",
     label_options=MakeLabelOptions(label_colour="black")
   );
 }
 
 module StartCaveBox() // `make` me
 {
-  MakeBoxWithCapLid(width=start_cave_box_width, length=start_cave_box_length, height=start_cave_box_height) {
+  MakeBoxWithCapLid(size=[start_cave_box_width, start_cave_box_length, start_cave_box_height]) {
     translate([$inner_width / 2, $inner_length / 2, 0]) {
       difference() {
         cuboid([cave_start_length, cave_start_width, start_cave_box_height], anchor=BOTTOM);
@@ -98,7 +98,7 @@ module StartCaveBoxLid() // `make` me
 {
   translate([start_cave_box_width + 10, 0, 0])
     CapBoxLidWithLabel(
-      width=start_cave_box_width, length=start_cave_box_length, height=start_cave_box_height,
+      size=[start_cave_box_width, start_cave_box_length, start_cave_box_height],
       text_str="Start Cave",
       label_options=MakeLabelOptions(label_colour="black")
     );
@@ -106,7 +106,7 @@ module StartCaveBoxLid() // `make` me
 
 module LootBox() // `make` me
 {
-  MakeBoxWithCapLid(width=loot_box_width, length=loot_box_length, height=loot_box_height) {
+  MakeBoxWithCapLid(size=[loot_box_width, loot_box_length, loot_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height], radius=10);
   }
 }
@@ -114,7 +114,7 @@ module LootBox() // `make` me
 module LootBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=loot_box_width, length=loot_box_length, height=loot_box_height, text_str="Loot",
+    size=[loot_box_width, loot_box_length, loot_box_height], text_str="Loot",
     label_options=MakeLabelOptions(label_colour="black")
   );
 }

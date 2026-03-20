@@ -32,11 +32,20 @@ under the License.
 // Function: MakeLabelOptions()
 // Arguments:
 //   text_scale = the scale of the font to use
-//   font = the font to use for the text (default {{default_label_font}})
+//   text_length = the length of the text
+//   angle = the angle of the text
 //   label_colour = the label colour to use (default {{default_label_colour}})
-//   solid_background = if the background should be solid (default false)
 //   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
+//   short_length = if the label should be short length (default false)
 //   label_diff = how much to move the label (default [0, 0])
+//   border = the border around the label (default 2)
+//   offset = the offset for the text (default 4)
+//   radius = the radius of the corners (default 5)
+//   font = the font to use for the text (default {{default_label_font}})
+//   full_height = if the label should be full height (default false)
+//   finger_hole_size = the size of the finger hole (default 10)
+//   material_colour = the colour of the material (default {{default_material_colour}})
+//   label_type = the type of label (default {{default_label_type}})
 // Topics: Label
 function MakeLabelOptions(
   text_scale = 1.0,
@@ -78,15 +87,21 @@ function MakeLabelOptions(
 // Description:
 //   Creates a background striped grid, this is used in the label space generation.
 // Usage:
-//   MakeStripedGrid(20,50);
+//   MakeStripedGrid([20,50]);
 // Arguments:
 //   width = width of the grid space
 //   length = length of the grid space
 //   bar_width = width of the bars (default 1)
 // Topics: Label
 // Example:
-//   MakeStripedGrid(20, 50);
-module MakeStripedGrid(width, length, bar_width = 1) {
+//   MakeStripedGrid([20, 50]);
+module MakeStripedGrid(size, bar_width = 1) {
+
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+  assert(width > 0 && length > 0, str("width and length must be < 0 width=", width, " length=", length));
+
   dx = bar_width * 2;
   x_count = (width + length) / (bar_width + dx);
 
@@ -103,7 +118,7 @@ module MakeStripedGrid(width, length, bar_width = 1) {
 // Description:
 //   Creates a background striped grid, this is used in the label space generation.
 // Usage:
-//   Make3dStripedGrid(20,50);
+//   Make3dStripedGrid([20,50]);
 // Arguments:
 //   width = width of the grid space
 //   length = length of the grid space
@@ -111,10 +126,15 @@ module MakeStripedGrid(width, length, bar_width = 1) {
 //   bar_width_bottom = height of the bar (default bar_width_top)
 // Topics: Label
 // Example:
-//   Make3dStripedGrid(width = 20, length = 50, height = 1);
+//   Make3dStripedGrid(size = [20, 50], height = 1);
 // Example:
-//   Make3dStripedGrid(width = 20, length = 50, height = 0.2, bar_width_bottom = 1);
-module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bottom = undef, spacing = 0) {
+//   Make3dStripedGrid(size = [20, 50], height = 0.2, bar_width_bottom = 1);
+module Make3dStripedGrid(size, height, bar_width_top = 1, bar_width_bottom = undef, spacing = 0) {
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+  assert(width > 0 && length > 0, str("width and length must be < 0 width=", width, " length=", length));
+
   calc_bar_width_bottom = bar_width_bottom == undef ? bar_width_top : bar_width_bottom;
   bar_width = max(bar_width_top, calc_bar_width_bottom);
 
@@ -136,38 +156,31 @@ module Make3dStripedGrid(width, length, height, bar_width_top = 1, bar_width_bot
 //   Makes a label inside a solid background to use in the lid.  It makes a label with a border and a stripped
 //   or solid grid in the background to keep the label in place.
 // Usage:
-//   MakeMainLidLabelSolid(20, 80, 2, label="Australia", border = 2, offset = 4);
+//   MakeMainLidLabelSolid(size = [20, 80], lid_thickness = 2, label="Australia", options=MakeLabelOptions());
 // Arguments:
-//   width = width of the label section
-//   length = length of the label section
+//   size = [width, length] of the label section
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
-//   border = how wide the border is around the label (default 2)
-//   offset = how far in from the sides the text should be (default 4)
-//   font = the font to use for the text (default {{default_label_font}})
-//   radius = the radius of the corners on the label section (default 5)
-//   full_height = full height of the lid (default false)
-//   label_colour = the label colour to use (default {{default_label_colour}})
-//   solid_background = if the background should be solid (default false)
-//   label_background_colour = the colour to use for the label background (default {{default_label_background_colour}})
-//   label_diff = how much to move the label (default [0, 0])
+//   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeMainLidLabelSolid(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions());
 // Example(Render):
-//   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeMainLidLabelSolid(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions(full_height=true));
 // Example(Render):
-//   MakeMainLidLabelSolid(width = 20, length = 80, lid_thickness = 2,label = "Australia",
+//   MakeMainLidLabelSolid(size = [20,80], lid_thickness = 2,label = "Australia",
 //     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeMainLidLabelSolid(
-  width,
-  length,
+  size,
   lid_thickness,
   label,
   options
 ) {
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
   assert(width > options.border * 2, str("Width must be wider than double the offset width=", width, " offset=", options.offset, "border=", options.border));
   assert(length > options.border * 2, str("Length must be wider than double the offset length=", length, " offset=", options.offset, "border=", options.border));
   assert(label != undef, "Must specify a label");
@@ -271,21 +284,23 @@ module MakeMainLidLabelSolid(
 //   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeMainLidLabelStriped(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions());
 // Example(Render):
-//   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeMainLidLabelStriped(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions(full_height = true));
 // Example(Render):
-//   MakeMainLidLabelStriped(width = 20, length = 80, lid_thickness = 2,label = "Australia",
+//   MakeMainLidLabelStriped(size = [20,80], lid_thickness = 2,label = "Australia",
 //     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeMainLidLabelStriped(
-  width,
-  length,
+  size,
   lid_thickness,
   label,
   options
 ) {
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
   assert(width > options.border * 2, str("Width must be wider than double the border width=", width, " offset=", options.offset, " border=", options.border));
   assert(length > options.border * 2, str("Length must be wider than double the border length=", length, " offset=", options.offset, " border=", options.border));
   assert(label != undef, "Must specify a label");
@@ -318,7 +333,7 @@ module MakeMainLidLabelStriped(
             );
         translate([0, 0, -default_slicing_layer_height / 2]) color(calc_background_color)
             linear_extrude(height=default_slicing_layer_height * 2)
-              MakeStripedGrid(width=width, length=length);
+              MakeStripedGrid(size=[width, length]);
       }
 
     intersection() {
@@ -337,7 +352,7 @@ module MakeMainLidLabelStriped(
         }
 
       color(options.material_colour) linear_extrude(height=lid_thickness)
-          MakeStripedGrid(width=width, length=length);
+          MakeStripedGrid([width, length]);
     }
   }
 
@@ -434,30 +449,32 @@ module MakeMainLidLabelStriped(
 // Usage:
 //   MakeFramedLidLabel(20, 80, 2, label="Australia", border = 2, offset = 4);
 // Arguments:
-//   width = width of the label section
-//   length = length of the label section
+//   size = size of the label section
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
 //   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeFramedLidLabel(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions());
 // Example(Render):
-//   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeFramedLidLabel(size = [20,80], lid_thickness = 2, label = "Australia",
 //     options=MakeLabelOptions(full_height = true));
 // Example(Render):
-//   MakeFramedLidLabel(width = 20, length = 80, lid_thickness = 2,label = "Australia",
+//   MakeFramedLidLabel(size = [20,80], lid_thickness = 2,label = "Australia",
 //     options=MakeLabelOptions(full_height = true, label_colour = "blue"));
 module MakeFramedLidLabel(
-  width,
-  length,
+  size,
   lid_thickness,
   label,
   options,
 ) {
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
   assert(label != undef, "Must specify a label");
   assert(options != undef, "Must speify label options");
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
 
   rotate([0, 0, 90]) translate([length / 2, -width / 2, 0]) {
       metrics = textmetrics(label, font=options.font);
@@ -508,13 +525,13 @@ module MakeFramedLidLabel(
 
           if (options.solid_background) {
             MakeMainLidLabelSolid(
-              width=calc_text_length, length=calc_text_width,
+              size=[calc_text_length, calc_text_width],
               lid_thickness=lid_thickness, label=label,
               options=options
             );
           } else {
             MakeMainLidLabelStriped(
-              width=calc_text_length, length=calc_text_width,
+              size=[calc_text_length, calc_text_width],
               lid_thickness=lid_thickness, label=label,
               options
             );
@@ -539,19 +556,23 @@ module MakeFramedLidLabel(
 //   options = the options associated with the labels
 // Topics: Label
 // Example(Render):
-//   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",
+//   MakeFramelessLidLabel(size = [40,80], lid_thickness = 2, label = "Australia",
 //       options=MakeLabelOptions(font="Stencil Std:style=Bold", label_type = LABEL_TYPE_FRAMELESS,));
 // Example(Render):
-//   MakeFramelessLidLabel(width = 40, length = 80, lid_thickness = 2, label = "Australia",      
+//   MakeFramelessLidLabel(size = [40,80], lid_thickness = 2, label = "Australia",      
 //      options=MakeLabelOptions(font="Stencil Std:style=Bold",
 //         label_colour = "blue", label_type = LABEL_TYPE_FRAMELESS_ANGLE, ));
 module MakeFramelessLidLabel(
-  width,
-  length,
+  size,
   lid_thickness,
   label,
   options
 ) {
+  assert(size != undef && is_list(size) && len(size) == 2, str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
+  assert(width > 0 && length > 0, str("width and length must be > 0 width=", width, " length=", length));
+
   cross_angle = asin(min(width, length) / sqrt(width * width + length * length));
   metrics = textmetrics(label, font=options.font);
   calc_text_length_start = DefaultValue(options.text_length, length > width ? length * 3 / 4 : width * 3 / 4);

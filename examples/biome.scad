@@ -104,112 +104,78 @@ spacer_front_height = board_thickness;
 
 module PlayerBox() // `make` me
 {
-  MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithCapLid(size=[player_box_width, player_box_length, player_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, player_box_height], radius=5);
   }
 }
 
 module PlayerBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
-    text_str="Player",
-  );
+  CapBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Player");
 }
 
 module ResourceBox() // `make` me
 {
-  MakeBoxWithCapLid(width=resource_box_width, length=resource_box_length, height=resource_box_height) {
+  MakeBoxWithCapLid(size=[resource_box_width, resource_box_length, resource_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, resource_box_height], radius=5);
   }
 }
 
 module ResourceBoxMouseLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length, height=resource_box_height,
-    text_str="Mouse",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Mouse");
 }
 
 module ResourceBoxSunLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length, height=resource_box_height,
-    text_str="Sun",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Sun");
 }
 
 module ResourceBoxFishLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length, height=resource_box_height,
-    text_str="Fish",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Fish");
 }
 
 module ResourceBoxLeafLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length,
-    height=resource_box_height, text_str="Leaf",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Leaf");
 }
 module ResourceBoxSpiderLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length,
-    height=resource_box_height,
-    text_str="Spider",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Spider");
 }
 
 module ResourceBoxFruitLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length,
-    height=resource_box_height,
-    text_str="Berry",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Berry");
 }
 
 module ResourceBoxChicksLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length,
-    height=resource_box_height,
-    text_str="Chicks",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Chicks");
 }
 
 module ResourceBoxRabbitsLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=resource_box_width, length=resource_box_length,
-    height=resource_box_height,
-    text_str="Rabbita",
-  );
+  CapBoxLidWithLabel(size=[resource_box_width, resource_box_length, resource_box_height], text_str="Rabbita");
 }
 
 module NestBox() // `make` me
 {
-  MakeBoxWithCapLid(width=nest_box_width, length=nest_box_length, height=nest_box_height) {
+  MakeBoxWithCapLid(size=[nest_box_width, nest_box_length, nest_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, nest_box_height], radius=5);
   }
 }
 
 module NestBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=nest_box_width, length=nest_box_length, height=nest_box_height,
-    text_str="Nests",
-  );
+  CapBoxLidWithLabel(size=[nest_box_width, nest_box_length, nest_box_height], text_str="Nests");
 }
 
 module ExtraBitsBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=extra_bits_box_width, length=extra_bits_box_length, height=extra_bits_box_height,
+    size=[extra_bits_box_width, extra_bits_box_length, extra_bits_box_height],
     last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     // Phase and year token.
@@ -268,10 +234,7 @@ module ExtraBitsBox() // `make` me
 
 module ExtraBitsBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=extra_bits_box_width, length=extra_bits_box_length, height=extra_bits_box_height,
-    text_str="Biome",
-  );
+  CapBoxLidWithLabel(size=[extra_bits_box_width, extra_bits_box_length, extra_bits_box_height], text_str="Biome");
 }
 
 module SpinnerHolder() // `make` me
@@ -308,7 +271,7 @@ module SpinnerHolder() // `make` me
 }
 module StartingCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=starting_card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, starting_card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=starting_card_box_height);
@@ -317,15 +280,12 @@ module StartingCardBox() // `make` me
 
 module StartingCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Starting",
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, starting_card_box_height], text_str="Starting");
 }
 
 module AchievmentCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=achievment_card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, achievment_card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=achievment_card_box_height);
@@ -334,15 +294,12 @@ module AchievmentCardBox() // `make` me
 
 module AchievementCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Achievement",
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, achievment_card_box_height], text_str="Achievement");
 }
 
 module ChangingConditionCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=changing_condition_card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, changing_condition_card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=changing_condition_card_box_height);
@@ -351,15 +308,12 @@ module ChangingConditionCardBox() // `make` me
 
 module ChangingConditionCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Change",
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, changing_condition_card_box_height], text_str="Change");
 }
 
 module LegendCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=legend_card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, legend_card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=legend_card_box_height);
@@ -368,7 +322,7 @@ module LegendCardBox() // `make` me
 
 module BigCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_length, length=card_box_width, height=big_card_box_height, lid_on_length=true) {
+  MakeBoxWithSlidingLid(size=[card_box_length, card_box_width, big_card_box_height], lid_on_length=true) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=big_card_box_height);
@@ -377,15 +331,12 @@ module BigCardBox() // `make` me
 
 module LegendCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Legend",
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, legend_card_box_height], text_str="Legend");
 }
 
 module PlantAnimalCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
     translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=card_box_height);
@@ -394,15 +345,12 @@ module PlantAnimalCardBox() // `make` me
 
 module PlantAnimalCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Play",
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, card_box_height], text_str="Play");
 }
 
 module PlantAnimalExtraCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=plant_animal_extra_card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, plant_animal_extra_card_box_height]) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
   }
 }

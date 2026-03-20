@@ -326,7 +326,7 @@ module PlayerBoards() {
 module PlayerBox(colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     lid_on_length=true,
     material_colour=colour
   ) {
@@ -354,7 +354,7 @@ module PlayerBox(colour = "yellow") // `make` me
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     lid_on_length=true,
     material_colour="LightGrey"
   ) {
@@ -365,7 +365,7 @@ module MoneyBox() // `make` me
 module EvidenceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     lid_on_length=true,
     material_colour="LightSalmon"
   ) {
@@ -376,7 +376,7 @@ module EvidenceBox() // `make` me
 module ModuleCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=module_box_height
+    size=[card_box_width, card_box_length, module_box_height]
   ) {
     cube([card_width, card_length, module_box_height]);
     translate([$inner_width / 2, 0, -2])
@@ -387,7 +387,7 @@ module ModuleCardBox() // `make` me
 module Railroad01CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=railroad_0_1_height,
+    size=[card_box_width, card_box_length, railroad_0_1_height],
     material_colour="Cyan"
   ) {
     cube([card_width, card_length, railroad_0_1_height]);
@@ -399,7 +399,7 @@ module Railroad01CardBox() // `make` me
 module Railroad24CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=railroad_2_4_height,
+    size=[card_box_width, card_box_length, railroad_2_4_height],
     material_colour="Cyan"
   ) {
     cube([card_width, card_length, railroad_2_4_height]);
@@ -411,7 +411,7 @@ module Railroad24CardBox() // `make` me
 module Railroad712CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=railroad_7_12_height,
+    size=[card_box_width, card_box_length, railroad_7_12_height],
     material_colour="Cyan"
   ) {
     cube([card_width, card_length, railroad_7_12_height]);
@@ -423,7 +423,7 @@ module Railroad712CardBox() // `make` me
 module WhodunitCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=whodunit_card_box_height
+    size=[card_box_width, card_box_length, whodunit_card_box_height]
   ) {
     cube([card_width, card_length, whodunit_card_box_height]);
     translate([$inner_width / 2, 0, -2])
@@ -434,7 +434,7 @@ module WhodunitCardBox() // `make` me
 module GameEndCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=game_end_card_box_height,
+    size=[card_box_width, card_box_length, game_end_card_box_height],
     material_colour="DeepSkyBlue"
   ) {
     cube([card_width, card_length, game_end_card_box_height]);
@@ -446,7 +446,7 @@ module GameEndCardBox() // `make` me
 module StartTileCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=start_tile_box_height,
+    size=[card_box_width, card_box_length, start_tile_box_height],
     material_colour="Khaki"
   ) {
     translate([($inner_width - start_player_tile_width) / 2, 0, 0])
@@ -459,7 +459,7 @@ module StartTileCardBox() // `make` me
 module LocomotiveCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=locomotive_box_width, length=locomotive_box_length, height=locomotive_box_height,
+    size=[locomotive_box_width, locomotive_box_length, locomotive_box_height],
     material_colour="Aquamarine"
   ) {
     cube([locomotive_tile_width, locomotive_tile_length, locomotive_box_height]);
@@ -470,63 +470,63 @@ module LocomotiveCardBox() // `make` me
 
 module PlayerBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=player_box_width, length=player_box_length, text_str="Player", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Player", lid_on_length=true);
 }
 
 module MoneyBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=player_box_width, length=player_box_length, text_str="Money", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Money", lid_on_length=true);
 }
 
 module EvidenceBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=player_box_width, length=player_box_length, text_str="Evidence", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Evidence", lid_on_length=true);
 }
 
 module ModuleCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="Module");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, module_box_height], text_str="Module");
 }
 
 module Railroad01CardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="0-1");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, railroad_0_1_height], text_str="0-1");
 }
 
 module Railroad24CardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="2-4");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, railroad_2_4_height], text_str="2-4");
 }
 
 module Railroad712CardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="7-12");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, railroad_7_12_height], text_str="7-12");
 }
 
 module WhodunitCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="Whodunit");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, whodunit_card_box_height], text_str="Whodunit");
 }
 
 module GameEndCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="End");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, game_end_card_box_height], text_str="End");
 }
 
 module StartTileCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=card_box_width, length=card_box_length, text_str="Start");
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, start_tile_box_height], text_str="Start");
 }
 
 module LocomotiveCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=locomotive_box_width, length=locomotive_box_length, text_str="Locomotive");
+  SlidingBoxLidWithLabel(size=[locomotive_box_width, locomotive_box_length, locomotive_box_height], text_str="Locomotive");
 }
 
 module SpacerCardBox() // `make` me
 {
   MakeBoxWithNoLid(
-    length=spacer_card_box_length, width=spacer_card_box_width, height=spacer_card_box_height,
+    size=[spacer_card_box_width, spacer_card_box_length, spacer_card_box_height],
     hollow=true, $fn=16
   );
 }

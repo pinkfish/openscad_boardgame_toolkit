@@ -29,39 +29,38 @@
 // Description:
 //   Makes a box with no lid, useful for spacers and other things in games.
 // Arguments:
-//   width = width of the box (outside width)
-//   length = length of the box (outside length)
-//   height = height of the box (outside height)
+//   size = [width, length, height] outside size of the box
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   material_colour = the material colour to use (default {{default_material_colour}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   make_finger_width = makes finger dip on the width (default false)
-//   make_finger_length = makes finger dip on the length (default true)
+//   make_finger_x = makes finger dip on the x axis (default width > length)
+//   make_finger_y = makes finger dip on the y axis (default length > width)
 //   finger_hole_size = size of the finger dip (default 20)
 //   hollow = make the inside hollow (default false)
 // Example:
-//   MakeBoxWithNoLid(width=100, length=50, height=20);
+//   MakeBoxWithNoLid(size = [100, 50, 20]);
 // Example:
-//   MakeBoxWithNoLid(width=100, length=50, height=20, hollow=true);
+//   MakeBoxWithNoLid(size = [100, 50, 20], hollow=true);
 module MakeBoxWithNoLid(
-  width,
-  length,
-  height,
+  size,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
-  make_finger_width = undef,
-  make_finger_length = undef,
+  make_finger_x = undef,
+  make_finger_y = undef,
   material_colour = "grey",
   finger_hole_size = undef,
   hollow = false
 ) {
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0 && length > 0 && height > 0, str("Need width,length, height > 0 width=", width, " length=", length, " height=", height));
   assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
   assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
 
   calc_finger_hole_size = DefaultValue(finger_hole_size, min(20, min(min(length, width) / 4), height - floor_thickness + 1));
-  calc_make_finger_width = make_finger_width == undef && make_finger_length == undef ? width > length : false;
-  calc_make_finger_length = make_finger_width == undef && make_finger_length == undef ? length > width : false;
+  calc_make_finger_x = make_finger_x == undef && make_finger_y == undef ? width > length : false;
+  calc_make_finger_y = make_finger_y == undef && make_finger_x == undef ? length > width : false;
   difference() {
     color(material_colour) diff() {
         cuboid(
@@ -86,20 +85,20 @@ module MakeBoxWithNoLid(
         }
     }
 
-    if (calc_make_finger_length) {
+    if (calc_make_finger_y) {
       translate([0, length / 2, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1), spin=90);
-      translate([width - wall_thickness, length / 2, height - calc_finger_hole_size + 0.01])
+      translate([width, length / 2, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1), spin=90);
     }
 
-    if (calc_make_finger_width) {
+    if (calc_make_finger_x) {
       translate([width / 2, 0, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1));
-      translate([width / 2, length - wall_thickness, height - calc_finger_hole_size + 0.01])
+      translate([width / 2, length, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1));
     }
@@ -119,12 +118,12 @@ module MakeBoxWithNoLid(
 //   to make the corners work
 // Arguments:
 //   path = the path to generate for (this should be one line segment)
-//   height = the height of the box (outside height)
+//   height = the height of the box
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   material_colour = the material colour to use (default {{default_material_colour}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   make_finger_width = makes finger dip on the width (default false)
-//   make_finger_length = makes finger dip on the length (default true)
+//   make_finger_x = makes finger dip on the x axis
+//   make_finger_y = makes finger dip on the y axis
 //   finger_hole_size = size of the finger dip (default 20)
 //   hollow = make the inside hollow (default false)
 // Example:
@@ -136,8 +135,8 @@ module MakePathBoxWithNoLid(
   height,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
-  make_finger_width = undef,
-  make_finger_length = undef,
+  make_finger_x = undef,
+  make_finger_y = undef,
   material_colour = "grey",
   finger_hole_size = undef,
   hollow = false
@@ -156,8 +155,8 @@ module MakePathBoxWithNoLid(
 
   calc_finger_hole_size = DefaultValue(finger_hole_size, min(20, min(min(calc_length, calc_width) / 4), height - floor_thickness + 1));
   calc_finger_hole_height = min(calc_finger_hole_size, height - default_floor_thickness * 2 + 1);
-  calc_make_finger_width = make_finger_width == undef && make_finger_length == undef ? calc_width > calc_length : false;
-  calc_make_finger_length = make_finger_width == undef && make_finger_length == undef ? calc_length > calc_width : false;
+  calc_make_finger_x = make_finger_x == undef && make_finger_y == undef ? calc_width > calc_length : false;
+  calc_make_finger_y = make_finger_y == undef && make_finger_x == undef ? calc_length > calc_width : false;
 
   calc_path = round_corners(path, radius=wall_thickness);
 
@@ -177,9 +176,8 @@ module MakePathBoxWithNoLid(
         path=[calc_path[i], calc_path[i + 1]],
         finger_hole_size=calc_finger_hole_size,
         finger_hole_height=calc_finger_hole_height,
-        wall_thickness=wall_thickness,
-        make_finger_length=calc_make_finger_length,
-        make_finger_width=calc_make_finger_width,
+        make_finger_y=calc_make_finger_y,
+        make_finger_x=calc_make_finger_x,
         height=height
       );
     }
@@ -187,10 +185,9 @@ module MakePathBoxWithNoLid(
       path=[calc_path[len(calc_path) - 1], calc_path[0]],
       finger_hole_size=calc_finger_hole_size,
       finger_hole_height=calc_finger_hole_height,
-      wall_thickness=wall_thickness,
       height=height,
-      make_finger_length=calc_make_finger_length,
-      make_finger_width=calc_make_finger_width
+      make_finger_y=calc_make_finger_y,
+      make_finger_x=calc_make_finger_x
     );
 
     // Make sure the children start from the bottom corner of the box.
@@ -210,14 +207,14 @@ module MakePathBoxWithNoLid(
 //    path = the path to generate for (this should be one line segment)
 //    finger_hole_size = the size of the finger hole
 //    finger_hole_height = the height of the fingerhole
-//    wall_thickness = the thickness of the walls
-//    make_finger_width = makes finger dip on the width (default false)
-//    make_finger_length = makes finger dip on the length (default true)
+//    height = the height of the box
+//    make_finger_x = makes finger dip on the x axis
+//    make_finger_y = makes finger dip on the y axis
 // Example:
-//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, wall_thickness=2, make_finger_width=true);
+//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_x=true);
 // Example:
-//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, wall_thickness=2, make_finger_length=true);
-module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, wall_thickness, height, make_finger_width = undef, make_finger_length = undef) {
+//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_y=true);
+module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, height, make_finger_x = undef, make_finger_y = undef) {
   assert(is_path(path, 2), "Path must be a 2d path");
   assert(len(path) == 2, str("Path must be at least exactly 2 elements long path_length=", len(path)));
 
@@ -225,7 +222,7 @@ module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, wall_th
   normal = path_normals(path);
   angle = atan(normal[0][1] / normal[0][0]);
 
-  if (split_length > finger_hole_size * 2.5 && (angle < 90 && angle > -90 ? make_finger_length : make_finger_width)) {
+  if (split_length > finger_hole_size * 2.5 && (angle < 90 && angle > -90 ? make_finger_y : make_finger_x)) {
     pts = path_cut_points(
       path=path,
       cutdist=[split_length / 2]

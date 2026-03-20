@@ -63,13 +63,13 @@ spacer_box_length = box_length - 2 - objective_box_length - tokens_box_length;
 spacer_box_height = box_height - cardboard_thickness - 1;
 
 module TokensBox() {
-  MakeBoxWithCapLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
+  MakeBoxWithCapLid(size=[tokens_box_width, tokens_box_length, tokens_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, tokens_box_height], radius=5);
   }
 }
 
 module PlayerBox() {
-  MakeBoxWithCapLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithCapLid(size=[player_box_width, player_box_length, player_box_height]) {
     for (i = [0:3]) {
       translate(
         [
@@ -95,7 +95,7 @@ module PlayerBox() {
 }
 
 module StartingBox() {
-  MakeBoxWithCapLid(width=starting_box_width, length=starting_box_length, height=starting_box_height) {
+  MakeBoxWithCapLid(size=[starting_box_width, starting_box_length, starting_box_height]) {
     for (i = [0:2]) {
       translate(
         [
@@ -114,7 +114,7 @@ module StartingBox() {
 }
 
 module ObjectiveBox() {
-  MakeBoxWithCapLid(width=objective_box_width, length=objective_box_length, height=objective_box_height) {
+  MakeBoxWithCapLid(size=[objective_box_width, objective_box_length, objective_box_height]) {
     translate([railroad_tile / 2, $inner_length / 2, 0]) {
       CuboidWithIndentsBottom(
         [railroad_tile, railroad_tile, objective_box_height],
@@ -131,7 +131,7 @@ module ObjectiveBox() {
 }
 
 module SpacerBox() {
-  MakeBoxWithNoLid(width=spacer_box_width, length=spacer_box_length, height=spacer_box_height, hollow=true);
+  MakeBoxWithNoLid(size=[spacer_box_width, spacer_box_length, spacer_box_height], hollow=true);
 }
 
 module PlayerMarker(thickness = 1) {

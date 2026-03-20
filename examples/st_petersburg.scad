@@ -231,7 +231,7 @@ module MeepleToken(height) {
 
 module MoneyBox() // `make` me
 {
-  MakeBoxWithCapLid(width=money_box_width, length=money_box_length, height=money_box_height) {
+  MakeBoxWithCapLid(size=[money_box_width, money_box_length, money_box_height]) {
     for (i = [0:1:4]) {
       translate([0, (money_width + 4) * i, 0]) cube([money_length, money_width, money_box_height]);
       translate([-1, (money_width + 4) * i + money_width / 2, -default_floor_thickness - 0.01])
@@ -243,14 +243,14 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     text_str="Money",
     label_options=MakeLabelOptions(label_colour="blue")
   );
 }
 module CardBox() // `make` me
 {
-  MakeBoxWithCapLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+  MakeBoxWithCapLid(size=[card_box_width, card_box_length, card_box_height]) {
     for (i = [0:1:3]) {
       translate([0, (card_width + 4) * i, 0]) cube([card_length, card_width, card_box_height]);
       translate([-1, (card_width + 4) * i + card_width / 2, -default_floor_thickness - 0.01])
@@ -266,7 +266,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Cards",
     label_options=MakeLabelOptions(label_colour="blue")
   );
@@ -274,7 +274,7 @@ module CardBoxLid() // `make` me
 
 module TokensBox() // `make` me
 {
-  MakeBoxWithCapLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
+  MakeBoxWithCapLid(size=[tokens_box_width, tokens_box_length, tokens_box_height]) {
     translate([15, 8, 0]) {
       translate([square_size / 2, square_size / 2, $inner_height - wood_token_thickness - 0.5]) {
         cuboid([square_size, square_size, wood_token_thickness + 1], anchor=BOTTOM);
@@ -332,7 +332,7 @@ module TokensBox() // `make` me
 module TokensBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=tokens_box_width, length=tokens_box_length, height=tokens_box_height,
+    size=[tokens_box_width, tokens_box_length, tokens_box_height],
     text_str="Tokens",
     label_options=MakeLabelOptions(label_colour="blue")
   );

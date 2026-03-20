@@ -30,6 +30,7 @@
 // Function: MakeShapeObject()
 // Arguments:
 //   shape_type = The type of shape to use (default {{default_lid_shape_width}})
+//   shape_thickness = thickness of the shape (default {{default_lid_shape_thickness}})
 //   shape_width = width of the shape (default {{default_lid_shape_width}})
 //   shape_thickness = thickness of the shape (default {{default_lid_shape_thickness}})
 //   shape_aspect_ratio = aspect ratio of the shape (default {{default_lid_aspect_ratio}})
@@ -211,7 +212,7 @@ module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef,
 
 // Module: Sledgehammer2d()
 // Description:
-//    An outline of a 2d crossbow shape.
+//    A 2d sledgehammer shape.
 // Arguments:
 //    length = length of the cross bpw.
 //    width = width of the cross bow
@@ -240,12 +241,12 @@ module Sledgehammer2d(
 
 // Module: Sledgehammer2dOutline()
 // Description:
-//    An outline of a 2d crossbow shape.
+//    An outline of a 2d sledgehammer shape.
 // Arguments:
 //    length = length of the cross bpw.
 //    width = width of the cross bow
 //    handle_width = width of the handle bit (default width/4)
-//    head_lenght = length of the head (default length/3.5)
+//    head_length = length of the head (default length/3.5)
 //    rounding_head = rounding amoubnt on the head (default 2)
 //    rounding_handle = rounding amount on the handle (default 1)
 //    line_width = width of the lione (default 1)
@@ -386,6 +387,7 @@ module Bag2d(size, base_round_diameter = undef, main_round_diameter = undef, nec
 //    main_round_diameter = round diameter of the middle bulge bit (default size/2)
 //    neck_width = width of the neck of the bag (default size/6)
 //    line_width = width of the line to use for the outline
+//    line_width = width of the line to use for the outline
 // Example(2D):
 //    Bag2d(50);
 module Bag2dOutline(
@@ -407,7 +409,8 @@ module Bag2dOutline(
 // Description:
 //    An nice 2d torch shape.
 // Arguments:
-//    size = size of the torch
+//    length = length of the torch
+//    width = width of the torch
 //    handle_width = the width of the handle (default width/2)
 //    head_length = length of the head (default length/7)
 // Example(2D):
@@ -428,7 +431,8 @@ module Torch2d(length, width, handle_width = undef, head_length = undef) {
 // Description:
 //    An nice 2d torch outline shape.
 // Arguments:
-//    size = size of the torch
+//    length = length of the torch
+//    width = width of the torch
 //    handle_width = the width of the handle (default width/2)
 //    head_length = length of the head (default length/7)
 //    line_width = width of the line (default 1)
@@ -598,8 +602,8 @@ module AustraliaMap2d(length) {
 // Description:
 //  Makes a rock shape to use in walls and things.
 // Arguments:
-//    width = width of the rock
 //    length = length of the rock
+//    width = width of the rock
 //    rounding = rounding on the edge of the rock (default min(width,lenght)/5)
 // Example(2D);
 //    Rock2d(50, 20);
@@ -637,6 +641,7 @@ module Ruins2d(size) {
 //   size = size of the rock wall
 //   num_rows = number of rows (default 10)
 //   num_cols = numer of cols (default 40)
+//   spacing = spacing between rocks (default size/200)
 // Example(2D):
 //    RockWall2d(50);
 module RockWall2d(size, num_rows = 10, num_cols = 40, spacing = undef) {
@@ -685,6 +690,7 @@ module D20Outline2d(size, offset) {
 // Arguments:
 //   size = size of the saw blade
 //   inner_spindle_size = size of the inside spindle (default size/10)
+//   outer_width = width of the outline (default 1)
 // Example(2D):
 //    SawBlade2d(50);
 module SawBlade2d(size, inner_spindle_size = undef) {

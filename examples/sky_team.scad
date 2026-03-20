@@ -153,7 +153,7 @@ module InternPiece(height)
 
 module BasePiecesOne() // `make` me
 {
-  MakeBoxWithSlidingLid(width=bottom_boxes_width, length=bottom_boxes_length, height=bottom_boxes_height) {
+  MakeBoxWithSlidingLid(size=[bottom_boxes_width, bottom_boxes_length, bottom_boxes_height]) {
     translate([0, 8, $inner_height - double_board_thickness - 0.5]) {
       CuboidWithIndentsBottom(
         [kerosene_board_width, kerosene_board_length, double_board_thickness + 0.6],
@@ -201,7 +201,7 @@ module BasePiecesOne() // `make` me
 
 module BasePiecesTwo() // `make` me
 {
-  MakeBoxWithSlidingLid(width=bottom_boxes_width, length=bottom_boxes_length, height=bottom_boxes_height) {
+  MakeBoxWithSlidingLid(size=[bottom_boxes_width, bottom_boxes_length, bottom_boxes_height]) {
     translate([10, 12, $inner_height - double_board_thickness - 0.5]) {
       CuboidWithIndentsBottom(
         [ice_brakes_width, ice_brakes_length, double_board_thickness + 0.6],
@@ -224,17 +224,15 @@ module BasePiecesTwo() // `make` me
 
 module BasePiecesLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=bottom_boxes_width, length=bottom_boxes_length,
-    text_str="Sky Team"
-  );
+  SlidingBoxLidWithLabel(size=[bottom_boxes_width, bottom_boxes_length, bottom_boxes_height], text_str="Sky Team");
 }
 
 module ApproachTracks() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=approach_track_box_width, length=appraoch_track_box_length,
-    height=approach_track_box_height
+    size=[approach_track_box_width,
+    appraoch_track_box_length,
+    approach_track_box_height]
   ) {
     translate([0, 0, $inner_height - approach_track_thickness_8 - 0.5])
       cube([approach_track_width + 1, approach_track_length_8, approach_track_thickness_8 + 1]);
@@ -250,15 +248,12 @@ module ApproachTracks() // `make` me
 
 module ApproachTracksLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=approach_track_box_width, length=appraoch_track_box_length,
-    text_str="Approach"
-  );
+  SlidingBoxLidWithLabel(size=[approach_track_box_width, appraoch_track_box_length, approach_track_box_height], text_str="Approach");
 }
 
 module DiceBox() // `make` me
 {
-  MakeBoxWithCapLid(width=dice_box_width, length=dice_box_length, height=dice_box_height) {
+  MakeBoxWithCapLid(size=[dice_box_width, dice_box_length, dice_box_height]) {
     for (i = [0:num__dice - 1]) {
       translate([0, (dice_width + 0.75) * i + 10, $inner_height - dice_width - 2])
         cube([dice_width + 2, dice_box_width + 1, dice_width + 2.5]);
@@ -271,46 +266,42 @@ module DiceBox() // `make` me
 
 module DiceBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
-    width=dice_box_width, length=dice_box_length, height=dice_box_height,
-    text_str="Dice"
-  );
+  CapBoxLidWithLabel(size=[dice_box_width, dice_box_length, dice_box_height], text_str="Dice");
 }
 
 module ButtonsBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length, height=buttons_box_height) {
+  MakeBoxWithSlidingLid(size=[buttons_box_width, buttons_box_length, buttons_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxDouble() // `make` me
 {
-  MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 2, height=buttons_box_height) {
+  MakeBoxWithSlidingLid(size=[buttons_box_width, buttons_box_length * 2, buttons_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxOnePointFive() // `make` me
 {
-  MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 1.5, height=buttons_box_height) {
+  MakeBoxWithSlidingLid(size=[buttons_box_width, buttons_box_length * 1.5, buttons_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module ButtonsBoxTripple() // `make` me
 {
-  MakeBoxWithSlidingLid(width=buttons_box_width, length=buttons_box_length * 3, height=buttons_box_height) {
+  MakeBoxWithSlidingLid(size=[buttons_box_width, buttons_box_length * 3, buttons_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 5], radius=5);
   }
 }
 
 module CardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=card_box_height,
-    lid_on_length=true
-  ) {
+  MakeBoxWithSlidingLid(size=[card_box_width,
+    card_box_length,
+    card_box_height], lid_on_length=true) {
     cube([$inner_width, $inner_length, card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=20, height=card_box_height, spin=270);
@@ -319,10 +310,7 @@ module CardBox() // `make` me
 
 module CardsBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Sky Team", lid_on_length=true
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, card_box_height], text_str="Sky Team", lid_on_length=true);
 }
 
 module SpacerBox() // `make` me
@@ -345,44 +333,23 @@ module SpacerBox() // `make` me
 
 module ButtonsBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=buttons_box_width, length=buttons_box_length,
-    text_str="Button"
-  );
+  SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length, buttons_box_height], text_str="Button");
   translate([buttons_box_width + 10, 0, 0]) {
-    SlidingBoxLidWithLabel(
-      width=buttons_box_width, length=buttons_box_length * 2,
-      text_str="Alerts"
-    );
+    SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length * 2, buttons_box_height], text_str="Alerts");
 
     translate([buttons_box_width + 10, 0, 0]) {
-      SlidingBoxLidWithLabel(
-        width=buttons_box_width, length=buttons_box_length * 2,
-        text_str="Pengiun"
-      );
+      SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length * 2, buttons_box_height], text_str="Pengiun");
 
       translate([buttons_box_width + 10, 0, 0]) {
-        SlidingBoxLidWithLabel(
-          width=buttons_box_width, length=buttons_box_length * 3,
-          text_str="Plane"
-        );
+        SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length * 3, buttons_box_height], text_str="Plane");
 
         translate([buttons_box_width + 10, 0, 0]) {
-          SlidingBoxLidWithLabel(
-            width=buttons_box_width, length=buttons_box_length,
-            text_str="Marker"
-          );
+          SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length, buttons_box_height], text_str="Marker");
 
           translate([buttons_box_width + 10, 0, 0]) {
-            SlidingBoxLidWithLabel(
-              width=buttons_box_width, length=buttons_box_length,
-              text_str="Kero"
-            );
+            SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length, buttons_box_height], text_str="Kero");
             translate([buttons_box_width + 10, 0, 0]) {
-              SlidingBoxLidWithLabel(
-                width=buttons_box_width, length=buttons_box_length * 2,
-                text_str="Stuff"
-              );
+              SlidingBoxLidWithLabel(size=[buttons_box_width, buttons_box_length * 2, buttons_box_height], text_str="Stuff");
             }
           }
         }

@@ -206,41 +206,33 @@ module InsetHinge(length, width, diameter, offset) {
 
 // Module: HingeBoxLidLabel()
 // Description:
-//    Makes a label for one side of a hinge box.
+//    Makes a lid for one side of a hinge box with a label and pattern.  This uses the
+//    $inner_width and $inner_length from the main hinge box creation.
 // Arguments:
-//    lid_boundary = boundary around the outside for the lid (default 10)
-//    cap_height = height of the cap on the box (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    text_str = the string to use for the label
-//    text_length = the length of the text to use (defaults to 3/4 of length/width)
-//    text_scale = the scale of the text, making it higher or shorter on the width (default 1.0)
-//    label_radius = radius of the label corners (default text_width/4)
-//    label_type = the type of the label (default {{default_label_type}})
-//    label_border= border of the item (default 2)
-//    label_offset = offset in from the edge for the label (default 4)
+//    lid_boundary = boundary around the outside for the lid (default 10)
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
-//    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
-//    lid_pattern_dense = if the layout is dense (default false)
-//    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
-//    label_colour = the color of the label (default undef)
+//    aspect_ratio = the aspect ratio (multiple by dy) (default 1.0)
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    lid_rounding = how much rounding on the edge of the lid (default undef)
+//    lid_inner_rounding = how much rounding on the inside (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    label_background_colour = the colour of the label background (default {{default_label_background_colour}})
-//    inner_control = if the shape needs inner control (default false)
-//    finger_hole_size = size of the finger hole to use in the lid (default 10)
+//    size_spacing = extra spacing to apply between pieces (default {{default_slicing_layer_height}})
+//    label_options = options for the label (default undef)
+//    shape_options = options for the shape (default undef)
+// Usage: HingeBoxLidLabel(size=[100, 50], text_str="Cards");
+// Example:
+//   $inner_width = 100;
+//   $inner_length = 50;
+//   HingeBoxLidLabel(text_str="Cards");
 module HingeBoxLidLabel(
   text_str,
   lid_boundary = 10,
   wall_thickness = default_wall_thickness,
   cap_height = undef,
   layout_width = undef,
-  aspect_ratio = undef,
+  aspect_ratio = 1.0,
   lid_thickness = default_lid_thickness,
   lid_rounding = undef,
   lid_inner_rounding = undef,
@@ -268,9 +260,8 @@ module HingeBoxLidLabel(
           edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
         );
     }
-
     LidMeshBasic(
-      width=$inner_width, length=$inner_length,
+      size=[$inner_width, $inner_length],
       lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio,
       dense=IsDenseShapeType(calc_shape_options.shape_type),
@@ -286,7 +277,7 @@ module HingeBoxLidLabel(
     rotate([0, 180, 0])
       translate([-$inner_width, 0, -lid_thickness])
         MakeLidLabel(
-          width=$inner_width, length=$inner_length,
+          size=[$inner_width, $inner_length],
           lid_thickness=lid_thickness,
           text_str=text_str,
           options=object(calc_label_options, full_height=true),
@@ -301,22 +292,28 @@ module HingeBoxLidLabel(
 //   is in the lid and child 3+ are lid pieces.  Inside the children of the box you can use the
 //    $inner_height , $inner_width, $inner_length = length variables to
 //    deal with the box sizes.
-// Usage: MakeBoxAndLidWithInsetHinge(100, 50, 20);
+// Usage: MakeBoxAndLidWithInsetHinge(size=[100, 50, 20]);
 // Topics: Hinges, HingeBox
 // Arguments:
-//   width = outside with of the box
-//   length = outside length of the box
-//   height = outside height of the box
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   size = outside size of the box [width, length, height]
+//   hinge_diameter = diameter of the hinge (default 6)
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   hinge_offset = offset for the hinge mechanism (default 0.5)
+//   gap = gap between the two box halves (default 1)
+//   side_gap = gap on the sides of the hinge (default 3)
+//   print_layer_height = height of the print layers (default 0.2)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   prism_width = width of the prism for the tab (default 0.75)
+//   tab_offset = offset for the tab (default 0.2)
+//   tab_length = length of the tab (default 10)
+//   tab_height = height of the tab (default 6)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   spacing = wiggle room between moving parts (default 0.2)
 // Examples:
-//   MakeBoxAndLidWithInsetHinge(100, 50, 20);
+//   MakeBoxAndLidWithInsetHinge(size=[100, 50, 20]);
 module MakeBoxAndLidWithInsetHinge(
-  width,
-  length,
-  height,
+  size,
   hinge_diameter = 6,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
@@ -332,6 +329,11 @@ module MakeBoxAndLidWithInsetHinge(
   material_colour = default_material_colour,
   spacing = 0.2
 ) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
+
   hinge_width = hinge_diameter * 2 + gap;
   hinge_length = length - side_gap * 2;
   difference() {

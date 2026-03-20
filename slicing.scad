@@ -35,13 +35,11 @@ under the License.
 // Description:
 //   Slices up the box making a left and right part of the object.  First child is the object to slice up
 //   second child is the piece to use for making the join (this should be in 2d).
-// Usage: LeftRight() MakeBox() MakePuzzleJoin()
+// Usage: SplitBox(width, length, height) { ... }
 // Arguments:
 //   width = width of the box
-//   length = lenght of the box
+//   length = length of the box
 //   height = height of the box
-//   orient = orientation of the box (default UP)
-//   spin = spin of the join point (default 0)
 //   apart = how far apart to move the pieces on the split (default = 10)
 //   minX = the minX to cut at (default = -200)
 //   maxX = the maxX to cut at (default = 200)
@@ -50,10 +48,12 @@ under the License.
 //   minZ = the minZ to cut at (default = -200)
 //   maxZ = the maxZ to cut at (default = 200)
 //   play = the offset on the piece to add as play (default 0.1)
-//   y = specific places to do the join points at (default [ minY : ( maxY - minY ) / 10 : maxY ])
+//   y = specific places to do the join points at (default calculated based on minY/maxY)
+//   orient = orientation of the box (default UP)
+//   spin = spin of the join point (default 0)
 // Example:
-//   SplitBox(100, 50, 20, spin = 90) {
-//        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
+//   SplitBox([100, 50, 20], spin = 90) {
+//        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
 //            cube(97, 47, 20);
@@ -61,8 +61,8 @@ under the License.
 //        MakePuzzleJoin();
 //   }
 // Example:
-//   SplitBox(100, 50, 20, orient = LEFT, spin = 90) {
-//        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
+//   SplitBox([100, 50, 20], orient = LEFT, spin = 90) {
+//        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
 //            cube(97, 47, 20);
@@ -70,15 +70,15 @@ under the License.
 //        MakePuzzleJoin();
 //   }
 // Example:
-//   SplitBox(100, 50, 20, orient = FRONT) {
-//        MakeBoxWithSlipoverLid(width = 100, length = 50, height = 20,
+//   SplitBox([100, 50, 20], orient = FRONT) {
+//        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //        foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
 //            cube(97, 47, 20);
 //        }
 //        MakePuzzleJoin();
 //   }
-module SplitBox(width, length, height, apart = 10, minX = -200, maxX = 200, minY = -200, maxY = 200, minZ = -200,
+module SplitBox(size, apart = 10, minX = -200, maxX = 200, minY = -200, maxY = 200, minZ = -200,
                 maxZ = 200, play = .1, y = [], orient = UP, spin = 0)
 {
 
@@ -139,7 +139,7 @@ module SplitBox(width, length, height, apart = 10, minX = -200, maxX = 200, minY
             }
         }
     }
-    translate([ width / 2, length / 2, height / 2 ])
+    translate([ size[0] / 2, size[1] / 2, size[2] / 2 ])
     {
         yy = len(y) == 0 ? [minY:(maxY - minY) / 10:maxY] : y;
 
@@ -149,13 +149,13 @@ module SplitBox(width, length, height, apart = 10, minX = -200, maxX = 200, minY
 
         translate(new_pts[0]) Right(y = yy, tmat = tmat)
         {
-            translate([ -width / 2, -length / 2, -height / 2 ]) children(0);
+            translate([ -size[0] / 2, -size[1] / 2, -size[2] / 2 ]) children(0);
             children(1);
         }
 
         translate(new_pts[1]) Left(y = yy, tmat = tmat)
         {
-            translate([ -width / 2, -length / 2, -height / 2 ]) children(0);
+            translate([ -size[0] / 2, -size[1] / 2, -size[2] / 2 ]) children(0);
             children(1);
         }
     }
@@ -168,9 +168,9 @@ module SplitBox(width, length, height, apart = 10, minX = -200, maxX = 200, minY
 //   line using the puzzle piece shape.
 // Usage: MakePuzzleJoin()
 // Arguments:
-//   height = height of the piece (defaulg 10)
-//   width = width of the piece (default 10)
-//   base = base of the peice (default 5)
+//   height = total height/length of the puzzle piece (default 10)
+//   width = width of the circular head (default 10)
+//   base = width of the stem base (default 5)
 //   stem = stem of the piece (default 6)
 // Example:
 //   MakePuzzleJoin();

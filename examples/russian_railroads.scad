@@ -208,11 +208,9 @@ module EngineerTile(height) {
 
 module PlayerBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+  MakeBoxWithSlidingLid(size=[player_box_width, player_box_length, player_box_height],
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
-    floor_thickness=default_floor_thickness
-  ) {
+    floor_thickness=default_floor_thickness) {
 
     // Question Tokens
     translate(
@@ -307,7 +305,7 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=player_box_width, length=player_box_length,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Player", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -434,9 +432,8 @@ module ExtraTokensBox() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=extra_tokens_box_width, length=extra_tokens_box_length,
-    height=extra_tokens_box_height, wall_thickness=default_wall_thickness,
-    lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
+    size=[extra_tokens_box_width, extra_tokens_box_length, extra_tokens_box_height],
+    wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerBits(true);
@@ -449,7 +446,7 @@ module ExtraTokensBox() // `make` me
 module ExtraTokensBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=extra_tokens_box_width, length=extra_tokens_box_length,
+    size=[extra_tokens_box_width, extra_tokens_box_length, extra_tokens_box_height],
     text_str="Extra", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -458,10 +455,9 @@ module ExtraTokensBoxLid() // `make` me
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=money_box_width, length=money_box_length, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
-    floor_thickness=default_floor_thickness
-  ) {
+    floor_thickness=default_floor_thickness) {
     RoundedBoxAllSides([$inner_width, $inner_length, $inner_height + 1], radius=6);
   }
 }
@@ -469,7 +465,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=money_box_width, length=money_box_length,
+    size=[money_box_width, money_box_length, money_box_height],
     text_str="Money", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -477,7 +473,7 @@ module MoneyBoxLid() // `make` me
 
 module CardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, card_box_height]) {
     translate([0, ($inner_length - cards_length) / 2, $inner_height - cards_width - 1]) {
       cube([$inner_width, cards_length, cards_width + 2]);
     }
@@ -489,8 +485,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingLid(
-    width=card_box_width, length=card_box_length, wall_thickness=default_wall_thickness,
-    lid_thickness=default_lid_thickness
+    size=[card_box_width, card_box_length, card_box_height], wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness
   );
 }
 
@@ -552,9 +547,8 @@ module TrainBox() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=train_box_width, length=train_box_length, height=train_box_height,
-    wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
-    floor_thickness=default_floor_thickness,
+    size=[train_box_width, train_box_length, train_box_height],
+    wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerBits(true);
@@ -569,7 +563,7 @@ module TrainBox() // `make` me
 module TrainBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=train_box_width, length=train_box_length,
+    size=[train_box_width, train_box_length, train_box_height],
     text_str="Trains", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -578,10 +572,9 @@ module TrainBoxLid() // `make` me
 module EngineerBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=engineer_box_width, length=engineer_box_length, height=engineer_box_height,
+    size=[engineer_box_width, engineer_box_length, engineer_box_height],
     wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
-    floor_thickness=default_floor_thickness
-  ) {
+    floor_thickness=default_floor_thickness) {
     translate([engineer_width / 2 + 4, 0, $inner_height - tile_thickness * 3 - 0.5])for (i = [0:1:4]) {
       translate([(engineer_width + 2.5) * i, engineer_length / 2, 0]) {
         rotate([0, 0, 180]) EngineerTile(height=tile_thickness * 3 + 1);
@@ -595,7 +588,7 @@ module EngineerBox() // `make` me
 module EngineerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=engineer_box_width, length=engineer_box_length,
+    size=[engineer_box_width, engineer_box_length, engineer_box_height],
     text_str="Engineers", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -658,9 +651,8 @@ module TrackBox() // `make` me
     }
   }
   MakeBoxWithSlidingLid(
-    width=track_box_width, length=track_box_length, height=track_box_height,
-    wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness,
-    floor_thickness=default_floor_thickness,
+    size=[track_box_width, track_box_length, track_box_height],
+    wall_thickness=default_wall_thickness, lid_thickness=default_lid_thickness, floor_thickness=default_floor_thickness,
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
@@ -673,7 +665,7 @@ module TrackBox() // `make` me
 module TrackBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=track_box_width, length=track_box_length,
+    size=[track_box_width, track_box_length, track_box_height],
     text_str="Tracks", wall_thickness=default_wall_thickness,
     lid_thickness=default_lid_thickness
   );
@@ -681,7 +673,7 @@ module TrackBoxLid() // `make` me
 module SpacerSide() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_width, length=spacer_length, height=spacer_height,
+    size=[spacer_width, spacer_length, spacer_height],
     hollow=true
   );
 }

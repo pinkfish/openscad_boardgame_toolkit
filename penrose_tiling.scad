@@ -24,6 +24,8 @@
 // Function: PenroseTriangles()
 // Description:
 //   Subdivides the triangles to the correct size.
+// Arguments:
+//   triangles = a list of triangle definitions to subdivide.
 function PenroseTriangles(triangles) =
   (
     [
@@ -74,6 +76,9 @@ function PenroseTriangles(triangles) =
 // Function: PenroseTrianglesDivision()
 // Description:
 //   Recursively call the triangles function to subdivide.
+// Arguments:
+//   triangles = the initial list of triangles.
+//   division = the number of recursive subdivisions to perform.
 function PenroseTrianglesDivision(triangles, division) =
   let (new_triangles = PenroseTriangles(triangles)) (
     division > 0 ?
@@ -92,13 +97,13 @@ function r2d(rad) = rad * 180 / PI;
 //    type of spaces.
 // Arguments:
 //    width = the width of the tiling space
-//    divisions = the number of recursive divisions
-//    thickness = the thickness of the stoke to use
-//    base = the base divisions of the circle
+//    divisions = the number of recursive divisions (default 7)
+//    thickness = the thickness of the stroke to use (default 1)
+//    base = the base divisions of the circle (default 5)
 // Example:
-//    PenroseTilding(100, divisions=5, thickness=1, base=5);
+//    PenroseTiling(100, divisions=5, thickness=1, base=5);
 // Example:
-//    PenroseTilding(100, divisions=5, thickness=1, base=7);
+//    PenroseTiling(100, divisions=5, thickness=1, base=7);
 module PenroseTiling(width, divisions = 7, thickness = 1, base = 5) {
 
   // Create first layer of triangles

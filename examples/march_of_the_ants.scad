@@ -185,7 +185,7 @@ module CentipedeOutline() {
 module TileBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=tile_box_width, length=tile_box_length, height=tile_box_height,
+    size=[tile_box_width, tile_box_length, tile_box_height],
     wall_thickness=wall_thickness, lid_thickness=lid_thickness
   ) {
     translate([8, 0, 0]) {
@@ -215,7 +215,7 @@ module TileBox() // `make` me
 module TileBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=tile_box_width, length=tile_box_length, height=tile_box_height,
+    size=[tile_box_width, tile_box_length, tile_box_height],
     text_str="Tiles", wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   );
@@ -256,7 +256,7 @@ module FoodTokenBox() // `make` me
   food_token_per_hole_top_height = 3 * food_token_thickness + 0.5;
   food_token_per_hole_bottom_height = 2 * food_token_thickness + 0.5;
   MakeBoxWithCapLid(
-    food_token_box_width, food_token_box_length, food_token_box_height,
+    size=[food_token_box_width, food_token_box_length, food_token_box_height],
     wall_thickness=wall_thickness, lid_thickness=lid_thickness
   ) {
     for (i = [0:1:5]) {
@@ -292,7 +292,7 @@ module FoodTokenBoxLid() // `make` me
 {
 
   CapBoxLidWithLabel(
-    width=food_token_box_width, length=food_token_box_length, height=food_token_box_height,
+    size=[food_token_box_width, food_token_box_length, food_token_box_height],
     text_str="Food", wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   );
@@ -301,7 +301,7 @@ module FoodTokenBoxLid() // `make` me
 module CardBox() // `make` me
 {
   MakeBoxWithCapLid(
-    card_box_width, card_box_length, card_box_height, wall_thickness=wall_thickness,
+    size=[card_box_width, card_box_length, card_box_height], wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   ) {
     translate([0.5, 0.5, 0]) cube([sleeved_card_width, sleeved_card_length, card_box_length]);
@@ -312,7 +312,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_length,
+    size=[card_box_width, card_box_length, card_box_length],
     text_str="Cards", wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   );
@@ -321,7 +321,7 @@ module CardBoxLid() // `make` me
 module MinionsOfTheMeadowCardBox() // `make` me
 {
   MakeBoxWithCapLid(
-    card_box_width, card_box_length, minions_of_the_meadow_card_box_height,
+    size=[card_box_width, card_box_length, minions_of_the_meadow_card_box_height],
     wall_thickness=wall_thickness, lid_thickness=lid_thickness
   ) {
     translate([0.5, 0.5, 0])
@@ -334,7 +334,7 @@ module MinionsOfTheMeadowCardBox() // `make` me
 module MinionsOfTheMeadowCardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Minions Cards",
     wall_thickness=wall_thickness, lid_thickness=lid_thickness
   );
@@ -352,7 +352,7 @@ module Aphid(h = aphid_thickness) {
 module AphidBox() // `make` me
 {
   MakeBoxWithCapLid(
-    player_box_width, player_box_length, player_box_height, lid_thickness=wall_thickness,
+    size=[player_box_width, player_box_length, player_box_height], lid_thickness=wall_thickness,
     wall_thickness=wall_thickness
   ) {
     aphid_len_offset = (aphid_length + 4);
@@ -384,7 +384,7 @@ module AphidBox() // `make` me
 module AphidBoxLid() // `make` me
 {
   translate([0, player_box_length + 10, 0]) CapBoxLidWithLabel(
-      width=player_box_width, length=player_box_length, height=player_box_height,
+      size=[player_box_width, player_box_length, player_box_height],
       text_str="Aphids", lid_thickness=wall_thickness, wall_thickness=wall_thickness
     );
 }
@@ -392,8 +392,8 @@ module AphidBoxLid() // `make` me
 module MinionsOfTheMeadowBox() // `make` me
 {
   MakeBoxWithCapLid(
-    minions_of_the_meadow_box_width, minions_of_the_meadow_box_length,
-    minions_of_the_meadow_box_height, wall_thickness=wall_thickness, lid_thickness=lid_thickness
+    size=[minions_of_the_meadow_box_width, minions_of_the_meadow_box_length,
+    minions_of_the_meadow_box_height], wall_thickness=wall_thickness, lid_thickness=lid_thickness
   ) {
     translate([9, 0, 0]) {
       translate([tile_radius, tile_width / 2 + 4, 0]) rotate([0, 0, 30]) rotate([0, 0, 90])
@@ -409,8 +409,8 @@ module MinionsOfTheMeadowBox() // `make` me
 module MinionsOfTheMeadowBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=minions_of_the_meadow_box_width, length=minions_of_the_meadow_box_length,
-    height=minions_of_the_meadow_box_height,
+    size=[minions_of_the_meadow_box_width, minions_of_the_meadow_box_length,
+    minions_of_the_meadow_box_height],
     label_options=MakeLabelOptions(
       text_length=minions_of_the_meadow_box_width - 25,
       text_scale=1.5,
@@ -423,7 +423,7 @@ module MinionsOfTheMeadowBoxLid() // `make` me
 module PlayerBox() // `make` me
 {
   MakeBoxWithCapLid(
-    player_box_width, player_box_length, player_box_height, wall_thickness=wall_thickness,
+    size=[player_box_width, player_box_length, player_box_height], wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   ) {
     // Cubes
@@ -481,7 +481,7 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Player", lid_thickness=wall_thickness,
     wall_thickness=wall_thickness
   );
@@ -490,7 +490,7 @@ module PlayerBoxLid() // `make` me
 module PredatorBox() // `make` me
 {
   MakeBoxWithCapLid(
-    predator_box_width, predator_box_length, predator_box_height, wall_thickness=wall_thickness,
+    size=[predator_box_width, predator_box_length, predator_box_height], wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   ) {
     translate(
@@ -545,7 +545,7 @@ module PredatorBox() // `make` me
 module PredatorBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=predator_box_width, length=predator_box_length, height=predator_box_height,
+    size=[predator_box_width, predator_box_length, predator_box_height],
     text_str="Predator", lid_thickness=wall_thickness,
     wall_thickness=wall_thickness
   );

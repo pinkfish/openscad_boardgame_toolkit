@@ -49,24 +49,22 @@ under the License.
 //   // Divider tab with a svg image in it.
 //   MakeDividerTab(10, 20, 1)  translate([ 6, 5, -2 ]) mirror([ 0, 1, 0 ])
 //       linear_extrude(height = 4) offset(delta = 0.001) scale(0.04) import("svg/australia.svg");
-module MakeDividerTab(tab_height, tab_length, thickness, tab_radius = 2)
-{
-    difference()
-    {
-        translate([ 0, tab_height, 0 ]) union()
-        {
-            cuboid([ tab_length, tab_height, thickness ], rounding = tab_radius,
-                   edges = [ FRONT + LEFT, FRONT + RIGHT ], anchor = BACK + LEFT + BOTTOM, $fn = 20);
-            translate([ -tab_radius, 0, 0 ]) difference()
-            {
-                cuboid([ tab_length + tab_radius * 2, tab_radius, thickness ], anchor = BACK + LEFT + BOTTOM);
-                translate([ 0, -tab_radius, 0.5 ]) cyl(r = tab_radius, h = thickness + 1, $fn = 20);
-                translate([ tab_length + tab_radius * 2, -tab_radius, 0.5 ])
-                    cyl(r = tab_radius, h = thickness + 1, $fn = 20);
-            }
-        }
-        children();
-    }
+module MakeDividerTab(tab_height, tab_length, thickness, tab_radius = 2) {
+  difference() {
+    translate([0, tab_height, 0]) union() {
+        cuboid(
+          [tab_length, tab_height, thickness], rounding=tab_radius,
+          edges=[FRONT + LEFT, FRONT + RIGHT], anchor=BACK + LEFT + BOTTOM, $fn=20
+        );
+        translate([-tab_radius, 0, 0]) difference() {
+            cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM);
+            translate([0, -tab_radius, 0.5]) cyl(r=tab_radius, h=thickness + 1, $fn=20);
+            translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
+              cyl(r=tab_radius, h=thickness + 1, $fn=20);
+          }
+      }
+    children();
+  }
 }
 
 // Module: MakeDivider()
@@ -74,73 +72,74 @@ module MakeDividerTab(tab_height, tab_length, thickness, tab_radius = 2)
 //   Makes a divider with a tab section up the top.  First child is a diff to the tab, the rest is a diff to
 //   the main body of the tab.
 // Usage: MakeDivider(10, 20, 1, 5, 3, 0);
-// See also: MakeDividerTab(), MakeDividerWithText()
+// See also: MakeDividerTab(), MakeDividerWithText() 
 // Topics: Dividers
 // Arguments:
+//   size = [width, length, thickness] size of the divider
 //   tab_height = height of the tab
-// . tab_length = length of the tab
-//   thickness = how thick the tab is (z height)
 //   tab_radius = the radius of the curve to use
 //   num_tabs = number of tabs across the top
 //   tab_position = the position number of the tab, 0..num_tabs-1
+//   tab_length = length of the tab (default calculated)
+//   hole_offset = offset for the holes in the divider (default 6)
 // Example:
-//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 0, tab_radius
-//   = 2);
-// Example:
-//   MakeDivider(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius
-//   = 2);
-// Example:
-//   MakeDivider(width = 80, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1, tab_radius
-//   = 2);
-// Example:
-//   // Divider with a svg image in it.
-//   MakeDivider(70, 50, 1, tab_height = 5, tab_position = 0, num_tabs = 3)  translate([ 6, 5, -2 ]) mirror([ 0, 1,
-//   0 ])
-//       linear_extrude(height = 4) offset(delta = 0.001) scale(0.04) import("svg/australia.svg");
-module MakeDivider(width, length, thickness, tab_height, num_tabs, tab_position, tab_radius = 2, num_tabs = 3,
-                   tab_length = undef, hole_offset = 6)
-{
-    assert(tab_position >= 0 && tab_position < num_tabs, "Tab position must be lower than num_tabs");
-    tab_length_calc = tab_length == undef ? (width - tab_radius * num_tabs) / num_tabs : tab_length;
-    spacing = (width - tab_length_calc) / (num_tabs - 1);
-    assert(tab_length_calc > 0, "tab_length_calc must be > 0");
-    hole_width = width > 40 ? (width - 4 * hole_offset) / 3 : (width - 3 * hole_offset) / 2;
-    hole_height = length - tab_height - hole_offset * 2;
-    num_holes = width > 40 ? 3 : 2;
-    intersection()
-    {
-        cube([ width, length, thickness ]);
-        union()
-        {
-            translate([ spacing * tab_position, 0, 0 ])
-            {
-                MakeDividerTab(tab_height = tab_height, tab_length = tab_length_calc, thickness = thickness,
-                               tab_radius = tab_radius) if ($children == 1)
-                {
-                    children();
-                }
-                else if ($children > 1) children(0);
-            }
-            difference()
-            {
-                cube([ width, length, thickness ]);
-                translate([ -0.5, -1, -0.5 ]) cube([ width + 1, tab_height + 1, thickness + 1 ]);
+//   MakeDivider(size = [40, 70, 1], tab_height = 10, num_tabs = 3, tab_position = 0, tab_radius = 2);
+module MakeDivider(
+  size,
+  tab_height,
+  num_tabs,
+  tab_position,
+  tab_radius = 2,
+  num_tabs = 3,
+  tab_length = undef,
+  hole_offset = 6
+) {
+  assert(is_list(size) && len(size) == 3, str("must specifiy a size of x,y,y", size));
+  width = size[0];
+  length = size[1];
+  thickness = size[2];
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(thickness > 0, str("Thickness needs to be set", thickness));
 
-                // Cut out holes in the middle.
-                for (i = [0:1:num_holes - 1])
-                    translate([ hole_offset + (hole_width + hole_offset) * i, length - hole_offset, -0.5 ])
-                        cuboid([ hole_width, hole_height, thickness + 1 ], rounding = tab_radius,
-                               edges = [ FRONT + LEFT, FRONT + RIGHT ], anchor = BACK + LEFT + BOTTOM, $fn = 20);
-                if ($children > 2)
-                {
-                    for (i = [1:$children - 1])
-                    {
-                        children(i);
-                    }
-                }
-            }
+  assert(num_tabs > 0, str("num_tabs needs to be set", num_tabs));
+  assert(tab_position >= 0 && tab_position < num_tabs, "Tab position must be lower than num_tabs");
+  tab_length_calc = tab_length == undef ? (width - tab_radius * num_tabs) / num_tabs : tab_length;
+  spacing = (width - tab_length_calc) / (num_tabs - 1);
+  assert(tab_length_calc > 0, "tab_length_calc must be > 0");
+  hole_width = width > 40 ? (width - 4 * hole_offset) / 3 : (width - 3 * hole_offset) / 2;
+  hole_height = length - tab_height - hole_offset * 2;
+  num_holes = width > 40 ? 3 : 2;
+  intersection() {
+    cube([width, length, thickness]);
+    union() {
+      translate([spacing * tab_position, 0, 0]) {
+        MakeDividerTab(
+          tab_height=tab_height, tab_length=tab_length_calc, thickness=thickness,
+          tab_radius=tab_radius
+        ) if ($children == 1) {
+          children();
+        } else if ($children > 1) children(0);
+      }
+      difference() {
+        cube([width, length, thickness]);
+        translate([-0.5, -1, -0.5]) cube([width + 1, tab_height + 1, thickness + 1]);
+
+        // Cut out holes in the middle.
+        for (i = [0:1:num_holes - 1])
+          translate([hole_offset + (hole_width + hole_offset) * i, length - hole_offset, -0.5])
+            cuboid(
+              [hole_width, hole_height, thickness + 1], rounding=tab_radius,
+              edges=[FRONT + LEFT, FRONT + RIGHT], anchor=BACK + LEFT + BOTTOM, $fn=20
+            );
+        if ($children > 2) {
+          for (i = [1:$children - 1]) {
+            children(i);
+          }
         }
+      }
     }
+  }
 }
 
 // Module: MakeDividerWithText()
@@ -151,67 +150,79 @@ module MakeDivider(width, length, thickness, tab_height, num_tabs, tab_position,
 // See also: MakeDivider(), MakeDividerTab()
 // Topics: Dividers
 // Arguments:
+//   size = [width, length, thickness] size of the divider
 //   tab_height = height of the tab
-// . tab_length = length of the tab
-//   thickness = how thick the tab is (z height)
-//   tab_radius = the radius of the curve to use
+//   text_str = the text string to use
 //   num_tabs = number of tabs across the top
 //   tab_position = the position number of the tab, 0..num_tabs-1
-//   text_str = the text string to use
+//   tab_radius = the radius of the curve to use
+//   tab_length = length of the tab (default calculated)
 //   text_offset = how far from the sides of the tab to put the text
 //   text_height = how hight the text is, (default tab_height - text_offset)
+//   text_depth = how deep to cut the text (default thickness + 1)
 //   font = the font to use (default {{default_label_font}})
 // Example:
-//   MakeDividerWithText(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 0,
-//   text_str = "Frog");
+//   MakeDividerWithText(size = [40, 70, 1], tab_height = 10, num_tabs = 3, tab_position = 0, text_str = "Frog");
 // Example:
-//   MakeDividerWithText(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 1,
-//   text_str = "Bing");
-// Example:
-//   MakeDividerWithText(width = 40, length = 70, thickness = 1, tab_height = 10, num_tabs = 3, tab_position = 2,
-//   text_str = "Croak", text_depth=0.5);
-module MakeDividerWithText(width, length, thickness, tab_height, text_str, num_tabs, tab_position, tab_radius = 2,
-                           num_tabs = 3, tab_length = undef, text_offset = 2, text_height = undef, text_depth = undef,
-                           font = default_label_font)
-{
-    assert(tab_position >= 0 && tab_position < num_tabs, "Tab position must be lower than num_tabs");
-    tab_length_calc = tab_length == undef ? (width - tab_radius * num_tabs) / num_tabs : tab_length;
-    text_width = tab_length_calc - text_offset * 2;
-    text_height_calc = text_height == undef ? tab_height - text_offset : text_height;
-    text_depth_calc = text_depth == undef ? thickness + 1 : text_depth;
-    MakeDivider(width = width, length = length, thickness = thickness, tab_height = tab_height, tab_length = tab_length,
-                num_tabs = num_tabs, tab_position = tab_position, tab_radius = tab_radius)
-    {
-        union()
-        {
-            translate([ text_offset, tab_height - text_offset * 1 / 4, thickness - text_depth_calc ])
-                linear_extrude(height = text_depth_calc + 0.5) resize([ text_width, text_height_calc, 0 ], auto = true)
-                    text(text = str(text_str), font = font, size = 10, spacing = 1, halign = "right", valign = "bottom",
-                         spin = 180);
-            if ($children > 0)
-            {
-                children(0);
-            }
-        }
-        if ($children > 1)
-        {
-            children(1);
-        }
-        if ($children > 2)
-        {
-            children(2);
-        }
-        if ($children > 3)
-        {
-            children(3);
-        }
-        if ($children > 4)
-        {
-            children(4);
-        }
-        if ($children > 5)
-        {
-            children(5);
-        }
+//   MakeDividerWithText(size = [40, 70, 1], tab_height = 10, num_tabs = 3, tab_position = 2, text_str = "Croak", text_depth=0.5);
+module MakeDividerWithText(
+  size,
+  tab_height,
+  text_str,
+  num_tabs,
+  tab_position,
+  tab_radius = 2,
+  num_tabs = 3,
+  tab_length = undef,
+  text_offset = 2,
+  text_height = undef,
+  text_depth = undef,
+  font = default_label_font
+) {
+  assert(is_list(size) && len(size) == 3, str("must specifiy a size of x,y,y", size));
+  width = size[0];
+  length = size[1];
+  thickness = size[2];
+  assert(width > 0, str("Width needs to be set", width));
+  assert(length > 0, str("Length needs to be set", length));
+  assert(thickness > 0, str("Thickness needs to be set", thickness));
+  assert(num_tabs > 0, str("num_tabs needs to be set", num_tabs));
+  assert(text_str != undef && is_string(text_str), str("text str must be set", text_str));
+
+  assert(tab_position >= 0 && tab_position < num_tabs, "Tab position must be lower than num_tabs");
+  tab_length_calc = tab_length == undef ? (width - tab_radius * num_tabs) / num_tabs : tab_length;
+  text_width = tab_length_calc - text_offset * 2;
+  text_height_calc = text_height == undef ? tab_height - text_offset : text_height;
+  text_depth_calc = text_depth == undef ? thickness + 1 : text_depth;
+  MakeDivider(
+    size=size, tab_height=tab_height, tab_length=tab_length,
+    num_tabs=num_tabs, tab_position=tab_position, tab_radius=tab_radius
+  ) {
+    union() {
+      translate([text_offset, tab_height - text_offset * 1 / 4, thickness - text_depth_calc])
+        linear_extrude(height=text_depth_calc + 0.5) resize([text_width, text_height_calc, 0], auto=true)
+            text(
+              text=str(text_str), font=font, size=10, spacing=1, halign="right", valign="bottom",
+              spin=180
+            );
+      if ($children > 0) {
+        children(0);
+      }
     }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+  }
 }

@@ -35,8 +35,7 @@ divider_upright_diff = 73;
 
 module MakeLid(str) {
   CapBoxLidWithLabel(
-    width=canvas_piece_box_width, length=canvas_piece_box_length,
-    height=canvas_piece_box_height,
+    size=[canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height],
     text_str=str, wall_thickness=wall_thickness, lid_thickness=2,
     lid_boundary=5, layout_width=5,
     shape_options=MakeShapeObject(
@@ -49,8 +48,7 @@ module MakeLid(str) {
 module PiecesBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=canvas_piece_box_width, length=canvas_piece_box_length,
-    height=canvas_piece_box_height, wall_thickness=wall_thickness, lid_thickness=2,
+    size=[canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height], wall_thickness=wall_thickness, lid_thickness=2,
     lid_finger_hold_len=14
   )
     RoundedBoxAllSides(

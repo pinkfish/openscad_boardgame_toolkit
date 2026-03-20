@@ -17,8 +17,6 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 include <lib/emberleaf.scad>
 
-$fn = 128;
-
 default_lid_shape_type = SHAPE_TYPE_PENROSE_TILING_7;
 default_lid_shape_width = 25;
 default_lid_shape_thickness = 1;
@@ -82,7 +80,7 @@ spacer_side_height = pencil_box_height;
 
 module PencilBox() // `make` me
 {
-  MakeBoxWithCapLid(length=pencil_box_length, width=pencil_box_width, height=pencil_box_height) {
+  MakeBoxWithCapLid(size=[pencil_box_width, pencil_box_length, pencil_box_height]) {
     translate([$inner_width / 2, pencil_length / 2, $inner_height - pencil_width - 1 - token_thickness])
       cuboid([pencil_width * 4, pencil_length, pencil_box_height], anchor=BOTTOM);
     translate([$inner_width / 2, $inner_length - eraser_width / 2, $inner_height - eraser_thickness - 1])
@@ -98,7 +96,7 @@ module PencilBox() // `make` me
 module PencilBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    length=pencil_box_length, width=pencil_box_width, height=pencil_box_height,
+    size=[pencil_box_width, pencil_box_length, pencil_box_height],
     text_str="Pencils"
   ){}
 }
@@ -108,7 +106,7 @@ module GoalCardsBox() // `make` me
   translate([0, 0, goal_card_box_width])
     rotate([0, 90, 0])
       MakeBoxWithSlidingLid(
-        width=goal_card_box_width, length=goal_card_box_length, height=goal_card_box_height,
+        size=[goal_card_box_width, goal_card_box_length, goal_card_box_height],
         material_colour="orange"
       ) {
         cube([$inner_width, card_length, goal_card_box_height]);
@@ -120,7 +118,7 @@ module GoalCardsBox() // `make` me
 module GoalCardsLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=goal_card_box_width, length=goal_card_box_length, text_str="Goal",
+    size=[goal_card_box_width, goal_card_box_length, goal_card_box_height], text_str="Goal",
     label_type=LABEL_TYPE_FRAMELESS,
   );
 }
@@ -130,7 +128,7 @@ module PlayingCardsBox() // `make` me
   translate([0, 0, playing_card_box_width])
     rotate([0, 90, 0])
       MakeBoxWithSlidingLid(
-        width=playing_card_box_width, length=playing_card_box_length, height=playing_card_box_height,
+        size=[playing_card_box_width, playing_card_box_length, playing_card_box_height],
         material_colour="white"
       ) {
         cube([$inner_width, card_length, playing_card_box_height]);
@@ -142,8 +140,8 @@ module PlayingCardsBox() // `make` me
 module PlayingCardsLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=playing_card_box_width, length=playing_card_box_length, text_str="Playing",
-    label_type=LABEL_TYPE_FRAMELESS,
+    size=[playing_card_box_width, playing_card_box_length, playing_card_box_height], text_str="Playing",
+    label_options=MakeLabelOptions(label_type=LABEL_TYPE_FRAMELESS),
   );
 }
 
@@ -152,7 +150,7 @@ module ForestCardsBox() // `make` me
   translate([0, 0, forest_card_box_width])
     rotate([0, 90, 0])
       MakeBoxWithSlidingLid(
-        width=forest_card_box_width, length=forest_card_box_length, height=forest_card_box_height,
+        size=[forest_card_box_width, forest_card_box_length, forest_card_box_height],
         material_colour="green"
       ) {
         cube([$inner_width, card_length, forest_card_box_height]);
@@ -164,7 +162,7 @@ module ForestCardsBox() // `make` me
 module ForestCardsLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=forest_card_box_width, length=forest_card_box_length, text_str="Forest",
+    size=[forest_card_box_width, forest_card_box_length, forest_card_box_height], text_str="Forest",
     label_type=LABEL_TYPE_FRAMELESS,
   );
 }
@@ -174,7 +172,7 @@ module CompanyOwnerCardsBox() // `make` me
   translate([0, 0, playing_card_box_width])
     rotate([0, 90, 0]) {
       MakeBoxWithSlidingLid(
-        width=company_card_box_width, length=company_card_box_length, height=company_card_box_height,
+        size=[company_card_box_width, company_card_box_length, company_card_box_height],
         material_colour="yellow"
       ) {
         cube([$inner_width - 2.5 - 1.5, card_length, company_card_box_height]);
@@ -189,7 +187,7 @@ module CompanyOwnerCardsBox() // `make` me
 module CompanyOwnerCardsLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=company_card_box_width, length=company_card_box_length, text_str="Company",
+    size=[company_card_box_width, company_card_box_length, company_card_box_height], text_str="Company",
     label_type=LABEL_TYPE_FRAMELESS,
   );
 }

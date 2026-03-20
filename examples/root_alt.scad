@@ -44,7 +44,7 @@ lizard_box_length = (box_data.lizard.width + 1) * 5 + default_wall_thickness * 2
 echo([box_data.marquis, box_data.token.thickness * 0.6667]);
 
 module MarquisCharacterBox() {
-  MakeBoxWithCapLid(width=marquis_box_width, length=marquis_box_length, height=marquis_box_height, material_colour="orange") {
+  MakeBoxWithCapLid(size=[marquis_box_width, marquis_box_length, marquis_box_height], material_colour="orange") {
     for (j = [0:1:4]) {
       translate([(box_data.marquis.length + 0.75) * j, 0, 0]) {
         for (i = [0:1:4]) {
@@ -79,7 +79,7 @@ module MarquisCharacterBox() {
 }
 
 module LizardCharacterBox() {
-  MakeBoxWithCapLid(width=marquis_box_width, length=marquis_box_length, height=marquis_box_height, material_colour="yellow") {
+  MakeBoxWithCapLid(size=[marquis_box_width, marquis_box_length, marquis_box_height], material_colour="yellow") {
     for (j = [0:1:4]) {
       translate([(box_data.lizard.length + 0.75) * j, box_data.lizard.width / 2, 0]) {
         for (i = [0:1:4]) {
@@ -98,7 +98,7 @@ module LizardCharacterBox() {
 }
 
 module ErieCharacterBox() {
-  MakeBoxWithSlidingLid(width=marquis_box_width, length=erie_box_length, height=marquis_box_height) {
+  MakeBoxWithSlidingLid(size=[marquis_box_width, erie_box_length, marquis_box_height]) {
     for (i = [0:1:3]) {
       height = box_data.token.thickness * 5 + 10;
       translate(
@@ -113,7 +113,7 @@ module ErieCharacterBox() {
 }
 
 module AllianceCharacterBox() {
-  MakeBoxWithSlidingLid(width=marquis_box_width, length=alliance_box_length, height=marquis_box_height) {
+  MakeBoxWithSlidingLid(size=[marquis_box_width, alliance_box_length, marquis_box_height]) {
     for (i = [0:1:1]) {
       height = box_data.token.thickness * 5 + 10;
       translate(
@@ -128,7 +128,7 @@ module AllianceCharacterBox() {
 }
 
 module RiverfolkCharacterBox() {
-  MakeBoxWithSlidingLid(width=marquis_box_width, length=riverfolk_box_length, height=marquis_box_height) {
+  MakeBoxWithSlidingLid(size=[marquis_box_width, riverfolk_box_length, marquis_box_height]) {
     for (i = [0:1:2]) {
       height = box_data.token.thickness * 5 + 10;
       translate(

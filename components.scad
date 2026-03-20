@@ -39,9 +39,7 @@
 // Description:
 //   Creates a rounded box for use in the board game insert with a nice radius on two sides (length side).
 // Arguments:
-//   width = width of the cube
-//   length = of the cube
-//   height = of the cube
+//   size = [width, length, height] of the cube
 //   radius = radius of the curve on the edges
 // Topics: Recess
 // Example:
@@ -77,9 +75,7 @@ module RoundedBoxOnLength(size, radius) {
 // Description:
 //   Creates a rounded box with all the sides rounded.
 // Arguments:
-//   width = width of the cube, can also be a 3 size list with the width, length, height
-//   length = of the cube
-//   height = of the cube
+//   size = [width, length, height] of the cube
 //   radius = radius of the curve on the edges
 // Topics: Recess
 // Example:
@@ -117,9 +113,7 @@ module RoundedBoxAllSides(size, radius) {
 // Description:
 //   Create a grid of rounded boxes, this is useful for inserting a number of containers inside a insert box.
 // Arguments:
-//   width = width of the space (total, inside will be divided by this)
-//   length = of the space (total, inside will be divided by this)
-//   height = of the space
+//   size = [width, length, height] of the space (total, inside will be divided by this)
 //   radius = radius of the curve on the edges
 //   rows = number of rows to generate
 //   cols = number of cols to generate
@@ -171,12 +165,13 @@ function PolygonApothemFromRadius(radius, shape_edges) = radius * cos(180 / shap
 // Description:
 //   Creates a regular polygon with specific height/width and number of edges.
 // Arguments:
-//   width = total width of the piece, this is equivilant to the apothem of a polygon * 2
+//   width = total width of the piece, this is equivalent to the apothem of a polygon * 2
 //   height = how high to create the item
 //   shape_edges =  number of edges for the polygon
 //   finger_holes = finger holes to put on the specific edges, from 0-shapeedges
 //   finger_hole_height = height of the finger holes
 //   finger_hole_radius = the radius of the finger holes
+//   rounding = rounding to apply to the polygon edges (default 0)
 // Topics: Recess
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6);
@@ -217,9 +212,14 @@ module RegularPolygon(width, height, shape_edges, finger_holes = [], finger_hole
 // Arguments:
 //    radius = radius of the circle
 //    height = of the cylinder
+//    d = diameter of the cylinder (alternative to radius)
+//    r = radius of the cylinder (alternative to radius)
+//    h = height of the cylinder (alternative to height)
 //    finger_holes = finger holes at the specified degrees.
 //    finger_hole_height = how much to move it up from the bottom
 //    finger_hole_radius = the radius to use for the finger holes
+//    cyl_fn = $fn value for the cylinder
+//    anchor = BOSL2 anchor
 // Examples:
 //    CylinderWithIndents(15, 10, finger_holes = [30, 210]);
 module CylinderWithIndents(
@@ -284,12 +284,15 @@ function HoleToPosition(pos) =
 //    The holes are at:
 //    [LEFT + FRONT, RIGHT+BACK, LEFT, RIGHT, FRONT, BACK, ]
 // Arguments:
-//    size = size of the cuboid
+//    size = [x,y,z] size of the cuboid
 //    finger_holes = finger holes at the specified places
+//    finger_positions = specific BOSL2 positions for finger holes
 //    finger_hole_height = how much to move it up from the bottom finger_hole_radius =
 //    the radius to use for the finger holes
 //    rounding = rounding to use on the hole edges
 //    chamfer = chamfer to use on the hole edges
+//    edges = which edges to round/chamfer
+//    anchor = BOSL2 anchor
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [1, 5], finger_hole_radius=3);
 // Examples:
@@ -347,8 +350,11 @@ module CuboidWithIndentsBottom(
 //   rows = number of rows to generate
 //   cols = number of cols to generate
 //   spacing = spacing between shapres
+//   shape_edges = number of edges for the polygon (default 6)
 //   aspect_ratio = ratio between shape and width, the dy is * this (default 1.0)
 //   inner_control = if the layout is controled by the client using $polygon_x and $polygon_y as the layout (defaul false)
+//   space_width = width of the space for inner_control 2
+//   space_length = length of the space for inner_control 2
 // Topics: Grid
 // Example:
 //   RegularPolygonGrid(width = 10, rows = 2, cols = 1, spacing = 2)
@@ -424,6 +430,8 @@ module RegularPolygonGrid(
 //   radius = this is the radius of the polygon, distance from center to edges
 //   rows = number of rows to generate
 //   cols = number of cols to generate
+//   shape_edges = number of edges for the polygon (default 6)
+//   inner_control = if the layout is controlled by the client (default false)
 //   spacing = spacing between shapres
 // Topics: Grid
 // Example:
@@ -493,6 +501,8 @@ module RegularPolygonGridDense(radius, rows, cols, shape_edges = 6, inner_contro
 //   spacing = space between the tiles
 //   tile_width = width of the tiles
 //   push_block_height = height of the pushblock to use (default 0)
+//   wall_thickness = thickness of the walls (default 2)
+//   inner_control = if the layout is controlled by the client (default false)
 // Topics: Recess Grid
 // Example:
 //   HexGridWithCutouts(rows = 4, cols = 3, height = 10, spacing = 0, push_block_height = 1, tile_width = 29);
@@ -544,9 +554,10 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 // Arguments:
 //   radius = radius of the finger hole
 //   height = height of the finger hole
-//   anchor = anchor for the hole (default CENTER)
 //   depth_of_hole = how deep to make the cut through the wall (default 6)
-//   rounding_radious = how round to make the top in the wall (default 3)
+//   rounding_radius = how round to make the top in the wall (default 3)
+//   orient = orientation of the hole (default UP)
+//   spin = spin of the hole (default 0)
 //   material_colour = the material colour to use (default {{default_material_colour}})
 // Example:
 //   FingerHoleWall(10, 20)
@@ -642,7 +653,6 @@ module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, or
 //    rounding_radius = rounding radius at the top of the hole (default 3)
 //    orient = orintation of the hole, from BOSL2 (default UP)
 //    spin = spin of the hole, from BOSL2 (default 0)
-//    anchor = location to anchor everything (from BOSL2)
 // Example:
 //    FingerHoleBase(10, 20);
 // Example:

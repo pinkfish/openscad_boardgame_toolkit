@@ -44,7 +44,7 @@ token_box_height = card_box_height;
 
 module CardBox() // `make` me
 {
-  MakeBoxWithCapLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+  MakeBoxWithCapLid(size=[card_box_width, card_box_length, card_box_height]) {
     cube([card_length, card_width, card_box_height]);
     translate([0, $inner_length - card_width, 0]) cube([card_length, card_width, card_box_height]);
     translate([0, card_width / 2, -default_floor_thickness - 0.5])
@@ -57,14 +57,14 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Tokens"
   );
 }
 
 module TokensBox() // `make` me
 {
-  MakeBoxWithCapLid(width=token_box_width, length=token_box_length, height=token_box_height) {
+  MakeBoxWithCapLid(size=[token_box_width, token_box_length, token_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, token_box_height], radius=15);
   }
 }
@@ -72,7 +72,7 @@ module TokensBox() // `make` me
 module TokensBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=token_box_width, length=token_box_length, height=token_box_height,
+    size=[token_box_width, token_box_length, token_box_height],
     text_str="Modern Art", font="Marker Felt:style=Regular"
   );
 }

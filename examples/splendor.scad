@@ -46,9 +46,7 @@ splendor_box_height = splendor_disc_thickness * ceil(splendor_disc_number / 6) +
 module SplendorBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=splendor_box_width,
-    length=splendor_box_length,
-    height=splendor_box_height,
+    size=[splendor_box_width, splendor_box_length, splendor_box_height],
     wall_thickness=4
   ) {
     // Nobels
@@ -304,8 +302,7 @@ module SplendorBoxInside() // `make` me
 module SplendorBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=splendor_box_width,
-    length=splendor_box_length,
+    size=[splendor_box_width, splendor_box_length, splendor_box_height],
     text_str="Splendor"
   );
 }

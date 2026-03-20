@@ -86,8 +86,7 @@ function TileRadius(width) = width / 2 / cos(180 / 6);
 module DestinationBox(generate_lid = true) // `make` me
 {
   MakeBoxWithCapLid(
-    width=destination_box_width, length=destination_box_length, height=destination_box_height,
-    wall_thickness=wall_thickness, lid_thickness=2
+    size=[destination_box_width, destination_box_length, destination_box_height], wall_thickness=wall_thickness, lid_thickness=2
   ) {
     middle_width = destination_box_width - wall_thickness * 2;
     middle_length = destination_box_length - wall_thickness * 2;
@@ -147,8 +146,7 @@ module DestinationBoxLid(generate_lid = true) // `make` me
 {
   text_str = "Destinations";
   CapBoxLidWithLabel(
-    width=destination_box_width, length=destination_box_length, lid_thickness=lid_thickness,
-    height=destination_box_height,
+    size=[destination_box_width, destination_box_length, destination_box_height], lid_thickness=lid_thickness,
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -158,8 +156,7 @@ module VictoryBox(generate_lid = true) // `make` me
 {
   lid_thickness = 1;
   MakeBoxWithCapLid(
-    width=victory_box_width, length=victory_box_length, height=victory_box_height,
-    wall_thickness=wall_thickness, lid_thickness=lid_thickness
+    size=[victory_box_width, victory_box_length, victory_box_height], wall_thickness=wall_thickness, lid_thickness=lid_thickness
   ) {
     // One tokens.
     one_radius = TileRadius(victory_hex_one_width + 0.5);
@@ -238,8 +235,7 @@ module VictoryBoxLid(generate_lid = true) // `make` me
 {
   text_str = "Victory";
   CapBoxLidWithLabel(
-    width=victory_box_width, length=victory_box_length, height=victory_box_height,
-    lid_thickness=lid_thickness,
+    size=[victory_box_width, victory_box_length, victory_box_height], lid_thickness=lid_thickness,
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -248,8 +244,7 @@ module VictoryBoxLid(generate_lid = true) // `make` me
 module CardBox(generate_lid = true) // `make` me
 {
   MakeBoxWithCapLid(
-    width=card_box_width, length=card_box_length, height=card_box_height,
-    wall_thickness=wall_thickness
+    size=[card_box_width, card_box_length, card_box_height], wall_thickness=wall_thickness
   ) {
     cube([card_length + 0.5, card_width + 0.5, card_box_height]);
     translate([0, card_width / 2 + 0.25, -2]) FingerHoleBase(radius=10, height=card_box_height);
@@ -260,8 +255,7 @@ module CardBoxLid(generate_lid = true) // `make` me
 {
   text_str = "Cards";
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
-    lid_thickness=lid_thickness,
+    size=[card_box_width, card_box_length, card_box_height], lid_thickness=lid_thickness,
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -270,8 +264,7 @@ module CardBoxLid(generate_lid = true) // `make` me
 module TicketBox(generate_lid = true) // `make` me
 {
   MakeBoxWithCapLid(
-    width=ticket_box_width, length=ticket_box_length, height=ticket_box_height,
-    wall_thickness=wall_thickness, lid_thickness=lid_thickness, floor_thickness=lid_thickness
+    size=[ticket_box_width, ticket_box_length, ticket_box_height], wall_thickness=wall_thickness, lid_thickness=lid_thickness, floor_thickness=lid_thickness
   ) {
     translate(
       [
@@ -298,8 +291,7 @@ module TicketBoxLid(generate_lid = true) // `make` me
 {
   text_str = "Isle of Trains";
   CapBoxLidWithLabel(
-    width=ticket_box_width, length=ticket_box_length, height=ticket_box_height,
-    lid_thickness=lid_thickness,
+    size=[ticket_box_width, ticket_box_length, ticket_box_height], lid_thickness=lid_thickness,
     text_str=text_str,
     label_options=MakeLabelOptions(label_colour="black")
   );

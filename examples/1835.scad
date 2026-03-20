@@ -116,7 +116,7 @@ module MoneyBox1() // `make` me
       }
   }
   MakeBoxWithCapLid(
-    width=money_box_width, length=money_box_length, height=money_box_height_1,
+    size=[money_box_width, money_box_length, money_box_height_1],
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
@@ -127,7 +127,7 @@ module MoneyBox1() // `make` me
 module MoneyBox1Lid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, height=money_box_height_1, text_str="Money",
+    size=[money_box_width, money_box_length, money_box_height_1], text_str="Money",
   );
 }
 
@@ -148,7 +148,7 @@ module MoneyBox2() // `make` me
     }
   }
   MakeBoxWithCapLid(
-    width=money_box_width, length=money_box_length, height=money_box_height_2,
+    size=[money_box_width, money_box_length, money_box_height_2],
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
@@ -159,14 +159,14 @@ module MoneyBox2() // `make` me
 module MoneyBox2Lid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, height=money_box_height_2,
+    size=[money_box_width, money_box_length, money_box_height_2],
     text_str="Money",
   );
 }
 
 module HexBox() // `make` me
 {
-  MakeBoxWithInsetLidTabbed(width=hex_box_width, length=hex_box_length, height=hex_box_height) {
+  MakeBoxWithInsetLidTabbed(size=[hex_box_width, hex_box_length, hex_box_height]) {
     translate([0, 5, 0]) {
       intersection() {
         translate([0, 0, -3]) cube([140, tile_width * 5, hex_box_height]);
@@ -183,7 +183,7 @@ module HexBoxLid() // `make` me
 {
 
   InsetLidTabbedWithLabel(
-    width=hex_box_width, length=hex_box_length,
+    size=[hex_box_width, hex_box_length, hex_box_height],
     text_str="Tiles",
   );
 }
@@ -214,7 +214,7 @@ module SharesBox(offset) {
     }
   }
   MakeBoxWithSlipoverLid(
-    width=shares_box_width, length=shares_box_length, height=shares_height,
+    size=[shares_box_width, shares_box_length, shares_height],
     wall_thickness=1.5, foot=2, positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
@@ -248,8 +248,8 @@ module ShareBoxLid() // `make` me
 {
 
   SlipoverBoxLidWithLabel(
-    width=shares_box_width, length=shares_box_length,
-    text_str="Shares", wall_thickness=1.5, height=shares_height,
+    size=[shares_box_width, shares_box_length, shares_height],
+    text_str="Shares", wall_thickness=1.5,
   );
 }
 
@@ -308,7 +308,7 @@ module MiddleBox() // `make` me
     }
   }
   MakeBoxWithCapLid(
-    width=middle_width, length=middle_length, height=middle_height,
+    size=[middle_width, middle_length, middle_height],
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(show_everything=true);
@@ -320,7 +320,7 @@ module MiddleBox() // `make` me
 module MiddleBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=middle_width, length=middle_length, height=middle_height, text_str="Tokens/Trains",
+    size=[middle_width, middle_length, middle_height], text_str="Tokens/Trains",
   );
 }
 
@@ -342,8 +342,7 @@ module SpacerBox() // `make` me
 module LastSectionFirstPlayer() // `make` me
 {
   MakeBoxWithSlipoverLid(
-    width=first_player_box_width, length=first_player_box_length,
-    height=first_player_box_height, wall_thickness=3, foot=2
+    size=[first_player_box_width, first_player_box_length, first_player_box_height], wall_thickness=3, foot=2
   ) {
     translate([-1, 30, 14]) {
       xcyl(d=large_marker_diameter, h=large_marker_length, anchor=BOTTOM + LEFT + FRONT, $fn=64);
@@ -367,8 +366,7 @@ module LastSectionFirstPlayer() // `make` me
 module LastSectionFirstPlayerLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=first_player_box_width, length=first_player_box_length,
-    height=first_player_box_height, wall_thickness=3, foot=2,
+    size=[first_player_box_width, first_player_box_length, first_player_box_height], wall_thickness=3, foot=2,
     label_options=MakeLabelOptions(label_colour="black", radius=2),
     text_str="First",
   );

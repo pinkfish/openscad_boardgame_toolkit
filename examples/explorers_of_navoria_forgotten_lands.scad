@@ -20,8 +20,6 @@ include <boardgame_toolkit.scad>
 
 include <lib/explorers_of_navoria_shared.scad>
 
-$fn = 128;
-
 default_lid_shape_type = SHAPE_TYPE_CLOUD;
 default_lid_shape_thickness = 1;
 default_lid_shape_width = 13;
@@ -585,10 +583,7 @@ module PlayerBoxWhiteTwoLid() // `make` me
 }
 
 module FactionSkillTiles() {
-  MakeBoxWithSlidingLid(
-    width=faction_skill_box_width, length=faction_skill_box_length,
-    height=faction_skill_box_height
-  ) {
+  MakeBoxWithSlidingLid(size=[faction_skill_box_width, faction_skill_box_length, faction_skill_box_height]) {
     cuboid(
       [faction_skill_width + 1, faction_skill_main_length + 0.5, $inner_height + 1],
       anchor=BOTTOM + FRONT + LEFT
@@ -631,10 +626,7 @@ module FactionSkillTiles() {
 
 module CardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=card_box_height,
-    lid_on_length=true
-  ) {
+  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, card_box_height], lid_on_length=true) {
     cube([card_length + 2, $inner_length, card_box_height]);
     translate([0, $inner_length / 2, -default_lid_thickness - 0.01]) color(default_material_colour)
         FingerHoleBase(radius=20, height=card_box_height);
@@ -650,18 +642,12 @@ module CardBox() // `make` me
 
 module CardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
-    text_str="Cards"
-  );
+  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, card_box_height], text_str="Cards");
 }
 
 module BitsBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
-    width=bits_box_width, length=bits_box_length, height=bits_box_height,
-    lid_on_length=true
-  ) {
+  MakeBoxWithSlidingLid(size=[bits_box_width, bits_box_length, bits_box_height], lid_on_length=true) {
     PlayerOverlay(bits_box_height);
     translate([start_order_oval_width, 0, $inner_height - token_thickness - 1]) rotate([0, 0, 90])
         StartOvalFrom(100);
@@ -721,27 +707,21 @@ module BitsBox() // `make` me
 
 module BitsBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=bits_box_width, length=bits_box_length,
-    text_str="Navoria"
-  );
+  SlidingBoxLidWithLabel(size=[bits_box_width, bits_box_length, bits_box_height], text_str="Navoria");
 }
 
 module TokensBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=tokens_box_width, length=tokens_box_length, height=tokens_box_height) {
+  MakeBoxWithSlidingLid(size=[tokens_box_width, tokens_box_length, tokens_box_height]) {
     RoundedBoxAllSides([$inner_width, $inner_length, tokens_box_height], radius=5);
   }
 }
 
 module TokensBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
-    width=tokens_box_width, length=tokens_box_length,
-    text_str="Solo"
-  );
+  SlidingBoxLidWithLabel(size=[tokens_box_width, tokens_box_length, tokens_box_height], text_str="Solo");
   translate([tokens_box_width + 5, 0, 0]) SlidingBoxLidWithLabel(
-      width=tokens_box_width, length=tokens_box_length, text_str="Contract"
+      size=[tokens_box_width, tokens_box_length, tokens_box_height], text_str="Contract"
     );
 }
 

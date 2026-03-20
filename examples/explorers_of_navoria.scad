@@ -582,7 +582,7 @@ module PlayerBoxBlackTwoLid() // `make` me
 
 module FavourBox() // `make` me
 {
-  MakeBoxWithCapLid(width=favour_box_width, length=favour_box_length, height=favour_box_height) {
+  MakeBoxWithCapLid(size=[favour_box_width, favour_box_length, favour_box_height]) {
     translate([favour_tile_length / 2, favour_tile_width / 2, 0]) {
       rotate([0, 0, 270]) color(default_material_colour)
           FavourTile(height=num_favour_tiles / 2 * player_layout_thickness + 1);
@@ -601,7 +601,7 @@ module FavourBox() // `make` me
 module FavourBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=favour_box_width, length=favour_box_length, height=favour_box_height,
+    size=[favour_box_width, favour_box_length, favour_box_height],
     text_str="Favours",
     label_options=MakeLabelOptions(label_colour="black")
   );
@@ -609,7 +609,7 @@ module FavourBoxLid() // `make` me
 
 module StuffBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=stuff_box_width, length=stuff_box_length, height=stuff_box_height) {
+  MakeBoxWithSlidingLid(size=[stuff_box_width, stuff_box_length, stuff_box_height]) {
     color(default_material_colour)
       RoundedBoxAllSides(
         [
@@ -625,19 +625,19 @@ module StuffBoxLid() // `make` me
 {
   translate([stuff_box_width + 10, 0, 0]) {
     SlidingBoxLidWithLabel(
-      width=stuff_box_width, length=stuff_box_length,
+      size=[stuff_box_width, stuff_box_length, stuff_box_height],
       text_str="Swords",
       label_options=MakeLabelOptions(label_colour="black")
     );
     translate([stuff_box_width + 10, 0, 0]) {
       SlidingBoxLidWithLabel(
-        width=stuff_box_width, length=stuff_box_length,
+        size=[stuff_box_width, stuff_box_length, stuff_box_height],
         text_str="Apples",
         label_options=MakeLabelOptions(label_colour="black")
       );
       translate([stuff_box_width + 10, 0, 0]) {
         SlidingBoxLidWithLabel(
-          width=stuff_box_width, length=stuff_box_length,
+          size=[stuff_box_width, stuff_box_length, stuff_box_height],
           text_str="Crystals",
           label_options=MakeLabelOptions(label_colour="black")
         );
@@ -649,7 +649,7 @@ module StuffBoxLid() // `make` me
 module CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     lid_on_length=true
   ) {
     cube([card_length + 2, $inner_length, card_box_height]);
@@ -668,7 +668,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width, length=card_box_length,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Cards",
     label_options=MakeLabelOptions(label_colour="black"),
     lid_on_length=true

@@ -18,8 +18,6 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
-$fn = 128;
-
 default_lid_thickness = 3;
 default_label_font = "Impact";
 default_lid_shape_width = 18;
@@ -47,7 +45,7 @@ splendor_box_height = splendor_disc_diameter + default_lid_thickness + default_f
 
 module SplendorBox() // `make` me
 {
-  MakeBoxWithSlipoverLid(width=splendor_box_width, length=splendor_box_length, height=splendor_box_height, foot=3) {
+  MakeBoxWithSlipoverLid(size=[splendor_box_width, splendor_box_length, splendor_box_height], foot=3) {
     translate([splendor_disc_diameter / 2 - 2, $inner_length / 2, 0])
       cuboid(
         [
@@ -80,7 +78,7 @@ module SplendorBox() // `make` me
 module SplendorBoxLid() // `make` me
 {
   SlipoverBoxLidWithLabel(
-    width=splendor_box_width, length=splendor_box_length, height=splendor_box_height, foot=3,
+    size=[splendor_box_width, splendor_box_length, splendor_box_height], foot=3,
     text_str="Splendor"
   );
 }

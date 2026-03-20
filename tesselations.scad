@@ -124,7 +124,10 @@ module EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) {
 // Description:
 //   Creates an escher lizard blob that can be repeated.
 // Arguments:
+//   rows = number of rows to generate
+//   cols = number of columns to generate
 //   size = the size of the lizard
+//   thickness = the thickness of the lines
 // Example:
 //   EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
 module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {
@@ -139,8 +142,7 @@ module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {
 // Arguments:
 //   x = the x location to generate at
 //   y = the y location to generate at
-//   size = the size of the lizard
-//   thickness = the thickness of the lines
+//   size = the size of the hex
 // Example:
 //   HexagonTesselationRepeatAtLocation(x=0, y=0, size=20)
 //      EscherLizardTriangle(size=20, thickness=1);
@@ -165,6 +167,8 @@ module HexagonTesselationRepeatAtLocation(x, y, size) {
 // Description:
 //   Creates any hexagonal tesselation spaced correctly, using the triangle layout.
 // Arguments:
+//   rows = number of rows to generate
+//   cols = number of columns to generate
 //   size = the size of the tesselation
 // Example:
 //   HexagonTesselationRepeat(rows=4, cols=4, size=20)
@@ -201,8 +205,7 @@ module HexagonTesselationRepeat(rows, cols, size) {
 // Arguments:
 //   x = the x location to generate at
 //   y = the y location to generate at
-//   size = the size of the lizard
-//   thickness = the thickness of the lines
+//   size = the size of the triangle
 // Example:
 //   TriangleTesselationRepeatAtLocation(x=0, y=0, size=20)
 //       EscherLizardTriangle(size=20, thickness=1);
@@ -223,6 +226,8 @@ module TriangleTesselationRepeatAtLocation(x, y, size) {
 // Description:
 //   Creates any triangle tesselation spaced correctly.
 // Arguments:
+//   rows = number of rows to generate
+//   cols = number of columns to generate
 //   size = the size of the tesselation
 // Example:
 //   TriangleTesselationRepeat(rows=4, cols=4, size=20)
@@ -424,6 +429,8 @@ module SquareTesselation(points, size, thickness = 0, outer_offset = 0) {
 //    A hex tesselation of the esched lizard, this can be rotated and used
 //    to fill in hex spaces when doing tesselations.
 // Arguments:
+//    thickness = thickness of the lines
+//    outer_offset = extra space to put around the shape
 //    radius = the radius of the hex to use
 // Example:
 //    EscherLizardHexTesselation(radius=29);

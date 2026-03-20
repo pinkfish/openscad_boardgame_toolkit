@@ -85,7 +85,7 @@ cube_info = [
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=money_box_width, length=money_box_length, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     positive_negative_children=[1]
   ) {
     union() {
@@ -114,7 +114,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, text_str="Bank",
+    size=[money_box_width, money_box_length, money_box_height], text_str="Bank",
     lid_on_length=true
   );
 }
@@ -122,7 +122,7 @@ module MoneyBoxLid() // `make` me
 module CompanyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=company_box_width, length=company_box_length, height=company_box_height,
+    size=[company_box_width, company_box_length, company_box_height]
   ) {
     cube([card_width, card_length, company_box_height]);
     translate([card_width / 2, 0, -2]) FingerHoleBase(radius=15, height=money_box_height);
@@ -132,14 +132,14 @@ module CompanyBox() // `make` me
 module CompanyBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=company_box_width, length=company_box_length, text_str="Companies"
+    size=[company_box_width, company_box_length, company_box_height], text_str="Companies"
   );
 }
 
 module CubeBox(num = 0) {
   MakeBoxWithCapLid(
-    width=cube_box_width, length=cube_box_length, height=cube_box_height,
-    material_colour=cube_info[num].color,
+    size=[cube_box_width, cube_box_length, cube_box_height],
+    material_colour=cube_info[num].color
   ) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - cube_size - 0.5]) {
       cuboid([cube_size * cube_info[num].num_x, cube_size * cube_info[num].num_y, cube_box_height], anchor=BOTTOM);
@@ -185,8 +185,8 @@ module CubeBoxPurple() // `make` me
 
 module CubeBoxLid(num = 0) {
   CapBoxLidWithLabel(
-    width=cube_box_width, length=cube_box_length, height=cube_box_height,
-    text_str=str_join([upcase(cube_info[num].color[0]), substr(cube_info[num].color, 1)]),
+    size=[cube_box_width, cube_box_length, cube_box_height],
+    text_str=str_join([upcase(cube_info[num].color[0]), substr(cube_info[num].color, 1)])
   );
 }
 
@@ -223,7 +223,7 @@ module CubeBoxLidPurple() // `make` me
 module PlayerTokenBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=player_token_box_width, length=player_token_box_length, height=player_token_box_height,
+    size=[player_token_box_width, player_token_box_length, player_token_box_height]
   ) {
     translate([5, 6, $inner_height - marker_thickness]) {
       for (i = [0:4]) {
@@ -245,14 +245,14 @@ module PlayerTokenBox() // `make` me
 module PlayerTokenBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_token_box_width, length=player_token_box_length, height=player_token_box_height, text_str="Tokens"
+    size=[player_token_box_width, player_token_box_length, player_token_box_height], text_str="Tokens"
   );
 }
 
 module FrontSpacerBox() // `make` me
 {
   MakeBoxWithNoLid(
-    width=front_spacer_box_width, length=front_spacer_box_length, height=front_spacer_box_height,
+    size=[front_spacer_box_width, front_spacer_box_length, front_spacer_box_height],
     hollow=true
   );
 }

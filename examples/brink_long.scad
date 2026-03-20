@@ -92,9 +92,7 @@ ur_box_height = long_player_box_height;
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length,
-    height=ambassador_card_box_height,
+    size=[ambassador_card_box_width, ambassador_card_box_length, ambassador_card_box_height],
     lid_on_length=true
   ) {
     translate([0, (small_card_length - card_width) / 2, 0])
@@ -107,8 +105,7 @@ module AmbassadorCardBox() // `make` me
 module AmbassadorCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length,
+    size=[ambassador_card_box_width, ambassador_card_box_length, ambassador_card_box_height],
     lid_on_length=true, text_str="Ambassador"
   );
 }
@@ -116,8 +113,7 @@ module AmbassadorCardBoxLid() // `make` me
 module FactionCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length, height=faction_card_box_height,
+    size=[ambassador_card_box_width, ambassador_card_box_length, faction_card_box_height],
     lid_on_length=true
   ) {
     translate([0, (small_card_length - card_width) / 2, 0])
@@ -130,8 +126,7 @@ module FactionCardBox() // `make` me
 module FactionCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length,
+    size=[ambassador_card_box_width, ambassador_card_box_length, faction_card_box_height],
     lid_on_length=true, text_str="Faction"
   );
 }
@@ -139,8 +134,7 @@ module FactionCardBoxLid() // `make` me
 module RivalCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length, height=rival_card_box_height,
+    size=[ambassador_card_box_width, ambassador_card_box_length, rival_card_box_height],
     lid_on_length=true
   ) {
     translate([0, (small_card_length - card_width) / 2, 0])
@@ -153,8 +147,7 @@ module RivalCardBox() // `make` me
 module RivalCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length,
+    size=[ambassador_card_box_width, ambassador_card_box_length, rival_card_box_height],
     lid_on_length=true, text_str="Rival"
   );
 }
@@ -162,8 +155,7 @@ module RivalCardBoxLid() // `make` me
 module ActionCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=action_card_box_width,
-    length=action_card_box_length, height=action_card_box_height,
+    size=[action_card_box_width, action_card_box_length, action_card_box_height]
   ) {
     cube([small_card_width, small_card_length, action_card_box_height]);
     translate([small_card_width + 4.5, 0, 0])
@@ -178,8 +170,7 @@ module ActionCardBox() // `make` me
 module ActionCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=action_card_box_width,
-    length=action_card_box_length,
+    size=[action_card_box_width, action_card_box_length, action_card_box_height],
     text_str="Actions"
   );
 }
@@ -187,8 +178,7 @@ module ActionCardBoxLid() // `make` me
 module RiderCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=action_card_box_width,
-    length=action_card_box_length, height=rider_card_box_height,
+    size=[action_card_box_width, action_card_box_length, rider_card_box_height]
   ) {
     cube([small_card_width, small_card_length, action_card_box_height]);
     translate([small_card_width + 4.5, 0, 0])
@@ -203,8 +193,7 @@ module RiderCardBox() // `make` me
 module RiderCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=action_card_box_width,
-    length=action_card_box_length,
+    size=[action_card_box_width, action_card_box_length, rider_card_box_height],
     text_str="Riders"
   );
 }
@@ -212,8 +201,7 @@ module RiderCardBoxLid() // `make` me
 module BonusCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=ambassador_card_box_width,
-    length=ambassador_card_box_length, height=bonus_card_box_height,
+    size=[ambassador_card_box_width, ambassador_card_box_length, bonus_card_box_height],
     lid_on_length=true
   ) {
     translate([0, (small_card_length - card_width) / 2, $inner_height - 10 * single_card_thickness])
@@ -228,8 +216,7 @@ module BonusCardBox() // `make` me
 module BonusCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=action_card_box_width,
-    length=action_card_box_length,
+    size=[ambassador_card_box_width, ambassador_card_box_length, bonus_card_box_height],
     text_str="Community"
   );
 }
@@ -237,21 +224,19 @@ module BonusCardBoxLid() // `make` me
 module HoloBonusCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=action_card_box_width,
-    length=action_card_box_length,
+    size=[ambassador_card_box_width, ambassador_card_box_length, bonus_card_box_height],
     text_str="Holo"
   );
 }
 
 module HexBox() // `make` me
 {
-  MakeBoxWithCapLid(width=hex_box_width, length=hex_box_length, height=hex_box_height) {
+  MakeBoxWithCapLid(size=[hex_box_width, hex_box_length, hex_box_height]) {
     translate([PolygonRadiusFromApothem(hex_width, shape_edges=6) + 1, hex_width / 2 + 1, 0]) {
       RegularPolygon(shape_edges=6, width=hex_width, height=hex_box_height);
       translate([0, -PolygonRadiusFromApothem(hex_width, shape_edges=6), 0])
         cuboid([25, 20, hex_box_height + 20], rounding=10, anchor=BOTTOM);
     }
-
     translate([$inner_width - PolygonRadiusFromApothem(hex_width, shape_edges=6) - 1, hex_width / 2 + 1, 0]) {
       RegularPolygon(shape_edges=6, width=hex_width, height=hex_box_height);
       translate([0, -PolygonRadiusFromApothem(hex_width, shape_edges=6), 0])
@@ -269,8 +254,7 @@ module HexBox() // `make` me
 module HexBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=hex_box_width, length=hex_box_length, height=hex_box_height,
-    text_str="Hexes"
+    size=[hex_box_width, hex_box_length, hex_box_height], text_str="Hexes"
   );
 }
 
@@ -446,7 +430,7 @@ module LongPlayerBox(colour = "green") // 'make' me
 
 module LongResourceBox(colour = "lightblue") // `make` me
 {
-  MakeBoxWithCapLid(width=long_resource_box_width, length=long_resource_box_length, height=long_resource_box_height, material_colour=colour) {
+  MakeBoxWithCapLid(size=[long_resource_box_width, long_resource_box_length, long_resource_box_height], material_colour=colour) {
     color(colour)
       RoundedBoxAllSides([$inner_width, $inner_length, long_resource_box_height], radius=5);
   }
@@ -454,7 +438,7 @@ module LongResourceBox(colour = "lightblue") // `make` me
 
 module LongResource2Box(colour = "lightblue") // `make` me
 {
-  MakeBoxWithCapLid(width=long_resource_box_2_width, length=long_resource_box_2_length, height=long_resource_box_2_height, material_colour=colour) {
+  MakeBoxWithCapLid(size=[long_resource_box_2_width, long_resource_box_2_length, long_resource_box_2_height], material_colour=colour) {
     color(colour)
       RoundedBoxAllSides([$inner_width, $inner_length, long_resource_box_2_height], radius=5);
   }
@@ -478,12 +462,12 @@ module StartTile(thickness) {
 
 module SpacerMiddle() // `make` me
 {
-  MakeBoxWithNoLid(length=spacer_middle_length, width=spacer_middle_width, height=spacer_middle_height, hollow=true);
+  MakeBoxWithNoLid(size=[spacer_middle_width, spacer_middle_length, spacer_middle_height], hollow=true);
 }
 
 module UrResourceBox() // `make` me
 {
-  MakeBoxWithCapLid(length=ur_box_length, width=ur_box_width, height=ur_box_height, material_colour="red") {
+  MakeBoxWithCapLid(size=[ur_box_width, ur_box_length, ur_box_height], material_colour="red") {
     translate([favor_token_diameter / 2 + 3, favor_token_diameter / 2 + 2, $inner_height - cardboard_token_thickness * 5])
       color("red")
         CylinderWithIndents(

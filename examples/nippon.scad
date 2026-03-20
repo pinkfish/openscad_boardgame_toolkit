@@ -382,9 +382,7 @@ module WorkerItem() {
 module PlayerBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
-    width=player_box_width,
-    length=player_box_length,
-    height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - ship_thickness / 2])
@@ -446,9 +444,7 @@ module PlayerBox(material_colour = "yellow") // `make` me
 module PlayerBoxBits(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
-    width=player_box_bits_width,
-    length=player_box_bits_length,
-    height=player_box_bits_height,
+    size=[player_box_bits_width, player_box_bits_length, player_box_bits_height],
     material_colour=material_colour
   ) {
 
@@ -570,9 +566,7 @@ module PlayerBoxBits(material_colour = "yellow") // `make` me
 module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_width,
-    length=player_box_length,
-    height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     text_str="Ships & Trains"
   );
 }
@@ -580,9 +574,7 @@ module PlayerBoxLid() // `make` me
 module PlayerBoxBitsLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=player_box_bits_width,
-    length=player_box_bits_length,
-    height=player_box_bits_height,
+    size=[player_box_bits_width, player_box_bits_length, player_box_bits_height],
     text_str="Player"
   );
 }
@@ -590,9 +582,7 @@ module PlayerBoxBitsLid() // `make` me
 module FactoryTileBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=factory_tile_box_width,
-    length=factory_tile_box_length,
-    height=factory_tile_box_height
+    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height]
   ) {
     translate([0, 0, $inner_height - cardboard_token_thickness * 12 - 1])
       cuboid([$inner_width, $inner_length, factory_tile_box_height], anchor=BOTTOM + LEFT + FRONT);
@@ -607,8 +597,7 @@ module FactoryTileBox() // `make` me
 module FactoryTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=factory_tile_box_width,
-    length=factory_tile_box_length,
+    size=[factory_tile_box_width, factory_tile_box_length],
     text_str="Factories"
   );
 }
@@ -616,9 +605,7 @@ module FactoryTileBoxLid() // `make` me
 module DemandTileBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=demand_tile_box_width,
-    length=demand_tile_box_length,
-    height=demand_tile_box_height
+    size=[demand_tile_box_width, demand_tile_box_length, demand_tile_box_height]
   ) {
     translate([0, 0, $inner_height - cardboard_token_thickness * 9 - 1])
       cuboid([demand_token_length, demand_token_width, demand_tile_box_height], anchor=BOTTOM + LEFT + FRONT);
@@ -633,8 +620,7 @@ module DemandTileBox() // `make` me
 module DemandTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=demand_tile_box_width,
-    length=demand_tile_box_length,
+    size=[demand_tile_box_width, demand_tile_box_length],
     text_str="Demand"
   );
 }
@@ -642,9 +628,7 @@ module DemandTileBoxLid() // `make` me
 module StartingTileBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=starting_tile_box_width,
-    length=starting_tile_box_length,
-    height=starting_tile_box_height
+    size=[starting_tile_box_width, starting_tile_box_length, starting_tile_box_height]
   ) {
     translate([$inner_width / 2, 0, $inner_height - cardboard_token_thickness * 11 - 1])
       cuboid([starting_token_width, starting_token_length, demand_tile_box_height], anchor=BOTTOM + FRONT);
@@ -662,8 +646,7 @@ module StartingTileBox() // `make` me
 module StartingTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=starting_tile_box_width,
-    length=starting_tile_box_length,
+    size=[starting_tile_box_width, starting_tile_box_length],
     text_str="Start"
   );
 }
@@ -671,9 +654,7 @@ module StartingTileBoxLid() // `make` me
 module UpgradeTileBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=upgraded_tile_box_width,
-    length=upgraded_tile_box_length,
-    height=upgraded_tile_box_height
+    size=[upgraded_tile_box_width, upgraded_tile_box_length, upgraded_tile_box_height]
   ) {
     for (i = [0:2]) {
       for (j = [0:1]) {
@@ -698,8 +679,7 @@ module UpgradeTileBox() // `make` me
 module UpgradedTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=upgraded_tile_box_width,
-    length=upgraded_tile_box_length,
+    size=[upgraded_tile_box_width, upgraded_tile_box_length],
     text_str="Upgraded"
   );
 }
@@ -707,9 +687,7 @@ module UpgradedTileBoxLid() // `make` me
 module MoneyBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=money_box_width,
-    length=money_box_length,
-    height=money_box_height
+    size=[money_box_width, money_box_length, money_box_height]
   ) {
     RoundedBoxAllSides([$inner_width, $inner_length, money_box_height], radius=5);
   }
@@ -718,9 +696,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width,
-    length=money_box_length,
-    height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     text_str="Money"
   );
 }
@@ -728,9 +704,7 @@ module MoneyBoxLid() // `make` me
 module SoloBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=solo_box_width,
-    length=solo_box_length,
-    height=solo_box_height
+    size=[solo_box_width, solo_box_length, solo_box_height]
   ) {
     translate([8, 5, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
@@ -776,9 +750,7 @@ module SoloBox() // `make` me
 module SoloBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=solo_box_width,
-    length=solo_box_length,
-    height=solo_box_height,
+    size=[solo_box_width, solo_box_length, solo_box_height],
     text_str="Solo"
   );
 }
@@ -787,9 +759,7 @@ module LateGameFactoryBox() // `make` me
 {
 
   MakeBoxWithSlidingLid(
-    width=late_game_factory_box_width,
-    length=late_game_factory_box_length,
-    height=late_game_factory_box_height
+    size=[late_game_factory_box_width, late_game_factory_box_length, late_game_factory_box_height]
   ) {
     translate([$inner_width / 2, 0, $inner_height - cardboard_token_thickness * 6 - 1])
       cuboid(
@@ -806,8 +776,7 @@ module LateGameFactoryBox() // `make` me
 module LateGameFactoryBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=late_game_factory_box_width,
-    length=late_game_factory_box_length,
+    size=[late_game_factory_box_width, late_game_factory_box_length, 0],
     text_str="Late Game"
   );
 }
@@ -815,9 +784,7 @@ module LateGameFactoryBoxLid() // `make` me
 module RoundMarkerBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=round_marker_box_width,
-    length=round_marker_box_length,
-    height=round_marker_box_height
+    size=[round_marker_box_width, round_marker_box_length, round_marker_box_height]
   ) {
     translate(
       [0, 0, $inner_height - round_marker_length / 2]
@@ -834,8 +801,7 @@ module RoundMarkerBox() // `make` me
 module RoundMarkerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=round_marker_box_width,
-    length=round_marker_box_length,
+    size=[round_marker_box_width, round_marker_box_length, 0],
     text_str="Round"
   );
 }
@@ -843,9 +809,7 @@ module RoundMarkerBoxLid() // `make` me
 module WorkerBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
-    width=worker_box_width,
-    length=worker_box_length,
-    height=worker_box_height,
+    size=[worker_box_width, worker_box_length, worker_box_height],
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - worker_thickness / 2])
@@ -891,9 +855,7 @@ module WorkerBox(material_colour = "yellow") // `make` me
 module WorkerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=worker_box_width,
-    length=worker_box_length,
-    height=worker_box_height,
+    size=[worker_box_width, worker_box_length, worker_box_height],
     text_str="Workers"
   );
 }
@@ -901,9 +863,7 @@ module WorkerBoxLid() // `make` me
 module ResourceBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=resource_box_width,
-    length=resource_box_length,
-    height=resource_box_height,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - cube_size / 2])
@@ -916,9 +876,7 @@ module ResourceBox(material_colour = "yellow") // `make` me
 module ResourceDoubleBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=resource_box_double_width,
-    length=resource_box_length,
-    height=resource_box_height,
+    size=[resource_box_double_width, resource_box_length, resource_box_height],
     material_colour=material_colour
   ) {
     translate([0, 0, $inner_height - cube_size / 2])
@@ -933,8 +891,7 @@ module ResourceDoubleBox(material_colour = "yellow") // `make` me
 module ResourceDoubleBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=resource_box_double_width,
-    length=resource_box_length,
+    size=[resource_box_double_width, resource_box_length, 0],
     text_str="Resources"
   );
 }
@@ -942,8 +899,7 @@ module ResourceDoubleBoxLid() // `make` me
 module ResourceBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_length,
+    size=[resource_box_width, resource_box_length, 0],
     text_str="Resources"
   );
 }
@@ -951,9 +907,7 @@ module ResourceBoxLid() // `make` me
 module SpacerFront() // `make` me
 {
   MakeBoxWithNoLid(
-    width=front_spacer_width,
-    length=front_spacer_length,
-    height=front_spacer_height,
+    size=[front_spacer_width, front_spacer_length, front_spacer_height],
     hollow=true
   );
 }
@@ -1062,6 +1016,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  $fn=128;
-  SoloBoxLid();
+  BoxLayout();
 }

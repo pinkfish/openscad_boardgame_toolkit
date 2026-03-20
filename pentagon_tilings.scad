@@ -41,13 +41,13 @@ under the License.
 
 // Module: PentagonTesselation()
 // Description:
-//   Make the pentagon tesslation as a specific x,y in the pattern.
+//   Make the pentagon tessellation as a specific x,y in the pattern.
 // Arguments:
-//   pentagon_type = type of the pentagon, eg: "R12"
-//   x = x location for the pattern
-//   y = y location for the pattern
-//   thickness = thickness of the edges of the patter
+//   pentagon_type = type of the pentagon, eg: "R1" through "R15"
 //   pentagon_size = the size of the pentagon
+//   x = x index for the pattern lattice
+//   y = y index for the pattern lattice
+//   thickness = thickness of the edges of the pattern
 module PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) {
   // convex initial conditions for each pentagon
   // R1: AA = 70; BB = 140; b = 1; c = 0.5; e = 0.7;

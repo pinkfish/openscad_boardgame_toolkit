@@ -7,7 +7,7 @@ A few different types of lids that can be used with the system.
 ```openscad-3D;Big
 include <boardgame_toolkit.scad>
 
-SlidingLid(width = 100, length = 50);
+SlidingLid(size = [100, 50]);
 ```
 
 
@@ -17,8 +17,7 @@ SlidingLid(width = 100, length = 50);
 include <boardgame_toolkit.scad>
 
 SlidingBoxLidWithLabel(
-        width = 150, length = 50, lid_thickness = 3, 
-        text_str = "Happy Fluff");
+    size = [150, 50], lid_thickness = 3, text_str = "Happy Fluff");
 ```
 
 
@@ -27,7 +26,7 @@ SlidingBoxLidWithLabel(
 ```openscad-3D;Big
 include <boardgame_toolkit.scad>
 
-InsetLidTabbed(width = 100, length = 50);
+InsetLidTabbed(size = [100, 50]);
 ```
 
 
@@ -37,7 +36,7 @@ InsetLidTabbed(width = 100, length = 50);
 include <boardgame_toolkit.scad>
 
 InsetLidTabbedWithLabel(
-        width = 50, length = 150, lid_thickness = 3, 
+        size = [50, 150], lid_thickness = 3, 
         text_str = "Happy Fluff");
 ```
 
@@ -48,7 +47,7 @@ InsetLidTabbedWithLabel(
 include <boardgame_toolkit.scad>
 
 SlidingBoxLidWithLabel(
-        width = 50, length = 150, lid_thickness = 3, 
+        size = [50, 150], lid_thickness = 3, 
         text_str = "Happy") {
         translate([ 45, 5, 0 ]) linear_extrude(height = 3) rotate([0,0,90]) scale(0.3) difference()
         {
@@ -72,7 +71,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    CapBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, height = canvas_piece_box_height,
+    CapBoxLidWithLabel(size = [canvas_piece_box_width, canvas_piece_box_length, 2],
                         text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
@@ -95,8 +94,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    SlipoverBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, foot = 2, 
-                        height = canvas_piece_box_height,
+    SlipoverBoxLidWithLabel(size = [canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height], foot = 2, 
                         text_str = str,
                         wall_thickness = wall_thickness, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
@@ -120,7 +118,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    MagneticBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length, magnet_diameter = 5,
+    MagneticBoxLidWithLabel(size = [canvas_piece_box_width, canvas_piece_box_length], magnet_diameter = 5,
                         magnet_thickness = 1, text_str = str, 
                         lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
@@ -143,7 +141,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    SlidingCatchBoxLidWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+    SlidingCatchBoxLidWithLabel(size = [canvas_piece_box_width, canvas_piece_box_length],
                         text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }
@@ -165,7 +163,7 @@ wall_thickness = 3;
 
 module MakeLid(str)
 {
-    InsetLidRabbitClipWithLabel(width = canvas_piece_box_width, length = canvas_piece_box_length,
+    InsetLidRabbitClipWithLabel(size = [canvas_piece_box_width, canvas_piece_box_length],
                         text_str = str, lid_thickness = 2, lid_boundary = 5, layout_width = 5,
                         shape_options=MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 7));
 }

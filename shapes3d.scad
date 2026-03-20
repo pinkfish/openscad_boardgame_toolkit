@@ -115,6 +115,7 @@ module Icosahedron(size)
 //   Makes a nice d10 shape for use in games.
 // Arguments:
 //   size = the diameter of the dice, it fits inside this sphere.
+//   length_mod = modification to the length of the trapezohedron (default 0).
 // Topics: Dice
 // Example:
 //   Trapezohedron(10);

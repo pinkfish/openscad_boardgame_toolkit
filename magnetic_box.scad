@@ -37,20 +37,18 @@ under the License.
 //    deal with the box sizes.
 // Topics: MagneticLid
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    size = [width, length, height] outside size of the box
 //    magnet_diameter = diameter of the magnet
 //    magnet_thickness = thickness of the magnet
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
-//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1);
+//    MakeBoxWithMagneticLid(size = [100, 50, 20], magnet_diameter = 5, magnet_thickness = 1);
 module MakeBoxWithMagneticLid(
-  width,
-  length,
-  height,
+  size,
   magnet_diameter,
   magnet_thickness,
   lid_thickness = default_lid_thickness,
@@ -59,6 +57,10 @@ module MakeBoxWithMagneticLid(
   floor_thickness = default_floor_thickness,
   material_colour = default_material_colour
 ) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
   assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
   assert(width > 0, str("Width needs to be set", width));
@@ -110,11 +112,10 @@ module MakeBoxWithMagneticLid(
 // Description:
 //   Makes the inside space template for the box so that it can used to intersect to pull out the corners
 //   for the magnet safely.
-// Usage: MakeBoxWithMagneticLidInsideSpace(100, 20, 20, 4, 1);
+// Usage: MakeBoxWithMagneticLidInsideSpace([100, 50, 20], 5, 1);
 // Topics: MagneticLid
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    size = [width, length, height] outside size of the box
 //    magnet_diameter = diameter of the magnet
 //    magnet_thickness = thickness of the magnet
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
@@ -124,20 +125,18 @@ module MakeBoxWithMagneticLid(
 //    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Example:
-//    MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness =
+//    MakeBoxWithMagneticLidInsideSpace(size = [100, 50, 20], magnet_diameter = 5, magnet_thickness =
 //    1);
 // Example:
-//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1)
-//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness =
+//    MakeBoxWithMagneticLid(size = [100, 50, 20], magnet_diameter = 5, magnet_thickness = 1)
+//      MakeBoxWithMagneticLidInsideSpace(size = [100, 50, 20], magnet_diameter = 5, magnet_thickness =
 //      1);
 // Example:
-//    MakeBoxWithMagneticLid(width = 100, length = 50, height = 20, magnet_diameter = 5, magnet_thickness = 1)
-//      MakeBoxWithMagneticLidInsideSpace(width = 100, length = 50, height = 20, magnet_diameter = 5,
+//    MakeBoxWithMagneticLid(size = [100, 50, 20], magnet_diameter = 5, magnet_thickness = 1)
+//      MakeBoxWithMagneticLidInsideSpace(size = [100, 50, 20], magnet_diameter = 5,
 //      magnet_thickness = 1, full_height = false);
 module MakeBoxWithMagneticLidInsideSpace(
-  width,
-  length,
-  height,
+  size,
   magnet_diameter,
   magnet_thickness,
   lid_thickness = default_lid_thickness,
@@ -147,11 +146,15 @@ module MakeBoxWithMagneticLidInsideSpace(
   full_height = false,
   material_colour = default_material_colour
 ) {
-  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
-  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
   assert(width > 0, str("Width needs to be set", width));
   assert(length > 0, str("Length needs to be set", length));
   assert(height > 0, str("Height needs to be set", height));
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
 
   module make_side_cylinder(box_size) {
     union() {
@@ -255,34 +258,36 @@ module MakeBoxWithMagneticLidInsideSpace(
 // Module: MagneticBoxLid()
 // Topics: MagneticLid
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
+//    size = [width, length] of the lid
+//    magnet_diameter = diameter of the magnet
+//    magnet_thickness = thickness of the magnet
+//    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    top_thickness = the thickness of the all above the catch (default 2)
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness)
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: MagneticBoxLid(100, 50, 5, 1);
+// Usage: MagneticBoxLid([100, 50], 5, 1);
 // Example:
-//    MagneticBoxLid(100, 50, 5, 1);
+//    MagneticBoxLid([100, 50], 5, 1);
 module MagneticBoxLid(
-  width,
-  length,
+  size,
   magnet_diameter,
   magnet_thickness,
   magnet_border = 1.5,
   lid_thickness = default_lid_thickness,
   wall_thickness = default_wall_thickness,
-  top_thickness = 2,
   lid_rounding = undef,
   size_spacing = m_piece_wiggle_room,
   material_colour = default_material_colour
 ) {
-  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
-  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
   assert(width > 0, str("Width needs to be set", width));
   assert(length > 0, str("Length needs to be set", length));
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
 
   calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
   internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
@@ -328,30 +333,30 @@ module MagneticBoxLid(
 //    Lid for a magnetic lid box.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    width = outside width of the box
-//    length = outside length of the box
-//    lid_boundary = boundary around the outside for the lid (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    size = [width, length] of the lid
+//    magnet_diameter = diameter of the magnet
+//    magnet_thickness = thickness of the magnet
 //    text_str = the string to use for the label
+//    lid_boundary = boundary around the outside for the lid (default 10)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
-//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+//    pattern_inner_control = if the pattern needs inner control (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: MagneticBoxLidWithLabelAndCustomShape(100, 50,  5, 1, text_str = "Frog");
+//    label_options = options for the label (default undef)
+// Usage: MagneticBoxLidWithLabelAndCustomShape([100, 50], 5, 1, text_str = "Frog");
 // Example:
-//    MagneticBoxLidWithLabelAndCustomShape(100, 50, 5, 1, text_str = "Frog") {
+//    MagneticBoxLidWithLabelAndCustomShape([100, 50], 5, 1, text_str = "Frog") {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //         supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //    }
 module MagneticBoxLidWithLabelAndCustomShape(
-  width,
-  length,
+  size,
   magnet_diameter,
   magnet_thickness,
   text_str,
@@ -368,10 +373,13 @@ module MagneticBoxLidWithLabelAndCustomShape(
   material_colour = default_material_colour,
   label_options = undef,
 ) {
-  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
-  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
   assert(width > 0, str("Width needs to be set", width));
   assert(length > 0, str("Length needs to be set", length));
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
   assert(text_str != undef, str("Text string needs to be set", text_str));
 
   calc_label_options = DefaultValue(
@@ -382,12 +390,12 @@ module MagneticBoxLidWithLabelAndCustomShape(
   );
 
   MagneticBoxLid(
-    width, length, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
+    size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, magnet_diameter=magnet_diameter,
     magnet_thickness=magnet_thickness, material_colour=material_colour
   ) {
     LidMeshBasic(
-      width=width, length=length, lid_thickness=lid_thickness, boundary=lid_boundary,
+      size=size, lid_thickness=lid_thickness, boundary=lid_boundary,
       layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
       dense_shape_edges=lid_dense_shape_edges, inner_control=pattern_inner_control,
     ) {
@@ -398,7 +406,7 @@ module MagneticBoxLidWithLabelAndCustomShape(
       }
     }
     MakeLidLabel(
-      width=width, length=length,
+      size=[width, length],
       lid_thickness=lid_thickness,
       text_str=text_str,
       options=object(calc_label_options, full_height=true),
@@ -434,31 +442,30 @@ module MagneticBoxLidWithLabelAndCustomShape(
 }
 
 // Module: MagneticBoxLidWithLabel()
-// Topics: SlidingCatch
+// Topics: MagneticLid
 // Description:
-//    Lid for a sliding catch with a label on top of it.
+//    Lid for a magnetic box with a label on top of it.
 // Arguments:
-//    width = outside width of the box
-//    length = inside width of the box
-//    lid_boundary = boundary around the outside for the lid (default 10)
-//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//    top_thickness = thickness of the top above the lid (default 1)
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+//    size = [width, length] of the lid
+//    magnet_diameter = diameter of the magnet
+//    magnet_thickness = thickness of the magnet
 //    text_str = the string to use for the label
+//    magnet_border = how far around the edges of the magnet the space should be (default 1.5)
+//    lid_boundary = boundary around the outside for the lid (default 10)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    shape_width = width of the shape (default {{default_lid_shape_width}})
-//    shape_thickness = how wide the pieces are (default {{default_lid_shape_thickness}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-// Usage: MagneticBoxLidWithLabel(100, 50, 5, 1, text_str = "Frog");
+//    label_options = options for the label (default undef)
+//    shape_options = options for the shape (default undef)
+// Usage: MagneticBoxLidWithLabel([100, 50], 5, 1, text_str = "Frog");
 // Example:
-//    MagneticBoxLidWithLabel(100, 50, 5, 1, text_str = "Frog");
+//    MagneticBoxLidWithLabel([100, 50], 5, 1, text_str = "Frog");
 module MagneticBoxLidWithLabel(
-  width,
-  length,
+  size,
   magnet_diameter,
   magnet_thickness,
   text_str,
@@ -474,10 +481,13 @@ module MagneticBoxLidWithLabel(
   label_options = undef,
   shape_options = undef
 ) {
-  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
-  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
+  assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
+  width = size[0];
+  length = size[1];
   assert(width > 0, str("Width needs to be set", width));
   assert(length > 0, str("Length needs to be set", length));
+  assert(magnet_diameter != undef && magnet_diameter > 0, str("Magnet diameter needs to be set", magnet_diameter));
+  assert(magnet_thickness != undef && magnet_thickness > 0, str("Magnet thickness needs to be set", magnet_thickness));
   assert(text_str != undef, str("Text string needs to be set", text_str));
 
   calc_label_options = DefaultValue(
@@ -492,7 +502,7 @@ module MagneticBoxLidWithLabel(
   );
 
   MagneticBoxLidWithLabelAndCustomShape(
-    width=width, length=length, magnet_diameter=magnet_diameter,
+    size=size, magnet_diameter=magnet_diameter,
     magnet_thickness=magnet_thickness,
     wall_thickness=wall_thickness, lid_thickness=lid_thickness, text_str=text_str,
     layout_width=layout_width, size_spacing=size_spacing, aspect_ratio=aspect_ratio,

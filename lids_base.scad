@@ -98,12 +98,12 @@ function DenseShapeEdges(shape_type) = (shape_type == SHAPE_TYPE_DENSE_TRIANGLE 
 // Description:
 //   Make a hex mesh for the lid.  This makes a nice pattern for use on the lids.
 // Arguments:
-//   width = width of the mesh section
-//   length = the length of the mesh section
+//   path = the path for the mesh section
 //   lid_thickness = how high the lid is
 //   boundary = how wide of a boundary edge to put on the side of the lid
 //   radius = the radius of the polygon to create
-//   shape_thickness = how thick to generate the gaps between the hexes (default 2)
+//   shape_edges = the number of edges on the dense shape (default 6)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Usage:
 //   LidMeshDense(path=square([100,50]), lid_thickness = 3, boundary = 10, radius = 5, shape_edges = 6);
@@ -128,6 +128,7 @@ module LidMeshDense(
   x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
   y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
 
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   width = max(x_arr) - min(x_arr);
   length = max(y_arr) - min(y_arr);
 
@@ -151,18 +152,22 @@ module LidMeshDense(
 // Description:
 //   Make a hex mesh for the lid.  This makes a nice pattern for use on the lids.
 // Arguments:
-//   width = width of the mesh section
-//   length = the length of the mesh section
+//   size = [x,y] size  of the mesh section
 //   lid_thickness = how high the lid is
 //   boundary = how wide of a boundary edge to put on the side of the lid
 //   radius = the radius of the polygon to create
 //   shape_thickness = how thick to generate the gaps between the hexes
+//   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Usage:
-//   LidMeshHex(width = 70, length = 50, lid_thickness = 3, boundary = 10, radius = 5);
+//   LidMeshHex(size = [70, 50], lid_thickness = 3, boundary = 10, radius = 5);
 // Topics: PatternFill
 // Example:
-//   LidMeshHex(width = 100, length = 50, lid_thickness = 3, boundary = 10, radius = 10);
-module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thickness = 2, inner_control = false) {
+//   LidMeshHex(size = [100, 50], lid_thickness = 3, boundary = 10, radius = 10);
+module LidMeshHex(size, lid_thickness, boundary, radius, shape_thickness = 2, inner_control = false) {
+  assert(is_list(size) && (len(size) == 2 || len(size) == 3), str("Invalid size in LidMeshHex", size));
+  width = size[0];
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
+  length = size[1];
   LidMeshDense(
     path=square([width, length]), lid_thickness=lid_thickness, boundary=boundary, radius=radius,
     shape_edges=6, inner_control=inner_control
@@ -182,6 +187,7 @@ module LidMeshHex(width, length, lid_thickness, boundary, radius, shape_thicknes
 //   layout_width = the width to use between each shape.
 //   aspect_ratio = the aspect ratio (multiple by dy) (default 1.0)
 //   shape_edges = the number of edges on the shape (default 4)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Usage:
 //   LidMeshRepeating(square([50,20]), 3, 5, 10);
@@ -209,6 +215,7 @@ module LidMeshRepeating(
   x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
   y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
 
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   width = max(x_arr) - min(x_arr);
   length = max(y_arr) - min(y_arr);
 
@@ -235,79 +242,80 @@ module LidMeshRepeating(
 //   width and shape width default to being the same for dense layouts, and overlapping for
 //   non-dense layouts.
 // Arguments:
-//   width = width of the mesh section
-//   length = the length of the mesh section
+//   size = [x,y] width of the mesh section
 //   lid_thickness = how high the lid is
 //   boundary = how wide of a boundary edge to put on the side of the lid
-//   radius = the radius of the polygon to create
+//   layout_width = the width to use between each shape.
+//   path = the path for the mesh section
+//   aspect_ratio = the aspect ratio (multiple by dy) (default 1.0)
+//   dense = if the layout is dense (default false)
 //   dense_shape_edges = number of edges on the dense shape
-//   shape_thickness = how thick to generate the gaps between the hexes (default 2)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   inner_control = if the polygon lays itself out by using $polygonX and $polygonY (default false)
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10, dense = true) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10, dense = true) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
-//   LidMeshBasic(width = 70, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [70, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 14));
 //   }
 // Example:
-//   LidMeshBasic(width = 70, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [70, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_HEX, shape_thickness = 1, shape_width = 11));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_DENSE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CIRCLE, shape_thickness = 2, shape_width = 14));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_TRIANGLE, shape_thickness = 2, shape_width = $layout_width));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HEX, shape_thickness = 1, shape_width = 14));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 16));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 13, shape_aspect_ratio=1.25));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_OCTOGON, shape_thickness = 1, shape_width = 10.5, shape_aspect_ratio=1));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 //   }
 // Example:
 //   default_lid_shape_rounding = 3;
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SQUARE, shape_thickness = 2, shape_width = 11));
 //   }
 // Example:
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CLOUD, shape_thickness = 2, shape_width = $layout_width+1));
 //   }
 // Example(2D,Med):
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2));
 //   }
 // Example(2D,Big):
-//   LidMeshBasic(width = 100, length = 50, lid_thickness = 2, boundary = 10, layout_width = 10) {
+//   LidMeshBasic(size = [100, 50], lid_thickness = 2, boundary = 10, layout_width = 10) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
 //       supershape_n1 = 1, supershape_b = 1.5, shape_width = 15));
 //   }
 module LidMeshBasic(
-  width = undef,
-  length = undef,
+  size = undef,
   lid_thickness,
   boundary,
   layout_width,
@@ -318,11 +326,13 @@ module LidMeshBasic(
   material_colour = default_material_colour,
   inner_control = false
 ) {
-  assert((width != undef && length != undef) || path != undef, "\nInvalid path in MakePathBoxWithCapLid.");
+  assert(size != undef || path != undef, "Invalid path in MakePathBoxWithCapLid.");
+  assert(path != undef || (is_list(size) && (len(size) == 2 || len(size) == 3)), str("Invalid size in MakePathBoxWithCapLid", size));
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
 
   calc_layout_width = DefaultValue(layout_width, default_lid_layout_width);
   calc_aspect_ratio = DefaultValue(aspect_ratio, default_lid_aspect_ratio);
-  calc_path = width == undef ? path : square([width, length]);
+  calc_path = size == undef ? path : square([size[0], size[1]]);
   intersection() {
     union() {
       if (dense) {
@@ -352,6 +362,7 @@ module LidMeshBasic(
 }
 
 module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   union() {
     difference() {
       children(0);
@@ -406,6 +417,7 @@ module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
 //   finger_gap = the space to make for a finger gap (default = 1.5)
 //   sphere = the size of the sphere for the inset (default 12)
 //   finger_length = the length of the finger section (default = 15)
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLidFingernail(3);
@@ -417,6 +429,7 @@ module SlidingLidFingernail(
   finger_length = 10,
   material_colour = default_material_colour
 ) {
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   difference() {
     translate([0, 0, lid_thickness / 2]) color(material_colour) cyl(h=lid_thickness, r=radius);
     translate([0, 0, finger_length + lid_thickness - finger_gap + 0.1]) intersection() {
@@ -442,6 +455,7 @@ module SlidingLidFingernail(
 // Example:
 //   MakeLidTab(length = 5, height = 10, lid_thickness = 2, prism_width = 0.75, wall_thickness = 2);
 module MakeLidTab(length, height, lid_thickness = default_lid_thickness, prism_width = 0.75, wall_thickness = 2) {
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   mirror([0, 0, 1]) {
     // square part, join to the lid.
     cube([length, wall_thickness, lid_thickness]);
@@ -468,24 +482,26 @@ module MakeLidTab(length, height, lid_thickness = default_lid_thickness, prism_w
 // Usage:
 //   MakeTabs(50, 100, wall_thickness = 2, lid_thickness = 2);
 // Arguments:
-//   box_width = width of the box (outside size)
-//   box_length = length of the box (outside size)
+//   size = [width, length] of the box
 //   lid_thickness = the height of the lid (default = default_lid_thickness)
 //   tab_length = how long the tab is (default = 10)
 //   make_tab_width = make tabs on the width side (default false)
 //   make_tab_length = make tabs on the length side (default true)
 // Topics: TabbedBox, TabbedLid
 // Example:
-//   MakeTabs(50, 100)
+//   MakeTabs([50, 100])
 //     MakeLidTab(length = 10, height = 6);
 module MakeTabs(
-  box_width,
-  box_length,
+  size,
   lid_thickness = default_lid_thickness,
   tab_length = 10,
   make_tab_width = false,
   make_tab_length = true
 ) {
+  assert(size != undef && is_list(size) && (len(size) == 3 || len(size) == 2), str("size must be set to [x,y,z]", size));
+  box_width = size[0];
+  box_length = size[1];
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
 
   if (make_tab_length) {
     translate([0, (box_length + tab_length) / 2, lid_thickness]) rotate([0, 0, 270]) children();
@@ -503,47 +519,47 @@ module MakeTabs(
 //   Makes a label to put into the lid in the right place with the right rotation.
 // Topics: Label
 // Arguments:
-//    width = inside width of the lid
-//    length = inside width of the lid
+//    size = [x,y] inside width of the lid
 //    options = the options for the label
 //    lid_thickness = thickness of the lid
 // Example:
-//    MakeLidLabel(100, 20, lid_thickness = 2, text_str = "frog", 
+//    MakeLidLabel([100, 20], lid_thickness = 2, text_str = "frog", 
 //      options=MakeLabelOptions(text_length = 50, text_scale = 1.0, border = 2,
 //        offset = 4, font = default_label_font, radius = 2,
 //        label_type = LABEL_TYPE_FRAMED, full_height = true));
 // Example:
-//    MakeLidLabel(100, 20, text_str = "frog",  lid_thickness = 2, 
+//    MakeLidLabel([100, 20], text_str = "frog",  lid_thickness = 2, 
 //       options=MakeLabelOptions(text_length = 50, 
 //       label_type = LABEL_TYPE_FRAMED_SHORT,text_scale = 0.7,
 //       border = 2,
 //       offset = 4, font = default_label_font, radius = 2, full_height = false));
 // Example:
-//    MakeLidLabel(100, 20, text_str = "frog", lid_thickness = 2, 
+//    MakeLidLabel([100, 20], text_str = "frog", lid_thickness = 2, 
 //       options=MakeLabelOptions(text_length = 50, text_scale = 0.5, border = 2,
 //       offset = 4, font = default_label_font, label_type = LABEL_TYPE_FRAMED, 
 //       radius = 2, full_height = false));
 // Example:
-//    MakeLidLabel(100, 30,  text_str = "frog", lid_thickness = 2, 
+//    MakeLidLabel([100, 30],  text_str = "frog", lid_thickness = 2, 
 //       options=MakeLabelOptions(text_length = 50, text_scale = 0.3, border = 1,
 //       offset = 4, font = default_label_font, radius = 2, full_height = true,  
 //       label_type = LABEL_TYPE_FRAMED));
 module MakeLidLabel(
-  width,
-  length,
+  size,
   lid_thickness,
   text_str,
   options,
 ) {
+  assert(size != undef && (len(size) == 2 || len(size) == 3), str("Invalid size in MakeLidLabel", size));
   assert(options != undef, "Must specify label options");
   assert(text_str != undef, "Must specify text string");
+  assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
 
   calc_label_type = DefaultValue(options.label_type, default_label_type);
   if (
     calc_label_type == LABEL_TYPE_FRAMED || calc_label_type == LABEL_TYPE_FRAMED_SHORT || calc_label_type == LABEL_TYPE_FRAMED_SHORT_SOLID || calc_label_type == LABEL_TYPE_FRAMED_SOLID
   ) {
     MakeFramedLidLabel(
-      width=width, length=length,
+      size=size,
       lid_thickness=lid_thickness, label=text_str,
       options=options
     );
@@ -551,7 +567,7 @@ module MakeLidLabel(
     calc_label_type == LABEL_TYPE_FRAMELESS_ANGLE || calc_label_type == LABEL_TYPE_FRAMELESS || calc_label_type == LABEL_TYPE_FRAMELESS_SHORT
   ) {
     MakeFramelessLidLabel(
-      width=width, length=length,  // text_length=text_length,
+      size=size,
       label=text_str, lid_thickness=lid_thickness,
       options=options,
     );

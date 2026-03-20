@@ -37,7 +37,7 @@ num_trains_per_company = 19;
 
 companies = [
   object(shares=2, color="orange", name=["Belfast and", "County Down", "Railway"], lid="Belfast"),
-  object(shares=3, color="yellow", name=["Cork Bandon and", "South Coast", "Railway"], lid="Cork"),
+  object(shares=3, color="yellow", name=["Cork Bandon", "& South Coast", "Railway"], lid="Cork"),
   object(shares=3, color="red", name=["Midland", "Great Western", "Railway"], lid="Midland"),
   object(shares=4, color="purple", name=["Waterford", "Limerick", "& Western", "Railway"], lid="Waterford"),
   object(shares=4, color="blue", name=["Great Southern", "& Western", "Railway"], lid="Great Southern"),
@@ -53,8 +53,8 @@ money_num = ["1", "5", "10"];
 
 num_dividend_cubes = 30;
 
-company_box_width = box_width / 2;
-company_box_length = card_length + default_wall_thickness * 2;
+company_box_width = box_width / 4;
+company_box_length = card_length * 1.8 + default_wall_thickness * 2;
 company_box_height = (box_height - board_thickness) / 2;
 
 money_box_width = box_width;
@@ -65,9 +65,13 @@ spacer_company_width = company_box_width;
 spacer_company_length = company_box_length;
 spacer_company_height = company_box_height;
 
+spacer_back_width = box_width;
+spacer_back_length = box_length - company_box_length - money_box_length - 1;
+spacer_back_height = box_height - board_thickness;
+
 module CompanyBox(num = 0) {
   MakeBoxWithSlidingLid(
-    width=company_box_width, length=company_box_length, height=company_box_height,
+    size=[company_box_width, company_box_length, company_box_height],
     positive_negative_children=[1], material_colour=companies[num].color,
   ) {
     union() {
@@ -76,12 +80,12 @@ module CompanyBox(num = 0) {
       }
       translate([card_width / 2, 0, -2])
         FingerHoleBase(radius=15, height=money_box_height);
-      translate([card_width + (company_box_width - card_width) / 2, dividend_marker_diameter / 2, $inner_height - dividend_marker_thickness - 1])
+      translate([card_width / 2, card_length + dividend_marker_diameter - 1.5, $inner_height - dividend_marker_thickness - 1])
         CylinderWithIndents(
           d=dividend_marker_diameter, h=company_box_height, anchor=BOTTOM, finger_holes=[0, 180],
           finger_hole_radius=4
         );
-      translate([$inner_width - 8, $inner_length / 2, $inner_height - train_height - 0.5]) {
+      translate([$inner_width - 8, $inner_length - train_width * 3, $inner_height - train_height - 0.5]) {
         cuboid([train_length * 6, train_width * 4, company_box_height], anchor=BOTTOM + RIGHT);
         translate([-train_length * 6 - 5, -train_length * 2 - 10, train_height / 2])
           RoundedBoxAllSides([train_length * 6 + 10, train_length * 4 + 20, company_box_height], radius=5);
@@ -89,9 +93,9 @@ module CompanyBox(num = 0) {
     }
     union() {
       max = len(companies[num].name) - 1;
-      font_size = 9.5;
+      font_size = 7.75;
       for (i = [0:len(companies[num].name) - 1]) {
-        translate([card_width / 2 + (i * (font_size + 1)) - max / 2 * (font_size + 1), card_length / 2, $inner_height - single_card_thickness * companies[num].shares - 1.2])
+        translate([card_width / 2 + (i * (font_size + 1)) - max / 2 * (font_size + 1), card_length / 2 + 7, $inner_height - single_card_thickness * companies[num].shares - 1.2])
           rotate(90) text3d(companies[num].name[i], h=0.2, size=font_size, font="Brush Script MT", anchor=CENTER + BOTTOM);
       }
     }
@@ -125,7 +129,7 @@ module CompanyBoxGreatSouthernAndWesternRailway() // `make` me
 
 module CompanyBoxLid(num = 0) {
   SlidingBoxLidWithLabel(
-    width=company_box_width, length=company_box_length,
+    size=[company_box_width, company_box_length, company_box_height],
     text_str=companies[num].lid
   );
 }
@@ -157,13 +161,13 @@ module CompanyBoxLidGreatSouthern() // `make` me
 
 module MoneyBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(width=money_box_width, length=money_box_length, text_str="Bank");
+  SlidingBoxLidWithLabel(size=[money_box_width, money_box_length, money_box_height], text_str="Bank");
 }
 
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=money_box_width, length=money_box_length, height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     positive_negative_children=[1]
   ) {
     union() {
@@ -191,14 +195,13 @@ module MoneyBox() // `make` me
 
 module SpacerBoxBack() // `make` me
 {
-
   my_path = [
-    [company_box_width + 2, 0],
-    [box_width, 0],
-    [box_width, box_length - company_box_length - money_box_length - 1],
-    [0, box_length - company_box_length - money_box_length - 1],
-    [0, box_length - company_box_length * 2 - money_box_length + 7],
-    [company_box_width + 2, box_length - company_box_length * 2 - money_box_length + 7],
+    [company_box_width - 2, 0],
+    [company_box_width - 2, company_box_length + 2],
+    [box_width, company_box_length + 2],
+    [box_width, box_length - money_box_length - 2],
+    [0, box_length - money_box_length - 2],
+    [0, 0],
   ];
   MakePathBoxWithNoLid(
     path=my_path,
@@ -211,9 +214,7 @@ module SpacerBoxBack() // `make` me
 module SpacerBoxCompany() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_company_width,
-    length=spacer_company_length,
-    height=spacer_company_height,
+    size=[spacer_company_width, spacer_company_length, spacer_company_height],
     hollow=true
   );
 }
@@ -223,26 +224,22 @@ module BoxLayout(layout = 0) {
     cube([box_width, box_length, 1]);
     cube([1, box_length, box_height]);
   }
-
   if (layout < 2) {
-    translate([0, 0, 0])
-      MoneyBox();
+    MoneyBox();
   }
-  for (i = [0:1]) {
-    translate([company_box_width * i, money_box_length, 0])
+  for (i = [0:2]) {
+    translate([company_box_width * i + company_box_width, money_box_length, 0])
       CompanyBox(num=i);
-    if (layout < 2) {
-      translate([company_box_width * i, money_box_length, company_box_height])
-        CompanyBox(num=i + 2);
+    if (layout < 2 && i < 2) {
+      translate([company_box_width * i + company_box_width, money_box_length, company_box_height])
+        CompanyBox(num=i + 3);
     }
   }
-  translate([0, company_box_length + money_box_length, 0])
-    CompanyBox(num=4);
   if (layout < 2) {
-    translate([0, company_box_length + money_box_length, company_box_height])
+    translate([company_box_width * 3, money_box_length, company_box_height])
       SpacerBoxCompany();
   }
-  translate([0, company_box_length + money_box_length, 0])
+  translate([0, money_box_length, 0])
     SpacerBoxBack();
 }
 
@@ -257,5 +254,5 @@ module BoxLayoutB() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  CompanyBoxLidGreatSouthern();
+  BoxLayout();
 }

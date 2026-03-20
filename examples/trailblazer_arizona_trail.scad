@@ -312,7 +312,7 @@ module LargeMountain() {
 
 module PlayerBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithSlidingLid(size=[player_box_width, player_box_length, player_box_height]) {
     translate([0, 0, $inner_height - wood_token_thickness / 2 + 0.2])
       RoundedBoxAllSides([$inner_width, $inner_length, wood_token_thickness / 2], radius=4);
     // SUperstition markers.
@@ -358,8 +358,7 @@ module PlayerBox() // `make` me
 module DestinationCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=destination_card_box_width, length=destination_card_box_length,
-    height=destination_card_box_height, lid_on_length=true,
+    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height], lid_on_length=true,
   ) {
     cube([$inner_width, $inner_length, destination_card_box_height]);
     translate([-0.1, destination_cards_width / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
@@ -370,16 +369,14 @@ module DestinationCardBox() // `make` me
 module DestinationCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=destination_card_box_width, length=destination_card_box_length,
-    lid_on_length=true, text_str="Destination",
+    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height], lid_on_length=true, text_str="Destination",
   );
 }
 
 module FieldGuideCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=field_guide_card_box_width, length=field_guide_card_box_length,
-    height=field_guide_card_box_height, lid_on_length=true,
+    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height], lid_on_length=true,
   ) {
     cube([animal_cards_length + 1, $inner_length, field_guide_card_box_height]);
     translate([-0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
@@ -390,14 +387,13 @@ module FieldGuideCardBox() // `make` me
 module FieldGuideCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=field_guide_card_box_width, length=field_guide_card_box_length,
-    lid_on_length=true, text_str="Field Guide",
+    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height], lid_on_length=true, text_str="Field Guide",
   );
 }
 
 module PiecesBoxOne() // `make` me
 {
-  MakeBoxWithSlidingLid(width=pieces_box_width, length=pieces_box_length_1, height=pieces_box_height) {
+  MakeBoxWithSlidingLid(size=[pieces_box_width, pieces_box_length_1, pieces_box_height]) {
 
     translate(
       [
@@ -499,7 +495,7 @@ module PiecesBoxOne() // `make` me
 
 module PiecesBoxTwo() // `make` me
 {
-  MakeBoxWithSlidingLid(width=pieces_box_width, length=pieces_box_length_2, height=pieces_box_height) {
+  MakeBoxWithSlidingLid(size=[pieces_box_width, pieces_box_length_2, pieces_box_height]) {
 
     // Five U
     translate(
@@ -575,7 +571,7 @@ module PiecesBoxTwo() // `make` me
 
 module PiecesBoxThree() // `make` me
 {
-  MakeBoxWithSlidingLid(width=pieces_box_small_width, length=pieces_box_small_length_1, height=pieces_box_small_height) {
+  MakeBoxWithSlidingLid(size=[pieces_box_small_width, pieces_box_small_length_1, pieces_box_small_height]) {
     translate(
       [
         flora_double_polyominoes * 4 / 8,
@@ -621,7 +617,7 @@ module PiecesBoxThree() // `make` me
 
 module PiecesBoxFour() // `make` me
 {
-  MakeBoxWithSlidingLid(width=pieces_box_small_width, length=pieces_box_small_length_2, height=pieces_box_small_height) {
+  MakeBoxWithSlidingLid(size=[pieces_box_small_width, pieces_box_small_length_2, pieces_box_small_height]) {
     translate(
       [
         flora_double_polyominoes * 4 / 8,
@@ -647,7 +643,7 @@ module PiecesBoxFour() // `make` me
 
 module PiecesBoxCards() // `make` me
 {
-  MakeBoxWithSlidingLid(width=pieces_box_cards_width, length=pieces_box_cards_length, height=pieces_box_cards_height) {
+  MakeBoxWithSlidingLid(size=[pieces_box_cards_width, pieces_box_cards_length, pieces_box_cards_height]) {
     translate(
       [
         flora_double_polyominoes * 12 / 8 + 7,
@@ -703,8 +699,7 @@ module PiecesBoxCards() // `make` me
 module TrailsCardsBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=trails_card_box_width, length=trails_card_box_length,
-    height=trails_card_box_height, lid_on_length=true,
+    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true,
   ) {
     cube([backpack_cards_width + 1, $inner_length, trails_card_box_height]);
     translate([$inner_width - backpack_cards_width - 1, 0, 0])
@@ -720,8 +715,7 @@ module TrailsCardsBoxLid() // `make` me
 {
 
   SlidingBoxLidWithLabel(
-    width=trails_card_box_width, length=trails_card_box_length, lid_on_length=true,
-    text_str="Trails"
+    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true, text_str="Trails"
   );
 }
 

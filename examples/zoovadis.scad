@@ -176,7 +176,7 @@ module LaurelsBox(num_laurels, num_rows = 5, generate_lid = true) {
   laurel_bottom_offset = laurel_box_height - laurel_diameter - lid_thickness * 2 - 0.5;
 
   MakeBoxWithSlipoverLid(
-    width=laurel_box_width, length=laurel_box_length, height=laurel_box_height,
+    size=[laurel_box_width, laurel_box_length, laurel_box_height],
     wall_height=laurel_wall_height, foot=2, wall_thickness=wall_thickness,
     lid_thickness=lid_thickness
   ) {
@@ -206,7 +206,7 @@ module LaurelsBox(num_laurels, num_rows = 5, generate_lid = true) {
   if (generate_lid) {
     translate([laurel_box_width + 10, 0, 0])
       SlipoverBoxLidWithLabel(
-        width=laurel_box_width, length=laurel_box_length, height=laurel_box_height,
+        size=[laurel_box_width, laurel_box_length, laurel_box_height],
         text_str=text_str, foot=2,
         wall_thickness=wall_thickness, lid_thickness=lid_thickness
       );
@@ -234,7 +234,7 @@ module AnimalBox(text_str, animal_width, generate_lid = true) {
   }
 
   MakeBoxWithSlipoverLid(
-    width=player_box_width, length=player_box_length, height=player_box_height,
+    size=[player_box_width, player_box_length, player_box_height],
     wall_height=player_box_wall_height, foot=2
   ) {
     for (i = [0:1:5]) {
@@ -262,7 +262,7 @@ module AnimalBox(text_str, animal_width, generate_lid = true) {
   }
   if (generate_lid) {
     translate([player_box_width + 10, 0, 0]) SlipoverLidWithLabel(
-        width=player_box_width, length=player_box_length, height=player_box_height, foot=2,
+        size=[player_box_width, player_box_length, player_box_height], foot=2,
         text_str=text_str, shape_type=SHAPE_TYPE_CIRCLE,
         layout_width=10, shape_width=14, finger_hole_length=true, finger_hole_width=false
       );
@@ -324,7 +324,7 @@ module PeacockBox(generate_lid = true) // `make` me
 
 module ShieldBoxInternal() {
   MakeBoxWithSlipoverLid(
-    width=shield_box_width, length=shield_box_length, height=shield_box_height, foot=2,
+    size=[shield_box_width, shield_box_length, shield_box_height], foot=2,
     floor_thickness=wall_thickness, lid_thickness=wall_thickness, wall_thickness=1.5
   ) {
     translate([shield_width + 2, 0, shield_box_height - shield_thickness - wall_thickness * 2 - 0.5])
@@ -341,7 +341,7 @@ module ShieldBoxInternal() {
 
 module ShieldBox(generate_lid = true) // `make` me
 {
-  SplitBox(width=shield_box_width, length=shield_box_length, height=shield_box_height, orient=UP, spin=90) {
+  SplitBox(size=[shield_box_width, shield_box_length, shield_box_height], orient=UP, spin=90) {
     ShieldBoxInternal();
     MakePuzzleJoin();
   }
@@ -349,11 +349,11 @@ module ShieldBox(generate_lid = true) // `make` me
     text_str = "Zoovadis";
     translate([shield_box_width + 30, 0, 0])
       SplitBox(
-        width=shield_box_width, length=shield_box_length, height=shield_box_height, orient=LEFT,
+        size=[shield_box_width, shield_box_length, shield_box_height], orient=LEFT,
         spin=90, y=[2]
       ) {
         SlipoverBoxLidWithLabel(
-          width=shield_box_width, length=shield_box_length, height=shield_box_height,
+          size=[shield_box_width, shield_box_length, shield_box_height],
           foot=2, text_str=text_str,
           shape_type=SHAPE_TYPE_CIRCLE, layout_width=10, shape_width=14,
           lid_thickness=1.5, wall_thickness=1.5,

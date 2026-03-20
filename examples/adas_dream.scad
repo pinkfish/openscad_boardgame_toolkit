@@ -484,9 +484,7 @@ module InnovationToken(height) {
 module AssignmentCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=assignment_card_box_width,
-    length=assignment_card_box_length,
-    height=assignment_card_box_height,
+    size=[assignment_card_box_width, assignment_card_box_length, assignment_card_box_height],
     lid_on_length=true,
     material_colour="purple"
   ) {
@@ -501,8 +499,7 @@ module AssignmentCardBox() // `make` me
 module AssignmentCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, assignment_card_box_height],
     lid_on_length=true,
     material_colour="purple",
     text_str="Assignment"
@@ -512,9 +509,7 @@ module AssignmentCardBoxLid() // `make` me
 module TierCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length,
-    height=tier_card_box_height,
+    size=[card_box_width, card_box_length, tier_card_box_height],
     lid_on_length=true,
     material_colour="brown"
   ) {
@@ -529,8 +524,7 @@ module TierCardBox() // `make` me
 module TierCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, tier_card_box_height],
     lid_on_length=true,
     material_colour="purple",
     text_str="Tier"
@@ -540,9 +534,7 @@ module TierCardBoxLid() // `make` me
 module OtherCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length,
-    height=other_card_box_height,
+    size=[card_box_width, card_box_length, other_card_box_height],
     lid_on_length=true,
     material_colour="purple"
   ) {
@@ -557,8 +549,7 @@ module OtherCardBox() // `make` me
 module OtherCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, other_card_box_height],
     lid_on_length=true,
     material_colour="purple",
     text_str="Other"
@@ -568,9 +559,7 @@ module OtherCardBoxLid() // `make` me
 module AssignmentBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=assignment_box_width,
-    length=assignment_box_length,
-    height=assignment_box_height,
+    size=[assignment_box_width, assignment_box_length, assignment_box_height],
     material_colour="lightblue"
   ) {
     for (i = [0:1]) {
@@ -595,9 +584,7 @@ module AssignmentBox() // `make` me
 module AssignmentBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=assignment_box_width,
-    length=assignment_box_length,
-    height=assignment_box_height,
+    size=[assignment_box_width, assignment_box_length, assignment_box_height],
     material_colour="lightblue",
     "Assignment"
   );
@@ -606,9 +593,7 @@ module AssignmentBoxLid() // `make` me
 module BreakthroughBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=breakthrough_box_width,
-    length=breakthrough_box_length,
-    height=breakthgough_box_height,
+    size=[breakthrough_box_width, breakthrough_box_length, breakthgough_box_height],
     material_colour="magenta"
   ) {
     for (i = [0:1]) {
@@ -643,8 +628,7 @@ module BreakthroughBox() // `make` me
 module BreakthroughBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=breakthrough_box_width,
-    length=breakthrough_box_length,
+    size=[breakthrough_box_width, breakthrough_box_length, breakthgough_box_height],
     material_colour="magenta",
     "Breakthrough"
   );
@@ -653,9 +637,7 @@ module BreakthroughBoxLid() // `make` me
 module UniversityBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=university_box_width,
-    length=univeristy_box_length,
-    height=university_box_height,
+    size=[university_box_width, univeristy_box_length, university_box_height],
     material_colour="aqua"
   ) {
     translate(
@@ -693,8 +675,7 @@ module UniversityBox() // `make` me
 module UniversityBoxLid() // `make` me
 {
   SlidingBoxLidWithShape(
-    width=university_box_width,
-    length=univeristy_box_length,
+    size=[university_box_width, univeristy_box_length, university_box_height],
     material_colour="aqua"
   );
 }
@@ -702,9 +683,7 @@ module UniversityBoxLid() // `make` me
 module BookBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=book_box_width,
-    length=book_box_length,
-    height=book_box_height,
+    size=[book_box_width, book_box_length, book_box_height],
     material_colour="red"
   ) {
     for (i = [0:3]) {
@@ -729,9 +708,7 @@ module BookBox() // `make` me
 module BookBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=book_box_width,
-    length=book_box_length,
-    height=book_box_height,
+    size=[book_box_width, book_box_length, book_box_height],
     material_colour="red",
     text_str="Book"
   );
@@ -740,9 +717,7 @@ module BookBoxLid() // `make` me
 module ProgramBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=program_box_width,
-    length=program_box_length,
-    height=program_box_height,
+    size=[program_box_width, program_box_length, program_box_height],
     lid_on_length=true,
     material_colour="brown"
   ) {
@@ -774,9 +749,7 @@ module ProgramBox() // `make` me
 module ProgramBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=program_box_width,
-    length=program_box_length,
-    height=program_box_height,
+    size=[program_box_width, program_box_length, program_box_height],
     material_colour="brown",
     text_str="Program",
     lid_on_length=true,
@@ -786,9 +759,7 @@ module ProgramBoxLid() // `make` me
 module VisitorBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=visitor_box_width,
-    length=visitor_box_length,
-    height=visitor_box_height,
+    size=[visitor_box_width, visitor_box_length, visitor_box_height],
     material_colour="lightgrey",
     positive_negative_children=[1]
   ) {
@@ -834,9 +805,7 @@ module VisitorBox() // `make` me
 module VisitorBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=visitor_box_width,
-    length=visitor_box_length,
-    height=visitor_box_height,
+    size=[visitor_box_width, visitor_box_length, visitor_box_height],
     material_colour="lightgrey",
     text_str="Scoring"
   );
@@ -845,9 +814,7 @@ module VisitorBoxLid() // `make` me
 module ScoringBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=scoring_box_width,
-    length=scoring_box_length,
-    height=scoring_box_height,
+    size=[scoring_box_width, scoring_box_length, scoring_box_height],
     material_colour="lightgrey"
   ) {
     // Scoring tiles.
@@ -875,9 +842,7 @@ module ScoringBox() // `make` me
 module ScoringBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=scoring_box_width,
-    length=scoring_box_length,
-    height=scoring_box_height,
+    size=[scoring_box_width, scoring_box_length, scoring_box_height],
     material_colour="lightgrey",
     text_str="Scoring"
   );
@@ -885,10 +850,8 @@ module ScoringBoxLid() // `make` me
 
 module PlayerBoxInternal(material_colour) {
   MakeBoxWithSlidingLid(
-    width=card_box_width,
-    length=card_box_length,
+    size=[card_box_width, card_box_length, player_box_height],
     lid_on_length=true,
-    height=player_box_height,
     material_colour=material_colour
   ) {
     card_height = single_card_thickness * starting_player_card_num + 1;
@@ -1028,9 +991,7 @@ module PlayerBoxPurple() // `make` me
 module PlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=card_box_width,
-    length=card_box_length,
-    lid_on_length=true,
+    size=[card_box_width, card_box_length, player_box_height],
     material_colour="blue",
     text_str="Player"
   );
@@ -1039,9 +1000,7 @@ module PlayerBoxLid() // `make` me
 module ObjectiveBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=objective_box_width,
-    length=objective_box_length,
-    height=objective_box_height,
+    size=[objective_box_width, objective_box_length, objective_box_height],
     material_colour="orange",
     lid_on_length=true
   ) {
@@ -1080,9 +1039,7 @@ module ObjectiveBox() // `make` me
 module FirstPlayerBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=first_player_box_width,
-    length=first_player_box_length,
-    height=first_player_box_height
+    size=[first_player_box_width, first_player_box_length, first_player_box_height]
   ) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - first_player_thickness - 0.5])
       linear_extrude(height=first_player_thickness + 1)
@@ -1096,8 +1053,7 @@ module FirstPlayerBox() // `make` me
 module FirstPlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=first_player_box_width,
-    length=first_player_box_length,
+    size=[first_player_box_width, first_player_box_length, first_player_box_height],
     text_str="First"
   );
 }
@@ -1105,8 +1061,7 @@ module FirstPlayerBoxLid() // `make` me
 module ObjectiveBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=objective_box_width,
-    length=objective_box_length,
+    size=[objective_box_width, objective_box_length, objective_box_height],
     material_colour="orange",
     "Objective",
     lid_on_length=true
@@ -1116,9 +1071,7 @@ module ObjectiveBoxLid() // `make` me
 module AlternativeObjectiveBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=alternative_objective_box_width,
-    length=alternative_objective_box_length,
-    height=alternative_objective_box_height,
+    size=[alternative_objective_box_width, alternative_objective_box_length, alternative_objective_box_height],
     material_colour="purple"
   ) {
     for (i = [0:1]) {
@@ -1144,9 +1097,7 @@ module AlternativeObjectiveBox() // `make` me
 module AlternativeObjectiveBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=alternative_objective_box_width,
-    length=alternative_objective_box_length,
-    height=alternative_objective_box_height,
+    size=[alternative_objective_box_width, alternative_objective_box_length, alternative_objective_box_height],
     material_colour="purple",
     text_str="Alt Objective"
   );
@@ -1155,9 +1106,7 @@ module AlternativeObjectiveBoxLid() // `make` me
 module DiceBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=dice_box_width,
-    length=dice_box_length,
-    height=dice_box_height,
+    size=[dice_box_width, dice_box_length, dice_box_height],
     material_colour="green"
   ) {
     translate([1.5, 0.5, 0]) {
@@ -1172,9 +1121,7 @@ module DiceBox() // `make` me
 module DiceBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=dice_box_width,
-    length=dice_box_length,
-    height=dice_box_height,
+    size=[dice_box_width, dice_box_length, dice_box_height],
     material_colour="green",
     text_str="Dice"
   );
@@ -1183,9 +1130,7 @@ module DiceBoxLid() // `make` me
 module ScorePadBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=score_pad_box_width,
-    length=score_pad_box_length,
-    height=score_pad_box_height,
+    size=[score_pad_box_width, score_pad_box_length, score_pad_box_height],
     material_colour="white"
   ) {
     translate([$inner_width / 2, $inner_length / 2, 0])
@@ -1200,8 +1145,7 @@ module ScorePadBox() // `make` me
 module ScorePadBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=score_pad_box_width,
-    length=score_pad_box_length,
+    size=[score_pad_box_width, score_pad_box_length, score_pad_box_height],
     material_colour="white",
     text_str="Score Pad"
   );
@@ -1210,9 +1154,7 @@ module ScorePadBoxLid() // `make` me
 module GearBox(top_box = false) // `make` me
 {
   MakeBoxWithCapLid(
-    width=cog_box_width,
-    length=cog_box_length,
-    height=cog_box_height,
+    size=[cog_box_width, cog_box_length, cog_box_height],
     material_colour="blue"
   ) {
     for (i = [0:1])
@@ -1253,9 +1195,7 @@ module GearBoxTop() // `make` me
 module GearBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=cog_box_width,
-    length=cog_box_length,
-    height=cog_box_height,
+    size=[cog_box_width, cog_box_length, cog_box_height],
     material_colour="blue",
     text_str="Addition"
   );
@@ -1264,9 +1204,7 @@ module GearBoxLid() // `make` me
 module GearBoxTopLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=cog_box_width,
-    length=cog_box_length,
-    height=cog_box_height,
+    size=[cog_box_width, cog_box_length, cog_box_height],
     material_colour="blue",
     text_str="Multiplier"
   );
@@ -1275,9 +1213,7 @@ module GearBoxTopLid() // `make` me
 module ResourceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=resource_box_width,
-    length=resource_box_length,
-    height=resource_box_height,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     material_colour="gold"
   ) {
     RoundedBoxAllSides(
@@ -1290,8 +1226,7 @@ module ResourceBox() // `make` me
 module ResourceBoxBrassLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_length,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     text_str="Brass"
   );
 }
@@ -1299,8 +1234,7 @@ module ResourceBoxBrassLid() // `make` me
 module ResourceBoxCoalLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=resource_box_width,
-    length=resource_box_length,
+    size=[resource_box_width, resource_box_length, resource_box_height],
     text_str="Coal"
   );
 }
@@ -1308,9 +1242,7 @@ module ResourceBoxCoalLid() // `make` me
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=money_box_width,
-    length=money_box_length,
-    height=money_box_height,
+    size=[money_box_width, money_box_length, money_box_height],
     material_colour="silver"
   ) {
     RoundedBoxAllSides(
@@ -1323,8 +1255,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=money_box_width,
-    length=money_box_length,
+    size=[money_box_width, money_box_length, money_box_height],
     text_str="Money"
   );
 }
@@ -1332,9 +1263,7 @@ module MoneyBoxLid() // `make` me
 module SpacerSide() // `make` me
 {
   MakeBoxWithNoLid(
-    width=spacer_side_box_width,
-    length=spacer_side_box_length,
-    height=spacer_side_box_height,
+    size=[spacer_side_box_width, spacer_side_box_length, spacer_side_box_height],
     hollow=true
   );
 }

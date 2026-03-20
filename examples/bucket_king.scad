@@ -140,7 +140,7 @@ module Bucket(height) {
 
 module PlayerBox() // `make` me
 {
-  MakeBoxAndLidWithInsetHinge(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxAndLidWithInsetHinge(size=[player_box_width, player_box_length, player_box_height]) {
     color(default_material_colour) union() {
         for (j = [0:1:1]) {
           for (i = [0:1:1]) {
@@ -191,7 +191,7 @@ module PlayerBox() // `make` me
 
 module CardBox() // `make` me
 {
-  MakeBoxWithCapLid(width=card_box_width, length=card_box_length, height=card_box_height) {
+  MakeBoxWithCapLid(size=[card_box_width, card_box_length, card_box_height]) {
     cube([$inner_width, $inner_length, card_box_height]);
     translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=10, height=card_box_height, spin=270);
@@ -201,7 +201,7 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=card_box_width, length=card_box_length, height=card_box_height,
+    size=[card_box_width, card_box_length, card_box_height],
     text_str="Bucket King",
     label_options=MakeLabelOptions(label_colour="black")
   );

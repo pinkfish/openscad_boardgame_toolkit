@@ -74,8 +74,7 @@ objective_card_box_height = default_floor_thickness + default_lid_thickness + si
 module ThrusterCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=thruster_card_box_height,
-    lid_on_length=true, material_colour = "yellow"
+    size=[card_box_width, card_box_length, thruster_card_box_height], lid_on_length=true, material_colour = "yellow"
   ) {
     cube([$inner_width, $inner_length, thruster_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -90,8 +89,7 @@ module ThrusterCardBox() // `make` me
 module DamageCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=damage_card_box_height,
-    lid_on_length=true, material_colour = "red"
+    size=[card_box_width, card_box_length, damage_card_box_height], lid_on_length=true, material_colour = "red"
   ) {
     cube([$inner_width, $inner_length, damage_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -106,8 +104,7 @@ module DamageCardBox() // `make` me
 module ReactorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=reactor_card_box_height,
-    lid_on_length=true, material_colour = "blue"
+    size=[card_box_width, card_box_length, reactor_card_box_height], lid_on_length=true, material_colour = "blue"
   ) {
     cube([$inner_width, $inner_length, reactor_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -122,8 +119,7 @@ module ReactorCardBox() // `make` me
 module MissCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=miss_card_box_height,
-    lid_on_length=true, material_colour = "grey"
+    size=[card_box_width, card_box_length, miss_card_box_height], lid_on_length=true, material_colour = "grey"
   ) {
     cube([$inner_width, $inner_length, miss_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -138,8 +134,7 @@ module MissCardBox() // `make` me
 module ShieldCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=shield_card_box_height,
-    lid_on_length=true, material_colour = "green"
+    size=[card_box_width, card_box_length, shield_card_box_height], lid_on_length=true, material_colour = "green"
   ) {
     cube([$inner_width, $inner_length, shield_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -154,8 +149,7 @@ module ShieldCardBox() // `make` me
 module ReferenceCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=reference_card_box_height,
-    lid_on_length=true, material_colour = "white"
+    size=[card_box_width, card_box_length, reference_card_box_height], lid_on_length=true, material_colour = "white"
   ) {
     cube([$inner_width, $inner_length, reference_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -170,8 +164,7 @@ module ReferenceCardBox() // `make` me
 module CrewCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=crew_card_box_height,
-    lid_on_length=true, material_colour = "orange"
+    size=[card_box_width, card_box_length, crew_card_box_height], lid_on_length=true, material_colour = "orange"
   ) {
     cube([$inner_width, $inner_length, crew_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -186,8 +179,7 @@ module CrewCardBox() // `make` me
 module ContractCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=contract_card_box_height,
-    lid_on_length=true, material_colour = "purple"
+    size=[card_box_width, card_box_length, contract_card_box_height], lid_on_length=true, material_colour = "purple"
   ) {
     cube([$inner_width, $inner_length, contract_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -202,8 +194,7 @@ module ContractCardBox() // `make` me
 module ShipCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=ship_card_box_height,
-    lid_on_length=true
+    size=[card_box_width, card_box_length, ship_card_box_height], lid_on_length=true
   ) {
     cube([$inner_width, $inner_length, ship_card_box_height]);
     translate([0, $inner_length / 2, -2]) {
@@ -218,8 +209,7 @@ module ShipCardBox() // `make` me
 module ObjectiveCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    width=card_box_width, length=card_box_length, height=objective_card_box_height,
-    lid_on_length=true
+    size=[card_box_width, card_box_length, objective_card_box_height], lid_on_length=true
   ) {
     cube([$inner_width, $inner_length, objective_card_box_height]);
     translate([0, $inner_length / 2, -2]) {

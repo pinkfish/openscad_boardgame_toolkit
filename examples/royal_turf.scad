@@ -67,7 +67,7 @@ spacer_box_height = money_box_height;
 
 module PlayerBox() // `make` me
 {
-  MakeBoxWithSlidingLid(width=player_box_width, length=player_box_length, height=player_box_height) {
+  MakeBoxWithSlidingLid(size=[player_box_width, player_box_length, player_box_height]) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - cardboard_thickness * 5 - 1])
       cuboid([bet_size, bet_size, cardboard_thickness * 5 + 1], anchor=BOTTOM);
     translate([$inner_width / 2, $inner_length / 2, $inner_height - cardboard_thickness - 0.5])
@@ -80,14 +80,14 @@ module PlayerBox() // `make` me
 module PlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    width=player_box_width, length=player_box_length, text_str="Player"
+    size=[player_box_width, player_box_length, player_box_height], text_str="Player"
   );
 }
 
 module MoneyBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=money_box_width, length=money_box_length, height=money_box_height, wall_thickness=3.5
+    size=[money_box_width, money_box_length, money_box_height], wall_thickness=3.5
   ) {
     RoundedBoxAllSides([$inner_width, $inner_length, money_box_height], radius=money_box_height / 2);
   }
@@ -96,7 +96,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=money_box_width, length=money_box_length, height=money_box_height, wall_thickness=3.5,
+    size=[money_box_width, money_box_length, money_box_height], wall_thickness=3.5,
     text_str="Money"
   );
 }
@@ -104,7 +104,7 @@ module MoneyBoxLid() // `make` me
 module HorseBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=horse_box_width, length=horse_box_length, height=horse_box_height
+    size=[horse_box_width, horse_box_length, horse_box_height]
   ) {
     for (i = [0:3]) {
       translate(
@@ -138,7 +138,7 @@ module HorseBox() // `make` me
 module HorseBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=horse_box_width, length=horse_box_length, height=horse_box_height, wall_thickness=3.5,
+    size=[horse_box_width, horse_box_length, horse_box_height], wall_thickness=3.5,
     text_str="Horses"
   );
 }
@@ -146,9 +146,7 @@ module HorseBoxLid() // `make` me
 module HorseCardBox() // `make` me
 {
   MakeBoxWithCapLid(
-    width=horse_tile_box_width,
-    length=horse_tile_box_length,
-    height=horse_tile_box_height
+    size=[horse_tile_box_width, horse_tile_box_length, horse_tile_box_height]
   ) {
     for (i = [0:2]) {
       translate(
@@ -176,17 +174,14 @@ module HorseCardBox() // `make` me
 module HorseCardBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    width=horse_tile_box_width, length=horse_tile_box_length, height=horse_tile_box_height, wall_thickness=3.5,
+    size=[horse_tile_box_width, horse_tile_box_length, horse_tile_box_height], wall_thickness=3.5,
     text_str="Horse Tiles"
   );
 }
 
 module SpacerBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    width=spacer_box_width,
-    length=spacer_box_length,
-    height=spacer_box_height,
+  MakeBoxWithNoLid(size=[spacer_box_width, spacer_box_length, spacer_box_height],
     hollow=true
   );
 }
