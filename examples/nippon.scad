@@ -128,13 +128,13 @@ starting_tile_box_height = factory_tile_box_height;
 
 upgraded_tile_box_width = box_width - starting_tile_box_width - demand_tile_box_width - factory_tile_box_width * 2;
 upgraded_tile_box_length = factory_tile_box_length;
-upgraded_tile_box_height = cardboard_token_thickness * (24 / 6) + default_floor_thickness + default_lid_thickness;
+upgraded_tile_box_height = cardboard_token_thickness * (24 / 24) + default_floor_thickness + default_lid_thickness;
 
 money_box_width = upgraded_tile_box_width;
 money_box_length = upgraded_tile_box_length;
 money_box_height = space_left - upgraded_tile_box_height;
 
-solo_box_width = 89;
+solo_box_width = 93;
 solo_box_length = upgraded_tile_box_length;
 solo_box_height = default_floor_thickness + default_lid_thickness + 1 + cardboard_token_thickness * 5;
 
@@ -657,12 +657,12 @@ module UpgradeTileBox() // `make` me
     size=[upgraded_tile_box_width, upgraded_tile_box_length, upgraded_tile_box_height]
   ) {
     for (i = [0:2]) {
-      for (j = [0:1]) {
+      for (j = [0:3]) {
         translate(
           [
-            (upgrade_token_width + 20) * j + 10,
-            (upgrade_token_width + 5) * i,
-            $inner_height - cardboard_token_thickness * 4,
+            (upgrade_token_width + 2) * j + 6,
+            (upgrade_token_width + 4) * i,
+            $inner_height - cardboard_token_thickness * 1,
           ]
         )
           CuboidWithIndentsBottom(
@@ -706,7 +706,7 @@ module SoloBox() // `make` me
   MakeBoxWithCapLid(
     size=[solo_box_width, solo_box_length, solo_box_height]
   ) {
-    translate([8, 5, $inner_height - cardboard_token_thickness * 4])
+    translate([9, 5, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -715,7 +715,7 @@ module SoloBox() // `make` me
         edges=[FRONT + RIGHT, FRONT + LEFT, BACK + RIGHT, BACK + LEFT],
         chamfer=solo_action_token_edge
       );
-    translate([8, 30, $inner_height - cardboard_token_thickness * 5])
+    translate([9, 30, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_goal_token_length, solo_goal_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -725,7 +725,7 @@ module SoloBox() // `make` me
         chamfer=solo_action_token_edge
       );
 
-    translate([40, 2, $inner_height - cardboard_token_thickness * 4])
+    translate([41, 2, $inner_height - cardboard_token_thickness * 4])
       CuboidWithIndentsBottom(
         [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -735,7 +735,7 @@ module SoloBox() // `make` me
         chamfer=solo_action_token_edge
       );
 
-    translate([40, 29, $inner_height - cardboard_token_thickness * 5])
+    translate([41, 29, $inner_height - cardboard_token_thickness * 5])
       CuboidWithIndentsBottom(
         [solo_action_token_length, solo_action_token_width, solo_box_height],
         anchor=BOTTOM + LEFT + FRONT,
@@ -912,6 +912,14 @@ module SpacerFront() // `make` me
   );
 }
 
+module SpacerFrontSmall() // `make` me
+{
+  MakeBoxWithNoLid(
+    size=[front_spacer_width / 2, front_spacer_length, front_spacer_height],
+    hollow=true
+  );
+}
+
 module BoxLayout(layout = 0) {
   if (layout == 0) {
     cube([box_width, box_length, 1]);
@@ -1016,5 +1024,5 @@ module TestBox() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  RoundMarkerBox();
 }
