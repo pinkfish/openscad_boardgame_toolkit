@@ -631,15 +631,6 @@ module FingerHoleWall(
           [tangents[3][0][0] + 0.1, 0],
           [tangents[3][1][0], 0],
         ];
-        echo(
-          [
-            top_polygon,
-            mirror(
-              [1, 0, 0],
-              top_polygon
-            ),
-          ]
-        );
 
         top_region =
         hull_region(
@@ -726,10 +717,16 @@ module FingerHoleBase(
   multmatrix(m=tmat) union() {
       translate([-radius, -wall_thickness / 2, height]) {
         translate([0, wall_thickness / 2, 0]) cyl(r=radius, h=height, anchor=TOP + LEFT, $fn=64);
-        cuboid(
-          [radius * 2, wall_thickness + 1, height], rounding=-rounding_radius,
-          edges=[TOP + LEFT, TOP + RIGHT], anchor=TOP + LEFT, $fn=32,
+        path = rect(
+          [radius * 2, wall_thickness + 1], rounding=[-rounding_radius, -rounding_radius, 0, 0],
+          anchor=TOP + LEFT, $fn=32,
         );
+        translate([0, wall_thickness / 2 + 0.01, 0])
+          rotate([90, 0, 0])
+            offset_sweep(
+              path, height=wall_thickness + 0.02,
+              top=os_circle(-wall_thickness / 2),
+            );
         translate([radius, -wall_thickness / 2 - 0.01, 0]) rotate([90, 90, 0])
             cuboid(
               [height, radius * 2, wall_thickness], rounding=-wall_thickness / 2, anchor=TOP + LEFT,
