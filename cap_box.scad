@@ -134,7 +134,7 @@ module MakeBoxWithCapLid(
       diff()
         cuboid(
           [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
-          rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+          rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
         ) {
           face_profile(BOTTOM, r=wall_thickness / 2)
             mask2d_roundover(wall_thickness / 2);
@@ -404,8 +404,11 @@ module CapBoxLid(
                 rounding=calc_lid_wall_thickness / 2,
                 edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + FRONT, TOP + BACK, TOP + LEFT, TOP + RIGHT]
               );
-          translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5]) color(material_colour) cube(
-                [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1]
+          translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5]) color(material_colour) cuboid(
+                [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1],
+                anchor=BOTTOM + FRONT + LEFT,
+                rounding=calc_lid_wall_thickness / 4,
+                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + FRONT, TOP + BACK, TOP + LEFT, TOP + RIGHT]
               );
         }
       }

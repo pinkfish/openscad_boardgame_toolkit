@@ -50,7 +50,7 @@ robot_thickness = 7;
 start_token_diameter = 45.5;
 start_token_thickness = 4;
 
-train_width = 12;
+train_width = 14;
 train_length = 41.5;
 train_thickness = 10;
 
@@ -92,6 +92,8 @@ metro_box_height = default_wall_thickness + default_floor_thickness + factory_he
 spacer_box_width = metro_box_width;
 spacer_box_length = metro_box_length;
 spacer_box_height = factory_tile_box_height * 2 - metro_box_height;
+
+spacer_box_top_height = commuter_box_small_height;
 
 module MetroTile(thickness = 2) {
   for (i = [0:2]) {
@@ -207,7 +209,14 @@ module PlayerBox(colour = "green") // `make` me
     translate([$inner_width / 2, $inner_length / 2, $inner_height - train_thickness])
       CuboidWithIndentsBottom(
         [train_length, train_width, train_thickness + 1], anchor=BOTTOM,
-        finger_holes=[], finger_hole_radius=10
+        finger_holes=[], finger_hole_radius=10, rounding=2, edges=[
+          FRONT + LEFT,
+          FRONT + RIGHT,
+          BACK + LEFT,
+          BACK + RIGHT,
+          BOTTOM + LEFT,
+          BOTTOM + RIGHT,
+        ]
       );
 
     translate([$inner_width / 2, $inner_length / 2, $inner_height - train_thickness])
@@ -326,6 +335,25 @@ module SpacerBox() // `make` me
   ){}
 }
 
+module SpacerTop() // `make` me
+{
+  length = box_length - commuter_box_small_length * 2;
+  small_width = start_token_box_width + 1;
+  start_length = length - start_token_box_length - 1;
+  path = [
+    [0, 0],
+    [commuter_box_small_width, 0],
+    [commuter_box_small_width, length],
+    [small_width, length],
+    [small_width, start_length],
+    [0, start_length],
+  ];
+  MakePathBoxWithNoLid(
+    path=path, height=spacer_box_top_height, hollow=true,
+    offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16)
+  );
+}
+
 module BoxLayout(layout = 0) {
   if (layout == 0) {
     cube([box_width, box_length, 1]);
@@ -370,6 +398,8 @@ module BoxLayout(layout = 0) {
       CommuterBoxSmall(colour=factpory_colours[5]);
     translate([0, 0, card_box_height])
       CommuterBoxSmall(colour=factpory_colours[6]);
+    translate([0, commuter_box_small_length * 2, card_box_height])
+      SpacerTop();
   }
   translate([0, card_box_length * 2, 0])
     StartTokenBox();
@@ -418,5 +448,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutC();
+  BoxLayout();
 }

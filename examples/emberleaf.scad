@@ -286,7 +286,7 @@ module MaterialHoneyBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[material_box_width, material_box_length, material_box_height],
-    text_str="Honey", label_options=MakeLabelOptions(scale=0.5)
+    text_str="Honey", label_options=MakeLabelOptions(text_scale=0.5)
   );
 }
 
@@ -294,7 +294,7 @@ module MaterialWoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[material_box_width, material_box_length, material_box_height],
-    text_str="Wood", label_options=MakeLabelOptions(scale=0.5)
+    text_str="Wood", label_options=MakeLabelOptions(text_scale=0.5)
   );
 }
 
@@ -302,7 +302,7 @@ module MaterialFoodBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[material_box_width, material_box_length, material_box_height],
-    text_str="Food", label_options=MakeLabelOptions(scale=0.5)
+    text_str="Food", label_options=MakeLabelOptions(text_scale=0.5)
   );
 }
 
@@ -310,7 +310,7 @@ module MaterialStoneBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[material_box_width, material_box_length, material_box_height],
-    text_str="Stone", label_options=MakeLabelOptions(scale=0.5)
+    text_str="Stone", label_options=MakeLabelOptions(text_scale=0.5)
   );
 }
 

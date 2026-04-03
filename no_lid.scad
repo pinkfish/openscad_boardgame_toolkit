@@ -126,6 +126,7 @@ module MakeBoxWithNoLid(
 //   make_finger_y = makes finger dip on the y axis
 //   finger_hole_size = size of the finger dip (default 20)
 //   hollow = make the inside hollow (default false)
+//   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 // Example:
 //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20);
 // Example:
@@ -139,12 +140,14 @@ module MakePathBoxWithNoLid(
   make_finger_y = undef,
   material_colour = "grey",
   finger_hole_size = undef,
+  offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
   hollow = false
 ) {
   assert(is_path(path, 2), "Path must be a 2d path");
   assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
   assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
   assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
+  assert(height > 0, str("Need height > 0, height=", height));
 
   inner_path = offset(path, r=-wall_thickness);
 
@@ -162,11 +165,27 @@ module MakePathBoxWithNoLid(
 
   difference() {
     color(material_colour)
-      offset_sweep(calc_path, height=height, bottom=os_circle(wall_thickness / 2), top=os_circle(wall_thickness / 4));
+      offset_sweep(
+        calc_path,
+        height=height,
+        bottom=os_circle(wall_thickness / 2),
+        top=os_circle(wall_thickness / 4),
+        offset=offset_sweep_options.offset,
+        check_valid=offset_sweep_options.check_valid,
+        quality=offset_sweep_options.quality,
+        steps=offset_sweep_options.steps
+      );
     if (hollow) {
       translate([0, 0, floor_thickness])
         color(material_colour)
-          offset_sweep(round_corners(inner_path, radius=wall_thickness / 2), height=height, bottom=os_circle(wall_thickness / 4), top=os_circle(wall_thickness / 4));
+          offset_sweep(
+            round_corners(inner_path, radius=wall_thickness / 2), height=height, bottom=os_circle(wall_thickness / 4),
+            top=os_circle(wall_thickness / 4),
+            offset=offset_sweep_options.offset,
+            check_valid=offset_sweep_options.check_valid,
+            quality=offset_sweep_options.quality,
+            steps=offset_sweep_options.steps
+          );
     }
 
     // Finger hole bits.

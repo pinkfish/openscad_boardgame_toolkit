@@ -188,6 +188,7 @@ module MakePathBoxWithSlipoverLid(
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
+//   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 // Example:
 //   SlipoverPathBoxLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10);
 module SlipoverPathBoxLid(
@@ -200,6 +201,7 @@ module SlipoverPathBoxLid(
   finger_catch = CATCH_SHORT,
   lid_rounding = undef,
   material_colour = default_material_colour,
+  offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
   lid_catch = default_lid_catch_type
 ) {
   assert(is_path(path, 2), "Path must be a 2d path");
@@ -230,7 +232,15 @@ module SlipoverPathBoxLid(
               difference() {
                 color(material_colour)
                   linear_extrude(lid_thickness) polygon(calc_path);
-                color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=lid_thickness / 2));
+                color(material_colour) offset_sweep(
+                    calc_path,
+                    height=lid_thickness,
+                    top=os_smooth(joint=lid_thickness / 2),
+                    offset=offset_sweep_options.offset,
+                    check_valid=offset_sweep_options.check_valid,
+                    quality=offset_sweep_options.quality,
+                    steps=offset_sweep_options.steps
+                  );
               }
             }
             if ($children > 0) {

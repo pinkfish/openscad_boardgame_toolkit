@@ -559,81 +559,135 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   orient = orientation of the hole (default UP)
 //   spin = spin of the hole (default 0)
 //   material_colour = the material colour to use (default {{default_material_colour}})
+//   rounding_edge = how much to round the edge to the wall (default 0)
 // Example:
 //   FingerHoleWall(10, 20)
 // Example:
 //   FingerHoleWall(10, 9)
-module FingerHoleWall(radius, height, depth_of_hole = 6, rounding_radius = 3, orient = UP, spin = 0, material_colour = default_material_colour) {
+module FingerHoleWall(
+  radius,
+  height,
+  depth_of_hole = 6,
+  rounding_radius = 3,
+  orient = UP,
+  spin = 0,
+  material_colour = default_material_colour,
+  rounding_edge = 0
+) {
   assert(radius > 0, str("Radius must be > 0 radius=", radius));
   assert(height > 0, str("Height must be > 0", height));
+  assert(rounding_edge >= 0, str("rounding_edge must be >= 0 rounding_edge=", rounding_edge));
 
   tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
   multmatrix(m=tmat) union() {
       if (height >= radius + rounding_radius) {
         top_height = radius * 2 - height;
         middle_height = radius - top_height;
-        translate([0, 0, height])
-          cuboid(
-            [radius * 2, depth_of_hole, middle_height], rounding=-rounding_radius,
-            edges=[TOP + LEFT, TOP + RIGHT], $fn=16, anchor=TOP,
-          );
-        translate([0, 0, 0]) ycyl(r=radius, h=depth_of_hole, $fn=64, anchor=BOTTOM);
+        region = union(
+          move(
+            [0, height / 2],
+            square(
+              [radius * 2, middle_height], anchor=TOP,
+            )
+          ),
+          difference(
+            move(
+              [0, rounding_radius],
+              square([radius * 2 + rounding_radius * 2, rounding_radius], anchor=TOP)
+            ),
+            move(
+              [radius + rounding_radius, rounding_radius * 2],
+              circle(r=rounding_radius, anchor=TOP)
+            ),
+            move(
+              [-radius - rounding_radius, rounding_radius * 2],
+              circle(r=rounding_radius, anchor=TOP)
+            )
+          ),
+          circle(
+            r=radius, h=depth_of_hole, $fn=64, anchor=BOTTOM
+          ),
+        );
+        translate([0, -depth_of_hole / 2, height])
+          rotate([270, 0, 0])
+            offset_sweep(
+              region[0], height=depth_of_hole,
+              bottom=os_circle(-rounding_edge),
+              top=os_circle(-rounding_edge),
+            );
       } else {
-        translate([0, 0, height]) rotate([90, 0, 0]) intersection() {
-              translate([0, -height / 2, 0])
-                cuboid([radius * 2 + rounding_radius * 2, height, depth_of_hole], anchor=CENTER);
-              union() {
-                tangents = circle_circle_tangents(
-                  rounding_radius,
-                  [
-                    radius + rounding_radius,
-                    -rounding_radius,
-                  ],
-                  radius, [0, -height + radius],
-                );
-                hull() {
+        tangents = circle_circle_tangents(
+          rounding_radius,
+          [
+            radius + rounding_radius,
+            -rounding_radius,
+          ],
+          radius, [0, -height + radius],
+        );
 
-                  for (i = [0:1:1]) {
-                    mirror([i, 0, 0]) union() {
-                        translate([0, 0, -depth_of_hole / 2]) linear_extrude(height=depth_of_hole) polygon(
-                              [
-                                tangents[3][1],
-                                tangents[3][0],
-                                [tangents[3][0][0] + 0.1, 0],
-                                [tangents[3][1][0], 0],
-                              ],
-                            );
-                      }
-                  }
-                }
-                for (i = [0:1:1]) {
-                  mirror([i, 0, 0]) union() {
-                      difference() {
-                        translate([radius + rounding_radius, -rounding_radius, -depth_of_hole / 2 - 0.5])
-                          difference() {
-                            cuboid(
-                              [rounding_radius, rounding_radius, depth_of_hole + 1],
-                              anchor=BOTTOM + FRONT + RIGHT,
-                            );
-                            cyl(r=rounding_radius, h=depth_of_hole + 1, $fn=32, anchor=BOTTOM);
-                          }
+        top_polygon = [
+          tangents[3][1],
+          tangents[3][0],
+          [tangents[3][0][0] + 0.1, 0],
+          [tangents[3][1][0], 0],
+        ];
+        echo(
+          [
+            top_polygon,
+            mirror(
+              [1, 0, 0],
+              top_polygon
+            ),
+          ]
+        );
 
-                        translate([0, 0, -depth_of_hole / 2 - 0.5]) linear_extrude(height=depth_of_hole + 1)
-                            polygon(
-                              [
-                                tangents[3][1],
-                                tangents[3][0],
-                                [tangents[3][0][0], height - radius * 2],
-                                [tangents[3][1][0], height - radius * 2],
-                              ],
-                            );
-                      }
-                    }
-                }
+        top_region =
+        hull_region(
+          make_region(
+            [
+              top_polygon,
+              mirror(
+                [1, 0, 0],
+                top_polygon
+              ),
+            ]
+          )
+        );
+        side_region = difference(
+          move(
+            [radius + rounding_radius, -rounding_radius],
+            difference(
+              square(
+                [rounding_radius, rounding_radius],
+                anchor=BOTTOM + RIGHT,
+              ),
+              move(
+                [0, -rounding_radius],
+                circle(r=rounding_radius, anchor=BOTTOM, $fn=64)
+              )
+            )
+          ),
+          [
+            tangents[3][1],
+            tangents[3][0],
+            [tangents[3][0][0], height - radius * 2],
+            [tangents[3][1][0], height - radius * 2],
+          ],
+        );
+        middle_region = move([0, -height + radius], circle(r=radius));
+        region = intersection(
+          move([0, -height / 2], square([radius * 2 + rounding_radius * 2, height], anchor=CENTER)),
+          union(top_region, middle_region, union(side_region, mirror([1, 0, 0], side_region)))
+        );
 
-                translate([0, -height + radius, 0]) cyl(r=radius, h=depth_of_hole, $fn=64);
-              }
-            }
+        translate([0, depth_of_hole / 2, height])
+          rotate([90, 0, 0])
+            offset_sweep(
+              region[0], height=depth_of_hole,
+              bottom=os_circle(-rounding_edge),
+              top=os_circle(-rounding_edge),
+              $fn=16
+            );
       }
     }
 }

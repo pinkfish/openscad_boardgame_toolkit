@@ -79,20 +79,23 @@ module MakeBoxWithSlipoverLid(
   difference() {
     union() {
       translate([wall_thickness + size_spacing, wall_thickness + size_spacing, 0]) color(material_colour)
-          cuboid(
-            [
-              width - wall_thickness * 2 - size_spacing * 2,
-              length - wall_thickness * 2 - size_spacing * 2,
-              wall_height_calc,
-            ],
-            anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-          );
+          diff() cuboid(
+              [
+                width - wall_thickness * 2 - size_spacing * 2,
+                length - wall_thickness * 2 - size_spacing * 2,
+                wall_height_calc,
+              ],
+              anchor=BOTTOM + FRONT + LEFT,
+              rounding=wall_thickness,
+              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+            ) {
+              edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 4, l=max(length, width));
+            }
       if (foot > 0) {
         color(material_colour)
           cuboid(
-            [width, length, foot], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+            [width, length, foot], anchor=BOTTOM + FRONT + LEFT, rounding=min(wall_thickness / 2, foot / 2),
+            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
           );
       }
     }
@@ -237,17 +240,15 @@ module SlipoverBoxLid(
   assert(width > 0 && length > 0 && height > 0, str("Need width, length, height > 0 width=", width, " length=", length, " height=", height));
 
   foot_offset = foot > 0 ? foot + size_spacing : 0;
-  calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness);
+  calc_lid_rounding = DefaultValue(lid_rounding, wall_thickness / 2);
   translate([0, length, height - foot]) rotate([180, 0, 0]) {
       union() {
         translate([0, 0, height - foot_offset - lid_thickness]) {
           internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
             // Top piece
-            color(material_colour) cuboid(
-                [width, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-                rounding=calc_lid_rounding,
-                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-              );
+            color(material_colour) translate([wall_thickness * 5 / 6, wall_thickness * 5 / 6, 0]) cuboid(
+                  [width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness], anchor=BOTTOM + FRONT + LEFT,
+                );
             if ($children > 0) {
               children(0);
             }
@@ -270,24 +271,38 @@ module SlipoverBoxLid(
         }
         finger_height = min(20, (height - foot_offset - lid_thickness) / 2);
         difference() {
-          color(material_colour) cuboid(
-              [width, length, height - foot_offset], anchor=BOTTOM + FRONT + LEFT,
-              rounding=calc_lid_rounding,
-              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-            );
-          translate([wall_thickness, wall_thickness, -0.5]) color(material_colour)
-              cube([width - wall_thickness * 2, length - wall_thickness * 2, height + 1]);
+          color(material_colour) diff() cuboid(
+                [width, length, height - foot_offset],
+                anchor=BOTTOM + FRONT + LEFT,
+                rounding=calc_lid_rounding,
+                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP]
+              ) {
+                edge_mask(BOT) rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length));
+              }
+          translate([wall_thickness, wall_thickness, height - foot_offset - lid_thickness - 0.01]) color(material_colour)
+              cuboid(
+                [width - wall_thickness * 2, length - wall_thickness * 2, foot_offset + 1],
+                anchor=BOTTOM + FRONT + LEFT,
+              );
+          translate([wall_thickness, wall_thickness, -1 - lid_thickness]) color(material_colour)
+              cuboid(
+                [width - wall_thickness * 2, length - wall_thickness * 2, height - foot_offset + 1],
+                anchor=BOTTOM + FRONT + LEFT,
+                rounding=calc_lid_rounding / 2,
+                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP]
+              );
           if (finger_hole_length) {
-            translate([width / 2, 1, finger_height - 0.01]) mirror([0, 0, 1]) color(material_colour)
-                  FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
-            translate([width / 2, length - 1, finger_height - 0.01]) mirror([0, 0, 1])
-                color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
+            translate([width / 2, wall_thickness / 2 - 0.01, finger_height - 0.01]) mirror([0, 0, 1]) color(material_colour)
+                  FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4);
+            translate([width / 2, length - wall_thickness / 2 + 0.01, finger_height - 0.01]) mirror([0, 0, 1])
+                color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4);
           }
           if (finger_hole_width) {
-            translate([1, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
-            translate([width - 1, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness * 6);
+            echo([object(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4)]);
+            translate([wall_thickness / 2 + 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
+                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4);
+            translate([width - wall_thickness / 2 - 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
+                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4);
           }
         }
 

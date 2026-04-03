@@ -308,5 +308,5 @@ module SplendorBoxLid() // `make` me
 }
 
 if (FROM_MAKE != 1) {
-  SplendorBoxInside();
+  SplendorBox();
 }

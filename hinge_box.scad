@@ -257,7 +257,7 @@ module HingeBoxLidLabel(
       // Top piece
       color(material_colour) cuboid(
           [$inner_width, $inner_length, lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
         );
     }
     LidMeshBasic(
@@ -343,7 +343,7 @@ module MakeBoxAndLidWithInsetHinge(
           color(material_colour)
             cuboid(
               [width, length, height / 2], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
             );
           // Add a latch.
           color(material_colour) translate([0, length / 2 + tab_length / 2, height / 2 - lid_thickness])
@@ -390,7 +390,7 @@ module MakeBoxAndLidWithInsetHinge(
               color(material_colour)
                 cuboid(
                   [width, length, height / 2], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
                 );
               // Add a rim to align
               color(material_colour)

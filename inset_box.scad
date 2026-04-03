@@ -426,7 +426,7 @@ module MakeBoxWithInsetLidTabbed(
     color(material_colour)
       cuboid(
         [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
       );
     translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness]) color(material_colour)
         cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1]);
@@ -861,7 +861,7 @@ module MakeBoxWithInsetLidRabbitClip(
   difference() {
     color(material_colour) cuboid(
         [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
-        rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
       );
     translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness]) color(material_colour)
         cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1]);

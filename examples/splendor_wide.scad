@@ -84,6 +84,5 @@ module SplendorBoxLid() // `make` me
 }
 
 if (FROM_MAKE != 1) {
- SplendorBoxLid();
- // MakeStripedGrid(width=splendor_box_width, length=splendor_box_length);
+ SplendorBox();
 }

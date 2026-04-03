@@ -170,11 +170,12 @@ module SlidingLid(
             lid_length = length - calc_wall_thickness;
             translate([calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0])
               color(material_colour)
-                cuboid(
-                  [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-                  rounding=calc_lid_rounding,
-                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-                );
+                diff()
+                  cuboid(
+                    [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
+                    rounding=calc_lid_rounding,
+                    edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+                  ) edge_mask(TOP + BACK) rounding_edge_mask(r=calc_lid_rounding / 2, l=lid_width);
             // Top edge easing.
             translate(
               [
@@ -789,10 +790,13 @@ module MakeBoxWithSlidingLid(
 
   difference() {
     color(material_colour)
-      cuboid(
-        [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-      );
+      diff()
+        cuboid(
+          [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
+        ) {
+          edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 2, l=max(length, width));
+        }
     rounding_offset = 0.01;
     if (lid_on_length) {
       translate([-rounding_offset, wall_thickness, height - lid_thickness]) color(material_colour) cuboid(

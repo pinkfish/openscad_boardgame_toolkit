@@ -71,7 +71,7 @@ module MakeBoxWithSlidingCatchLid(
     color(material_colour)
       cuboid(
         [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
       );
     // middle diff.
     translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour)

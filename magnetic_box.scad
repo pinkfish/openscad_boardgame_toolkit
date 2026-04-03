@@ -71,7 +71,7 @@ module MakeBoxWithMagneticLid(
     color(material_colour)
       cuboid(
         [width, length, height - lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
       );
     translate(
       [
@@ -295,7 +295,7 @@ module MagneticBoxLid(
       color(material_colour)
         cuboid(
           [width, length, lid_thickness], rounding=calc_lid_rounding, anchor=BOTTOM + FRONT + LEFT,
-          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
         );
       translate([magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border, -1])
         color(material_colour) cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM, $fn=32);

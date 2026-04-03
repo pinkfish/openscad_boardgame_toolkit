@@ -290,6 +290,7 @@ module MakePathBoxWithCapLid(
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 //    lid_catch = the type of catch to use
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 // Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
 // Example:
 //    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 30);
@@ -308,6 +309,7 @@ module CapPathBoxLid(
   lid_rounding = undef,
   lid_inner_rounding = undef,
   material_colour = default_material_colour,
+  offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
   lid_catch = default_lid_catch_type
 ) {
   assert(is_path(path, 2), "Path must be a 2d path");
@@ -332,7 +334,15 @@ module CapPathBoxLid(
         translate([0, 0, calc_cap_height - lid_thickness]) {
           internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
             // Top piece
-            color(material_colour) offset_sweep(calc_path, height=lid_thickness, top=os_smooth(joint=wall_thickness / 2));
+            color(material_colour) offset_sweep(
+                calc_path,
+                height=lid_thickness,
+                top=os_smooth(joint=wall_thickness / 2),
+                offset=offset_sweep_options.offset,
+                check_valid=offset_sweep_options.check_valid,
+                quality=offset_sweep_options.quality,
+                steps=offset_sweep_options.steps
+              );
 
             if ($children > 0) {
               children(0);
