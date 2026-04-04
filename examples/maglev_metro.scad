@@ -192,19 +192,30 @@ module PlayerBox(colour = "green") // `make` me
     size=[player_box_width, player_box_length, player_box_height],
     material_colour=colour, lid_on_length=true
   ) {
-    translate([player_overlay_hex_width / 2, player_overlay_hex_radius, $inner_height - player_overlay_hex_per_player * player_overlay_hex_thickness / 2 - 1])
+    depth = player_overlay_hex_per_player * player_overlay_hex_thickness / 2 + 1;
+    translate([player_overlay_hex_width / 2, player_overlay_hex_radius - 0.5, $inner_height - depth])
       rotate(90)
-        RegularPolygon(width=player_overlay_hex_width, height=player_box_height, shape_edges=6);
+        RegularPolygon(width=player_overlay_hex_width, height=depth + 0.5, shape_edges=6);
 
-    translate([player_overlay_hex_width / 2, $inner_length - player_overlay_hex_radius, $inner_height - player_overlay_hex_per_player * player_overlay_hex_thickness / 2 - 1])
+    translate([player_overlay_hex_width / 2, $inner_length - player_overlay_hex_radius + 0.5, $inner_height - player_overlay_hex_per_player * player_overlay_hex_thickness / 2 - 1])
       rotate(90)
-        RegularPolygon(width=player_overlay_hex_width, height=player_box_height, shape_edges=6);
+        RegularPolygon(width=player_overlay_hex_width, height=depth + 0.5, shape_edges=6);
 
-    translate([0, player_overlay_hex_radius, 0])
-      FingerHoleWall(radius=17, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90);
+    translate([-default_wall_thickness / 2 - 0.01, player_overlay_hex_radius, 0])
+      FingerHoleWall(
+        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90,
+        depth_of_hole=default_wall_thickness + 0.03,
+        rounding_edge=default_wall_thickness / 2,
+        round_back=false
+      );
 
-    translate([0, $inner_length - player_overlay_hex_radius, 0])
-      FingerHoleWall(radius=17, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90);
+    translate([-default_wall_thickness / 2 - 0.01, $inner_length - player_overlay_hex_radius, 0])
+      FingerHoleWall(
+        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90,
+        depth_of_hole=default_wall_thickness + 0.03,
+        rounding_edge=default_wall_thickness / 2,
+        round_back=false
+      );
 
     translate([$inner_width / 2, $inner_length / 2, $inner_height - train_thickness])
       CuboidWithIndentsBottom(
@@ -448,5 +459,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  SpacerTop();
+  PlayerBox();
 }

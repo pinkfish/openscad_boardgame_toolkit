@@ -788,7 +788,8 @@ module MakeBoxWithSlidingLid(
   length = size[1];
   height = size[2];
 
-  difference() {
+  difference() 
+  {
     color(material_colour)
       diff()
         cuboid(
@@ -813,6 +814,9 @@ module MakeBoxWithSlidingLid(
             anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
             edges=[TOP + FRONT, TOP + BACK, TOP + RIGHT]
           );
+    translate([0, length / 2 , height - lid_thickness])
+      rotate([90, 90, 0])
+          rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
     } else {
       translate([wall_thickness, -rounding_offset, height - lid_thickness]) color(material_colour) cuboid(
             [
@@ -820,7 +824,6 @@ module MakeBoxWithSlidingLid(
               length - wall_thickness + size_spacing + rounding_offset,
               lid_thickness + size_spacing / 2,
             ],
-            anchor=BOTTOM + FRONT + LEFT
           );
       translate([wall_thickness / 2, -rounding_offset, height - lid_thickness]) color(material_colour)
           cuboid(
@@ -828,7 +831,11 @@ module MakeBoxWithSlidingLid(
             anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
             edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK]
           );
+    translate([width/2, 0 , height - lid_thickness])
+      rotate([0, 90, 0])
+          rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
     }
+
 
     // Make everything start from the bottom corner of the box.
     $inner_width = width - wall_thickness * 2;

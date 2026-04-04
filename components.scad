@@ -572,7 +572,9 @@ module FingerHoleWall(
   orient = UP,
   spin = 0,
   material_colour = default_material_colour,
-  rounding_edge = 0
+  rounding_edge = 0,
+  round_front = true,
+  round_back = true
 ) {
   assert(radius > 0, str("Radius must be > 0 radius=", radius));
   assert(height > 0, str("Height must be > 0", height));
@@ -612,8 +614,8 @@ module FingerHoleWall(
           rotate([270, 0, 0])
             offset_sweep(
               region[0], height=depth_of_hole,
-              bottom=os_circle(-rounding_edge),
-              top=os_circle(-rounding_edge),
+              bottom=os_circle(round_front?-rounding_edge:0),
+              top=os_circle(round_back?-rounding_edge:0),
             );
       } else {
         tangents = circle_circle_tangents(
@@ -675,8 +677,8 @@ module FingerHoleWall(
           rotate([90, 0, 0])
             offset_sweep(
               region[0], height=depth_of_hole,
-              bottom=os_circle(-rounding_edge),
-              top=os_circle(-rounding_edge),
+              bottom=os_circle(round_front?-rounding_edge:0),
+              top=os_circle(round_back?-rounding_edge:0),
               $fn=16
             );
       }

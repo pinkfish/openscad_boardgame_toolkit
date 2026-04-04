@@ -33,12 +33,13 @@ module CardLibraryBox(
   assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
   assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
 
+  height_without_hinge = height - wall_thickness * 2;
   difference() {
     union() {
       difference() {
         color(material_colour) diff() {
             cuboid(
-              [width, length, height], anchor=BOTTOM + FRONT + LEFT,
+              [width, length, height_without_hinge], anchor=BOTTOM + FRONT + LEFT,
               rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
             ) {
               face_profile(TOP, r=wall_thickness / 2)
@@ -51,19 +52,28 @@ module CardLibraryBox(
 
         translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour) {
             cuboid(
-              [width, length - (wall_thickness) * 2, height],
+              [width, length - (wall_thickness) * 2, height_without_hinge],
               rounding=wall_thickness / 4,
               anchor=BOTTOM + LEFT + FRONT
             );
           }
       }
+      translate([0, length/8, height_without_hinge - wall_thickness])
+        difference() {
+          cuboid(
+            [wall_thickness * 2, length*3/4, wall_thickness * 3], anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness, edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + RIGHT],
+          );
+          translate([wall_thickness, 0, wall_thickness * 1.5])
+            ycyl(d=wall_thickness, h=length, anchor=BOTTOM);
+        }
       color(material_colour)
-      translate([width - wall_thickness, wall_thickness+0.01, floor_thickness-0.01])
-        cuboid(
-          [wall_thickness, length - wall_thickness * 2 + 0.02, lip_size],
-          anchor=BOTTOM + FRONT + LEFT,
-          rounding=wall_thickness , edges=[ TOP + RIGHT]
-        );
+        translate([width - wall_thickness, wall_thickness + 0.01, floor_thickness - 0.01])
+          cuboid(
+            [wall_thickness, length - wall_thickness * 2 + 0.02, lip_size],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness, edges=[TOP + RIGHT]
+          );
     }
 
     // Make sure the children start from the bottom corner of the box.
