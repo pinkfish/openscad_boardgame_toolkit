@@ -129,11 +129,15 @@ module FactoryTileBox(colour = "yellow") // `make` me
       rotate(90)
         RegularPolygon(width=factory_hex_width, height=factory_tile_box_height, shape_edges=6);
 
-    translate([0, $inner_length / 2, 0])
+    translate([default_wall_thickness * 5 - default_wall_thickness, $inner_length / 2, $inner_height - factory_hex_thickness * 2])
       FingerHoleWall(
         radius=17,
-        height=factory_tile_box_height - default_lid_thickness - default_floor_thickness,
-        spin=90
+        height=factory_hex_thickness * 2,
+        spin=90,
+        rounding_edge=default_wall_thickness / 2,
+        round_back=false,
+        round_front=true,
+        depth_of_hole=default_wall_thickness * 10 + 0.03
       );
   }
 }
@@ -459,5 +463,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBox();
+  FactoryTileBox();
 }
