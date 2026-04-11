@@ -59,11 +59,11 @@ card_length = 90;
 
 card_box_width = default_wall_thickness * 2 + card_width;
 card_box_length = default_wall_thickness * 2 + card_length;
-card_box_height = box_height - game_board_base_thickness * 2 - player_board_thickness * 4;
+card_box_height = (box_height - game_board_base_thickness * 2 - player_board_thickness * 4) / 2;
 
 robot_box_width = card_box_width - 10;
 robot_box_length = box_length - card_box_length * 2;
-robot_box_height = card_box_height / 4;
+robot_box_height = card_box_height / 2;
 
 commuter_box_width = robot_box_width;
 commuter_box_length = robot_box_length / 2;
@@ -71,7 +71,7 @@ commuter_box_height = robot_box_height;
 
 commuter_box_small_width = box_width - game_board_base_width;
 commuter_box_small_length = default_wall_thickness * 2 + robot_width * 6 + 2;
-commuter_box_small_height = box_height - card_box_height;
+commuter_box_small_height = box_height - card_box_height * 2;
 
 start_token_box_width = 10;
 start_token_box_length = robot_box_length;
@@ -109,6 +109,11 @@ module CardBox() // `make` me
     size=[card_box_width, card_box_length, card_box_height]
   ) {
     cube([$inner_width, $inner_length, box_height]);
+    translate([$inner_width / 2.0, 0, -default_floor_thickness])
+      FingerHoleBase(
+        radius=20,
+        height=card_box_height - default_lid_thickness
+      );
   }
 }
 
@@ -393,8 +398,16 @@ module BoxLayout(layout = 0) {
 
   translate([0, 0, 0])
     CardBox();
+  if (layout < 3) {
+    translate([0, 0, card_box_height])
+      CardBox();
+  }
   translate([0, card_box_length, 0])
     CardBox();
+  if (layout < 3) {
+    translate([0, card_box_length, card_box_height])
+      CardBox();
+  }
   factpory_colours = ["silver", "gold", "orange", "pink", "aqua", "coral", "purple"];
 
   for (i = [0:2])
@@ -402,18 +415,18 @@ module BoxLayout(layout = 0) {
       translate([start_token_box_width, card_box_length * 2, i * robot_box_height])
         RobotBox(colour=factpory_colours[i]);
     }
-  if (layout < 3) {
+  if (layout < 2) {
     for (i = [0:1]) {
       translate([start_token_box_width, card_box_length * 2 + commuter_box_length * i, robot_box_height * 3])
         CommuterBox(colour=factpory_colours[i + 3]);
     }
   }
   if (layout < 3) {
-    translate([0, commuter_box_small_length, card_box_height])
+    translate([0, commuter_box_small_length, card_box_height * 2])
       CommuterBoxSmall(colour=factpory_colours[5]);
-    translate([0, 0, card_box_height])
+    translate([0, 0, card_box_height * 2])
       CommuterBoxSmall(colour=factpory_colours[6]);
-    translate([0, commuter_box_small_length * 2, card_box_height])
+    translate([0, commuter_box_small_length * 2, card_box_height * 2])
       SpacerTop();
   }
   translate([0, card_box_length * 2, 0])
@@ -463,5 +476,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  FactoryTileBox();
+  CardBox();
 }

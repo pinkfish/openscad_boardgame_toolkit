@@ -19,18 +19,11 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 include <lib/dominion.scad>
 
-card_length = 91;
-card_width = 66;
-card_10_thickness = 6;
-single_card_thickness = card_10_thickness / 10;
-
-card_box_size = [card_length + default_wall_thickness * 4, 300, card_width + default_wall_thickness * 4];
-
 CARD_LIBRARY_LATCH_SLIDING = "sliding";
 CARD_LIBRARY_LATCH_CLIP = "clip";
 CARD_LIBRARY_LATCH_NONE = "none";
 
-module CardLibraryBox(
+module MakeCardLibraryBox(
   size,
   floor_thickness = default_floor_thickness,
   wall_thickness = default_wall_thickness,
@@ -81,16 +74,16 @@ module CardLibraryBox(
         // Put in the holes for the sliding latch.
         if (latch == CARD_LIBRARY_LATCH_SLIDING) {
           translate([width * 3 / 4, 0, height_without_hinge + lid_thickness]) {
-            translate([wall_thickness / 2, -0.01, -wall_thickness])
+            translate([wall_thickness / 4, -0.01, -wall_thickness])
               cuboid(
-                [wall_thickness * 3, wall_thickness + 0.02, wall_thickness],
+                [wall_thickness * 2.5, wall_thickness + 0.02, wall_thickness],
                 anchor=TOP + FRONT + LEFT,
               );
           }
           translate([width * 3 / 4, length, height_without_hinge + lid_thickness]) {
-            translate([wall_thickness / 2, 0.01, -wall_thickness])
+            translate([wall_thickness / 4, 0.01, -wall_thickness])
               cuboid(
-                [wall_thickness * 3, wall_thickness + 0.02, wall_thickness],
+                [wall_thickness * 2.5, wall_thickness + 0.02, wall_thickness],
                 anchor=TOP + BACK + LEFT,
               );
           }
@@ -167,9 +160,12 @@ module CardLibraryBox(
                 anchor=TOP + FRONT + LEFT,
                 edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT]
               );
-              translate([wall_thickness / 2, -0.01, -wall_thickness])
-                cuboid(
-                  [wall_thickness * 2, wall_thickness + 0.02, wall_thickness],
+              translate([wall_thickness / 2 - 0.1, -0.01, -wall_thickness])
+                prismoid(
+                  size1=[wall_thickness + 0.2, wall_thickness + 0.2],
+                  size2=[wall_thickness * 2 + 0.2, wall_thickness + 0.2],
+                  h=wall_thickness + 0.02,
+                  shift=[0, 0],
                   anchor=TOP + FRONT + LEFT,
                 );
             }
@@ -184,9 +180,12 @@ module CardLibraryBox(
                 anchor=TOP + BACK + LEFT,
                 edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK]
               );
-              translate([wall_thickness / 2, 0.01, -wall_thickness])
-                cuboid(
-                  [wall_thickness * 2, wall_thickness + 0.02, wall_thickness],
+              translate([wall_thickness / 2 - 0.1, 0.01, -wall_thickness])
+                prismoid(
+                  size1=[wall_thickness + 0.2, wall_thickness + 0.2],
+                  size2=[wall_thickness * 2 + 0.2, wall_thickness + 0.2],
+                  h=wall_thickness + 0.02,
+                  shift=[0, 0],
                   anchor=TOP + BACK + LEFT,
                 );
             }
@@ -345,15 +344,6 @@ module CardLibraryBoxLid(
                   edges=[TOP + LEFT, TOP + RIGHT]
                 );
 
-            translate([wall_thickness, wall_thickness * 1.5, 0])
-              color(material_colour)
-                cuboid(
-                  [lid_boundary - wall_thickness, length - wall_thickness * 3, lid_thickness + wall_thickness],
-                  anchor=BOTTOM + FRONT + LEFT,
-                  chamfer=wall_thickness,
-                  edges=[TOP + RIGHT]
-                );
-
             translate([width - wall_thickness, wall_thickness + 0.5, 0])
               color(material_colour)
                 cuboid(
@@ -383,6 +373,11 @@ module CardLibraryBoxLid(
                     [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness],
                     edges=[TOP + LEFT, TOP + RIGHT],
                     anchor=BOTTOM + FRONT + LEFT
+                  );
+              translate([wall_thickness, wall_thickness + 0.5, 0])
+                color(material_colour) cuboid(
+                    [lid_boundary - wall_thickness, length - wall_thickness * 2 + 1, lid_thickness + wall_thickness],
+                    anchor=BOTTOM + FRONT + LEFT,
                   );
             }
             if (latch == CARD_LIBRARY_LATCH_CLIP) {
@@ -656,19 +651,115 @@ module CardLibraryBoxLidWithShape(
   }
 }
 
-CardLibraryBoxLidWithShape(size=card_box_size)
-  translate([$inner_width / 2, $inner_length / 2, 0]) {
-    union() {
-      color("black")
-        linear_extrude(h=0.2)
-          rotate(90)
-            mirror([1, 0])
-              DominionLogo();
-      color("magenta")
-        translate([0, 0, 0.2])
-          linear_extrude(h=default_lid_thickness - 0.2)
-            rotate(90)
-              mirror([1, 0])
-                DominionLogo();
+module CardSleeveForLibrary(
+  size,
+  wall_thickness = default_wall_thickness,
+  side_wall_thickness = default_wall_thickness / 2,
+  lip_size = default_floor_thickness * 3,
+  material_colour = "magenta",
+  font = default_label_font,
+  label_colour = default_label_colour,
+  label = "",
+  add_positive = false,
+  emboss_text = 0.2,
+  text_length_offset = default_wall_thickness * 3
+) {
+  translate([size[0], size[1], 0])
+    rotate([0, 0, 180]) {
+      width = size[0];
+      length = size[1];
+      height = size[2];
+
+      metrics = textmetrics(label, font=font);
+
+      text_length = height - text_length_offset - wall_thickness / 2;
+      text_width = length - wall_thickness;
+      text_aspect = metrics.size[1] / metrics.size[0];
+      text_use_length = text_width / text_aspect > text_length;
+
+      text_new_width = text_use_length ? text_length * text_aspect : text_width;
+      text_new_length = text_use_length ? text_length : text_width / text_aspect;
+
+      difference() {
+        // Main box
+        color(material_colour)
+          cuboid(
+            size,
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness / 4
+          );
+        // Inside section (leaving back wall)
+        translate(
+          [wall_thickness, side_wall_thickness, wall_thickness]
+        ) color(material_colour) cuboid(
+              [width - wall_thickness - side_wall_thickness, length - side_wall_thickness * 2, height],
+              anchor=BOTTOM + FRONT + LEFT,
+              rounding=wall_thickness / 4
+            );
+        // Rounding out the top and out the back.
+        translate(
+          [wall_thickness, side_wall_thickness, wall_thickness * 3]
+        ) color(material_colour) cuboid(
+              [width, length - side_wall_thickness * 2, height],
+              anchor=BOTTOM + FRONT + LEFT,
+              rounding=wall_thickness / 4
+            );
+
+        // Edge rounding for the sides.
+        translate(
+          [wall_thickness * 5, -0.01, wall_thickness * 5]
+        ) rotate([90, 0, 0]) color(material_colour) cuboid(
+                [width, height, length + 0.02],
+                anchor=TOP + FRONT + LEFT,
+                rounding=-wall_thickness
+              );
+
+        radius = wall_thickness * sqrt(3) / 2;
+
+        // Catch in the front
+        translate([-radius * 1 / 2, -0.01, lip_size])
+          color(material_colour)
+            rotate([0, 45, 0])
+              cuboid(
+                [wall_thickness, length + 0.02, wall_thickness],
+                anchor=FRONT
+              );
+
+        // Hole for the text.
+        if (metrics.size[0] > 0)
+          translate([emboss_text ? 0.3 : 0.5, length / 2, text_length / 2 + text_length_offset])
+            color(label_colour)
+              rotate([180, 90, 0])
+                linear_extrude(0.3 + emboss_text)
+                  resize([text_new_length, text_new_width])
+                    text(label, font=font, valign="center", halign="center");
+
+        $inner_width = height;
+        $inner_length = length;
+
+        // Hole for the children
+        if ($children > 0)
+          translate([0, length, 0])
+            rotate([180, 270, 0])
+              children(0);
+      }
+
+      $inner_width = height;
+      $inner_length = length;
+
+      // Add in the positive children
+      if ($children > 0 && add_positive)
+        translate([0, length, 0])
+          rotate([180, 270, 0])
+            children(0);
+
+      // Add in the positive text.
+      if (metrics.size[0] > 0 && (add_positive || emboss_text > 0))
+        translate([emboss_text ? 0.3 : 0.5, length / 2, text_length / 2 + text_length_offset])
+          color(label_colour)
+            rotate([180, 90, 0])
+              linear_extrude(0.3 + emboss_text)
+                resize([text_new_length, text_new_width])
+                  text(label, font=font, valign="center", halign="center");
     }
-  }
+}

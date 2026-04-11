@@ -457,3 +457,237 @@ module MakeBoxAndLidWithInsetHinge(
         );
     }
 }
+
+// Module: MakeBoxWithFilamentHinge()
+// Description:
+//   Makes a box with a filament hinge on the top.  The hole for the filement is
+//   specified as a an argument to the system.
+// Usage: MakeBoxWithFilamentHinge(size=[100, 50, 20]);
+// Topics: Hinges, HingeBox
+// Arguments:
+//   size = outside size of the box [width, length, height]
+//   hinge_diameter = diameter of the hinge (default 6)
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   hinge_offset = offset for the hinge mechanism (default 0.5)
+//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
+// Examples:
+//   MakeBoxWithFilamentHinge(size=[100, 50, 20]);
+module MakeBoxWithFilamentHinge(
+  size,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2
+) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
+
+  edge_length = length * 1 / 6;
+  catch_length = min(wall_thickness * 6, length / 6);
+  catch_height = min(wall_thickness * 4, height / 6);
+
+  difference() {
+    union() {
+      diff() cuboid(
+          [width, length, height - lid_thickness],
+          rounding=wall_thickness,
+          anchor=BOTTOM + FRONT + LEFT,
+          edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+        ) {
+          edge_mask(TOP + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 2);
+          edge_mask(TOP + BACK) rounding_edge_mask(l=width, r=wall_thickness / 2);
+          edge_mask(TOP + RIGHT) rounding_edge_mask(l=length, r=wall_thickness / 2);
+        }
+      translate([0, edge_length + 0.25, 0])
+        cuboid(
+          [
+            wall_thickness * 2,
+            length * 4 / 6 - 0.5,
+            height,
+          ],
+          rounding=wall_thickness,
+          anchor=BOTTOM + FRONT + LEFT,
+          edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT]
+        );
+    }
+    translate([wall_thickness, 0, height - lid_thickness])
+      ycyl(d=filament_thickness, h=length + 1, anchor=FRONT);
+    translate([0, 0, height - lid_thickness - wall_thickness]) {
+      union() {
+        cuboid(
+          [wall_thickness * 2, edge_length + 0.25, lid_thickness + wall_thickness],
+          anchor=BOTTOM + FRONT + LEFT,
+        ) {
+          edge_mask(BOTTOM + LEFT) rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=DOWN, spin=180);
+        }
+      }
+    }
+    translate([wall_thickness * 2, edge_length / 2 + 0.125, height - lid_thickness])
+      rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=BACK, spin=0);
+    translate([0, length - edge_length - 0.25, height - lid_thickness - wall_thickness])
+      cuboid(
+        [wall_thickness * 2, edge_length + 0.25, lid_thickness + wall_thickness],
+        anchor=BOTTOM + FRONT + LEFT,
+      ) {
+        edge_mask(BOTTOM + LEFT) rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=DOWN, spin=180);
+      }
+    translate([wall_thickness * 2, edge_length / 2 + 0.125, height - lid_thickness])
+      rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=BACK, spin=0);
+
+    translate([width - wall_thickness / 2, length / 2 - catch_length / 2, height - lid_thickness - catch_height]) {
+      difference() {
+        cuboid([wall_thickness / 2, catch_length, catch_height], anchor=BOTTOM + FRONT + LEFT);
+        translate([0, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2])
+          cuboid(
+            [wall_thickness / 2, wall_thickness, wall_thickness], anchor=BOTTOM + FRONT + LEFT,
+            chamfer=wall_thickness / 4,
+            edges=[RIGHT]
+          );
+      }
+      translate([-wall_thickness / 2 - 0.01, 0, catch_height / 2])
+        cuboid(
+          [wall_thickness, wall_thickness+0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
+          chamfer=wall_thickness / 2,
+          edges=[BOTTOM + LEFT]
+        );
+      translate([-wall_thickness / 2 - 0.01, catch_length - wall_thickness-0.2, catch_height / 2])
+        cuboid(
+          [wall_thickness+1, wall_thickness+0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
+          chamfer=wall_thickness / 2,
+          edges=[BOTTOM + LEFT]
+        );
+    }
+
+    $inner_width = width - wall_thickness * 2;
+    $inner_height = height - lid_thickness - floor_thickness;
+    $inner_length = length - wall_thickness * 2;
+    $material_colour = material_colour;
+    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+  }
+}
+
+// Module: FilamentBoxInsideMask()
+// Description:
+//   The inside mask to use as an intersection to make sure any inside cuts don't
+//   mess with the hinges.
+module FilamentBoxInsideMask(
+  size,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0
+) {
+  assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
+  width = size[0];
+  length = size[1];
+  height = size[2];
+  support_height = min(height / 6, wall_thickness * 4);
+
+  difference() {
+    cuboid(
+      [width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness],
+      anchor=BOTTOM + FRONT + LEFT,
+      rounding=rounding,
+      edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+    );
+
+    translate([0, 0, height - support_height - lid_thickness - floor_thickness])
+      cuboid(
+        [wall_thickness, length, support_height],
+        anchor=BOTTOM + FRONT + LEFT,
+        chamfer=wall_thickness,
+        edges=[BOTTOM + RIGHT],
+      );
+  }
+}
+
+module MakeLidForFilamentBox(
+  size,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0
+) {
+  edge_length = size[1] * 1 / 6;
+  catch_length = min(wall_thickness * 6, size[1] / 6);
+  catch_height = min(wall_thickness * 4, size[0] / 6);
+
+  difference() {
+    union() {
+      cuboid(
+        [size[0], size[1], lid_thickness],
+        anchor=BOTTOM + FRONT + LEFT,
+        rounding=lid_thickness / 2,
+        edges=BOTTOM
+      );
+      cuboid(
+        [wall_thickness * 2, edge_length - 0.25, lid_thickness + wall_thickness],
+        anchor=BOTTOM + FRONT + LEFT,
+        rounding=wall_thickness,
+        edges=[TOP + LEFT, TOP + RIGHT]
+      );
+      translate([0, size[1] - edge_length - 0.25, 0])
+        cuboid(
+          [wall_thickness * 2, edge_length - 0.25, lid_thickness + wall_thickness],
+          anchor=BOTTOM + FRONT + LEFT,
+          rounding=wall_thickness,
+          edges=[TOP + LEFT, TOP + RIGHT]
+        );
+      translate([size[0] - wall_thickness / 2, size[1] / 2 - catch_length / 2, lid_thickness / 2])
+        difference() {
+          union() {
+            cuboid(
+              [wall_thickness / 2, catch_length, catch_height + lid_thickness / 2],
+              anchor=BOTTOM + FRONT + LEFT,
+              chamfer=wall_thickness / 2 - 0.2,
+              edges=[TOP + LEFT]
+            );
+            translate([0.01, 0, lid_thickness / 2 - 0.01]) {
+              cuboid(
+                [wall_thickness / 2, wall_thickness, catch_height / 2],
+                anchor=BOTTOM + FRONT + RIGHT,
+                chamfer=wall_thickness / 2,
+                edges=[TOP + LEFT]
+              );
+              translate([0, catch_length - wall_thickness, 0])
+                cuboid(
+                  [wall_thickness / 2, wall_thickness, catch_height / 2],
+                  anchor=BOTTOM + FRONT + RIGHT,
+                  chamfer=wall_thickness / 2,
+                  edges=[TOP + LEFT]
+                );
+            }
+          }
+
+          translate([0.01 - wall_thickness, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2 + lid_thickness / 2])
+            cuboid(
+              [wall_thickness * 1.5, wall_thickness * 1.5, wall_thickness], anchor=BOTTOM + FRONT + LEFT,
+              chamfer=wall_thickness / 4,
+              edges=[RIGHT]
+            );
+
+          translate([-0.01, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2 + lid_thickness / 2])
+            cuboid(
+              [wall_thickness / 6, wall_thickness * 1.5, catch_height], anchor=BOTTOM + FRONT + LEFT,
+              edges=[LEFT]
+            );
+        }
+    }
+    translate([wall_thickness, -0.01, lid_thickness])
+      ycyl(d=filament_thickness, h=size[1] + 1, anchor=FRONT);
+    translate([-0.25, edge_length - 0.25, -0.5])
+      cuboid(
+        [wall_thickness * 2 + 0.5, size[1] - edge_length * 2 + 0.5, lid_thickness + wall_thickness + 1],
+        anchor=BOTTOM + FRONT + LEFT,
+      );
+  }
+}

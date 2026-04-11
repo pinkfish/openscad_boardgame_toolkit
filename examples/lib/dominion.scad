@@ -19,3 +19,19 @@ module DominionLogo() {
   translate([-5, -60])
     import("../svg/dominion/dominion_logo.svg", center=true);
 }
+
+module BaseSetV2Logo(angle=270) {
+  rotate([0, 0, angle])
+    translate([-43.5, -255, -0.2])
+      import("../svg/dominion/dominion-2ed.svg");
+}
+
+module BaseSetV1Logo(angle=270) {
+  rotate([0, 0, angle])
+      import("../svg/dominion/dominion.svg", center=true);
+}
+
+module MoneyLogo(angle=270) {
+  rotate([0, 0, angle])
+      import("../svg/dominion/coin.svg", center=true);
+}
