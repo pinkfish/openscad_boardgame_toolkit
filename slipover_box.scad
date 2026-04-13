@@ -209,7 +209,6 @@ module MakeBoxWithSlipoverLid(
 //   size = [width, length, height] outside size of the lid
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   finger_hole_length = finger hole on the length side (default6 false)
 //   finger_hole_width = finger hole on the width side (default true)
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
@@ -425,7 +424,6 @@ module SlipoverBoxLid(
 //    text_str = the string to use for the label
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
@@ -441,6 +439,8 @@ module SlipoverBoxLid(
 //    pattern_inner_control = if the pattern needs inner control (default false)
 //    label_options = options for the label (default undef)
 //    foot = size of the foot on the box.
+//    lid_thickness = thickness of the lid
+//    wall_thickness = thickness of the walls
 // Usage: SlipoverBoxLidWithLabelAndCustomShape(size=[100, 50, 20], text_str = "Frog");
 // Example:
 //    SlipoverBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog") {

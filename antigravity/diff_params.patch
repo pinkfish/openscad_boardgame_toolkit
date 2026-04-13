@@ -1,0 +1,617 @@
+diff --git a/cap_box.scad b/cap_box.scad
+index 90e8a31e..a33424a0 100644
+--- a/cap_box.scad
++++ b/cap_box.scad
+@@ -78,7 +78,6 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+ //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+ //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
+ //    finger_hold_height = how heigh the finger hold bit it is (default 5)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+@@ -87,6 +86,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
+ //    positive_colour = colour of the postive pieces {{default_positive_colour}}
+ //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
+ //       {{CATCH_LONG})
++//   size_spacing = TODO: description for size_spacing
+ // Usage: MakeBoxWithCapLid([100, 50, 20]);
+ // Example:
+ //    MakeBoxWithCapLid([100, 50, 20]);
+@@ -321,13 +321,12 @@ module MakeBoxWithCapLid(
+ //    cap_height = height of the cap on the box (default 10)
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+-//    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
+ //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    lid_catch = the type of catch to use, use {{CATCH_BUMPS_LONG}} for a bumps catch and {{CATCH_SHORT}}
+ //      for a wedge catch.  Default {{default_lid_catch_type}}
++//   size_spacing = TODO: description for size_spacing
++//   lid_rounding = TODO: description for lid_rounding
+ // Usage: CapBoxLid([100, 50, 20]);
+ // Example:
+ //    CapBoxLid([100, 50, 30]);
+@@ -506,8 +505,6 @@ module CapBoxLid(
+ //    cap_height = height of the cap on the box (default 10)
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
+ //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+ //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+ //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
+@@ -516,6 +513,8 @@ module CapBoxLid(
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    pattern_inner_control = if the shape needs inner control (default false)
+ //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
++//   lid_rounding = TODO: description for lid_rounding
++//   lid_inner_rounding = TODO: description for lid_inner_rounding
+ // Usage: CapBoxLidWithCustomShape([100, 50, 20]);
+ // Example:
+ //    CapBoxLidWithCustomShape([100, 50, 30]) {
+@@ -611,6 +610,7 @@ module CapBoxLidWithCustomShape(
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    pattern_inner_control = if the shape needs inner control (default false)
+ //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
++//   label_background_colour = TODO: description for label_background_colour
+ // Usage: CapBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog");
+ // Example:
+ //    CapBoxLidWithLabelAndCustomShape([100, 50, 30], text_str = "Frog") {
+diff --git a/cap_box_polygon.scad b/cap_box_polygon.scad
+index 2b4ed0a4..91194fd8 100644
+--- a/cap_box_polygon.scad
++++ b/cap_box_polygon.scad
+@@ -132,7 +132,6 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+ //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+ //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
+ //    finger_hold_height = how heigh the finger hold bit it is (default 5)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+@@ -140,6 +139,7 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
+ //    positive_negative_children = the list of children to be positive and negative
+ //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+ //       {{default_lid_catch_type}})
++//   size_spacing = TODO: description for size_spacing
+ // Topics: CapBox
+ // Usage: MakePathBoxWithCapLid(path=[[0,0], [0,100], [100,100]], height=20);
+ // Example:
+@@ -284,13 +284,12 @@ module MakePathBoxWithCapLid(
+ //    cap_height = height of the cap on the box (default 10)
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+ //    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
+ //    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
+ //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
+-//    lid_catch = the type of catch to use
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
++//   size_spacing = TODO: description for size_spacing
+ // Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
+ // Example:
+ //    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 30);
+@@ -401,13 +400,11 @@ module CapPathBoxLid(
+ //    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
+ //    child as the shape for repeating on the lid.
+ // Arguments:
+-//    psth = the path for the outside of the box
+ //    height = outside height of the box
+ //    lid_boundary = boundary around the outside for the lid (default 10)
+ //    cap_height = height of the cap on the box (default 10)
+ //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+ //    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
+ //    text_str = the string to use for the label
+ //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+@@ -418,6 +415,10 @@ module CapPathBoxLid(
+ //    pattern_inner_control = if the shape needs inner control (default false)
+ //    label_options = options for the label
+ //    label_background_colour = the colour of the label background
++//   path = TODO: description for path
++//   size_spacing = TODO: description for size_spacing
++//   lid_rounding = TODO: description for lid_rounding
++//   lid_inner_rounding = TODO: description for lid_inner_rounding
+ // Usage: CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
+ //      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));
+ // Example:
+diff --git a/components.scad b/components.scad
+index 56c9fa87..fd88dbd3 100644
+--- a/components.scad
++++ b/components.scad
+@@ -172,6 +172,7 @@ function PolygonApothemFromRadius(radius, shape_edges) = radius * cos(180 / shap
+ //   finger_hole_height = height of the finger holes
+ //   finger_hole_radius = the radius of the finger holes
+ //   rounding = rounding to apply to the polygon edges (default 0)
++//   radius = TODO: description for radius
+ // Topics: Recess
+ // Example:
+ //   RegularPolygon(10, 5, shape_edges = 6);
+@@ -293,6 +294,7 @@ function HoleToPosition(pos) =
+ //    chamfer = chamfer to use on the hole edges
+ //    edges = which edges to round/chamfer
+ //    anchor = BOSL2 anchor
++//   finger_hole_radius = TODO: description for finger_hole_radius
+ // Examples:
+ //    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [1, 5], finger_hole_radius=3);
+ // Examples:
+@@ -432,7 +434,6 @@ module RegularPolygonGrid(
+ //   cols = number of cols to generate
+ //   shape_edges = number of edges for the polygon (default 6)
+ //   inner_control = if the layout is controlled by the client (default false)
+-//   spacing = spacing between shapres
+ // Topics: Grid
+ // Example:
+ //   RegularPolygonGridDense(radius = 10, rows = 3, cols = 2)
+@@ -546,7 +547,7 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
+   }
+ }
+ 
+-// Module FingerHoleWall()
++// Module: FingerHoleWall()
+ // Description:
+ //   Creater a finger hole cutout with nice rounded edges at the top and a cylinder of the
+ //   specified radius at the bottom.
+@@ -560,6 +561,8 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
+ //   spin = spin of the hole (default 0)
+ //   material_colour = the material colour to use (default {{default_material_colour}})
+ //   rounding_edge = how much to round the edge to the wall (default 0)
++//   round_front = TODO: description for round_front
++//   round_back = TODO: description for round_back
+ // Example:
+ //   FingerHoleWall(10, 20)
+ // Example:
+diff --git a/dividers.scad b/dividers.scad
+index d58667f6..2af8b1d2 100644
+--- a/dividers.scad
++++ b/dividers.scad
+@@ -43,6 +43,7 @@ under the License.
+ // . tab_length = length of the tab
+ //   thickness = how thick the tab is (z height)
+ //   tab_radius = the radius of the curve to use
++//   tab_length = TODO: description for tab_length
+ // Example:
+ //   MakeDividerTab(10, 20, 1);
+ // Example:
+diff --git a/examples/output/tmp.89656_13911_XXXXXX.csg b/examples/output/tmp.89656_13911_XXXXXX.csg
+deleted file mode 100644
+index e69de29b..00000000
+diff --git a/hinge_box.scad b/hinge_box.scad
+index d8af8140..74cb3ebf 100644
+--- a/hinge_box.scad
++++ b/hinge_box.scad
+@@ -221,6 +221,7 @@ module InsetHinge(length, width, diameter, offset) {
+ //    size_spacing = extra spacing to apply between pieces (default {{default_slicing_layer_height}})
+ //    label_options = options for the label (default undef)
+ //    shape_options = options for the shape (default undef)
++//   cap_height = TODO: description for cap_height
+ // Usage: HingeBoxLidLabel(size=[100, 50], text_str="Cards");
+ // Example:
+ //   $inner_width = 100;
+@@ -466,12 +467,11 @@ module MakeBoxAndLidWithInsetHinge(
+ // Topics: Hinges, HingeBox
+ // Arguments:
+ //   size = outside size of the box [width, length, height]
+-//   hinge_diameter = diameter of the hinge (default 6)
+ //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+ //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+-//   hinge_offset = offset for the hinge mechanism (default 0.5)
+ //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //   material_colour = the colour of the material in the box (default {{default_material_colour}})
++//   filament_thickness = the thickness of the filement in hinger (default 2.2)
+ // Examples:
+ //   MakeBoxWithFilamentHinge(size=[100, 50, 20]);
+ module MakeBoxWithFilamentHinge(
+@@ -575,6 +575,17 @@ module MakeBoxWithFilamentHinge(
+ // Description:
+ //   The inside mask to use as an intersection to make sure any inside cuts don't
+ //   mess with the hinges.
++// Topics: Boxes, Hinges
++// Arguments:
++//   size = [width, length, height] of the box
++//   wall_thickness = wall thickness of the box
++//   floor_thickness = floor thickness of the box
++//   lid_thickness = lid thickness of the box
++//   material_colour = material colour of the box
++//   filament_thickness = filament thickness of the box
++//   rounding = rounding of the box
++// Example:
++//   FilamentBoxInsideMask([100, 20, 6, 0.5]);
+ module FilamentBoxInsideMask(
+   size,
+   wall_thickness = default_wall_thickness,
+@@ -608,6 +619,20 @@ module FilamentBoxInsideMask(
+   }
+ }
+ 
++// Module: MakeLidForFilamentBox()
++// Description:
++//   Makes a lid for a box with a filament based hinge.
++// Topics: Boxes, Hinges
++// Arguments:
++//   size = [width, length, height] of the box
++//   wall_thickness = wall thickness of the box
++//   floor_thickness = floor thickness of the box
++//   lid_thickness = lid thickness of the box
++//   material_colour = material colour of the box
++//   filament_thickness = filament thickness of the box
++//   rounding = rounding of the box
++// Example:
++//   MakeLidForFilamentBox([100, 20, 6, 0.5]);
+ module MakeLidForFilamentBox(
+   size,
+   wall_thickness = default_wall_thickness,
+diff --git a/inset_box.scad b/inset_box.scad
+index 4b3c3e5c..199730ec 100644
+--- a/inset_box.scad
++++ b/inset_box.scad
+@@ -190,6 +190,7 @@ module InsetLidTabbed(
+ //    lid_pattern_dense = if the layout is dense (default false)
+ //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+ //    pattern_inner_control = if the pattern needs inner control (default false)
++//   cap_height = TODO: description for cap_height
+ // Usage: InsetLidTabbedWithLabelAndCustomShape(size=[100, 50], text_str = "Frog");
+ // Example:
+ //    InsetLidTabbedWithLabelAndCustomShape(size=[100, 50], text_str = "Frog") {
+@@ -394,6 +395,7 @@ module InsetLidTabbedWithLabel(
+ //   positive_only_children = the list of children to be positive only
+ //   positive_negative_children = the list of children to be positive and negative
+ //   positive_colour = colour of the postive pieces {{default_positive_colour}}
++//   finger_hole_size = TODO: description for finger_hole_size
+ // Topics: TabbedBox, TabbedLid
+ // Example:
+ //   MakeBoxWithInsetLidTabbed(size = [30, 100, 20]);
+@@ -600,6 +602,7 @@ module InsetLidRabbitClip(
+ //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    label_options = options for the label (default undef)
++//   cap_height = TODO: description for cap_height
+ // Usage: InsetLidRabbitClipWithLabelAndCustomShape(size=[100, 50], text_str = "Frog");
+ // Example:
+ //    InsetLidRabbitClipWithLabelAndCustomShape(size=[100, 50], text_str = "Frog") {
+@@ -806,9 +809,6 @@ module InsetLidRabbitClipWithLabel(
+ // Usage:
+ //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
+ // Arguments:
+-//   width = width of the box (outside width)
+-//   length = length of the box (outside length)
+-//   height = height of the box (outside height)
+ //   wall_thickness = how thick the walls are (default {{default_wall_thickness}})
+ //   lid_thickness = how hight the lid is (default {{default_lid_thickness}})
+ //   tab_height = how heigh to make the tabs (default 6)
+@@ -827,6 +827,9 @@ module InsetLidRabbitClipWithLabel(
+ //   positive_only_children = the list of children to be positive only
+ //   positive_negative_children = the list of children to be positive and negative
+ //   positive_colour = colour of the postive pieces {{default_positive_colour}}
++//   size = TODO: description for size
++//   rabbit_thickness = TODO: description for rabbit_thickness
++//   material_colour = TODO: description for material_colour
+ // Topics: RabbitClipBox
+ // Example:
+ //   MakeBoxWithInsetLidRabbitClip(size = [30, 100, 20]);
+diff --git a/labels.scad b/labels.scad
+index bf979459..bfb61b75 100644
+--- a/labels.scad
++++ b/labels.scad
+@@ -89,9 +89,8 @@ function MakeLabelOptions(
+ // Usage:
+ //   MakeStripedGrid([20,50]);
+ // Arguments:
+-//   width = width of the grid space
+-//   length = length of the grid space
+ //   bar_width = width of the bars (default 1)
++//   size = TODO: description for size
+ // Topics: Label
+ // Example:
+ //   MakeStripedGrid([20, 50]);
+@@ -120,10 +119,11 @@ module MakeStripedGrid(size, bar_width = 1) {
+ // Usage:
+ //   Make3dStripedGrid([20,50]);
+ // Arguments:
+-//   width = width of the grid space
+-//   length = length of the grid space
+ //   bar_width_top = width of the bars (default 1)
+ //   bar_width_bottom = height of the bar (default bar_width_top)
++//   size = TODO: description for size
++//   height = TODO: description for height
++//   spacing = TODO: description for spacing
+ // Topics: Label
+ // Example:
+ //   Make3dStripedGrid(size = [20, 50], height = 1);
+@@ -277,11 +277,10 @@ module MakeMainLidLabelSolid(
+ // Usage:
+ //   MakeMainLidLabelStriped(20, 80, 2, label="Australia", border = 2, offset = 4);
+ // Arguments:
+-//   width = width of the label section
+-//   length = length of the label section
+ //   lid_thickness = height of the lid/label
+ //   label = the text of the label
+ //   options = the options associated with the labels
++//   size = TODO: description for size
+ // Topics: Label
+ // Example(Render):
+ //   MakeMainLidLabelStriped(size = [20,80], lid_thickness = 2, label = "Australia",
+@@ -549,11 +548,10 @@ module MakeFramedLidLabel(
+ // Usage:
+ //   MakeFramelessLidLabel(20, 80, 2, "Australia");
+ // Arguments:
+-//   width = width of the box without the walls
+-//   length = length of the box without the walls
+ //   lid_thickness = height of the lid/label
+ //   label = the text of the label
+ //   options = the options associated with the labels
++//   size = TODO: description for size
+ // Topics: Label
+ // Example(Render):
+ //   MakeFramelessLidLabel(size = [40,80], lid_thickness = 2, label = "Australia",
+diff --git a/lids_base.scad b/lids_base.scad
+index 0b9e7e67..2d17336b 100644
+--- a/lids_base.scad
++++ b/lids_base.scad
+@@ -361,6 +361,9 @@ module LidMeshBasic(
+   }
+ }
+ 
++// Module: internal_build_lid()
++// Description:
++//   TODO: Description for internal_build_lid.
+ module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
+   assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
+   union() {
+@@ -522,6 +525,7 @@ module MakeTabs(
+ //    size = [x,y] inside width of the lid
+ //    options = the options for the label
+ //    lid_thickness = thickness of the lid
++//   text_str = TODO: description for text_str
+ // Example:
+ //    MakeLidLabel([100, 20], lid_thickness = 2, text_str = "frog", 
+ //      options=MakeLabelOptions(text_length = 50, text_scale = 1.0, border = 2,
+diff --git a/no_lid.scad b/no_lid.scad
+index d965125f..85491c17 100644
+--- a/no_lid.scad
++++ b/no_lid.scad
+@@ -137,7 +137,6 @@ module MakeBoxWithNoLid(
+ //   make_finger_x = makes finger dip on the x axis
+ //   make_finger_y = makes finger dip on the y axis
+ //   finger_hole_size = size of the finger dip (default 20)
+-//   hollow = make the inside hollow (default false)
+ //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
+ // Example:
+ //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20);
+@@ -245,6 +244,7 @@ module MakePathBoxWithNoLid(
+ //    height = the height of the box
+ //    make_finger_x = makes finger dip on the x axis
+ //    make_finger_y = makes finger dip on the y axis
++//   wall_thickness = TODO: description for wall_thickness
+ // Example:
+ //    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_x=true);
+ // Example:
+diff --git a/shapes.scad b/shapes.scad
+index df8db45e..0131e6c9 100644
+--- a/shapes.scad
++++ b/shapes.scad
+@@ -217,11 +217,11 @@ module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef,
+ //    length = length of the cross bpw.
+ //    width = width of the cross bow
+ //    handle_width = width of the handle bit (default width/4)
+-//    head_lenght = length of the head (default length/3.5)
+ //    rounding_head = rounding amoubnt on the head (default width/5)
+ //    rounding_handle = rounding amount on the handle (default width/10)
+ // Example(2D):
+ //    Sledgehammer2d(70, 50);
++//   head_length = TODO: description for head_length
+ module Sledgehammer2d(
+   length,
+   width,
+@@ -390,6 +390,7 @@ module Bag2d(size, base_round_diameter = undef, main_round_diameter = undef, nec
+ //    line_width = width of the line to use for the outline
+ // Example(2D):
+ //    Bag2d(50);
++//   rope_length = TODO: description for rope_length
+ module Bag2dOutline(
+   size,
+   base_round_diameter = undef,
+@@ -690,9 +691,6 @@ module D20Outline2d(size, offset) {
+ // Arguments:
+ //   size = size of the saw blade
+ //   inner_spindle_size = size of the inside spindle (default size/10)
+-//   outer_width = width of the outline (default 1)
+-// Example(2D):
+-//    SawBlade2d(50);
+ module SawBlade2d(size, inner_spindle_size = undef) {
+   calc_inner_spindle_size = DefaultValue(inner_spindle_size, size / 10);
+   difference() {
+@@ -709,6 +707,7 @@ module SawBlade2d(size, inner_spindle_size = undef) {
+ //   inner_spindle_size = size of the inside spindle (default size/10)
+ // Example(2D):
+ //    SawBlade2d(50);
++//   outer_width = TODO: description for outer_width
+ module SawBlade2dOutline(size, inner_spindle_size = undef, outer_width = 1) {
+   module OuterBlade() {
+     resize([size, size]) supershape(m1=20, n1=20, n2=9, n3=6);
+@@ -3524,8 +3523,6 @@ module SideEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5) {
+ //   https://www.thingiverse.com/thing:641665/files
+ // Arguments:
+ //   width = The width of the cloud. This also determine the height, because the height is half the width.
+-//   height = Height of the object.
+-//   line_width = width of the outside line (0 if no line)
+ // Example:
+ //   CloudShape2d(100);
+ module CloudShape2d(width) {
+diff --git a/slicing.scad b/slicing.scad
+index fc3a4df2..c3602955 100644
+--- a/slicing.scad
++++ b/slicing.scad
+@@ -37,9 +37,6 @@ under the License.
+ //   second child is the piece to use for making the join (this should be in 2d).
+ // Usage: SplitBox(width, length, height) { ... }
+ // Arguments:
+-//   width = width of the box
+-//   length = length of the box
+-//   height = height of the box
+ //   apart = how far apart to move the pieces on the split (default = 10)
+ //   minX = the minX to cut at (default = -200)
+ //   maxX = the maxX to cut at (default = 200)
+@@ -51,6 +48,7 @@ under the License.
+ //   y = specific places to do the join points at (default calculated based on minY/maxY)
+ //   orient = orientation of the box (default UP)
+ //   spin = spin of the join point (default 0)
++//   size = TODO: description for size
+ // Example:
+ //   SplitBox([100, 50, 20], spin = 90) {
+ //        MakeBoxWithSlipoverLid(size = [100, 50, 20],
+diff --git a/sliding_box.scad b/sliding_box.scad
+index 98910ca6..00638625 100644
+--- a/sliding_box.scad
++++ b/sliding_box.scad
+@@ -45,6 +45,7 @@ under the License.
+ //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
+ //   lid_on_length = lid along the length of the box (default false)
+ //   material_colour = the colour of the material in the box (default {{default_material_colour}})
++//   lid_chamfer = TODO: description for lid_chamfer
+ // Topics: SlidingBox, SlidingLid
+ // Example:
+ //   SlidingLid(size = [100, 100], lid_thickness=3, wall_thickness = 2)
+@@ -306,6 +307,8 @@ module SlidingLid(
+ //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
+ //    lid_on_length = lid along the length of the box (default false)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
++//   lid_chamfer = TODO: description for lid_chamfer
++//   pattern_inner_control = TODO: description for pattern_inner_control
+ // Example:
+ //    SlidingBoxLidWithCustomShape([100, 50]) {
+ //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
+@@ -434,6 +437,8 @@ module SlidingBoxLidWithCustomShape(
+ //    lid_on_length = lid along the length of the box (default false)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    label_options = options for the label (default undef)
++//   lid_chamfer = TODO: description for lid_chamfer
++//   pattern_inner_control = TODO: description for pattern_inner_control
+ // Usage: SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog");
+ // Example:
+ //    SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog") {
+@@ -556,6 +561,7 @@ module SlidingBoxLidWithLabelAndCustomShape(
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    label_options = options for the label (default undef)
+ //    shape_options = options for the shape (default undef)
++//   lid_chamfer = TODO: description for lid_chamfer
+ // Topics: SlidingBox, SlidingLid
+ // Example:
+ //    SlidingBoxLidWithLabel(
+@@ -665,6 +671,7 @@ module SlidingBoxLidWithLabel(
+ //    lid_on_length = lid along the length of the box (default false)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+ //    shape_options = options for the shape (default undef)
++//   lid_chamfer = TODO: description for lid_chamfer
+ // Topics: SlidingBox, SlidingLid
+ // Example:
+ //    SlidingBoxLidWithShape(
+@@ -768,6 +775,7 @@ module SlidingBoxLidWithShape(
+ //    positive_only_children = the list of children to be positive only
+ //    positive_negative_children = the list of children to be positive and negative
+ //    positive_colour = colour of the postive pieces {{default_positive_colour}}
++//   size_spacing = TODO: description for size_spacing
+ // Topics: SlidingBox
+ // Example:
+ //   MakeBoxWithSlidingLid([50, 100, 20]);
+diff --git a/sliding_catch_box.scad b/sliding_catch_box.scad
+index df87bb07..8434fd47 100644
+--- a/sliding_catch_box.scad
++++ b/sliding_catch_box.scad
+@@ -156,6 +156,7 @@ module MakeBoxWithSlidingCatchLid(
+ //    fill_middle = if the middle of the lid should be filled (default true)
+ //    lid_rounding = how much rounding on the edge of the lid (default top_thickness/2)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
++//   lid_roudning = TODO: description for lid_roudning
+ // Usage: SlidingCatchBoxLid([100, 50]);
+ // Example:
+ //    SlidingCatchBoxLid([100, 50]);
+@@ -248,6 +249,7 @@ module SlidingCatchBoxLid(
+ //    pattern_inner_control = if the pattern needs inner control (default false)
+ //    label_options = options for the label (default undef)
+ //    material_colour = the colour of the material in the box (default {{default_material_colour}})
++//   font = TODO: description for font
+ // Usage: SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog");
+ // Example:
+ //    SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog") {
+diff --git a/slipover_box.scad b/slipover_box.scad
+index 0ccf680f..464ffd1d 100644
+--- a/slipover_box.scad
++++ b/slipover_box.scad
+@@ -209,7 +209,6 @@ module MakeBoxWithSlipoverLid(
+ //   size = [width, length, height] outside size of the lid
+ //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+ //   finger_hole_length = finger hole on the length side (default6 false)
+ //   finger_hole_width = finger hole on the width side (default true)
+ //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
+@@ -425,7 +424,6 @@ module SlipoverBoxLid(
+ //    text_str = the string to use for the label
+ //    lid_boundary = boundary around the outside for the lid (default 10)
+ //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+ //    text_str = the string to use for the label
+ //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
+ //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
+@@ -441,6 +439,8 @@ module SlipoverBoxLid(
+ //    pattern_inner_control = if the pattern needs inner control (default false)
+ //    label_options = options for the label (default undef)
+ //    foot = size of the foot on the box.
++//   lid_thickness = TODO: description for lid_thickness
++//   wall_thickness = TODO: description for wall_thickness
+ // Usage: SlipoverBoxLidWithLabelAndCustomShape(size=[100, 50, 20], text_str = "Frog");
+ // Example:
+ //    SlipoverBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog") {
+diff --git a/slipover_path_box.scad b/slipover_path_box.scad
+index 353996cd..a800ff4c 100644
+--- a/slipover_path_box.scad
++++ b/slipover_path_box.scad
+@@ -37,6 +37,7 @@ under the License.
+ //    height = the height of the fingerhole
+ //    depth = the thickness of the walls
+ //.   finger_catch = the type of catch to use and where to put them
++//   finger_catch = TODO: description for finger_catch
+ // Example:
+ //    FingerHoleWallSegmentCutout([[0,0], [50,50]], radius=5, height=7, depth=6, finger_catch=CATCH_ALL);
+ module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
+@@ -180,14 +181,11 @@ module MakePathBoxWithSlipoverLid(
+ //   height = height of the lid (outside height)
+ //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+ //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+-//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+ //   finger_catch = where to put the catches (default {{CATCH_SHORT}})
+ //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
+ //   foot = size of the foot on the box.
+ //   lid_rounding = how much to round the lid (default wall_thickness)
+ //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
+-//       {{default_lid_catch_type}})
+ //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
+ // Example:
+ //   SlipoverPathBoxLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10);
+diff --git a/tesselations.scad b/tesselations.scad
+index d6eebb5a..20817220 100644
+--- a/tesselations.scad
++++ b/tesselations.scad
+@@ -93,6 +93,7 @@ module HexagonalTesselationTriangle(size) {
+ //   Creates a single escher lizard with an outline.
+ // Arguments:
+ //   size = the size of the lizard
++//   thickness = TODO: description for thickness
+ // Example:
+ //   EscherLizardSingleOutline(size=20, thickness=1);
+ module EscherLizardSingleOutline(size, thickness) {
+@@ -128,6 +129,7 @@ module EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) {
+ //   cols = number of columns to generate
+ //   size = the size of the lizard
+ //   thickness = the thickness of the lines
++//   outer_offset = TODO: description for outer_offset
+ // Example:
+ //   EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
+ module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {

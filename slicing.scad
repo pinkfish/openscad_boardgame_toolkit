@@ -37,9 +37,6 @@ under the License.
 //   second child is the piece to use for making the join (this should be in 2d).
 // Usage: SplitBox(width, length, height) { ... }
 // Arguments:
-//   width = width of the box
-//   length = length of the box
-//   height = height of the box
 //   apart = how far apart to move the pieces on the split (default = 10)
 //   minX = the minX to cut at (default = -200)
 //   maxX = the maxX to cut at (default = 200)
@@ -51,6 +48,7 @@ under the License.
 //   y = specific places to do the join points at (default calculated based on minY/maxY)
 //   orient = orientation of the box (default UP)
 //   spin = spin of the join point (default 0)
+//   size = the size of the object [width, length, height]
 // Example:
 //   SplitBox([100, 50, 20], spin = 90) {
 //        MakeBoxWithSlipoverLid(size = [100, 50, 20],

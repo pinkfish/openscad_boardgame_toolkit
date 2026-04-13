@@ -93,6 +93,7 @@ module HexagonalTesselationTriangle(size) {
 //   Creates a single escher lizard with an outline.
 // Arguments:
 //   size = the size of the lizard
+//   thickness = the thickness to use
 // Example:
 //   EscherLizardSingleOutline(size=20, thickness=1);
 module EscherLizardSingleOutline(size, thickness) {
@@ -128,6 +129,7 @@ module EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) {
 //   cols = number of columns to generate
 //   size = the size of the lizard
 //   thickness = the thickness of the lines
+//   outer_offset = offset for the outer edge
 // Example:
 //   EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
 module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {

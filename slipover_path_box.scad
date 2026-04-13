@@ -37,6 +37,7 @@ under the License.
 //    height = the height of the fingerhole
 //    depth = the thickness of the walls
 //.   finger_catch = the type of catch to use and where to put them
+//   finger_catch = type of finger catch to use
 // Example:
 //    FingerHoleWallSegmentCutout([[0,0], [50,50]], radius=5, height=7, depth=6, finger_catch=CATCH_ALL);
 module FingerHoleWallSegmentCutout(path, height, radius, depth, finger_catch) {
@@ -180,14 +181,11 @@ module MakePathBoxWithSlipoverLid(
 //   height = height of the lid (outside height)
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
 //   finger_catch = where to put the catches (default {{CATCH_SHORT}})
 //   size_spacing = how much to offset the pieces by to give some wiggle room (default {{m_piece_wiggle_room}})
 //   foot = size of the foot on the box.
 //   lid_rounding = how much to round the lid (default wall_thickness)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
-//       {{default_lid_catch_type}})
 //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 // Example:
 //   SlipoverPathBoxLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10);

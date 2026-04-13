@@ -200,7 +200,6 @@ module InsetLidTabbedWithLabelAndCustomShape(
   size,
   text_str,
   lid_boundary = 10,
-  cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
@@ -415,7 +414,6 @@ module MakeBoxWithInsetLidTabbed(
   positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
-  finger_hole_size = undef
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -610,7 +608,6 @@ module InsetLidRabbitClipWithLabelAndCustomShape(
   size,
   text_str,
   lid_boundary = 10,
-  cap_height = undef,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
   lid_thickness = default_lid_thickness,
@@ -806,9 +803,6 @@ module InsetLidRabbitClipWithLabel(
 // Usage:
 //   MakeBoxWithInsetLidRabbitClip(width = 30, length = 100, height = 20);
 // Arguments:
-//   width = width of the box (outside width)
-//   length = length of the box (outside length)
-//   height = height of the box (outside height)
 //   wall_thickness = how thick the walls are (default {{default_wall_thickness}})
 //   lid_thickness = how hight the lid is (default {{default_lid_thickness}})
 //   tab_height = how heigh to make the tabs (default 6)
@@ -827,6 +821,9 @@ module InsetLidRabbitClipWithLabel(
 //   positive_only_children = the list of children to be positive only
 //   positive_negative_children = the list of children to be positive and negative
 //   positive_colour = colour of the postive pieces {{default_positive_colour}}
+//   size = the size of the object [width, length, height]
+//   rabbit_thickness = thickness of the rabbit edge
+//   material_colour = the colour of the material in the box (default {{default_material_colour}})
 // Topics: RabbitClipBox
 // Example:
 //   MakeBoxWithInsetLidRabbitClip(size = [30, 100, 20]);

@@ -217,9 +217,9 @@ module Crossbow2dOutline(length, width, handle_width = undef, bow_width = undef,
 //    length = length of the cross bpw.
 //    width = width of the cross bow
 //    handle_width = width of the handle bit (default width/4)
-//    head_lenght = length of the head (default length/3.5)
 //    rounding_head = rounding amoubnt on the head (default width/5)
 //    rounding_handle = rounding amount on the handle (default width/10)
+//    head_length = length of the head
 // Example(2D):
 //    Sledgehammer2d(70, 50);
 module Sledgehammer2d(
@@ -387,7 +387,7 @@ module Bag2d(size, base_round_diameter = undef, main_round_diameter = undef, nec
 //    main_round_diameter = round diameter of the middle bulge bit (default size/2)
 //    neck_width = width of the neck of the bag (default size/6)
 //    line_width = width of the line to use for the outline
-//    line_width = width of the line to use for the outline
+//    rope_length = length of the rope
 // Example(2D):
 //    Bag2d(50);
 module Bag2dOutline(
@@ -690,9 +690,6 @@ module D20Outline2d(size, offset) {
 // Arguments:
 //   size = size of the saw blade
 //   inner_spindle_size = size of the inside spindle (default size/10)
-//   outer_width = width of the outline (default 1)
-// Example(2D):
-//    SawBlade2d(50);
 module SawBlade2d(size, inner_spindle_size = undef) {
   calc_inner_spindle_size = DefaultValue(inner_spindle_size, size / 10);
   difference() {
@@ -707,6 +704,7 @@ module SawBlade2d(size, inner_spindle_size = undef) {
 // Arguments:
 //   size = size of the saw blade
 //   inner_spindle_size = size of the inside spindle (default size/10)
+//   outer_width = outer width of the shape
 // Example(2D):
 //    SawBlade2d(50);
 module SawBlade2dOutline(size, inner_spindle_size = undef, outer_width = 1) {
@@ -3524,8 +3522,6 @@ module SideEye2d(angle, outer_size = 10, inner_size = 8, pupil_size = 5) {
 //   https://www.thingiverse.com/thing:641665/files
 // Arguments:
 //   width = The width of the cloud. This also determine the height, because the height is half the width.
-//   height = Height of the object.
-//   line_width = width of the outside line (0 if no line)
 // Example:
 //   CloudShape2d(100);
 module CloudShape2d(width) {

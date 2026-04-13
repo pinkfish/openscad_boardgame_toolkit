@@ -172,6 +172,7 @@ function PolygonApothemFromRadius(radius, shape_edges) = radius * cos(180 / shap
 //   finger_hole_height = height of the finger holes
 //   finger_hole_radius = the radius of the finger holes
 //   rounding = rounding to apply to the polygon edges (default 0)
+//   radius = radius of the object
 // Topics: Recess
 // Example:
 //   RegularPolygon(10, 5, shape_edges = 6);
@@ -293,6 +294,7 @@ function HoleToPosition(pos) =
 //    chamfer = chamfer to use on the hole edges
 //    edges = which edges to round/chamfer
 //    anchor = BOSL2 anchor
+//   finger_hole_radius = radius of the finger hole
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [1, 5], finger_hole_radius=3);
 // Examples:
@@ -432,7 +434,6 @@ module RegularPolygonGrid(
 //   cols = number of cols to generate
 //   shape_edges = number of edges for the polygon (default 6)
 //   inner_control = if the layout is controlled by the client (default false)
-//   spacing = spacing between shapres
 // Topics: Grid
 // Example:
 //   RegularPolygonGridDense(radius = 10, rows = 3, cols = 2)
@@ -546,7 +547,7 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
   }
 }
 
-// Module FingerHoleWall()
+// Module: FingerHoleWall()
 // Description:
 //   Creater a finger hole cutout with nice rounded edges at the top and a cylinder of the
 //   specified radius at the bottom.
@@ -560,6 +561,8 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   spin = spin of the hole (default 0)
 //   material_colour = the material colour to use (default {{default_material_colour}})
 //   rounding_edge = how much to round the edge to the wall (default 0)
+//   round_front = how much to round the front
+//   round_back = how much to round the back
 // Example:
 //   FingerHoleWall(10, 20)
 // Example:

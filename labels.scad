@@ -89,9 +89,8 @@ function MakeLabelOptions(
 // Usage:
 //   MakeStripedGrid([20,50]);
 // Arguments:
-//   width = width of the grid space
-//   length = length of the grid space
 //   bar_width = width of the bars (default 1)
+//   size = the size of the object [width, length, height]
 // Topics: Label
 // Example:
 //   MakeStripedGrid([20, 50]);
@@ -120,10 +119,11 @@ module MakeStripedGrid(size, bar_width = 1) {
 // Usage:
 //   Make3dStripedGrid([20,50]);
 // Arguments:
-//   width = width of the grid space
-//   length = length of the grid space
 //   bar_width_top = width of the bars (default 1)
 //   bar_width_bottom = height of the bar (default bar_width_top)
+//   size = the size of the object [width, length, height]
+//   height = the height to use
+//   spacing = spacing between elements
 // Topics: Label
 // Example:
 //   Make3dStripedGrid(size = [20, 50], height = 1);
@@ -277,11 +277,10 @@ module MakeMainLidLabelSolid(
 // Usage:
 //   MakeMainLidLabelStriped(20, 80, 2, label="Australia", border = 2, offset = 4);
 // Arguments:
-//   width = width of the label section
-//   length = length of the label section
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
 //   options = the options associated with the labels
+//   size = the size of the object [width, length, height]
 // Topics: Label
 // Example(Render):
 //   MakeMainLidLabelStriped(size = [20,80], lid_thickness = 2, label = "Australia",
@@ -549,11 +548,10 @@ module MakeFramedLidLabel(
 // Usage:
 //   MakeFramelessLidLabel(20, 80, 2, "Australia");
 // Arguments:
-//   width = width of the box without the walls
-//   length = length of the box without the walls
 //   lid_thickness = height of the lid/label
 //   label = the text of the label
 //   options = the options associated with the labels
+//   size = the size of the object [width, length, height]
 // Topics: Label
 // Example(Render):
 //   MakeFramelessLidLabel(size = [40,80], lid_thickness = 2, label = "Australia",

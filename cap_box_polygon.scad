@@ -132,7 +132,6 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickess of the walls in the lid (default wall_thickness / 2)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
@@ -140,6 +139,7 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Topics: CapBox
 // Usage: MakePathBoxWithCapLid(path=[[0,0], [0,100], [100,100]], height=20);
 // Example:
@@ -284,13 +284,12 @@ module MakePathBoxWithCapLid(
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
 //    lid_rounding = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
-//    lid_catch = the type of catch to use
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
 // Example:
 //    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 30);
@@ -401,13 +400,11 @@ module CapPathBoxLid(
 //    Lid for a cap box, small cap to go on the box with finger cutouts.  This uses the first
 //    child as the shape for repeating on the lid.
 // Arguments:
-//    psth = the path for the outside of the box
 //    height = outside height of the box
 //    lid_boundary = boundary around the outside for the lid (default 10)
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_wall_thickness = the thickness of the walls in the lid (default wall_thickness / 2)
 //    text_str = the string to use for the label
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
@@ -418,6 +415,10 @@ module CapPathBoxLid(
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    label_options = options for the label
 //    label_background_colour = the colour of the label background
+//   path = the path of the polygon to use
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   lid_rounding = how much to round the edge of the lid
+//   lid_inner_rounding = how much to round the inside of the box
 // Usage: CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));
 // Example:

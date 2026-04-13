@@ -137,7 +137,6 @@ module MakeBoxWithNoLid(
 //   make_finger_x = makes finger dip on the x axis
 //   make_finger_y = makes finger dip on the y axis
 //   finger_hole_size = size of the finger dip (default 20)
-//   hollow = make the inside hollow (default false)
 //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 // Example:
 //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20);
@@ -245,6 +244,7 @@ module MakePathBoxWithNoLid(
 //    height = the height of the box
 //    make_finger_x = makes finger dip on the x axis
 //    make_finger_y = makes finger dip on the y axis
+//    wall_thickness = thickness of the walls
 // Example:
 //    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_x=true);
 // Example:

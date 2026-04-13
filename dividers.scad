@@ -43,6 +43,7 @@ under the License.
 // . tab_length = length of the tab
 //   thickness = how thick the tab is (z height)
 //   tab_radius = the radius of the curve to use
+//   tab_length = length of the tab
 // Example:
 //   MakeDividerTab(10, 20, 1);
 // Example:

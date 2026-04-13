@@ -221,6 +221,7 @@ module InsetHinge(length, width, diameter, offset) {
 //    size_spacing = extra spacing to apply between pieces (default {{default_slicing_layer_height}})
 //    label_options = options for the label (default undef)
 //    shape_options = options for the shape (default undef)
+//   cap_height = height of the cap on the box
 // Usage: HingeBoxLidLabel(size=[100, 50], text_str="Cards");
 // Example:
 //   $inner_width = 100;
@@ -466,12 +467,11 @@ module MakeBoxAndLidWithInsetHinge(
 // Topics: Hinges, HingeBox
 // Arguments:
 //   size = outside size of the box [width, length, height]
-//   hinge_diameter = diameter of the hinge (default 6)
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   hinge_offset = offset for the hinge mechanism (default 0.5)
 //   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   filament_thickness = the thickness of the filement in hinger (default 2.2)
 // Examples:
 //   MakeBoxWithFilamentHinge(size=[100, 50, 20]);
 module MakeBoxWithFilamentHinge(
@@ -575,6 +575,17 @@ module MakeBoxWithFilamentHinge(
 // Description:
 //   The inside mask to use as an intersection to make sure any inside cuts don't
 //   mess with the hinges.
+// Topics: Boxes, Hinges
+// Arguments:
+//   size = [width, length, height] of the box
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+// Example:
+//   FilamentBoxInsideMask([100, 20, 6, 0.5]);
 module FilamentBoxInsideMask(
   size,
   wall_thickness = default_wall_thickness,
@@ -608,6 +619,20 @@ module FilamentBoxInsideMask(
   }
 }
 
+// Module: MakeLidForFilamentBox()
+// Description:
+//   Makes a lid for a box with a filament based hinge.
+// Topics: Boxes, Hinges
+// Arguments:
+//   size = [width, length, height] of the box
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+// Example:
+//   MakeLidForFilamentBox([100, 20, 6, 0.5]);
 module MakeLidForFilamentBox(
   size,
   wall_thickness = default_wall_thickness,

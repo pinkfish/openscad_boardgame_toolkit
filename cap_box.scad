@@ -78,7 +78,6 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 //    lid_finger_hold_len = length of the finger hold sections to cut out (default min(width,lenght)/5)
 //    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
@@ -87,6 +86,7 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
 //       {{CATCH_LONG})
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Usage: MakeBoxWithCapLid([100, 50, 20]);
 // Example:
 //    MakeBoxWithCapLid([100, 50, 20]);
@@ -321,13 +321,12 @@ module MakeBoxWithCapLid(
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
-//    lid_roudning = how much to round the edge of the lid (default wall_thickness / 2)
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    lid_catch = the type of catch to use, use {{CATCH_BUMPS_LONG}} for a bumps catch and {{CATCH_SHORT}}
 //      for a wedge catch.  Default {{default_lid_catch_type}}
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   lid_rounding = how much to round the edge of the lid
 // Usage: CapBoxLid([100, 50, 20]);
 // Example:
 //    CapBoxLid([100, 50, 30]);
@@ -506,8 +505,6 @@ module CapBoxLid(
 //    cap_height = height of the cap on the box (default 10)
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//    size_sizeing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//    finger_hold_height = how heigh the finger hold bit it is (default 5)
 //    layout_width = the width of the layout pieces (default {{default_lid_layout_width}})
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = extra spacing to apply between pieces (default {{m_piece_wiggle_room}})
@@ -516,6 +513,8 @@ module CapBoxLid(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+//   lid_rounding = how much to round the edge of the lid
+//   lid_inner_rounding = how much to round the inside of the box
 // Usage: CapBoxLidWithCustomShape([100, 50, 20]);
 // Example:
 //    CapBoxLidWithCustomShape([100, 50, 30]) {
@@ -611,6 +610,7 @@ module CapBoxLidWithCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
+//   label_background_colour = the colour to use for the label background
 // Usage: CapBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabelAndCustomShape([100, 50, 30], text_str = "Frog") {

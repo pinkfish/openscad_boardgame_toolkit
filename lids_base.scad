@@ -241,6 +241,7 @@ module LidMeshRepeating(
 //   for layout purposes and the shape_width is the width for generation purposes.  The layout
 //   width and shape width default to being the same for dense layouts, and overlapping for
 //   non-dense layouts.
+// Topics: PatternFill
 // Arguments:
 //   size = [x,y] width of the mesh section
 //   lid_thickness = how high the lid is
@@ -361,6 +362,14 @@ module LidMeshBasic(
   }
 }
 
+// Module: internal_build_lid()
+// Description:
+//   Used to build lids internally.  Does a mapping of all children to carve
+//   out holes in all of them so they match nicely in the object.
+// Topics: PatternFill
+// Arguments:
+//   lid_thickness = thickness of the lid
+//   size_spacing = spacing between pieces
 module internal_build_lid(lid_thickness, size_spacing = m_piece_wiggle_room) {
   assert(lid_thickness > 0, str("lid_thickness must be > 0 lid_thickness=", lid_thickness));
   union() {
@@ -522,6 +531,7 @@ module MakeTabs(
 //    size = [x,y] inside width of the lid
 //    options = the options for the label
 //    lid_thickness = thickness of the lid
+//    text_str = the string to use for the label
 // Example:
 //    MakeLidLabel([100, 20], lid_thickness = 2, text_str = "frog", 
 //      options=MakeLabelOptions(text_length = 50, text_scale = 1.0, border = 2,

@@ -156,6 +156,7 @@ module MakeBoxWithSlidingCatchLid(
 //    fill_middle = if the middle of the lid should be filled (default true)
 //    lid_rounding = how much rounding on the edge of the lid (default top_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    lid_roudning = how much to round the edge of the lid
 // Usage: SlidingCatchBoxLid([100, 50]);
 // Example:
 //    SlidingCatchBoxLid([100, 50]);
@@ -248,6 +249,7 @@ module SlidingCatchBoxLid(
 //    pattern_inner_control = if the pattern needs inner control (default false)
 //    label_options = options for the label (default undef)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    font = the font to use for the label
 // Usage: SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog");
 // Example:
 //    SlidingCatchBoxLidWithLabelAndCustomShape([100, 50], text_str = "Frog") {

@@ -45,6 +45,7 @@ under the License.
 //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //   lid_on_length = lid along the length of the box (default false)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
+//   lid_chamfer = how much to chamfer the lid
 // Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLid(size = [100, 100], lid_thickness=3, wall_thickness = 2)
@@ -306,6 +307,8 @@ module SlidingLid(
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    lid_chamfer = how much to chamfer the lid
+//    pattern_inner_control = if the shape needs inner control (default false)
 // Example:
 //    SlidingBoxLidWithCustomShape([100, 50]) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
@@ -434,6 +437,8 @@ module SlidingBoxLidWithCustomShape(
 //    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
+//    lid_chamfer = how much to chamfer the lid
+//    pattern_inner_control = if the shape needs inner control (default false)
 // Usage: SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog");
 // Example:
 //    SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog") {
@@ -556,6 +561,7 @@ module SlidingBoxLidWithLabelAndCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
 //    shape_options = options for the shape (default undef)
+//    lid_chamfer = how much to chamfer the lid
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
@@ -665,6 +671,7 @@ module SlidingBoxLidWithLabel(
 //    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    shape_options = options for the shape (default undef)
+//    lid_chamfer = how much to chamfer the lid
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithShape(
@@ -768,6 +775,7 @@ module SlidingBoxLidWithShape(
 //    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
 //    positive_colour = colour of the postive pieces {{default_positive_colour}}
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid([50, 100, 20]);
