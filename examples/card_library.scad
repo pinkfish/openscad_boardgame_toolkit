@@ -519,9 +519,7 @@ module CardLibraryBoxLid(
         }
         if ($children > 4) {
           children(4);
-        }
-        if ($children > 5) {
-          children(5);
+          }
         }
       }
 
@@ -593,8 +591,6 @@ module CardLibraryBoxLidWithCustomShape(
   hinge_hole_diameter = 2.2,
   print_in_place_offset = 0.25,
   size_spacing = m_piece_wiggle_room,
-  lid_rounding = undef,
-  lid_inner_rounding = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   aspect_ratio = 1.0,
@@ -644,9 +640,7 @@ module CardLibraryBoxLidWithCustomShape(
     }
     if ($children > 5) {
       children(5);
-    }
-    if ($children > 6) {
-      children(6);
+      }
     }
   }
 }
@@ -685,20 +679,16 @@ module CardLibraryBoxLidWithShape(
   hinge_hole_diameter = 2.2,
   print_in_place_offset = 0.25,
   size_spacing = m_piece_wiggle_room,
-  lid_rounding = undef,
-  lid_inner_rounding = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   pattern_inner_control = false,
-  shape_options = undef,
   lid_boundary = 10,
   layout_width = undef,
   aspect_ratio = undef,
   shape_options = undef
 ) {
   calc_shape_options = DefaultValue(
-    shape_options, MakeShapeObject(
-    )
+    shape_options, MakeShapeObject()
   );
   CardLibraryBoxLidWithCustomShape(
     size=size,
@@ -710,6 +700,7 @@ module CardLibraryBoxLidWithShape(
     print_in_place_offset=print_in_place_offset,
     size_spacing=size_spacing,
     lid_boundary=lid_boundary,
+    aspect_ratio=aspect_ratio,
     lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
     lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     material_colour=material_colour,
