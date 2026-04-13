@@ -23,6 +23,22 @@ CARD_LIBRARY_LATCH_SLIDING = "sliding";
 CARD_LIBRARY_LATCH_CLIP = "clip";
 CARD_LIBRARY_LATCH_NONE = "none";
 
+// Module: MakeCardLibraryBox()
+// Description:
+//   Makes a card library box with the specified latch type.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   floor_thickness = thickness of the floor
+//   wall_thickness = thickness of the walls
+//   lip_size = size of the lip (default default_floor_thickness * 3)
+//   lid_thickness = thickness of the lid
+//   material_colour = the colour of the material in the box (default "magenta")
+//   latch = latch type to use (default CARD_LIBRARY_LATCH_SLIDING)
+//   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
+// Example:
+//   MakeCardLibraryBox([100, 50, 20]);
+
 module MakeCardLibraryBox(
   size,
   floor_thickness = default_floor_thickness,
@@ -239,6 +255,14 @@ module MakeCardLibraryBox(
   }
 }
 
+// Module: SlidingChannel()
+// Description:
+//   Creates a sliding channel for the card library latch.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   wall_thickness = thickness of the walls
+
 module SlidingChannel(size, wall_thickness) {
   width = size[0];
   length = size[1];
@@ -267,6 +291,16 @@ module SlidingChannel(size, wall_thickness) {
   }
 }
 
+// Module: SlidingLatch()
+// Description:
+//   Creates a sliding latch for the card library box lid.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   print_in_place_offset = offset for print-in-place mechanisms
+//   lid_thickness = thickness of the lid
+//   wall_thickness = thickness of the walls
+
 module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) {
   width = size[0];
   length = size[1];
@@ -289,6 +323,24 @@ module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) 
       anchor=BOTTOM + FRONT + LEFT,
     );
 }
+
+// Module: CardLibraryBoxLid()
+// Description:
+//   Creates a basic lid for the card library box.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   wall_thickness = thickness of the walls
+//   lid_thickness = thickness of the lid
+//   lip_size = size of the lip (default default_lid_thickness * 3)
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   latch = latch type to use (default CARD_LIBRARY_LATCH_SLIDING)
+//   material_colour = the colour of the material in the box (default "magenta")
+//   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
+//   print_in_place_offset = offset for print-in-place mechanisms (default 0.25)
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+// Example:
+//   CardLibraryBoxLid([100, 50, 20]);
 
 module CardLibraryBoxLid(
   size,
@@ -508,6 +560,29 @@ module CardLibraryBoxLid(
   }
 }
 
+// Module: CardLibraryBoxLidWithCustomShape()
+// Description:
+//   Creates a lid for the card library box configured for custom shapes.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   wall_thickness = thickness of the walls
+//   lid_thickness = thickness of the lid
+//   lip_size = size of the lip (default default_lid_thickness * 3)
+//   latch = latch type to use (default CARD_LIBRARY_LATCH_SLIDING)
+//   material_colour = the colour of the material in the box (default "magenta")
+//   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
+//   print_in_place_offset = offset for print-in-place mechanisms (default 0.25)
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   lid_rounding = how much to round the edge of the lid
+//   lid_inner_rounding = how much to round the inside of the box
+//   lid_pattern_dense = boolean if the pattern is dense
+//   lid_dense_shape_edges = number of edges for the dense shape
+//   aspect_ratio = aspect ratio of the elements
+//   pattern_inner_control = if the shape needs inner control (default false)
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+
 module CardLibraryBoxLidWithCustomShape(
   size,
   wall_thickness = default_wall_thickness,
@@ -575,6 +650,30 @@ module CardLibraryBoxLidWithCustomShape(
     }
   }
 }
+
+// Module: CardLibraryBoxLidWithShape()
+// Description:
+//   Creates a lid for the card library box using standard shapes.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   wall_thickness = thickness of the walls
+//   lid_thickness = thickness of the lid
+//   lip_size = size of the lip (default default_lid_thickness * 3)
+//   latch = latch type to use (default CARD_LIBRARY_LATCH_SLIDING)
+//   material_colour = the colour of the material in the box (default "magenta")
+//   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
+//   print_in_place_offset = offset for print-in-place mechanisms (default 0.25)
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   lid_rounding = how much to round the edge of the lid
+//   lid_inner_rounding = how much to round the inside of the box
+//   lid_pattern_dense = boolean if the pattern is dense
+//   lid_dense_shape_edges = number of edges for the dense shape
+//   pattern_inner_control = if the shape needs inner control (default false)
+//   shape_options = options object for the shape
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+//   aspect_ratio = aspect ratio of the elements
 
 module CardLibraryBoxLidWithShape(
   size,
@@ -650,6 +749,25 @@ module CardLibraryBoxLidWithShape(
     }
   }
 }
+
+// Module: CardSleeveForLibrary()
+// Description:
+//   Creates a card sleeve configured for the library.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   wall_thickness = thickness of the walls
+//   side_wall_thickness = thickness of the side walls
+//   lip_size = size of the lip
+//   material_colour = the colour of the material in the box (default "magenta")
+//   font = the font to use for the label
+//   label_colour = the color of the label
+//   label = the string to use for the label
+//   add_positive = whether to add the positive part
+//   emboss_text = amount of text embossing
+//   text_length_offset = text offset along the length
+// Example:
+//   CardSleeveForLibrary([60, 90, 10]);
 
 module CardSleeveForLibrary(
   size,
