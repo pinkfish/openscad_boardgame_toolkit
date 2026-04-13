@@ -35,3 +35,13 @@ module MoneyLogo(angle=270) {
   rotate([0, 0, angle])
       import("../svg/dominion/coin.svg", center=true);
 }
+
+module PotionLogo(angle=270) {
+  rotate([0, 0, angle])
+      import("../svg/dominion/alchemy.svg", center=true);
+}
+
+module ShieldLogo(angle=270) {
+  rotate([0, 0, angle])
+      import("../svg/dominion/shield outline.svg", center=true);
+}

@@ -614,8 +614,8 @@ module FingerHoleWall(
           rotate([270, 0, 0])
             offset_sweep(
               region[0], height=depth_of_hole,
-              bottom=os_circle(round_front?-rounding_edge:0),
-              top=os_circle(round_back?-rounding_edge:0),
+              bottom=os_circle(round_front ? -rounding_edge : 0),
+              top=os_circle(round_back ? -rounding_edge : 0),
             );
       } else {
         tangents = circle_circle_tangents(
@@ -677,8 +677,8 @@ module FingerHoleWall(
           rotate([90, 0, 0])
             offset_sweep(
               region[0], height=depth_of_hole,
-              bottom=os_circle(round_front?-rounding_edge:0),
-              top=os_circle(round_back?-rounding_edge:0),
+              bottom=os_circle(round_front ? -rounding_edge : 0),
+              top=os_circle(round_back ? -rounding_edge : 0),
               $fn=16
             );
       }

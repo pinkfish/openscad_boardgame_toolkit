@@ -551,13 +551,13 @@ module MakeBoxWithFilamentHinge(
       }
       translate([-wall_thickness / 2 - 0.01, 0, catch_height / 2])
         cuboid(
-          [wall_thickness, wall_thickness+0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
+          [wall_thickness, wall_thickness + 0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
           chamfer=wall_thickness / 2,
           edges=[BOTTOM + LEFT]
         );
-      translate([-wall_thickness / 2 - 0.01, catch_length - wall_thickness-0.2, catch_height / 2])
+      translate([-wall_thickness / 2 - 0.01, catch_length - wall_thickness - 0.2, catch_height / 2])
         cuboid(
-          [wall_thickness+1, wall_thickness+0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
+          [wall_thickness + 1, wall_thickness + 0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
           chamfer=wall_thickness / 2,
           edges=[BOTTOM + LEFT]
         );

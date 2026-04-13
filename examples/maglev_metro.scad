@@ -341,7 +341,7 @@ module StartTokenBox() // `make` me
   ) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - start_token_diameter])
       cuboid(
-        [start_token_thickness, start_token_diameter, start_token_diameter + 1], anchor=BOTTOM,
+        [$inner_width, start_token_diameter, start_token_diameter + 1], anchor=BOTTOM,
         rounding=start_token_diameter / 2, edges=[FRONT + BOTTOM, BACK + BOTTOM]
       );
   }
@@ -476,5 +476,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  CardBox();
+  StartTokenBox();
 }

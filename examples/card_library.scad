@@ -672,7 +672,7 @@ module CardSleeveForLibrary(
 
       metrics = textmetrics(label, font=font);
 
-      text_length = height - text_length_offset - wall_thickness / 2;
+      text_length = height - text_length_offset - wall_thickness;
       text_width = length - wall_thickness;
       text_aspect = metrics.size[1] / metrics.size[0];
       text_use_length = text_width / text_aspect > text_length;

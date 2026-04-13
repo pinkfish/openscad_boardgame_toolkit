@@ -76,8 +76,6 @@ base_game_cards_v2 = [
   ["Workshop", 10],
 ];
 
-echo([CardLibrarySize(base_game_cards_v2), sumVec([for (x = base_game_cards_v2) SleeveSizeWidth(x[1])]), SleeveSizeWidth(10)]);
-
 base_game_cards_v1 = [
   ["Adventurer", 10],
   ["Bureaucrat", 10],
@@ -122,19 +120,81 @@ alchemy_game_cards = [
 ];
 
 money_victory_cards = [
-  ["Potion", 16],
-  ["Gold", 60],
-  ["Silver", 40],
-  ["Copper", 30],
-  ["Platinum", 12],
-  ["Estate", 12],
-  ["Province", 12],
-  ["Dutchy", 12],
+  ["Potion", 16, "potion_svg"],
+  ["Gold", 60, "gold_svg"],
+  ["Silver", 40, "silver_svg"],
+  ["Copper", 30, "copper_svg"],
+  ["Platinum", 12, "platinum_svg"],
+  ["Estate", 12, "estate_svg"],
+  ["Colony", 12, "colony_svg"],
+  ["Province", 12, "province_svg"],
+  ["Dutchy", 12, "dutchy_svg"],
   ["Curse", 30],
 ];
 
 prosperity_game_cards = [
+    
 ];
+
+module RenderSvg(svg) {
+  color("aqua")
+    translate([12, $inner_length / 2, -0.2])
+      mirror([0, 1, 0])
+        linear_extrude(h=0.5) {
+          if (svg == "potion_svg") {
+            resize([9, 0], auto=true)
+              PotionLogo();
+          }
+          if (svg == "gold_svg") {
+            resize([9, 0], auto=true)
+              MoneyLogo();
+            rotate(270)
+              text("3", size=4, halign="center", valign="center");
+          }
+          if (svg == "silver_svg") {
+            resize([9, 0], auto=true)
+              MoneyLogo();
+            rotate(270)
+              text("2", size=4, halign="center", valign="center");
+          }
+          if (svg == "copper_svg") {
+            resize([9, 0], auto=true)
+              MoneyLogo();
+            rotate(270)
+              text("1", size=4, halign="center", valign="center");
+          }
+          if (svg == "platinum_svg") {
+            resize([9, 0], auto=true)
+              MoneyLogo();
+            rotate(270)
+              text("6", size=4, halign="center", valign="center");
+          }
+          if (svg == "estate_svg") {
+            resize([9, 0], auto=true)
+              ShieldLogo();
+            rotate(270)
+              text("1", size=4, halign="center", valign="center");
+          }
+          if (svg == "dutchy_svg") {
+            resize([9, 0], auto=true)
+              ShieldLogo();
+            rotate(270)
+              text("3", size=4, halign="center", valign="center");
+          }
+          if (svg == "province_svg") {
+            resize([9, 0], auto=true)
+              ShieldLogo();
+            rotate(270)
+              text("6", size=4, halign="center", valign="center");
+          }
+          if (svg == "colony_svg") {
+            resize([9, 0], auto=true)
+              ShieldLogo();
+            rotate(270)
+              text("10", size=4, halign="center", valign="center");
+          }
+        }
+}
 
 module MoneyVictoryCardSleeve(label) {
   CardSleeveForLibrary(
@@ -156,7 +216,10 @@ module InternalSleeves(card_array, spacing = 2) {
       CardSleeveForLibrary(
         size=sleeve_sizes[i], label=card_array[i][0], add_positive=true,
         text_length_offset=18, emboss_text=0.3
-      ) children(0);
+      ) if (len(card_array[i]) > 2 && card_array[i][2] != "")
+        RenderSvg(card_array[i][2]);
+      else
+        children(0);
   }
 }
 
@@ -164,9 +227,9 @@ module DominionBaseGamev2Sleeves(spacing = 2) // `make` me
 {
   InternalSleeves(base_game_cards_v2, spacing) {
     color("aqua")
-      translate([13, $inner_length / 2, 0])
+      translate([12, $inner_length / 2, 0])
         linear_extrude(h=0.5)
-          resize([8, 8])
+          resize([9, 0], auto=true)
             BaseSetV2Logo();
   }
 }
@@ -175,9 +238,9 @@ module DominionBaseGamev1Sleeves(spacing = 2) // `make` me
 {
   InternalSleeves(base_game_cards_v1, spacing) {
     color("aqua")
-      translate([13, $inner_length / 2, 0])
+      translate([12, $inner_length / 2, 0])
         linear_extrude(h=0.5)
-          resize([8, 8])
+          resize([9, 0], auto=true)
             BaseSetV1Logo();
   }
 }
@@ -186,10 +249,21 @@ module MoneyVictoryGamev1Sleeves(spacing = 2) // `make` me
 {
   InternalSleeves(money_victory_cards, spacing) {
     color("aqua")
-      translate([13, $inner_length / 2, 0])
+      translate([12, $inner_length / 2, 0])
         linear_extrude(h=0.5)
-          resize([8, 8])
+          resize([9, 0], auto=true)
             MoneyLogo();
+  }
+}
+
+module AlchemcyGameSleeves(spacing = 2) // `make` me
+{
+  InternalSleeves(alchemy_game_cards, spacing) {
+    color("aqua")
+      translate([12, $inner_length / 2, 0])
+        linear_extrude(h=0.5)
+          resize([9, 0], auto=true)
+            PotionLogo();
   }
 }
 
@@ -201,13 +275,13 @@ module DominionLibraryBoxInternal(card_array) {
       rotate([90, 270, 0])
         color("aqua")
           linear_extrude(h=0.5)
-            resize([30, 30])
+            resize([30, 0], auto=true)
               children(0);
     translate([box_size[0] / 2, box_size[1] + 0.2, box_size[2] / 2])
       rotate([90, 270, 0])
         color("aqua")
           linear_extrude(h=0.5)
-            resize([30, 30])
+            resize([30, 0], auto=true)
               children(0);
   }
   difference() {
@@ -219,9 +293,15 @@ module DominionLibraryBoxInternal(card_array) {
     children(0);
 }
 
-module BaseGameDominionLibraryBox() // `make` me
+module BaseGameDominionv1LibraryBox() // `make` me
 {
   DominionLibraryBoxInternal(base_game_cards_v1)
+    BaseSetV1Logo();
+}
+
+module BaseGameDominionv2LibraryBox() // `make` me
+{
+  DominionLibraryBoxInternal(base_game_cards_v2)
     BaseSetV1Logo();
 }
 
@@ -229,6 +309,12 @@ module MoneyVictoryDominionLibraryBox() // `make` me
 {
   DominionLibraryBoxInternal(money_victory_cards)
     MoneyLogo();
+}
+
+module AlchemyDominionLibraryBox() // `make` me
+{
+  DominionLibraryBoxInternal(alchemy_game_cards)
+    PotionLogo();
 }
 
 module DominionLidInternal(card_array) {
@@ -282,16 +368,24 @@ module BoxLayout() {
   cube([1, dominion_big_box_length, dominion_big_box_height]);
 
   base = CardLibrarySize(base_game_cards_v1);
-  BaseGameDominionLibraryBox();
+  money_victory = CardLibrarySize(money_victory_cards);
+  BaseGameDominionv1LibraryBox();
   translate([default_wall_thickness, default_wall_thickness, default_wall_thickness])
     DominionBaseGamev1Sleeves(spacing=0);
   translate([base[0], 0, 0]) {
     MoneyVictoryDominionLibraryBox();
     translate([default_wall_thickness, default_wall_thickness, default_wall_thickness])
       MoneyVictoryGamev1Sleeves(spacing=0);
+    translate([0, money_victory[1] + 1, 0])
+      AlchemyDominionLibraryBox();
   }
 }
 
 if (FROM_MAKE != 1) {
   BoxLayout();
+  /*
+  AlchemyDominionLibraryBox();
+    translate([default_wall_thickness, default_wall_thickness, default_wall_thickness])
+      AlchemcyGameSleeves(spacing=0);
+      */
 }
