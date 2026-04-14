@@ -35,7 +35,7 @@ for fname in onlyfiles:
 
 with open("generate.makefile", "w") as mfile:
     mfile.write("all: 3mfmerge {0} {1} {2} {3}\n\n".format(" " .join(map(lambda x: "release/" + x.basename + "/mmu/" + x.module + ".3mf", data)), 
-                                                       " " .join(map(lambda x: "release/" + x.basename + "/single/" + x.module + ".3mf", data)),
+                                                       " " .join(map(lambda x: "release/" + x.basename + "/single/" + x.module + "_single.3mf", data)),
                                                        " " .join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", docs)),
                                                        " " .join(map(lambda x: "release/" + x + "/packing.pdf", packing))))
     mfile.write(".SECONDARY: {0}\n\n".format(" " .join(map(lambda x: "output/" + x.basename + "__" +  x.module + ".scad", data))))

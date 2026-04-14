@@ -87,10 +87,10 @@ factory_tile_box_height = player_box_height;
 
 metro_box_width = box_width - card_box_width - player_box_width;
 metro_box_length = box_length - factory_tile_box_length * 2;
-metro_box_height = default_wall_thickness + default_floor_thickness + factory_hex_thickness * 2;
+metro_box_height = factory_tile_box_height;
 
 spacer_box_width = metro_box_width;
-spacer_box_length = metro_box_length;
+spacer_box_length = metro_box_length + factory_tile_box_length - 2;
 spacer_box_height = factory_tile_box_height * 2 - metro_box_height;
 
 spacer_box_top_height = commuter_box_small_height;
@@ -375,6 +375,9 @@ module SpacerTop() // `make` me
 }
 
 module BoxLayout(layout = 0) {
+  factory_colours = ["silver", "gold", "orange", "pink", "aqua", "coral", "purple"];
+  player_colours = ["green", "orange", "blue", "yellow"];
+
   if (layout == 0) {
     cube([box_width, box_length, 1]);
     cube([box_width, 1, box_height]);
@@ -386,7 +389,7 @@ module BoxLayout(layout = 0) {
     translate([box_width - player_board_width, 0, box_height - game_board_base_thickness * 2 - player_board_thickness * 4]) {
       for (i = [0:3]) {
         translate([0, 0, player_board_thickness * i])
-          color(["green", "orange", "blue", "yellow"][i])
+          color(player_colours[i])
             cube([player_board_width, player_board_length, player_board_thickness]);
       }
     }
@@ -408,24 +411,23 @@ module BoxLayout(layout = 0) {
     translate([0, card_box_length, card_box_height])
       CardBox();
   }
-  factpory_colours = ["silver", "gold", "orange", "pink", "aqua", "coral", "purple"];
 
   for (i = [0:2])
     if (layout < 3 || i == 0) {
       translate([start_token_box_width, card_box_length * 2, i * robot_box_height])
-        RobotBox(colour=factpory_colours[i]);
+        RobotBox(colour=factory_colours[i]);
     }
   if (layout < 2) {
     for (i = [0:1]) {
       translate([start_token_box_width, card_box_length * 2 + commuter_box_length * i, robot_box_height * 3])
-        CommuterBox(colour=factpory_colours[i + 3]);
+        CommuterBox(colour=factory_colours[i + 3]);
     }
   }
   if (layout < 3) {
     translate([0, commuter_box_small_length, card_box_height * 2])
-      CommuterBoxSmall(colour=factpory_colours[5]);
+      CommuterBoxSmall(colour=factory_colours[5]);
     translate([0, 0, card_box_height * 2])
-      CommuterBoxSmall(colour=factpory_colours[6]);
+      CommuterBoxSmall(colour=factory_colours[6]);
     translate([0, commuter_box_small_length * 2, card_box_height * 2])
       SpacerTop();
   }
@@ -436,7 +438,7 @@ module BoxLayout(layout = 0) {
     for (i = [0:1]) {
       if (layout < 3 || j == 0) {
         translate([card_box_width, player_box_length * i, j * player_box_height])
-          PlayerBox(colour=["green", "orange", "blue", "yellow"][i + j * 2]);
+          PlayerBox(colour=player_colours[i + j * 2]);
       }
     }
   }
@@ -444,17 +446,17 @@ module BoxLayout(layout = 0) {
   for (i = [0:1]) {
     for (k = [0:1]) {
       for (j = [0:1]) {
-        if (layout < 3 || i == 0) {
+        if (i == 0 || !(i == 1 && j == 1)) {
           translate([card_box_width + player_box_width + factory_tile_box_width * k, factory_tile_box_length * j, factory_tile_box_height * i])
-            FactoryTileBox(colour=factpory_colours[i + j * 2 + k * 4]);
+            FactoryTileBox(colour=factory_colours[i + j * 2 + k * 4]);
         }
       }
     }
   }
   translate([card_box_width + player_box_width, factory_tile_box_length * 2, 0])
-    MetroTileBox(colour=factpory_colours[6]);
+    MetroTileBox(colour=factory_colours[6]);
   if (layout < 3) {
-    translate([card_box_width + player_box_width, factory_tile_box_length * 2, metro_box_height]) {
+    translate([card_box_width + player_box_width, factory_tile_box_length, metro_box_height]) {
       SpacerBox();
     }
   }
@@ -476,5 +478,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  StartTokenBox();
+  BoxLayoutB();
 }

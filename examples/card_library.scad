@@ -519,7 +519,6 @@ module CardLibraryBoxLid(
         }
         if ($children > 4) {
           children(4);
-          }
         }
       }
 
@@ -640,7 +639,6 @@ module CardLibraryBoxLidWithCustomShape(
     }
     if ($children > 5) {
       children(5);
-      }
     }
   }
 }
