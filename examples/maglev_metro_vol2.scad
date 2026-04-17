@@ -42,6 +42,34 @@ factory_hex_radius = PolygonRadiusFromApothem(factory_hex_width, 6);
 
 outback_tile_thickness = 3.25;
 
+loop_tile_thickness = 7.5;
+
+metro_ticket_diameter = 25;
+metro_ticket_thickness = 2;
+metro_ticket_num = 20;
+
+summon_width = 31;
+summon_length = 74;
+summon_top_width = 18;
+summon_bottom_width = 24;
+summon_top_offset = 14;
+summon_thickness = 4;
+summon_base_thickness = 2;
+summon_base_person_width = 19;
+summon_base_person_length = 25;
+summon_base_top_offset = 28;
+
+overlay_width = 25;
+overlay_length = 41;
+overlay_thickness = 4;
+overlay_base_thickness = 2;
+overlay_base_person_width = 19;
+overlay_base_person_length = 25;
+overlay_base_top_offset = 13;
+
+round_wood_diameter = 11;
+round_wood_thickness = 10.5;
+
 robot_width = 8.5;
 robot_length = 18.5;
 robot_thickness = 8;
@@ -81,6 +109,19 @@ module GhostAndOutbackTiles(thickness = 2) {
       translate([factory_hex_radius * 3 / 2, factory_hex_width * i + factory_hex_width / 2, 0])
         RegularPolygon(factory_hex_width, height=thickness, shape_edges=6);
     }
+  }
+}
+
+module LoopTiles(thickness = 2) {
+  translate([0, -factory_hex_width * 0.5, 0]) {
+    for (i = [0:1]) {
+      translate([0, factory_hex_width * i, 0])
+        RegularPolygon(factory_hex_width, height=thickness, shape_edges=6);
+    }
+    translate([factory_hex_radius * 3 / 2, factory_hex_width / 2, 0])
+      RegularPolygon(factory_hex_width, height=thickness, shape_edges=6);
+    translate([-factory_hex_radius * 3 / 2, factory_hex_width / 2, 0])
+      RegularPolygon(factory_hex_width, height=thickness, shape_edges=6);
   }
 }
 
@@ -199,5 +240,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  LoopTiles();
 }
