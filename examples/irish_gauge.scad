@@ -23,6 +23,7 @@ box_length = 302;
 box_height = 39;
 
 default_wall_thickness = 3;
+default_lid_thickness = 3;
 
 dividend_marker_diameter = 7.5;
 dividend_marker_thickness = 3;
@@ -161,14 +162,19 @@ module CompanyBoxLidGreatSouthern() // `make` me
 
 module MoneyBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[money_box_width, money_box_length, money_box_height], text_str="Bank");
+  SlidingBoxLidWithLabel(
+    size=[money_box_width, money_box_length, money_box_height],
+    text_str="Bank",
+    lid_thickness=4
+  );
 }
 
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     size=[money_box_width, money_box_length, money_box_height],
-    positive_negative_children=[1]
+    positive_negative_children=[1],
+    lid_thickness=4
   ) {
     union() {
       for (i = [0:2]) {

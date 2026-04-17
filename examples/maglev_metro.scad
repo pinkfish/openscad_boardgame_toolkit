@@ -45,7 +45,7 @@ player_overlay_hex_per_player = 18;
 
 robot_width = 8.5;
 robot_length = 18.5;
-robot_thickness = 7;
+robot_thickness = 8;
 
 start_token_diameter = 45.5;
 start_token_thickness = 4;
@@ -70,7 +70,7 @@ commuter_box_length = robot_box_length / 2;
 commuter_box_height = robot_box_height;
 
 commuter_box_small_width = box_width - game_board_base_width;
-commuter_box_small_length = default_wall_thickness * 2 + robot_width * 6 + 2;
+commuter_box_small_length = default_wall_thickness * 2 + robot_width * 7 + 2;
 commuter_box_small_height = box_height - card_box_height * 2;
 
 start_token_box_width = 10;
@@ -106,7 +106,8 @@ module MetroTile(thickness = 2) {
 module CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height]
+    size=[card_box_width, card_box_length, card_box_height],
+    lid_thickness=4
   ) {
     cube([$inner_width, $inner_length, box_height]);
     translate([$inner_width / 2.0, 0, -default_floor_thickness])
@@ -117,10 +118,39 @@ module CardBox() // `make` me
   }
 }
 
-module CardBoxLid() // `make` me
+module CardBoxLidDirectConnection() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height], text_str="Cards"
+    size=[card_box_width, card_box_length, card_box_height],
+    text_str="Connection",
+    lid_thickness=4
+  );
+}
+
+module CardBoxLidPassenger() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, card_box_height],
+    text_str="Passenger",
+    lid_thickness=4
+  );
+}
+
+module CardBoxLidTrack() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, card_box_height],
+    text_str="Track",
+    lid_thickness=4
+  );
+}
+
+module CardBoxLidPlayerBoard() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, card_box_height],
+    text_str="Player Board",
+    lid_thickness=4
   );
 }
 
@@ -261,7 +291,7 @@ module RobotBox(colour) // `make` me
     size=[robot_box_width, robot_box_length, robot_box_height],
     material_colour=colour
   ) {
-    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness])
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness - 0.5])
       cuboid([robot_length * 3, robot_width * 18 / 3, robot_thickness + 1], anchor=BOTTOM);
   }
 }
@@ -279,7 +309,7 @@ module CommuterBox(colour) // `make` me
     size=[commuter_box_width, commuter_box_length, commuter_box_height],
     material_colour=colour
   ) {
-    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness])
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness - 0.5])
       cuboid([robot_length * 3, robot_width * 5, robot_thickness + 1], anchor=BOTTOM);
   }
 }
@@ -297,8 +327,8 @@ module CommuterBoxSmall(colour) // `make` me
     size=[commuter_box_small_width, commuter_box_small_length, commuter_box_small_height],
     material_colour=colour
   ) {
-    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness])
-      cuboid([robot_length * 2, robot_width * 6, robot_thickness + 1], anchor=BOTTOM);
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness - 0.5])
+      cuboid([robot_length * 2, robot_width * 7, robot_thickness + 1], anchor=BOTTOM);
   }
 }
 
@@ -478,5 +508,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutB();
+  BoxLayoutA();
 }
