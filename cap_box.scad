@@ -86,7 +86,9 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_SHORT}} - short catch, {{CATCH_LONG}} - long catch (default
 //       {{CATCH_LONG})
-//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    top_rounding = rounding on the top edges of the box (default {{wall_thickness / 4}})
+//    bottom_rounding = rounding on the bottom edges of the box (default {{wall_thickness / 2}})
 // Usage: MakeBoxWithCapLid([100, 50, 20]);
 // Example:
 //    MakeBoxWithCapLid([100, 50, 20]);
@@ -94,6 +96,8 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 //    MakeBoxWithCapLid([100, 50, 10], lid_finger_hold_len = 4);
 // Example:
 //    MakeBoxWithCapLid([100, 50, 5], cap_height = 2, finger_hold_height = 1);
+// Example:
+//    MakeBoxWithCapLid([100, 50, 5], cap_height = 2, finger_hold_height = 1, corner_rounding=1, top_rounding=2, bottom_rounding=3);
 module MakeBoxWithCapLid(
   size,
   cap_height = undef,
@@ -107,7 +111,10 @@ module MakeBoxWithCapLid(
   positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
-  lid_catch = default_lid_catch_type
+  lid_catch = default_lid_catch_type,
+  top_rounding = undef,
+  bottom_rounding = undef,
+  corner_rounding = undef
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -129,17 +136,24 @@ module MakeBoxWithCapLid(
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
   calc_finger_hold_height = finger_hold_height == undef ? CapBoxDefaultFingerHoldHeight(height) : finger_hold_height;
   calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
+  calc_bottom_rounding = DefaultValue(bottom_rounding, wall_thickness / 2);
+  calc_top_rounding = DefaultValue(top_rounding, wall_thickness / 4);
+  calc_corner_rounding = DefaultValue(corner_rounding, wall_thickness);
+
+  assert(calc_bottom_rounding >= 0, str("Need calc_bottom_rounding >= 0, calc_bottom_rounding=", calc_bottom_rounding));
+  assert(calc_top_rounding >= 0, str("Need calc_top_rounding >= 0, calc_top_rounding=", calc_top_rounding));
+  assert(calc_corner_rounding >= 0, str("Need calc_corner_rounding >= 0, calc_corner_rounding=", calc_corner_rounding));
 
   difference() {
     color(material_colour)
       diff()
         cuboid(
           [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
-          rounding=wall_thickness, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
+          rounding=calc_corner_rounding, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
         ) {
-          face_profile(BOTTOM, r=wall_thickness / 2)
-            mask2d_roundover(wall_thickness / 2);
-          corner_profile(BOTTOM, r=wall_thickness / 2) mask2d_roundover(wall_thickness / 2);
+          face_profile(BOTTOM, r=calc_bottom_rounding)
+            mask2d_roundover(calc_bottom_rounding);
+          corner_profile(BOTTOM, r=calc_bottom_rounding) mask2d_roundover(calc_bottom_rounding);
         }
 
     // lid diff.
@@ -156,7 +170,7 @@ module MakeBoxWithCapLid(
                 length - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
                 calc_cap_height,
               ],
-              anchor=BOTTOM + FRONT + LEFT, rounding=calc_lid_wall_thickness,
+              anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
               edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
             );
       }
@@ -164,16 +178,16 @@ module MakeBoxWithCapLid(
     // Round over top bit.
     translate([width / 2, calc_lid_wall_thickness * 1 + size_spacing, height - lid_thickness - size_spacing])
       rotate([0, 90, 0])
-        rounding_edge_mask(r=wall_thickness / 4, l=width);
+        rounding_edge_mask(r=calc_top_rounding, l=width);
     translate([width / 2, length - calc_lid_wall_thickness * 1 - size_spacing / 2, height - lid_thickness - size_spacing])
       rotate([0, 90, 180])
-        rounding_edge_mask(r=wall_thickness / 4, l=width);
+        rounding_edge_mask(r=calc_top_rounding, l=width);
     translate([calc_lid_wall_thickness * 1 + size_spacing, length / 2, height - lid_thickness - size_spacing])
       rotate([90, 90, 0])
-        rounding_edge_mask(r=wall_thickness / 4, l=length);
+        rounding_edge_mask(r=calc_top_rounding, l=length);
     translate([width - calc_lid_wall_thickness * 1 - size_spacing / 2, length / 2, height - lid_thickness - size_spacing])
       rotate([270, 90, 0])
-        rounding_edge_mask(r=wall_thickness / 4, l=length);
+        rounding_edge_mask(r=calc_top_rounding, l=length);
 
     // lid catches
     translate([0, 0, height - calc_cap_height]) {
@@ -272,7 +286,7 @@ module MakeBoxWithCapLid(
                   length - calc_lid_wall_thickness * 2 - size_spacing * 2,
                   calc_finger_hold_height + 2,
                 ],
-                anchor=BOTTOM + FRONT + LEFT, rounding=calc_lid_wall_thickness,
+                anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
                 edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
               );
         }
@@ -340,8 +354,8 @@ module MakeBoxWithCapLid(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    lid_catch = the type of catch to use, use {{CATCH_BUMPS_LONG}} for a bumps catch and {{CATCH_SHORT}}
 //      for a wedge catch.  Default {{default_lid_catch_type}}
-//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//   lid_rounding = how much to round the edge of the lid
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much to round the edge of the lid
 // Usage: CapBoxLid([100, 50, 20]);
 // Example:
 //    CapBoxLid([100, 50, 30]);
@@ -528,8 +542,8 @@ module CapBoxLid(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
-//   lid_rounding = how much to round the edge of the lid
-//   lid_inner_rounding = how much to round the inside of the box
+//    lid_rounding = how much to round the edge of the lid
+//    lid_inner_rounding = how much to round the inside of the box
 // Usage: CapBoxLidWithCustomShape([100, 50, 20]);
 // Example:
 //    CapBoxLidWithCustomShape([100, 50, 30]) {
@@ -625,7 +639,7 @@ module CapBoxLidWithCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    lid_catch = the type of catch to use (default {{default_lid_catch_type}})
-//   label_background_colour = the colour to use for the label background
+//    label_background_colour = the colour to use for the label background
 // Usage: CapBoxLidWithLabelAndCustomShape([100, 50, 20], text_str = "Frog");
 // Example:
 //    CapBoxLidWithLabelAndCustomShape([100, 50, 30], text_str = "Frog") {

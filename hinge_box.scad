@@ -221,7 +221,7 @@ module InsetHinge(length, width, diameter, offset) {
 //    size_spacing = extra spacing to apply between pieces (default {{default_slicing_layer_height}})
 //    label_options = options for the label (default undef)
 //    shape_options = options for the shape (default undef)
-//   cap_height = height of the cap on the box
+//    cap_height = height of the cap on the box
 // Usage: HingeBoxLidLabel(size=[100, 50], text_str="Cards");
 // Example:
 //   $inner_width = 100;
@@ -585,7 +585,7 @@ module MakeBoxWithFilamentHinge(
 //   filament_thickness = filament thickness of the box
 //   rounding = rounding of the box
 // Example:
-//   FilamentBoxInsideMask([100, 20, 6, 0.5]);
+//   FilamentBoxInsideMask([100, 20, 10]);
 module FilamentBoxInsideMask(
   size,
   wall_thickness = default_wall_thickness,
@@ -613,7 +613,7 @@ module FilamentBoxInsideMask(
       cuboid(
         [wall_thickness, length, support_height],
         anchor=BOTTOM + FRONT + LEFT,
-        chamfer=wall_thickness,
+        chamfer=min(wall_thickness, support_height),
         edges=[BOTTOM + RIGHT],
       );
   }

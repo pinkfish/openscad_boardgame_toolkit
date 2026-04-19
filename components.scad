@@ -294,7 +294,7 @@ function HoleToPosition(pos) =
 //    chamfer = chamfer to use on the hole edges
 //    edges = which edges to round/chamfer
 //    anchor = BOSL2 anchor
-//   finger_hole_radius = radius of the finger hole
+//    finger_hole_radius = radius of the finger hole
 // Examples:
 //    CuboidWithIndentsBottom([15, 10, 10], finger_holes = [1, 5], finger_hole_radius=3);
 // Examples:
@@ -564,9 +564,9 @@ module HexGridWithCutouts(rows, cols, height, spacing, tile_width, push_block_he
 //   round_front = how much to round the front
 //   round_back = how much to round the back
 // Example:
-//   FingerHoleWall(10, 20)
+//   FingerHoleWall(10, 20);
 // Example:
-//   FingerHoleWall(10, 9)
+//   FingerHoleWall(10, 9);
 module FingerHoleWall(
   radius,
   height,
@@ -610,7 +610,7 @@ module FingerHoleWall(
             )
           ),
           circle(
-            r=radius, h=depth_of_hole, $fn=64, anchor=BOTTOM
+            r=radius, $fn=64, anchor=BOTTOM
           ),
         );
         translate([0, -depth_of_hole / 2, height])

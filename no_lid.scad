@@ -246,12 +246,16 @@ module MakePathBoxWithNoLid(
 //    make_finger_y = makes finger dip on the y axis
 //    wall_thickness = thickness of the walls
 // Example:
-//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_x=true);
+//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_x=true, wall_thickness=2);
 // Example:
-//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_y=true);
+//    FingerHoleWallSegment([[0,0], [50,50]], finger_hole_size=5, finger_hole_height=4, height=7, make_finger_y=true, wall_thickness=2);
 module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, height, wall_thickness, make_finger_x = undef, make_finger_y = undef) {
   assert(is_path(path, 2), "Path must be a 2d path");
   assert(len(path) == 2, str("Path must be at least exactly 2 elements long path_length=", len(path)));
+  assert(finger_hole_size > 0, str("Need finger hole size > 0, finger_hole_size=", finger_hole_size));
+  assert(finger_hole_height > 0, str("Need finger hole height > 0, finger_hole_height=", finger_hole_height));
+  assert(height > 0, str("Need height > 0, height=", height));
+  assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
 
   split_length = path_length(path);
   normal = path_normals(path);
@@ -266,7 +270,7 @@ module FingerHoleWallSegment(path, finger_hole_size, finger_hole_height, height,
       translate(pts[0][0])
         rotate(angle)
           FingerHoleWall(
-            radius=finger_hole_size, height=finger_hole_height, spin=90, depth_of_hole=wall_thickness+0.03,
+            radius=finger_hole_size, height=finger_hole_height, spin=90, depth_of_hole=wall_thickness + 0.03,
             rounding_edge=wall_thickness / 2
           );
   }

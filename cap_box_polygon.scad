@@ -139,7 +139,7 @@ module PolygonBoxLidCatch(path, wall_thickness, offset, delta, lid_catch) {
 //    positive_negative_children = the list of children to be positive and negative
 //    lid_catch = {{CATCH_NONE}} - no catch, {{CATCH_LONG}} - length catch, {{CATCH_SHORT}} - width catch (default
 //       {{default_lid_catch_type}})
-//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Topics: CapBox
 // Usage: MakePathBoxWithCapLid(path=[[0,0], [0,100], [100,100]], height=20);
 // Example:
@@ -289,7 +289,7 @@ module MakePathBoxWithCapLid(
 //    lid_inner_rounding = how much to round the inside of the box (default calc_lid_wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
-//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Usage: CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 20);
 // Example:
 //    CapPathBoxLid(path=[[0,0], [0,100], [100,100]], 30);
@@ -415,10 +415,10 @@ module CapPathBoxLid(
 //    pattern_inner_control = if the shape needs inner control (default false)
 //    label_options = options for the label
 //    label_background_colour = the colour of the label background
-//   path = the path of the polygon to use
-//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
-//   lid_rounding = how much to round the edge of the lid
-//   lid_inner_rounding = how much to round the inside of the box
+//    path = the path of the polygon to use
+//    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    lid_rounding = how much to round the edge of the lid
+//    lid_inner_rounding = how much to round the inside of the box
 // Usage: CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]], height=30, text_str = "Frog", 
 //      label_options=MakeLabelOptions( text_length=50, label_diff=[20, -20]));
 // Example:
