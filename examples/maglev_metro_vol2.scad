@@ -22,6 +22,8 @@ box_height = 65;
 box_width = 286;
 box_length = 286;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 default_lid_thickness = 3;
 
 player_board_width = 145;
@@ -56,19 +58,19 @@ summon_top_offset = 14;
 summon_thickness = 4;
 summon_base_thickness = 2;
 summon_base_person_width = 19;
-summon_base_person_length = 25;
-summon_base_top_offset = 28;
+summon_base_person_length = 26;
+summon_base_top_offset = 28.5;
 
-overlay_width = 25;
-overlay_length = 41;
-overlay_thickness = 4;
-overlay_base_thickness = 2;
-overlay_base_person_width = 19;
-overlay_base_person_length = 25;
-overlay_base_top_offset = 13;
+upgrade_width = 25;
+upgrade_length = 42;
+upgrade_thickness = 3.5;
+upgrade_base_thickness = 1.5;
+upgrade_base_person_width = 19;
+upgrade_base_person_length = 26;
+upgrade_base_top_offset = 2.5;
 
-round_wood_diameter = 11;
-round_wood_thickness = 10.5;
+nanobot_diameter = 11;
+nanobot_thickness = 10.5;
 
 robot_width = 8.5;
 robot_length = 18.5;
@@ -79,17 +81,45 @@ card_length = 90;
 card_20_thickness = 14;
 single_card_thickness = card_20_thickness / 20;
 
-card_box_width = default_wall_thickness * 2 + card_width;
-card_box_length = default_wall_thickness * 2 + card_length;
-card_box_height = default_floor_thickness + default_lid_thickness + single_card_thickness * 8;
-
-robot_box_width = card_box_width - 10;
-robot_box_length = box_length - card_box_length * 2;
-robot_box_height = card_box_height / 2;
-
 commuter_box_width = box_width - game_board_base_width;
 commuter_box_length = box_length / 4;
 commuter_box_height = game_board_base_thickness;
+
+extra_hex_boxes_width = box_width - factory_hex_radius * 3.5 - default_wall_thickness * 2;
+extra_hex_boxes_length = default_wall_thickness * 2 + factory_hex_width * 2 + 4;
+extra_hex_boxes_height = box_height - player_board_thickness * 4 - game_board_thickness - game_board_base_thickness;
+
+card_box_width = default_wall_thickness * 2 + card_width;
+card_box_length = default_wall_thickness * 2 + card_length;
+card_box_height = default_floor_thickness + default_lid_thickness + upgrade_thickness * 3 - upgrade_base_thickness;
+
+upgrade_tile_box_width = card_box_width;
+upgrade_tile_box_length = upgrade_length * 3;
+upgrade_tile_box_height = card_box_height;
+
+summon_box_width = extra_hex_boxes_width;
+summon_box_length = default_wall_thickness * 2 + box_length - extra_hex_boxes_length - upgrade_tile_box_length;
+summon_box_thickness = upgrade_tile_box_height;
+
+outback_ghost_tiles_box_width = default_wall_thickness + factory_hex_radius * 3.5;
+outback_ghost_tiles_box_length = default_wall_thickness + factory_hex_width * 4;
+outback_ghost_tiles_box_height = box_height - game_board_thickness - game_board_base_thickness;
+
+metro_token_box_width = outback_ghost_tiles_box_width;
+metro_token_box_length = box_length - outback_ghost_tiles_box_length - 1;
+metro_token_box_height = outback_ghost_tiles_box_height;
+
+robot_box_width = extra_hex_boxes_width / 3;
+robot_box_length = robot_length * 3.2 + 1 + default_wall_thickness * 2;
+robot_box_height = box_height - card_box_height - commuter_box_height - game_board_base_thickness;
+
+nanobot_box_width = robot_box_width;
+nanobot_box_length = box_length - player_board_length - robot_box_length;
+nanobot_box_height = robot_box_height;
+
+player_board_spacer_width = extra_hex_boxes_width;
+player_board_spacer_length = player_board_length - extra_hex_boxes_length - 1;
+player_board_spacer_height = extra_hex_boxes_height - card_box_height;
 
 module OutbackSmallTile(thickness = 2) {
   for (i = [0:2]) {
@@ -110,6 +140,50 @@ module GhostAndOutbackTiles(thickness = 2) {
         RegularPolygon(factory_hex_width, height=thickness, shape_edges=6);
     }
   }
+}
+
+module UpgradeTile() {
+  translate([0, 0, upgrade_base_thickness])
+    cuboid(
+      [upgrade_width, upgrade_length, upgrade_thickness - upgrade_base_thickness],
+      anchor=BOTTOM,
+      rounding=0.5,
+      edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+    );
+  translate([0, upgrade_length / 2 - upgrade_base_person_length / 2 - upgrade_base_top_offset, 0])
+    cuboid(
+      [upgrade_base_person_width, upgrade_base_person_length, upgrade_base_thickness + 0.1],
+      anchor=BOTTOM,
+      rounding=1,
+      edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+    );
+}
+
+module SummonTile(thickness = 2) {
+  up(summon_base_thickness)
+    linear_extrude(thickness - summon_base_thickness) {
+      polygon(
+        round_corners(
+          [
+            [summon_top_width / 2, summon_length / 2],
+            [-summon_top_width / 2, summon_length / 2],
+            [-summon_width / 2, summon_length / 2 - summon_top_offset],
+            [-summon_bottom_width / 2, -summon_length / 2],
+            [summon_bottom_width / 2, -summon_length / 2],
+            [summon_width / 2, summon_length / 2 - summon_top_offset],
+          ],
+          radius=0.5
+        )
+      );
+    }
+
+  back(summon_length / 2 - summon_top_offset)
+    cuboid(
+      [summon_base_person_width, summon_base_person_length, summon_base_thickness + 0.1],
+      anchor=BOTTOM + BACK,
+      rounding=1,
+      edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+    );
 }
 
 module LoopTiles(thickness = 2) {
@@ -149,6 +223,156 @@ module CardBoxLidDirectConnection() // `make` me
   );
 }
 
+module UpgradeBox() // `make` me
+{
+  offset = upgrade_length - upgrade_base_person_length - upgrade_base_top_offset;
+  module UpgradeHole() {
+    translate([0, 0, 0])
+      rotate(180)
+        UpgradeTile();
+    translate([0, offset / 2, upgrade_thickness - 0.01])
+      cuboid(
+        [upgrade_width, upgrade_length + offset, upgrade_thickness * 1.5],
+        anchor=BOTTOM,
+        rounding=0.5,
+        edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+      );
+    translate([0, upgrade_length / 2, upgrade_base_thickness])
+      sphere(r=12, anchor=BOTTOM);
+    translate([0, upgrade_length / 2 + offset, upgrade_thickness])
+      sphere(r=12, anchor=BOTTOM);
+  }
+  MakeBoxWithCapLid(
+    size=[upgrade_tile_box_width, upgrade_tile_box_length, upgrade_tile_box_height],
+    material_colour="green"
+  ) {
+    translate([upgrade_width / 2 + 1, upgrade_length / 2 + 1, $inner_height - upgrade_thickness * 2 - upgrade_base_thickness + 0.5]) {
+      UpgradeHole();
+    }
+    translate([$inner_width - upgrade_width / 2 - 1, upgrade_length / 2 + 1, $inner_height - upgrade_thickness * 2 - upgrade_base_thickness + 0.5]) {
+      UpgradeHole();
+    }
+
+    translate([upgrade_width / 2, $inner_length - upgrade_length / 2 - 1, $inner_height - upgrade_thickness]) {
+      UpgradeTile();
+      translate([0, -upgrade_length / 2, upgrade_base_thickness])
+        sphere(r=20, anchor=BOTTOM);
+    }
+    translate([$inner_width - upgrade_width / 2 - 1, $inner_length - upgrade_length / 2 - 1, $inner_height - upgrade_thickness * 2 - upgrade_base_thickness + 0.5]) {
+      rotate(180)
+        UpgradeHole();
+    }
+  }
+}
+
+module UpgradeBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[upgrade_tile_box_width, upgrade_tile_box_length, upgrade_tile_box_height], text_str="Upgrades"
+  );
+}
+
+module ExtraTilesBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    size=[extra_hex_boxes_width, extra_hex_boxes_length, extra_hex_boxes_height],
+    positive_negative_children=[1],
+    material_colour="orange"
+  ) {
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - loop_tile_thickness]) {
+      {
+        LoopTiles(thickness=loop_tile_thickness + 1);
+        translate([factory_hex_radius, factory_hex_width / 2, -outback_tile_thickness])
+          sphere(r=20, anchor=BOTTOM);
+        translate([-factory_hex_radius, -factory_hex_width / 2, -outback_tile_thickness])
+          sphere(r=20, anchor=BOTTOM);
+      }
+      translate([factory_hex_radius / 2, 0, -outback_tile_thickness - 0.25]) {
+        OutbackSmallTile(thickness=outback_tile_thickness + 1);
+      }
+    }
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - loop_tile_thickness]) {
+      translate([factory_hex_radius / 2, 0, -outback_tile_thickness - 0.46]) {
+        text("Outback", valign="center", halign="center", size=10);
+      }
+      translate([-factory_hex_radius * 3 / 2, 0, -0.20]) {
+        text("Loop", valign="center", halign="center", size=10);
+      }
+    }
+  }
+}
+
+module ExtraTilesBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[extra_hex_boxes_width, extra_hex_boxes_length, extra_hex_boxes_height], text_str="Tiles"
+  );
+}
+
+module SummonBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    size=[summon_box_width, summon_box_length, summon_box_thickness],
+    material_colour="purple"
+  ) {
+    translate([summon_length / 2 + 1, $inner_length / 2, $inner_height - summon_thickness * 2]) {
+      rotate(90)
+        SummonTile(thickness=summon_thickness * 2);
+      translate([summon_length / 2, 0, summon_base_thickness])
+        sphere(r=20, anchor=BOTTOM);
+    }
+    translate([$inner_width - summon_length / 2 - 1, $inner_length / 2, $inner_height - summon_thickness * 2]) {
+      rotate(270)
+        SummonTile(thickness=summon_thickness * 2);
+      translate([-summon_length / 2, 0, summon_base_thickness])
+        sphere(r=20, anchor=BOTTOM);
+    }
+  }
+}
+
+module SummonBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[summon_box_width, summon_box_length, summon_box_thickness], text_str="Summons"
+  );
+}
+
+module MetroTokensBox() // `make` me
+{
+  MakeBoxWithCapLid(
+    size=[metro_token_box_width, metro_token_box_length, metro_token_box_height],
+    material_colour="blue"
+  ) {
+    translate([1, 1, 0])
+      RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, metro_token_box_height], radius=10);
+  }
+}
+
+module MetroTokensBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[metro_token_box_width, metro_token_box_length, metro_token_box_height], text_str="Metro"
+  );
+}
+
+module NanobotBox(colour) // `make` me
+{
+  MakeBoxWithCapLid(
+    size=[nanobot_box_width, nanobot_box_length, nanobot_box_height],
+    material_colour=colour
+  ) {
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - nanobot_thickness])
+      cuboid([nanobot_diameter * 4.3, nanobot_diameter * 4.1, nanobot_thickness + 1], anchor=BOTTOM);
+  }
+}
+
+module NanobotBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[nanobot_box_width, nanobot_box_length, nanobot_box_height], text_str="Nanobots"
+  );
+}
+
 module RobotBox(colour) // `make` me
 {
   MakeBoxWithCapLid(
@@ -156,7 +380,7 @@ module RobotBox(colour) // `make` me
     material_colour=colour
   ) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - robot_thickness])
-      cuboid([robot_length * 3, robot_width * 18 / 3, robot_thickness + 1], anchor=BOTTOM);
+      cuboid([robot_width * 6, robot_length * 3.2, robot_thickness + 1], anchor=BOTTOM);
   }
 }
 
@@ -185,6 +409,44 @@ module CommuterBoxLid() // `make` me
   );
 }
 
+module GhostBox() // `make` me
+{
+  MakeBoxWithNoLid(size=[outback_ghost_tiles_box_width, outback_ghost_tiles_box_length, outback_ghost_tiles_box_height]) {
+    translate([$inner_width / 2 - factory_hex_radius * 1 / 4 + default_wall_thickness, $inner_length / 2 - default_wall_thickness, $inner_height - outback_tile_thickness * 8 - 1]) {
+      rotate(180)
+        GhostAndOutbackTiles(thickness=outback_tile_thickness * 8 + 2);
+      translate([$inner_width / 2, 0, 0])
+        cuboid([factory_hex_width / 2, outback_ghost_tiles_box_length, outback_tile_thickness * 8 + 2], anchor=BOTTOM);
+    }
+  }
+}
+
+module PlayerBoxSpacer() // `make` me
+{
+  MakeBoxWithNoLid(
+    size=[player_board_spacer_width, player_board_spacer_length, player_board_spacer_height],
+    hollow=true
+  ){}
+}
+
+module MiddleBoxSpacer() // `make` me
+{
+  outside_width = extra_hex_boxes_width - upgrade_tile_box_width - 2;
+  outside_length = upgrade_tile_box_length - 2;
+  path = [
+    [outside_width, 0],
+    [outside_width, outside_length],
+    [0, outside_length],
+    [0, card_box_length],
+    [card_box_width, card_box_length],
+    [card_box_width, 0],
+  ];
+  MakePathBoxWithNoLid(
+    path=path, height=card_box_height, hollow=true,
+    offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16)
+  );
+}
+
 module BoxLayout(layout = 0) {
   factory_colours = ["silver", "gold", "orange", "pink", "aqua", "coral", "purple"];
   player_colours = ["green", "orange", "blue", "yellow"];
@@ -201,6 +463,8 @@ module BoxLayout(layout = 0) {
       color("darkgreen")
         cube([game_board_base_width, game_board_base_length, game_board_base_thickness]);
     }
+  }
+  if (layout < 3) {
     for (i = [0:3])
       translate(
         [
@@ -209,19 +473,48 @@ module BoxLayout(layout = 0) {
           box_height - game_board_thickness - game_board_base_thickness - player_board_thickness * (i + 1),
         ]
       )
-
         color(player_colours[i])
           cube([player_board_width, player_board_length, player_board_thickness]);
   }
-
-  for (i = [0:3]) {
-    translate([0, commuter_box_length * i, box_height - game_board_thickness - game_board_base_thickness])
-      CommuterBox(colour=factory_colours[i + 3]);
+  if (layout < 3) {
+    for (i = [0:3]) {
+      translate([0, commuter_box_length * i, box_height - game_board_thickness - game_board_base_thickness])
+        CommuterBox(colour=factory_colours[i + 3]);
+    }
   }
-  CardBox();
-  translate([box_width - factory_hex_radius * 8 / 4, factory_hex_width * 2, 0])
-    rotate(180)
-      GhostAndOutbackTiles(thickness=outback_tile_thickness * 8);
+  if (layout < 4) {
+    for (i = [0:2]) {
+
+      translate([robot_box_width * i, player_board_length, card_box_height])
+        RobotBox(colour=factory_colours[i]);
+      translate([robot_box_width * i, player_board_length + robot_box_length, card_box_height])
+        RobotBox(colour=factory_colours[i]);
+    }
+  }
+  if (layout < 4) {
+    translate([0, extra_hex_boxes_length, card_box_height])
+      PlayerBoxSpacer();
+  }
+  translate([upgrade_tile_box_width, extra_hex_boxes_length, 0])
+    MiddleBoxSpacer();
+  translate([0, extra_hex_boxes_length, 0])
+    UpgradeBox();
+  translate([0, 0, 0])
+    ExtraTilesBox();
+  translate([upgrade_tile_box_width, extra_hex_boxes_length, 0])
+    CardBox();
+  translate([0, extra_hex_boxes_length + upgrade_tile_box_length, 0])
+    SummonBox();
+  translate([extra_hex_boxes_width, 0, 0]) {
+    GhostBox();
+    if (layout < 3) {
+      translate([factory_hex_radius * 6 / 4 + default_wall_thickness, factory_hex_width * 2 - default_wall_thickness, default_floor_thickness])
+        rotate(180)
+          GhostAndOutbackTiles(thickness=outback_tile_thickness * 8);
+    }
+  }
+  translate([extra_hex_boxes_width, outback_ghost_tiles_box_length, 0])
+    MetroTokensBox();
 }
 
 module BoxLayoutA() // `document` me
@@ -239,6 +532,11 @@ module BoxLayoutC() // `document` me
   BoxLayout(layout=3);
 }
 
+module BoxLayoutD() // `document` me
+{
+  BoxLayout(layout=4);
+}
+
 if (FROM_MAKE != 1) {
-  LoopTiles();
+  SummonBox();
 }

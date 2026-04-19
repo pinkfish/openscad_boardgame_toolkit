@@ -129,6 +129,7 @@ module MakeBoxWithCapLid(
   calc_cap_height = cap_height == undef ? CapBoxDefaultCapHeight(height) : cap_height;
   calc_finger_hold_height = finger_hold_height == undef ? CapBoxDefaultFingerHoldHeight(height) : finger_hold_height;
   calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height);
+
   difference() {
     color(material_colour)
       diff()
@@ -159,6 +160,20 @@ module MakeBoxWithCapLid(
               edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
             );
       }
+
+    // Round over top bit.
+    translate([width / 2, calc_lid_wall_thickness * 1 + size_spacing, height - lid_thickness - size_spacing])
+      rotate([0, 90, 0])
+        rounding_edge_mask(r=wall_thickness / 4, l=width);
+    translate([width / 2, length - calc_lid_wall_thickness * 1 - size_spacing / 2, height - lid_thickness - size_spacing])
+      rotate([0, 90, 180])
+        rounding_edge_mask(r=wall_thickness / 4, l=width);
+    translate([calc_lid_wall_thickness * 1 + size_spacing, length / 2, height - lid_thickness - size_spacing])
+      rotate([90, 90, 0])
+        rounding_edge_mask(r=wall_thickness / 4, l=length);
+    translate([width - calc_lid_wall_thickness * 1 - size_spacing / 2, length / 2, height - lid_thickness - size_spacing])
+      rotate([270, 90, 0])
+        rounding_edge_mask(r=wall_thickness / 4, l=length);
 
     // lid catches
     translate([0, 0, height - calc_cap_height]) {

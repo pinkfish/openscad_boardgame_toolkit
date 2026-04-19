@@ -22,6 +22,8 @@ box_height = 65;
 box_width = 286;
 box_length = 286;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 player_board_width = 221;
 player_board_length = 245;
 player_board_thickness = 2.2;
