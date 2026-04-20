@@ -59,7 +59,7 @@ summon_thickness = 4;
 summon_base_thickness = 2;
 summon_base_person_width = 19;
 summon_base_person_length = 26;
-summon_base_top_offset = 28.5;
+summon_base_top_offset = 27.5;
 
 upgrade_width = 25;
 upgrade_length = 42;
@@ -177,7 +177,7 @@ module SummonTile(thickness = 2) {
       );
     }
 
-  back(summon_length / 2 - summon_top_offset)
+  back(summon_length / 2 - summon_base_top_offset)
     cuboid(
       [summon_base_person_width, summon_base_person_length, summon_base_thickness + 0.1],
       anchor=BOTTOM + BACK,
