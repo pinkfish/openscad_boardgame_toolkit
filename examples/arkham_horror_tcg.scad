@@ -28,94 +28,159 @@ default_wall_thickness = 3;
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_lid_shape_type = SHAPE_TYPE_VORONOI;
 
+card_10_thickness = 16 / 3;
+single_card_thickness = card_10_thickness / 10;
+card_size = MakeCardSize(length=92, width=66, single_card_thickness=single_card_thickness, sleeve_wall_thickness=0.75);
+
 num_investigator_cards = 34;
 
 card_width = 66;
 card_length = 91;
 
-ten_cards_thickness = 6;
-single_card_thickness = ten_cards_thickness / 10;
-
 card_box_width = card_length + default_wall_thickness * 2 + 1;
 card_box_height = card_width + default_lid_thickness + default_floor_thickness + 1;
 
-function CardBoxWidth(num_cards) = num_cards * single_card_thickness + default_wall_thickness * 2;
+core_player_cards = [
+  ["Agnes Baker", 34, "per_investigator"],
+  ["Roland Banks", 34, "per_investigator"],
+  ["Daisy Walker", 34, "per_investigator"],
+  ["Skids O'Toole", 34, "per_investigator"],
+  ["Wendy Adams", 34, "per_investigator"],
 
-module CardBox(num_cards, text_str, generate_lid = true)
-{
-    card_box_length = CardBoxWidth(num_cards);
-    translate([ card_box_length, 0, 0 ]) rotate([ 0, 0, 90 ])
-    {
-        MakeBoxWithSlidingLid(size = [card_box_width, card_box_length, card_box_height],
-                              lid_thickness = default_lid_thickness,
-                              lid_on_length = true)
-        {
-            cube([ $inner_width, $inner_length, $inner_height + 1 ]);
-            translate(
-                [ card_box_width / 2, card_box_length / 2, $inner_height - 23.5 + 0.01 - default_lid_thickness / 2 ])
-                FingerHoleWall(radius = 25, height = 28, depth_of_hole = card_box_width + 2, orient = UP,
-                               rounding_radius = 5);
-        }
+  ["Level 0", 15, "s_level_0"],
+
+  ["Guardian 1+", 12, "guardian"],
+  ["Survivor 1+", 12, "survivor"],
+  ["Rogue 1+", 12, "rogue"],
+  ["Seeker 1+", 12, "seeker"],
+  ["Mystic 1+", 12, "mystic"],
+  ["Neutral 1+", 10, "neutral"],
+  ["Weaknesses", 10, "weakness"],
+];
+
+core_scenario_cards = [
+  ["The Gathering", 16, "the_gathering"],
+  ["The Midnight Masks", 20, "midnight_masks"],
+  ["The Devourer Below", 18, "the_devourer_below"],
+  ["Chilling Cold", 4, "chilling_cold"],
+  ["Nightguants", 4, "nightgaunts"],
+  ["Dark Cultists", 5, "dark_cult"],
+  ["Locked Doors", 4, "locked_doors"],
+  ["Cult of Umordoth", 5, "cult_of_umordoth"],
+  ["Ancient Evils", 4, "ancient_evils"],
+  ["Striking Fear", 7, "striking_fear"],
+  ["Ghouls", 7, "ghouls"],
+  ["Agents of Yog-Sothoth", 4, "agents_of_yog"],
+  ["Agents of Cthulhu", 4, "agents_of_cthulhu"],
+  ["Agents of Shub", 4, "agents_of_shub"],
+  ["Agents of Hastur", 4, "agents_of_hastur"],
+  ["Rats", 4, "rats"],
+];
+
+//echo(sumVec([for (i = core_scenario_cards) (i[1])]));
+
+module ArkhamHorrorBaseLogo() {
+  import("svg/arkham_horror/icons/core.svg", center=true);
+}
+
+module RenderSvg(svg_icon, width) {
+  resize(
+    svg_icon == "the_gathering" || svg_icon == "ghouls" || svg_icon == "the_devourer_below" ? [width, 0] : [0, width],
+    auto=true
+  )
+    rotate(270)
+      import(str("svg/arkham_horror/icons/", svg_icon, ".svg"), center=true);
+}
+
+module ArkhamHorrorTCGInnerBox(card_array) {
+  box_size = CardLibrarySize(card_array, card_size);
+
+  module Logos() {
+    translate([box_size[0] / 2, -0.3, box_size[2] / 2])
+      rotate([90, 270, 0])
+        color("aqua")
+          linear_extrude(h=0.5)
+            resize([30, 0], auto=true)
+              children(0);
+    translate([box_size[0] / 2, box_size[1] + 0.2, box_size[2] / 2])
+      rotate([90, 270, 0])
+        color("aqua")
+          linear_extrude(h=0.5)
+            resize([30, 0], auto=true)
+              children(0);
+  }
+  difference() {
+    MakeCardLibraryBox(size=box_size)
+      Logos()
+        children(0);
+  }
+}
+
+module InternalSleeves(card_array, spacing = 2) {
+  MakeAllSleeves(card_array, spacing, card_size) {
+    if ($inner_2d != undef) {
+      color("aqua")
+        translate([12, $inner_length / 2, -0.2])
+          linear_extrude(h=0.5)
+            RenderSvg($inner_2d, width=min($inner_length - 1.5, 7));
+    } else {
+      color("aqua")
+        translate([12, $inner_length / 2, -0.2])
+          linear_extrude(h=0.5)
+            resize([min($inner_length - 1.5, 7), 0], auto=true)
+              children(0);
     }
+  }
 }
 
-module InspectorCardBox() // `make` me
+module ArkhamHorronCoreGameBox() // `make` me
 {
-    CardBox(num_investigator_cards + 2);
+  ArkhamHorrorTCGInnerBox(core_player_cards) {
+    ArkhamHorrorBaseLogo();
+  }
 }
 
-module AgnesBakerLid() // `make` me
+module ArkhamHorrorCoreGameSleeves(spacing = 2) // `make` me
 {
-    card_box_length = CardBoxWidth(num_investigator_cards + 2);
-
-    SlidingBoxLidWithLabel(size = [card_box_width, card_box_length, card_box_height], 
-                           text_str = "Agnes", lid_on_length = true);
+  InternalSleeves(core_player_cards, spacing) {
+    ArkhamHorrorBaseLogo();
+  }
 }
 
-module RolandBanksLid() // `make` me
+module ArkhamHorrorCoreEncounterSleeves(spacing = 2) // `make` me
 {
-    card_box_length = CardBoxWidth(num_investigator_cards + 2);
-
-    SlidingBoxLidWithLabel(size = [card_box_width, card_box_length, card_box_height], 
-                           text_str = "Roland", lid_on_length = true);
+  InternalSleeves(core_scenario_cards, spacing) {
+    ArkhamHorrorBaseLogo();
+  }
 }
 
-module DaisyWalkerLid() // `make` me
-{
-    card_box_length = CardBoxWidth(num_investigator_cards + 2);
-
-    SlidingBoxLidWithLabel(size = [card_box_width, card_box_length, card_box_height], 
-                           text_str = "Daisy", lid_on_length = true);
+module BoxLayout() {
+  cube([1, box_length, box_height]);
+  cube([box_width, box_length, 1]);
+  ArkhamHorronCoreGameBox();
 }
 
-module SkidsOTooleLid() // `make` me
-{
-    card_box_length = CardBoxWidth(num_investigator_cards + 2);
-
-    SlidingBoxLidWithLabel(size = [card_box_width, card_box_length, card_box_height], 
-                           text_str = "Skids", lid_on_length = true);
+module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
+  rotate([90, 0, 0]) color(material_colour) cuboid(
+        [width, height, length + 0.02],
+        anchor=TOP + FRONT + LEFT,
+        rounding=min(-wall_thickness, length / 2, width / 2)
+      );
+  rounding = min(-wall_thickness, length / 2, width / 2);
+  translate([width / 2, length, height / 2])
+    rotate([90, 0, 0])
+      offset_sweep(
+        round_corners(rect([width, height]), r=wall_thickness * 2), bottom=os_circle(r=rounding), top=os_circle(r=rounding)
+      );
 }
 
-module WendyAdamsLid() // `make` me
-{
-    card_box_length = CardBoxWidth(num_investigator_cards + 2);
-
-    SlidingBoxLidWithLabel(size = [card_box_width, card_box_length, card_box_height],
-                           text_str = "Wendy", lid_on_length = true);
-}
-
-module BoxLayout()
-{
-    cube([ 1, box_length, box_height ]);
-    cube([ box_width, box_length, 1 ]);
-    InspectorCardBox();
-    translate([ CardBoxWidth(num_investigator_cards + 2), 0, 0 ]) InspectorCardBox();
-    translate([ CardBoxWidth(num_investigator_cards + 2) * 2, 0, 0 ]) InspectorCardBox();
-    translate([ CardBoxWidth(num_investigator_cards + 2) * 3, 0, 0 ]) InspectorCardBox();
-    translate([ CardBoxWidth(num_investigator_cards + 2) * 4, 0, 0 ]) InspectorCardBox();
-}
-
-if (FROM_MAKE != 1)
-{
-    BoxLayout();
+if (FROM_MAKE != 1) {
+  InternalSleeves(
+    [
+      ["The Devourer Below", 18, "the_devourer_below"],
+      ["Rats", 4, "rats"],
+    ]
+  ) {
+    ArkhamHorrorBaseLogo();
+  }
 }

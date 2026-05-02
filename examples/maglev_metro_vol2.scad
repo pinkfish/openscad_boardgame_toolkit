@@ -42,7 +42,7 @@ factory_hex_width = 56;
 factory_hex_thickness = 7.5;
 factory_hex_radius = PolygonRadiusFromApothem(factory_hex_width, 6);
 
-outback_tile_thickness = 3.25;
+outback_tile_thickness = 4;
 
 loop_tile_thickness = 7.5;
 
@@ -103,7 +103,7 @@ summon_box_thickness = upgrade_tile_box_height;
 
 outback_ghost_tiles_box_width = default_wall_thickness + factory_hex_radius * 3.5;
 outback_ghost_tiles_box_length = default_wall_thickness + factory_hex_width * 4;
-outback_ghost_tiles_box_height = box_height - game_board_thickness - game_board_base_thickness;
+outback_ghost_tiles_box_height = box_height - game_board_thickness - game_board_base_thickness + 1;
 
 metro_token_box_width = outback_ghost_tiles_box_width;
 metro_token_box_length = box_length - outback_ghost_tiles_box_length - 1;
@@ -203,7 +203,7 @@ module CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     size=[card_box_width, card_box_length, card_box_height],
-    lid_thickness=4
+    lid_thickness=3
   ) {
     cube([$inner_width, $inner_length, box_height]);
     translate([$inner_width / 2.0, 0, -default_floor_thickness])
@@ -219,7 +219,7 @@ module CardBoxLidDirectConnection() // `make` me
   SlidingBoxLidWithLabel(
     size=[card_box_width, card_box_length, card_box_height],
     text_str="Maps 2",
-    lid_thickness=4
+    lid_thickness=3
   );
 }
 
@@ -412,7 +412,7 @@ module CommuterBoxLid() // `make` me
 module GhostBox() // `make` me
 {
   MakeBoxWithNoLid(size=[outback_ghost_tiles_box_width, outback_ghost_tiles_box_length, outback_ghost_tiles_box_height]) {
-    translate([$inner_width / 2 - factory_hex_radius * 1 / 4 + default_wall_thickness, $inner_length / 2 - default_wall_thickness, $inner_height - outback_tile_thickness * 8 - 1]) {
+    translate([$inner_width / 2 - factory_hex_radius * 1 / 4 + default_wall_thickness, $inner_length / 2 - default_wall_thickness, $inner_height - outback_tile_thickness * 8]) {
       rotate(180)
         GhostAndOutbackTiles(thickness=outback_tile_thickness * 8 + 2);
       translate([$inner_width / 2, 0, 0])
@@ -538,5 +538,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  SummonBox();
+  GhostBox();
 }

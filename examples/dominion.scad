@@ -15,37 +15,16 @@ specific language governing permissions and limitations
 under the License.
  */
 
-include <card_library.scad>
+include <boardgame_toolkit.scad>
+include <lib/dominion.scad>
 
 dominion_big_box_width = 470;
 dominion_big_box_length = 290;
 dominion_big_box_height = 90;
 
-card_length = 93;
-card_width = 62;
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
-
-function sumVec(vec, index = 0, sum = 0) =
-  index >= len(vec) ?
-    sum
-  : sumVec(vec, index + 1, sum + vec[index]);
-
-function SleeveSizeWidth(num_cards) = single_card_thickness * num_cards + default_wall_thickness + 0.5;
-
-function SleeveSize(num_cards) =
-  [
-    card_length + default_wall_thickness * 1.5,
-    SleeveSizeWidth(num_cards),
-    card_width + default_wall_thickness,
-  ];
-
-function CardLibrarySize(array) =
-  [
-    card_length + default_wall_thickness * 4,
-    sumVec([for (x = array) SleeveSizeWidth(x[1])]) + default_wall_thickness * 2,
-    card_width + default_wall_thickness * 2 + default_lid_thickness + default_floor_thickness,
-  ];
+card_size = MakeCardSize(length=93, width=62, single_card_thickness=single_card_thickness);
 
 base_game_cards_v2 = [
   ["Artisan", 10],
@@ -133,7 +112,6 @@ money_victory_cards = [
 ];
 
 prosperity_game_cards = [
-    
 ];
 
 module RenderSvg(svg) {
@@ -210,16 +188,12 @@ module MoneyVictoryCardSleeve(label) {
 }
 
 module InternalSleeves(card_array, spacing = 2) {
-  sleeve_sizes = [for (x = card_array) SleeveSize(x[1])];
-  for (i = [0:len(card_array) - 1]) {
-    translate([0, sumVec([for (x = [0:i - 1]) sleeve_sizes[x][1] + spacing]), 0])
-      CardSleeveForLibrary(
-        size=sleeve_sizes[i], label=card_array[i][0], add_positive=true,
-        text_length_offset=18, emboss_text=0.3
-      ) if (len(card_array[i]) > 2 && card_array[i][2] != "")
-        RenderSvg(card_array[i][2]);
-      else
-        children(0);
+  MakeAllSleeves(card_array, spacing, card_size) {
+    if ($inner_2d != undef) {
+      RenderSvg($inner_2d);
+    } else {
+      children(0);
+    }
   }
 }
 
@@ -268,7 +242,7 @@ module AlchemcyGameSleeves(spacing = 2) // `make` me
 }
 
 module DominionLibraryBoxInternal(card_array) {
-  box_size = CardLibrarySize(card_array);
+  box_size = CardLibrarySize(card_array, card_size);
 
   module Logos() {
     translate([box_size[0] / 2, -0.3, box_size[2] / 2])
@@ -289,8 +263,6 @@ module DominionLibraryBoxInternal(card_array) {
       Logos()
         children(0);
   }
-  Logos()
-    children(0);
 }
 
 module BaseGameDominionv1LibraryBox() // `make` me
@@ -318,7 +290,7 @@ module AlchemyDominionLibraryBox() // `make` me
 }
 
 module DominionLidInternal(card_array) {
-  CardLibraryBoxLidWithShape(size=CardLibrarySize(card_array))
+  CardLibraryBoxLidWithShape(size=CardLibrarySize(card_array, card_size))
     translate([$inner_width / 2, $inner_length / 2, 0]) {
       union() {
         color("black")
@@ -367,8 +339,8 @@ module BoxLayout() {
   cube([dominion_big_box_width, dominion_big_box_length, 1]);
   cube([1, dominion_big_box_length, dominion_big_box_height]);
 
-  base = CardLibrarySize(base_game_cards_v1);
-  money_victory = CardLibrarySize(money_victory_cards);
+  base = CardLibrarySize(base_game_cards_v1, card_size);
+  money_victory = CardLibrarySize(money_victory_cards, card_size);
   BaseGameDominionv1LibraryBox();
   translate([default_wall_thickness, default_wall_thickness, default_wall_thickness])
     DominionBaseGamev1Sleeves(spacing=0);
@@ -383,9 +355,4 @@ module BoxLayout() {
 
 if (FROM_MAKE != 1) {
   BoxLayout();
-  /*
-  AlchemyDominionLibraryBox();
-    translate([default_wall_thickness, default_wall_thickness, default_wall_thickness])
-      AlchemcyGameSleeves(spacing=0);
-      */
 }

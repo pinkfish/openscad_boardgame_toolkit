@@ -48,6 +48,7 @@ include <slicing.scad>
 include <dividers.scad>
 
 // boxes
+include <card_library.scad>
 include <cap_box.scad>
 include <hinge_box.scad>
 include <inset_box.scad>
