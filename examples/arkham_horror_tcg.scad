@@ -62,19 +62,12 @@ core_scenario_cards = [
   ["The Gathering", 16, "the_gathering"],
   ["The Midnight Masks", 20, "midnight_masks"],
   ["The Devourer Below", 18, "the_devourer_below"],
-  ["Chilling Cold", 4, "chilling_cold"],
-  ["Nightguants", 4, "nightgaunts"],
-  ["Dark Cultists", 5, "dark_cult"],
-  ["Locked Doors", 4, "locked_doors"],
-  ["Cult of Umordoth", 5, "cult_of_umordoth"],
-  ["Ancient Evils", 4, "ancient_evils"],
-  ["Striking Fear", 7, "striking_fear"],
+  ["Chilling Cold", [4, 4], ["chilling_cold", "nightgaunts"]],
+  ["Cultists", [5, 5], ["dark_cult", "cult_of_umordoth"]],
+  ["Ancient Evils", [4, 4], ["ancient_evils", "striking_fear"]],
   ["Ghouls", 7, "ghouls"],
-  ["Agents of Yog-Sothoth", 4, "agents_of_yog"],
-  ["Agents of Cthulhu", 4, "agents_of_cthulhu"],
-  ["Agents of Shub", 4, "agents_of_shub"],
-  ["Agents of Hastur", 4, "agents_of_hastur"],
-  ["Rats", 4, "rats"],
+  ["Agents", [4, 4, 4, 4], ["agents_of_yog", "agents_of_cthulhu", "agents_of_shub", "agents_of_hastur"]],
+  ["Rats & Doors", [4, 4], ["rats", "locked_doors"]],
 ];
 
 //echo(sumVec([for (i = core_scenario_cards) (i[1])]));
@@ -156,6 +149,13 @@ module ArkhamHorrorCoreGameSleeves(spacing = 2) // `make` me
   }
 }
 
+module ArkhamHorrorCoreEncounterBox() // `make` me
+{
+  ArkhamHorrorTCGInnerBox(core_scenario_cards) {
+    ArkhamHorrorBaseLogo();
+  }
+}
+
 module ArkhamHorrorCoreEncounterSleeves(spacing = 2) // `make` me
 {
   InternalSleeves(core_scenario_cards, spacing) {
@@ -166,7 +166,12 @@ module ArkhamHorrorCoreEncounterSleeves(spacing = 2) // `make` me
 module BoxLayout() {
   cube([1, box_length, box_height]);
   cube([box_width, box_length, 1]);
-  ArkhamHorronCoreGameBox();
+  core_box_size = CardLibrarySize(core_player_cards, card_size);
+  echo("core_box_size = ", core_box_size);
+  translate([0, 0, 0])
+    ArkhamHorronCoreGameBox();
+  translate([0, core_box_size[1], 0])
+    ArkhamHorrorCoreEncounterBox();
 }
 
 module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
@@ -184,5 +189,5 @@ module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
 }
 
 if (FROM_MAKE != 1) {
-  ArkhamHorronCoreGameBox();
+  BoxLayout();
 }
