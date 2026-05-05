@@ -43,22 +43,46 @@ function sumVec(vec, index = 0, sum = 0) =
     sum
   : sumVec(vec, index + 1, sum + vec[index]);
 
+// Function: TotalCards()
+// Description:
+//   Calculates the total number of cards, whether it is a single number or an array.
+// Arguments:
+//   num_cards = number of cards or array of number of cards
+// Example:
+//   TotalCards([10, 20]);
+function TotalCards(num_cards) = is_list(num_cards) ? sumVec(num_cards) : num_cards;
+
+// Function: sumCardsTo()
+// Description:
+//   Sums the first N cards in an array.
+function sumCardsTo(cards, end_index, current_index = 0, sum = 0) =
+  current_index >= end_index || current_index >= len(cards) ?
+    sum
+  : sumCardsTo(cards, end_index, current_index + 1, sum + cards[current_index]);
+
+// Function: InternalBarriers()
+// Description:
+//   Calculates the number of internal barriers needed for an array of cards.
+// Arguments:
+//   num_cards = number of cards or array of number of cards
+function InternalBarriers(num_cards) = is_list(num_cards) && len(num_cards) > 0 ? len(num_cards) - 1 : 0;
+
 // Function: SleeveSizeWidth()
 // Description:
 //   Calculates the width of a card sleeve.
 // Arguments:
-//   num_cards = number of cards in the sleeve
+//   num_cards = number of cards in the sleeve (can be an array of numbers)
 //   card_size = the card size object
 //   wall_thickness = thickness of the walls (default ({{default_wall_thickness}})
 // Example:
 //   SleeveSizeWidth(10);
-function SleeveSizeWidth(num_cards, card_size, wall_thickness = default_wall_thickness) = card_size.single_card_thickness * num_cards + card_size.sleeve_wall_thickness * 2;
+function SleeveSizeWidth(num_cards, card_size, wall_thickness = default_wall_thickness) = card_size.single_card_thickness * TotalCards(num_cards) + card_size.sleeve_wall_thickness * (2 + InternalBarriers(num_cards));
 
 // Function: SleeveSize()
 // Description:
 //   Calculates the size of a card sleeve.
 // Arguments:
-//   num_cards = number of cards in the sleeve
+//   num_cards = number of cards in the sleeve (can be an array of numbers)
 //   card_size = the card size object
 //   wall_thickness = thickness of the walls (default ({{default_wall_thickness}})
 // Example:
@@ -107,7 +131,6 @@ CARD_LIBRARY_LATCH_NONE = "none";
 //   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
 // Example:
 //   MakeCardLibraryBox([100, 50, 20]);
-
 module MakeCardLibraryBox(
   size,
   floor_thickness = default_floor_thickness,
@@ -192,6 +215,17 @@ module MakeCardLibraryBox(
             anchor=TOP + FRONT + LEFT,
             chamfer=wall_thickness,
             edges=[BOTTOM + RIGHT]
+          );
+      }
+
+      // Back support bit.
+      translate([0, wall_thickness - 0.01, default_floor_thickness - 0.01]) {
+        color(material_colour)
+          cuboid(
+            [wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3],
+            anchor=BOTTOM + FRONT + LEFT,
+            chamfer=wall_thickness,
+            edges=[TOP + RIGHT]
           );
       }
 
@@ -331,7 +365,6 @@ module MakeCardLibraryBox(
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   wall_thickness = thickness of the walls
-
 module SlidingChannel(size, wall_thickness) {
   width = size[0];
   length = size[1];
@@ -369,7 +402,6 @@ module SlidingChannel(size, wall_thickness) {
 //   print_in_place_offset = offset for print-in-place mechanisms
 //   lid_thickness = thickness of the lid
 //   wall_thickness = thickness of the walls
-
 module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) {
   width = size[0];
   length = size[1];
@@ -410,7 +442,6 @@ module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) 
 //   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
 // Example:
 //   CardLibraryBoxLid([100, 50, 20]);
-
 module CardLibraryBoxLid(
   size,
   wall_thickness = default_wall_thickness,
@@ -838,7 +869,7 @@ module CardSleeveForLibrary(
   text_length_offset = default_wall_thickness * 3,
   min_text_height = 3
 ) {
-  assert(num_cards > 0, str("num cards must be > 0", num_cards));
+  assert(TotalCards(num_cards) > 0, str("num cards must be > 0", num_cards));
   assert(is_object(card_size), str("card_size must be an object", card_size));
 
   size = SleeveSize(num_cards, card_size, wall_thickness);
@@ -867,21 +898,33 @@ module CardSleeveForLibrary(
             rounding=wall_thickness / 4
           );
         // Inside section (leaving back wall)
-        translate(
-          [wall_thickness, card_size.sleeve_wall_thickness, wall_thickness]
-        ) color(material_colour) cuboid(
-              [width - wall_thickness - card_size.sleeve_wall_thickness, length - card_size.sleeve_wall_thickness * 2, height],
-              anchor=BOTTOM + FRONT + LEFT,
-              rounding=min(wall_thickness / 4, (length - card_size.sleeve_wall_thickness * 2) / 2, (width - wall_thickness - card_size.sleeve_wall_thickness) / 2)
-            );
-        // Rounding out the top and out the back.
-        translate(
-          [wall_thickness, card_size.sleeve_wall_thickness, wall_thickness * 3]
-        ) color(material_colour) cuboid(
-              [width, length - card_size.sleeve_wall_thickness * 2, height],
-              anchor=BOTTOM + FRONT + LEFT,
-              rounding=min(wall_thickness / 4, width / 2, (length - card_size.sleeve_wall_thickness * 2) / 2)
-            );
+        let (
+          num_compartments = is_list(num_cards) ? len(num_cards) : 1,
+          cards_array = is_list(num_cards) ? num_cards : [num_cards]
+        ) {
+          for (i = [0:num_compartments - 1]) {
+            let (
+              comp_y_size = cards_array[i] * card_size.single_card_thickness,
+              comp_y_offset = card_size.sleeve_wall_thickness + sumCardsTo(cards_array, i) * card_size.single_card_thickness + i * card_size.sleeve_wall_thickness
+            ) {
+              translate(
+                [wall_thickness, comp_y_offset, wall_thickness]
+              ) color(material_colour) cuboid(
+                    [width - wall_thickness - card_size.sleeve_wall_thickness, comp_y_size, height],
+                    anchor=BOTTOM + FRONT + LEFT,
+                    rounding=min(wall_thickness / 4, comp_y_size / 2, (width - wall_thickness - card_size.sleeve_wall_thickness) / 2)
+                  );
+              // Rounding out the top and out the back.
+              translate(
+                [wall_thickness, comp_y_offset, wall_thickness * 3]
+              ) color(material_colour) cuboid(
+                    [width, comp_y_size, height],
+                    anchor=BOTTOM + FRONT + LEFT,
+                    rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2)
+                  );
+            }
+          }
+        }
 
         // Edge rounding for the sides.
         translate(

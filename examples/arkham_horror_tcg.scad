@@ -84,12 +84,21 @@ module ArkhamHorrorBaseLogo() {
 }
 
 module RenderSvg(svg_icon, width) {
-  resize(
-    svg_icon == "the_gathering" || svg_icon == "ghouls" || svg_icon == "the_devourer_below" ? [width, 0] : [0, width],
-    auto=true
-  )
-    rotate(270)
-      import(str("svg/arkham_horror/icons/", svg_icon, ".svg"), center=true);
+  if (is_list(svg_icon) && len(svg_icon) > 0) {
+    left(2) {
+      for (i = [0:len(svg_icon) - 1]) {
+        right(i * 6)
+          RenderSvg(svg_icon[i], width);
+      }
+    }
+  } else {
+    resize(
+      svg_icon == "the_gathering" || svg_icon == "ghouls" || svg_icon == "the_devourer_below" ? [width, 0] : [0, width],
+      auto=true
+    )
+      rotate(270)
+        import(str("svg/arkham_horror/icons/", svg_icon, ".svg"), center=true);
+  }
 }
 
 module ArkhamHorrorTCGInnerBox(card_array) {
@@ -175,12 +184,5 @@ module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
 }
 
 if (FROM_MAKE != 1) {
-  InternalSleeves(
-    [
-      ["The Devourer Below", 18, "the_devourer_below"],
-      ["Rats", 4, "rats"],
-    ]
-  ) {
-    ArkhamHorrorBaseLogo();
-  }
+  ArkhamHorronCoreGameBox();
 }
