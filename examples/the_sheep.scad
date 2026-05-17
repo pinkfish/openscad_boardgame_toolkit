@@ -681,7 +681,7 @@ module BoxLayout(layout = 0) {
   translate([0, card_box_length, mutation_card_box_height]) ReminderCardBox();
   translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height - tracker_pieces_height]) TrackerPiecesBox();
   translate([0, card_box_length + mutation_card_box_length, 0]) CaravanBoardBox();
-  translate([0, card_box_length + mutation_card_box_length, 0]) PlayerEquipmentBox();
+  translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height]) PlayerEquipmentBox();
   if (layout < 4) {
     translate([mutation_card_box_width, card_box_length + standee_box_length, 0]) SideSpacerBox();
   }
@@ -709,5 +709,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  PlayerEquipmentBox();
+  BoxLayoutB();
 }
