@@ -159,6 +159,7 @@ module MakeCardLibraryBox(
 
   height_without_hinge = height - lid_thickness;
   edge_size = max(length / 6, 20);
+  hinge_seg = max(length / 20, 5);
 
   difference() {
     union() {
@@ -348,7 +349,7 @@ module MakeCardLibraryBox(
           back(wall_thickness + print_in_place_offset)
             knuckle_hinge(
               length=length - wall_thickness * 2 - print_in_place_offset * 2,
-              segs=5,
+              segs=hinge_seg,
               offset=wall_thickness + lid_thickness,
               knuckle_diam=wall_thickness + lid_thickness,
               arm_height=0,
@@ -494,6 +495,8 @@ module CardLibraryBoxLid(
     edge_size,
     wall_thickness,
   ];
+  hinge_seg = max(length / 20, 5);
+
   difference() {
     union() {
       internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
@@ -516,7 +519,7 @@ module CardLibraryBoxLid(
               back(wall_thickness + print_in_place_offset)
                 knuckle_hinge(
                   length=length - wall_thickness * 2 - print_in_place_offset * 2,
-                  segs=5,
+                  segs=hinge_seg,
                   offset=wall_thickness + lid_thickness,
                   knuckle_diam=wall_thickness + lid_thickness,
                   pin_diam=hinge_hole_diameter,
