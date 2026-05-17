@@ -34,7 +34,7 @@ caravan_board_length = 101;
 caravan_board_width = 76;
 caravan_board_thickness = 16.5;
 
-player_cube_size = 8;
+player_cube_size = 8.5;
 
 pollution_tile_size = 25.5;
 
@@ -49,7 +49,7 @@ pollution_tracker_token_thickness = 8.3;
 
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
-card_size = MakeCardSize(length=91, width=66, single_card_thickness=single_card_thickness);
+card_size = MakeCardSize(length=92, width=66, single_card_thickness=single_card_thickness);
 mutation_card_size = MakeCardSize(length=122, width=74, single_card_thickness=single_card_thickness);
 
 trait_tile_width = 26.5;
@@ -123,9 +123,9 @@ side_spacer_box_width = box_width - mutation_card_box_width - 1;
 side_spacer_box_length = board_length - standee_box_length - card_box_length - 1;
 side_spacer_box_height = box_height - board_thickness - player_board_thickness;
 
-middle_space_box_width = caravan_board_box_width;
-middle_space_box_length = caravan_board_box_length;
-middle_space_box_height = box_height - board_thickness - player_board_thickness - caravan_board_box_height;
+player_equipment_box_width = caravan_board_box_width;
+player_equipment_box_length = caravan_board_box_length;
+player_equipment_box_height = box_height - board_thickness - player_board_thickness - caravan_board_box_height;
 
 module CurseCardBox() // `make` me
 {
@@ -597,11 +597,31 @@ module SideSpacerBox() // `make` me
   );
 }
 
-module MiddleSpaceBox() // `make` me
+module PlayerEquipmentBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    size=[middle_space_box_width, middle_space_box_length, middle_space_box_height],
-    hollow=true,
+  MakeBoxWithSlidingLid(
+    size=[player_equipment_box_width, player_equipment_box_length, player_equipment_box_height],
+    lid_on_length=true,
+  ) {
+    back($inner_length / 2)
+      cube(
+        [card_size.length, card_size.width, player_equipment_box_height],
+        anchor=BOTTOM + LEFT
+      );
+    translate([0, $inner_length / 2, -2]) {
+      FingerHoleBase(
+        radius=17, height=player_equipment_box_height - default_lid_thickness,
+        spin=270
+      );
+    }
+  }
+}
+
+module PlayerEquipmentBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[player_equipment_box_width, player_equipment_box_length, player_equipment_box_height],
+    text_str="Player Equipment"
   );
 }
 
@@ -661,8 +681,8 @@ module BoxLayout(layout = 0) {
   translate([0, card_box_length, mutation_card_box_height]) ReminderCardBox();
   translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height - tracker_pieces_height]) TrackerPiecesBox();
   translate([0, card_box_length + mutation_card_box_length, 0]) CaravanBoardBox();
+  translate([0, card_box_length + mutation_card_box_length, 0]) PlayerEquipmentBox();
   if (layout < 4) {
-    translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height]) MiddleSpaceBox();
     translate([mutation_card_box_width, card_box_length + standee_box_length, 0]) SideSpacerBox();
   }
   translate([0, board_length, 0]) BackSpacerBox();
@@ -689,5 +709,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  CurseCardBox();
+  PlayerEquipmentBox();
 }

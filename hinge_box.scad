@@ -17,6 +17,8 @@ specific language governing permissions and limitations
 under the License.
  */
 
+include <BOSL2/hinges.scad>
+
 // LibFile: hinge_box.scad
 //    This file has all the modules needed to generate a hinge box.
 
@@ -310,7 +312,7 @@ module HingeBoxLidLabel(
 //   tab_length = length of the tab (default 10)
 //   tab_height = height of the tab (default 6)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   spacing = wiggle room between moving parts (default 0.2)
+//   print_in_place_offset = wiggle room between moving parts (default 0.2)
 // Examples:
 //   MakeBoxAndLidWithInsetHinge(size=[100, 50, 20]);
 module MakeBoxAndLidWithInsetHinge(
@@ -328,7 +330,7 @@ module MakeBoxAndLidWithInsetHinge(
   tab_length = 10,
   tab_height = 6,
   material_colour = default_material_colour,
-  spacing = 0.2
+  print_in_place_offset = default_print_in_place_offset
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -362,9 +364,9 @@ module MakeBoxAndLidWithInsetHinge(
               anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2,
               edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
             );
-          translate([wall_thickness + spacing, wall_thickness + spacing, height / 2 - wall_thickness / 2])
+          translate([wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness / 2])
             cuboid(
-              [width - wall_thickness * 2 - spacing * 2, length - wall_thickness * 2 - spacing * 2, wall_thickness],
+              [width - wall_thickness * 2 - print_in_place_offset * 2, length - wall_thickness * 2 - print_in_place_offset * 2, wall_thickness],
               anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2,
               edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
             );
@@ -402,9 +404,9 @@ module MakeBoxAndLidWithInsetHinge(
                       anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2,
                       edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + BACK, TOP + FRONT, TOP + LEFT, TOP + RIGHT]
                     );
-                  translate([wall_thickness + spacing, wall_thickness + spacing, height / 2 - wall_thickness])
+                  translate([wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness])
                     cuboid(
-                      [width - wall_thickness * 2 - spacing * 2, length - wall_thickness * 2 - spacing * 2, wall_thickness * 4],
+                      [width - wall_thickness * 2 - print_in_place_offset * 2, length - wall_thickness * 2 - print_in_place_offset * 2, wall_thickness * 4],
                       anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2,
                       edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
                     );
@@ -446,9 +448,9 @@ module MakeBoxAndLidWithInsetHinge(
         }
       }
     }
-    translate([width - hinge_diameter - 0.01 - spacing, side_gap + spacing, height / 2 - hinge_diameter - print_layer_height - hinge_offset])
+    translate([width - hinge_diameter - 0.01 - print_in_place_offset, side_gap + print_in_place_offset, height / 2 - hinge_diameter - print_layer_height - hinge_offset])
       color(material_colour) {
-        cube([hinge_width + spacing * 2 + 0.02, hinge_length + spacing * 2, hinge_diameter + 5 + hinge_offset + 1]);
+        cube([hinge_width + print_in_place_offset * 2 + 0.02, hinge_length + print_in_place_offset * 2, hinge_diameter + 5 + hinge_offset + 1]);
       }
   }
   translate([width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 - hinge_offset]) rotate([0, 0, 90]) {

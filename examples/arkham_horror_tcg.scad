@@ -163,6 +163,16 @@ module ArkhamHorrorCoreEncounterSleeves(spacing = 2) // `make` me
   }
 }
 
+module ArkhamHorrorCoreGameBoxLid() // `make` me
+{
+  CardLibraryBoxLidWithLabel(size=CardLibrarySize(core_player_cards, card_size), label="Core Set", material_colour="blue");
+}
+
+module ArkhamHorrorCoreEncounterBoxLid() // `make` me
+{
+  CardLibraryBoxLidWithLabel(size=CardLibrarySize(core_scenario_cards, card_size), label="Core Campaign", material_colour="blue");
+}
+
 module BoxLayout() {
   cube([1, box_length, box_height]);
   cube([box_width, box_length, 1]);
@@ -189,5 +199,9 @@ module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  size = CardLibrarySize(core_scenario_cards, card_size);
+  ArkhamHorrorCoreEncounterBox();
+  up(size[2])
+    zflip()
+      ArkhamHorrorCoreEncounterBoxLid();
 }

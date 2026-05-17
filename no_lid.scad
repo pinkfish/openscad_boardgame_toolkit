@@ -25,6 +25,18 @@
 // Includes:
 //   include <boardgame_toolkit.scad>
 
+// Constant: STACKABLE_TYPE_NONE
+// Description: No additional base added.
+STACKABLE_TYPE_NONE = 0;
+
+// Constant: STACKABLE_TYPE_INSIDE
+// Description: Base is added to the inside of the box.
+STACKABLE_TYPE_INSIDE = 1;
+
+// Constant: STACKABLE_TYPE_OUTSIDE
+// Description: Base is added to the outside of the box.
+STACKABLE_TYPE_OUTSIDE = 2;
+
 // Module: MakeBoxWithNoLid()
 // Description:
 //   Makes a box with no lid, useful for spacers and other things in games.
@@ -138,22 +150,103 @@ module MakeBoxWithNoLid(
 //   make_finger_y = makes finger dip on the y axis
 //   finger_hole_size = size of the finger dip (default 20)
 //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
+//   hollow = if the box should be hollow (default false)
+//   stackable_lid_thickness = the thickness of the stackable part of the lid (default {{default_stackable_lid_thickness}})
+//   stackable_fit_offset = the offset to use for stackable fit (default 0.1)
+//   hollow_radius = the radius options for a hollow box (default object(top=default_wall_thickness/4, bottom=default_wall_thickness/4, radius=default_wall_thickness/2))
+//   stackable = if the box should be stackable (default false)
 // Example:
 //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20);
 // Example:
 //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20, hollow=true);
+// Example:
+//   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20, stackable=true);
 module MakePathBoxWithNoLid(
   path,
   height,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
+  stackable_lid_thickness = default_stackable_lid_thickness,
+  stackable_fit_offset = 0.1,
+  hollow_radius = object(top=default_wall_thickness / 4, bottom=default_wall_thickness / 4, radius=default_wall_thickness / 2),
   make_finger_x = undef,
   make_finger_y = undef,
   material_colour = "grey",
   finger_hole_size = undef,
   offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
-  hollow = false
+  hollow = false,
+  stackable = STACKABLE_TYPE_NONE,
+  magnet = object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0)
 ) {
+  module StackableBoxInternal(bottom = false) {
+    if (stackable == STACKABLE_TYPE_INSIDE) {
+      difference() {
+        color(material_colour)
+          offset_sweep(
+            round_corners(
+              bottom ? inner_path_stackable_bottom_outside : inner_path_stackable,
+              radius=stackable_lid_thickness / 2
+            ),
+            height=stackable_lid_thickness + (bottom ? stackable_fit_offset : 0),
+            top=os_circle(
+              wall_thickness / 4
+            ),
+            offset=offset_sweep_options.offset,
+            check_valid=offset_sweep_options.check_valid,
+            quality=offset_sweep_options.quality,
+            steps=offset_sweep_options.steps
+          );
+
+        color(material_colour)
+          translate([0, 0, -0.01]) {
+            offset_sweep(
+              round_corners(
+                bottom ? inner_path_stackable_bottom_inside : inner_path,
+                radius=stackable_lid_thickness / 4
+              ),
+              height=stackable_lid_thickness + 0.02 + (bottom ? stackable_fit_offset : 0),
+              top=os_circle(-wall_thickness / 4),
+              offset=offset_sweep_options.offset,
+              check_valid=offset_sweep_options.check_valid,
+              quality=offset_sweep_options.quality,
+              steps=offset_sweep_options.steps
+            );
+          }
+      }
+    } else if (stackable == STACKABLE_TYPE_OUTSIDE) {
+      difference() {
+        color(material_colour)
+          offset_sweep(
+            calc_path,
+            height=stackable_lid_thickness + (bottom ? stackable_fit_offset : 0),
+            top=os_circle(
+              wall_thickness / 4
+            ),
+            offset=offset_sweep_options.offset,
+            check_valid=offset_sweep_options.check_valid,
+            quality=offset_sweep_options.quality,
+            steps=offset_sweep_options.steps
+          );
+
+        color(material_colour)
+          translate([0, 0, -0.01]) {
+            offset_sweep(
+              round_corners(
+                bottom ? inner_path_stackable_bottom_inside_inside : inner_path_stackable,
+                radius=stackable_lid_thickness / 4
+              ),
+              height=stackable_lid_thickness + 0.02 + (bottom ? stackable_fit_offset : 0),
+              top=os_circle(-wall_thickness / 4),
+              offset=offset_sweep_options.offset,
+              check_valid=offset_sweep_options.check_valid,
+              quality=offset_sweep_options.quality,
+              steps=offset_sweep_options.steps
+            );
+          }
+      }
+    }
+  }
+
   assert(is_path(path, 2), "Path must be a 2d path");
   assert(len(path) >= 3, str("Path must be at least 3 elements long path_length=", len(path)));
   assert(floor_thickness > 0, str("Need floor thickness > 0, floor_thickness=", floor_thickness));
@@ -161,6 +254,10 @@ module MakePathBoxWithNoLid(
   assert(height > 0, str("Need height > 0, height=", height));
 
   inner_path = offset(path, r=-wall_thickness);
+  inner_path_stackable = offset(path, r=-wall_thickness / 2);
+  inner_path_stackable_bottom_outside = offset(path, r=-wall_thickness / 2 + stackable_fit_offset);
+  inner_path_stackable_bottom_inside = offset(path, r=-wall_thickness - stackable_fit_offset);
+  inner_path_stackable_bottom_inside_inside = offset(path, r=-wall_thickness / 2 - stackable_fit_offset);
 
   x_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][0]];
   y_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][1]];
@@ -176,27 +273,40 @@ module MakePathBoxWithNoLid(
 
   difference() {
     color(material_colour)
-      offset_sweep(
-        calc_path,
-        height=height,
-        bottom=os_circle(wall_thickness / 2),
-        top=os_circle(wall_thickness / 4),
-        offset=offset_sweep_options.offset,
-        check_valid=offset_sweep_options.check_valid,
-        quality=offset_sweep_options.quality,
-        steps=offset_sweep_options.steps
-      );
+      union() {
+        offset_sweep(
+          calc_path,
+          height=stackable ? height - stackable_lid_thickness : height,
+          bottom=os_circle(stackable ? wall_thickness / 4 : wall_thickness / 2),
+          top=os_circle(stackable ? wall_thickness / 8 : wall_thickness / 4),
+          offset=offset_sweep_options.offset,
+          check_valid=offset_sweep_options.check_valid,
+          quality=offset_sweep_options.quality,
+          steps=offset_sweep_options.steps
+        );
+        if (stackable) {
+          translate([0, 0, height - stackable_lid_thickness])
+            StackableBoxInternal(bottom=false);
+        }
+      }
     if (hollow) {
       translate([0, 0, floor_thickness])
         color(material_colour)
           offset_sweep(
-            round_corners(inner_path, radius=wall_thickness / 2), height=height, bottom=os_circle(wall_thickness / 4),
-            top=os_circle(wall_thickness / 4),
+            round_corners(inner_path, radius=hollow_radius.radius),
+            height=height - floor_thickness,
+            bottom=os_circle(hollow_radius.bottom),
+            top=stackable ? undef : os_circle(-hollow_radius.top),
             offset=offset_sweep_options.offset,
             check_valid=offset_sweep_options.check_valid,
             quality=offset_sweep_options.quality,
             steps=offset_sweep_options.steps
           );
+    }
+
+    if (stackable) {
+      translate([0, 0, -stackable_fit_offset])
+        StackableBoxInternal(bottom=true);
     }
 
     calc_middle_path = offset(path, r=-wall_thickness / 2);
@@ -229,11 +339,88 @@ module MakePathBoxWithNoLid(
     $inner_width = calc_width;
     $inner_length = calc_length;
     $inner_height = height - floor_thickness;
-    translate([wall_thickness, wall_thickness, floor_thickness]) children();
+    children();
   }
 }
 
-// Module: FingerHoleWallSegment()
+// Module: MakePolygonBoxWithNoLid()
+// Description:
+//   Makes a polygon box with no lid.
+// Arguments:
+//   size = [width, height] outside size of the box
+//   sides = the number of sides for the polygon
+//   stackable_lid_thickness = thickness of the stackable lid (default 2)
+//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//   stackable = make the box stackable (default false)
+//   make_finger_x = makes finger dip on the x axis (default false)
+//   make_finger_y = makes finger dip on the y axis (default false)
+//   material_colour = the material colour to use (default {{default_material_colour}})
+//   finger_hole_size = size of the finger dip (default 20)
+//   hollow = make the inside hollow (default false)
+//   hollow_radius = radius of the hollow (default object(top=2, bottom=10, radius=2))
+//   offset_sweep_options = options to pass to the offset_sweep module (default object(offset="round", check_valid=true, quality=1, steps=16))
+//   magnet = magnet to use (default object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0]))
+// Example:
+//   MakePolygonBoxWithNoLid(size = [100, 100, 20], sides = 6);
+module MakePolygonBoxWithNoLid(
+  size,
+  sides,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  stackable_lid_thickness = default_stackable_lid_thickness,
+  make_finger_x = undef,
+  make_finger_y = undef,
+  material_colour = "grey",
+  finger_hole_size = undef,
+  hollow = false,
+  stackable = STACKABLE_TYPE_NONE,
+  offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
+  hollow_radius = object(top=2, bottom=10, radius=2),
+  magnet = object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0])
+) {
+  width = size[0];
+  height = size[1];
+  assert(width > 0 && height > 0, str("Need width, height > 0 width=", width, " height=", height));
+  assert(sides >= 3, str("sides must be >= 3, sides=", sides));
+
+  calc_path = regular_ngon(n=sides, d=width);
+
+  MakePathBoxWithNoLid(
+    path=calc_path,
+    height=height,
+    offset_sweep_options=offset_sweep_options,
+    wall_thickness=wall_thickness,
+    floor_thickness=floor_thickness,
+    stackable_lid_thickness=stackable_lid_thickness,
+    make_finger_x=make_finger_x,
+    make_finger_y=make_finger_y,
+    material_colour=material_colour,
+    finger_hole_size=finger_hole_size,
+    hollow=hollow,
+    stackable=stackable,
+    hollow_radius=hollow_radius
+  ) {
+    // Handle the magnets here specifically.
+    if (magnet.type != MAGNET_SLOT_TYPE_NONE) {
+      calc_path_magnet = regular_ngon(n=sides, d=width - wall_thickness);
+
+      for (i = [0:1:sides - 1]) {
+        p1 = calc_path_magnet[i];
+        p2 = calc_path_magnet[ (i + 1) % sides];
+        mid = (p1 + p2) / 2;
+        angle = atan2(p2[1] - p1[1], p2[0] - p1[0]) - 90;
+        translate([mid[0], mid[1], 0])
+          rotate([0, 0, angle])
+            rotate([0, 90, 0])
+              MagnetSlot(size=magnet.size, magnet_type=magnet.type, anchor=LEFT + BOTTOM, spin=180);
+      }
+    }
+
+    if ($children > 0) children();
+  }
+}
+
 // Description:
 //    Makes a single segment for use in the no lid wall.  It will make the rounded
 //    finger wall holes on the side of the box at the correct direction and length.

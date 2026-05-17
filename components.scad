@@ -33,6 +33,47 @@
 //   Building blocks to make all the rest of the items from.  This has all the basic parts of the board game
 //   toolkit for making polygons and laying them out.
 
+// Module: HexBoxDivisions()
+// Usage:
+//   HexBoxDivisions([100, 50, 10], 5);
+// Description:
+//   Creates a box with divisions inside for hex shaped tiles.
+// Arguments:
+//   width = width of the box
+//   height = height of the box
+//   num_sides = number of sides of the polygon (default 6)
+//   divisions = number of divisions to make
+//   wall_thickness = thickness of the walls (default default_wall_thickness)
+// Topics: Recess
+// Example:
+//   HexBoxDivisions(30, num_sides=6, height=10, divisions=2);
+module HexBoxDivisions(width, height, divisions = 2, num_sides = 6, wall_thickness = default_wall_thickness) {
+  hex_path = regular_ngon(n=num_sides, d=width);
+  w_div = wall_thickness / 2;
+  ang = 360 / divisions;
+
+  translate([0, 0, 2]) {
+    // default_floor_thickness is 2
+    for (i = [0:divisions - 1]) {
+      let (
+        wedge_path = concat([[0, 0]], arc(r=width * 2, start=i * ang, angle=ang)),
+        thinned_wedge = offset(wedge_path, r=-w_div / 2, closed=true),
+        sub_region = intersection([hex_path], [thinned_wedge])
+      ) {
+        offset_sweep(
+          round_corners(sub_region[0], radius=2),
+          height=height,
+          bottom=os_circle(height * 3 / 4),
+          offset="delta",
+          check_valid=true,
+          quality=1,
+          steps=16
+        );
+      }
+    }
+  }
+}
+
 // Module: RoundedBoxOnLength()
 // Usage:
 //   RoundedBoxOnLength([100, 50, 10], 5);
@@ -831,4 +872,54 @@ module HilbertCurve(order, size, line_thickness = 20, smoothness = 32) {
     ;
   }
   hilbert(order);
+}
+
+// Section: Magnets
+// Description:
+//   Modules for creating slots for magnets.
+
+// Constant: MAGNET_SLOT_TYPE_NONE
+// Description: No magnet slot
+MAGNET_SLOT_TYPE_NONE = 0;
+// Constant: MAGNET_SLOT_TYPE_ROUND
+// Description: Round magnet slot
+MAGNET_SLOT_TYPE_ROUND = 1;
+// Constant: MAGNET_SLOT_TYPE_RECT
+// Description: Rectangular magnet slot
+MAGNET_SLOT_TYPE_RECT = 2;
+
+// Module: MagnetSlot
+// Description:
+//   Creates a slot for a magnet of a given size and type.  The width will be widened
+//   a bit based ohn the slot offsets while the height should be press fit and the
+//   length won't change.
+// Arguments:
+//   size = size of the magnet (width, length, height)
+//   magnet_type = type of the magnet
+//   orient = orintation of the slot, from BOSL2 (default UP)
+//   spin = spin of the slot, from BOSL2 (default 0)
+//   slot_offsets = offsets for the slot, how much space to put around the slot for the magnet
+//   height_of_slot = height of the slot
+// Example:
+//   MagnetSlot(size = [10, 10, 2], magnet_type = MAGNET_TYPE_ROUND);
+module MagnetSlot(size, magnet_type, spin = 0, orient = UP, anchor = CENTER) {
+  assert(magnet_type == MAGNET_SLOT_TYPE_ROUND || magnet_type == MAGNET_SLOT_TYPE_RECT, str("Invalid magnet type, magnet_type=", magnet_type));
+  assert(len(size) == 3 && size[0] > 0 && size[1] > 0 && size[2] > 0, str("Invalid magnet size, size=", size));
+
+  if (magnet_type == MAGNET_SLOT_TYPE_ROUND) {
+    attachable(anchor=anchor, spin=spin, orient=orient, size=size) {
+      right(size[0] / 2 - size[1] / 2)
+        union() {
+          cyl(d=size[1], h=size[2]);
+          left(size[0] / 2 - size[1] / 4)
+            cuboid([size[0] - size[1] / 2, size[1], size[2]]);
+        }
+      children();
+    }
+  } else if (magnet_type == MAGNET_SLOT_TYPE_RECT) {
+    attachable(anchor=anchor, spin=spin, orient=orient, size=size) {
+      cuboid(size);
+      children();
+    }
+  }
 }

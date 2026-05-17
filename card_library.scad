@@ -16,6 +16,11 @@ under the License.
  */
 
 include <BOSL2/std.scad>
+include <BOSL2/hinges.scad>
+
+// Constant: default_hinge_hole_diameter
+// Description: The default diameter for the pin to go through the hinge.
+default_hinge_hole_diameter = 2;
 
 // Function: MakeCardSize()
 // Description:
@@ -139,9 +144,9 @@ module MakeCardLibraryBox(
   lid_thickness = default_lid_thickness,
   material_colour = "magenta",
   latch = CARD_LIBRARY_LATCH_SLIDING,
-  hinge_hole_diameter = 2.2 // default for a filemeter as a hinge.
-) // `make` me
-{
+  hinge_hole_diameter = default_hinge_hole_diameter, // default for a filemeter as a hinge.
+  print_in_place_offset = default_print_in_place_offset
+) {
   width = size[0];
   length = size[1];
   height = size[2];
@@ -171,6 +176,7 @@ module MakeCardLibraryBox(
             }
           }
 
+        // inside space
         translate([wall_thickness, wall_thickness, floor_thickness]) color(material_colour) {
             cuboid(
               [width, length - (wall_thickness) * 2, height_without_hinge],
@@ -181,44 +187,51 @@ module MakeCardLibraryBox(
 
         // Put in the holes for the sliding latch.
         if (latch == CARD_LIBRARY_LATCH_SLIDING) {
-          translate([width * 3 / 4, 0, height_without_hinge + lid_thickness]) {
+          translate([width * 3 / 4 - wall_thickness, 0, height_without_hinge + lid_thickness]) {
             translate([wall_thickness / 4, -0.01, -wall_thickness])
               cuboid(
-                [wall_thickness * 2.5, wall_thickness + 0.02, wall_thickness],
+                [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness],
                 anchor=TOP + FRONT + LEFT,
               );
           }
-          translate([width * 3 / 4, length, height_without_hinge + lid_thickness]) {
+          translate([width * 3 / 4 - wall_thickness, length, height_without_hinge + lid_thickness]) {
             translate([wall_thickness / 4, 0.01, -wall_thickness])
               cuboid(
-                [wall_thickness * 2.5, wall_thickness + 0.02, wall_thickness],
+                [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness],
                 anchor=TOP + BACK + LEFT,
               );
           }
         }
+
+        // Remove the hinge space.
+        translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness])
+          cuboid(
+            [wall_thickness * 2 + 0.02, length - wall_thickness * 2, wall_thickness + 0.01],
+            anchor=BOTTOM + LEFT + FRONT,
+            rounding=-wall_thickness,
+            edges=[TOP + RIGHT]
+          );
+
+        // Put in the hole for the filament in the wall so it can be pushed through.
+        fwd(1)
+          right(wall_thickness)
+            up(height - wall_thickness)
+              ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT);
       }
 
-      // Hinge section
-      translate([0, edge_size + 0.2, height_without_hinge - wall_thickness])
-        color(material_colour)
-          difference() {
-            cuboid(
-              [wall_thickness * 2, length - edge_size * 2 - 0.4, wall_thickness + lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-              rounding=wall_thickness, edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + RIGHT],
-            );
-          }
       // Hinge Support      
       translate([0, wall_thickness - 0.01, height_without_hinge]) {
-        color(material_colour)
-          cuboid(
-            [wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6],
-            anchor=TOP + FRONT + LEFT,
-            chamfer=wall_thickness,
-            edges=[BOTTOM + RIGHT]
-          );
+        down(wall_thickness)
+          color(material_colour)
+            cuboid(
+              [wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6],
+              anchor=TOP + FRONT + LEFT,
+              chamfer=wall_thickness,
+              edges=[BOTTOM + RIGHT]
+            );
       }
 
-      // Back support bit.
+      // Back bottom section support bit.
       translate([0, wall_thickness - 0.01, default_floor_thickness - 0.01]) {
         color(material_colour)
           cuboid(
@@ -271,41 +284,42 @@ module MakeCardLibraryBox(
 
       if (latch == CARD_LIBRARY_LATCH_SLIDING) {
         color(material_colour)
-          translate([width * 3 / 4, 0, height_without_hinge + lid_thickness]) {
+          translate([width * 3 / 4 - wall_thickness - print_in_place_offset, 0, height_without_hinge + lid_thickness]) {
             difference() {
               cuboid(
-                [wall_thickness * 3, wall_thickness, lid_thickness * 2],
+                [wall_thickness * 5, wall_thickness, lid_thickness * 2],
                 rounding=wall_thickness / 4,
                 anchor=TOP + FRONT + LEFT,
                 edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT]
               );
-              translate([wall_thickness / 2 - 0.1, -0.01, -wall_thickness])
+              translate([wall_thickness * 2.5, -0.01, -wall_thickness])
                 prismoid(
-                  size1=[wall_thickness + 0.2, wall_thickness + 0.2],
-                  size2=[wall_thickness * 2 + 0.2, wall_thickness + 0.2],
+                  size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
+                  size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
                   h=wall_thickness + 0.02,
                   shift=[0, 0],
-                  anchor=TOP + FRONT + LEFT,
+                  anchor=TOP + FRONT,
                 );
             }
           }
 
+        // More latch bits
         color(material_colour)
-          translate([width * 3 / 4, length, height_without_hinge + lid_thickness]) {
+          translate([width * 3 / 4 - wall_thickness - print_in_place_offset, length, height_without_hinge + lid_thickness]) {
             difference() {
               cuboid(
-                [wall_thickness * 3, wall_thickness, lid_thickness * 2],
+                [wall_thickness * 5, wall_thickness, lid_thickness * 2],
                 rounding=wall_thickness / 4,
                 anchor=TOP + BACK + LEFT,
                 edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK]
               );
-              translate([wall_thickness / 2 - 0.1, 0.01, -wall_thickness])
+              translate([wall_thickness * 2.5, 0.01, -wall_thickness])
                 prismoid(
-                  size1=[wall_thickness + 0.2, wall_thickness + 0.2],
-                  size2=[wall_thickness * 2 + 0.2, wall_thickness + 0.2],
+                  size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
+                  size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
                   h=wall_thickness + 0.02,
                   shift=[0, 0],
-                  anchor=TOP + BACK + LEFT,
+                  anchor=TOP + BACK,
                 );
             }
           }
@@ -327,28 +341,26 @@ module MakeCardLibraryBox(
               chamfer=wall_thickness / 2, edges=[BOTTOM + LEFT]
             );
       }
+
+      // The back hinge
+      color(material_colour)
+        up(height_without_hinge - wall_thickness - lid_thickness)
+          back(wall_thickness + print_in_place_offset)
+            knuckle_hinge(
+              length=length - wall_thickness * 2 - print_in_place_offset * 2,
+              segs=5,
+              offset=wall_thickness + lid_thickness,
+              knuckle_diam=wall_thickness + lid_thickness,
+              arm_height=0,
+              arm_angle=90,
+              clear_top=false,
+              inner=true,
+              spin=90,
+              pin_diam=hinge_hole_diameter,
+              orient=UP,
+              anchor=BOTTOM + BACK + LEFT
+            );
     }
-
-    // Remove the hinge space.
-    translate([-0.01, -0.01, height_without_hinge - default_wall_thickness])
-      cuboid(
-        [wall_thickness * 2 + 0.02, edge_size + 0.2, wall_thickness + 0.01],
-        anchor=BOTTOM + LEFT + FRONT,
-        rounding=-wall_thickness,
-        edges=[TOP + RIGHT]
-      );
-
-    // Remove the hinge space.
-    translate([-0.01, length + 0.01, height_without_hinge - default_wall_thickness])
-      cuboid(
-        [wall_thickness * 2 + 0.02, edge_size + 0.2, wall_thickness + 0.01],
-        anchor=BOTTOM + LEFT + BACK,
-        rounding=-wall_thickness,
-        edges=[TOP + RIGHT]
-      );
-
-    translate([wall_thickness, 0, height_without_hinge - wall_thickness / 2])
-      ycyl(d=hinge_hole_diameter, h=length, anchor=BOTTOM);
 
     // Make sure the children start from the bottom corner of the box.
     $inner_width = width - wall_thickness * 2;
@@ -369,9 +381,10 @@ module SlidingChannel(size, wall_thickness) {
   width = size[0];
   length = size[1];
   height = size[2];
-  translate([-height, 0, 0]) {
+
+  translate([-height, 0, -0.1]) {
     diff() cuboid(
-        [height * 2, length, height],
+        [height * 2, length, height + 0.1],
         anchor=BOTTOM + FRONT + LEFT,
         chamfer=height,
         edges=[BOTTOM + RIGHT]
@@ -380,9 +393,10 @@ module SlidingChannel(size, wall_thickness) {
           mask2d_roundover(height / 2);
       }
   }
-  translate([width - height, 0, 0]) {
+
+  translate([width - height, 0, -0.1]) {
     diff() cuboid(
-        [height * 2, length, height],
+        [height * 2, length, height + 0.1],
         anchor=BOTTOM + FRONT + LEFT,
         chamfer=height,
         edges=[BOTTOM + LEFT]
@@ -406,22 +420,33 @@ module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) 
   width = size[0];
   length = size[1];
   height = size[2];
-  translate([0, 0, lid_thickness + print_in_place_offset])
+
+  translate([0, 0, lid_thickness + print_in_place_offset * 1.5])
     prismoid(
-      size1=[width - print_in_place_offset, length - wall_thickness * 4 - print_in_place_offset * 2],
-      size2=[width - wall_thickness * 2, length - wall_thickness * 4 - print_in_place_offset * 2],
-      h=wall_thickness - print_in_place_offset,
+      size1=[width - print_in_place_offset * 2, length - wall_thickness * 1.3 + print_in_place_offset],
+      size2=[width - wall_thickness * 2, length - wall_thickness * 1.3 + print_in_place_offset],
+      h=wall_thickness - print_in_place_offset * 1.5,
       anchor=BOTTOM + FRONT + LEFT,
     );
-  translate([print_in_place_offset, wall_thickness * 5.5 - print_in_place_offset, 0])
+
+  translate([print_in_place_offset * 0.25, length - wall_thickness * 1.75 - print_in_place_offset, 0])
     cuboid(
-      [width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset],
-      anchor=BOTTOM + FRONT + LEFT,
+      [
+        width - print_in_place_offset * 2,
+        wall_thickness,
+        lid_thickness + print_in_place_offset * 2,
+      ],
+      anchor=BOTTOM + BACK + LEFT,
     );
-  translate([print_in_place_offset, wall_thickness * 3 + print_in_place_offset, 0])
+
+  translate([print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0])
     cuboid(
-      [width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness],
-      anchor=BOTTOM + FRONT + LEFT,
+      [
+        width - print_in_place_offset * 2,
+        wall_thickness * 2.5 - print_in_place_offset * 3,
+        lid_thickness,
+      ],
+      anchor=BOTTOM + BACK + LEFT,
     );
 }
 
@@ -450,8 +475,8 @@ module CardLibraryBoxLid(
   lid_boundary = 10,
   latch = CARD_LIBRARY_LATCH_SLIDING,
   material_colour = "magenta",
-  hinge_hole_diameter = 2.2,
-  print_in_place_offset = 0.25,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
   size_spacing = m_piece_wiggle_room,
 ) {
   width = size[0];
@@ -463,39 +488,59 @@ module CardLibraryBoxLid(
   assert(lip_size > 0, str("Need lip size > 0, lip_size=", lip_size));
   assert(hinge_hole_diameter > 0, str("Need hinge hole diameter > 0, hinge_hole_diameter=", hinge_hole_diameter));
 
-  edge_size = max(length / 6, 20);
+  edge_size = max(length / 6, 25);
+  sliding_latch_size = [
+    wall_thickness * 3,
+    edge_size,
+    wall_thickness,
+  ];
   difference() {
     union() {
       internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
         difference() {
           union() {
             color(material_colour)
-              cuboid(
-                [
-                  width,
-                  length,
-                  lid_thickness,
-                ],
-                anchor=BOTTOM + FRONT + LEFT,
-                rounding=wall_thickness / 2,
-                edges=[BOTTOM]
-              );
-            color(material_colour)
-              cuboid(
-                [wall_thickness * 2, edge_size, lid_thickness + wall_thickness],
-                anchor=BOTTOM + FRONT + LEFT,
-                rounding=wall_thickness,
-                edges=[TOP + LEFT, TOP + RIGHT]
-              );
-            translate([0, length - edge_size, 0])
-              color(material_colour)
+              right(wall_thickness * 2)
                 cuboid(
-                  [wall_thickness * 2, edge_size, lid_thickness + wall_thickness],
+                  [
+                    width - wall_thickness * 2,
+                    length,
+                    lid_thickness,
+                  ],
                   anchor=BOTTOM + FRONT + LEFT,
-                  rounding=wall_thickness,
-                  edges=[TOP + LEFT, TOP + RIGHT]
+                  rounding=wall_thickness / 2,
+                  edges=[BOTTOM]
                 );
+            // The back hinge
+            color(material_colour)
+              back(wall_thickness + print_in_place_offset)
+                knuckle_hinge(
+                  length=length - wall_thickness * 2 - print_in_place_offset * 2,
+                  segs=5,
+                  offset=wall_thickness + lid_thickness,
+                  knuckle_diam=wall_thickness + lid_thickness,
+                  pin_diam=hinge_hole_diameter,
+                  arm_height=0,
+                  arm_angle=90,
+                  clear_top=false,
+                  spin=90,
+                  orient=LEFT,
+                  anchor=TOP + BACK + LEFT
+                );
+            // back card holder.
+            color(material_colour)
+              back(wall_thickness + print_in_place_offset)
+                right(wall_thickness * 1.5)
+                  cuboid(
+                    [
+                      wall_thickness * 2,
+                      length - wall_thickness * 2 - print_in_place_offset * 2,
+                      wall_thickness + lid_thickness,
+                    ],
+                    anchor=BOTTOM + FRONT + LEFT
+                  );
 
+            // front lip
             translate([width - wall_thickness, wall_thickness + 0.5, 0])
               color(material_colour)
                 cuboid(
@@ -504,52 +549,13 @@ module CardLibraryBoxLid(
                   rounding=wall_thickness / 2,
                   edges=[TOP + LEFT, TOP + RIGHT],
                 );
-
-            if (latch == CARD_LIBRARY_LATCH_SLIDING) {
-              translate([width * 3 / 4 - print_in_place_offset, wall_thickness, lid_thickness])
-                color(material_colour)
-                  SlidingChannel([wall_thickness * 3 + print_in_place_offset * 2, edge_size, wall_thickness]);
-              translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness])
-                color(material_colour)
-                  cuboid(
-                    [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness],
-                    edges=[TOP + LEFT, TOP + RIGHT],
-                    anchor=BOTTOM + FRONT + LEFT
-                  );
-              translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
-                color(material_colour)
-                  SlidingChannel([wall_thickness * 3 + 0.5, edge_size, wall_thickness]);
-              translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
-                color(material_colour)
-                  cuboid(
-                    [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness],
-                    edges=[TOP + LEFT, TOP + RIGHT],
-                    anchor=BOTTOM + FRONT + LEFT
-                  );
-              translate([wall_thickness, wall_thickness + 0.5, 0])
-                color(material_colour) cuboid(
-                    [lid_boundary - wall_thickness, length - wall_thickness * 2 + 1, lid_thickness + wall_thickness],
-                    anchor=BOTTOM + FRONT + LEFT,
-                  );
-            }
-            if (latch == CARD_LIBRARY_LATCH_CLIP) {
-            }
-          }
-          translate([wall_thickness, length / 2 - 1, wall_thickness / 2])
-            ycyl(d=hinge_hole_diameter, h=length + 3, anchor=BOTTOM);
-
-          translate([-1, edge_size, -1]) {
-            cuboid(
-              [wall_thickness * 2 + 1, length - edge_size * 2, lid_thickness + wall_thickness * 2],
-              anchor=BOTTOM + FRONT + LEFT,
-            );
           }
 
           if (latch == CARD_LIBRARY_LATCH_SLIDING) {
             // Holes in the side for the sides
-            translate([width * 3 / 4 - print_in_place_offset, -0.01, -0.01]) {
+            translate([width * 3 / 4 - print_in_place_offset - wall_thickness, -0.01, -0.01]) {
               cuboid(
-                [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
+                [wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
                 anchor=BOTTOM + FRONT + LEFT,
               );
             }
@@ -587,6 +593,7 @@ module CardLibraryBoxLid(
                     anchor=BOTTOM + FRONT + LEFT,
                   );
               }
+
               translate([width * 3 / 4 - print_in_place_offset - wall_thickness, length - edge_size - wall_thickness, 0]) {
                 color(material_colour)
                   cuboid(
@@ -596,13 +603,13 @@ module CardLibraryBoxLid(
               }
             }
             // Holes for the handle in the lid.
-            translate([width * 3 / 4, wall_thickness * 4, lid_thickness + 0.01]) {
+            translate([width * 3 / 4 - print_in_place_offset * 0.5, sliding_latch_size[1] - wall_thickness * 0.75, lid_thickness + 0.01]) {
               cuboid(
                 [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1],
-                anchor=TOP + FRONT + LEFT,
+                anchor=TOP + BACK + LEFT,
               );
             }
-            translate([width * 3 / 4 - print_in_place_offset, length - wall_thickness * (4 + 3.5), lid_thickness + 0.01]) {
+            translate([width * 3 / 4 - print_in_place_offset * 0.5, length - sliding_latch_size[1] + wall_thickness * 0.75, lid_thickness + 0.01]) {
               cuboid(
                 [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1],
                 anchor=TOP + FRONT + LEFT,
@@ -625,28 +632,55 @@ module CardLibraryBoxLid(
       // The floating sliding latch.
       if (latch == CARD_LIBRARY_LATCH_SLIDING) {
         // First latch.
+        translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
+          color(material_colour)
+            SlidingChannel(
+              sliding_latch_size + [
+                print_in_place_offset * 2,
+                0,
+                0,
+              ]
+            );
+        translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
+          color(material_colour)
+            cuboid(
+              [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1],
+              edges=[TOP + LEFT, TOP + RIGHT],
+              anchor=BOTTOM + FRONT + LEFT
+            );
         color(material_colour)
           translate([width * 3 / 4, wall_thickness, 0]) {
             SlidingLatch(
-              size=[
-                wall_thickness * 3,
-                edge_size,
-                lid_thickness,
-              ],
+              size=sliding_latch_size,
               print_in_place_offset=print_in_place_offset,
               lid_thickness=lid_thickness,
               wall_thickness=wall_thickness
             );
           }
+        // Second latch.
+        translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
+          color(material_colour)
+            SlidingChannel(
+              sliding_latch_size + [
+                print_in_place_offset * 2,
+                0,
+                0,
+              ]
+            );
+
+        translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1])
+          color(material_colour)
+            cuboid(
+              [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1],
+              edges=[TOP + LEFT, TOP + RIGHT],
+              anchor=BOTTOM + FRONT + LEFT
+            );
+
         color(material_colour)
           translate([width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0]) {
             rotate(180)
               SlidingLatch(
-                size=[
-                  wall_thickness * 3,
-                  edge_size,
-                  lid_thickness,
-                ],
+                size=sliding_latch_size,
                 print_in_place_offset=print_in_place_offset,
                 lid_thickness=lid_thickness,
                 wall_thickness=wall_thickness
@@ -686,8 +720,8 @@ module CardLibraryBoxLidWithCustomShape(
   lip_size = default_lid_thickness * 3,
   latch = CARD_LIBRARY_LATCH_SLIDING,
   material_colour = "magenta",
-  hinge_hole_diameter = 2.2,
-  print_in_place_offset = 0.25,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
   size_spacing = m_piece_wiggle_room,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
@@ -772,8 +806,8 @@ module CardLibraryBoxLidWithShape(
   lip_size = default_lid_thickness * 3,
   latch = CARD_LIBRARY_LATCH_SLIDING,
   material_colour = "magenta",
-  hinge_hole_diameter = 2.2,
-  print_in_place_offset = 0.25,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
   size_spacing = m_piece_wiggle_room,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
@@ -833,6 +867,99 @@ module CardLibraryBoxLidWithShape(
     }
     if ($children > 8) {
       children(8);
+    }
+  }
+}
+
+// Module: CardLibraryBoxLidWithLabel()
+// Description:
+//   Creates a lid for a card library box with a shape pattern and a label.
+// Topics: CardLibrary
+// Arguments:
+//   size = the size of the object [width, length, height]
+//   label = the string to use for the label
+//   label_options = options for the label (default undef)
+//   wall_thickness = thickness of the walls
+//   lid_thickness = thickness of the lid
+//   lip_size = size of the lip (default default_lid_thickness * 3)
+//   latch = latch type to use (default CARD_LIBRARY_LATCH_SLIDING)
+//   material_colour = the colour of the material in the box (default "magenta")
+//   hinge_hole_diameter = diameter of the hinge hole (default 2.2)
+//   print_in_place_offset = offset for print-in-place mechanisms (default 0.25)
+//   size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+//   aspect_ratio = aspect ratio of the elements
+//   shape_options = options object for the shape
+module CardLibraryBoxLidWithLabel(
+  size,
+  label,
+  label_options = undef,
+  wall_thickness = default_wall_thickness,
+  lid_thickness = default_lid_thickness,
+  lip_size = default_lid_thickness * 3,
+  latch = CARD_LIBRARY_LATCH_SLIDING,
+  material_colour = "magenta",
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
+  lid_boundary = 10,
+  layout_width = undef,
+  aspect_ratio = undef,
+  shape_options = undef
+) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject()
+  );
+
+  CardLibraryBoxLidWithCustomShape(
+    size=size,
+    wall_thickness=wall_thickness,
+    lid_thickness=lid_thickness,
+    lip_size=lip_size,
+    latch=latch,
+    hinge_hole_diameter=hinge_hole_diameter,
+    print_in_place_offset=print_in_place_offset,
+    size_spacing=size_spacing,
+    lid_boundary=lid_boundary,
+    aspect_ratio=aspect_ratio,
+    layout_width=layout_width,
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    material_colour=material_colour,
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type)
+  ) {
+    if ($children > 0) {
+      children(0);
+    } else {
+      color(material_colour)
+        ShapeByType(options=calc_shape_options);
+    }
+    translate([lid_boundary, lid_boundary, 0])
+      translate([(size[0] - lid_boundary * 2) / 2, (size[1] - lid_boundary * 2) / 2, lid_thickness])
+        rotate([0, 180, 0])
+          translate([-(size[0] - lid_boundary * 2) / 2, -(size[1] - lid_boundary * 2) / 2, 0])
+            MakeLidLabel(
+              size=[
+                size[0] - lid_boundary * 2,
+                size[1] - lid_boundary * 2,
+              ],
+              options=object(calc_label_options, full_height=true), lid_thickness=lid_thickness,
+              text_str=label
+            );
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
     }
   }
 }

@@ -45,6 +45,12 @@ default_wall_thickness = 2;
 // Constant: default_floor_thickness
 // Description: The default lid thickness for all boxes.
 default_floor_thickness = 2;
+// Constant: default_stackable_lid_thickness
+// Description: The default thickness of the stackable part of the lid.
+default_stackable_lid_thickness = 1;
+// Constant: default_print_in_place_offset
+// Description: The default offset to use when printing in place.
+default_print_in_place_offset = 0.25;
 // Constant: default_slicing_layer_height
 // The slicing layer height to use for cases where this matter.
 default_slicing_layer_height = 0.2;

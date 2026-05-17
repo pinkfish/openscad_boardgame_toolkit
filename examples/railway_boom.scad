@@ -565,7 +565,8 @@ module SpacerPlayerBoardBox() // `make` me
     [spacer_box_width, 0],
   ];
   MakePathBoxWithNoLid(
-    path=box_path, height=player_board_thickness * 4, hollow=true,
+    path=box_path, height=player_board_thickness * 4,
+    hollow=true, stackable=true,
     $fn=16
   );
 }
@@ -702,5 +703,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  ResourceBox();
+  MakeBoxLayout();
 }
