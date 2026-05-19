@@ -200,8 +200,10 @@ module DoThing(width, length, height, wall_thickness = default_wall_thickness) {
 
 if (FROM_MAKE != 1) {
   size = CardLibrarySize(core_scenario_cards, card_size);
-  ArkhamHorrorCoreEncounterBox();
+  BaseGameDominionv1LibraryBox();
+  /*
   up(size[2])
     zflip()
       ArkhamHorrorCoreEncounterBoxLid();
+      */
 }

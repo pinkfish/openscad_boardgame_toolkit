@@ -159,7 +159,7 @@ module MakeCardLibraryBox(
 
   height_without_hinge = height - lid_thickness;
   edge_size = max(length / 6, 20);
-  hinge_seg = max(length / 20, 5);
+  hinge_seg = max(floor(length / 20), 5);
 
   difference() {
     union() {
@@ -332,14 +332,16 @@ module MakeCardLibraryBox(
           cuboid(
             [wall_thickness, length - wall_thickness * 2 + 0.02, lip_size],
             anchor=BOTTOM + FRONT + LEFT,
-            rounding=wall_thickness, edges=[TOP + RIGHT]
+            rounding=wall_thickness / 2,
+            edges=[TOP + RIGHT]
           );
         translate([-wall_thickness / 2, 0, lip_size - wall_thickness])
           color(material_colour)
             cuboid(
               [wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness],
               anchor=BOTTOM + FRONT + LEFT,
-              chamfer=wall_thickness / 2, edges=[BOTTOM + LEFT]
+              chamfer=wall_thickness / 3,
+              edges=[BOTTOM + LEFT, TOP + LEFT, TOP + RIGHT]
             );
       }
 
@@ -495,7 +497,7 @@ module CardLibraryBoxLid(
     edge_size,
     wall_thickness,
   ];
-  hinge_seg = max(length / 20, 5);
+  hinge_seg = max(floor(length / 20), 5);
 
   difference() {
     union() {
@@ -997,7 +999,8 @@ module CardSleeveForLibrary(
   add_positive = false,
   emboss_text = 0.2,
   text_length_offset = default_wall_thickness * 3,
-  min_text_height = 3
+  min_text_height = 3,
+  print_in_place_offset = default_print_in_place_offset
 ) {
   assert(TotalCards(num_cards) > 0, str("num cards must be > 0", num_cards));
   assert(is_object(card_size), str("card_size must be an object", card_size));
@@ -1073,12 +1076,14 @@ module CardSleeveForLibrary(
         radius = wall_thickness * sqrt(3) / 2;
 
         // Catch in the front
-        translate([-radius * 1 / 2, -0.01, lip_size])
+        translate([-radius * 1 / 2, -0.01, lip_size + print_in_place_offset / 2 - wall_thickness / 2])
           color(material_colour)
             rotate([0, 45, 0])
               cuboid(
-                [wall_thickness, length + 0.02, wall_thickness],
-                anchor=FRONT
+                [wall_thickness, length + 0.02, wall_thickness + print_in_place_offset],
+                anchor=FRONT,
+                chamfer=wall_thickness / 3,
+                edges=[FRONT + TOP, FRONT + BOTTOM]
               );
 
         // Hole for the text.

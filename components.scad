@@ -47,13 +47,20 @@
 // Topics: Recess
 // Example:
 //   HexBoxDivisions(30, num_sides=6, height=10, divisions=2);
-module HexBoxDivisions(width, height, divisions = 2, num_sides = 6, wall_thickness = default_wall_thickness) {
+module HexBoxDivisions(
+  width,
+  height,
+  divisions = 2,
+  num_sides = 6,
+  wall_thickness = default_wall_thickness,
+  bottom_radius = undef
+) {
   hex_path = regular_ngon(n=num_sides, d=width);
   w_div = wall_thickness / 2;
   ang = 360 / divisions;
+  bottom_radius = bottom_radius != undef ? bottom_radius : min(height * 3 / 4, (width - wall_thickness) / (divisions * 2));
 
   translate([0, 0, 2]) {
-    // default_floor_thickness is 2
     for (i = [0:divisions - 1]) {
       let (
         wedge_path = concat([[0, 0]], arc(r=width * 2, start=i * ang, angle=ang)),
@@ -63,7 +70,7 @@ module HexBoxDivisions(width, height, divisions = 2, num_sides = 6, wall_thickne
         offset_sweep(
           round_corners(sub_region[0], radius=2),
           height=height,
-          bottom=os_circle(height * 3 / 4),
+          bottom=os_circle(bottom_radius),
           offset="delta",
           check_valid=true,
           quality=1,

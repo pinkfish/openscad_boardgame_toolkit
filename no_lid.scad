@@ -166,7 +166,7 @@ module MakePathBoxWithNoLid(
   height,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
-  stackable_lid_thickness = default_stackable_lid_thickness,
+  stackable_thickness = default_stackable_thickness,
   stackable_fit_offset = 0.1,
   hollow_radius = object(top=default_wall_thickness / 4, bottom=default_wall_thickness / 4, radius=default_wall_thickness / 2),
   make_finger_x = undef,
@@ -176,7 +176,7 @@ module MakePathBoxWithNoLid(
   offset_sweep_options = object(offset="round", check_valid=true, quality=1, steps=16),
   hollow = false,
   stackable = STACKABLE_TYPE_NONE,
-  magnet = object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0)
+  magnet = object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0),
 ) {
   module StackableBoxInternal(bottom = false) {
     if (stackable == STACKABLE_TYPE_INSIDE) {
@@ -185,9 +185,9 @@ module MakePathBoxWithNoLid(
           offset_sweep(
             round_corners(
               bottom ? inner_path_stackable_bottom_outside : inner_path_stackable,
-              radius=stackable_lid_thickness / 2
+              radius=stackable_thickness / 2
             ),
-            height=stackable_lid_thickness + (bottom ? stackable_fit_offset : 0),
+            height=stackable_thickness + (bottom ? stackable_fit_offset : 0),
             top=os_circle(
               wall_thickness / 4
             ),
@@ -202,9 +202,9 @@ module MakePathBoxWithNoLid(
             offset_sweep(
               round_corners(
                 bottom ? inner_path_stackable_bottom_inside : inner_path,
-                radius=stackable_lid_thickness / 4
+                radius=stackable_thickness / 4
               ),
-              height=stackable_lid_thickness + 0.02 + (bottom ? stackable_fit_offset : 0),
+              height=stackable_thickness + 0.02 + (bottom ? stackable_fit_offset : 0),
               top=os_circle(-wall_thickness / 4),
               offset=offset_sweep_options.offset,
               check_valid=offset_sweep_options.check_valid,
@@ -276,7 +276,7 @@ module MakePathBoxWithNoLid(
       union() {
         offset_sweep(
           calc_path,
-          height=stackable ? height - stackable_lid_thickness : height,
+          height=stackable ? height - stackable_thickness : height,
           bottom=os_circle(stackable ? wall_thickness / 4 : wall_thickness / 2),
           top=os_circle(stackable ? wall_thickness / 8 : wall_thickness / 4),
           offset=offset_sweep_options.offset,
@@ -285,7 +285,7 @@ module MakePathBoxWithNoLid(
           steps=offset_sweep_options.steps
         );
         if (stackable) {
-          translate([0, 0, height - stackable_lid_thickness])
+          translate([0, 0, height - stackable_thickness])
             StackableBoxInternal(bottom=false);
         }
       }
@@ -368,7 +368,7 @@ module MakePolygonBoxWithNoLid(
   sides,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
-  stackable_lid_thickness = default_stackable_lid_thickness,
+  stackable_thickness = default_stackable_thickness,
   make_finger_x = undef,
   make_finger_y = undef,
   material_colour = "grey",
@@ -392,7 +392,7 @@ module MakePolygonBoxWithNoLid(
     offset_sweep_options=offset_sweep_options,
     wall_thickness=wall_thickness,
     floor_thickness=floor_thickness,
-    stackable_lid_thickness=stackable_lid_thickness,
+    stackable_thickness=stackable_thickness,
     make_finger_x=make_finger_x,
     make_finger_y=make_finger_y,
     material_colour=material_colour,

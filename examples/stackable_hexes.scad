@@ -19,14 +19,19 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
 stackable_width = 100;
-stackable_height = 20;
+stackable_height = 24;
 default_wall_thickness = 4;
 
-module StackableHexBox(divisions = 1, magnet_type = MAGNET_SLOT_TYPE_ROUND, magnet_size = undef) {
+module StackableHexBox(
+  divisions = 1,
+  magnet_type = MAGNET_SLOT_TYPE_ROUND,
+  magnet_size = undef,
+  bottom_radius = undef
+) {
   calc_magnet_size =
     magnet_size != undef ? magnet_size
     : magnet_type == MAGNET_SLOT_TYPE_ROUND ? [stackable_height / 2 - 1, 7, 3.1]
-    : [11, 6, 2.1];
+    : [12, 6, 1.9];
 
   MakePolygonBoxWithNoLid(
     size=[stackable_width, stackable_height],
@@ -37,13 +42,14 @@ module StackableHexBox(divisions = 1, magnet_type = MAGNET_SLOT_TYPE_ROUND, magn
     hollow_radius=object(top=2, bottom=stackable_height * 3 / 4, radius=2),
     stackable=STACKABLE_TYPE_INSIDE,
     magnet=object(type=magnet_type, size=calc_magnet_size),
-    offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16)
+    offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16),
   ) {
     if (divisions > 1) {
       HexBoxDivisions(
         stackable_width - default_wall_thickness * 2.5,
         height=stackable_height,
-        divisions=divisions
+        divisions=divisions,
+        bottom_radius=bottom_radius
       );
     }
   }
@@ -56,7 +62,7 @@ module HexBoxSingle6x3RoundMagnet() // `make` me
 
 module HexBoxSingle6x3RoundMagnetWithTwoPartitions() // `make` me
 {
-  StackableHexBox(divisions=2, magnet_type=MAGNET_SLOT_TYPE_ROUND);
+  StackableHexBox(divisions=2, magnet_type=MAGNET_SLOT_TYPE_ROUND, bottom_radius=5);
 }
 
 module HexBoxSingle6x3RoundMagnetWithThreePartitions() // `make` me
@@ -76,19 +82,19 @@ module HexBoxSingle10x5x2RectMagnet() // `make` me
 
 module HexBoxSingle10x5x2RectMagnetWithTwoPartitions() // `make` me
 {
-  StackableHexBox(divisions=2, magnet_type=MAGNET_SLOT_TYPE_RECT);
+  StackableHexBox(divisions=2, magnet_type=MAGNET_SLOT_TYPE_RECT, bottom_radius=10);
 }
 
 module HexBoxSingle10x5x2RectMagnetWithThreePartitions() // `make` me
 {
-  StackableHexBox(divisions=3, magnet_type=MAGNET_SLOT_TYPE_RECT);
+  StackableHexBox(divisions=3, magnet_type=MAGNET_SLOT_TYPE_RECT, bottom_radius=10);
 }
 
 module HexBoxSingle10x5x2RectMagnetWithFourPartitions() // `make` me
 {
-  StackableHexBox(divisions=4, magnet_type=MAGNET_SLOT_TYPE_RECT);
+  StackableHexBox(divisions=4, magnet_type=MAGNET_SLOT_TYPE_RECT, bottom_radius=10);
 }
 
 if (FROM_MAKE != 1) {
-  HexBoxSingle10x5x2RectMagnetWithFourPartitions();
+  HexBoxSingle10x5x2RectMagnet();
 }
