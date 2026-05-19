@@ -482,7 +482,9 @@ module MakeBoxWithFilamentHinge(
   floor_thickness = default_floor_thickness,
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
-  filament_thickness = 2.2
+  filament_thickness = 2.2,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -493,76 +495,72 @@ module MakeBoxWithFilamentHinge(
   catch_length = min(wall_thickness * 6, length / 6);
   catch_height = min(wall_thickness * 4, height / 6);
 
+  hinge_seg = max(floor(length / 20), 5);
+  lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness);
+  lip_length = max(length / 4, 15);
+
   difference() {
     union() {
-      diff() cuboid(
-          [width, length, height - lid_thickness],
-          rounding=wall_thickness,
-          anchor=BOTTOM + FRONT + LEFT,
-          edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
-        ) {
-          edge_mask(TOP + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 2);
-          edge_mask(TOP + BACK) rounding_edge_mask(l=width, r=wall_thickness / 2);
-          edge_mask(TOP + RIGHT) rounding_edge_mask(l=length, r=wall_thickness / 2);
-        }
-      translate([0, edge_length + 0.25, 0])
-        cuboid(
-          [
-            wall_thickness * 2,
-            length * 4 / 6 - 0.5,
-            height,
-          ],
-          rounding=wall_thickness,
-          anchor=BOTTOM + FRONT + LEFT,
-          edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT]
-        );
-    }
-    translate([wall_thickness, 0, height - lid_thickness])
-      ycyl(d=filament_thickness, h=length + 1, anchor=FRONT);
-    translate([0, 0, height - lid_thickness - wall_thickness]) {
-      union() {
-        cuboid(
-          [wall_thickness * 2, edge_length + 0.25, lid_thickness + wall_thickness],
-          anchor=BOTTOM + FRONT + LEFT,
-        ) {
-          edge_mask(BOTTOM + LEFT) rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=DOWN, spin=180);
-        }
-      }
-    }
-    translate([wall_thickness * 2, edge_length / 2 + 0.125, height - lid_thickness])
-      rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=BACK, spin=0);
-    translate([0, length - edge_length - 0.25, height - lid_thickness - wall_thickness])
-      cuboid(
-        [wall_thickness * 2, edge_length + 0.25, lid_thickness + wall_thickness],
-        anchor=BOTTOM + FRONT + LEFT,
-      ) {
-        edge_mask(BOTTOM + LEFT) rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=DOWN, spin=180);
-      }
-    translate([wall_thickness * 2, edge_length / 2 + 0.125, height - lid_thickness])
-      rounding_edge_mask(l=edge_length + 0.25, r=wall_thickness / 2, orient=BACK, spin=0);
-
-    translate([width - wall_thickness / 2, length / 2 - catch_length / 2, height - lid_thickness - catch_height]) {
       difference() {
-        cuboid([wall_thickness / 2, catch_length, catch_height], anchor=BOTTOM + FRONT + LEFT);
-        translate([0, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2])
-          cuboid(
-            [wall_thickness / 2, wall_thickness, wall_thickness], anchor=BOTTOM + FRONT + LEFT,
-            chamfer=wall_thickness / 4,
-            edges=[RIGHT]
-          );
+        union() {
+          diff() color(material_colour)
+              cuboid(
+                [width, length, height - lid_thickness - print_in_place_offset],
+                rounding=wall_thickness / 2,
+                anchor=BOTTOM + FRONT + LEFT,
+                edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+              ) {
+                edge_mask(TOP + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 4);
+                edge_mask(TOP + BACK) rounding_edge_mask(l=width, r=wall_thickness / 4);
+                edge_mask(TOP + RIGHT) rounding_edge_mask(l=length, r=wall_thickness / 4);
+              }
+        }
+
+        up(height - lid_thickness - wall_thickness - print_in_place_offset * 2)
+          color(material_colour)
+            cuboid(
+              [wall_thickness * 2, length, wall_thickness + print_in_place_offset],
+              anchor=BOTTOM + LEFT + FRONT,
+              rounding=-wall_thickness,
+              edges=TOP + RIGHT
+            );
+
+        up(height - lid_thickness - lip_height - print_in_place_offset)
+          back(length / 2)
+            right(width) {
+              color(material_colour)
+                cuboid(
+                  [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
+                  anchor=BOTTOM + RIGHT,
+                  rounding=wall_thickness / 4,
+                  edges=[BOTTOM + LEFT]
+                );
+              up(lip_height / 2)
+                back(lip_length / 4)
+                  color(material_colour)
+                    sphere(d=wall_thickness, anchor=RIGHT);
+              up(lip_height / 2)
+                fwd(lip_length / 4)
+                  color(material_colour)
+                    sphere(d=wall_thickness, anchor=RIGHT);
+            }
       }
-      translate([-wall_thickness / 2 - 0.01, 0, catch_height / 2])
-        cuboid(
-          [wall_thickness, wall_thickness + 0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
-          chamfer=wall_thickness / 2,
-          edges=[BOTTOM + LEFT]
-        );
-      translate([-wall_thickness / 2 - 0.01, catch_length - wall_thickness - 0.2, catch_height / 2])
-        cuboid(
-          [wall_thickness + 1, wall_thickness + 0.2, catch_height / 2], anchor=BOTTOM + FRONT + LEFT,
-          chamfer=wall_thickness / 2,
-          edges=[BOTTOM + LEFT]
-        );
+      up(height)
+        color(material_colour)
+          knuckle_hinge(
+            length=length,
+            segs=hinge_seg,
+            offset=wall_thickness + lid_thickness,
+            knuckle_diam=wall_thickness + lid_thickness,
+            arm_height=0,
+            arm_angle=90,
+            clear_top=false,
+            inner=true,
+            spin=90,
+            pin_diam=hinge_hole_diameter,
+            orient=UP,
+            anchor=TOP + BACK + LEFT
+          );
     }
 
     $inner_width = width - wall_thickness * 2;
@@ -595,7 +593,8 @@ module FilamentBoxInsideMask(
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
   filament_thickness = 2.2,
-  rounding = 0
+  rounding = 0,
+  print_in_place_offset = default_print_in_place_offset,
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -604,20 +603,26 @@ module FilamentBoxInsideMask(
   support_height = min(height / 6, wall_thickness * 4);
 
   difference() {
-    cuboid(
-      [width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness],
-      anchor=BOTTOM + FRONT + LEFT,
-      rounding=rounding,
-      edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-    );
-
-    translate([0, 0, height - support_height - lid_thickness - floor_thickness])
+    color(material_colour)
       cuboid(
-        [wall_thickness, length, support_height],
+        [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
         anchor=BOTTOM + FRONT + LEFT,
-        chamfer=min(wall_thickness, support_height),
-        edges=[BOTTOM + RIGHT],
+        rounding=rounding,
+        edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
       );
+
+    translate([-0.5, -0.5, height - support_height - floor_thickness])
+      color(material_colour) cuboid(
+          [wall_thickness + 0.5, length + 1, support_height + 1],
+          anchor=BOTTOM + FRONT + LEFT,
+          chamfer=min(wall_thickness, support_height),
+          edges=[BOTTOM + RIGHT],
+        );
+    fwd(0.5)
+      up(height)
+        color(material_colour)
+
+          ycyl(d=wall_thickness * 2 + print_in_place_offset, length=length + 1, anchor=FRONT + LEFT + TOP);
   }
 }
 
@@ -642,79 +647,472 @@ module MakeLidForFilamentBox(
   lid_thickness = default_lid_thickness,
   material_colour = default_material_colour,
   filament_thickness = 2.2,
-  rounding = 0
+  rounding = 0,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
 ) {
   edge_length = size[1] * 1 / 6;
   catch_length = min(wall_thickness * 6, size[1] / 6);
   catch_height = min(wall_thickness * 4, size[0] / 6);
+  width = size[0];
+  length = size[1];
+  height = size[2];
+
+  hinge_seg = max(floor(length / 20), 5);
+  lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness);
+  lip_length = max(length / 4, 15);
 
   difference() {
     union() {
-      cuboid(
-        [size[0], size[1], lid_thickness],
-        anchor=BOTTOM + FRONT + LEFT,
-        rounding=lid_thickness / 2,
-        edges=BOTTOM
-      );
-      cuboid(
-        [wall_thickness * 2, edge_length - 0.25, lid_thickness + wall_thickness],
-        anchor=BOTTOM + FRONT + LEFT,
-        rounding=wall_thickness,
-        edges=[TOP + LEFT, TOP + RIGHT]
-      );
-      translate([0, size[1] - edge_length - 0.25, 0])
-        cuboid(
-          [wall_thickness * 2, edge_length - 0.25, lid_thickness + wall_thickness],
-          anchor=BOTTOM + FRONT + LEFT,
-          rounding=wall_thickness,
-          edges=[TOP + LEFT, TOP + RIGHT]
-        );
-      translate([size[0] - wall_thickness / 2, size[1] / 2 - catch_length / 2, lid_thickness / 2])
-        difference() {
-          union() {
+      internal_build_lid(lid_thickness=lid_thickness, size_spacing=size_spacing) {
+        // Top piece
+        right(wall_thickness)
+          color(material_colour)
             cuboid(
-              [wall_thickness / 2, catch_length, catch_height + lid_thickness / 2],
+              [size[0] - wall_thickness, size[1], lid_thickness],
               anchor=BOTTOM + FRONT + LEFT,
-              chamfer=wall_thickness / 2 - 0.2,
-              edges=[TOP + LEFT]
+              rounding=lid_thickness / 2,
+              edges=BOTTOM
             );
-            translate([0.01, 0, lid_thickness / 2 - 0.01]) {
+        if ($children > 0) {
+          children(0);
+        }
+        if ($children > 1) {
+          children(1);
+        }
+        if ($children > 2) {
+          children(2);
+        }
+        if ($children > 3) {
+          children(3);
+        }
+        if ($children > 4) {
+          children(4);
+        }
+        if ($children > 5) {
+          children(5);
+        }
+      }
+
+      up(0)
+        diff() color(material_colour)
+            knuckle_hinge(
+              length=length,
+              segs=hinge_seg,
+              offset=wall_thickness + lid_thickness,
+              knuckle_diam=wall_thickness + lid_thickness,
+              pin_diam=hinge_hole_diameter,
+              arm_height=0,
+              arm_angle=90,
+              clear_top=true,
+              spin=270,
+              orient=LEFT,
+              anchor=TOP + FRONT + RIGHT
+            ) {
+              edge_mask(LEFT + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 2);
+              edge_mask(RIGHT + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 2);
+            }
+      up(lid_thickness - print_in_place_offset)
+        back(length / 2)
+          right(width) color(material_colour) {
               cuboid(
-                [wall_thickness / 2, wall_thickness, catch_height / 2],
-                anchor=BOTTOM + FRONT + RIGHT,
-                chamfer=wall_thickness / 2,
+                [wall_thickness / 2, lip_length, lip_height + print_in_place_offset],
+                anchor=BOTTOM + RIGHT,
+                rounding=wall_thickness / 4,
                 edges=[TOP + LEFT]
               );
-              translate([0, catch_length - wall_thickness, 0])
-                cuboid(
-                  [wall_thickness / 2, wall_thickness, catch_height / 2],
-                  anchor=BOTTOM + FRONT + RIGHT,
-                  chamfer=wall_thickness / 2,
-                  edges=[TOP + LEFT]
-                );
+              up(lip_height / 2)
+                back(lip_length / 4)
+                  sphere(d=wall_thickness * 5 / 6, anchor=RIGHT);
+              up(lip_height / 2)
+                fwd(lip_length / 4)
+                  sphere(d=wall_thickness * 5 / 6, anchor=RIGHT);
             }
-          }
-
-          translate([0.01 - wall_thickness, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2 + lid_thickness / 2])
-            cuboid(
-              [wall_thickness * 1.5, wall_thickness * 1.5, wall_thickness], anchor=BOTTOM + FRONT + LEFT,
-              chamfer=wall_thickness / 4,
-              edges=[RIGHT]
-            );
-
-          translate([-0.01, catch_length / 2 - wall_thickness / 2, catch_height / 2 - wall_thickness / 2 + lid_thickness / 2])
-            cuboid(
-              [wall_thickness / 6, wall_thickness * 1.5, catch_height], anchor=BOTTOM + FRONT + LEFT,
-              edges=[LEFT]
-            );
-        }
     }
-    translate([wall_thickness, -0.01, lid_thickness])
-      ycyl(d=filament_thickness, h=size[1] + 1, anchor=FRONT);
-    translate([-0.25, edge_length - 0.25, -0.5])
-      cuboid(
-        [wall_thickness * 2 + 0.5, size[1] - edge_length * 2 + 0.5, lid_thickness + wall_thickness + 1],
-        anchor=BOTTOM + FRONT + LEFT,
+    fwd(0.5)
+      right(wall_thickness)
+        up(wall_thickness) color(material_colour)
+            ycyl(h=length + 1, d=hinge_hole_diameter + print_in_place_offset, anchor=FRONT);
+  }
+}
+
+// Module: FilamentHingeBoxLidWithCustomShape()
+// Topics: Boxes, Hinges
+// Description:
+//   Makes a lid for a box with a filament based hinge and a custom shape.
+// Arguments:
+//   size = [width, length, height] of the box
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+//   hinge_hole_diameter = diameter of the hinge hole
+//   print_in_place_offset = offset for print in place mechanisms
+//   size_spacing = wiggle room for size
+//   lid_pattern_dense = boolean if the pattern is dense
+//   lid_dense_shape_edges = number of edges for the dense shape
+//   aspect_ratio = aspect ratio of the elements
+//   pattern_inner_control = if the shape needs inner control (default false)
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+// Example:
+//   FilamentHingeBoxLidWithCustomShape([100, 20, 6]) circle(r=5);
+module FilamentHingeBoxLidWithCustomShape(
+  size,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
+  lid_pattern_dense = false,
+  lid_dense_shape_edges = 6,
+  aspect_ratio = 1.0,
+  pattern_inner_control = false,
+  lid_boundary = 10,
+  layout_width = undef,
+) {
+  MakeLidForFilamentBox(
+    size=size,
+    wall_thickness=wall_thickness,
+    floor_thickness=floor_thickness,
+    lid_thickness=lid_thickness,
+    material_colour=material_colour,
+    filament_thickness=filament_thickness,
+    rounding=rounding,
+    hinge_hole_diameter=hinge_hole_diameter,
+    print_in_place_offset=print_in_place_offset,
+    size_spacing=size_spacing
+  ) {
+    LidMeshBasic(
+      size=[
+        size[0],
+        size[1],
+      ], lid_thickness=lid_thickness, boundary=lid_boundary,
+      layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
+      inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
+      }
+    }
+
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
+}
+
+// Module: FilamentHingeBoxLidWithLabelAndCustomShape()
+// Topics: Boxes, Hinges
+// Description:
+//   Makes a lid for a box with a filament based hinge, a text label, and a custom shape.
+// Arguments:
+//   size = [width, length, height] of the box
+//   text_str = the string to use for the label
+//   label_options = options for the label
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+//   hinge_hole_diameter = diameter of the hinge hole
+//   print_in_place_offset = offset for print in place mechanisms
+//   size_spacing = wiggle room for size
+//   lid_pattern_dense = boolean if the pattern is dense
+//   lid_dense_shape_edges = number of edges for the dense shape
+//   aspect_ratio = aspect ratio of the elements
+//   pattern_inner_control = if the shape needs inner control (default false)
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+// Example:
+//   FilamentHingeBoxLidWithLabelAndCustomShape([100, 20, 6], "Label") circle(r=5);
+module FilamentHingeBoxLidWithLabelAndCustomShape(
+  size,
+  text_str,
+  label_options = undef,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
+  lid_pattern_dense = false,
+  lid_dense_shape_edges = 6,
+  aspect_ratio = 1.0,
+  pattern_inner_control = false,
+  lid_boundary = 10,
+  layout_width = undef,
+) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+
+  FilamentHingeBoxLidWithShape(
+    size=size,
+    wall_thickness=wall_thickness,
+    floor_thickness=floor_thickness,
+    lid_thickness=lid_thickness,
+    material_colour=material_colour,
+    filament_thickness=filament_thickness,
+    rounding=rounding,
+    hinge_hole_diameter=hinge_hole_diameter,
+    print_in_place_offset=print_in_place_offset,
+    size_spacing=size_spacing,
+    lid_pattern_dense=lid_pattern_dense,
+    lid_dense_shape_edges=lid_dense_shape_edges,
+    aspect_ratio=aspect_ratio,
+    pattern_inner_control=pattern_inner_control,
+    lid_boundary=lid_boundary,
+    layout_width=layout_width
+  ) {
+    if ($children > 0) {
+      children(0);
+    } else {
+      color(material_colour) square([10, 10]);
+    }
+    translate([lid_boundary, lid_boundary, lid_thickness])
+      //  translate([(size[0] - wall_thickness - lid_boundary * 2) / 2, (size[1] - lid_boundary * 2) / 2, lid_thickness])
+      //    translate([-(size[0] - wall_thickness - lid_boundary * 2) / 2, -(size[1] - lid_boundary * 2) / 2, 0])
+      zflip()
+        MakeLidLabel(
+          size=[
+            size[0] - wall_thickness - lid_boundary * 2,
+            size[1] - lid_boundary * 2,
+          ],
+          options=object(calc_label_options, full_height=true), lid_thickness=lid_thickness,
+          text_str=text_str,
+        );
+    // Don't include the first child since is it used for the lid shape.
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
+}
+
+// Module: FilamentHingeBoxLidWithShape()
+// Topics: Boxes, Hinges
+// Description:
+//   Makes a lid for a box with a filament based hinge and a pre-defined shape.
+// Arguments:
+//   size = [width, length, height] of the box
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+//   hinge_hole_diameter = diameter of the hinge hole
+//   print_in_place_offset = offset for print in place mechanisms
+//   size_spacing = wiggle room for size
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+//   aspect_ratio = aspect ratio of the elements
+//   shape_options = options for the shape
+// Example:
+//   FilamentHingeBoxLidWithShape([100, 20, 6], shape_options=MakeShapeObject());
+module FilamentHingeBoxLidWithShape(
+  size,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
+  lid_boundary = 10,
+  layout_width = undef,
+  aspect_ratio = 1.0,
+  shape_options = undef
+) {
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject()
+  );
+
+  FilamentHingeBoxLidWithCustomShape(
+    size=size,
+    wall_thickness=wall_thickness,
+    floor_thickness=floor_thickness,
+    lid_thickness=lid_thickness,
+    material_colour=material_colour,
+    filament_thickness=filament_thickness,
+    rounding=rounding,
+    hinge_hole_diameter=hinge_hole_diameter,
+    print_in_place_offset=print_in_place_offset,
+    size_spacing=size_spacing,
+    lid_boundary=lid_boundary,
+    aspect_ratio=aspect_ratio,
+    layout_width=layout_width,
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type)
+  ) {
+    if ($children > 0) {
+      children(0);
+    } else {
+      color(material_colour)
+        ShapeByType(options=calc_shape_options);
+    }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+  }
+}
+
+// Module: FilamentHingeBoxLidWithLabel()
+// Topics: Boxes, Hinges
+// Description:
+//   Makes a lid for a box with a filament based hinge, a text label, and a pre-defined shape.
+// Arguments:
+//   size = [width, length, height] of the box
+//   text_str = the string to use for the label
+//   label_options = options for the label
+//   wall_thickness = wall thickness of the box
+//   floor_thickness = floor thickness of the box
+//   lid_thickness = lid thickness of the box
+//   material_colour = material colour of the box
+//   filament_thickness = filament thickness of the box
+//   rounding = rounding of the box
+//   hinge_hole_diameter = diameter of the hinge hole
+//   print_in_place_offset = offset for print in place mechanisms
+//   size_spacing = wiggle room for size
+//   lid_boundary = bounding edge for shape generation on the lid (default 10)
+//   layout_width = width of the layout
+//   aspect_ratio = aspect ratio of the elements
+//   shape_options = options for the shape
+// Example:
+//   FilamentHingeBoxLidWithLabel([100, 20, 6], "Label");
+module FilamentHingeBoxLidWithLabel(
+  size,
+  text_str,
+  label_options = undef,
+  wall_thickness = default_wall_thickness,
+  floor_thickness = default_floor_thickness,
+  lid_thickness = default_lid_thickness,
+  material_colour = default_material_colour,
+  filament_thickness = 2.2,
+  rounding = 0,
+  hinge_hole_diameter = default_hinge_hole_diameter,
+  print_in_place_offset = default_print_in_place_offset,
+  size_spacing = m_piece_wiggle_room,
+  lid_boundary = 10,
+  layout_width = undef,
+  aspect_ratio = 1.0,
+  shape_options = undef
+) {
+  calc_label_options = DefaultValue(
+    label_options, MakeLabelOptions(
+      material_colour=material_colour,
+    )
+  );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject()
+  );
+
+  FilamentHingeBoxLidWithLabelAndCustomShape(
+    size=size,
+    text_str=text_str,
+    label_options=calc_label_options,
+    wall_thickness=wall_thickness,
+    floor_thickness=floor_thickness,
+    lid_thickness=lid_thickness,
+    material_colour=material_colour,
+    filament_thickness=filament_thickness,
+    rounding=rounding,
+    hinge_hole_diameter=hinge_hole_diameter,
+    print_in_place_offset=print_in_place_offset,
+    size_spacing=size_spacing,
+    lid_boundary=lid_boundary,
+    aspect_ratio=aspect_ratio,
+    layout_width=layout_width,
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type)
+  ) {
+    color(material_colour)
+      ShapeByType(
+        options=calc_shape_options,
       );
+    if ($children > 0) {
+      children(0);
+    }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
   }
 }

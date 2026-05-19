@@ -529,56 +529,70 @@ module EssenceTokenBoxLid() // `make` me
 
 module ShepardBox() // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithFilamentHinge(
     size=[shepard_box_width, shepard_box_length, shepard_box_height],
   ) {
-    translate([0.5, 0.5, 0])
-      RoundedBoxAllSides(
-        size=[$inner_width - 1, $inner_length - 1, shepard_box_height],
-        radius=10
-      );
+    intersection() {
+      FilamentBoxInsideMask(size=[shepard_box_width, shepard_box_length, shepard_box_height]);
+      translate([0.5, 0.5, 0])
+        RoundedBoxAllSides(
+          size=[$inner_width - 1, $inner_length - 1, shepard_box_height],
+          radius=10
+        );
+    }
   }
 }
 
 module ShepardBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(size=[shepard_box_width, shepard_box_length, shepard_box_height], text_str="Shepard");
+  FilamentHingeBoxLidWithLabel(size=[shepard_box_width, shepard_box_length, shepard_box_height], text_str="Shepard");
 }
 
 module CaravanTokenBox() // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithFilamentHinge(
     size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height],
   ) {
-    translate([0, 0, 0])
-      RoundedBoxAllSides(
-        size=[$inner_width, $inner_length, caravan_token_box_height],
-        radius=10
-      );
+
+    intersection() {
+      FilamentBoxInsideMask(size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height]);
+
+      translate([0, 0, 0])
+        RoundedBoxAllSides(
+          size=[$inner_width, $inner_length, caravan_token_box_height],
+          radius=10
+        );
+    }
   }
 }
 
 module CaravanTokenBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height], text_str="Caravans");
+  FilamentHingeBoxLidWithLabel(size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height], text_str="Caravans");
 }
 
 module StandeeBox() // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithFilamentHinge(
     size=[standee_box_width, standee_box_length, standee_box_height],
   ) {
-    translate([0, 0, 0])
+    intersection() {
+      FilamentBoxInsideMask(size=[standee_box_width, standee_box_length, standee_box_height]);
+
       RoundedBoxAllSides(
         size=[$inner_width, $inner_length, standee_box_height],
         radius=10
       );
+    }
   }
 }
 
 module StandeeBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(size=[standee_box_width, standee_box_length, standee_box_height], text_str="Standees");
+  FilamentHingeBoxLidWithLabel(
+    size=[standee_box_width, standee_box_length, standee_box_height],
+    text_str="Standees"
+  );
 }
 
 module BackSpacerBox() // `make` me
@@ -709,5 +723,7 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutB();
+  ShepardBox();
+  //translate([default_wall_thickness, default_wall_thickness, default_floor_thickness])
+  //FilamentBoxInsideMask(size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height]);
 }
