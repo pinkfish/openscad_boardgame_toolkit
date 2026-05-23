@@ -79,7 +79,7 @@ flock_card_box_height = default_floor_thickness + default_lid_thickness + single
 mutation_card_box_height = default_floor_thickness + default_lid_thickness + single_card_thickness * num_mutation_cards + 2;
 reminder_card_box_height = default_floor_thickness + default_lid_thickness + single_card_thickness * num_reminder_cards + 2;
 
-trait_tile_box_width = card_box_width / 3;
+trait_tile_box_width = mutation_card_box_width / 2;
 trait_tile_box_length = mutation_card_box_length;
 trait_tile_box_height = default_floor_thickness + default_lid_thickness + trait_tile_thickness * 3 + 1;
 
@@ -121,7 +121,7 @@ back_spacer_box_height = box_height - 1;
 
 side_spacer_box_width = box_width - mutation_card_box_width - 1;
 side_spacer_box_length = board_length - standee_box_length - card_box_length - 1;
-side_spacer_box_height = box_height - board_thickness - player_board_thickness;
+side_spacer_box_height = box_height - board_thickness - player_board_thickness - trait_tile_box_height * 2;
 
 player_equipment_box_width = caravan_board_box_width;
 player_equipment_box_length = caravan_board_box_length;
@@ -293,17 +293,24 @@ module TraitTileBox() // `make` me
     size=[trait_tile_box_width, trait_tile_box_length, trait_tile_box_height],
     lid_on_length=true,
   ) {
-    translate([$inner_width / 2, $inner_length / 2, 0])
+    translate([trait_tile_width / 2, $inner_length / 2, 0])
       cuboid(
         [trait_tile_width, trait_tile_length, trait_tile_box_height],
         anchor=BOTTOM
       );
-    translate([0, $inner_length / 2, -2]) {
-      FingerHoleBase(
-        radius=12, height=trait_tile_box_height - default_lid_thickness,
-        spin=270
+    translate([$inner_width / 2, $inner_length / 2, 0]) {
+      cuboid(
+        [trait_tile_width, trait_tile_length / 2, trait_tile_box_height * 2],
+        anchor=BOTTOM,
+        rounding=7,
+        edges=BOTTOM
       );
     }
+    translate([$inner_width - trait_tile_width / 2, $inner_length / 2, 0])
+      cuboid(
+        [trait_tile_width, trait_tile_length, trait_tile_box_height],
+        anchor=BOTTOM
+      );
   }
 }
 
@@ -682,11 +689,13 @@ module BoxLayout(layout = 0) {
   }
 
   if (layout < 4) {
-    for (i = [0:2]) {
+    for (i = [0:1]) {
       translate([trait_tile_box_width * i, card_box_length, mutation_card_box_height + reminder_card_box_height]) color(player_colors[i]) TraitTileBox();
-      translate([trait_tile_box_width * i, card_box_length, mutation_card_box_height + reminder_card_box_height + trait_tile_box_height]) color(player_colors[i + 3]) TraitTileBox();
+      translate([trait_tile_box_width * i, card_box_length, mutation_card_box_height + reminder_card_box_height + trait_tile_box_height]) color(player_colors[i + 2]) TraitTileBox();
     }
   }
+  translate([mutation_card_box_width, card_box_length + caravan_token_box_length, 0]) color(player_colors[4]) TraitTileBox();
+  translate([mutation_card_box_width, card_box_length + caravan_token_box_length, trait_tile_box_height]) color(player_colors[5]) TraitTileBox();
   if (layout < 3) {
     translate([0, card_box_length, day_event_card_box_height + night_event_card_box_height + trait_tile_box_height * 2]) EssenceTokenBox();
   }
@@ -723,7 +732,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  ShepardBox();
-  //translate([default_wall_thickness, default_wall_thickness, default_floor_thickness])
-  //FilamentBoxInsideMask(size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height]);
+  BoxLayoutD();
 }

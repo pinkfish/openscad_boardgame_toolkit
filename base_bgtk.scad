@@ -54,6 +54,12 @@ default_print_in_place_offset = 0.25;
 // Constant: default_slicing_layer_height
 // The slicing layer height to use for cases where this matter.
 default_slicing_layer_height = 0.2;
+// Constant: default_hinge_hole_diameter
+// The default diameter of the hole used for hinges.
+default_hinge_hole_diameter = 2;
+// Constant: default_hinge_thickness
+// The default thickness of the hinge.
+default_hinge_thickness = 5;
 // Constant: default_voronoi_seed
 // The seed to use when generating a vornoi so it always looks the same.
 default_voronoi_seed = 10000;

@@ -18,10 +18,6 @@ under the License.
 include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
-// Constant: default_hinge_hole_diameter
-// Description: The default diameter for the pin to go through the hinge.
-default_hinge_hole_diameter = 2;
-
 // Function: MakeCardSize()
 // Description:
 //   Creates a card size object.
