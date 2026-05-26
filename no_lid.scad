@@ -37,6 +37,22 @@ STACKABLE_TYPE_INSIDE = 1;
 // Description: Base is added to the outside of the box.
 STACKABLE_TYPE_OUTSIDE = 2;
 
+// Function: QuicksortExtraFloors(list)
+// Description:
+//   Sorts a list of extra floors by floor_height.
+// Arguments:
+//   list = list of extra floors
+// Example:
+//   QuicksortExtraFloors(list = [object(path=path, floor_height=5, top_height=0), object(path=path, floor_height=10, top_height=0)]);
+function QuicksortExtraFloors(list) =
+  !(len(list) > 0) ? []
+  : let (
+    pivot = list[floor(len(list) / 2)],
+    lesser = [for (i = list) if (i.floor_height < pivot.floor_height) i],
+    equal = [for (i = list) if (i.floor_height == pivot.floor_height) i],
+    greater = [for (i = list) if (i.floor_height > pivot.floor_height) i]
+  ) concat(QuicksortExtraFloors(lesser), equal, QuicksortExtraFloors(greater));
+
 // Module: MakeBoxWithNoLid()
 // Description:
 //   Makes a box with no lid, useful for spacers and other things in games.
@@ -155,6 +171,7 @@ module MakeBoxWithNoLid(
 //   stackable_fit_offset = the offset to use for stackable fit (default 0.1)
 //   hollow_radius = the radius options for a hollow box (default object(top=default_wall_thickness/4, bottom=default_wall_thickness/4, radius=default_wall_thickness/2))
 //   stackable = if the box should be stackable (default false)
+//   extra_floors = optional set of extra paths and heights to carve out as [object(path=[], floor_height=N, top_height=N) (default [])]
 // Example:
 //   MakePathBoxWithNoLid(path=[[0,0], [50,0], [50,50], [0,50]], height=20);
 // Example:
@@ -177,6 +194,7 @@ module MakePathBoxWithNoLid(
   hollow = false,
   stackable = STACKABLE_TYPE_NONE,
   magnet = object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0),
+  extra_floors = [],
 ) {
   module StackableBoxInternal(bottom = false) {
     if (stackable == STACKABLE_TYPE_INSIDE) {
@@ -253,14 +271,8 @@ module MakePathBoxWithNoLid(
   assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
   assert(height > 0, str("Need height > 0, height=", height));
 
-  inner_path = offset(path, r=-wall_thickness);
-  inner_path_stackable = offset(path, r=-wall_thickness / 2);
-  inner_path_stackable_bottom_outside = offset(path, r=-wall_thickness / 2 + stackable_fit_offset);
-  inner_path_stackable_bottom_inside = offset(path, r=-wall_thickness - stackable_fit_offset);
-  inner_path_stackable_bottom_inside_inside = offset(path, r=-wall_thickness / 2 - stackable_fit_offset);
-
-  x_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][0]];
-  y_arr = [for (x = [0:len(inner_path) - 1]) inner_path[x][1]];
+  x_arr = [for (x = [0:len(path) - 1]) path[x][0]];
+  y_arr = [for (x = [0:len(path) - 1]) path[x][1]];
   calc_length = max(y_arr) - min(y_arr);
   calc_width = max(x_arr) - min(x_arr);
 
@@ -269,24 +281,67 @@ module MakePathBoxWithNoLid(
   calc_make_finger_x = make_finger_x == undef && make_finger_y == undef ? calc_width > calc_length : false;
   calc_make_finger_y = make_finger_y == undef && make_finger_x == undef ? calc_length > calc_width : false;
 
-  calc_path = round_corners(path, radius=wall_thickness);
+  sorted_floors = QuicksortExtraFloors(extra_floors);
+  region_path = make_region(path);
+  region_extra_floors = [for (extra_floor = sorted_floors) make_region(extra_floor.path)];
+  region_outside = union(concat([region_path, for (region = region_extra_floors) region]));
+
+  // Make the outside path.
+  calc_path = round_corners(region_outside[0], radius=wall_thickness);
+
+  main_path = difference([path, for (extra_floor = sorted_floors) extra_floor.path]);
+
+  inner_path = offset(main_path, r=-wall_thickness);
+  inner_path_stackable = offset(main_path, r=-wall_thickness / 2);
+  inner_path_stackable_bottom_outside = offset(main_path, r=-wall_thickness / 2 + stackable_fit_offset);
+  inner_path_stackable_bottom_inside = offset(main_path, r=-wall_thickness - stackable_fit_offset);
+  inner_path_stackable_bottom_inside_inside = offset(main_path, r=-wall_thickness / 2 - stackable_fit_offset);
 
   difference() {
     color(material_colour)
       union() {
-        offset_sweep(
-          calc_path,
-          height=stackable ? height - stackable_thickness : height,
-          bottom=os_circle(stackable ? wall_thickness / 4 : wall_thickness / 2),
-          top=os_circle(stackable ? wall_thickness / 8 : wall_thickness / 4),
-          offset=offset_sweep_options.offset,
-          check_valid=offset_sweep_options.check_valid,
-          quality=offset_sweep_options.quality,
-          steps=offset_sweep_options.steps
-        );
-        if (stackable) {
-          translate([0, 0, height - stackable_thickness])
-            StackableBoxInternal(bottom=false);
+        difference() {
+          union() {
+            offset_sweep(
+              calc_path,
+              height=stackable ? height - stackable_thickness : height,
+              bottom=os_circle(stackable ? wall_thickness / 4 : wall_thickness / 2),
+              top=os_circle(stackable ? wall_thickness / 8 : wall_thickness / 4),
+              offset=offset_sweep_options.offset,
+              check_valid=offset_sweep_options.check_valid,
+              quality=offset_sweep_options.quality,
+              steps=offset_sweep_options.steps
+            );
+            if (stackable) {
+              translate([0, 0, height - stackable_thickness])
+                StackableBoxInternal(bottom=false);
+            }
+          }
+
+          for (extra_floor = sorted_floors) {
+            if (extra_floor.floor_height > 0) {
+              linear_extrude(height=extra_floor.floor_height)
+                polygon(extra_floor.path);
+            }
+            if (extra_floor.top_height > 0) {
+              translate([0, 0, height - extra_floor.top_height])
+                linear_extrude(height=extra_floor.top_height)
+                  polygon(extra_floor.path);
+            }
+          }
+        }
+        for (extra_floor = sorted_floors) {
+          translate([0, 0, extra_floor.floor_height])
+            offset_sweep(
+              round_corners(extra_floor.path, radius=wall_thickness),
+              height=stackable ? height - (extra_floor.floor_height) - stackable_thickness : height - (extra_floor.floor_height),
+              bottom=os_circle(stackable ? wall_thickness / 4 : wall_thickness / 2),
+              top=os_circle(stackable ? wall_thickness / 8 : wall_thickness / 4),
+              offset=offset_sweep_options.offset,
+              check_valid=offset_sweep_options.check_valid,
+              quality=offset_sweep_options.quality,
+              steps=offset_sweep_options.steps
+            );
         }
       }
     if (hollow) {
@@ -302,6 +357,36 @@ module MakePathBoxWithNoLid(
             quality=offset_sweep_options.quality,
             steps=offset_sweep_options.steps
           );
+      for (extra_floor = sorted_floors) {
+        if (extra_floor.floor_height > 0) {
+          translate([0, 0, extra_floor.floor_height + floor_thickness])
+            offset_sweep(
+              intersection(
+                round_corners(
+                  offset(
+                    union(extra_floor.path, path),
+                    r=-wall_thickness
+                  ), radius=wall_thickness
+                ),
+                union(
+                  [
+                    offset(extra_floor.path, delta=wall_thickness),
+                    inner_path,
+                    // Join the paths with lower heght floors too.
+                    for (path = sorted_floors) if (path.floor_height > extra_floor.floor_height) path.path,
+                  ]
+                )
+              ),
+              height=height - floor_thickness - extra_floor.floor_height,
+              bottom=os_circle(hollow_radius.bottom),
+              top=stackable ? undef : os_circle(-hollow_radius.top),
+              offset=offset_sweep_options.offset,
+              check_valid=offset_sweep_options.check_valid,
+              quality=offset_sweep_options.quality,
+              steps=offset_sweep_options.steps
+            );
+        }
+      }
     }
 
     if (stackable) {

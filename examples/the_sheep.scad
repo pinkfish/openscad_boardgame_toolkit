@@ -612,8 +612,13 @@ module BackSpacerBox() // `make` me
 
 module SideSpacerBox() // `make` me
 {
-  MakeBoxWithNoLid(
-    size=[side_spacer_box_width, side_spacer_box_length, side_spacer_box_height],
+  path = [[0, 0], [side_spacer_box_width, 0], [side_spacer_box_width, 10], [side_spacer_box_width, side_spacer_box_length], [0, side_spacer_box_length]];
+  path_inner = [[0, 0], [trait_tile_box_width + 1, 0], [trait_tile_box_width + 1, trait_tile_box_length + 1], [0, trait_tile_box_length + 1]];
+  MakePathBoxWithNoLid(
+    path=path,
+    extra_floors=[object(path=path_inner, floor_height=trait_tile_box_height * 2 + 1, top_height=0)],
+    offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16),
+    height=side_spacer_box_height,
     hollow=true,
   );
 }
@@ -732,5 +737,19 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutD();
+  SideSpacerBox();
+  /*
+  difference() {
+    linear_extrude(height=35) {
+      difference() {
+        circle(d=72.5);
+        circle(d=36.5);
+      }
+    }
+    up(15)
+      linear_extrude(height=45) {
+        circle(d=60);
+      }
+  }
+  */
 }
