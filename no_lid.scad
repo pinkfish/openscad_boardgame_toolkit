@@ -373,7 +373,7 @@ module MakePathBoxWithNoLid(
                     offset(extra_floor.path, delta=wall_thickness),
                     inner_path,
                     // Join the paths with lower heght floors too.
-                    for (path = sorted_floors) if (path.floor_height > extra_floor.floor_height) path.path,
+                    for (path = sorted_floors) if (path.floor_height > extra_floor.floor_height) offset(path.path, delta=wall_thickness),
                   ]
                 )
               ),
