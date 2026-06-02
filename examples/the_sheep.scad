@@ -18,6 +18,9 @@ under the License.
 include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
+
 box_width = 233;
 box_length = 304;
 box_height = 80;
@@ -536,7 +539,7 @@ module EssenceTokenBoxLid() // `make` me
 
 module ShepardBox() // `make` me
 {
-  MakeBoxWithFilamentHinge(
+  MakeBoxWithFilamentHingeLid(
     size=[shepard_box_width, shepard_box_length, shepard_box_height],
   ) {
     intersection() {
@@ -557,7 +560,7 @@ module ShepardBoxLid() // `make` me
 
 module CaravanTokenBox() // `make` me
 {
-  MakeBoxWithFilamentHinge(
+  MakeBoxWithFilamentHingeLid(
     size=[caravan_token_box_width, caravan_token_box_length, caravan_token_box_height],
   ) {
 
@@ -580,7 +583,7 @@ module CaravanTokenBoxLid() // `make` me
 
 module StandeeBox() // `make` me
 {
-  MakeBoxWithFilamentHinge(
+  MakeBoxWithFilamentHingeLid(
     size=[standee_box_width, standee_box_length, standee_box_height],
   ) {
     intersection() {

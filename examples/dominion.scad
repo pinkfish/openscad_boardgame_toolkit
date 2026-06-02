@@ -22,6 +22,8 @@ dominion_big_box_width = 470;
 dominion_big_box_length = 290;
 dominion_big_box_height = 90;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
 card_size = MakeCardSize(length=93, width=62, single_card_thickness=single_card_thickness);

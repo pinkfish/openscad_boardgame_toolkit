@@ -22,6 +22,8 @@ box_length = 170;
 box_width = 120;
 box_height = 35;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 token_diametter = 38;
 token_thickness = 3;
 

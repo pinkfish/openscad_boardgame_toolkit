@@ -22,6 +22,8 @@ box_length = 307;
 box_width = 217;
 box_height = 70;
 
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+
 default_wall_thickness = 3;
 
 rule_book_thickness = 3;

@@ -56,7 +56,10 @@ default_print_in_place_offset = 0.25;
 default_slicing_layer_height = 0.2;
 // Constant: default_hinge_hole_diameter
 // The default diameter of the hole used for hinges.
-default_hinge_hole_diameter = 2;
+default_hinge_hole_diameter = 1.75;
+// Constant: default_hinge_pin_slop
+// The default extra diameter to make the hinge holes.
+default_hinge_pin_slop = 0.2;
 // Constant: default_hinge_thickness
 // The default thickness of the hinge.
 default_hinge_thickness = 5;

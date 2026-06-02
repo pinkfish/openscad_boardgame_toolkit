@@ -38,12 +38,14 @@ include <BOSL2/hinges.scad>
 function HingeOptions(
   thickness = default_hinge_thickness,
   hole_diameter = default_hinge_hole_diameter,
-  num_segments = undef
+  num_segments = undef,
+  pin_slop = default_hinge_pin_slop
 ) =
   object(
     thickness=thickness,
     hole_diameter=hole_diameter,
     num_segments=num_segments,
+    pin_slop=pin_slop
   );
 
 // Module: MakeBoxWithFilamentHinge()
@@ -61,7 +63,7 @@ function HingeOptions(
 //   filament_thickness = the thickness of the filement in hinger (default 2.2)
 // Examples:
 //   MakeBoxWithFilamentHinge(size=[100, 50, 20]);
-module MakeBoxWithFilamentHinge(
+module MakeBoxWithFilamentHingeLid(
   size,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
@@ -143,7 +145,7 @@ module MakeBoxWithFilamentHinge(
             clear_top=false,
             inner=true,
             spin=90,
-            pin_diam=calc_hinge_options.hole_diameter,
+            pin_diam=calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
             orient=UP,
             anchor=TOP + BACK + LEFT
           );
@@ -291,7 +293,7 @@ module MakeLidForFilamentBox(
               segs=hinge_seg,
               offset=calc_hinge_options.thickness,
               knuckle_diam=calc_hinge_options.thickness,
-              pin_diam=calc_hinge_options.hole_diameter,
+              pin_diam=calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
               arm_height=0,
               arm_angle=90,
               clear_top=true,

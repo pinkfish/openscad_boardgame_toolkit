@@ -65,6 +65,7 @@ function QuicksortExtraFloors(list) =
 //   make_finger_y = makes finger dip on the y axis (default length > width)
 //   finger_hole_size = size of the finger dip (default 20)
 //   hollow = make the inside hollow (default false)
+//   fingert_hole_wall_width = the width of the hole in the wall (default {{default_wall_thickness}})
 // Example:
 //   MakeBoxWithNoLid(size = [100, 50, 20]);
 // Example:
@@ -77,6 +78,7 @@ module MakeBoxWithNoLid(
   make_finger_y = undef,
   material_colour = "grey",
   finger_hole_size = undef,
+  finger_hole_wall_width = undef,
   hollow = false
 ) {
   width = size[0];
@@ -87,6 +89,7 @@ module MakeBoxWithNoLid(
   assert(wall_thickness > 0, str("Need walll thickness > 0, wall_thickness=", wall_thickness));
 
   calc_finger_hole_size = DefaultValue(finger_hole_size, min(20, min(min(length, width) / 4), height - floor_thickness + 1));
+  calc_finger_hole_wall_width = DefaultValue(finger_hole_wall_width, wall_thickness);
   calc_make_finger_x = make_finger_x == undef && make_finger_y == undef ? width > length : false;
   calc_make_finger_y = make_finger_y == undef && make_finger_x == undef ? length > width : false;
   difference() {
@@ -114,17 +117,17 @@ module MakeBoxWithNoLid(
     }
 
     if (calc_make_finger_y) {
-      translate([wall_thickness / 2 - 0.01, length / 2, height - calc_finger_hole_size + 0.01])
+      translate([calc_finger_hole_wall_width / 2 - 0.01, length / 2, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(
             radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1), spin=90,
-            depth_of_hole=wall_thickness + 0.03, rounding_edge=wall_thickness / 2
+            depth_of_hole=calc_finger_hole_wall_width + 0.03, rounding_edge=wall_thickness / 2
           );
-      translate([width - wall_thickness / 2 + 0.01, length / 2, height - calc_finger_hole_size + 0.01])
+      translate([width - calc_finger_hole_wall_width / 2 + 0.01, length / 2, height - calc_finger_hole_size + 0.01])
         color(material_colour)
           FingerHoleWall(
             radius=calc_finger_hole_size, height=min(calc_finger_hole_size, height - default_floor_thickness + 1), spin=90,
-            depth_of_hole=wall_thickness + 0.03, rounding_edge=wall_thickness / 2
+            depth_of_hole=calc_finger_hole_wall_width + 0.03, rounding_edge=wall_thickness / 2
           );
     }
 
