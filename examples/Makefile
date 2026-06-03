@@ -13,3 +13,5 @@ include generate.makefile
 
 include $(wildcard $(DEPS_DIR)/*.deps)
 
+lib/animal_kingdom_items_layout.scad: animal_kingdom_items.scad
+	python3 ../scripts/binpack.py -i $@ -o lib/animal_kingdom_items_layout.scad

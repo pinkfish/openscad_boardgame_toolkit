@@ -15,8 +15,8 @@ specific language governing permissions and limitations
 under the License.
  */
 
- // This also includes the boxes for the abundance expansion.
- // However the animal kingdom one will not fit in the box.
+// This also includes the boxes for the abundance expansion.
+// However the animal kingdom one will not fit in the box.
 
 include <boardgame_toolkit.scad>
 include <lib/dominion.scad>
@@ -59,7 +59,7 @@ solo_cards = 6;
 season_cards = 12;
 
 leaf_width = 13;
-leaf_length = 16.5;
+leaf_length = 17.5;
 leaf_thickness = 3;
 leaf_number = 5;
 
@@ -115,7 +115,7 @@ abundance_other_cards_height = default_floor_thickness + default_lid_thickness +
 start_box_height = card_box_height - climate_cards_height - solo_cards_height - season_cards_height - abundance_other_cards_height;
 
 abundance_box_width = box_width - card_box_width * 4;
-abundance_box_length = box_length-3;
+abundance_box_length = box_length - 3;
 abundance_box_height = box_height;
 
 player_box_width = card_box_width;
@@ -431,22 +431,30 @@ module AbundanceBoardBox() // `make` me
 
 module PlayerBox(colour = "green") // `make` me
 {
-  MakeBoxWithCapLid(
+  MakeBoxWithSlipoverLid(
     [player_box_width, player_box_length, player_box_height],
     material_colour=colour,
-    positive_negative_children=[1]
+    positive_negative_children=[1],
+    foot=2
   ) {
     right($inner_width / 2) {
       up($inner_height - readyness_token_thickness - 0.3)
-        back(2)
+        back(2) {
           cuboid(
             [readyness_token_length, readyness_token_width, readyness_token_thickness + 1],
             anchor=FRONT + BOTTOM
           );
-      back(readyness_token_width + leaf_length)
+          right(10.5)
+            back(readyness_token_width)
+              cyl(d=13, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
+          left(10.5)
+            back(readyness_token_width)
+              cyl(d=13, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
+        }
+      back(readyness_token_width + leaf_length * 3 / 4)
         up($inner_height - leaf_thickness - 0.3) {
           for (i = [0:2]) {
-            right((leaf_width + 2) * (i - 1))for (j = [0:1]) {
+            right((leaf_width + 8) * (i - 1))for (j = [0:1]) {
               back((leaf_length + 7) * j)
                 LeafTeardropWithFingerGrabs(leaf_thickness + 1);
             }
@@ -576,22 +584,32 @@ module BoxLayout(layout = 0) {
 
   back(card_box_length) {
     EcosystemCardBox();
-    up(ecosystem_cards_height) {
-      FaunaCardBox();
-      up(fauna_cards_height) {
-        IslandCardBox();
+    if (layout < 3) {
+      up(ecosystem_cards_height) {
+        FaunaCardBox();
+        if (layout < 2) {
+          up(fauna_cards_height) {
+            IslandCardBox();
+          }
+        }
       }
     }
     right(card_box_width) {
       ClimateCardBox();
-      up(climate_cards_height) {
-        SoloCardBox();
-        up(solo_cards_height) {
-          SeasonCardBox();
-          up(season_cards_height) {
-            AbundanceOtherCardBox();
-            up(abundance_other_cards_height) {
-              StartBox();
+      if (layout < 4) {
+        up(climate_cards_height) {
+          SoloCardBox();
+          up(solo_cards_height) {
+            SeasonCardBox();
+            if (layout < 3) {
+              up(season_cards_height) {
+                AbundanceOtherCardBox();
+                if (layout < 2) {
+                  up(abundance_other_cards_height) {
+                    StartBox();
+                  }
+                }
+              }
             }
           }
         }
@@ -609,13 +627,32 @@ module BoxLayout(layout = 0) {
       CanopyBox();
       right(canopy_box_width) {
         ScorePadBox();
-        up(score_pad_box_height)
-          SproutBox();
-        up(sprout_box_height + score_pad_box_height)
-          SeedBox();
+        if (layout < 3) {
+          up(score_pad_box_height)
+            SproutBox();
+        }
+        if (layout < 2) {
+          up(sprout_box_height + score_pad_box_height)
+            SeedBox();
+        }
       }
     }
   }
+}
+
+module BoxLayoutA() // `document` me
+{
+  BoxLayout(layout=1);
+}
+
+module BoxLayoutB() // `document` me
+{
+  BoxLayout(layout=2);
+}
+
+module BoxLayoutC() // `document` me
+{
+  BoxLayout(layout=3);
 }
 
 if (FROM_MAKE != 1) {

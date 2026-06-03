@@ -1,0 +1,40 @@
+// spacing = 3
+// container(width = 170, length = 152)
+// container(width = 170, length = 152)
+elephant = object(width=43.5, length=54);
+polar_bear = object(width=36.5, length=53);
+cow = object(width=36.5, length=47.5);
+pig = object(width=24.5, length=35);
+gazelle = object(width=41, length=35);
+turkey = object(width=24, length=25, num=5);
+fly = object(width=11, length=11);
+capybara = object(width=16.5, length=32, num=2);
+capybara_2 = object(width=16.5, length=32, num=3);
+monkey = object(width=29, length=24);
+pangolin = object(width=16, length=21, num=5);
+deer = object(width=47, length=25.5);
+goanna = object(width=25, length=30);
+fox = object(width=16, length=35);
+snake = object(width=14, length=41.5);
+rabbit = object(width=18.5, length=21);
+termite = object(width=12, length=12, num=5);
+ornyx = object(width=39, length=40);
+platypus = object(width=14.5, length=25);
+lemur = object(width=22, length=30);
+peacock = object(width=30, length=27);
+gopher = object(width=17.5, length=17, num=5);
+crocodile = object(width=16, length=85);
+goat = object(width=37, length=36);
+jaguar = object(width=20, length=49);
+rhino = object(width=36, length=64);
+goose = object(width=25, length=21);
+eagle = object(width=31, length=43);
+spider_monkey = object(width=26.5, length=25);
+hoopoe = object(width=17, length=16);
+kangaroo = object(width=37, length=39);
+loon = object(width=26.5, length=13);
+tarsier = object(width=29, length=12.5);
+jay = object(width=12.5, length=12);
+chipmunk = object(width=15, length=14);
+quokka = object(width=24, length=15);
+beaver = object(width=15.5, length=35);
