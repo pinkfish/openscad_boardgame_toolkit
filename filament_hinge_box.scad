@@ -367,7 +367,7 @@ module FilamentHingeBoxLidWithCustomShape(
   aspect_ratio = 1.0,
   pattern_inner_control = false,
   lid_boundary = 10,
-  layout_width = undef,
+  layout_width = undef
 ) {
   MakeLidForFilamentBox(
     size=size,
@@ -467,6 +467,9 @@ module FilamentHingeBoxLidWithLabelAndCustomShape(
       material_colour=material_colour,
     )
   );
+  calc_shape_options = DefaultValue(
+    shape_options, MakeShapeObject()
+  );
 
   FilamentHingeBoxLidWithShape(
     size=size,
@@ -482,7 +485,7 @@ module FilamentHingeBoxLidWithLabelAndCustomShape(
     lid_boundary=lid_boundary,
     aspect_ratio=aspect_ratio,
     layout_width=layout_width,
-    shape_options=shape_options
+    shape_options=calc_shape_options
   ) {
     if ($children > 0) {
       children(0);
@@ -572,12 +575,14 @@ module FilamentHingeBoxLidWithShape(
     filament_thickness=filament_thickness,
     rounding=rounding,
     hinge_options=hinge_options,
+    lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+    lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+    pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     print_in_place_offset=print_in_place_offset,
     size_spacing=size_spacing,
     lid_boundary=lid_boundary,
     aspect_ratio=aspect_ratio,
     layout_width=layout_width,
-    shape_options=shape_options
   ) {
     if ($children > 0) {
       children(0);

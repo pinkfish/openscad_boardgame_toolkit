@@ -15,6 +15,9 @@ specific language governing permissions and limitations
 under the License.
  */
 
+ // This also includes the boxes for the abundance expansion.
+ // However the animal kingdom one will not fit in the box.
+
 include <boardgame_toolkit.scad>
 include <lib/dominion.scad>
 
@@ -23,6 +26,7 @@ box_length = 288;
 box_height = 72;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_VORONOI;
 
 player_board_width = 242;
 player_board_length = 288;
@@ -81,6 +85,10 @@ score_pad_number = 2;
 sprout_cube_width = 8;
 sprout_cube_number = 145 + 50;
 
+score_override_marker_width = 16.5;
+score_override_marker_length = 18.5;
+score_overide_thickness = 3;
+
 card_10_thickness = 6;
 single_card_thickness = card_10_thickness / 10;
 card_size = MakeCardSize(
@@ -107,7 +115,7 @@ abundance_other_cards_height = default_floor_thickness + default_lid_thickness +
 start_box_height = card_box_height - climate_cards_height - solo_cards_height - season_cards_height - abundance_other_cards_height;
 
 abundance_box_width = box_width - card_box_width * 4;
-abundance_box_length = abundance_board_length + default_wall_thickness * 2 + 1;
+abundance_box_length = box_length-3;
 abundance_box_height = box_height;
 
 player_box_width = card_box_width;
@@ -124,7 +132,7 @@ canopy_box_height = card_box_height;
 
 seed_box_width = score_pad_box_width;
 seed_box_length = canopy_box_length;
-seed_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 3;
+seed_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 1.5;
 
 sprout_box_width = score_pad_box_width;
 sprout_box_length = canopy_box_length;
@@ -147,6 +155,14 @@ module EarthCardBox() // `make` me
   }
 }
 
+module EarthCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, card_box_height],
+    text_str="Earth"
+  );
+}
+
 module EcosystemCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -160,6 +176,14 @@ module EcosystemCardBox() // `make` me
       );
     }
   }
+}
+
+module EcosystemCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, ecosystem_cards_height],
+    text_str="Ecosystem"
+  );
 }
 
 module FaunaCardBox() // `make` me
@@ -177,6 +201,14 @@ module FaunaCardBox() // `make` me
   }
 }
 
+module FaunaCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, fauna_cards_height],
+    text_str="Fauna"
+  );
+}
+
 module IslandCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -190,6 +222,14 @@ module IslandCardBox() // `make` me
       );
     }
   }
+}
+
+module IslandCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, island_cards_height],
+    text_str="Island"
+  );
 }
 
 module ClimateCardBox() // `make` me
@@ -207,6 +247,14 @@ module ClimateCardBox() // `make` me
   }
 }
 
+module ClimateCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, climate_cards_height],
+    text_str="Climate"
+  );
+}
+
 module SoloCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -220,6 +268,14 @@ module SoloCardBox() // `make` me
       );
     }
   }
+}
+
+module SoloCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, solo_cards_height],
+    text_str="Solo"
+  );
 }
 
 module SeasonCardBox() // `make` me
@@ -237,6 +293,14 @@ module SeasonCardBox() // `make` me
   }
 }
 
+module SeasonCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, season_cards_height],
+    text_str="Season"
+  );
+}
+
 module AbundanceOtherCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -250,6 +314,14 @@ module AbundanceOtherCardBox() // `make` me
       );
     }
   }
+}
+
+module AbundanceOtherCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, abundance_other_cards_height],
+    text_str="Abundance"
+  );
 }
 
 module LeafTeardrop2D() {
@@ -281,24 +353,63 @@ module StartBox() // `make` me
   rows = 4;
   MakeBoxWithCapLid(
     [card_box_width, card_box_length, start_box_height],
+    positive_negative_children=[1]
   ) {
-    back(start_disk_diameter / 2 + 2)
-      right($inner_width / 2)
-        up($inner_height - start_disk_thickness - 0.5)
-          CylinderWithIndents(
-            d=start_disk_diameter, h=start_box_height, anchor=BOTTOM,
-            finger_hole_radius=12,
-            finger_holes=[45, 215]
-          );
-    up($inner_height - readyness_token_thickness - 0.5)
-      right($inner_width / 2)
-        back($inner_length - readyness_token_width / 2 - 2)
-          CuboidWithIndentsBottom(
-            [readyness_token_length, readyness_token_width, readyness_token_thickness + 1], anchor=BOTTOM,
-            finger_holes=[0],
-            finger_hole_radius=15
-          );
+    union() {
+      back(start_disk_diameter / 2 + 2)
+        right($inner_width / 2 + 7)
+          up($inner_height - start_disk_thickness - 0.5)
+            CylinderWithIndents(
+              d=start_disk_diameter, h=start_box_height, anchor=BOTTOM,
+              finger_hole_radius=11.5,
+              finger_holes=[45, 215]
+            );
+      up($inner_height - readyness_token_thickness - 0.5)
+        right($inner_width / 2)
+          back($inner_length - readyness_token_width / 2 - 2)
+            CuboidWithIndentsBottom(
+              [readyness_token_length, readyness_token_width, readyness_token_thickness + 1], anchor=BOTTOM,
+              finger_holes=[0],
+              finger_hole_radius=15,
+              rounding=1,
+              edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+            );
+
+      up($inner_height - score_overide_thickness - 0.5)
+        back(start_disk_diameter)
+          right(score_override_marker_length / 2 + 2)
+            CuboidWithIndentsBottom(
+              [score_override_marker_width, score_override_marker_length, score_overide_thickness + 1],
+              anchor=BOTTOM,
+              finger_hole_radius=9,
+              finger_holes=[0],
+              rounding=1,
+              edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+            );
+    }
+    union() {
+      up($inner_height - score_overide_thickness - 0.5)
+        back(start_disk_diameter)
+          right(score_override_marker_length / 2 + 2)
+            text("11", valign="center", halign="center");
+      up($inner_height - readyness_token_thickness - 0.5)
+        right($inner_width / 2)
+          back($inner_length - readyness_token_width / 2 - 2)
+            text("Active", valign="center", halign="center");
+      back(start_disk_diameter / 2 + 2)
+        right($inner_width / 2 + 7)
+          up($inner_height - start_disk_thickness - 0.5)
+            text("Start", valign="center", halign="center");
+    }
   }
+}
+
+module StartBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[card_box_width, card_box_length, start_box_height],
+    text_str="Start"
+  );
 }
 
 module AbundanceBoardBox() // `make` me
@@ -322,9 +433,9 @@ module PlayerBox(colour = "green") // `make` me
 {
   MakeBoxWithCapLid(
     [player_box_width, player_box_length, player_box_height],
-    material_colour=colour
+    material_colour=colour,
+    positive_negative_children=[1]
   ) {
-
     right($inner_width / 2) {
       up($inner_height - readyness_token_thickness - 0.3)
         back(2)
@@ -342,7 +453,20 @@ module PlayerBox(colour = "green") // `make` me
           }
         }
     }
+    right($inner_width / 2) {
+      up($inner_height - readyness_token_thickness - 0.3)
+        back(2 + readyness_token_width / 2)
+          text("Ready", valign="center", halign="center");
+    }
   }
+}
+
+module PlayerBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[player_box_width, player_box_length, player_box_height],
+    text_str="Player",
+  );
 }
 
 module CanopyBox() // `make` me
@@ -362,6 +486,15 @@ module CanopyBox() // `make` me
   }
 }
 
+module CanopyBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[canopy_box_width, canopy_box_length, canopy_box_height],
+    text_str="Canopy",
+    material_colour="cornsilk"
+  );
+}
+
 module SeedBox() // `make` me
 {
   MakeBoxWithFilamentHingeLid(
@@ -377,6 +510,15 @@ module SeedBox() // `make` me
         );
     }
   }
+}
+
+module SeedBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[seed_box_width, seed_box_length, seed_box_height],
+    text_str="Seeds",
+    material_colour="brown"
+  );
 }
 
 module SproutBox() // `make` me
@@ -396,13 +538,22 @@ module SproutBox() // `make` me
   }
 }
 
+module SproutBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[sprout_box_width, sprout_box_length, sprout_box_height],
+    text_str="Sprouts",
+    material_colour="green"
+  );
+}
+
 module ScorePadBox() // `make` me
 {
   MakeBoxWithNoLid(
     [score_pad_box_width, score_pad_box_length, score_pad_box_height],
     material_colour="white",
     hollow=true
-  ){}
+  );
 }
 
 module BoxLayout(layout = 0) {
@@ -468,5 +619,5 @@ module BoxLayout(layout = 0) {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  PlayerBox();
 }
