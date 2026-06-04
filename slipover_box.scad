@@ -274,15 +274,23 @@ module SlipoverBoxLid(
                 [width, length, height - foot_offset],
                 anchor=BOTTOM + FRONT + LEFT,
                 rounding=calc_lid_rounding,
-                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP]
+                edges=[
+                  LEFT + FRONT,
+                  RIGHT + FRONT,
+                  LEFT + BACK,
+                  RIGHT + BACK,
+                  TOP,
+                ]
               ) {
                 edge_mask(BOT) rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length));
               }
+
           translate([wall_thickness, wall_thickness, height - foot_offset - lid_thickness - 0.01]) color(material_colour)
               cuboid(
-                [width - wall_thickness * 2, length - wall_thickness * 2, foot_offset + 1],
+                [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1],
                 anchor=BOTTOM + FRONT + LEFT,
               );
+
           translate([wall_thickness, wall_thickness, -1 - lid_thickness]) color(material_colour)
               cuboid(
                 [width - wall_thickness * 2, length - wall_thickness * 2, height - foot_offset + 1],
@@ -297,7 +305,6 @@ module SlipoverBoxLid(
                 color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4);
           }
           if (finger_hole_width) {
-            echo([object(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4)]);
             translate([wall_thickness / 2 + 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
                   color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4);
             translate([width - wall_thickness / 2 - 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])

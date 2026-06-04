@@ -444,34 +444,37 @@ module PlayerBox(colour = "green") // `make` me
             [readyness_token_length, readyness_token_width, readyness_token_thickness + 1],
             anchor=FRONT + BOTTOM
           );
-          right(10.5)
+          right(19)
             back(readyness_token_width)
-              cyl(d=13, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
-          left(10.5)
+              cyl(d=18, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
+          left(19)
             back(readyness_token_width)
-              cyl(d=13, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
+              cyl(d=18, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
         }
-      back(readyness_token_width + leaf_length * 3 / 4)
-        up($inner_height - leaf_thickness - 0.3) {
-          for (i = [0:2]) {
-            right((leaf_width + 8) * (i - 1))for (j = [0:1]) {
-              back((leaf_length + 7) * j)
-                LeafTeardropWithFingerGrabs(leaf_thickness + 1);
+      back(readyness_token_width + leaf_length + 5.5)
+        right(1.5)
+          up($inner_height - leaf_thickness - 0.3) {
+            for (i = [0:2]) {
+              right((leaf_width + 4) * (i - 1))for (j = [0:1]) {
+                back((leaf_length + 6) * (j - ( (i % 2) * 0.5)))
+                  rotate(90)
+                    LeafTeardropWithFingerGrabs(leaf_thickness + 1);
+              }
             }
           }
-        }
     }
     right($inner_width / 2) {
-      up($inner_height - readyness_token_thickness - 0.3)
+      up($inner_height - readyness_token_thickness - 0.5)
         back(2 + readyness_token_width / 2)
-          text("Ready", valign="center", halign="center");
+          linear_extrude(h=0.201)
+            text("Ready", valign="center", halign="center");
     }
   }
 }
 
 module PlayerBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
+  SlipoverBoxLidWithLabel(
     size=[player_box_width, player_box_length, player_box_height],
     text_str="Player",
   );

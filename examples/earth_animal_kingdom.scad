@@ -79,6 +79,7 @@ module AnimalCardsBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     [card_box_width, card_box_length, animal_cards_height],
+    material_colour="maroon"
   ) {
     cube([animal_card_size.width, animal_card_size.length, animal_cards_height]);
     translate([$inner_width / 2, 0, -2]) {
@@ -94,6 +95,7 @@ module SproutBox() // `make` me
 {
   MakeBoxWithFilamentHingeLid(
     [sprout_box_width, sprout_box_length, sprout_box_height],
+    material_colour="green"
   ) {
     right(1) back(1)
         RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, sprout_box_height], radius=5);
@@ -104,6 +106,7 @@ module CanopyBox() // `make` me
 {
   MakeBoxWithFilamentHingeLid(
     [canopy_box_width, canopy_box_length, canopy_box_height],
+    material_colour="cornsilk"
   ) {
     right(1) back(1)
         RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, canopy_box_height], radius=5);
