@@ -659,5 +659,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  PlayerBox();
+  SproutBox();
 }

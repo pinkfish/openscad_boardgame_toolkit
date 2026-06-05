@@ -90,6 +90,7 @@ module MakeBoxWithFilamentHingeLid(
   difference() {
     union() {
       difference() {
+        // Main Box
         union() {
           diff() color(material_colour)
               cuboid(
@@ -104,6 +105,7 @@ module MakeBoxWithFilamentHingeLid(
               }
         }
 
+        // Ramp piece for the edges.
         up(height - lid_thickness - wall_thickness - print_in_place_offset * 2)
           color(material_colour)
             cuboid(
@@ -113,6 +115,17 @@ module MakeBoxWithFilamentHingeLid(
               edges=TOP + RIGHT
             );
 
+        // Cut out a rounded pieces for the hinge to fold into.
+        right(calc_hinge_options.thickness / 2 + print_in_place_offset * 2)
+          up(height - lid_thickness)
+            cuboid(
+              [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
+              anchor=TOP + FRONT,
+              rounding=calc_hinge_options.thickness / 2,
+              edges=[BOTTOM + RIGHT]
+            );
+
+        // Front catch
         up(height - lid_thickness - lip_height - print_in_place_offset)
           back(length / 2)
             right(width) {

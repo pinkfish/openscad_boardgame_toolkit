@@ -173,6 +173,46 @@ module SpacerBox() // `make` me
   );
 }
 
+module AnimalCardsBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[card_box_width, card_box_length, animal_cards_height],
+    text_str="Animal Cards"
+  );
+}
+
+module SproutBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[sprout_box_width, sprout_box_length, sprout_box_height],
+    text_str="Sprouts"
+  );
+}
+
+module CanopyBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[canopy_box_width, canopy_box_length, canopy_box_height],
+    text_str="Canopies"
+  );
+}
+
+module AnimalBoxLid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[animal_box_width, animal_box_length, animal_box_height],
+    text_str="Animals 1"
+  );
+}
+
+module AnimalBox2Lid() // `make` me
+{
+  CapBoxLidWithLabel(
+    size=[animal_box_width, animal_box_length, animal_box_height],
+    text_str="Animals 2"
+  );
+}
+
 module BoxLayout(layout = 0) {
   if (layout == 0) {
     cube([box_width, box_length, 1]);
