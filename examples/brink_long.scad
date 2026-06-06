@@ -92,12 +92,13 @@ ur_box_height = long_player_box_height;
 module AmbassadorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[ambassador_card_box_width, ambassador_card_box_length, ambassador_card_box_height],
-    lid_on_length=true
+    size=[ambassador_card_box_length, ambassador_card_box_width, ambassador_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, (small_card_length - card_width) / 2, 0])
-      cube([card_length, card_width, ambassador_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+    translate([(small_card_length - card_width) / 2, 0, 0])
+      cube([card_width, card_length, ambassador_card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=ambassador_card_box_height);
   }
 }
@@ -105,20 +106,21 @@ module AmbassadorCardBox() // `make` me
 module AmbassadorCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[ambassador_card_box_width, ambassador_card_box_length, ambassador_card_box_height],
-    lid_on_length=true, text_str="Ambassador"
+    size=[ambassador_card_box_length, ambassador_card_box_width],
+    text_str="Ambassador"
   );
 }
 
 module FactionCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[ambassador_card_box_width, ambassador_card_box_length, faction_card_box_height],
-    lid_on_length=true
+    size=[ambassador_card_box_length, ambassador_card_box_width, faction_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, (small_card_length - card_width) / 2, 0])
-      cube([card_length, card_width, ambassador_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+    translate([(small_card_length - card_width) / 2, 0, 0])
+      cube([card_width, card_length, ambassador_card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=faction_card_box_height);
   }
 }
@@ -126,20 +128,21 @@ module FactionCardBox() // `make` me
 module FactionCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[ambassador_card_box_width, ambassador_card_box_length, faction_card_box_height],
-    lid_on_length=true, text_str="Faction"
+    size=[ambassador_card_box_length, ambassador_card_box_width],
+    text_str="Faction"
   );
 }
 
 module RivalCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[ambassador_card_box_width, ambassador_card_box_length, rival_card_box_height],
-    lid_on_length=true
+    size=[ambassador_card_box_length, ambassador_card_box_width, rival_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, (small_card_length - card_width) / 2, 0])
-      cube([card_length, card_width, ambassador_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+    translate([(small_card_length - card_width) / 2, 0, 0])
+      cube([card_width, card_length, ambassador_card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=rival_card_box_height);
   }
 }
@@ -147,8 +150,8 @@ module RivalCardBox() // `make` me
 module RivalCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[ambassador_card_box_width, ambassador_card_box_length, rival_card_box_height],
-    lid_on_length=true, text_str="Rival"
+    size=[ambassador_card_box_length, ambassador_card_box_width],
+    text_str="Rival"
   );
 }
 
@@ -201,14 +204,15 @@ module RiderCardBoxLid() // `make` me
 module BonusCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[ambassador_card_box_width, ambassador_card_box_length, bonus_card_box_height],
-    lid_on_length=true
+    size=[ambassador_card_box_length, ambassador_card_box_width, bonus_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, (small_card_length - card_width) / 2, $inner_height - 10 * single_card_thickness])
-      cube([card_length, card_width, ambassador_card_box_height]);
-    translate([0, ($inner_length - small_card_width) / 2, $inner_height - 15 * single_card_thickness])
-      cube([small_card_length, small_card_width, ambassador_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
+    translate([(small_card_length - card_width) / 2, 0, $inner_height - 10 * single_card_thickness])
+      cube([card_width, card_length, ambassador_card_box_height]);
+    translate([($inner_width - small_card_width) / 2, 0, $inner_height - 15 * single_card_thickness])
+      cube([small_card_width, small_card_length, ambassador_card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
       FingerHoleBase(radius=15, height=ambassador_card_box_height);
   }
 }
@@ -216,7 +220,7 @@ module BonusCardBox() // `make` me
 module BonusCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[ambassador_card_box_width, ambassador_card_box_length, bonus_card_box_height],
+    size=[ambassador_card_box_length, ambassador_card_box_width],
     text_str="Community"
   );
 }

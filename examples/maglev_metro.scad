@@ -159,8 +159,8 @@ module CardBoxLidPlayerBoard() // `make` me
 module FactoryTileBox(colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, material_colour=colour
+    size=[factory_tile_box_length, factory_tile_box_width, factory_tile_box_height],
+    spin=90, anchor=BACK + BOTTOM + LEFT, material_colour=colour
   ) {
     translate([$inner_width / 2, $inner_length / 2, $inner_height - factory_hex_thickness * 2])
       rotate(90)
@@ -182,77 +182,77 @@ module FactoryTileBox(colour = "yellow") // `make` me
 module FactoryTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Factories"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Factories"
   );
 }
 
 module FactoryTileBoxLidWarehouse() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Warehouses"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Warehouses"
   );
 }
 
 module FactoryTileBoxLidLabs() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Labs"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Labs"
   );
 }
 
 module FactoryTileBoxLidOffices() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Offices"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Offices"
   );
 }
 
 module FactoryTileBoxLidStores() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Stores"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Stores"
   );
 }
 
 module FactoryTileBoxLidEmbassies() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[factory_tile_box_width, factory_tile_box_length, factory_tile_box_height],
-    lid_on_length=true, text_str="Embassies"
+    size=[factory_tile_box_length, factory_tile_box_width],
+    text_str="Embassies"
   );
 }
 
 module PlayerBox(colour = "green") // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[player_box_width, player_box_length, player_box_height],
-    material_colour=colour, lid_on_length=true
+    size=[player_box_length, player_box_width, player_box_height],
+    material_colour=colour, spin=90, anchor=BACK + BOTTOM + LEFT
   ) {
     depth = player_overlay_hex_per_player * player_overlay_hex_thickness / 2 + 1;
-    translate([player_overlay_hex_width / 2, player_overlay_hex_radius - 0.5, $inner_height - depth])
+    translate([player_overlay_hex_radius - 0.5, player_overlay_hex_width / 2, $inner_height - depth])
       rotate(90)
         RegularPolygon(width=player_overlay_hex_width, height=depth + 0.5, shape_edges=6);
 
-    translate([player_overlay_hex_width / 2, $inner_length - player_overlay_hex_radius + 0.5, $inner_height - player_overlay_hex_per_player * player_overlay_hex_thickness / 2 - 1])
+    translate([$inner_width - player_overlay_hex_radius + 0.5, player_overlay_hex_width / 2, $inner_height - player_overlay_hex_per_player * player_overlay_hex_thickness / 2 - 1])
       rotate(90)
         RegularPolygon(width=player_overlay_hex_width, height=depth + 0.5, shape_edges=6);
 
-    translate([-default_wall_thickness / 2 - 0.01, player_overlay_hex_radius, 0])
+    translate([player_overlay_hex_radius, -default_wall_thickness / 2 - 0.01, 0])
       FingerHoleWall(
-        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90,
+        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=0,
         depth_of_hole=default_wall_thickness + 0.03,
         rounding_edge=default_wall_thickness / 2,
         round_back=false
       );
 
-    translate([-default_wall_thickness / 2 - 0.01, $inner_length - player_overlay_hex_radius, 0])
+    translate([$inner_width - player_overlay_hex_radius, -default_wall_thickness / 2 - 0.01, 0])
       FingerHoleWall(
-        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=90,
+        radius=14, height=player_box_height - default_lid_thickness - default_floor_thickness, spin=0,
         depth_of_hole=default_wall_thickness + 0.03,
         rounding_edge=default_wall_thickness / 2,
         round_back=false
@@ -282,8 +282,8 @@ module PlayerBox(colour = "green") // `make` me
 module PlayerBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[player_box_width, player_box_length, player_box_height],
-    lid_on_length=true, text_str="Player"
+    size=[player_box_length, player_box_width],
+    text_str="Player"
   );
 }
 
@@ -344,13 +344,13 @@ module CommuterBoxSmallLid() // `make` me
 module MetroTileBox(colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[metro_box_width, metro_box_length, metro_box_height],
-    lid_on_length=true, material_colour=colour
+    size=[metro_box_length, metro_box_width, metro_box_height],
+    spin=90, anchor=BACK + BOTTOM + LEFT, material_colour=colour
   ) {
-    translate([factory_hex_width, factory_hex_radius * 3 / 2, $inner_height - factory_hex_thickness])
+    translate([factory_hex_radius * 3 / 2, factory_hex_width, $inner_height - factory_hex_thickness])
       rotate(90)
         MetroTile(thickness=factory_hex_thickness + 1);
-    translate([$inner_width - factory_hex_width / 2, $inner_length - factory_hex_radius, $inner_height - factory_hex_thickness * 2])
+    translate([$inner_width - factory_hex_radius, $inner_length - factory_hex_width / 2, $inner_height - factory_hex_thickness * 2])
       rotate(90)
 
         RegularPolygon(width=factory_hex_width, height=metro_box_height, shape_edges=6);
@@ -360,8 +360,8 @@ module MetroTileBox(colour = "yellow") // `make` me
 module MetroTileBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[metro_box_width, metro_box_length, metro_box_height],
-    lid_on_length=true, text_str="Metro & Studios"
+    size=[metro_box_length, metro_box_width],
+    text_str="Metro & Studios"
   );
 }
 

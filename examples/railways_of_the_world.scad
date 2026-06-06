@@ -128,21 +128,49 @@ australia_box_length = empty_city_length - 0.5;
 
 module CardBox(num_cards, text_str, generate_lid = true) {
   box_length = CardBoxWidth(num_cards);
+  tmat = reorient(anchor=BACK + BOTTOM + LEFT, spin=90, size=[card_box_width, box_length, default_lid_thickness]);
   if (generate_lid) {
     SlidingBoxLidWithLabel(
-      size=[card_box_width, box_length, all_boxes_height],
+      size=[
+        box_length,
+        card_box_width,
+        all_boxes_height,
+      ],
       text_str=text_str, wall_thickness=2,
-      lid_on_length=true,
-      label_options=MakeLabelOptions(label_colour="black")
-    ) children();
+      label_options=MakeLabelOptions(label_colour="black"),
+    ) multmatrix(m=tmat) left(card_box_width / 2)
+          fwd(box_length / 2) down(default_lid_thickness / 2)
+              children();
   } else {
     translate([box_length, 0, 0]) rotate([0, 0, 90]) {
-        MakeBoxWithSlidingLid(size=[card_box_width, box_length, all_boxes_height], lid_on_length=true) {
-          cube([$inner_width, $inner_length, all_boxes_height - default_lid_thickness]);
-          translate([card_box_width / 2, box_length / 2, all_boxes_height - 28 + 0.01 - default_lid_thickness / 2])
+        MakeBoxWithSlidingLid(
+          size=[
+            box_length,
+            card_box_width,
+            all_boxes_height,
+          ],
+          spin=90,
+          anchor=BACK + BOTTOM + LEFT
+        ) {
+          cube(
+            [
+              $inner_width,
+              $inner_length,
+              all_boxes_height - default_lid_thickness,
+            ]
+          );
+          translate(
+            [
+              box_length / 2,
+              card_box_width / 2,
+              all_boxes_height - 28 + 0.01 - default_lid_thickness / 2,
+            ]
+          )
             FingerHoleWall(
-              radius=25, height=28, depth_of_hole=card_box_width + 2, orient=UP,
-              rounding_radius=5
+              radius=25, height=28,
+              depth_of_hole=card_box_width + 2, orient=UP,
+              rounding_radius=5,
+              spin=90
             );
         }
       }
@@ -969,5 +997,5 @@ module PrintLayout(plastic_player_box = false) {
 }
 
 if (FROM_MAKE != 1) {
-  HexBoxLid();
+  CardBoxAustraliaLid();
 }

@@ -177,10 +177,16 @@ module ShareBoxLid() // `make` me
 module TrainCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[train_card_box_width, train_card_box_length, train_card_box_height], lid_on_length=true
+    size=[
+      train_card_box_length,
+      train_card_box_width,
+      train_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
   ) {
     cube([$inner_width, $inner_length, train_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
+    translate([$inner_width / 2, 0, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=13, height=train_card_box_height - default_lid_thickness + 0.01, spin=270);
   }
 }
@@ -188,7 +194,11 @@ module TrainCardBox() // `make` me
 module TrainCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[train_card_box_width, train_card_box_length, train_card_box_height], lid_on_length=true,
+    size=[
+      train_card_box_length,
+      train_card_box_width,
+      train_card_box_height,
+    ],
     text_str="Trains"
   );
 }
@@ -242,10 +252,16 @@ module ExtraBitsBoxLid() // `make` me
 module PrivateCompanyCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[private_company_card_box_width, private_company_card_box_length, private_company_card_box_height], lid_on_length=true
+    size=[
+      private_company_card_box_length,
+      private_company_card_box_width,
+      private_company_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
   ) {
     cube([$inner_width, $inner_length, private_company_card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - 0.01])
+    translate([$inner_width / 2, 0, -default_floor_thickness - 0.01])
       FingerHoleBase(radius=13, height=private_company_card_box_height - default_lid_thickness + 0.01, spin=270);
   }
 }
@@ -253,7 +269,11 @@ module PrivateCompanyCardBox() // `make` me
 module PrivateCompanyCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[private_company_card_box_width, private_company_card_box_length, private_company_card_box_height], lid_on_length=true,
+    size=[
+      private_company_card_box_length,
+      private_company_card_box_width,
+      private_company_card_box_height,
+    ],
     text_str="Private"
   );
 }

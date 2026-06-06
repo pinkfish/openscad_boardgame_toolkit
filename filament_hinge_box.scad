@@ -71,7 +71,10 @@ module MakeBoxWithFilamentHingeLid(
   material_colour = default_material_colour,
   filament_thickness = 2.2,
   hinge_options = undef,
-  print_in_place_offset = default_print_in_place_offset
+  print_in_place_offset = default_print_in_place_offset,
+  spin = 0,
+  anchor = BOTTOM + FRONT + LEFT,
+  orient = UP
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -87,89 +90,93 @@ module MakeBoxWithFilamentHingeLid(
   lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness);
   lip_length = max(length / 4, 15);
 
-  difference() {
-    union() {
-      difference() {
-        // Main Box
-        union() {
-          diff() color(material_colour)
-              cuboid(
-                [width, length, height - lid_thickness - print_in_place_offset],
-                rounding=wall_thickness / 2,
-                anchor=BOTTOM + FRONT + LEFT,
-                edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
-              ) {
-                edge_mask(TOP + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 4);
-                edge_mask(TOP + BACK) rounding_edge_mask(l=width, r=wall_thickness / 4);
-                edge_mask(TOP + RIGHT) rounding_edge_mask(l=length, r=wall_thickness / 4);
+  tmat = reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, height]);
+  multmatrix(m=tmat) left(width / 2)
+      fwd(length / 2) down(height / 2)
+          difference() {
+
+            union() {
+              difference() {
+                // Main Box
+                union() {
+                  diff() color(material_colour)
+                      cuboid(
+                        [width, length, height - lid_thickness - print_in_place_offset],
+                        rounding=wall_thickness / 2,
+                        anchor=BOTTOM + FRONT + LEFT,
+                        edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
+                      ) {
+                        edge_mask(TOP + FRONT) rounding_edge_mask(l=width, r=wall_thickness / 4);
+                        edge_mask(TOP + BACK) rounding_edge_mask(l=width, r=wall_thickness / 4);
+                        edge_mask(TOP + RIGHT) rounding_edge_mask(l=length, r=wall_thickness / 4);
+                      }
+                }
+
+                // Ramp piece for the edges.
+                up(height - lid_thickness - wall_thickness - print_in_place_offset * 2)
+                  color(material_colour)
+                    cuboid(
+                      [calc_hinge_options.thickness * 1.25 + print_in_place_offset, length, wall_thickness + print_in_place_offset],
+                      anchor=BOTTOM + LEFT + FRONT,
+                      rounding=-wall_thickness,
+                      edges=TOP + RIGHT
+                    );
+
+                // Cut out a rounded pieces for the hinge to fold into.
+                right(calc_hinge_options.thickness / 2 + print_in_place_offset * 2)
+                  up(height - lid_thickness)
+                    cuboid(
+                      [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
+                      anchor=TOP + FRONT,
+                      rounding=calc_hinge_options.thickness / 2,
+                      edges=[BOTTOM + RIGHT]
+                    );
+
+                // Front catch
+                up(height - lid_thickness - lip_height - print_in_place_offset)
+                  back(length / 2)
+                    right(width) {
+                      color(material_colour)
+                        cuboid(
+                          [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
+                          anchor=BOTTOM + RIGHT,
+                          rounding=wall_thickness / 4,
+                          edges=[BOTTOM + LEFT]
+                        );
+                      up(lip_height / 2)
+                        back(lip_length / 4)
+                          color(material_colour)
+                            sphere(d=wall_thickness, anchor=RIGHT);
+                      up(lip_height / 2)
+                        fwd(lip_length / 4)
+                          color(material_colour)
+                            sphere(d=wall_thickness, anchor=RIGHT);
+                    }
               }
-        }
-
-        // Ramp piece for the edges.
-        up(height - lid_thickness - wall_thickness - print_in_place_offset * 2)
-          color(material_colour)
-            cuboid(
-              [calc_hinge_options.thickness * 1.25 + print_in_place_offset, length, wall_thickness + print_in_place_offset],
-              anchor=BOTTOM + LEFT + FRONT,
-              rounding=-wall_thickness,
-              edges=TOP + RIGHT
-            );
-
-        // Cut out a rounded pieces for the hinge to fold into.
-        right(calc_hinge_options.thickness / 2 + print_in_place_offset * 2)
-          up(height - lid_thickness)
-            cuboid(
-              [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
-              anchor=TOP + FRONT,
-              rounding=calc_hinge_options.thickness / 2,
-              edges=[BOTTOM + RIGHT]
-            );
-
-        // Front catch
-        up(height - lid_thickness - lip_height - print_in_place_offset)
-          back(length / 2)
-            right(width) {
-              color(material_colour)
-                cuboid(
-                  [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
-                  anchor=BOTTOM + RIGHT,
-                  rounding=wall_thickness / 4,
-                  edges=[BOTTOM + LEFT]
-                );
-              up(lip_height / 2)
-                back(lip_length / 4)
-                  color(material_colour)
-                    sphere(d=wall_thickness, anchor=RIGHT);
-              up(lip_height / 2)
-                fwd(lip_length / 4)
-                  color(material_colour)
-                    sphere(d=wall_thickness, anchor=RIGHT);
+              up(height)
+                color(material_colour)
+                  knuckle_hinge(
+                    length=length,
+                    segs=hinge_seg,
+                    offset=calc_hinge_options.thickness,
+                    knuckle_diam=calc_hinge_options.thickness,
+                    arm_height=0,
+                    arm_angle=90,
+                    clear_top=false,
+                    inner=true,
+                    spin=90,
+                    pin_diam=calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
+                    orient=UP,
+                    anchor=TOP + BACK + LEFT
+                  );
             }
-      }
-      up(height)
-        color(material_colour)
-          knuckle_hinge(
-            length=length,
-            segs=hinge_seg,
-            offset=calc_hinge_options.thickness,
-            knuckle_diam=calc_hinge_options.thickness,
-            arm_height=0,
-            arm_angle=90,
-            clear_top=false,
-            inner=true,
-            spin=90,
-            pin_diam=calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
-            orient=UP,
-            anchor=TOP + BACK + LEFT
-          );
-    }
 
-    $inner_width = width - wall_thickness * 2;
-    $inner_height = height - lid_thickness - floor_thickness;
-    $inner_length = length - wall_thickness * 2;
-    $material_colour = material_colour;
-    translate([wall_thickness, wall_thickness, floor_thickness]) children();
-  }
+            $inner_width = width - wall_thickness * 2;
+            $inner_height = height - lid_thickness - floor_thickness;
+            $inner_length = length - wall_thickness * 2;
+            $material_colour = material_colour;
+            translate([wall_thickness, wall_thickness, floor_thickness]) children();
+          }
 }
 
 // Module: FilamentBoxInsideMask()

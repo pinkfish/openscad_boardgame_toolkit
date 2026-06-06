@@ -263,60 +263,96 @@ module ResourceBoxLid() // `make` me
 module DestinationCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height], lid_on_length=true
+    size=[
+      destination_card_box_width,
+      destination_card_box_length,
+      destination_card_box_height,
+    ],
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
   ) {
     cube([$inner_width, $inner_length, destination_card_box_height]);
-    translate([-0.1, destination_cards_width / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
-        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=270
+    translate([destination_cards_width / 2, -0.1, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=0
       );
   }
 }
 module DestinationCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height],
-    lid_on_length=true, text_str="Destination",
+    size=[
+      destination_card_box_length,
+      destination_card_box_width,
+      destination_card_box_height,
+    ],
+    text_str="Destination",
   );
 }
 
 module FieldGuideCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height], lid_on_length=true
+    size=[
+      field_guide_card_box_width,
+      field_guide_card_box_length,
+      field_guide_card_box_height,
+    ],
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
   ) {
-    cube([animal_cards_length + 1, $inner_length, field_guide_card_box_height]);
-    translate([-0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
-        radius=10, height=field_guide_card_box_height - default_lid_thickness + 0.02, spin=270
+    cube([$inner_width, animal_cards_length + 1, field_guide_card_box_height]);
+    translate([destination_cards_width / 2, -0.1, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=0
       );
   }
 }
 module FieldGuideCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height],
-    lid_on_length=true, text_str="Field Guide",
+    size=[
+      field_guide_card_box_length,
+      field_guide_card_box_width,
+      field_guide_card_box_height,
+    ],
+    text_str="Field Guide",
   );
 }
 
 module TrailsCardsBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true
+    size=[
+      trails_card_box_length,
+      trails_card_box_width,
+      trails_card_box_height,
+    ],
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
   ) {
-    cube([backpack_cards_width + 1, $inner_length, trails_card_box_height]);
-    translate([$inner_width - backpack_cards_width - 1, 0, 0])
+    cube(
+      [
+        $inner_width,
+        backpack_cards_width + 1,
+        trails_card_box_height,
+      ]
+    );
+    translate([0, $inner_length - backpack_cards_width - 1, 0])
       cube([backpack_cards_width, $inner_length, trails_card_box_height]);
-    translate([backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
-      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
-    translate([$inner_width - backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
-      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
+    translate([-0.1, backpack_cards_width / 2, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=90);
+    translate([-0.1, $inner_length - backpack_cards_width / 2, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=90);
   }
 }
 module TrailsCardsBoxLid() // `make` me
 {
 
   SlidingBoxLidWithLabel(
-    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true,
+    size=[
+      trails_card_box_length,
+      trails_card_box_width,
+      trails_card_box_height,
+    ],
     text_str="Trails"
   );
 }
@@ -324,50 +360,68 @@ module TrailsCardsBoxLid() // `make` me
 module WeatherTokensBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[weather_tokens_box_width, weather_tokens_box_length, weather_tokens_box_height], lid_on_length=true
+    size=[
+      weather_tokens_box_width,
+      weather_tokens_box_length,
+      weather_tokens_box_height,
+    ],
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
   ) union() {
-      translate([weather_token_width / 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]) union() {
+      translate([$inner_width / 2, weather_token_width / 2, $inner_height - card_board_token_thickness * 7]) union() {
           cuboid(
             [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
             rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
           );
-          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
-          translate([-weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([0, weather_token_width / 2, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([0, -weather_token_width / 2, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
         }
       translate(
-        [weather_token_width * 3 / 2 + 2, $inner_length / 2, $inner_height - card_board_token_thickness * 7]
+        [
+          $inner_width / 2,
+          weather_token_width * 3 / 2 + 2,
+          $inner_height - card_board_token_thickness * 7,
+        ]
       ) union() {
           cuboid(
             [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
             rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
           );
-          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([0, weather_token_width / 2, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
         }
       translate(
-        [weather_token_width * 5 / 2 + 4, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+        [
+          $inner_width / 2,
+          weather_token_width * 5 / 2 + 4,
+          $inner_height - card_board_token_thickness * 6,
+        ]
       ) union() {
           cuboid(
             [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
             rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
           );
-          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([0, weather_token_width / 2, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
         }
       translate(
-        [weather_token_width * 7 / 2 + 6, $inner_length / 2, $inner_height - card_board_token_thickness * 6]
+        [
+          $inner_width / 2,
+          weather_token_width * 7 / 2 + 6,
+          $inner_height - card_board_token_thickness * 6,
+        ]
       ) union() {
           cuboid(
             [weather_token_width, weather_token_width, weather_tokens_box_height], anchor=BOTTOM,
             rounding=weather_corner_round_radius, edges=[FRONT + LEFT]
           );
-          translate([weather_token_width / 2, 0, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
+          translate([0, weather_token_width / 2, 0]) cyl(d=18, h=31, anchor=BOTTOM, rounding=9);
         }
     }
 }
 module WeatherTokensBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[weather_tokens_box_width, weather_tokens_box_length, weather_tokens_box_height], lid_on_length=true,
-    text_str="Weather"
+    size=[weather_tokens_box_length, weather_tokens_box_width, weather_tokens_box_height],
+    text_str="Weather",
   );
 }
 

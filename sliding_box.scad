@@ -790,72 +790,57 @@ module MakeBoxWithSlidingLid(
   positive_colour = default_positive_colour,
   positive_only_children = [],
   positive_negative_children = [],
+  spin = 0,
+  anchor = BOTTOM + FRONT + LEFT,
+  orient = UP
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
   length = size[1];
   height = size[2];
 
-  difference() {
-    color(material_colour)
-      diff()
-        cuboid(
-          [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-          edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
-        ) {
-          edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 2, l=max(length, width));
-        }
-    rounding_offset = 0.01;
-    if (lid_on_length) {
-      translate([-rounding_offset, wall_thickness, height - lid_thickness]) color(material_colour) cuboid(
-            [
-              width - wall_thickness + size_spacing + rounding_offset,
-              length - wall_thickness * 2,
-              lid_thickness + size_spacing / 2,
-            ],
-            anchor=BOTTOM + FRONT + LEFT
-          );
-      translate([-rounding_offset, wall_thickness / 2, height - lid_thickness]) color(material_colour)
-          cuboid(
-            [width - wall_thickness / 2 + rounding_offset, length - wall_thickness, lid_thickness / 2],
-            anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
-            edges=[TOP + FRONT, TOP + BACK, TOP + RIGHT]
-          );
+  tmat = reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, height]);
+  multmatrix(m=tmat) left(width / 2)
+      fwd(length / 2) down(height / 2)
+          difference() {
+            color(material_colour)
+              diff()
+                cuboid(
+                  [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
+                ) {
+                  edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 2, l=max(length, width));
+                }
+            rounding_offset = 0.01;
+            translate([wall_thickness, -rounding_offset, height - lid_thickness]) color(material_colour) cuboid(
+                  [
+                    width - wall_thickness * 2,
+                    length - wall_thickness + size_spacing + rounding_offset,
+                    lid_thickness + size_spacing / 2,
+                  ],
+                  anchor=BOTTOM + FRONT + LEFT
+                );
 
-      translate([0, length / 2, height - lid_thickness])
-        rotate([90, 90, 0])
-          rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
-    } else {
-      translate([wall_thickness, -rounding_offset, height - lid_thickness]) color(material_colour) cuboid(
-            [
-              width - wall_thickness * 2,
-              length - wall_thickness + size_spacing + rounding_offset,
-              lid_thickness + size_spacing / 2,
-            ],
-            anchor=BOTTOM + FRONT + LEFT
-          );
+            translate([wall_thickness / 2, -rounding_offset, height - lid_thickness]) color(material_colour)
+                cuboid(
+                  [width - wall_thickness, length - wall_thickness / 2 + rounding_offset, lid_thickness / 2],
+                  anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
+                  edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK]
+                );
+            translate([width / 2, 0, height - lid_thickness])
+              rotate([0, 90, 0])
+                rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
 
-      translate([wall_thickness / 2, -rounding_offset, height - lid_thickness]) color(material_colour)
-          cuboid(
-            [width - wall_thickness, length - wall_thickness / 2 + rounding_offset, lid_thickness / 2],
-            anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
-            edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK]
-          );
-      translate([width / 2, 0, height - lid_thickness])
-        rotate([0, 90, 0])
-          rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
-    }
-
-    // Make everything start from the bottom corner of the box.
-    $inner_width = width - wall_thickness * 2;
-    $inner_length = length - wall_thickness * 2;
-    $inner_height = height - lid_thickness - floor_thickness;
-    for (i = [0:$children - 1]) {
-      if (!in_list(i, positive_only_children)) {
-        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
-      }
-    }
-  }
+            // Make everything start from the bottom corner of the box.
+            $inner_width = width - wall_thickness * 2;
+            $inner_length = length - wall_thickness * 2;
+            $inner_height = height - lid_thickness - floor_thickness;
+            for (i = [0:$children - 1]) {
+              if (!in_list(i, positive_only_children)) {
+                translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+              }
+            }
+          }
   if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;

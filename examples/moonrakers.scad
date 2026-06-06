@@ -74,13 +74,13 @@ objective_card_box_height = default_floor_thickness + default_lid_thickness + si
 module ThrusterCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, thruster_card_box_height], lid_on_length=true, material_colour = "yellow"
+    size=[card_box_length, card_box_width, thruster_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "yellow"
   ) {
     cube([$inner_width, $inner_length, thruster_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=thruster_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -89,13 +89,13 @@ module ThrusterCardBox() // `make` me
 module DamageCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, damage_card_box_height], lid_on_length=true, material_colour = "red"
+    size=[card_box_length, card_box_width, damage_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "red"
   ) {
     cube([$inner_width, $inner_length, damage_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=damage_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -104,13 +104,13 @@ module DamageCardBox() // `make` me
 module ReactorCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, reactor_card_box_height], lid_on_length=true, material_colour = "blue"
+    size=[card_box_length, card_box_width, reactor_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "blue"
   ) {
     cube([$inner_width, $inner_length, reactor_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=reactor_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -119,13 +119,13 @@ module ReactorCardBox() // `make` me
 module MissCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, miss_card_box_height], lid_on_length=true, material_colour = "grey"
+    size=[card_box_length, card_box_width, miss_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "grey"
   ) {
     cube([$inner_width, $inner_length, miss_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=miss_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -134,13 +134,13 @@ module MissCardBox() // `make` me
 module ShieldCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, shield_card_box_height], lid_on_length=true, material_colour = "green"
+    size=[card_box_length, card_box_width, shield_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "green"
   ) {
     cube([$inner_width, $inner_length, shield_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=shield_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -149,13 +149,13 @@ module ShieldCardBox() // `make` me
 module ReferenceCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, reference_card_box_height], lid_on_length=true, material_colour = "white"
+    size=[card_box_length, card_box_width, reference_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "white"
   ) {
     cube([$inner_width, $inner_length, reference_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=reference_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -164,13 +164,13 @@ module ReferenceCardBox() // `make` me
 module CrewCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, crew_card_box_height], lid_on_length=true, material_colour = "orange"
+    size=[card_box_length, card_box_width, crew_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "orange"
   ) {
     cube([$inner_width, $inner_length, crew_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=crew_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -179,13 +179,13 @@ module CrewCardBox() // `make` me
 module ContractCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, contract_card_box_height], lid_on_length=true, material_colour = "purple"
+    size=[card_box_length, card_box_width, contract_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT, material_colour = "purple"
   ) {
     cube([$inner_width, $inner_length, contract_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=contract_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -194,13 +194,13 @@ module ContractCardBox() // `make` me
 module ShipCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, ship_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, ship_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT
   ) {
     cube([$inner_width, $inner_length, ship_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=ship_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -209,13 +209,13 @@ module ShipCardBox() // `make` me
 module ObjectiveCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, objective_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, objective_card_box_height], spin=90, anchor=BACK + BOTTOM + LEFT
   ) {
     cube([$inner_width, $inner_length, objective_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=objective_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }

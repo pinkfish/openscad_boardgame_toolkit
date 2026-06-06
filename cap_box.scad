@@ -114,7 +114,10 @@ module MakeBoxWithCapLid(
   lid_catch = default_lid_catch_type,
   top_rounding = undef,
   bottom_rounding = undef,
-  corner_rounding = undef
+  corner_rounding = undef,
+  spin = 0,
+  anchor = BOTTOM + FRONT + LEFT,
+  orient = UP
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -144,188 +147,192 @@ module MakeBoxWithCapLid(
   assert(calc_top_rounding >= 0, str("Need calc_top_rounding >= 0, calc_top_rounding=", calc_top_rounding));
   assert(calc_corner_rounding >= 0, str("Need calc_corner_rounding >= 0, calc_corner_rounding=", calc_corner_rounding));
 
-  difference() {
-    color(material_colour)
-      diff()
-        cuboid(
-          [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
-          rounding=calc_corner_rounding, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
-        ) {
-          face_profile(BOTTOM, r=calc_bottom_rounding)
-            mask2d_roundover(calc_bottom_rounding);
-          corner_profile(BOTTOM, r=calc_bottom_rounding) mask2d_roundover(calc_bottom_rounding);
-        }
+  box_height = height - lid_thickness - size_spacing;
+  tmat = reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, box_height]);
+  multmatrix(m=tmat) left(width / 2)
+      fwd(length / 2) down(box_height / 2)
+          difference() {
+            color(material_colour)
+              diff()
+                cuboid(
+                  [width, length, height - lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT,
+                  rounding=calc_corner_rounding, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
+                ) {
+                  face_profile(BOTTOM, r=calc_bottom_rounding)
+                    mask2d_roundover(calc_bottom_rounding);
+                  corner_profile(BOTTOM, r=calc_bottom_rounding) mask2d_roundover(calc_bottom_rounding);
+                }
 
-    // lid diff.
-    translate([0, 0, height - calc_cap_height]) difference() {
-        translate([-size_spacing, -size_spacing, 0]) color(material_colour)
-            cuboid(
-              [width + size_spacing * 2, length + size_spacing * 2, calc_cap_height],
-              anchor=BOTTOM + FRONT + LEFT
-            );
-        translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
-          color(material_colour) cuboid(
-              [
-                width - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
-                length - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
-                calc_cap_height,
-              ],
-              anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
-              edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-            );
-      }
+            // lid diff.
+            translate([0, 0, height - calc_cap_height]) difference() {
+                translate([-size_spacing, -size_spacing, 0]) color(material_colour)
+                    cuboid(
+                      [width + size_spacing * 2, length + size_spacing * 2, calc_cap_height],
+                      anchor=BOTTOM + FRONT + LEFT
+                    );
+                translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
+                  color(material_colour) cuboid(
+                      [
+                        width - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
+                        length - calc_lid_wall_thickness * 2 - size_spacing * 1.5,
+                        calc_cap_height,
+                      ],
+                      anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
+                      edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+                    );
+              }
 
-    // Round over top bit.
-    translate([width / 2, calc_lid_wall_thickness * 1 + size_spacing, height - lid_thickness - size_spacing])
-      rotate([0, 90, 0])
-        rounding_edge_mask(r=calc_top_rounding, l=width);
-    translate([width / 2, length - calc_lid_wall_thickness * 1 - size_spacing / 2, height - lid_thickness - size_spacing])
-      rotate([0, 90, 180])
-        rounding_edge_mask(r=calc_top_rounding, l=width);
-    translate([calc_lid_wall_thickness * 1 + size_spacing, length / 2, height - lid_thickness - size_spacing])
-      rotate([90, 90, 0])
-        rounding_edge_mask(r=calc_top_rounding, l=length);
-    translate([width - calc_lid_wall_thickness * 1 - size_spacing / 2, length / 2, height - lid_thickness - size_spacing])
-      rotate([270, 90, 0])
-        rounding_edge_mask(r=calc_top_rounding, l=length);
+            // Round over top bit.
+            translate([width / 2, calc_lid_wall_thickness * 1 + size_spacing, height - lid_thickness - size_spacing])
+              rotate([0, 90, 0])
+                rounding_edge_mask(r=calc_top_rounding, l=width);
+            translate([width / 2, length - calc_lid_wall_thickness * 1 - size_spacing / 2, height - lid_thickness - size_spacing])
+              rotate([0, 90, 180])
+                rounding_edge_mask(r=calc_top_rounding, l=width);
+            translate([calc_lid_wall_thickness * 1 + size_spacing, length / 2, height - lid_thickness - size_spacing])
+              rotate([90, 90, 0])
+                rounding_edge_mask(r=calc_top_rounding, l=length);
+            translate([width - calc_lid_wall_thickness * 1 - size_spacing / 2, length / 2, height - lid_thickness - size_spacing])
+              rotate([270, 90, 0])
+                rounding_edge_mask(r=calc_top_rounding, l=length);
 
-    // lid catches
-    translate([0, 0, height - calc_cap_height]) {
-      if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
-        catch_width = width - wall_thickness * 2;
-        translate([(catch_width * 2 / 8) + wall_thickness, 0, 0]) color(material_colour)
-            wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
-        translate([(catch_width * 6 / 8) + wall_thickness, length, 0]) rotate(180) color(material_colour)
-              wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
-      }
-      if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
-        catch_length = length - wall_thickness * 2;
-        translate([width, catch_length * 2 / 8 + wall_thickness, 0]) rotate(90) color(material_colour)
-              wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
-        translate([0, catch_length * 6 / 8 + wall_thickness, 0]) rotate(270) color(material_colour)
-              wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
-      }
-      if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
-        catch_offset = width - wall_thickness * 2;
-        translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness]) {
-          color(material_colour) {
-            intersection() {
-              sphere(r=wall_thickness * 5 / 6 + size_spacing);
-              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
-            }
-          }
-          color(material_colour) translate([0, length, 0]) {
-              intersection() {
-                sphere(r=wall_thickness * 5 / 6 + size_spacing);
-                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+            // lid catches
+            translate([0, 0, height - calc_cap_height]) {
+              if ( (lid_catch == CATCH_SHORT && width < length) || (lid_catch == CATCH_LONG && width > length) || lid_catch == CATCH_ALL) {
+                catch_width = width - wall_thickness * 2;
+                translate([(catch_width * 2 / 8) + wall_thickness, 0, 0]) color(material_colour)
+                    wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
+                translate([(catch_width * 6 / 8) + wall_thickness, length, 0]) rotate(180) color(material_colour)
+                      wedge([catch_width * 2 / 4, wall_thickness, wall_thickness]);
+              }
+              if ( (lid_catch == CATCH_SHORT && length < width) || (lid_catch == CATCH_LONG && length < width) || lid_catch == CATCH_ALL) {
+                catch_length = length - wall_thickness * 2;
+                translate([width, catch_length * 2 / 8 + wall_thickness, 0]) rotate(90) color(material_colour)
+                      wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
+                translate([0, catch_length * 6 / 8 + wall_thickness, 0]) rotate(270) color(material_colour)
+                      wedge([catch_length * 2 / 4, wall_thickness, wall_thickness]);
+              }
+              if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
+                catch_offset = width - wall_thickness * 2;
+                translate([(catch_offset * 6 / 8) + wall_thickness, 0, wall_thickness]) {
+                  color(material_colour) {
+                    intersection() {
+                      sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                      cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+                    }
+                  }
+                  color(material_colour) translate([0, length, 0]) {
+                      intersection() {
+                        sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                        cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+                      }
+                    }
+                }
+                translate([(catch_offset * 2 / 8) + wall_thickness, 0, wall_thickness]) {
+                  color(material_colour) {
+                    intersection() {
+                      sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                      cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
+                    }
+                  }
+                  color(material_colour) translate([0, length, 0]) {
+                      intersection() {
+                        sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                        cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
+                      }
+                    }
+                }
+              }
+              if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
+                catch_offset = length - wall_thickness * 2;
+                translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness]) {
+                  color(material_colour) {
+                    intersection() {
+                      sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                      cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+                    }
+                  }
+                  color(material_colour) translate([width, 0, 0]) {
+                      intersection() {
+                        sphere(r=wall_thickness * 5 / 6 + m_piece_wiggle_room);
+                        cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+                      }
+                    }
+                }
+                translate([0, (catch_offset * 2 / 8) + wall_thickness, wall_thickness]) {
+                  color(material_colour) {
+                    intersection() {
+                      sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                      cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
+                    }
+                  }
+                  color(material_colour) translate([width, 0, 0]) {
+                      intersection() {
+                        sphere(r=wall_thickness * 5 / 6 + size_spacing);
+                        cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
+                      }
+                    }
+                }
               }
             }
-        }
-        translate([(catch_offset * 2 / 8) + wall_thickness, 0, wall_thickness]) {
-          color(material_colour) {
-            intersection() {
-              sphere(r=wall_thickness * 5 / 6 + size_spacing);
-              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=FRONT);
-            }
-          }
-          color(material_colour) translate([0, length, 0]) {
-              intersection() {
-                sphere(r=wall_thickness * 5 / 6 + size_spacing);
-                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=BACK);
-              }
-            }
-        }
-      }
-      if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
-        catch_offset = length - wall_thickness * 2;
-        translate([0, (catch_offset * 6 / 8) + wall_thickness, wall_thickness]) {
-          color(material_colour) {
-            intersection() {
-              sphere(r=wall_thickness * 5 / 6 + size_spacing);
-              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
-            }
-          }
-          color(material_colour) translate([width, 0, 0]) {
-              intersection() {
-                sphere(r=wall_thickness * 5 / 6 + m_piece_wiggle_room);
-                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
-              }
-            }
-        }
-        translate([0, (catch_offset * 2 / 8) + wall_thickness, wall_thickness]) {
-          color(material_colour) {
-            intersection() {
-              sphere(r=wall_thickness * 5 / 6 + size_spacing);
-              cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=LEFT);
-            }
-          }
-          color(material_colour) translate([width, 0, 0]) {
-              intersection() {
-                sphere(r=wall_thickness * 5 / 6 + size_spacing);
-                cuboid([wall_thickness * 6 / 4, wall_thickness * 6 / 4, wall_thickness * 6 / 4], anchor=RIGHT);
-              }
-            }
-        }
-      }
-    }
 
-    // finger cutouts.
-    translate([0, 0, height - calc_cap_height - calc_finger_hold_height]) difference() {
-        // Remove the edge around the outside where the finger bits go.
-        difference() {
-          translate([-size_spacing, -size_spacing, 0]) color(material_colour)
-              cuboid(
-                [width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1],
-                anchor=BOTTOM + FRONT + LEFT
-              );
+            // finger cutouts.
+            translate([0, 0, height - calc_cap_height - calc_finger_hold_height]) difference() {
+                // Remove the edge around the outside where the finger bits go.
+                difference() {
+                  translate([-size_spacing, -size_spacing, 0]) color(material_colour)
+                      cuboid(
+                        [width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1],
+                        anchor=BOTTOM + FRONT + LEFT
+                      );
 
-          translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
-            color(material_colour) cuboid(
-                [
-                  width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                  length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-                  calc_finger_hold_height + 2,
-                ],
-                anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
-                edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-              );
-        }
-        // Finger hole bits.
-        translate([calc_lid_finger_hold_len, 0, -0.2]) color(material_colour)
-            cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
-              rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
-              anchor=BOTTOM + LEFT + FRONT, $fn=32
-            );
-        translate([calc_lid_finger_hold_len, length - calc_lid_wall_thickness - size_spacing, -0.2]) color(material_colour)
-            cuboid(
-              [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
-              rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
-              anchor=BOTTOM + LEFT + FRONT, $fn=32
-            );
-        translate([0, calc_lid_finger_hold_len, -0.2]) color(material_colour)
-            cuboid(
-              [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
-              rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
-              anchor=BOTTOM + LEFT + FRONT, $fn=32
-            );
-        translate([width - calc_lid_wall_thickness - size_spacing, calc_lid_finger_hold_len, -0.2]) color(material_colour)
-            cuboid(
-              [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
-              rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
-              anchor=BOTTOM + LEFT + FRONT, $fn=32
-            );
-      }
-    // Put the children in the box.
-    $inner_height = height - lid_thickness - floor_thickness;
-    $inner_width = width - wall_thickness * 2;
-    $inner_length = length - wall_thickness * 2;
-    for (i = [0:$children - 1]) {
-      if (!in_list(i, positive_only_children)) {
-        translate([wall_thickness, wall_thickness, calc_floor_thickness]) children(i);
-      }
-    }
-  }
+                  translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
+                    color(material_colour) cuboid(
+                        [
+                          width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                          length - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                          calc_finger_hold_height + 2,
+                        ],
+                        anchor=BOTTOM + FRONT + LEFT, rounding=calc_corner_rounding,
+                        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+                      );
+                }
+                // Finger hole bits.
+                translate([calc_lid_finger_hold_len, 0, -0.2]) color(material_colour)
+                    cuboid(
+                      [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
+                      rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
+                      anchor=BOTTOM + LEFT + FRONT, $fn=32
+                    );
+                translate([calc_lid_finger_hold_len, length - calc_lid_wall_thickness - size_spacing, -0.2]) color(material_colour)
+                    cuboid(
+                      [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
+                      rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT],
+                      anchor=BOTTOM + LEFT + FRONT, $fn=32
+                    );
+                translate([0, calc_lid_finger_hold_len, -0.2]) color(material_colour)
+                    cuboid(
+                      [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+                      rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
+                      anchor=BOTTOM + LEFT + FRONT, $fn=32
+                    );
+                translate([width - calc_lid_wall_thickness - size_spacing, calc_lid_finger_hold_len, -0.2]) color(material_colour)
+                    cuboid(
+                      [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+                      rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK],
+                      anchor=BOTTOM + LEFT + FRONT, $fn=32
+                    );
+              }
+            // Put the children in the box.
+            $inner_height = height - lid_thickness - floor_thickness;
+            $inner_width = width - wall_thickness * 2;
+            $inner_length = length - wall_thickness * 2;
+            for (i = [0:$children - 1]) {
+              if (!in_list(i, positive_only_children)) {
+                translate([wall_thickness, wall_thickness, calc_floor_thickness]) children(i);
+              }
+            }
+          }
   if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_height = height - lid_thickness - floor_thickness;
     $inner_width = width - wall_thickness * 2;

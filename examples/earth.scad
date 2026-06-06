@@ -536,7 +536,7 @@ module SproutBox() // `make` me
 {
   MakeBoxWithFilamentHingeLid(
     [sprout_box_width, sprout_box_length, sprout_box_height],
-    material_colour="green"
+    material_colour="green",
   ) {
     intersection() {
       FilamentBoxInsideMask(size=[sprout_box_width, sprout_box_length, sprout_box_height]);
@@ -659,5 +659,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  SproutBox();
+  BoxLayoutA();
 }

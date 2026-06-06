@@ -216,6 +216,8 @@ assignment_box_width = book_box_width;
 assignment_box_length = box_length - solo_reward_length_thin - 2 - card_box_length - book_box_length;
 assignment_box_height = book_box_height;
 
+other_card_box_width = card_box_width;
+other_card_box_length = card_box_length;
 other_card_box_height = default_floor_thickness + default_lid_thickness + single_card_thickness * (other_card_num);
 
 dice_box_width = card_box_width;
@@ -484,13 +486,16 @@ module InnovationToken(height) {
 module AssignmentCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[assignment_card_box_width, assignment_card_box_length, assignment_card_box_height],
-    lid_on_length=true,
+    size=[
+      assignment_card_box_length,
+      assignment_card_box_width,
+      assignment_card_box_height,
+    ],
     material_colour="purple"
   ) {
-    cube([assignment_card_length, $inner_length, assignment_card_box_height]);
+    cube([$inner_width, assignment_card_length, assignment_card_box_height]);
     translate(
-      [0, $inner_length / 2, $inner_height - assignment_card_box_height]
+      [$inner_width / 2, 0, $inner_height - assignment_card_box_height]
     )
       FingerHoleBase(radius=15, height=assignment_card_box_height, spin=270);
   }
@@ -499,8 +504,13 @@ module AssignmentCardBox() // `make` me
 module AssignmentCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, assignment_card_box_height],
-    lid_on_length=true,
+    size=[
+      assignment_card_box_length,
+      assignment_card_box_width,
+      assignment_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="purple",
     text_str="Assignment"
   );
@@ -509,13 +519,18 @@ module AssignmentCardBoxLid() // `make` me
 module TierCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, tier_card_box_height],
-    lid_on_length=true,
+    size=[
+      card_box_length,
+      card_box_width,
+      tier_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="brown"
   ) {
     cube([$inner_width, $inner_length, tier_card_box_height]);
     translate(
-      [0, $inner_length / 2, $inner_height - tier_card_box_height]
+      [$inner_width / 2, 0, $inner_height - tier_card_box_height]
     )
       FingerHoleBase(radius=15, height=tier_card_box_height, spin=270);
   }
@@ -524,8 +539,11 @@ module TierCardBox() // `make` me
 module TierCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, tier_card_box_height],
-    lid_on_length=true,
+    size=[
+      card_box_length,
+      card_box_width,
+      tier_card_box_height,
+    ],
     material_colour="purple",
     text_str="Tier"
   );
@@ -534,13 +552,18 @@ module TierCardBoxLid() // `make` me
 module OtherCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, other_card_box_height],
-    lid_on_length=true,
+    size=[
+      other_card_box_length,
+      other_card_box_width,
+      other_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="purple"
   ) {
     cube([$inner_width, $inner_length, other_card_box_height]);
     translate(
-      [0, $inner_length / 2, $inner_height - other_card_box_height]
+      [$inner_width / 2, 0, $inner_height - other_card_box_height]
     )
       FingerHoleBase(radius=15, height=other_card_box_height, spin=270);
   }
@@ -549,8 +572,11 @@ module OtherCardBox() // `make` me
 module OtherCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, other_card_box_height],
-    lid_on_length=true,
+    size=[
+      other_card_box_length,
+      other_card_box_width,
+      other_card_box_height,
+    ],
     material_colour="purple",
     text_str="Other"
   );
@@ -559,7 +585,11 @@ module OtherCardBoxLid() // `make` me
 module AssignmentBox() // `make` me
 {
   MakeBoxWithCapLid(
-    size=[assignment_box_width, assignment_box_length, assignment_box_height],
+    size=[
+      assignment_box_width,
+      assignment_box_length,
+      assignment_box_height,
+    ],
     material_colour="lightblue"
   ) {
     for (i = [0:1]) {
@@ -717,8 +747,13 @@ module BookBoxLid() // `make` me
 module ProgramBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[program_box_width, program_box_length, program_box_height],
-    lid_on_length=true,
+    size=[
+      program_box_length,
+      program_box_width,
+      program_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="brown"
   ) {
     // program tiles.
@@ -729,18 +764,18 @@ module ProgramBox() // `make` me
         $inner_height - cardboard_thickness * 14 - 0.5,
       ]
     )
-      cube([program_length, program_width, cardboard_thickness * 14 + 1]);
+      cube([program_width, program_length, cardboard_thickness * 14 + 1]);
     translate(
       [
-        0,
         program_width + default_wall_thickness,
+        0,
         $inner_height - cardboard_thickness * 14 - 0.5,
       ]
     )
-      cube([program_length, program_width, cardboard_thickness * 14 + 1]);
+      cube([program_width, program_length, cardboard_thickness * 14 + 1]);
 
     translate(
-      [0, $inner_length / 2, $inner_height - program_box_height]
+      [$inner_width / 2, 0, $inner_height - program_box_height]
     )
       FingerHoleBase(radius=15, height=program_box_height, spin=270);
   }
@@ -749,10 +784,13 @@ module ProgramBox() // `make` me
 module ProgramBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[program_box_width, program_box_length, program_box_height],
+    size=[
+      program_box_length,
+      program_box_width,
+      program_box_height,
+    ],
     material_colour="brown",
     text_str="Program",
-    lid_on_length=true,
   );
 }
 
@@ -850,87 +888,131 @@ module ScoringBoxLid() // `make` me
 
 module PlayerBoxInternal(material_colour) {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, player_box_height],
-    lid_on_length=true,
-    material_colour=material_colour
+    size=[
+      card_box_length,
+      card_box_width,
+      player_box_height,
+    ],
+    material_colour=material_colour,
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
   ) {
     card_height = single_card_thickness * starting_player_card_num + 1;
-    translate([0, $inner_length / 2, $inner_height - card_height + 0.01])
-      FingerHoleWall(height=card_height, radius=20, spin=270, rounding_radius=5);
+    translate([$inner_width / 2, 0, $inner_height - card_height + 0.01])
+      FingerHoleWall(height=card_height, radius=20, spin=0, rounding_radius=5);
     translate([0, 0, $inner_height - card_height])
       cube([$inner_width, $inner_length, card_height + 1]);
     for (i = [0:1]) {
       // research tokens
       translate(
         [
-          research_token_length / 2 + 6,
           research_token_diameter / 2 + 4 + (research_token_diameter + 1) * i,
+          research_token_length / 2 + 6,
           $inner_height - card_height - research_token_thickness,
         ]
       ) {
-        linear_extrude(height=research_token_thickness * 2 + 1) rotate(180) ResearchToken();
+        linear_extrude(height=research_token_thickness * 2 + 1)
+          rotate(90) ResearchToken();
       }
       translate(
         [
-          research_token_length * 3 / 2 + 7,
           research_token_diameter / 2 + 4 + (research_token_diameter + 1) * i,
+          research_token_length * 3 / 2 + 7,
           $inner_height - card_height - research_token_thickness,
         ]
       ) {
-        linear_extrude(height=research_token_thickness * 2 + 1) ResearchToken();
+        linear_extrude(height=research_token_thickness * 2 + 1)
+          rotate(270)
+            ResearchToken();
       }
     }
     for (i = [0:2]) {
       // player discs
       translate(
         [
-          $inner_width - player_token_diameter / 2 - 2,
           player_token_diameter / 2 + (player_token_diameter + 5) * i + 2,
+          $inner_length - player_token_diameter / 2 - 2,
           $inner_height - card_height - player_token_thickness * 2,
         ]
       )
         CylinderWithIndents(
           height=player_token_thickness * 2 + 1,
           d=player_token_diameter,
-          finger_holes=[i == 2 ? 270 : 90],
+          finger_holes=[i == 2 ? 180 : 0],
           finger_hole_radius=9
         );
       translate(
         [
-          $inner_width - player_token_diameter / 2 - 3 - player_token_diameter,
           player_token_diameter / 2 + (player_token_diameter + 5) * i + 2,
+          $inner_length - player_token_diameter / 2 - 3 - player_token_diameter,
           $inner_height - card_height - player_token_thickness * 2,
         ]
       ) CylinderWithIndents(
           height=player_token_thickness * 2 + 1,
           d=player_token_diameter,
-          finger_holes=[i == 2 ? 270 : 90],
+          finger_holes=[i == 2 ? 180 : 0],
           finger_hole_radius=9
         );
     }
-    translate([19, research_token_diameter * 4.5, $inner_height - card_height - woman_man_player_thickness - 0.5]) {
-      children(0);
+    translate(
+      [
+        research_token_diameter * 4.5,
+        19,
+        $inner_height - card_height - woman_man_player_thickness - 0.5,
+      ]
+    ) {
+      rotate(90)
+        children(0);
     }
-    translate([innovation_diameter * 2 + 4, research_token_diameter * 3 + 2, $inner_height - card_height - woman_man_player_thickness])
-      rotate(270)
+    translate(
+      [
+        research_token_diameter * 3 + 2,
+        innovation_diameter * 2 + 4,
+        $inner_height - card_height - woman_man_player_thickness,
+      ]
+    )
+      rotate(0)
         InnovationToken(height=player_token_thickness + 1);
-    translate([steam_width / 2 + 5.5, research_token_diameter * 2 + 9, $inner_height - card_height - woman_man_player_thickness])
+    translate(
+      [
+        research_token_diameter * 2 + 9,
+        steam_width / 2 + 5.5,
+        $inner_height - card_height - woman_man_player_thickness,
+      ]
+    )
       linear_extrude(height=player_token_thickness + 1)
-        SteamToken();
+        rotate(270)
+          SteamToken();
 
-    translate([1, 2, $inner_height - research_token_thickness / 2 - card_height])
+    translate(
+      [
+        2,
+        1,
+        $inner_height - research_token_thickness / 2 - card_height,
+      ]
+    )
       RoundedBoxAllSides(
-        [research_token_length * 2 + 10,
-        $inner_length - 4,
-        player_box_height],
+        [
+          $inner_width - 4,
+          research_token_length * 2 + 10,
+          player_box_height,
+        ],
         radius=5,
       );
     player_section_length = 40;
-    translate([1, $inner_length - player_section_length - 2, $inner_height - woman_man_player_thickness / 2 - card_height])
+    translate(
+      [
+        $inner_width - player_section_length - 2,
+        1,
+        $inner_height - woman_man_player_thickness / 2 - card_height,
+      ]
+    )
       RoundedBoxAllSides(
-        [research_token_length * 2 + 10,
-        player_section_length,
-        player_box_height],
+        [
+          player_section_length,
+          research_token_length * 2 + 10,
+          player_box_height,
+        ],
         radius=5,
       );
   }
@@ -1000,39 +1082,58 @@ module PlayerBoxLid() // `make` me
 module ObjectiveBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[objective_box_width, objective_box_length, objective_box_height],
+    size=[
+      objective_box_length,
+      objective_box_width,
+      objective_box_height,
+    ],
     material_colour="orange",
-    lid_on_length=true
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
   ) {
     for (i = [0:2]) {
       for (j = [0:1]) {
         // objectives
         translate(
           [
-            (objective_width + 19) * j,
             1 + (objective_length + 1.5) * i,
+            (objective_width + 19) * j,
             $inner_height - objective_width,
           ]
         )
           CuboidWithIndentsBottom(
-            [cardboard_thickness * 9 + 0.5, objective_length, objective_width + 1],
+            [
+              objective_length,
+              cardboard_thickness * 9 + 0.5,
+              objective_width + 1,
+            ],
             anchor=BOTTOM + FRONT + LEFT,
             finger_holes=[]
           );
       }
     }
     translate(
-      [0, $inner_length / 2, $inner_height - objective_box_height + 0.01]
+      [$inner_width / 2, 0, $inner_height - objective_box_height + 0.01]
     )
-      FingerHoleBase(radius=10, height=objective_box_height, spin=270);
+      FingerHoleBase(
+        radius=10,
+        height=objective_box_height, spin=0
+      );
+
     translate(
-      [0, objective_length / 2, $inner_height - objective_box_height + 0.01]
+      [$inner_width - objective_length / 2, 0, $inner_height - objective_box_height + 0.01]
     )
-      FingerHoleBase(radius=10, height=objective_box_height, spin=270);
+      FingerHoleBase(
+        radius=10,
+        height=objective_box_height, spin=0
+      );
     translate(
-      [0, $inner_length - objective_length / 2, $inner_height - objective_box_height + 0.01]
+      [objective_length / 2, 0, $inner_height - objective_box_height + 0.01]
     )
-      FingerHoleBase(radius=10, height=objective_box_height, spin=270);
+      FingerHoleBase(
+        radius=10,
+        height=objective_box_height, spin=0
+      );
   }
 }
 
@@ -1061,10 +1162,13 @@ module FirstPlayerBoxLid() // `make` me
 module ObjectiveBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[objective_box_width, objective_box_length, objective_box_height],
+    size=[
+      objective_box_length,
+      objective_box_width,
+      objective_box_height,
+    ],
     material_colour="orange",
     "Objective",
-    lid_on_length=true
   );
 }
 
@@ -1217,8 +1321,11 @@ module ResourceBox() // `make` me
     material_colour="gold"
   ) {
     RoundedBoxAllSides(
-      [$inner_width,
-      $inner_length, resource_box_height], radius=5
+      [
+        $inner_width,
+        $inner_length,
+        resource_box_height,
+      ], radius=5
     );
   }
 }
@@ -1246,8 +1353,11 @@ module MoneyBox() // `make` me
     material_colour="silver"
   ) {
     RoundedBoxAllSides(
-      [$inner_width,
-      $inner_length, money_box_height], radius=5,
+      [
+        $inner_width,
+        $inner_length,
+        money_box_height,
+      ], radius=5,
     );
   }
 }
@@ -1335,5 +1445,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  ObjectiveBox();
 }

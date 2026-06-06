@@ -322,11 +322,31 @@ module LegendCardBox() // `make` me
 
 module BigCardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(size=[card_box_length, card_box_width, big_card_box_height], lid_on_length=true) {
+  MakeBoxWithSlidingLid(
+    size=[
+      card_box_width,
+      card_box_length,
+      big_card_box_height,
+    ],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
+  ) {
     cube([$inner_width, $inner_length, $inner_height + default_lid_thickness]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
-      FingerHoleBase(radius=15, height=big_card_box_height);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=15, height=big_card_box_height, spin=90);
   }
+}
+
+module BigCardBoxLid() // `make` me
+{
+  SlidingBoxLidWithLabel(
+    size=[
+      card_box_width,
+      card_box_length,
+      big_card_box_height,
+    ],
+    text_str="Biome",
+  );
 }
 
 module LegendCardBoxLid() // `make` me

@@ -626,15 +626,36 @@ module FactionSkillTiles() {
 
 module CardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(size=[card_box_width, card_box_length, card_box_height], lid_on_length=true) {
-    cube([card_length + 2, $inner_length, card_box_height]);
-    translate([0, $inner_length / 2, -default_lid_thickness - 0.01]) color(default_material_colour)
-        FingerHoleBase(radius=20, height=card_box_height);
-    translate([$inner_width - ($inner_width - card_length - 2) / 2, $inner_length / 2, $inner_height - 1])
-      color(default_material_colour) linear_extrude(card_box_height) rotate(270)
-            text("NavoriA", size=13, font="Marker Felt:style=Regular", valign="center", halign="center");
-    translate([$inner_width - ($inner_width - card_length - 2) / 2 + 11, $inner_length / 2, $inner_height - 1])
-      color(default_material_colour) linear_extrude(card_box_height) rotate(270) text(
+  MakeBoxWithSlidingLid(
+    size=[
+      card_box_length,
+      card_box_width,
+      card_box_height,
+    ],
+    anchor=BACK + BOTTOM + LEFT,
+    spin=90,
+  ) {
+    cube([$inner_width, card_length + 2, card_box_height]);
+    translate([$inner_width / 2, 0, -default_lid_thickness - 0.01]) color(default_material_colour)
+        FingerHoleBase(radius=20, height=card_box_height, spin=90);
+    translate(
+      [
+        $inner_width / 2,
+        $inner_length - ($inner_length - card_length - 2) / 2,
+        $inner_height - 1,
+      ]
+    )
+      color(default_material_colour) linear_extrude(card_box_height)
+          rotate(0)
+            text("Navoria", size=13, font="Marker Felt:style=Regular", valign="center", halign="center");
+    translate(
+      [
+        $inner_width / 2,
+        $inner_length - ($inner_length - card_length - 2) / 2 + 11,
+        $inner_height - 1,
+      ]
+    )
+      color(default_material_colour) linear_extrude(card_box_height) rotate(0) text(
               "Explorers of", size=5, font="Marker Felt:style=Regular", valign="center", halign="center"
             );
   }
@@ -647,7 +668,13 @@ module CardBoxLid() // `make` me
 
 module BitsBox() // `make` me
 {
-  MakeBoxWithSlidingLid(size=[bits_box_width, bits_box_length, bits_box_height], lid_on_length=true) {
+  MakeBoxWithCapLid(
+    size=[
+      bits_box_width,
+      bits_box_length,
+      bits_box_height,
+    ],
+  ) {
     PlayerOverlay(bits_box_height);
     translate([start_order_oval_width, 0, $inner_height - token_thickness - 1]) rotate([0, 0, 90])
         StartOvalFrom(100);
@@ -757,5 +784,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  BitsBox();
 }

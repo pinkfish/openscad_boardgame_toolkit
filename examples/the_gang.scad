@@ -98,11 +98,11 @@ module TokenInner(num_stars) {
       }
   }
   color("yellow")
-  difference() {
-    cyl(d=token_diametter, h=token_thickness, anchor=BOTTOM);
-    InnerBits(num_stars=num_stars);
-    translate([0, 0, token_thickness - 0.2]) InnerBits(num_stars=num_stars);
-  }
+    difference() {
+      cyl(d=token_diametter, h=token_thickness, anchor=BOTTOM);
+      InnerBits(num_stars=num_stars);
+      translate([0, 0, token_thickness - 0.2]) InnerBits(num_stars=num_stars);
+    }
   color("black") {
     InnerBits(num_stars=num_stars);
     translate([0, 0, token_thickness - 0.2]) InnerBits(num_stars=num_stars);
@@ -143,14 +143,21 @@ module MainDeckCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     size=[card_box_width, card_box_length, main_deck_box_height],
-    lid_on_length=true
+    spin=90,
+    anchor=BOTTOM + LEFT + BACK
   ) {
-    translate([card_length / 2, $inner_length / 2, 0])
-      cuboid([card_length, card_width, main_deck_box_height], anchor=BOTTOM);
     translate(
-      [0, $inner_length / 2, $inner_height - main_deck_box_height]
+      [
+        $inner_width / 2,
+        card_length / 2,
+        0,
+      ]
     )
-      FingerHoleBase(radius=15, height=main_deck_box_height, spin=270);
+      cuboid([card_width, card_length, main_deck_box_height], anchor=BOTTOM);
+    translate(
+      [$inner_width / 2, 0, $inner_height - main_deck_box_height]
+    )
+      FingerHoleBase(radius=15, height=main_deck_box_height, spin=0);
   }
 }
 

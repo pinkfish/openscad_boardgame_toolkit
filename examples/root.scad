@@ -836,8 +836,13 @@ module RiverfolkBoxTop() // `make` me
   }
 
   MakeBoxWithSlidingLid(
-    size=[riverfolk_box_top_width, riverfolk_box_length, riverfolk_box_top_height], lid_thickness=sliding_lid_thickness,
-    lid_on_length=true, material_colour="lightblue",
+    size=[
+      riverfolk_box_top_width,
+      riverfolk_box_length,
+      riverfolk_box_top_height,
+    ],
+    lid_thickness=sliding_lid_thickness,
+    material_colour="lightblue",
     positive_only_children=default_label_type == LABEL_TYPE_FRAMED_SOLID ? [1] : []
   ) {
     InnerPieces(false);
@@ -851,7 +856,8 @@ module RiverfolkBoxTopLid() // `make` me
 {
   SlidingLidWithEyes(
     size=[riverfolk_box_top_width, riverfolk_box_length, riverfolk_box_top_height],
-    lid_thickness=sliding_lid_thickness, material_colour="lightblue"
+    lid_thickness=sliding_lid_thickness,
+    material_colour="lightblue"
   ) {
     color("black") linear_extrude(height=default_lid_thickness) scale(2.2) RiverfolkEyes2d();
   }
@@ -1507,5 +1513,5 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutD();
+  RiverfolkBoxTop();
 }

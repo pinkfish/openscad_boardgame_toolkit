@@ -328,13 +328,14 @@ module PlayerBoards() {
 module PlayerBox(colour = "yellow") // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[player_box_width, player_box_length, player_box_height],
-    lid_on_length=true,
+    size=[player_box_length, player_box_width, player_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour=colour
   ) {
     card_diff = 1 + single_card_thickness * 6;
     translate([0, 0, $inner_height - card_diff])
-      cube([card_length, card_width, player_box_height]);
+      cube([card_width, card_length, player_box_height]);
     translate([train_length / 2 + 25, train_width / 2 + 7, $inner_height - meeple_thickness - 0.5 - card_diff])
       linear_extrude(h=player_box_height)
         TrainToken();
@@ -343,7 +344,7 @@ module PlayerBox(colour = "yellow") // `make` me
         linear_extrude(h=player_box_height)
           MeepleToken();
     translate([5, 2.5, $inner_height - card_diff - meeple_thickness / 2])
-      RoundedBoxAllSides([card_length - 10, card_width - 5, player_box_height], radius=5);
+      RoundedBoxAllSides([card_width - 10, card_length - 5, player_box_height], radius=5);
     translate([$inner_width - 7, $inner_length / 2, $inner_height - player_cube - 0.5]) {
       cuboid([player_cube * 2, player_cube * 3, player_box_height], anchor=BOTTOM + RIGHT);
     }
@@ -356,8 +357,9 @@ module PlayerBox(colour = "yellow") // `make` me
 module MoneyBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[player_box_width, player_box_length, player_box_height],
-    lid_on_length=true,
+    size=[player_box_length, player_box_width, player_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="LightGrey"
   ) {
     RoundedBoxAllSides([$inner_width, $inner_length, player_box_height], radius=5);
@@ -367,8 +369,9 @@ module MoneyBox() // `make` me
 module EvidenceBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[player_box_width, player_box_length, player_box_height],
-    lid_on_length=true,
+    size=[player_box_length, player_box_width, player_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
     material_colour="LightSalmon"
   ) {
     RoundedBoxAllSides([$inner_width, $inner_length, player_box_height], radius=5);
@@ -472,17 +475,17 @@ module LocomotiveCardBox() // `make` me
 
 module PlayerBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Player", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_length, player_box_width], text_str="Player");
 }
 
 module MoneyBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Money", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_length, player_box_width], text_str="Money");
 }
 
 module EvidenceBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[player_box_width, player_box_length, player_box_height], text_str="Evidence", lid_on_length=true);
+  SlidingBoxLidWithLabel(size=[player_box_length, player_box_width], text_str="Evidence");
 }
 
 module ModuleCardBoxLid() // `make` me

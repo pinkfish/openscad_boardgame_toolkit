@@ -649,16 +649,17 @@ module StuffBoxLid() // `make` me
 module CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true
+    size=[card_box_length, card_box_width, card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    cube([card_length + 2, $inner_length, card_box_height]);
-    translate([0, $inner_length / 2, -default_lid_thickness - 0.01]) color(default_material_colour)
+    cube([$inner_width, $inner_length, card_box_height]);
+    translate([$inner_width / 2, 0, -default_lid_thickness - 0.01]) color(default_material_colour)
         FingerHoleBase(radius=20, height=card_box_height);
-    translate([$inner_width - ($inner_width - card_length - 2) / 2, $inner_length / 2, $inner_height - 1])
+    translate([$inner_width - ($inner_width - card_width - 2) / 2, $inner_length / 2, $inner_height - 1])
       color(default_material_colour) linear_extrude(card_box_height) rotate(270)
             text("NavoriA", size=13, font="Marker Felt:style=Regular", valign="center", halign="center");
-    translate([$inner_width - ($inner_width - card_length - 2) / 2 + 11, $inner_length / 2, $inner_height - 1])
+    translate([$inner_width - ($inner_width - card_width - 2) / 2 + 11, $inner_length / 2, $inner_height - 1])
       color(default_material_colour) linear_extrude(card_box_height) rotate(270) text(
               "Explorers of", size=5, font="Marker Felt:style=Regular", valign="center", halign="center"
             );
@@ -668,10 +669,9 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height],
+    size=[card_box_length, card_box_width, card_box_height],
     text_str="Cards",
-    label_options=MakeLabelOptions(label_colour="black"),
-    lid_on_length=true
+    label_options=MakeLabelOptions(label_colour="black")
   );
 }
 

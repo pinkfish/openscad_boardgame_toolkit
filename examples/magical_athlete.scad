@@ -359,13 +359,13 @@ module GoldMedal(index) {
 module CardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true, material_colour="fuchsia"
+    size=[card_box_length, card_box_width, card_box_height],
+    spin=90, anchor=BACK + BOTTOM + LEFT, material_colour="fuchsia"
   ) {
-    cube([card_length, card_width, box_height]);
-    translate([0, $inner_length / 2, -2]) FingerHoleBase(
+    cube([card_width, card_length, box_height]);
+    translate([$inner_width / 2, 0, -2]) FingerHoleBase(
         radius=17, height=card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
   }
 }
@@ -373,8 +373,8 @@ module CardBox() // `make` me
 module CardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true, text_str="Athletes"
+    size=[card_box_length, card_box_width],
+    text_str="Athletes"
   );
 }
 

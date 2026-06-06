@@ -567,17 +567,17 @@ module CapBoxLidWithEyes(
     lid_thickness=lid_thickness, size_spacing=m_piece_wiggle_room, material_colour=material_colour
   ) {
     LidMeshBasic(
-        size=size, lid_thickness=default_lid_thickness, boundary=10,
-        layout_width=default_lid_layout_width, aspect_ratio=default_lid_aspect_ratio,
-        material_colour=material_colour
-      ) {
-        color(material_colour) ShapeByType(
-            options=MakeShapeObject(
-              shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-              shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
-            )
-          );
-      }
+      size=size, lid_thickness=default_lid_thickness, boundary=10,
+      layout_width=default_lid_layout_width, aspect_ratio=default_lid_aspect_ratio,
+      material_colour=material_colour
+    ) {
+      color(material_colour) ShapeByType(
+          options=MakeShapeObject(
+            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+          )
+        );
+    }
     translate([size.x / 2, size.y / 2, 0]) children();
   }
 }
@@ -590,20 +590,21 @@ module SlidingLidWithEyes(
 ) {
   SlidingLid(
     size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
-    size_spacing=m_piece_wiggle_room, lid_on_length=true, material_colour=material_colour
+    size_spacing=m_piece_wiggle_room,
+    material_colour=material_colour
   ) {
     LidMeshBasic(
-        size=size, lid_thickness=default_lid_thickness, boundary=10,
-        layout_width=default_lid_layout_width, aspect_ratio=default_lid_aspect_ratio,
-        material_colour=material_colour
-      ) {
-        color(material_colour) ShapeByType(
-            options=MakeShapeObject(
-              shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
-              shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
-            )
-          );
-      }
+      size=size, lid_thickness=default_lid_thickness, boundary=10,
+      layout_width=default_lid_layout_width, aspect_ratio=default_lid_aspect_ratio,
+      material_colour=material_colour
+    ) {
+      color(material_colour) ShapeByType(
+          options=MakeShapeObject(
+            shape_type=default_lid_shape_type, shape_width=default_lid_shape_width,
+            shape_thickness=default_lid_shape_thickness, shape_aspect_ratio=default_lid_aspect_ratio
+          )
+        );
+    }
 
     // Fingernail pull
     intersection() {

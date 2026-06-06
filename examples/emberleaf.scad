@@ -317,60 +317,63 @@ module MaterialStoneBoxLid() // `make` me
 module CardBoxHero() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true
+    size=[card_box_length, card_box_width, card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     translate([0, 0, 0])
-      cube([card_length + 1, card_width + 1, card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
-      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+      cube([card_width + 1, card_length + 1, card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=0);
   }
 }
 
 module CardBoxFavor() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true
+    size=[card_box_length, card_box_width, card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     translate([0, 0, $inner_height - single_card_thickness * 88 + 2])
-      cube([card_length + 1, card_width + 1, card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
-      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+      cube([card_width + 1, card_length + 1, card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=0);
   }
 }
 
 module CardBoxSolo() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, card_box_height],
-    lid_on_length=true
+    size=[card_box_length, card_box_width, card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     translate([0, 0, 0])
-      cube([card_length + 1, card_width + 1, card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.02])
-      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+      cube([card_width + 1, card_length + 1, card_box_height]);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.02])
+      FingerHoleBase(radius=20, height=card_box_height, spin=0);
   }
 }
 
 module CardBoxSoloLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height], text_str="Solo", lid_on_length=true
+    size=[card_box_length, card_box_width], text_str="Solo"
   );
 }
 
 module CardBoxFavorLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height], text_str="Favors", lid_on_length=true
+    size=[card_box_length, card_box_width], text_str="Favors"
   );
 }
 
 module CardBoxHerosLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[card_box_width, card_box_length, card_box_height], text_str="Heros", lid_on_length=true
+    size=[card_box_length, card_box_width], text_str="Heros"
   );
 }
 

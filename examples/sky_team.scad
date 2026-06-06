@@ -230,9 +230,11 @@ module BasePiecesLid() // `make` me
 module ApproachTracks() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[approach_track_box_width,
-    appraoch_track_box_length,
-    approach_track_box_height]
+    size=[
+      approach_track_box_width,
+      appraoch_track_box_length,
+      approach_track_box_height,
+    ]
   ) {
     translate([0, 0, $inner_height - approach_track_thickness_8 - 0.5])
       cube([approach_track_width + 1, approach_track_length_8, approach_track_thickness_8 + 1]);
@@ -299,18 +301,30 @@ module ButtonsBoxTripple() // `make` me
 
 module CardBox() // `make` me
 {
-  MakeBoxWithSlidingLid(size=[card_box_width,
-    card_box_length,
-    card_box_height], lid_on_length=true) {
+  MakeBoxWithSlidingLid(
+    size=[
+      card_box_length,
+      card_box_width,
+      card_box_height,
+    ],
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
+  ) {
     cube([$inner_width, $inner_length, card_box_height]);
-    translate([0, $inner_length / 2, -default_floor_thickness - default_lid_thickness + 0.01])
-      FingerHoleBase(radius=20, height=card_box_height, spin=270);
+    translate([$inner_width / 2, 0, -default_floor_thickness - default_lid_thickness + 0.01])
+      FingerHoleBase(radius=20, height=card_box_height, spin=0);
   }
 }
 
 module CardsBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, card_box_height], text_str="Sky Team", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[
+      card_box_length,
+      card_box_width,
+      card_box_height,
+    ], text_str="Sky Team"
+  );
 }
 
 module SpacerBox() // `make` me
