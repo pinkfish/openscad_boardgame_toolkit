@@ -48,21 +48,24 @@ function HingeOptions(
     pin_slop=pin_slop
   );
 
-// Module: MakeBoxWithFilamentHinge()
+// Module: MakeBoxWithFilamentHingeLid()
 // Description:
 //   Makes a box with a filament hinge on the top.  The hole for the filement is
 //   specified as a an argument to the system.
-// Usage: MakeBoxWithFilamentHinge(size=[100, 50, 20]);
+// Usage: MakeBoxWithFilamentHingeLid(size=[100, 50, 20]);
 // Topics: Hinges, FilamentHingeBox
 // Arguments:
-//   size = outside size of the box [width, length, height]
-//   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
-//   floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//   lid_thickness = thickness of the lid (default {{default_lid_thickness}})
-//   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   filament_thickness = the thickness of the filement in hinger (default 2.2)
+//    size = outside size of the box [width, length, height]
+//    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
+//    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
+//    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
+//    material_colour = the colour of the material in the box (default {{default_material_colour}})
+//    filament_thickness = the thickness of the filement in hinger (default 2.2)
+//    spin = the spin to spin the box by (default 0)
+//    anchor = the anchor to use (default BOTTOM + FRONT + LEFT)
+//    orient = the orientation to use (default UP)
 // Examples:
-//   MakeBoxWithFilamentHinge(size=[100, 50, 20]);
+//    MakeBoxWithFilamentHingeLid(size=[100, 50, 20]);
 module MakeBoxWithFilamentHingeLid(
   size,
   wall_thickness = default_wall_thickness,

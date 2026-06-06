@@ -46,7 +46,7 @@
 //   wall_thickness = thickness of the walls (default default_wall_thickness)
 // Topics: Recess
 // Example:
-//   HexBoxDivisions(30, num_sides=6, height=10, divisions=2);
+//   HexBoxDivisions(width=100, num_sides=6, height=10, divisions=2);
 module HexBoxDivisions(
   width,
   height,
@@ -908,7 +908,9 @@ MAGNET_SLOT_TYPE_RECT = 2;
 //   slot_offsets = offsets for the slot, how much space to put around the slot for the magnet
 //   height_of_slot = height of the slot
 // Example:
-//   MagnetSlot(size = [10, 10, 2], magnet_type = MAGNET_TYPE_ROUND);
+//   MagnetSlot(size = [10, 10, 2], magnet_type = MAGNET_SLOT_TYPE_ROUND);
+// Example:
+//   MagnetSlot(size = [10, 10, 2], magnet_type = MAGNET_SLOT_TYPE_RECT);
 module MagnetSlot(size, magnet_type, spin = 0, orient = UP, anchor = CENTER) {
   assert(magnet_type == MAGNET_SLOT_TYPE_ROUND || magnet_type == MAGNET_SLOT_TYPE_RECT, str("Invalid magnet type, magnet_type=", magnet_type));
   assert(len(size) == 3 && size[0] > 0 && size[1] > 0 && size[2] > 0, str("Invalid magnet size, size=", size));

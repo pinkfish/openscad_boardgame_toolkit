@@ -221,9 +221,9 @@ SHAPE_TYPE_DELTOID_TRIHEXAGONAL = 32;
 // Description:
 //   Make a shape that is a deltoid trihexagon with kiting.
 SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE = 33;
-// Constant: SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE
+// Constant: SHAPE_TYPE_HALF_REGULAR_HEXAGON
 // Description:
-//   Make a shape that is a half regular hexagon.
+//   Make a shap0e that is a regular hexagon.
 SHAPE_TYPE_HALF_REGULAR_HEXAGON = 34;
 // Constant: SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL
 // Description:
@@ -289,7 +289,7 @@ LABEL_TYPE_FRAMELESS_ANGLE = 4;
 // Description:
 //   The label across the lid on the long lenfth.
 LABEL_TYPE_FRAMELESS = 5;
-// Constant: LABEL_TYPE_FRAMELESS
+// Constant: LABEL_TYPE_FRAMELESS_SHORT
 // Description:
 //   The label across the lid on the short length.
 LABEL_TYPE_FRAMELESS_SHORT = 6;

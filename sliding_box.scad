@@ -43,7 +43,6 @@ under the License.
 //   wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //   size_spacing = how much of an offset to use in generate the slides spacing (default {{m_piece_wiggle_room}})
 //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-//   lid_on_length = lid along the length of the box (default false)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
 //   lid_chamfer = how much to chamfer the lid
 // Topics: SlidingBox, SlidingLid
@@ -52,7 +51,7 @@ under the License.
 //     translate([ 10, 10, 0 ])
 //       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
 // Example:
-//   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2, lid_on_length = true)
+//   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2)
 //     translate([ 10, 10, 0 ])
 //       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
 module SlidingLid(
@@ -62,7 +61,6 @@ module SlidingLid(
   size_spacing = m_piece_wiggle_room,
   lid_rounding = undef,
   lid_chamfer = undef,
-  lid_on_length = false,
   material_colour = default_material_colour
 ) {
   assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
@@ -73,218 +71,129 @@ module SlidingLid(
   calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
   calc_lid_rounding = DefaultValue(lid_rounding, calc_wall_thickness / 2);
   calc_lid_chamfer = DefaultValue(lid_chamfer, calc_wall_thickness / 6);
-  if (lid_on_length) {
-    translate([0, length, 0]) rotate([0, 0, 270])
-        SlidingLid(
-          size=[length, width], lid_thickness=calc_lid_thickness, wall_thickness=calc_wall_thickness,
-          size_spacing=size_spacing, lid_rounding=calc_lid_rounding, lid_chamfer=calc_lid_chamfer,
-          lid_on_length=false, material_colour=material_colour
-        ) {
-          if ($children > 0) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(0);
-              }
-          }
-          if ($children > 1) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(1);
-              }
-          }
-          if ($children > 2) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(2);
-              }
-          }
-          if ($children > 3) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(3);
-              }
-          }
-          if ($children > 4) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(4);
-              }
-          }
-          if ($children > 5) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(5);
-              }
-          }
-          if ($children > 6) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(6);
-              }
-          }
-          if ($children > 7) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(7);
-              }
-          }
-          if ($children > 8) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(8);
-              }
-          }
-          if ($children > 9) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(9);
-              }
-          }
-          if ($children > 10) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(10);
-              }
-          }
-          if ($children > 11) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(11);
-              }
-          }
-          if ($children > 12) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(12);
-              }
-          }
-          if ($children > 13) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(13);
-              }
-          }
-          if ($children > 14) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(14);
-              }
-          }
-          if ($children > 15) {
-            translate([length - calc_wall_thickness / 2, -calc_wall_thickness / 2, 0]) rotate([0, 0, -270]) {
-                children(15);
-              }
-          }
-        }
-  } else {
-    internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
-      difference() {
-        // Lip and raised bit
-        union() {
-          difference() {
-            lid_width = width - 2 * (calc_wall_thickness + size_spacing);
-            lid_length = length - calc_wall_thickness;
-            translate([calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0])
-              color(material_colour)
-                diff()
-                  cuboid(
-                    [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-                    rounding=calc_lid_rounding,
-                    edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-                  ) edge_mask(TOP + BACK) rounding_edge_mask(r=calc_lid_rounding / 2, l=lid_width);
-            // Top edge easing.
-            translate(
-              [
-                calc_wall_thickness / 2 - size_spacing,
-                calc_wall_thickness / 2 - size_spacing,
-                calc_lid_thickness / 2 - size_spacing,
-              ]
-            ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
+
+  internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
+    difference() {
+      // Lip and raised bit
+      union() {
+        difference() {
+          lid_width = width - 2 * (calc_wall_thickness + size_spacing);
+          lid_length = length - calc_wall_thickness;
+          translate([calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0])
+            color(material_colour)
+              diff()
+                cuboid(
+                  [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
+                  rounding=calc_lid_rounding,
+                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+                ) edge_mask(TOP + BACK) rounding_edge_mask(r=calc_lid_rounding / 2, l=lid_width);
+          // Top edge easing.
+          translate(
+            [
+              calc_wall_thickness / 2 - size_spacing,
+              calc_wall_thickness / 2 - size_spacing,
+              calc_lid_thickness / 2 - size_spacing,
+            ]
+          ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
+                right_triangle([size_spacing * 4, 15]);
+          translate(
+            [
+              width - calc_wall_thickness * 2 + size_spacing * 7.5,
+              calc_wall_thickness / 2 - size_spacing,
+              calc_lid_thickness / 2 - size_spacing,
+            ]
+          ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
                   right_triangle([size_spacing * 4, 15]);
-            translate(
-              [
-                width - calc_wall_thickness * 2 + size_spacing * 7.5,
-                calc_wall_thickness / 2 - size_spacing,
-                calc_lid_thickness / 2 - size_spacing,
-              ]
-            ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
-                    right_triangle([size_spacing * 4, 15]);
-          }
-          // bottom layer.
-          difference() {
-            translate([0, 0, 0]) color(material_colour) cuboid(
-                  [
-                    width - calc_wall_thickness - size_spacing * 2,
-                    length - calc_wall_thickness / 2,
-                    calc_lid_thickness / 2 - size_spacing,
-                  ],
-                  anchor=BOTTOM + FRONT + LEFT, chamfer=calc_lid_chamfer,
-                  edges=[TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT]
-                );
-
-            translate([0, 0, calc_lid_thickness / 2 - 0.25]) rotate([0, 45, 0])
-                translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2])
-                  color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
-                      right_triangle([calc_wall_thickness / 2, 15]);
-
-            translate([0, -calc_wall_thickness / 2, calc_wall_thickness - 0.35]) translate(
-                [
-                  width - calc_wall_thickness - size_spacing / 1.1,
-                  -size_spacing,
-                  -calc_lid_thickness / 2,
-                ]
-              ) rotate([0, -45, 0]) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
-                      xflip() right_triangle([calc_wall_thickness / 2, 15]);
-          }
         }
+        // bottom layer.
+        difference() {
+          translate([0, 0, 0]) color(material_colour) cuboid(
+                [
+                  width - calc_wall_thickness - size_spacing * 2,
+                  length - calc_wall_thickness / 2,
+                  calc_lid_thickness / 2 - size_spacing,
+                ],
+                anchor=BOTTOM + FRONT + LEFT, chamfer=calc_lid_chamfer,
+                edges=[TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT]
+              );
 
-        // Edge easing.
-        translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2]) color(material_colour)
-            linear_extrude(height=calc_lid_thickness + 10) right_triangle([calc_wall_thickness / 2, 15]);
-        translate([width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2])
-          color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
-                right_triangle([calc_wall_thickness / 2, 15]);
+          translate([0, 0, calc_lid_thickness / 2 - 0.25]) rotate([0, 45, 0])
+              translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2])
+                color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
+                    right_triangle([calc_wall_thickness / 2, 15]);
+
+          translate([0, -calc_wall_thickness / 2, calc_wall_thickness - 0.35]) translate(
+              [
+                width - calc_wall_thickness - size_spacing / 1.1,
+                -size_spacing,
+                -calc_lid_thickness / 2,
+              ]
+            ) rotate([0, -45, 0]) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
+                    xflip() right_triangle([calc_wall_thickness / 2, 15]);
+        }
       }
 
-      $inner_width = width - (lid_on_length ? calc_wall_thickness / 2 : calc_wall_thickness);
-      $inner_length = length - (lid_on_length ? calc_wall_thickness : calc_wall_thickness / 2);
+      // Edge easing.
+      translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2]) color(material_colour)
+          linear_extrude(height=calc_lid_thickness + 10) right_triangle([calc_wall_thickness / 2, 15]);
+      translate([width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2])
+        color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
+              right_triangle([calc_wall_thickness / 2, 15]);
+    }
 
-      if ($children > 0) {
-        children(0);
-      }
-      if ($children > 1) {
-        children(1);
-      }
-      if ($children > 2) {
-        children(2);
-      }
-      if ($children > 3) {
-        children(3);
-      }
-      if ($children > 4) {
-        children(4);
-      }
-      if ($children > 5) {
-        children(5);
-      }
-      if ($children > 6) {
-        children(6);
-      }
-      if ($children > 7) {
-        children(7);
-      }
-      if ($children > 8) {
-        children(8);
-      }
-      if ($children > 9) {
-        children(9);
-      }
-      if ($children > 10) {
-        children(10);
-      }
-      if ($children > 11) {
-        children(11);
-      }
-      if ($children > 12) {
-        children(12);
-      }
-      if ($children > 13) {
-        children(13);
-      }
-      if ($children > 14) {
-        children(14);
-      }
-      if ($children > 15) {
-        children(15);
-      }
-      if ($children > 16) {
-        children(16);
-      }
+    $inner_width = width - calc_wall_thickness;
+    $inner_length = length - calc_wall_thickness / 2;
+
+    if ($children > 0) {
+      children(0);
+    }
+    if ($children > 1) {
+      children(1);
+    }
+    if ($children > 2) {
+      children(2);
+    }
+    if ($children > 3) {
+      children(3);
+    }
+    if ($children > 4) {
+      children(4);
+    }
+    if ($children > 5) {
+      children(5);
+    }
+    if ($children > 6) {
+      children(6);
+    }
+    if ($children > 7) {
+      children(7);
+    }
+    if ($children > 8) {
+      children(8);
+    }
+    if ($children > 9) {
+      children(9);
+    }
+    if ($children > 10) {
+      children(10);
+    }
+    if ($children > 11) {
+      children(11);
+    }
+    if ($children > 12) {
+      children(12);
+    }
+    if ($children > 13) {
+      children(13);
+    }
+    if ($children > 14) {
+      children(14);
+    }
+    if ($children > 15) {
+      children(15);
+    }
+    if ($children > 16) {
+      children(16);
     }
   }
 }
@@ -305,7 +214,6 @@ module SlidingLid(
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
-//    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    lid_chamfer = how much to chamfer the lid
 //    pattern_inner_control = if the shape needs inner control (default false)
@@ -326,7 +234,6 @@ module SlidingBoxLidWithCustomShape(
   lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
-  lid_on_length = false,
   material_colour = default_material_colour,
   pattern_inner_control = false,
 ) {
@@ -339,13 +246,13 @@ module SlidingBoxLidWithCustomShape(
   SlidingLid(
     size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
-    lid_on_length=lid_on_length, material_colour=material_colour
+    material_colour=material_colour
   ) {
     union() {
       LidMeshBasic(
         size=[
-          width - (lid_on_length ? calc_wall_thickness / 2 : calc_wall_thickness),
-          length - (lid_on_length ? calc_wall_thickness : calc_wall_thickness / 2),
+          width - calc_wall_thickness,
+          length - calc_wall_thickness / 2,
         ],
         lid_thickness=lid_thickness, boundary=lid_boundary,
         layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
@@ -366,18 +273,10 @@ module SlidingBoxLidWithCustomShape(
     }
 
     // Fingernail pull
-    if (lid_on_length) {
-      intersection() {
-        color(material_colour) cube([width - calc_wall_thickness, length - calc_wall_thickness, lid_thickness]);
-        translate([width - calc_wall_thickness - 3, length / 2 - calc_wall_thickness / 2, 0]) rotate(270)
-            SlidingLidFingernail(calc_lid_thickness, material_colour=material_colour);
-      }
-    } else {
-      intersection() {
-        color(material_colour) cube([width - calc_wall_thickness, length - calc_wall_thickness, lid_thickness]);
-        translate([(width) / 2 - calc_wall_thickness / 2, length - calc_wall_thickness - 3, 0])
-          SlidingLidFingernail(calc_lid_thickness, material_colour=material_colour);
-      }
+    intersection() {
+      color(material_colour) cube([width - calc_wall_thickness, length - calc_wall_thickness, lid_thickness]);
+      translate([(width) / 2 - calc_wall_thickness / 2, length - calc_wall_thickness - 3, 0])
+        SlidingLidFingernail(calc_lid_thickness, material_colour=material_colour);
     }
 
     if ($children > 2) {
@@ -434,7 +333,6 @@ module SlidingBoxLidWithCustomShape(
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
-//    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
 //    lid_chamfer = how much to chamfer the lid
@@ -458,7 +356,6 @@ module SlidingBoxLidWithLabelAndCustomShape(
   lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
-  lid_on_length = false,
   material_colour = default_material_colour,
   pattern_inner_control = false,
   label_options = undef
@@ -487,7 +384,7 @@ module SlidingBoxLidWithLabelAndCustomShape(
   SlidingBoxLidWithCustomShape(
     size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
     lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
-    lid_on_length=lid_on_length, material_colour=material_colour,
+    material_colour=material_colour,
     lid_boundary=lid_boundary,
     layout_width=layout_width,
     aspect_ratio=aspect_ratio,
@@ -557,7 +454,6 @@ module SlidingBoxLidWithLabelAndCustomShape(
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    size_spacing = how much of an offset to use in generate the slides spacing (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-//    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
 //    shape_options = options for the shape (default undef)
@@ -577,7 +473,6 @@ module SlidingBoxLidWithLabel(
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
   lid_rounding = undef,
-  lid_on_length = false,
   material_colour = default_material_colour,
   label_options = undef,
   shape_options = undef
@@ -612,7 +507,7 @@ module SlidingBoxLidWithLabel(
     lid_boundary=lid_boundary,
     lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
     lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-    lid_on_length=lid_on_length, material_colour=material_colour,
+    material_colour=material_colour,
     pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
     label_options=calc_label_options
   ) {
@@ -668,7 +563,6 @@ module SlidingBoxLidWithLabel(
 //    aspect_ratio = the aspect ratio (multiple by dy) (default {{default_lid_aspect_ratio}})
 //    size_spacing = how much of an offset to use in generate the slides spacing (default {{m_piece_wiggle_room}})
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
-//    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    shape_options = options for the shape (default undef)
 //    lid_chamfer = how much to chamfer the lid
@@ -686,7 +580,6 @@ module SlidingBoxLidWithShape(
   size_spacing = m_piece_wiggle_room,
   lid_chamfer = undef,
   lid_rounding = undef,
-  lid_on_length = false,
   material_colour = default_material_colour,
   shape_options = undef
 ) {
@@ -712,7 +605,7 @@ module SlidingBoxLidWithShape(
     lid_boundary=lid_boundary,
     lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
     lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-    lid_on_length=lid_on_length, material_colour=material_colour,
+    material_colour=material_colour,
     pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
@@ -770,12 +663,14 @@ module SlidingBoxLidWithShape(
 //    lid_thickness = thickness of the lid (default {{default_lid_thickness}})
 //    wall_thickness = thickness of the walls (default {{default_wall_thickness}})
 //    floor_thickness = thickness of the floor (default {{default_floor_thickness}})
-//    lid_on_length = lid along the length of the box (default false)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    positive_only_children = the list of children to be positive only
 //    positive_negative_children = the list of children to be positive and negative
 //    positive_colour = colour of the postive pieces {{default_positive_colour}}
 //    size_spacing = amount of wiggle room between pieces (default {{m_piece_wiggle_room}})
+//    spin = the spin to spin the box by (default 0)
+//    anchor = the anchor to use (default BOTTOM + FRONT + LEFT)
+//    orient = the orientation to use (default UP)
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid([50, 100, 20]);
@@ -785,7 +680,6 @@ module MakeBoxWithSlidingLid(
   lid_thickness = default_lid_thickness,
   floor_thickness = default_floor_thickness,
   size_spacing = m_piece_wiggle_room,
-  lid_on_length = false,
   material_colour = default_material_colour,
   positive_colour = default_positive_colour,
   positive_only_children = [],

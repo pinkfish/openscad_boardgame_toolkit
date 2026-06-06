@@ -18,9 +18,20 @@ under the License.
 include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
+// LibFile: card_library.scad
+//    A special card library box for card heavy games.
+//
+
+// Includes:
+//   include <boardgame_toolkit.scad>
+
+// FileSummary: A special card library box for card heavy games.
+// FileGroup: CardLibrary
+
 // Function: MakeCardSize()
 // Description:
 //   Creates a card size object.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   width = width of the cards
 //   length = length of the cards
@@ -33,6 +44,7 @@ function MakeCardSize(width, length, single_card_thickness, sleeve_wall_thicknes
 // Function: sumVec()
 // Description:
 //   Sums all the vectors together to get a final result.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   vec = the vector to sum
 //   index = the current index (default 0)
@@ -47,6 +59,7 @@ function sumVec(vec, index = 0, sum = 0) =
 // Function: TotalCards()
 // Description:
 //   Calculates the total number of cards, whether it is a single number or an array.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   num_cards = number of cards or array of number of cards
 // Example:
@@ -62,6 +75,7 @@ function sumCardsTo(cards, end_index, current_index = 0, sum = 0) =
   : sumCardsTo(cards, end_index, current_index + 1, sum + cards[current_index]);
 
 // Function: InternalBarriers()
+// Topics: Hinges, CardLibrary
 // Description:
 //   Calculates the number of internal barriers needed for an array of cards.
 // Arguments:
@@ -71,6 +85,7 @@ function InternalBarriers(num_cards) = is_list(num_cards) && len(num_cards) > 0 
 // Function: SleeveSizeWidth()
 // Description:
 //   Calculates the width of a card sleeve.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   num_cards = number of cards in the sleeve (can be an array of numbers)
 //   card_size = the card size object
@@ -82,6 +97,7 @@ function SleeveSizeWidth(num_cards, card_size, wall_thickness = default_wall_thi
 // Function: SleeveSize()
 // Description:
 //   Calculates the size of a card sleeve.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   num_cards = number of cards in the sleeve (can be an array of numbers)
 //   card_size = the card size object
@@ -98,6 +114,7 @@ function SleeveSize(num_cards, card_size, wall_thickness = default_wall_thicknes
 // Function: CardLibrarySize()
 // Description:
 //   Calculates the size of a card library box.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   array = array of card arrays
 //   card_size = the card size object
@@ -120,7 +137,7 @@ CARD_LIBRARY_LATCH_NONE = "none";
 // Module: MakeCardLibraryBox()
 // Description:
 //   Makes a card library box with the specified latch type.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   floor_thickness = thickness of the floor
@@ -372,7 +389,7 @@ module MakeCardLibraryBox(
 // Module: SlidingChannel()
 // Description:
 //   Creates a sliding channel for the card library latch.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   wall_thickness = thickness of the walls
@@ -409,7 +426,7 @@ module SlidingChannel(size, wall_thickness) {
 // Module: SlidingLatch()
 // Description:
 //   Creates a sliding latch for the card library box lid.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   print_in_place_offset = offset for print-in-place mechanisms
@@ -452,7 +469,7 @@ module SlidingLatch(size, print_in_place_offset, lid_thickness, wall_thickness) 
 // Module: CardLibraryBoxLid()
 // Description:
 //   Creates a basic lid for the card library box.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   wall_thickness = thickness of the walls
@@ -695,7 +712,7 @@ module CardLibraryBoxLid(
 // Module: CardLibraryBoxLidWithCustomShape()
 // Description:
 //   Creates a lid for the card library box configured for custom shapes.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   wall_thickness = thickness of the walls
@@ -780,7 +797,7 @@ module CardLibraryBoxLidWithCustomShape(
 // Module: CardLibraryBoxLidWithShape()
 // Description:
 //   Creates a lid for the card library box using standard shapes.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   wall_thickness = thickness of the walls
@@ -875,7 +892,7 @@ module CardLibraryBoxLidWithShape(
 // Module: CardLibraryBoxLidWithLabel()
 // Description:
 //   Creates a lid for a card library box with a shape pattern and a label.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   size = the size of the object [width, length, height]
 //   label = the string to use for the label
@@ -968,7 +985,7 @@ module CardLibraryBoxLidWithLabel(
 // Module: CardSleeveForLibrary()
 // Description:
 //   Creates a card sleeve configured for the library.
-// Topics: CardLibrary
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   card_size = the size of the card using the object
 //   wall_thickness = thickness of the walls
@@ -982,7 +999,7 @@ module CardLibraryBoxLidWithLabel(
 //   emboss_text = amount of text embossing
 //   text_length_offset = text offset along the length
 // Example:
-//   CardSleeveForLibrary([60, 90, 10]);
+//   CardSleeveForLibrary([60, 90, 10], MakeCardSize(width=90, length=72, single_card_thickness=0.1));
 module CardSleeveForLibrary(
   num_cards,
   card_size,
@@ -1124,12 +1141,28 @@ module CardSleeveForLibrary(
 // Module: MakeAllSleeves()
 // Description:
 //   Makes all the sleeves for a card array.
+// Topics: Hinges, CardLibrary
 // Arguments:
 //   card_array = array of card arrays (format ["card_name", card_count, "svg_filename"])
 //   spacing = spacing between sleeves (default 2)
 //   card_size = the card size object
 // Example:
-//   MakeAllSleeves(base_game_cards_v2, spacing = 2, MakeCardSize(63.5, 88, 0.3));
+//   core_player_cards = [
+//     ["Agnes Baker", 34, "per_investigator"],
+//     ["Roland Banks", 34, "per_investigator"],
+//     ["Daisy Walker", 34, "per_investigator"],
+//     ["Skids O'Toole", 34, "per_investigator"],
+//     ["Wendy Adams", 34, "per_investigator"],
+//     ["Level 0", 15, "s_level_0"],
+//     ["Guardian 1+", 12, "guardian"],
+//     ["Survivor 1+", 12, "survivor"],
+//     ["Rogue 1+", 12, "rogue"],
+//     ["Seeker 1+", 12, "seeker"],
+//     ["Mystic 1+", 12, "mystic"],
+//     ["Neutral 1+", 10, "neutral"],
+//     ["Weaknesses", 10, "weakness"],
+//   ];
+//   MakeAllSleeves(core_player_cards, spacing = 2, card_size=MakeCardSize(63.5, 88, 0.3));
 module MakeAllSleeves(
   card_array,
   spacing = 2,

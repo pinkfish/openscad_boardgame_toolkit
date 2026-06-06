@@ -358,36 +358,43 @@ module PlayerBox() // `make` me
 module DestinationCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height], lid_on_length=true,
+    size=[destination_card_box_length, destination_card_box_width, destination_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     cube([$inner_width, $inner_length, destination_card_box_height]);
-    translate([-0.1, destination_cards_width / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
-        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=270,
+    translate([destination_cards_width / 2, -0.1, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10, height=destination_card_box_height - default_lid_thickness + 0.02, spin=0,
       );
   }
 }
 module DestinationCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[destination_card_box_width, destination_card_box_length, destination_card_box_height], lid_on_length=true, text_str="Destination",
+    size=[destination_card_box_length, destination_card_box_width, destination_card_box_height], text_str="Destination",
   );
 }
 
 module FieldGuideCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height], lid_on_length=true,
+    size=[field_guide_card_box_length, field_guide_card_box_width, field_guide_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    cube([animal_cards_length + 1, $inner_length, field_guide_card_box_height]);
-    translate([-0.1, field_guide_card_box_length / 2, -default_floor_thickness - 0.01]) FingerHoleBase(
-        radius=10, height=field_guide_card_box_height - default_lid_thickness + 0.02, spin=270,
+    cube([$inner_width, animal_cards_length + 1, field_guide_card_box_height]);
+    translate([field_guide_card_box_length / 2, -0.1, -default_floor_thickness - 0.01]) FingerHoleBase(
+        radius=10,
+        height=field_guide_card_box_height - default_lid_thickness + 0.02,
+        spin=0,
       );
   }
 }
 module FieldGuideCardBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[field_guide_card_box_width, field_guide_card_box_length, field_guide_card_box_height], lid_on_length=true, text_str="Field Guide",
+    size=[field_guide_card_box_length, field_guide_card_box_width, field_guide_card_box_height],
+    text_str="Field Guide",
   );
 }
 
@@ -699,23 +706,25 @@ module PiecesBoxCards() // `make` me
 module TrailsCardsBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true,
+    size=[trails_card_box_length, trails_card_box_width, trails_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT,
   ) {
-    cube([backpack_cards_width + 1, $inner_length, trails_card_box_height]);
-    translate([$inner_width - backpack_cards_width - 1, 0, 0])
-      cube([backpack_cards_width, $inner_length, trails_card_box_height]);
-    translate([backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
-      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
-    translate([$inner_width - backpack_cards_width / 2, -0.1, -default_floor_thickness - 0.01])
-      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=0);
+    cube([$inner_width, backpack_cards_width + 1, trails_card_box_height]);
+    translate([0, $inner_length - backpack_cards_width - 1, 0])
+      cube([$inner_width, backpack_cards_width, trails_card_box_height]);
+    translate([-0.1, backpack_cards_width / 2, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=270);
+    translate([-0.1, $inner_length - backpack_cards_width / 2, -default_floor_thickness - 0.01])
+      FingerHoleBase(radius=10, height=destination_card_box_height + 0.02, spin=270);
   }
 }
 
 module TrailsCardsBoxLid() // `make` me
 {
-
   SlidingBoxLidWithLabel(
-    size=[trails_card_box_width, trails_card_box_length, trails_card_box_height], lid_on_length=true, text_str="Trails"
+    size=[trails_card_box_length, trails_card_box_width, trails_card_box_height],
+    text_str="Trails"
   );
 }
 
@@ -741,5 +750,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  TrailsCardsBoxLid();
+  TrailsCardsBox();
 }

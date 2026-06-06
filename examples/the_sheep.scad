@@ -20,7 +20,6 @@ include <boardgame_toolkit.scad>
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 
-
 box_width = 233;
 box_length = 304;
 box_height = 80;
@@ -133,17 +132,19 @@ player_equipment_box_height = box_height - board_thickness - player_board_thickn
 module CurseCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, curse_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, curse_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, $inner_length / 2, 0])
+    translate([$inner_width / 2, 0, 0])
       cuboid(
-        [card_size.length + 2, card_size.width, curse_card_box_height],
+        [card_size.width, card_size.length + 2, curse_card_box_height],
         anchor=BOTTOM + LEFT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=curse_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -151,23 +152,28 @@ module CurseCardBox() // `make` me
 
 module CurseCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, curse_card_box_height], text_str="Curse", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[card_box_length, card_box_width, curse_card_box_height],
+    text_str="Curse"
+  );
 }
 
 module EquipmentCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, equipment_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, equipment_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, $inner_length / 2, 0])
+    translate([$inner_width / 2, 0, 0])
       cuboid(
-        [card_size.length + 2, card_size.width, curse_card_box_height],
+        [card_size.width, card_size.length + 2, equipment_card_box_height],
         anchor=BOTTOM + LEFT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=equipment_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -175,23 +181,28 @@ module EquipmentCardBox() // `make` me
 
 module EquipmentCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, equipment_card_box_height], text_str="Equipment", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[card_box_length, card_box_width, equipment_card_box_height],
+    text_str="Equipment"
+  );
 }
 
 module NightEventCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, night_event_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, night_event_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, $inner_length / 2, 0])
+    translate([$inner_width / 2, 0, 0])
       cuboid(
-        [card_size.length + 2, card_size.width, curse_card_box_height],
+        [card_size.width, card_size.length + 2, equipment_card_box_height],
         anchor=BOTTOM + LEFT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=night_event_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -199,23 +210,28 @@ module NightEventCardBox() // `make` me
 
 module NightEventCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, night_event_card_box_height], text_str="Night Event", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[card_box_length, card_box_width, night_event_card_box_height],
+    text_str="Night Event"
+  );
 }
 
 module DayEventCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, day_event_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, day_event_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, $inner_length / 2, 0])
+    translate([$inner_width / 2, 0, 0])
       cuboid(
-        [card_size.length + 2, card_size.width, curse_card_box_height],
+        [card_size.width, card_size.length + 2, equipment_card_box_height],
         anchor=BOTTOM + LEFT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=day_event_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -223,23 +239,28 @@ module DayEventCardBox() // `make` me
 
 module DayEventCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, day_event_card_box_height], text_str="Day Event", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[card_box_length, card_box_width, day_event_card_box_height],
+    text_str="Day Event"
+  );
 }
 
 module FlockCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[card_box_width, card_box_length, flock_card_box_height], lid_on_length=true
+    size=[card_box_length, card_box_width, flock_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([0, $inner_length / 2, 0])
+    translate([$inner_width / 2, 0, 0])
       cuboid(
-        [card_size.length + 2, card_size.width, curse_card_box_height],
+        [card_size.width, card_size.length + 2, equipment_card_box_height],
         anchor=BOTTOM + LEFT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=flock_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -247,19 +268,24 @@ module FlockCardBox() // `make` me
 
 module FlockCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[card_box_width, card_box_length, flock_card_box_height], text_str="Flock", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[card_box_length, card_box_width, flock_card_box_height],
+    text_str="Flock"
+  );
 }
 
 module MutationCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[mutation_card_box_width, mutation_card_box_length, mutation_card_box_height], lid_on_length=true
+    size=[mutation_card_box_length, mutation_card_box_width, mutation_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     cube([$inner_width, $inner_length, mutation_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=mutation_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -267,19 +293,24 @@ module MutationCardBox() // `make` me
 
 module MutationCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[mutation_card_box_width, mutation_card_box_length, mutation_card_box_height], text_str="Mutations", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[mutation_card_box_length, mutation_card_box_width, mutation_card_box_height],
+    text_str="Mutations"
+  );
 }
 
 module ReminderCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[mutation_card_box_width, mutation_card_box_length, reminder_card_box_height], lid_on_length=true
+    size=[mutation_card_box_length, mutation_card_box_width, reminder_card_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
     cube([$inner_width, $inner_length, reminder_card_box_height]);
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=reminder_card_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -287,31 +318,35 @@ module ReminderCardBox() // `make` me
 
 module ReminderCardBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[mutation_card_box_width, mutation_card_box_length, reminder_card_box_height], text_str="Reminders", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[mutation_card_box_length, mutation_card_box_width, reminder_card_box_height],
+    text_str="Reminders"
+  );
 }
 
 module TraitTileBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[trait_tile_box_width, trait_tile_box_length, trait_tile_box_height],
-    lid_on_length=true,
+    size=[trait_tile_box_length, trait_tile_box_width, trait_tile_box_height],
+    spin=90,
+    anchor=BACK + BOTTOM + LEFT
   ) {
-    translate([trait_tile_width / 2, $inner_length / 2, 0])
+    translate([$inner_width / 2, trait_tile_width / 2, 0])
       cuboid(
-        [trait_tile_width, trait_tile_length, trait_tile_box_height],
+        [trait_tile_length, trait_tile_width, trait_tile_box_height],
         anchor=BOTTOM
       );
     translate([$inner_width / 2, $inner_length / 2, 0]) {
       cuboid(
-        [trait_tile_width, trait_tile_length / 2, trait_tile_box_height * 2],
+        [trait_tile_length / 2, trait_tile_width, trait_tile_box_height * 2],
         anchor=BOTTOM,
         rounding=7,
         edges=BOTTOM
       );
     }
-    translate([$inner_width - trait_tile_width / 2, $inner_length / 2, 0])
+    translate([$inner_width / 2, $inner_length - trait_tile_width / 2, 0])
       cuboid(
-        [trait_tile_width, trait_tile_length, trait_tile_box_height],
+        [trait_tile_length, trait_tile_width, trait_tile_box_height],
         anchor=BOTTOM
       );
   }
@@ -319,7 +354,10 @@ module TraitTileBox() // `make` me
 
 module TraitTileBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(size=[trait_tile_box_width, trait_tile_box_length, trait_tile_box_height], text_str="Traits", lid_on_length=true);
+  SlidingBoxLidWithLabel(
+    size=[trait_tile_box_length, trait_tile_box_width, trait_tile_box_height],
+    text_str="Traits"
+  );
 }
 
 module TrackerPiecesBox() // `make` me
@@ -630,17 +668,18 @@ module PlayerEquipmentBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     size=[player_equipment_box_width, player_equipment_box_length, player_equipment_box_height],
-    lid_on_length=true,
+    spin=90,
+    anchor=BOTTOM + BACK + LEFT
   ) {
-    back($inner_length / 2)
+    right($inner_width / 2)
       cube(
         [card_size.length, card_size.width, player_equipment_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
-    translate([0, $inner_length / 2, -2]) {
+    translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=player_equipment_box_height - default_lid_thickness,
-        spin=270
+        spin=0
       );
     }
   }
@@ -649,7 +688,7 @@ module PlayerEquipmentBox() // `make` me
 module PlayerEquipmentBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
-    size=[player_equipment_box_width, player_equipment_box_length, player_equipment_box_height],
+    size=[player_equipment_box_length, player_equipment_box_width, player_equipment_box_height],
     text_str="Player Equipment"
   );
 }
@@ -740,7 +779,7 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  SideSpacerBox();
+  PlayerEquipmentBox();
   /*
   difference() {
     linear_extrude(height=35) {

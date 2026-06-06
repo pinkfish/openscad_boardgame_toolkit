@@ -37,7 +37,7 @@ STACKABLE_TYPE_INSIDE = 1;
 // Description: Base is added to the outside of the box.
 STACKABLE_TYPE_OUTSIDE = 2;
 
-// Function: QuicksortExtraFloors(list)
+// Function: QuicksortExtraFloors()
 // Description:
 //   Sorts a list of extra floors by floor_height.
 // Arguments:
@@ -170,7 +170,7 @@ module MakeBoxWithNoLid(
 //   finger_hole_size = size of the finger dip (default 20)
 //   offset_sweep_options = the options to use in the offset_sweep hollow box ({ offset = "round", check_valid: true, quality: 1, steps: 16}})
 //   hollow = if the box should be hollow (default false)
-//   stackable_lid_thickness = the thickness of the stackable part of the lid (default {{default_stackable_lid_thickness}})
+//   stackable_lid_thickness = the thickness of the stackable part of the lid (default {{default_stackable_thickness}})
 //   stackable_fit_offset = the offset to use for stackable fit (default 0.1)
 //   hollow_radius = the radius options for a hollow box (default object(top=default_wall_thickness/4, bottom=default_wall_thickness/4, radius=default_wall_thickness/2))
 //   stackable = if the box should be stackable (default false)
