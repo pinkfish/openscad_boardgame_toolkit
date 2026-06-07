@@ -128,7 +128,11 @@ score_pad_box_height = score_pad_thickness * score_pad_number + default_floor_th
 
 canopy_box_width = box_width - abundance_box_width - score_pad_box_width;
 canopy_box_length = score_pad_box_length;
-canopy_box_height = card_box_height;
+canopy_box_height = card_box_height / 2;
+
+trunk_box_width = canopy_box_width;
+trunk_box_length = canopy_box_length;
+trunk_box_height = canopy_box_height;
 
 seed_box_width = score_pad_box_width;
 seed_box_length = canopy_box_length;
@@ -503,6 +507,32 @@ module CanopyBoxLid() // `make` me
     size=[canopy_box_width, canopy_box_length, canopy_box_height],
     text_str="Canopy",
     material_colour="cornsilk"
+  );
+}
+
+module TrunkBox() // `make` me
+{
+  MakeBoxWithFilamentHingeLid(
+    [trunk_box_width, trunk_box_length, trunk_box_height],
+    material_colour="khaki"
+  ) {
+    intersection() {
+      FilamentBoxInsideMask(size=[trunk_box_width, trunk_box_length, trunk_box_height]);
+      translate([0.5, 0.5, 0])
+        RoundedBoxAllSides(
+          size=[$inner_width - 1, $inner_length - 1, canopy_box_height],
+          radius=10
+        );
+    }
+  }
+}
+
+module TrunkBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[trunk_box_width, trunk_box_length, trunk_box_height],
+    text_str="Trunks",
+    material_colour="khaki"
   );
 }
 
