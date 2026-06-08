@@ -139,7 +139,7 @@ module CurseCardBox() // `make` me
     translate([$inner_width / 2, 0, 0])
       cuboid(
         [card_size.width, card_size.length + 2, curse_card_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
@@ -168,7 +168,7 @@ module EquipmentCardBox() // `make` me
     translate([$inner_width / 2, 0, 0])
       cuboid(
         [card_size.width, card_size.length + 2, equipment_card_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
@@ -197,7 +197,7 @@ module NightEventCardBox() // `make` me
     translate([$inner_width / 2, 0, 0])
       cuboid(
         [card_size.width, card_size.length + 2, equipment_card_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
@@ -226,7 +226,7 @@ module DayEventCardBox() // `make` me
     translate([$inner_width / 2, 0, 0])
       cuboid(
         [card_size.width, card_size.length + 2, equipment_card_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
@@ -255,7 +255,7 @@ module FlockCardBox() // `make` me
     translate([$inner_width / 2, 0, 0])
       cuboid(
         [card_size.width, card_size.length + 2, equipment_card_box_height],
-        anchor=BOTTOM + LEFT
+        anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
@@ -333,22 +333,45 @@ module TraitTileBox() // `make` me
   ) {
     translate([$inner_width / 2, trait_tile_width / 2, 0])
       cuboid(
-        [trait_tile_length, trait_tile_width, trait_tile_box_height],
-        anchor=BOTTOM
-      );
+        [trait_tile_length, trait_tile_width, $inner_height + 0.001],
+        anchor=BOTTOM,
+        rounding=1,
+        edges=[LEFT + FRONT, RIGHT + BACK, LEFT + BACK, RIGHT + FRONT]
+      ) {
+        edge_profile(TOP) xflip()
+            mask2d_roundover(default_wall_thickness / 4);
+        corner_profile(TOP, r=default_wall_thickness / 8) xflip()
+            mask2d_roundover(default_wall_thickness / 4);
+      }
+
     translate([$inner_width / 2, $inner_length / 2, 0]) {
       cuboid(
         [trait_tile_length / 2, trait_tile_width, trait_tile_box_height * 2],
         anchor=BOTTOM,
-        rounding=7,
+        rounding=5,
         edges=BOTTOM
+      );
+    }
+    translate([$inner_width / 2, $inner_length / 2, $inner_height - 1.999]) {
+      cuboid(
+        [trait_tile_length / 2, trait_tile_width, 2],
+        anchor=BOTTOM,
+        rounding=-2,
+        edges=TOP
       );
     }
     translate([$inner_width / 2, $inner_length - trait_tile_width / 2, 0])
       cuboid(
-        [trait_tile_length, trait_tile_width, trait_tile_box_height],
-        anchor=BOTTOM
-      );
+        [trait_tile_length, trait_tile_width, $inner_height+0.001],
+        anchor=BOTTOM,
+        rounding=1,
+        edges=[LEFT + FRONT, RIGHT + BACK, LEFT + BACK, RIGHT + FRONT]
+      ) {
+        edge_profile(TOP) xflip()
+            mask2d_roundover(default_wall_thickness / 4);
+        corner_profile(TOP, r=default_wall_thickness / 8) xflip()
+            mask2d_roundover(default_wall_thickness / 4);
+      }
   }
 }
 
@@ -465,7 +488,7 @@ module PolutionBox() // `make` me
   ) {
     translate(
       [
-        pollution_tile_size / 2 + 10,
+        pollution_tile_size / 2 + 12,
         $inner_length / 2,
         $inner_height - 3 * trait_tile_thickness,
       ]
@@ -474,11 +497,11 @@ module PolutionBox() // `make` me
         [pollution_tile_size, pollution_tile_size, polution_box_height],
         anchor=BOTTOM,
         finger_holes=[2, 6],
-        finger_hole_radius=8
+        finger_hole_radius=11
       );
     translate(
       [
-        $inner_width - pollution_tile_size / 2 - 10,
+        $inner_width - pollution_tile_size / 2 - 12,
         $inner_length / 2,
         $inner_height - 3 * trait_tile_thickness,
       ]
@@ -487,7 +510,7 @@ module PolutionBox() // `make` me
         [pollution_tile_size, pollution_tile_size, polution_box_height],
         anchor=BOTTOM,
         finger_holes=[2, 6],
-        finger_hole_radius=8
+        finger_hole_radius=11
       );
   }
 }
@@ -536,7 +559,7 @@ module LanternBox() // `make` me
     for (i = [0:3])
       translate(
         [
-          lantern_token_diameter / 2 + 1 + (lantern_token_diameter + 3.75) * i,
+          lantern_token_diameter / 2 + 3 + (lantern_token_diameter + 7) * i,
           $inner_length / 2,
           $inner_height - (i < 2 ? 4 : 3) * trait_tile_thickness - 0.5,
         ]
@@ -667,13 +690,13 @@ module SideSpacerBox() // `make` me
 module PlayerEquipmentBox() // `make` me
 {
   MakeBoxWithSlidingLid(
-    size=[player_equipment_box_width, player_equipment_box_length, player_equipment_box_height],
+    size=[player_equipment_box_length, player_equipment_box_width, player_equipment_box_height],
     spin=90,
     anchor=BOTTOM + BACK + LEFT
   ) {
     right($inner_width / 2)
       cube(
-        [card_size.length, card_size.width, player_equipment_box_height],
+        [card_size.width, card_size.length, player_equipment_box_height],
         anchor=BOTTOM + FRONT
       );
     translate([$inner_width / 2, 0, -2]) {
@@ -779,7 +802,7 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  PlayerEquipmentBox();
+  TraitTileBox();
   /*
   difference() {
     linear_extrude(height=35) {

@@ -448,7 +448,7 @@ module PlayerBoxLid() // `make` me
   }
 }
 
-module ResourceBox(material_colour) // `make` me
+module ResourceBox(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
     size=[resource_box_width, resource_box_length, resource_box_height],
@@ -465,8 +465,8 @@ module ResourceBoxCoalLid() // `make` me
     material_colour="black",
     label_options=MakeLabelOptions(
       label_colour="white", material_colour="black",
-      wall_thickness=3
-    )
+    ),
+    wall_thickness=3
   );
 }
 
@@ -475,6 +475,7 @@ module ResourceBoxVPLid() // `make` me
   CapBoxLidWithLabel(
     size=[resource_box_width, resource_box_length, resource_box_height], text_str="VP",
     material_colour="blue",
+    wall_thickness=3
   );
 }
 
@@ -483,6 +484,7 @@ module ResourceBoxMaterialsLid() // `make` me
   CapBoxLidWithLabel(
     size=[resource_box_width, resource_box_length, resource_box_height], text_str="Materials",
     material_colour="brown",
+    wall_thickness=3
   );
 }
 
@@ -491,6 +493,7 @@ module ResourceBoxTechnologyLid() // `make` me
   CapBoxLidWithLabel(
     size=[resource_box_width, resource_box_length, resource_box_height], text_str="Tech",
     material_colour="purple",
+    wall_thickness=3
   );
 }
 
@@ -518,7 +521,7 @@ module IndicatorBoxLid() // `make` me
   );
 }
 
-module ResourceBoxFive(material_colour) // `make` me
+module ResourceBoxFive(material_colour="yellow") // `make` me
 {
   MakeBoxWithCapLid(
     size=[resource_box_five_width, resource_box_five_length, resource_box_five_height],

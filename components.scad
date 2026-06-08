@@ -290,9 +290,13 @@ module CylinderWithIndents(
   calc_radius = radius != undef && radius > 0 ? radius : (d != undef && d > 0 ? d / 2 : r);
 
   if (cyl_fn != undef) {
-    cyl(r=calc_radius, h=calc_height, anchor=anchor, $fn=cyl_fn);
+    cyl(r=calc_radius, h=calc_height, anchor=anchor, $fn=cyl_fn) {
+      children();
+    }
   } else {
-    cyl(r=calc_radius, h=calc_height, anchor=anchor);
+    cyl(r=calc_radius, h=calc_height, anchor=anchor) {
+      children();
+    }
   }
   calc_finger_hole_radius = DefaultValue(finger_hole_radius, calc_radius / 3);
   for (i = [0:1:len(finger_holes) - 1]) {
@@ -305,7 +309,6 @@ module CylinderWithIndents(
       );
     }
   }
-  children();
 }
 
 // Function: HoleToPosition()
@@ -383,8 +386,8 @@ module CuboidWithIndentsBottom(
           r=calc_finger_hole_radius, h=size[2] + calc_finger_hole_radius * 2, anchor=BOTTOM,
           rounding=calc_finger_hole_radius,
         );
+    children();
   }
-  children();
 }
 
 // Module: RegularPolygonGrid()
@@ -734,6 +737,79 @@ module FingerHoleWall(
             );
       }
     }
+}
+
+// Module: CornerCatch()
+// Description:
+//    Round over on the cornet for a catch, making it nice and smooth.
+// Arguments:
+//    radius = radius of the hole
+//    height = height of the wall
+//    depth_of_hole = how deep to make the cut through the wall (default 6)
+//    rounding_radius = how round to make the top in the wall (default 3)
+//    orient = orientation of the hole (default UP)
+//    spin = spin of the hole (default 0)
+//    material_colour = the material colour to use (default {{default_material_colour}})
+//    rounding_edge = how much to round the edge to the wall (default 0)
+//    round_front = round the front end (default true)
+//    round_bkac = round the back edge (default true)
+// Example:
+//    CornerCatch(radius = 7, height = 5);
+module CornerCatch(
+  radius,
+  height,
+  depth_of_hole = 6,
+  rounding_radius = 3,
+  orient = UP,
+  spin = 0,
+  material_colour = default_material_colour,
+  rounding_edge = 0,
+  round_front = true,
+  round_back = true,
+  round_corner_back = true
+) {
+  tmat = reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1]);
+  multmatrix(m=tmat)
+    difference() {
+      union() {
+        translate([rounding_radius / 2, 0, 0]) mirror([0, 0, 1]) color(material_colour) {
+              FingerHoleWall(
+                radius=radius,
+                height=height,
+                depth_of_hole=depth_of_hole,
+                rounding_edge=rounding_edge,
+                round_front=round_back,
+                round_back=round_front,
+              );
+            }
+        translate([0, rounding_radius / 2, 0]) mirror([0, 0, 1]) color(material_colour) {
+              FingerHoleWall(
+                radius=radius,
+                height=height,
+                depth_of_hole=depth_of_hole,
+                rounding_edge=rounding_edge,
+                round_front=round_front,
+                round_back=round_back,
+                spin=90
+              );
+            }
+      }
+      color(material_colour) {
+        cuboid([depth_of_hole, depth_of_hole, height]);
+      }
+    }
+  translate([0, 0, 0]) mirror([0, 0, 1]) color(material_colour) {
+        cuboid(
+          [depth_of_hole, depth_of_hole, height],
+          anchor=BOTTOM,
+        ) if (round_corner_back) {
+          edge_profile([BOTTOM + FRONT, BOTTOM + LEFT]) yflip() mask2d_roundover(rounding_edge);
+          corner_profile([BOTTOM + FRONT + LEFT], r=depth_of_hole / 2) yflip() mask2d_roundover(rounding_edge);
+        } else {
+          edge_profile([BOTTOM + BACK, BOTTOM + RIGHT]) yflip() mask2d_roundover(rounding_edge);
+          corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2) yflip() mask2d_roundover(rounding_edge);
+        }
+      }
 }
 
 // Module: FingerHoleBase()

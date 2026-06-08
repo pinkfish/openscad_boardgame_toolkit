@@ -63,7 +63,7 @@ leaf_length = 17.5;
 leaf_thickness = 3;
 leaf_number = 5;
 
-readyness_token_width = 36;
+readyness_token_width = 36.5;
 readyness_token_length = 59;
 readyness_token_thickness = 5;
 readyness_token_number = 10;
@@ -340,7 +340,7 @@ module LeafTeardrop2D() {
 }
 
 module LeafTeardropWithFingerGrabs(height) {
-  finger_d = 12;
+  finger_d = 16;
   y_center = -(leaf_length / 2 - leaf_width / 2);
   union() {
     linear_extrude(height=height, convexity=10)
@@ -364,46 +364,63 @@ module StartBox() // `make` me
         right($inner_width / 2 + 7)
           up($inner_height - start_disk_thickness - 0.5)
             CylinderWithIndents(
-              d=start_disk_diameter, h=start_box_height, anchor=BOTTOM,
+              d=start_disk_diameter, h=start_disk_thickness + 0.5001,
+              anchor=BOTTOM,
               finger_hole_radius=11.5,
               finger_holes=[45, 215]
-            );
+            ) {
+              edge_profile([TOP]) xflip()
+                  mask2d_roundover(default_wall_thickness / 4);
+            }
       up($inner_height - readyness_token_thickness - 0.5)
         right($inner_width / 2)
           back($inner_length - readyness_token_width / 2 - 2)
             CuboidWithIndentsBottom(
-              [readyness_token_length, readyness_token_width, readyness_token_thickness + 1], anchor=BOTTOM,
+              [readyness_token_length, readyness_token_width, readyness_token_thickness + 0.5001], anchor=BOTTOM,
               finger_holes=[0],
               finger_hole_radius=15,
               rounding=1,
               edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
-            );
+            ) {
+              edge_profile(TOP) xflip()
+                  mask2d_roundover(default_wall_thickness / 4);
+              corner_profile(TOP, r=default_wall_thickness / 8) xflip()
+                  mask2d_roundover(default_wall_thickness / 4);
+            }
 
       up($inner_height - score_overide_thickness - 0.5)
         back(start_disk_diameter)
           right(score_override_marker_length / 2 + 2)
             CuboidWithIndentsBottom(
-              [score_override_marker_width, score_override_marker_length, score_overide_thickness + 1],
+              [score_override_marker_width, score_override_marker_length, score_overide_thickness + 0.5001],
               anchor=BOTTOM,
               finger_hole_radius=9,
               finger_holes=[0],
               rounding=1,
               edges=[FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT]
-            );
+            ) {
+              edge_profile(TOP) xflip()
+                  mask2d_roundover(default_wall_thickness / 4);
+              corner_profile(TOP, r=default_wall_thickness / 8) xflip()
+                  mask2d_roundover(default_wall_thickness / 4);
+            }
     }
     union() {
-      up($inner_height - score_overide_thickness - 0.5)
+      up($inner_height - score_overide_thickness - 0.7)
         back(start_disk_diameter)
           right(score_override_marker_length / 2 + 2)
-            text("11", valign="center", halign="center");
-      up($inner_height - readyness_token_thickness - 0.5)
+            linear_extrude(h=0.201)
+              text("11", valign="center", halign="center");
+      up($inner_height - readyness_token_thickness - 0.7)
         right($inner_width / 2)
           back($inner_length - readyness_token_width / 2 - 2)
-            text("Active", valign="center", halign="center");
+            linear_extrude(h=0.201)
+              text("Active", valign="center", halign="center");
       back(start_disk_diameter / 2 + 2)
         right($inner_width / 2 + 7)
-          up($inner_height - start_disk_thickness - 0.5)
-            text("Start", valign="center", halign="center");
+          up($inner_height - start_disk_thickness - 0.7)
+            linear_extrude(h=0.201)
+              text("Start", valign="center", halign="center");
     }
   }
 }
@@ -448,21 +465,22 @@ module PlayerBox(colour = "green") // `make` me
             [readyness_token_length, readyness_token_width, readyness_token_thickness + 1],
             anchor=FRONT + BOTTOM
           );
-          right(19)
+          right(0)
             back(readyness_token_width)
-              cyl(d=18, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
-          left(19)
-            back(readyness_token_width)
-              cyl(d=18, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
+              cyl(d=23, h=player_box_height * 3, rounding=6.5, anchor=BOTTOM);
         }
-      back(readyness_token_width + leaf_length + 5.5)
+      back(readyness_token_width + leaf_length + 2.5)
         right(1.5)
           up($inner_height - leaf_thickness - 0.3) {
             for (i = [0:2]) {
-              right((leaf_width + 4) * (i - 1))for (j = [0:1]) {
-                back((leaf_length + 6) * (j - ( (i % 2) * 0.5)))
-                  rotate(90)
-                    LeafTeardropWithFingerGrabs(leaf_thickness + 1);
+              right((leaf_width + 1) * (i - 1)) {
+                for (j = [0:1]) {
+                  if (j != 0 || i != 1) {
+                    back((leaf_length + 9.5) * (j - ( (i % 2) * 0.5)))
+                      rotate(90)
+                        LeafTeardropWithFingerGrabs(leaf_thickness + 1);
+                  }
+                }
               }
             }
           }
@@ -689,5 +707,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  BoxLayoutA();
+  StartBox();
 }

@@ -298,17 +298,35 @@ module SlipoverBoxLid(
                 rounding=calc_lid_rounding / 2,
                 edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP]
               );
-          if (finger_hole_length) {
-            translate([width / 2, wall_thickness / 2 - 0.01, finger_height - 0.01]) mirror([0, 0, 1]) color(material_colour)
-                  FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4);
-            translate([width / 2, length - wall_thickness / 2 + 0.01, finger_height - 0.01]) mirror([0, 0, 1])
-                color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4);
+
+          radius = max(finger_height, 7);
+
+          translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness]) {
+            CornerCatch(
+              radius=radius,
+              height=finger_height,
+              depth_of_hole=wall_thickness + 0.02,
+              rounding_edge=wall_thickness / 4,
+              round_back=false
+            );
           }
-          if (finger_hole_width) {
-            translate([wall_thickness / 2 + 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4);
-            translate([width - wall_thickness / 2 - 0.015, length / 2, finger_height - 0.01]) mirror([0, 0, 1]) rotate([0, 0, 90])
-                  color(material_colour) FingerHoleWall(radius=max(finger_height, 7), height=finger_height, depth_of_hole=wall_thickness + 0.04, rounding_edge=wall_thickness / 4);
+          translate([wall_thickness * 3 / 2, wall_thickness * 3 / 2, height - finger_height - lid_thickness]) {
+            cuboid([wall_thickness, wall_thickness, height], anchor=TOP);
+          }
+
+          translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness])
+            CornerCatch(
+              radius=radius,
+              height=finger_height,
+              depth_of_hole=wall_thickness + 0.02,
+              rounding_edge=wall_thickness / 4,
+              round_back=false,
+              round_corner_back=false,
+              spin=180
+            );
+
+          translate([width - wall_thickness * 3 / 2, length - wall_thickness * 3 / 2, height - finger_height - lid_thickness - wall_thickness / 4]) {
+            cuboid([wall_thickness, wall_thickness, height], anchor=TOP);
           }
         }
 
@@ -357,7 +375,7 @@ module SlipoverBoxLid(
         }
         if ( (lid_catch == CATCH_BUMPS_SHORT && width <= length) || (lid_catch == CATCH_BUMPS_LONG && width > length)) {
           catch_offset = width - wall_thickness * 2;
-          translate([(catch_offset * 6 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness]) {
+          translate([(catch_offset * 6 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
@@ -371,7 +389,7 @@ module SlipoverBoxLid(
                 }
               }
           }
-          translate([(catch_offset * 2 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness]) {
+          translate([(catch_offset * 2 / 8) + wall_thickness, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
@@ -388,7 +406,7 @@ module SlipoverBoxLid(
         }
         if ( (lid_catch == CATCH_BUMPS_SHORT && length < width) || (lid_catch == CATCH_BUMPS_LONG && length > width)) {
           catch_offset = length - wall_thickness * 2;
-          translate([wall_thickness * 5 / 8, (catch_offset * 6 / 8) + wall_thickness, wall_thickness]) {
+          translate([wall_thickness * 5 / 8, (catch_offset * 6 / 8) + wall_thickness, wall_thickness + wall_thickness / 8]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);
@@ -402,7 +420,7 @@ module SlipoverBoxLid(
                 }
               }
           }
-          translate([wall_thickness * 5 / 8, (catch_offset * 2 / 8) + wall_thickness, wall_thickness]) {
+          translate([wall_thickness * 5 / 8, (catch_offset * 2 / 8) + wall_thickness, wall_thickness + wall_thickness / 8]) {
             color(material_colour) {
               intersection() {
                 sphere(r=wall_thickness * 4 / 6);

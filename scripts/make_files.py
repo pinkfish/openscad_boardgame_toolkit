@@ -46,7 +46,7 @@ with open("generate.makefile", "w") as mfile:
         mfile.write("\t-mkdir -p release/{0}/mmu\n\t../scripts/colorscad/colorscad.sh -f -p $(SCAD) -c \"[0.184314, 0.309804, 0.309804, 1]\" -r \"[0.184314, 0.309804, 0.309804, 1]\" -i $< -o $@ --  --backend=manifold --enable predictible-output --enable textmetrics --enable object-function -d {0}__{1}.deps  -D FROM_MAKE=1 -D MAKE_MMU=1\n".format(d.basename, d.module))
         # Extra frogs
         mfile.write("release/{0}/single/{1}_single.3mf: output/{0}__{1}.scad {0}.scad\n".format(d.basename, d.module))
-        mfile.write("\t-mkdir -p release/{0}/single\n\t$(SCAD) -m make --export-format 3mf  --backend=manifold --enable predictible-output --enable textmetrics --enable object-function -o $@ -d output/{0}__{1}.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
+        mfile.write("\t-mkdir -p release/{0}/single\n\t$(SCAD) -m make --export-format 3mf --hardwarnings --backend=manifold --enable predictible-output --enable textmetrics --enable object-function -o $@ -d output/{0}__{1}.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
         mfile.write("\tpython3 ../scripts/change_3mf_title.py $@ \"{0} Single\"\n".format(d.module))
         # Create the scad file.
         scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\n$fn = 128;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
@@ -64,7 +64,7 @@ with open("generate.makefile", "w") as mfile:
     for d in docs:
         # Extra frogs
         mfile.write("release/{0}/{1}.png: output/{0}__{1}_docs.scad {0}.scad\n".format(d.basename, d.module))
-        mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make --backend=manifold --csglimit=10000000 --enable textmetrics --enable object-function --viewall --imgsize=1024,1024 -o $@ -d output/{0}__{1}_docs.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
+        mfile.write("\t-mkdir -p release/{0}\n\t$(SCAD) -m make --backend=manifold --hardwarnings --csglimit=10000000 --enable textmetrics --enable object-function --viewall --imgsize=1024,1024 -o $@ -d output/{0}__{1}_docs.deps $< -D FROM_MAKE=1 -D MAKE_MMU=0\n".format(d.basename, d.module))
         # Create the scad file.
         scad_script = "MAKE_MMU = 0;\nFROM_MAKE = 0;\ninclude <../{0}.scad>\n{1}();\n".format(d.basename, d.module)
         file_data = ""
