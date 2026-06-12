@@ -3733,7 +3733,7 @@ function ShapeNeedsInnerControl(shape_type) =
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
-//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HALF_REGULAR_HEXAGON, shape_thickness = 1, shape_width = 10));
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_HALF_REGULAR_HEXAGON, shape_thickness = 1, shape_width = 20));
 // Example:
 //   $polygon_x = 0;
 //   $polygon_y = 0;
@@ -3875,11 +3875,20 @@ module ShapeByType(
     } else if (calc_shape_type == SHAPE_TYPE_DELTOID_TRIHEXAGONAL_KITE) {
       DeltoidTrihexagonalTiling(size=calc_shape_width, thickness=calc_shape_thickness / 2, outer_offset=0.1, kite=true);
     } else if (calc_shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON) {
-      TriangleTesselationRepeatAtLocation(size=calc_shape_width, x=$polygon_x, y=$polygon_y)
-        HalfRegularHexagon(size=calc_shape_width, thickness=calc_shape_thickness, outer_offset=0.1);
+      // Multiply size by three since this breaks the triangle up into three.
+      region(
+        TriangleTesselationRepeatAtLocation(
+          size=calc_shape_width * 3, x=$polygon_x, y=$polygon_y,
+          pts=HalfRegularHexagon(size=calc_shape_width * 3, thickness=calc_shape_thickness, outer_offset=0.1)
+        )
+      );
     } else if (calc_shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL) {
-      HexagonTesselationRepeatAtLocation(size=calc_shape_width / 2, x=$polygon_x, y=$polygon_y)
-        RhombiTriHexagonal(calc_shape_width);
+      region(
+        HexagonTesselationRepeatAtLocation(
+          size=calc_shape_width / 2, x=$polygon_x, y=$polygon_y,
+          pts=RhombiTriHexagonal(calc_shape_width)
+        )
+      );
     } else if (calc_shape_type == SHAPE_TYPE_LEAF) {
       section = calc_shape_width / 4;
       section_height = section * calc_sqrt_three / 2;

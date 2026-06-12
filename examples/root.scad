@@ -1119,7 +1119,7 @@ module ItemsBoxBottomLid() // `make` me
   SlidingBoxLidWithLabel(
     size=[item_box_width, item_box_length, item_box_height],
     text_str="Items", lid_thickness=sliding_lid_thickness,
-    material_colour="grey", label_background_colour="grey"
+    material_colour="grey",
   );
 }
 
@@ -1240,7 +1240,7 @@ module ItemsBoxMiddleLid() // `make` me
     SlidingBoxLidWithLabel(
       size=[item_box_width, item_box_length, item_box_middle_height],
       text_str="Items", lid_thickness=sliding_lid_thickness,
-      label_options=MakeLabelOptions(label_colour="blue", label_background_color="grey"),
+      label_options=MakeLabelOptions(label_colour="blue", label_background_colour="grey"),
       material_colour="grey",
     );
   }

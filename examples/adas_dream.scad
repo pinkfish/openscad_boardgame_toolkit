@@ -509,8 +509,6 @@ module AssignmentCardBoxLid() // `make` me
       assignment_card_box_width,
       assignment_card_box_height,
     ],
-    spin=90,
-    anchor=BACK + BOTTOM + LEFT,
     material_colour="purple",
     text_str="Assignment"
   );

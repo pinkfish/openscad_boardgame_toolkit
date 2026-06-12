@@ -31,7 +31,7 @@ module StackableHexBox(
   calc_magnet_size =
     magnet_size != undef ? magnet_size
     : magnet_type == MAGNET_SLOT_TYPE_ROUND ? [stackable_height / 2 - 1, 7, 2.9]
-    : [12, 6, 1.9];
+    : [12, 6, 1.5];
 
   MakePolygonBoxWithNoLid(
     size=[stackable_width, stackable_height],

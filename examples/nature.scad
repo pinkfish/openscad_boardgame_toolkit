@@ -153,7 +153,7 @@ module DialBoxLid() // `make` me
   CapBoxLidWithLabel(
     size=[dial_box_width, dial_box_length, dial_box_height],
     text_str="Population",
-    label_type=LABEL_TYPE_FRAMELESS
+    label_options=MakeLabelOptions(label_type=LABEL_TYPE_FRAMELESS)
   );
 }
 
@@ -176,7 +176,7 @@ module LeopardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     size=[leopard_box_length, leopard_box_width],
     text_str="Leopard",
-    label_type=LABEL_TYPE_FRAMELESS
+    label_options=MakeLabelOptions(label_type=LABEL_TYPE_FRAMELESS)
   );
 }
 

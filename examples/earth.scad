@@ -115,32 +115,34 @@ abundance_other_cards_height = default_floor_thickness + default_lid_thickness +
 start_box_height = card_box_height - climate_cards_height - solo_cards_height - season_cards_height - abundance_other_cards_height;
 
 abundance_box_width = box_width - card_box_width * 4;
-abundance_box_length = box_length - 3;
+abundance_box_length = abundance_board_length + default_wall_thickness * 2;
 abundance_box_height = box_height;
 
 player_box_width = card_box_width;
 player_box_length = card_box_length;
 player_box_height = card_box_height / 6;
 
-score_pad_box_width = score_pad_width + default_wall_thickness * 4;
+score_pad_box_width = score_pad_length + default_wall_thickness * 4;
 score_pad_box_length = box_length - card_box_length * 2 - 1;
-score_pad_box_height = score_pad_thickness * score_pad_number + default_floor_thickness;
+score_pad_box_height = score_pad_thickness + default_floor_thickness;
 
 canopy_box_width = box_width - abundance_box_width - score_pad_box_width;
 canopy_box_length = score_pad_box_length;
-canopy_box_height = card_box_height / 2;
+canopy_box_height = card_box_height;
 
-trunk_box_width = canopy_box_width;
-trunk_box_length = canopy_box_length;
-trunk_box_height = canopy_box_height;
-
-seed_box_width = score_pad_box_width;
-seed_box_length = canopy_box_length;
-seed_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 1.5;
+compost_box_width = score_pad_box_width;
+compost_box_length = canopy_box_length;
+compost_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 4;
 
 sprout_box_width = score_pad_box_width;
 sprout_box_length = canopy_box_length;
-sprout_box_height = (card_box_height - score_pad_box_height - seed_box_height);
+sprout_box_height = (card_box_height - score_pad_box_height - compost_box_height);
+
+echo([card_box_height, score_pad_box_height, compost_box_height]);
+
+seed_box_length = box_length - abundance_box_length;
+seed_box_width = abundance_box_width;
+seed_box_height = box_height;
 
 player_colours = ["red", "green", "yellow", "blue", "purple", "pink"];
 
@@ -444,7 +446,7 @@ module AbundanceBoardBox() // `make` me
     right($inner_width / 2)
       up($inner_height - abundance_board_width)
         cuboid(
-          [width, $inner_length, abundance_box_height],
+          [width, abundance_board_length, abundance_box_height],
           anchor=BOTTOM + FRONT, rounding=1
         );
   }
@@ -528,44 +530,21 @@ module CanopyBoxLid() // `make` me
   );
 }
 
-module TrunkBox() // `make` me
-{
-  MakeBoxWithFilamentHingeLid(
-    [trunk_box_width, trunk_box_length, trunk_box_height],
-    material_colour="khaki"
-  ) {
-    intersection() {
-      FilamentBoxInsideMask(size=[trunk_box_width, trunk_box_length, trunk_box_height]);
-      translate([0.5, 0.5, 0])
-        RoundedBoxAllSides(
-          size=[$inner_width - 1, $inner_length - 1, canopy_box_height],
-          radius=10
-        );
-    }
-  }
-}
-
-module TrunkBoxLid() // `make` me
-{
-  FilamentHingeBoxLidWithLabel(
-    size=[trunk_box_width, trunk_box_length, trunk_box_height],
-    text_str="Trunks",
-    material_colour="khaki"
-  );
-}
-
 module SeedBox() // `make` me
 {
   MakeBoxWithFilamentHingeLid(
-    [seed_box_width, seed_box_length, seed_box_height],
-    material_colour="brown"
+    [seed_box_length, seed_box_height, seed_box_width],
+    material_colour="brown",
+    anchor=BACK + LEFT + TOP,
+    spin=90,
+    orient=LEFT
   ) {
     intersection() {
-      FilamentBoxInsideMask(size=[seed_box_width, seed_box_length, seed_box_height]);
+      FilamentBoxInsideMask(size=[seed_box_length, seed_box_height, seed_box_width]);
       translate([0.5, 0.5, 0])
         RoundedBoxAllSides(
-          size=[$inner_width - 1, $inner_length - 1, seed_box_height],
-          radius=10
+          size=[$inner_width - 1, $inner_length - 1, seed_box_width],
+          radius=5
         );
     }
   }
@@ -574,14 +553,41 @@ module SeedBox() // `make` me
 module SeedBoxLid() // `make` me
 {
   FilamentHingeBoxLidWithLabel(
-    size=[seed_box_width, seed_box_length, seed_box_height],
-    text_str="Seeds",
-    material_colour="brown"
+    [seed_box_length, seed_box_height, seed_box_width],
+    text_str="Compost",
+    material_colour="cornsilk"
+  );
+}
+
+module CompostBox() // `make` me
+{
+  MakeBoxWithFilamentHingeLid(
+    [compost_box_width, compost_box_length, compost_box_height],
+    material_colour="black"
+  ) {
+    intersection() {
+      FilamentBoxInsideMask(size= [compost_box_width, compost_box_length, compost_box_height]);
+      translate([0.5, 0.5, 0])
+        RoundedBoxAllSides(
+          size=[$inner_width - 1, $inner_length - 1, compost_box_height],
+          radius=10
+        );
+    }
+  }
+}
+
+module CompostBoxLid() // `make` me
+{
+  FilamentHingeBoxLidWithLabel(
+    size=[compost_box_width, compost_box_length, compost_box_height],
+    text_str="Compost",
+    material_colour="black"
   );
 }
 
 module SproutBox() // `make` me
 {
+  echo([sprout_box_width, sprout_box_length, sprout_box_height]);
   MakeBoxWithFilamentHingeLid(
     [sprout_box_width, sprout_box_length, sprout_box_height],
     material_colour="green",
@@ -630,8 +636,11 @@ module BoxLayout(layout = 0) {
     right(i * card_box_width)
       EarthCardBox();
   }
-  right(4 * card_box_width)
+  right(4 * card_box_width) {
     AbundanceBoardBox();
+    back(abundance_box_length)
+      SeedBox();
+  }
 
   back(card_box_length) {
     EcosystemCardBox();
@@ -684,7 +693,7 @@ module BoxLayout(layout = 0) {
         }
         if (layout < 2) {
           up(sprout_box_height + score_pad_box_height)
-            SeedBox();
+            CompostBox();
         }
       }
     }
@@ -707,5 +716,5 @@ module BoxLayoutC() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  StartBox();
+  BoxLayout();
 }

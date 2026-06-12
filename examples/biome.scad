@@ -176,52 +176,54 @@ module ExtraBitsBox() // `make` me
 {
   MakeBoxWithCapLid(
     size=[extra_bits_box_width, extra_bits_box_length, extra_bits_box_height],
-    last_child_positive=default_label_type == LABEL_TYPE_FRAMED_SOLID
+    positive_negative_children=[1]
   ) {
-    // Phase and year token.
-    translate([$inner_width / 2, 15, $inner_height - player_cube - 0.5]) {
-      cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
-      translate([0, 7.5, 4]) ycyl(d=30, h=40, rounding=10, anchor=BOTTOM);
-    }
-    translate([$inner_width / 2, 30, $inner_height - player_cube - 0.5]) {
-      cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
-    }
-
-    // Coin.
-    translate([$inner_width / 2, $inner_length / 2, $inner_height - coin_thickness - 0.5]) {
-      cyl(d=coin_diamter, h=coin_thickness + 1, anchor=BOTTOM);
-      translate([0, coin_diamter / 2, 0]) sphere(d=30, anchor=BOTTOM);
-      translate([0, -coin_diamter / 2, 0]) sphere(d=30, anchor=BOTTOM);
-    }
-
-    // Die.
-    translate([$inner_width / 2, $inner_length - 30, $inner_height - die_size - 0.5]) {
-      cuboid([die_size, die_size, die_size + 4], anchor=BOTTOM, rounding=1);
-      translate([0, 0, die_size / 2]) ycyl(d=25, h=40, rounding=10, anchor=BOTTOM);
-    }
-
-    // Text.
-    translate([$inner_width / 2, $inner_length / 4 + 8, $inner_height - 0.4]) linear_extrude(height=0.21)
-        rotate(90) text("Biome", halign="center", valign="center", size=15);
-
-    
-    // season token
-    translate([$inner_width / 2, $inner_length / 2 + 35, 0]) {
-      translate([0, 0, $inner_height - other_token_thickness - 0.5]) {
-        difference() {
-          cyl(d=cresent_diameter, h=other_token_thickness + 2, anchor=BOTTOM);
-          translate([0, -7, 0]) cyl(d=cresent_diameter - 1, h=other_token_thickness + 2, anchor=BOTTOM);
-        }
+    union() {
+      // Phase and year token.
+      translate([$inner_width / 2, 15, $inner_height - player_cube - 0.5]) {
+        cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
+        translate([0, 7.5, 4]) ycyl(d=30, h=40, rounding=10, anchor=BOTTOM);
       }
-      translate([0, 20, $inner_height - other_token_thickness / 2])
-        ycyl(d=40, h=65, rounding=10, anchor=BOTTOM);
+      translate([$inner_width / 2, 30, $inner_height - player_cube - 0.5]) {
+        cuboid([player_cube, player_cube, extra_bits_box_height], anchor=BOTTOM);
+      }
 
-      // start player token.
-      translate([0, 25, $inner_height - other_token_thickness - 0.5]) {
-        linear_extrude(height=other_token_thickness + 1) resize([leaf_width + 2, leaf_length - leaf_stem])
-            circle(d=leaf_length - leaf_stem);
-        translate([0, (leaf_length - leaf_stem) / 2 + leaf_stem / 2 - 0.5, 0]) rotate(-10)
-            cuboid([leaf_stem_width + 2, leaf_stem + 2, other_token_thickness + 1], anchor=BOTTOM);
+      // Coin.
+      translate([$inner_width / 2, $inner_length / 2, $inner_height - coin_thickness - 0.5]) {
+        cyl(d=coin_diamter, h=coin_thickness + 1, anchor=BOTTOM);
+        translate([0, coin_diamter / 2, 0]) sphere(d=30, anchor=BOTTOM);
+        translate([0, -coin_diamter / 2, 0]) sphere(d=30, anchor=BOTTOM);
+      }
+
+      // Die.
+      translate([$inner_width / 2, $inner_length - 30, $inner_height - die_size - 0.5]) {
+        cuboid([die_size, die_size, die_size + 4], anchor=BOTTOM, rounding=1);
+        translate([0, 0, die_size / 2]) ycyl(d=25, h=40, rounding=10, anchor=BOTTOM);
+      }
+
+      // Text.
+      translate([$inner_width / 2, $inner_length / 4 + 8, $inner_height - 0.4]) linear_extrude(height=0.21)
+          rotate(90) text("Biome", halign="center", valign="center", size=15);
+
+      
+      // season token
+      translate([$inner_width / 2, $inner_length / 2 + 35, 0]) {
+        translate([0, 0, $inner_height - other_token_thickness - 0.5]) {
+          difference() {
+            cyl(d=cresent_diameter, h=other_token_thickness + 2, anchor=BOTTOM);
+            translate([0, -7, 0]) cyl(d=cresent_diameter - 1, h=other_token_thickness + 2, anchor=BOTTOM);
+          }
+        }
+        translate([0, 20, $inner_height - other_token_thickness / 2])
+          ycyl(d=40, h=65, rounding=10, anchor=BOTTOM);
+
+        // start player token.
+        translate([0, 25, $inner_height - other_token_thickness - 0.5]) {
+          linear_extrude(height=other_token_thickness + 1) resize([leaf_width + 2, leaf_length - leaf_stem])
+              circle(d=leaf_length - leaf_stem);
+          translate([0, (leaf_length - leaf_stem) / 2 + leaf_stem / 2 - 0.5, 0]) rotate(-10)
+              cuboid([leaf_stem_width + 2, leaf_stem + 2, other_token_thickness + 1], anchor=BOTTOM);
+        }
       }
     }
 
@@ -469,11 +471,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  ExtraBitsBox();
-  //BoxLayout();
-  //  linear_extrude(height=2)for (i = [0:4])
-  //  for (j = [0:4])
-  //  EscherLizardRepeatAtLocation(i, j, 20, 1, outer_offset=0.1);
-
-  // translate([default_wall_thickness, default_wall_thickness, -1])
+  BoxLayout();
 }

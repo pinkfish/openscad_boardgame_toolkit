@@ -219,8 +219,7 @@ module CardBoxEasternUSLid() // `make` me
     SlidingBoxLidWithLabel(
       size=[card_box_width, eastern_us_card_box_length, all_boxes_height],
       text_str=text_str,
-      label_options=MakeLabelOptions(label_colour="black"),
-      label_width_offset=-5
+      label_options=MakeLabelOptions(label_colour="black", offset=-5),
     ) {
       translate([25, 40, 0]) rotate(270) {
           UnitedStatesFlag(
@@ -354,7 +353,7 @@ module PlayerBoxWithPlasticExtras() // `make` me
       ]
     ) FingerHoleBase(
         radius=10, height=player_box_height - 1 + 0.01, wall_thickness=default_wall_thickness * 2,
-        spin=270, rounding_radius=5, floor_thickness=1
+        spin=270, rounding_radius=5,
       );
   }
   ;
@@ -409,7 +408,7 @@ module PlayerBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[player_box_width, player_box_length, player_box_small_height],
-    text_str="Player", default_lid_thickness=1.7,
+    text_str="Player", lid_thickness=1.7,
     label_options=MakeLabelOptions(label_colour="black")
   );
 }

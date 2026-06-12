@@ -23,6 +23,7 @@ box_width = 120;
 box_height = 35;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_HALF_REGULAR_HEXAGON;
 
 token_diametter = 38;
 token_thickness = 3;

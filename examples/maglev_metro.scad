@@ -287,7 +287,7 @@ module PlayerBoxLid() // `make` me
   );
 }
 
-module RobotBox(colour) // `make` me
+module RobotBox(colour = "silver") // `make` me
 {
   MakeBoxWithCapLid(
     size=[robot_box_width, robot_box_length, robot_box_height],
@@ -305,7 +305,7 @@ module RobotBoxLid() // `make` me
   );
 }
 
-module CommuterBox(colour) // `make` me
+module CommuterBox(colour = "purple") // `make` me
 {
   MakeBoxWithCapLid(
     size=[commuter_box_width, commuter_box_length, commuter_box_height],
@@ -323,7 +323,7 @@ module CommuterBoxLid() // `make` me
   );
 }
 
-module CommuterBoxSmall(colour) // `make` me
+module CommuterBoxSmall(colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
     size=[commuter_box_small_width, commuter_box_small_length, commuter_box_small_height],

@@ -754,7 +754,9 @@ module FingerHoleWall(
 //    round_front = round the front end (default true)
 //    round_bkac = round the back edge (default true)
 // Example:
-//    CornerCatch(radius = 7, height = 5);
+//    CornerCatch(radius = 2, height = 5);
+// Example:
+//    CornerCatch(radius = 2, height = 5, rounding_edge=1);
 module CornerCatch(
   radius,
   height,
@@ -802,10 +804,10 @@ module CornerCatch(
         cuboid(
           [depth_of_hole, depth_of_hole, height],
           anchor=BOTTOM,
-        ) if (round_corner_back) {
+        ) if (round_corner_back && rounding_edge > 0) {
           edge_profile([BOTTOM + FRONT, BOTTOM + LEFT]) yflip() mask2d_roundover(rounding_edge);
           corner_profile([BOTTOM + FRONT + LEFT], r=depth_of_hole / 2) yflip() mask2d_roundover(rounding_edge);
-        } else {
+        } else if (rounding_edge > 0) {
           edge_profile([BOTTOM + BACK, BOTTOM + RIGHT]) yflip() mask2d_roundover(rounding_edge);
           corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2) yflip() mask2d_roundover(rounding_edge);
         }

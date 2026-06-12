@@ -292,11 +292,13 @@ module ExtraTilesBox() // `make` me
       }
     }
     translate([$inner_width / 2, $inner_length / 2, $inner_height - loop_tile_thickness]) {
-      translate([factory_hex_radius / 2, 0, -outback_tile_thickness - 0.46]) {
-        text("Outback", valign="center", halign="center", size=10);
+      translate([factory_hex_radius / 2, 0, -outback_tile_thickness - 0.45]) {
+        linear_extrude(h=0.201)
+          text("Outback", valign="center", halign="center", size=10);
       }
       translate([-factory_hex_radius * 3 / 2, 0, -0.20]) {
-        text("Loop", valign="center", halign="center", size=10);
+        linear_extrude(h=0.201)
+          text("Loop", valign="center", halign="center", size=10);
       }
     }
   }
@@ -355,7 +357,7 @@ module MetroTokensBoxLid() // `make` me
   );
 }
 
-module NanobotBox(colour) // `make` me
+module NanobotBox(colour = "orange") // `make` me
 {
   MakeBoxWithCapLid(
     size=[nanobot_box_width, nanobot_box_length, nanobot_box_height],
@@ -373,7 +375,7 @@ module NanobotBoxLid() // `make` me
   );
 }
 
-module RobotBox(colour) // `make` me
+module RobotBox(colour = "gold") // `make` me
 {
   MakeBoxWithCapLid(
     size=[robot_box_width, robot_box_length, robot_box_height],
@@ -391,7 +393,7 @@ module RobotBoxLid() // `make` me
   );
 }
 
-module CommuterBox(colour) // `make` me
+module CommuterBox(colour="magenta") // `make` me
 {
   MakeBoxWithCapLid(
     size=[commuter_box_width, commuter_box_length, commuter_box_height],

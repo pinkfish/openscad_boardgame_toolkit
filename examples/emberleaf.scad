@@ -266,7 +266,7 @@ module PlayerBoxLid() // `make` me
   );
 }
 
-module MaterialBox(colour) // `make` me
+module MaterialBox(colour = "purple") // `make` me
 {
   MakeBoxWithCapLid(
     size=[material_box_width, material_box_length, material_box_height],
@@ -377,7 +377,7 @@ module CardBoxHerosLid() // `make` me
   );
 }
 
-module CardBoxPlayer(colour) // `make` me
+module CardBoxPlayer(colour = "magenta") // `make` me
 {
   MakeBoxWithSlidingLid(
     size=[player_card_box_width, player_card_box_length, player_card_box_height],
@@ -461,7 +461,7 @@ module CommonBoxLid() // `make` me
 {
   CapBoxLidWithLabel(
     size=[common_box_width, common_box_length, common_box_height],
-    text_str="Trophy", label_options=MakeLabelOptions(scale=0.5)
+    text_str="Trophy", label_options=MakeLabelOptions(text_scale=0.5)
   );
 }
 

@@ -58,7 +58,6 @@ function MakeLabelOptions(
   border = 2,
   offset = 4,
   radius = 5,
-  label_background_colour = default_label_background_colour,
   font = default_label_font,
   full_height = false,
   finger_hole_size = 10,

@@ -91,7 +91,7 @@ function PenroseTrianglesDivision(triangles, division) =
 // Description: Convert radians to degrees.
 function r2d(rad) = rad * 180 / PI;
 
-// Module: PenroseTiling()
+// Function&Module: PenroseTiling()
 // Description:
 //    This makes a penrose tiling based on the nice layout with a different
 //    type of spaces.
@@ -150,3 +150,44 @@ module PenroseTiling(width, divisions = 7, thickness = 1, base = 5) {
     }
   }
 }
+
+function PenroseTiling(width, divisions = 7, thickness = 1, base = 5) =
+  let (
+    // Create first layer of triangles
+    triangles = [
+      for (i = [0:base * 2 - 1]) (
+
+        let (
+          p2 = polar_to_xy(1, r2d((2 * i - 1) * PI / (base * 2))),
+          p3 = polar_to_xy(1, r2d((2 * i + 1) * PI / (base * 2)))
+        ) [
+            "thin",
+            [0, 0],
+            (i % 2 == 0) ? p2 : p3,
+            (i % 2 == 0) ? p3 : p2,
+        ]
+      ),
+    ],
+    final_triangles = PenroseTrianglesDivision(triangles, divisions),
+  )
+  // Draw the rhombi
+  union(
+    [
+      for (i = [0:len(final_triangles) - 1]) final_triangles[i][0] == "thin" ?
+        make_region(
+          [
+            final_triangles[i][1] * width,
+            final_triangles[i][2] * width,
+            final_triangles[i][3] * width,
+          ]
+        )
+      : make_region(stroke_offset(
+        path=[
+          final_triangles[i][1] * width,
+          final_triangles[i][2] * width,
+          final_triangles[i][3] * width,
+        ],
+        width=thickness
+      )),
+    ]
+  );

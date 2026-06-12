@@ -19,6 +19,7 @@ include <BOSL2/std.scad>
 include <boardgame_toolkit.scad>
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_LEAF;
 
 box_width = 233;
 box_length = 304;
@@ -103,7 +104,7 @@ lantern_token_box_height = polution_box_height;
 
 essence_box_width = card_box_width;
 essence_box_length = board_length - player_board_width - card_box_length;
-essence_box_height = polution_box_height;
+essence_box_height = box_height - board_thickness - mutation_card_box_height - reminder_card_box_height - trait_tile_box_height * 2 - 1;
 
 shepard_box_width = card_box_width;
 shepard_box_length = card_box_length;
@@ -123,7 +124,7 @@ back_spacer_box_height = box_height - 1;
 
 side_spacer_box_width = box_width - mutation_card_box_width - 1;
 side_spacer_box_length = board_length - standee_box_length - card_box_length - 1;
-side_spacer_box_height = box_height - board_thickness - player_board_thickness - trait_tile_box_height * 2;
+side_spacer_box_height = box_height - board_thickness - player_board_thickness;
 
 player_equipment_box_width = caravan_board_box_width;
 player_equipment_box_length = caravan_board_box_length;
@@ -362,7 +363,7 @@ module TraitTileBox() // `make` me
     }
     translate([$inner_width / 2, $inner_length - trait_tile_width / 2, 0])
       cuboid(
-        [trait_tile_length, trait_tile_width, $inner_height+0.001],
+        [trait_tile_length, trait_tile_width, $inner_height + 0.001],
         anchor=BOTTOM,
         rounding=1,
         edges=[LEFT + FRONT, RIGHT + BACK, LEFT + BACK, RIGHT + FRONT]
@@ -710,7 +711,7 @@ module PlayerEquipmentBox() // `make` me
 
 module PlayerEquipmentBoxLid() // `make` me
 {
-  CapBoxLidWithLabel(
+  SlidingBoxLidWithLabel(
     size=[player_equipment_box_length, player_equipment_box_width, player_equipment_box_height],
     text_str="Player Equipment"
   );
@@ -767,14 +768,16 @@ module BoxLayout(layout = 0) {
   translate([mutation_card_box_width, card_box_length + caravan_token_box_length, 0]) color(player_colors[4]) TraitTileBox();
   translate([mutation_card_box_width, card_box_length + caravan_token_box_length, trait_tile_box_height]) color(player_colors[5]) TraitTileBox();
   if (layout < 3) {
-    translate([0, card_box_length, day_event_card_box_height + night_event_card_box_height + trait_tile_box_height * 2]) EssenceTokenBox();
+    translate([0, card_box_length, mutation_card_box_height + reminder_card_box_height + trait_tile_box_height * 2]) EssenceTokenBox();
   }
 
   translate([0, card_box_length, 0]) MutationCardBox();
   translate([0, card_box_length, mutation_card_box_height]) ReminderCardBox();
   translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height - tracker_pieces_height]) TrackerPiecesBox();
   translate([0, card_box_length + mutation_card_box_length, 0]) CaravanBoardBox();
-  translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height]) PlayerEquipmentBox();
+  if (layout < 4) {
+    translate([0, card_box_length + mutation_card_box_length, caravan_board_box_height]) PlayerEquipmentBox();
+  }
   if (layout < 4) {
     translate([mutation_card_box_width, card_box_length + standee_box_length, 0]) SideSpacerBox();
   }
@@ -802,8 +805,19 @@ module BoxLayoutD() // `document` me
 }
 
 if (FROM_MAKE != 1) {
-  TraitTileBox();
-  /*
+  section_height = 20;
+  section = 10;
+  vein_spacing = 2;
+  i = 0;
+  calc_vein_thickness = 1;
+
+            
+ TesselationLeafOutlineThree(
+            size=20 + 0.1,
+            thickness=2 / 2,
+            vein_thickness=2 / 4,
+            with_veins=true
+          );  /*
   difference() {
     linear_extrude(height=35) {
       difference() {
