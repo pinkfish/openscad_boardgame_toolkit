@@ -120,16 +120,16 @@ module AnimalBox() // `make` me
     wall_thickness=3,
     positive_negative_children=[2]
   ) {
-    up($inner_height - animal_token_thickness / 2) {
-      RoundedBoxAllSides(
-        [
-          $inner_width - 2,
-          $inner_length - 2,
-          animal_box_height,
-        ],
-        radius=3
-      );
-    }
+    up($inner_height - animal_token_thickness / 2) right(1) back(1) {
+          RoundedBoxAllSides(
+            [
+              $inner_width - 2,
+              $inner_length - 2,
+              animal_box_height,
+            ],
+            radius=3
+          );
+        }
     up($inner_height - animal_token_thickness - 0.5) {
       Layout_container0(animal_token_thickness + 1);
     }
@@ -146,16 +146,16 @@ module AnimalBox2() // `make` me
     wall_thickness=3,
     positive_negative_children=[2]
   ) {
-    up($inner_height - animal_token_thickness / 2) {
-      RoundedBoxAllSides(
-        [
-          $inner_width - 2,
-          $inner_length - 2,
-          animal_box_height,
-        ],
-        radius=3
-      );
-    }
+    up($inner_height - animal_token_thickness / 2) right(1) back(1) {
+          RoundedBoxAllSides(
+            [
+              $inner_width - 2,
+              $inner_length - 2,
+              animal_box_height,
+            ],
+            radius=3
+          );
+        }
     up($inner_height - animal_token_thickness - 0.5) {
       Layout_container1(animal_token_thickness + 1);
     }
