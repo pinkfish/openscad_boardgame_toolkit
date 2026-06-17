@@ -32,10 +32,60 @@ under the License.
 // LibFile: pentagon_tilings.scad
 //    This file has all the modules needed to make a variety of penagon tesslations.
 
+// Includes:
+//   include <boardgame_toolkit.scad>
+
 ////////////////////////////////////////////////////////////////////////////////
 // PENATGON PARAMETERS
 
 // [Pattern] 
+
+// Function&Module: PentagonTesselationArea()
+// Description:
+//   Make the pentagon tessellation as a specific x,y in the pattern.
+// Arguments:
+//   pentagon_type = type of the pentagon, eg: "R1" through "R15"
+//   pentagon_size = the size of the pentagon
+//   x = x index for the pattern lattice
+//   y = y index for the pattern lattice
+//   thickness = thickness of the edges of the pattern
+// Example:
+//   PentagonTesselationArea(pentagon_type="R1", pentagon_size = 30, width = 100, length = 100, thickness = 2);
+module PentagonTesselationArea(
+  pentagon_type,
+  pentagon_size,
+  width,
+  length,
+  thickness,
+  first_angle_modifier = 0,
+  second_angle_modifier = 0,
+  first_length_modifier = 0,
+  second_length_modifier = 0,
+  third_length_modifier = 0,
+  line1 = [[0, 0], [1, 0]],
+  line2 = [[0, 0], [1, 0]],
+  line3 = [[0, 0], [1, 0]],
+) {
+  rows = length / pentagon_size;
+  cols = width / pentagon_size;
+  data = PentagonTesselation(
+    pentagon_type, pentagon_size, 0, 0, thickness,
+    first_angle_modifier=first_angle_modifier,
+    second_angle_modifier=second_angle_modifier,
+    first_length_modifier=first_length_modifier,
+    second_length_modifier=second_length_modifier,
+    third_length_modifier=third_length_modifier,
+    line1=line1,
+    line2=line2,
+    line3=line3
+  );
+
+  for (x = [0:rows])
+    for (y = [0:cols])
+      translate(pentagon_size * x * data.x_offset)
+        translate(pentagon_size * y * data.y_offset)
+          region(data.points);
+}
 
 // Function&Module: PentagonTesselation()
 // Description:
@@ -46,6 +96,8 @@ under the License.
 //   x = x index for the pattern lattice
 //   y = y index for the pattern lattice
 //   thickness = thickness of the edges of the pattern
+// Example:
+//   PentagonTesselation(pentagon_type="R1", pentagon_size = 30, x = 0, y = 0, thickness = 2);
 module PentagonTesselation(
   pentagon_type,
   pentagon_size,
@@ -61,19 +113,22 @@ module PentagonTesselation(
   line2 = [[0, 0], [1, 0]],
   line3 = [[0, 0], [1, 0]],
 ) {
-  region(
-    PentagonTesselation(
-      pentagon_type, pentagon_size, x, y, thickness,
-      first_angle_modifier=first_angle_modifier,
-      second_angle_modifier=second_angle_modifier,
-      first_length_modifier=first_length_modifier,
-      second_length_modifier=second_length_modifier,
-      third_length_modifier=third_length_modifier,
-      line1=line1,
-      line2=line2,
-      line3=line3
-    )
+  data = PentagonTesselation(
+    pentagon_type, pentagon_size, x, y, thickness,
+    first_angle_modifier=first_angle_modifier,
+    second_angle_modifier=second_angle_modifier,
+    first_length_modifier=first_length_modifier,
+    second_length_modifier=second_length_modifier,
+    third_length_modifier=third_length_modifier,
+    line1=line1,
+    line2=line2,
+    line3=line3
   );
+  translate(pentagon_size * x * data.x_offset)
+    translate(pentagon_size * y * data.y_offset)
+      region(
+        data.points
+      );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +154,7 @@ function InnerPentagonTesselation(
 function pentagonBorder(vertices, size, thickness) =
   difference(
     offset(
-      deduplicate(
+      path_merge_collinear(
         scale(
           size,
           vertices,
@@ -108,7 +163,7 @@ function pentagonBorder(vertices, size, thickness) =
       delta=0.1 * thickness
     ),
     offset(
-      deduplicate(
+      path_merge_collinear(
         scale(
           size,
           vertices,
@@ -1483,18 +1538,13 @@ function PentagonTesselation(
     : (pentagon_type == "R15") ?
       [R15, [R15, R15_2, R15_3, R15_4, R15_5, R15_6, R15_7, R15_8, R15_9, R15_10, R15_11, R15_12], R15xoff, R15yoff]
     : []
-  ) echo(R2)
-
-  move(
-    pentagon_size * x * pattern[2],
-    move(
-      pentagon_size * y * pattern[3],
-      make_region(
-        InnerPentagonTesselation(
-          pattern=pattern,
-          pentagon_size=pentagon_size,
-          thickness=thickness
-        )
+  ) object(
+    y_offset=pattern[2], x_offset=pattern[3],
+    points=make_region(
+      InnerPentagonTesselation(
+        pattern=pattern,
+        pentagon_size=pentagon_size,
+        thickness=thickness
       )
     )
   );

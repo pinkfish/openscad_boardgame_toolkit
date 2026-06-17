@@ -3632,10 +3632,10 @@ module Sign2d(size) {
 //   shnape_type = the type of shape to check
 function ShapeNeedsInnerControl(shape_type) =
   (
-    shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL || shape_type == SHAPE_TYPE_SHEEP
+    shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL
   ) ?
     1
-  : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 || shape_type == SHAPE_TYPE_GOOSE || shape_type == SHAPE_TYPE_CHICKEN ? 2 : 0);
+  : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 || shape_type == SHAPE_TYPE_GOOSE || shape_type == SHAPE_TYPE_CHICKEN || shape_type == SHAPE_TYPE_SHEEP? 2 : 0);
 
 // Module: ShapeByType()
 // Description:
@@ -3783,8 +3783,8 @@ function ShapeNeedsInnerControl(shape_type) =
 //   $polygon_length = 100;
 //   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CHICKEN, shape_thickness = 1, shape_width = 25));
 // Example:
-//   $polygon_x = 0;
-//   $polygon_y = 0;
+//   $polygon_width = 100;
+//   $polygon_length = 100;
 //   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SHEEP, shape_thickness = 1, shape_width = 25));
 module ShapeByType(
   options
@@ -4006,10 +4006,10 @@ module ShapeByType(
         size=calc_shape_width
       );
     } else if (calc_shape_type == SHAPE_TYPE_SHEEP) {
-      SheepTesselation(
+      SheepTesselationArea(
         size=calc_shape_width, thickness=calc_shape_thickness / 2,
-        x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0,
-        y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
+        width=$polygon_width,
+        length=$polygon_length
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENROSE_TILING_5) {
       max_width = max($polygon_width, $polygon_length);

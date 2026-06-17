@@ -27,7 +27,7 @@ box_height = 72;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
 default_lid_shape_type = SHAPE_TYPE_SHEEP;
-default_lid_shape_width = 30;
+default_lid_shape_width = 20;
 
 player_board_width = 242;
 player_board_length = 288;
@@ -716,7 +716,9 @@ module BoxLayoutC() // `document` me
 function round_to_2(val) = round(val * 100) / 100;
 
 if (FROM_MAKE != 1) {
-  CanopyBoxLid();
+//  CanopyBoxLid();
+SheepTesselationArea(size=30, width = 100, length = 100, thickness = 2);
+//Voronoi(width = 200, length = 100, cellsize=30, thickness = 1);
 
   /*
   bez = [
