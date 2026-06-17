@@ -521,7 +521,7 @@ module IndicatorBoxLid() // `make` me
   );
 }
 
-module ResourceBoxFive(material_colour="yellow") // `make` me
+module ResourceBoxFive(material_colour = "yellow") // `make` me
 {
   MakeBoxWithCapLid(
     size=[resource_box_five_width, resource_box_five_length, resource_box_five_height],

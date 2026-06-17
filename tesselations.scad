@@ -23,143 +23,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-// Module: EscherLizardSingle()
-// Description:
-//   Creates a single escher lizard.
-// Arguments:
-//   size = the size of the lizard
-// Example:
-//   EscherLizardSingle(size=20);
-module EscherLizardSingle(size) {
-  assert(size > 0, "Need to have a size specified");
-  polygon(
-    EscherLizardHexTesselation(radius=size / 2)
-  );
-}
-
-// Function&Module: EscherLizardTriangle()
-// Description:
-//    Makes the triangle that can be used to fill in the escher lizard
-//    tesselation in a wider group.  This will not need to be
-//    rotated.
-// Arguments:
-//    size = size the hex
-//    outer_offset = how much padding on the outside
-// Example:
-//    EscherLizardTriangle(size=20, thickness=2);
-// Example:
-//    EscherLizardTriangle(size=20, thickness=2, outer_offset=0.1);
-// Example:
-//    EscherLizardTriangle(size=20);
-module EscherLizardTriangle(size, thickness = 0, outer_offset = 0) {
-  region(
-    HexagonalTesselationTriangle(
-      size=size,
-      EscherLizardHexTesselation(radius=size / 2, thickness=thickness, outer_offset=outer_offset)
-    )
-  );
-}
-
-function EscherLizardTriangle(size, thickness = 0, outer_offset = 0) =
-  HexagonalTesselationTriangle(
-    size=size,
-    EscherLizardHexTesselation(radius=size / 2, thickness=thickness, outer_offset=outer_offset)
-  );
-
-// Module: HexagonalTesselationTriangle()
-// Description:
-//    Makes the triangle that can be used to fill in the hexagonal
-//    tesselation in a wider group.  This will not need to be
-//    rotated.
-// Arguments:
-//    size = size the hex
-function HexagonalTesselationTriangle(size, pts) =
-  let (
-    side_length = 2 * size * sin(30),
-    apothem = sqrt(3) / 2 * side_length,
-    new_pts = move(
-      [-apothem / 2, size],
-      union(
-        pts,
-        move(
-          [apothem / 2, size * 3 / 4],
-          rot(p=pts, a=240)
-        ),
-        move(
-          [
-            apothem,
-            0,
-          ],
-          rot(p=pts, a=120)
-        )
-      )
-    )
-  ) new_pts;
-
-// Module: EscherLizardSingleOutline()
-// Description:
-//   Creates a single escher lizard with an outline.
-// Arguments:
-//   size = the size of the lizard
-//   thickness = the thickness to use
-// Example:
-//   EscherLizardSingleOutline(size=20, thickness=1);
-module EscherLizardSingleOutline(size, thickness) {
-  assert(size > 0, str("Need to have a size specified size=", size));
-  assert(thickness > 0, str("Need to have a thickness specified thickness=", thickness));
-  region(
-    EscherLizardHexTesselation(radius=size / 2, thickness=thickness)
-  );
-}
-
-// Function&Module: EscherLizardRepeatAtLocation()
-// Description:
-//   Used to create an escher lizard at a specific spot in a grid given an
-//   x and a y location.
-// Arguments:
-//   x = the x location to generate at
-//   y = the y location to generate at
-//   size = the size of the lizard
-//   thickness = the thickness of the lines
-//   outer_offset = extra space to put around the shape.
-// Example:
-//   EscherLizardRepeatAtLocation(x=0, y=0, size=20, thickness=1);
-// Example:
-//   EscherLizardRepeatAtLocation(x=0, y=0, size=20, thickness=1, outer_offset=0.1);
-module EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) {
-  assert(x != undef, "Need to have a x specified");
-  assert(y != undef, "Need to have a y specified");
-  assert(size > 0, str("Need to have a size specified size=", size));
-
-  region(EscherLizardRepeatAtLocation(x=x, y=y, size=size, thickness=thickness, outer_offset=outer_offset));
-}
-
-function EscherLizardRepeatAtLocation(x, y, size, thickness, outer_offset = 0) =
-  HexagonTesselationRepeatAtLocation(
-    x=x, y=y, size=size, pts=EscherLizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset)
-  );
-
-// Module: EscherLizardRepeat()
-// Description:
-//   Creates an escher lizard blob that can be repeated.
-// Arguments:
-//   rows = number of rows to generate
-//   cols = number of columns to generate
-//   size = the size of the lizard
-//   thickness = the thickness of the lines
-//   outer_offset = offset for the outer edge
-// Example:
-//   EscherLizardRepeat(rows=4, cols=4, size=20, thickness=1);
-module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {
-  assert(rows > 0, "Need to have a rows specified");
-  assert(cols > 0, "Need to have a cols specified");
-  assert(size > 0, "Need to have a size specified");
-  assert(thickness > 0, "Need to have a thickness specified");
-
-  HexagonTesselationRepeat(rows=rows, cols=cols, size=size)
-    EscherLizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset);
-}
-
 // Function&Module: HexagonTesselationRepeatAtLocation()
 // Description:
 //   Used to create a hexagonal tesselation at a specific spot in a grid given an
@@ -168,11 +31,28 @@ module EscherLizardRepeat(rows, cols, size, thickness, outer_offset = 0.01) {
 //   x = the x location to generate at
 //   y = the y location to generate at
 //   size = the size of the hex
+//   pts = the points (function only)
 // Example:
-//   HexagonTesselationRepeatAtLocation(x=0, y=0, size=20,
-//      pts=EscherLizardTriangle(size=20, thickness=1));
-module HexagonTesselationRepeatAtLocation(x, y, size, pts) {
-  region(HexagonTesselationRepeatAtLocation(x=x, y=y, size=size, pts=pts));
+//   HexagonTesselationRepeatAtLocation(x=0, y=0, size=20)
+//      LizardTriangle(size=20, thickness=1);
+// Example:
+//   region(HexagonTesselationRepeatAtLocation(x=0, y=0, size=20, 
+//      pts=LizardTriangle(size=20, thickness=1)));
+module HexagonTesselationRepeatAtLocation(x, y, size) {
+  assert(size > 0, str("Need to have a size specified size=", size));
+  assert(is_int(x), str("Need to have a x int specified x=", x));
+  assert(is_int(y), str("Need to have a y int specified y=", y));
+  radius = size / 2;
+  side_length = radius * sqrt(3);
+  apothem = sqrt(3) / 2 * side_length;
+
+  dx = apothem * 2;
+  col_x = apothem + radius;
+  dy = radius * 4 + apothem * 0.8;
+
+  translate([x / 2 * dy, y * dx + ( (x + 1) % 2) * (dx / 2)]) {
+    children();
+  }
 }
 
 function HexagonTesselationRepeatAtLocation(x, y, size, pts) =
@@ -198,7 +78,7 @@ function HexagonTesselationRepeatAtLocation(x, y, size, pts) =
 //   size = the size of the tesselation
 // Example:
 //   HexagonTesselationRepeat(rows=4, cols=4, size=20)
-//       EscherLizardTriangle(size=20, thickness=1);
+//       LizardTriangle(size=20, thickness=1);
 // Example:
 //   HexagonTesselationRepeat(rows=4, cols=4, size=20)
 //       RhombiTriHexagonal(40); // need to double this since not using a triangle
@@ -224,14 +104,31 @@ module HexagonTesselationRepeat(rows, cols, size) {
   }
 }
 
-// Module: TriangleTesselationRepeatAtLocation()
+// Function&Module: TriangleTesselationRepeatAtLocation()
 // Description:
-//   Used to create a triangle tesselation at a specific spot in a grid given an
-//   x and a y location.
-// Arguments:
+//   Creates any hexagonal tesselation spaced correctly, using the triangle layout.
 //   x = the x location to generate at
 //   y = the y location to generate at
 //   size = the size of the triangle
+// Example:
+//   TriangleTesselationRepeatAtLocation(x=0, y=0, size=20)
+//       LizardTriangle(size=20, thickness=1);
+// Example:
+//   region(TriangleTesselationRepeatAtLocation(x=0, y=0, size=20, 
+//       pts=LizardTriangle(size=20, thickness=1)));
+module TriangleTesselationRepeatAtLocation(x, y, size) {
+  assert(size != 0, "Need to have a size specified");
+  assert(is_int(x), str("Need to have a x int specified x=", x));
+  assert(is_int(y), str("Need to have a y int specified y=", y));
+  side_length = size * sin(60);
+  height = side_length * (sqrt(3) / 2);
+
+  translate([side_length / 2 * x, height * y + (size - height) * (x % 2)]) {
+    rotate(60 * (x % 2))
+      children();
+  }
+}
+
 function TriangleTesselationRepeatAtLocation(x, y, size, pts) =
   assert(size != 0, "Need to have a size specified")
   assert(is_int(x), str("Need to have a x int specified x=", x))
@@ -271,111 +168,6 @@ module TriangleTesselationRepeat(rows, cols, size) {
   }
 }
 
-// Function: VoronoiPoints()
-// Description:
-//   Generates a set of Voronoi points to use in the system to make
-//   the nice voronoi pattern.
-function VoronoiPoints(width, length, cellsize, allowable, seed) =
-  let (
-    seed_calc = DefaultValue(seed + width * length / allowable + cellsize, round(rands(0, 100000, 1)[0])),
-    half_cell = cellsize / 2,
-    x_cells = floor(width / cellsize),
-    y_cells = floor(length / cellsize),
-    allowable_min = half_cell - allowable * half_cell,
-    allowable_max = half_cell + allowable * half_cell,
-    num_points = x_cells * y_cells,
-    rnd_points = rands(allowable_min, allowable_max, num_points * 2, seed=seed_calc)
-  ) [
-      for (x = [0:x_cells - 1]) for (y = [0:y_cells - 1]) [
-        x * cellsize + rnd_points[ (x + y * x_cells) * 2],
-        y * cellsize + rnd_points[ (x + y * x_cells) * 2 + 1],
-      ],
-  ];
-
-// Function: NormalizeVector()
-// Description:
-//    Normalizes the vector to a size of 1, but keeps the relative sizes.
-function NormalizeVector(v) = v / (sqrt(v[0] * v[0] + v[1] * v[1]));
-
-// Function&Module: Vornonoi()
-// Description:
-//   Creates a voronoi pattern to use on lids (and elsewhere).
-// Arguments:
-//   width = width of the space to fill
-//   length = length of the space to fill
-//   thickness = thickness of the gaps between the shapes
-//   corner_size = how much rounding to use in the corners
-//   cellsize = the size of the cells in the space
-//   seed = the seed to use for the random number (degault {{default_voronoi_seed}})
-//   allowable = how much space to randomize within the cell
-// Example:
-//   Voronoi(width=100, length=100, thickness=1.5);
-module Voronoi(
-  width,
-  length,
-  thickness,
-  corner_size = 1,
-  cellsize = 10,
-  seed = default_voronoi_seed,
-  allowable = 0.99
-) {
-  assert(width != 0, "Need to have a width specified");
-  assert(length != 0, "Need to have a length specified");
-  assert(thickness != 0, "Need to have a thickness specified");
-  region(
-    Voronoi(
-      width=width,
-      length=length,
-      thickness=thickness,
-      corner_size=corner_size,
-      cellsize=cellsize,
-      seed=seed,
-      allowable=allowable
-    )
-  );
-}
-
-function Voronoi(
-  width,
-  length,
-  thickness,
-  corner_size = 1,
-  cellsize = 10,
-  seed = default_voronoi_seed,
-  allowable = 0.99
-) =
-  assert(width != 0, "Need to have a width specified")
-  assert(length != 0, "Need to have a length specified")
-  assert(thickness != 0, "Need to have a thickness specified")
-  let (
-    points = VoronoiPoints(width=width, length=length, cellsize=cellsize, seed=seed, allowable=allowable),
-    bounding_box = 2.1 * sqrt(2) * cellsize,
-    bounding_box_square = bounding_box * bounding_box,
-  ) difference(
-    square([width, length]),
-    offset(
-      union(
-        [
-          for (p1 = points) intersection(
-            [
-              for (p2 = points) if ( (p1 != p2 && (p2 - p1) [0] * (p2 - p1) [0] + (p2 - p1) [1] * (p2 - p1) [1] <= bounding_box_square) ) let (
-                angle = 90 + atan2(p1[1] - p2[1], p1[0] - p2[0])
-              ) move(
-                (p1 + p2) / 2 - NormalizeVector(p2 - p1) * (thickness / 2 + corner_size),
-                rot(
-                  a=angle, p=move(
-                    [-bounding_box, -bounding_box],
-                    square([bounding_box * 2, bounding_box])
-                  )
-                )
-              ),
-            ]
-          ),
-        ]
-      ), r=corner_size, $fn=16
-    )
-  );
-
 // Function: HexagonalTesselationGenerateEdge()
 // Description:
 //   Internal helper for the hexagonal tesselation generation to setup an edge.
@@ -397,6 +189,14 @@ function HexagonalTesselationGenerateEdge(pts, side_length) = [for (i = [0:len(p
 //       [[-0.5, 0], [0.3, 0.2], [0.5, 0]],
 //     ]
 //   );
+// Example:
+//   region(HexagonalTesselation(
+//     points=[
+//       [[-0.5, 0], [0, 0.2], [0.5, 0]],
+//       [[-0.5, 0], [0, -0.2], [0.5, 0]],
+//       [[-0.5, 0], [0.3, 0.2], [0.5, 0]],
+//     ]
+//   ));
 module HexagonalTesselation(points, radius = 10) {
   assert(len(points) == 3, str("points must have three arrays", points));
   for (c = [0:len(points) - 1]) {
@@ -473,8 +273,35 @@ function SquareTesselationGenerateEdge(pts, side_length) = [for (i = [0:len(pts)
 //       ],
 //       size=[20, 20], thickness=1, outer_offset=0.1
 //     );
+// Example:
+//   region(SquareTesselation(
+//     points=[
+//       [[-0.5, 0], [0, 0.2], [0.5, 0]],
+//       [[-0.5, 0], [0, -0.2], [0.5, 0]],
+//     ],
+//     size=[20,20]
+//   ));
 module SquareTesselation(points, size, thickness = 0, outer_offset = 0) {
-  region(SquareTesselation(points=points, size=size, thickness=thickness, outer_offset=outer_offset));
+  width = size[0];
+  length = size[1];
+  length_line = SquareTesselationGenerateEdge(points[0], length);
+  width_line = SquareTesselationGenerateEdge(points[1], width);
+  poly = [
+    each move([-width / 2, 0], reverse(rot(a=90, p=width_line))),
+    each move([0, -length / 2], rot(a=0, p=length_line)),
+    each move([width / 2, 0], rot(a=90, p=width_line)),
+    each move([0, length / 2], reverse(rot(a=0, p=length_line)))
+  ];
+  difference() {
+    if (outer_offset != 0) {
+      offset(delta=outer_offset, chamfer=true) polygon(poly);
+    } else {
+      polygon(poly);
+    }
+    if (thickness != 0) {
+      offset(delta=-thickness, chamfer=true) polygon(poly);
+    }
+  }
 }
 
 function SquareTesselation(points, size, thickness = 0, outer_offset = 0) =
@@ -508,75 +335,39 @@ function SquareTesselation(points, size, thickness = 0, outer_offset = 0) =
     )
   );
 
-// Function: EscherLizardHexTesselation()
+// Function: TesselationSideLine()
 // Description:
-//    A hex tesselation of the esched lizard, this can be rotated and used
-//    to fill in hex spaces when doing tesselations.
+//    Do the tesselation from a side line.
 // Arguments:
-//    thickness = thickness of the lines
-//    outer_offset = extra space to put around the shape
-//    radius = the radius of the hex to use
-function EscherLizardHexTesselation(radius, thickness = 0, outer_offset = 0) =
+//    path = the path to point the side on
+//    side = the pattern to do with the side
+function TesselationSideLine(path, side) =
+  assert(len(path) == 2, str("Input path must be of size 2", path))
+  assert(len(path[0]) == 2 && len(path[1]) == 2, str("Input path[0],[1] must be of size 2", path))
+  assert(len(side) >= 2, str("Input side must be more than size 2", side))
   let (
-    top = [
-      [-0.5, 0.0],
-      [-0.15, -0.3],
-      [-0.0, -0.3],
-      [0.25, -0.05],
-      [0.05, 0.35],
-      [0.2, 0.4],
-      [0.45, 0.35],
-      [0.45, 0.2],
-      [0.35, 0.15],
-      [0.5, 0.0],
-    ],
-    tail = [
-      [-0.5, 0],
-      [-0.65, -0.35],
-      [-0.4, -0.35],
-      [-0.25, -0.25],
-      [0, -0.2],
-      [0.1, 0],
-      [0.05, 0.3],
-      [-0.15, 0.5],
-      [0.25, 0.35],
-      [0.35, 0.1],
-      [0.4, 0.0],
-      [0.5, 0.0],
-    ],
-    other_leg = [
-      [-0.5, 0],
-      [-0.35, -0.25],
-      [-0.35, -0.55],
-      [-0.05, -0.45],
-      [-0.15, -0.05],
-      [0.15, 0.05],
-      [0.3, 0.15],
-      [0.5, 0],
-    ],
-    lizard_points = [tail, top, other_leg],
-    sized_lizard_points = path_merge_collinear(
-      HexagonalTesselation(
-        points=[
-          tail,
-          top,
-          other_leg,
-        ],
-        radius=radius
-      ), closed=true
-    ),
-    outline = outer_offset == 0 && thickness == 0 ? sized_lizard_points
-    : difference(
-      offset(
-        sized_lizard_points, delta=outer_offset
-      ),
-      thickness > 0 ?
-        offset(
-          sized_lizard_points, delta=-thickness
-        )
-      : []
-    )
-  ) outline;
+    x = path[1][0] - path[0][0],
+    y = path[1][1] - path[0][1],
+    split_length = sqrt(x * x + y * y),
+    angle = atan2(y, x),
+    rotated_line = rot(a=angle, p=side * split_length)
+  ) move(path[0], rotated_line);
+
+// Function: TesselationPolygon()
+// Description:
+//    Do the tesselation for a whole polygon given lines and indexes.
+// Arguments:
+//    path = the path to point the side on
+//    side = the pattern to do with the side
+function TesselationPolygon(path, side_indexes, sides) =
+  assert(len(path) > 2, str("Input path must be of size 2", path))
+  assert(len(side_indexes) == len(path)-1, str("side indexes -1 and paths must be the same size", path, side_indexes))
+  let (
+    each_line = [
+      each for (i =[0:len(side_indexes)-1]) TesselationSideLine(
+        [path[i], path[(i+1)%len(path)]], sides[side_indexes[i]])
+    ]
+  ) each_line;
 
 // Function&Module: TesselationDrop()
 // Description:
@@ -878,9 +669,56 @@ function TesselationLeafOutlineThree(size, thickness = undef, with_veins = false
 //   DeltoidTrihexagonalTiling(20);
 // Example:
 //   DeltoidTrihexagonalTiling(20, kite=true);
+// Example:
+//   region(DeltoidTrihexagonalTiling(20));
 module DeltoidTrihexagonalTiling(size, thickness = 1, outer_offset = 0, kite = false) {
   assert(size != 0, "Need to have a size specified");
-  region(DeltoidTrihexagonalTiling(size, thickness=thickness, outer_offset=outer_offset, kite=kite));
+  module InnerParts() {
+    union() {
+      for (i = [0:5]) {
+        difference() {
+          offset(thickness / 10)
+            polygon(
+              DeltoidTrihexagonalTilingGetPoints(pts, i)
+            );
+          offset(delta=-thickness)
+            polygon(
+              DeltoidTrihexagonalTilingGetPoints(pts, i)
+            );
+        }
+      }
+    }
+  }
+
+  width = size / 2;
+  height = sqrt(3) * width;
+  pts = [
+    [width * 0.5, height / 2],
+    [width, 0],
+    [width * 0.5, -height / 2],
+    [width * -0.5, -height / 2],
+    [-width, 0],
+    [width * -0.5, height / 2],
+  ];
+  union() {
+    difference() {
+      offset(outer_offset)
+        polygon(
+          pts
+        );
+      offset(delta=-thickness)
+        polygon(
+          pts
+        );
+    }
+    intersection() {
+      InnerParts();
+      offset(delta=-thickness + 0.1)
+        polygon(
+          pts
+        );
+    }
+  }
 }
 
 // Function: DeltoidTrihexagonalTilingGetPoints()
@@ -959,9 +797,41 @@ function DeltoidTrihexagonalTiling(size, thickness = 1, outer_offset = 0, kite =
 //   outer_offset = how much to offset the outside edge
 // Example:
 //   HalfRegularHexagon(20);
+// Example:
+//   region(HalfRegularHexagon(20));
 module HalfRegularHexagon(size, thickness = 1, outer_offset = 0) {
   assert(size != 0, "Need to have a size specified");
-  region(HalfRegularHexagon(size, thickness=thickness, outer_offset=outer_offset));
+  side_length = size * sin(60);
+  height = side_length * (sqrt(3) / 2);
+  pts = [
+    [0, size / 2],
+    [side_length / 2, size / 2 - height],
+    [-side_length / 2, size / 2 - height],
+  ];
+  for (i = [0:2]) {
+    difference() {
+      offset(outer_offset)
+        polygon(
+          [
+            pts[i],
+            (pts[i] + pts[ (i + 1) % 3] * 2) / 3,
+            [0, 0],
+            (pts[i] * 2 + pts[ (i + 2) % 3]) / 3,
+            pts[i],
+          ]
+        );
+      offset(-thickness)
+        polygon(
+          [
+            pts[i],
+            (pts[i] + pts[ (i + 1) % 3] * 2) / 3,
+            [0, 0],
+            (pts[i] * 2 + pts[ (i + 2) % 3]) / 3,
+            pts[i],
+          ]
+        );
+    }
+  }
 }
 
 function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
@@ -986,7 +856,7 @@ function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
                 [0, 0],
                 (pts[i] * 2 + pts[ (i + 2) % 3]) / 3,
                 pts[i],
-              ], 
+              ],
               closed=true
             ),
             delta=outer_offset
@@ -1000,7 +870,7 @@ function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
               [0, 0],
               (pts[i] * 2 + pts[ (i + 2) % 3]) / 3,
               pts[i],
-            ], 
+            ],
             closed=true
           ), delta=-thickness
         )
@@ -1018,9 +888,68 @@ function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
 //   outer_offset = how much to offset the outside edge
 // Example:
 //   RhombiTriHexagonal(20);
+// Example:
+//   region(RhombiTriHexagonal(20));
 module RhombiTriHexagonal(size, thickness = 1, outer_offset = 0.1) {
   assert(size > 0, "Need to have a size specified");
-  region(RhombiTriHexagonal(size, thickness=thickness, outer_offset=outer_offset));
+  calc_size = size * 0.8;
+  radius = calc_size / 2;
+  apothem = cos(30) * radius;
+  side_length = radius;
+
+  width = calc_size / 2;
+  height = sqrt(3) * width;
+  pts = [
+    [width * 0.5, height / 2],
+    [width, 0],
+    [width * 0.5, -height / 2],
+    [width * -0.5, -height / 2],
+    [-width, 0],
+    [width * -0.5, height / 2],
+  ];
+  inner_side_length = apothem * sqrt(3) / 2;
+  inner_apothem = inner_side_length / (sqrt(3)) * 2;
+
+  // outer_apothem=inner_apothem+side_length/2
+  // inner_apothem=side_length/(sqrt(3)*2)
+  // outer_apothem=side_length/(sqrt(3)*2)+side_length/2
+  // outer_apothem=(side_length*2)/(sqrt(3)*2/2)
+  // outer_apothem=side_length*2/sqrt(3)
+  // side_length = outer_apothem*sqrt(3)/2
+
+  intersection() {
+    circle(d=size, $fn=6);
+    union() {
+      difference() {
+        offset(outer_offset)
+          circle(d=inner_side_length * 2, $fn=6);
+        offset(-thickness) circle(d=inner_side_length * 2, $fn=6)
+            circle(d=inner_side_length * 2, $fn=6);
+      }
+      for (i = [0:5]) {
+        difference() {
+          union() {
+            offset(outer_offset)
+              polygon(
+                rot(
+                  a=60 * i - 30, p=move(
+                    [(calc_size / 2), 0], p=square([inner_side_length, inner_side_length + thickness], center=true)
+                  )
+                )
+              );
+          }
+          offset(-thickness)
+            polygon(
+              rot(
+                a=60 * i - 30, p=move(
+                  [(calc_size / 2), 0], p=square([inner_side_length, inner_side_length], center=true)
+                )
+              )
+            );
+        }
+      }
+    }
+  }
 }
 
 function RhombiTriHexagonal(size, thickness = 1, outer_offset = 0.1) =
@@ -1096,3 +1025,113 @@ function RhombiTriHexagonal(size, thickness = 1, outer_offset = 0.1) =
       )
     )
   );
+
+// Module: TesselationPegasus()
+// Description:
+//    Pegasus tesselation to use on the lids.
+// Arguments:
+//    size = size of the hex
+//    thickness = thickness of the sides
+//    outer_offset = how much to offset the outside edge
+// Example:
+//    TesselationPegasus(size=[20, 20]);
+// Example:
+//    TesselationPegasus(size=[30, 20], thickness=0.5);
+module TesselationPegasus(size, thickness = 0, outer_offset = 0) {
+  assert(len(size) == 2, "Need to have a size specified as two element array");
+  assert(size[0] > 0 && size[1] > 0, "Need to have a size specified > 0");
+  assert(thickness >= 0, "Need to have thickness specified");
+  assert(outer_offset >= 0, "Need to have outer_offset specified");
+
+  SquareTesselation(
+    points=[
+      (
+        (
+          [
+            for (
+              i = (
+                [
+                  [-0.5, -0],
+                  [-0.131497, 0.189891],
+                  [-0.111942, 0.23038],
+                  [-0.101048, 0.273655],
+                  [-0.0887842, 0.316685],
+                  [-0.0365644, 0.30475],
+                  [0.0156516, 0.292797],
+                  [0.0678689, 0.280851],
+                  [0.0172526, 0.161771],
+                  [-0.036603, 0.0942535],
+                  [-0.104924, 0.0332333],
+                  [-0.166696, -0.0188206],
+                  [-0.172123, -0.107408],
+                  [-0.118787, -0.210899],
+                  [-0.121088, -0.235661],
+                  [-0.123389, -0.260423],
+                  [-0.12569, -0.285184],
+                  [-0.0345562, -0.301811],
+                  [0.0625798, -0.319535],
+                  [0.141772, -0.333985],
+                  [0.172519, -0.4],
+                  [0.193835, -0.333349],
+                  [0.493345, -0.21837],
+                  [0.491797, -0.170607],
+                  [0.469955, -0.158724],
+                  [0.465464, -0.119576],
+                  [0.443623, -0.107693],
+                  [0.46217, -0.0703219],
+                  [0.480717, -0.0329511],
+                  [0.499265, 0.00441975],
+                  [0.499512, 0.00494432],
+                  [0.5, 0],
+                ]
+              )
+            ) [i[0], -i[1]],
+          ]
+        )
+      ),
+      (
+        [
+          for (
+            i = (
+              [
+                [0.5, -0.0],
+                [0.456143, -0.0789084],
+                [0.406509, -0.123072],
+                [0.365506, -0.158244],
+                [0.29841, -0.12978],
+                [0.27285, -0.0853574],
+                [0.205624, -0.0572037],
+                [0.165011, 0.0314834],
+                [0.06979, 0.117951],
+                [-0.0974454, 0.0612218],
+                [-0.093908, -0.0578449],
+                [-0.0255355, -0.0900762],
+                [-0.00708426, -0.0756784],
+                [0.0252447, -0.0474022],
+                [0.0436957, -0.0330041],
+                [0.110764, -0.115447],
+                [0.0767458, -0.148258],
+                [0.0311628, -0.16719],
+                [-0.00285616, -0.2],
+                [-0.0599237, -0.179476],
+                [-0.116194, -0.156928],
+                [-0.172503, -0.134443],
+                [-0.178267, 0.0363945],
+                [-0.178267, 0.0363945],
+                [-0.325784, 0.11531],
+                [-0.394859, 0.166938],
+                [-0.498287, 0.220646],
+                [-0.5, 0.221534],
+                [-0.498991, 0.13894],
+                [-0.497203, 0.131818],
+                [-0.458524, -0.0222559],
+                [-0.456539, -0.0],
+              ]
+            )
+          ) [-i[0], i[1]],
+        ]
+      ),
+    ],
+    size=size, thickness=thickness, outer_offset=outer_offset
+  );
+}

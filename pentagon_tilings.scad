@@ -46,17 +46,53 @@ under the License.
 //   x = x index for the pattern lattice
 //   y = y index for the pattern lattice
 //   thickness = thickness of the edges of the pattern
-module PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) {
-  region(PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness));
+module PentagonTesselation(
+  pentagon_type,
+  pentagon_size,
+  x,
+  y,
+  thickness,
+  first_angle_modifier = 0,
+  second_angle_modifier = 0,
+  first_length_modifier = 0,
+  second_length_modifier = 0,
+  third_length_modifier = 0,
+  line1 = [[0, 0], [1, 0]],
+  line2 = [[0, 0], [1, 0]],
+  line3 = [[0, 0], [1, 0]],
+) {
+  region(
+    PentagonTesselation(
+      pentagon_type, pentagon_size, x, y, thickness,
+      first_angle_modifier=first_angle_modifier,
+      second_angle_modifier=second_angle_modifier,
+      first_length_modifier=first_length_modifier,
+      second_length_modifier=second_length_modifier,
+      third_length_modifier=third_length_modifier,
+      line1=line1,
+      line2=line2,
+      line3=line3
+    )
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tesselation MODULE
 
-function InnerPentagonTesselation(pattern, pentagon_size, thickness) =
-  union([
-    for (i = [0:len(pattern[1]) - 1]) pentagonBorder(vertices=pattern[1][i], size=pentagon_size, thickness=thickness),
-  ]);
+function InnerPentagonTesselation(
+  pattern,
+  pentagon_size,
+  thickness,
+) =
+  union(
+    [
+      for (i = [0:len(pattern[1]) - 1]) pentagonBorder(
+        vertices=pattern[1][i],
+        size=pentagon_size,
+        thickness=thickness
+      ),
+    ]
+  );
 
 ////////////////////////////////////////////////////////////////////////////////
 // PENTAGON AND LATTICE MODULES
@@ -79,7 +115,26 @@ function pentagonBorder(vertices, size, thickness) =
     )
   );
 
-function PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) =
+function PentagonTesselation(
+  pentagon_type,
+  pentagon_size,
+  x,
+  y,
+  thickness,
+  first_angle_modifier = 0,
+  second_angle_modifier = 0,
+  first_length_modifier = 0,
+  second_length_modifier = 0,
+  third_length_modifier = 0,
+  line1 = [[0, 0], [1, 0]],
+  line2 = [[0, 0], [1, 0]],
+  line3 = [[0, 0], [1, 0]],
+) =
+  assert(first_angle_modifier > -60 && first_angle_modifier < 60, str("Invalid first angle odifier first_angle_modifier", first_angle_modifier))
+  assert(second_angle_modifier > -60 && second_angle_modifier < 60, str("Invalid second angle odifier second_angle_modifier", second_angle_modifier))
+  assert(first_length_modifier > -1 && first_length_modifier < 1, str("Invalid first length odifier first_length_modifier", first_length_modifier))
+  assert(second_length_modifier > -1 && second_length_modifier < 1, str("Invalid second length odifier second_length_modifier", second_length_modifier))
+  assert(third_length_modifier > -1 && third_length_modifier < 1, str("Invalid third length odifier third_length_modifier", third_length_modifier))
   let (
     // convex initial conditions for each pentagon
     // R1: AA = 70; BB = 140; b = 1; c = 0.5; e = 0.7;
@@ -113,19 +168,19 @@ function PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) =
     : 0,
 
     // (applies to 1, 2, 4-8, 10-13) value:
-    first_angle_modifier = 0, // [-60:5:60]
+    //first_angle_modifier = 0, // [-60:5:60]
 
     // (applies to 1, 2) value:
-    second_angle_modifier = 0, // [-60:5:60]
+    //second_angle_modifier = 0, // [-60:5:60]
 
     // (applies to 1-5, 9) value:
-    first_length_modifier = 0, // [-1:.1:1]
+    //first_length_modifier = 0, // [-1:.1:1]
 
     // (applies to 1) value:
-    second_length_modifier = 0, // [-1:.1:1]
+    //second_length_modifier = 0, // [-1:.1:1]
 
     // (applies to 1, 2) value:
-    third_length_modifier = 0, // [-1:.1:1]
+    //third_length_modifier = 0, // [-1:.1:1]
 
     // add user modifiers to the initial values
     AA_mod = AA_init + first_angle_modifier,
@@ -1374,9 +1429,15 @@ function PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) =
 
     ////////////////////////////////////////////////////////////////////////////////
     // RENDERS
+   
     pattern = (pentagon_type == "R1") ?
       [R1, [R1, R1_2], R1xoff, R1yoff]
-    : (pentagon_type == "R2") ? [R2, [R2, R2_2, R2_3, R2_4], R2xoff, R2yoff]
+    : (pentagon_type == "R2") ? [
+        R2,
+        [R2, R2_2, R2_3, R2_4],
+        R2xoff,
+        R2yoff,
+      ]
     : (pentagon_type == "R3") ?
       [R3, [R3, R3_2, R3_3], R3xoff, R3yoff]
     : (pentagon_type == "R4") ? [R4, [R4, R4_2, R4_3, R4_4], R4xoff, R4yoff]
@@ -1400,7 +1461,7 @@ function PentagonTesselation(pentagon_type, pentagon_size, x, y, thickness) =
     : (pentagon_type == "R15") ?
       [R15, [R15, R15_2, R15_3, R15_4, R15_5, R15_6, R15_7, R15_8, R15_9, R15_10, R15_11, R15_12], R15xoff, R15yoff]
     : []
-  )
+  ) echo(R2)
 
   move(
     pentagon_size * x * pattern[2],

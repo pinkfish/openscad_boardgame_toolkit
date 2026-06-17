@@ -192,10 +192,10 @@ SHAPE_TYPE_PENTAGON_R14 = 25;
 // Description:
 //   Makes a nice repeating pentagon shape.
 SHAPE_TYPE_PENTAGON_R15 = 26;
-// Constant: SHAPE_TYPE_ESCHER_LIZARD
+// Constant: SHAPE_TYPE_LIZARD
 // Description:
-//   Makes a nice repeating escher lizard shape.
-SHAPE_TYPE_ESCHER_LIZARD = 27;
+//   Makes a nice repeating lizard shape.
+SHAPE_TYPE_LIZARD = 27;
 // Constant: SHAPE_TYPE_VORONOI
 // Description:
 //   Make a lid with a voronoi layout.
@@ -237,6 +237,18 @@ SHAPE_TYPE_PENROSE_TILING_5 = 36;
 // Description:
 //   Make a shape that is a penrose tiling.
 SHAPE_TYPE_PENROSE_TILING_7 = 37;
+// Constant: SHAPE_TYPE_PEGASUS
+// Description:
+//   Make a shape that is a pegasus tesselation.
+SHAPE_TYPE_PEGASUS = 38;
+// Constant: SHAPE_TYPE_GOOSE
+// Description:
+//   Make a shape that is a goose tesselation.
+SHAPE_TYPE_GOOSE = 39;
+// Constant: SHAPE_TYPE_CHICKEN
+// Description:
+//   Make a nice chicken shape.
+SHAPE_TYPE_CHICKEN = 40;
 
 // Constant: CATCH_NONE
 // Description:
@@ -307,12 +319,30 @@ default_label_type = LABEL_TYPE_FRAMED;
 // Module: DifferenceWithOffset()
 // Description:
 //   Helper function that does an offset with the size inside the difference of the object
-//   makes it easier for constructing outlines.
+//   makes it easier for constructing outlines.  If the offset is 0 does a solid shape.
 // Arguments:
 //   offset = how much of an offset, -ve is inside the shape, +ve is outside the shape.
-module DifferenceWithOffset(offset) {
-  difference() {
-    children();
-    offset(delta=offset) children();
+module DifferenceWithOffset(offset, outer_offset = 0) {
+  if (offset != 0) {
+    difference() {
+      offset(delta=outer_offset) children();
+      offset(delta=offset) children();
+    }
+  } else {
+    offset(delta=outer_offset) children();
   }
 }
+
+function DifferenceWithOffset(offset, outer_offset, pts) =
+  offset != 0 ? difference(
+      offset(delta=outer_offset, path=pts),
+      offset(delta=offset, path=pts)
+    )
+  : offset(delta=outer_offset, path=pts);
+
+function DifferenceWithOffsetRounded(offset, outer_offset, pts) =
+  offset != 0 ? difference(
+      offset(r=outer_offset, path=pts),
+      offset(r=offset, path=pts)
+    )
+  : offset(r=outer_offset, path=pts);

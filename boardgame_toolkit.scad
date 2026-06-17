@@ -68,3 +68,12 @@ include <shapes3d.scad>
 include <pentagon_tilings.scad>
 include <tesselations.scad>
 include <penrose_tiling.scad>
+
+// Tesselations
+include <tesselations/chicken.scad>
+include <tesselations/goose.scad>
+include <tesselations/kite_tesselation.scad>
+include <tesselations/lizard.scad>
+include <tesselations/quad_tesselation.scad>
+include <tesselations/voronoi.scad>
+

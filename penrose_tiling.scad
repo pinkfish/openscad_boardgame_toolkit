@@ -21,6 +21,9 @@
 // LibFile: penrose_tilings.scad
 //    This file has all the modules needed to make a penrose tesslation.
 
+// Includes:
+//   include <boardgame_toolkit.scad>
+
 // Function: PenroseTriangles()
 // Description:
 //   Subdivides the triangles to the correct size.
@@ -181,13 +184,15 @@ function PenroseTiling(width, divisions = 7, thickness = 1, base = 5) =
             final_triangles[i][3] * width,
           ]
         )
-      : make_region(stroke_offset(
-        path=[
-          final_triangles[i][1] * width,
-          final_triangles[i][2] * width,
-          final_triangles[i][3] * width,
-        ],
-        width=thickness
-      )),
+      : make_region(
+        stroke_offset(
+          path=[
+            final_triangles[i][1] * width,
+            final_triangles[i][2] * width,
+            final_triangles[i][3] * width,
+          ],
+          width=thickness
+        )
+      ),
     ]
   );

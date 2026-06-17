@@ -26,7 +26,8 @@ box_length = 288;
 box_height = 72;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
-default_lid_shape_type = SHAPE_TYPE_VORONOI;
+default_lid_shape_type = SHAPE_TYPE_CHICKEN;
+default_lid_shape_width = 30;
 
 player_board_width = 242;
 player_board_length = 288;
@@ -132,13 +133,11 @@ canopy_box_height = card_box_height;
 
 compost_box_width = score_pad_box_width;
 compost_box_length = canopy_box_length;
-compost_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 4;
+compost_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 6;
 
 sprout_box_width = score_pad_box_width;
 sprout_box_length = canopy_box_length;
 sprout_box_height = (card_box_height - score_pad_box_height - compost_box_height);
-
-echo([card_box_height, score_pad_box_height, compost_box_height]);
 
 seed_box_length = box_length - abundance_box_length;
 seed_box_width = abundance_box_width;
@@ -566,7 +565,7 @@ module CompostBox() // `make` me
     material_colour="black"
   ) {
     intersection() {
-      FilamentBoxInsideMask(size= [compost_box_width, compost_box_length, compost_box_height]);
+      FilamentBoxInsideMask(size=[compost_box_width, compost_box_length, compost_box_height]);
       translate([0.5, 0.5, 0])
         RoundedBoxAllSides(
           size=[$inner_width - 1, $inner_length - 1, compost_box_height],
@@ -587,7 +586,6 @@ module CompostBoxLid() // `make` me
 
 module SproutBox() // `make` me
 {
-  echo([sprout_box_width, sprout_box_length, sprout_box_height]);
   MakeBoxWithFilamentHingeLid(
     [sprout_box_width, sprout_box_length, sprout_box_height],
     material_colour="green",
@@ -715,6 +713,302 @@ module BoxLayoutC() // `document` me
   BoxLayout(layout=3);
 }
 
+function round_to_2(val) = round(val * 100) / 100;
+
 if (FROM_MAKE != 1) {
-  BoxLayout();
+  
+  //echo(PentagonTesselation("R2", 30, 0,0, 2));
+  R2 = [[0.418919, 0.787846], [-0.355744, 1.1354], [-0.97282, 0.4], [-0.28, 0], [0.28, 0]];
+  echo(TesselationPolygon(R2, [0, 0, 0, 0], [[[0, 0], [1, 0]]]) * 100);
+  region(TesselationPolygon(R2, [0, 0, 0, 0], [[[0, 0], [1, 0]]]) * 100);
+  //PentagonTesselation("R2", 30, 0,0, 2);
+  //linear_extrude(height=2)
+  // TesselationGooseArea(width=200, length=100, size=30, thickness=1);
+
+  //  linear_extrude(height=2)
+  //   union() {
+  //    TesselationHexKiteArea(
+  //    size=30, width=30, length=30
+  // )
+  //        rotate(30)
+  //        TesselationChickenHex(size=30, thickness=1, outer_offset=0.2);
+  // }
+
+  //CanopyBoxLid();
+  // A square
+  //polygon([[0, 0], [50, 10], [47, 2], [50, -10]]);
+
+  /*
+  echo(
+    TesselationFromQuadradicPoints(
+      [[0, 0], [50, 10], [47, 2], [50, -10]],
+      [[0, 0], [0.5, 0.5], [1, 0]],
+      [[0, 0], [1, 0]],
+      [[0, 0], [1, 0]],
+    )
+  );
+  echo(
+    (
+      [
+        for (
+          i = [
+            [0, 0],
+            [0.213176, 0.056018],
+            [0.406283, 0.07],
+            [0.56471, -0.0733724],
+            [0.693585, -0.0370756],
+            [0.761958, 0.0107027],
+            [1, 0],
+          ]
+        ) [i[0], -i[1]],
+      ]
+    )
+  );
+  linear_extrude(height=2)
+    TesselationGooseArea(width=200, length=100, size=30, thickness=2);
+    Voronoi(200, 100,  1);
+    */
+  /*
+  $polygon_width = 200;
+  $polygon_length = 100;
+  calc_shape_width = 30;
+  calc_shape_thickness = 2;
+  linear_extrude(height=2)
+    union() {
+      TesselationHexKiteArea(
+        size=calc_shape_width, width=$polygon_width, length=$polygon_length
+      )
+          rotate(30)
+            TesselationChickenHex(size=calc_shape_width, thickness=calc_shape_thickness / 2, outer_offset=0.2);
+    }
+    */
+
+  //  Voronoi(200, 100, 2);
+  // CanopyBoxLid();
+  /*
+  bez = [
+    for (
+      i = rot(
+        a=60, p=[
+          //   [110.71, 50.17],
+          //   [111.0, 50.620000000000005],
+          //  [111.0, 50.800000000000004],
+          // [110.47, 51.11]s,
+          [110.05, 51.55],
+          [82.72, 42.28],
+          [82.17, 41.89],
+          [81.47, 35.08],
+          [80.55, 28.16],
+          [78.56, 21.64],
+          [76.35000000000001, 14.420000000000002],
+          [72.10000000000001, 8.96],
+          [66.23, 4.310000000000002],
+          [60.96, 0.15],
+          [55.85, -1.05],
+          [49.35, 0.94],
+          [37.53, 4.5600000000000005],
+          [40.82, 15.2],
+          [45.5, 23.630000000000003],
+          [45.81, 24.310000000000002],
+          [45.97, 24.810000000000002],
+          [45.23, 25.130000000000003],
+          [38.93, 28.310000000000002],
+          [32.48, 32.03],
+          [28.279999999999998, 37.84],
+          [25.58, 41.59],
+          [31.349999999999998, 45.38],
+          [34.23, 46.74],
+          [35.339999999999996, 47.370000000000005],
+          [35.4, 47.78],
+          [34.489999999999995, 48.67],
+          [29.319999999999993, 53.18],
+          [26.009999999999994, 58.84],
+          [25.979999999999997, 65.83],
+          [20.679999999999996, 67.51],
+          [15.829999999999997, 69.49],
+          [12.749999999999996, 74.38],
+          [11.809999999999997, 75.86999999999999],
+          [9.419999999999996, 82.24],
+          [9.819999999999997, 83.64],
+          [9.849999999999996, 83.74],
+          [9.949999999999998, 83.8],
+          [10.049999999999997, 83.78],
+          [16.619999999999997, 81.34],
+          [23.919999999999995, 80.84],
+          [30.709999999999997, 82.58],
+          [31.609999999999996, 82.72],
+          [31.619999999999997, 83.33],
+          [30.74, 84.41],
+          [25.709999999999997, 90.8],
+          [22.369999999999997, 100.16],
+          [23.659999999999997, 108.28],
+          [24.249999999999996, 111.99],
+          [26.319999999999997, 113.29],
+          [29.969999999999995, 113.1],
+          [38.42999999999999, 112.66999999999999],
+          [40.19, 107.74],
+          [42.489999999999995, 100.53],
+          [43.28999999999999, 99.89],
+          [43.459999999999994, 99.84],
+          [43.91, 100.83],
+          [44.94, 103.08],
+          [45.419999999999995, 108.88],
+          [45.63999999999999, 111.61],
+          [46.339999999999996, 120.42],
+          [45.199999999999996, 129.22],
+          [42.169999999999995, 137.54],
+          [28.57, 175.66],
+          [14.69, 213.54],
+          [0.55, 251.16],
+          [-8.61, 252.81],
+          //  [100.14999999999999, 35.68000000000001],
+          // [110.71, 50.16999999999999],
+        ]
+      )
+    ) [
+      i[0] - 10,
+      i[1] - 121,
+    ],
+  ];
+  //  echo(bez);
+  // color("red")
+  // stroke(bez);
+
+  max_y = max([for (i = bez) i[0]]);
+  min_y = min([for (i = bez) i[0]]);
+  //echo(max_y, min_y);
+  //echo((bez * 1 / max_y));
+
+  //echo([for (i = bez * 1 / min_y) [i[0] - 0.00660387, i[1]]]);
+  //  color("red")
+  // stroke([for (i = bez * 1 / max_y) [i[0] - 0.00660387, i[1]]]*100);
+
+  line1 = [
+    [-0.5, 0],
+    [-0.46, 0.03],
+    [-0.43, 0.07],
+    [-0.39, 0.1],
+    [-0.32, 0.15],
+    [-0.29, 0.18],
+    [-0.24, 0.19],
+    [-0.2, 0.21],
+    [-0.17, 0.22],
+    [-0.13, 0.22],
+    [-0.1, 0.2],
+    [-0.06, 0.18],
+    [-0.03, 0.12],
+    [-0.02, 0.07],
+    [-0.01, 0.04],
+    [0.01, 0.01],
+    [0.03, -0.02],
+    [0.04, -0.04],
+    [0.05, -0.05],
+    [0.06, -0.05],
+    [0.08, -0.05],
+    [0.09, -0.05],
+    [0.11, -0.05],
+    [0.15, -0.05],
+    [0.19, -0.04],
+    [0.23, -0.04],
+    [0.26, -0.06],
+    [0.28, -0.07],
+    [0.28, -0.09],
+    [0.28, -0.11],
+    [0.27, -0.19],
+    [0.26, -0.21],
+    [0.26, -0.23],
+    [0.27, -0.25],
+    [0.27, -0.25],
+    [0.27, -0.25],
+    [0.27, -0.25],
+    [0.5, 0],
+  ];
+  line2 = [
+    for (
+      i = rot(
+        a=0, p=[
+          [0, 0],
+          [0.015, 0.12],
+          [-0.01, 0.14],
+          [-0.03, 0.16],
+          [-0.05, 0.18],
+          [-0.07, 0.20],
+          [-0.09, 0.23],
+          [-0.09, 0.26],
+          [-0.09, 0.29],
+          [-0.09, 0.31],
+          [-0.06, 0.33],
+          [-0.03, 0.37],
+          [0.01, 0.33],
+          [0.03, 0.30],
+          [0.03, 0.29],
+          [0.03, 0.30],
+          [0.06, 0.31],
+          [0.09, 0.33],
+          [0.12, 0.33],
+          [0.14, 0.33],
+          [0.14, 0.31],
+          [0.14, 0.29],
+          [0.14, 0.28],
+          [0.17, 0.29],
+          [0.20, 0.29],
+          [0.22, 0.28],
+          [0.24, 0.29],
+          [0.26, 0.31],
+          [0.29, 0.31],
+          [0.32, 0.31],
+          [0.33, 0.30],
+          [0.30, 0.28],
+          [0.29, 0.26],
+          [0.28, 0.23],
+          [0.28, 0.22],
+          [0.32, 0.24],
+          [0.36, 0.22],
+          [0.39, 0.20],
+          [0.40, 0.19],
+          [0.40, 0.18],
+          [0.39, 0.17],
+          [0.37, 0.13],
+          [0.35, 0.14],
+          [0.32, 0.15],
+          [0.31, 0.14],
+          [0.32, 0.14],
+          [0.32, 0.13],
+          [0.34, 0.12],
+          [0.38, 0.09],
+          [0.42, 0.07],
+          [0.46, 0.07],
+          [0.63, 0.03],
+          [0.80, 0.00],
+          [0.97, -0.02],
+          [1, 0],
+        ]
+      )
+    ) [(i[0] - 0.5), i[1]],
+  ];
+  //echo(line2);
+  // stroke(line1 * 100);
+  //color("red")
+  //  stroke(line2 * 100);
+  TesselationChickenHex(100);
+  /*
+  radius = 200 / 2;
+  side_length = radius;
+  apothem = sqrt(radius * radius - (radius / 2) * (radius / 2));
+
+  dx = apothem * 2;
+  col_x = apothem + radius;
+  dy = radius * 4 + apothem * 0.8;
+
+  for (x = [0:3])
+    for (y = [0:1])
+      back(x * radius * 3 / 2)
+        right(apothem * 2 * y + (x % 2) * apothem)
+          rotate(30)
+            MakeTesselationKiteHexagon(
+              100,
+              [[-0.5, 0], [0.3, 0.25], [0.5, 0]],
+              [[-0.5, 0], [0.3, 0.25], [0.5, 0]],
+            );
+            */
 }
