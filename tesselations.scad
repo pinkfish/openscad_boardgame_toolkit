@@ -313,7 +313,7 @@ function SquareTesselation(points, size, thickness = 0, outer_offset = 0) =
     length = size[1],
     length_line = SquareTesselationGenerateEdge(points[0], length),
     width_line = SquareTesselationGenerateEdge(points[1], width),
-    poly = path_merge_collinear(
+    poly = deduplicate(
       [
         each move([-width / 2, 0], reverse(rot(a=90, p=width_line))),
         each move([0, -length / 2], rot(a=0, p=length_line)),
@@ -330,10 +330,23 @@ function SquareTesselation(points, size, thickness = 0, outer_offset = 0) =
 
     make_region(
       thickness != 0 ?
-        path_merge_collinear(offset(poly, delta=-thickness, chamfer=true), closed=true)
+        deduplicate(offset(poly, delta=-thickness, chamfer=true), closed=true)
       : [[-100, -100], [-101, -100], [-101, -101]]
     )
   );
+
+// Constant: TESSELATION_LINE_NORMAL
+// Description:
+//    Nothing changed with the line.
+TESSELATION_LINE_NORMAL = 0;
+// Constant: TESSELATION_LINE_FLIPPED
+// Description:
+//    The line is flipped over.
+TESSELATION_LINE_FLIPPED = 1;
+// Constant: TESSELATION_LINE_SYMETRIC
+// Description:
+//    The line is flipped over half way through so each side matches.
+TESSELATION_LINE_SYMETRIC = 2;
 
 // Function: TesselationSideLine()
 // Description:
@@ -341,17 +354,22 @@ function SquareTesselation(points, size, thickness = 0, outer_offset = 0) =
 // Arguments:
 //    path = the path to point the side on
 //    side = the pattern to do with the side
-function TesselationSideLine(path, side) =
-  assert(len(path) == 2, str("Input path must be of size 2", path))
-  assert(len(path[0]) == 2 && len(path[1]) == 2, str("Input path[0],[1] must be of size 2", path))
-  assert(len(side) >= 2, str("Input side must be more than size 2", side))
+function TesselationSideLine(path, side, flip = TESSELATION_LINE_NORMAL) =
+  assert(len(path) == 2, str("Input path must be of size 2 path=", path))
+  assert(len(path[0]) == 2 && len(path[1]) == 2, str("Input path[0],[1] must be of size 2 path[0]=", path[0], "path[1]=", path[1]))
+  assert(len(side) >= 2, str("Input side must at least than size 2 side=", side))
   let (
     x = path[1][0] - path[0][0],
     y = path[1][1] - path[0][1],
     split_length = sqrt(x * x + y * y),
     angle = atan2(y, x),
-    rotated_line = rot(a=angle, p=side * split_length)
-  ) move(path[0], rotated_line);
+    side_flipped = [for (i = side) [i[0], flip == TESSELATION_LINE_FLIPPED ? -i[1] : i[1]]],
+    symetric = concat(
+      side * 0.5,
+      reverse([for (i = side * 0.5) [i[0], -i[1]]])
+    ),
+    rotated_line = rot(a=angle, p=side_flipped * split_length)
+  ) move(path[0], flip == TESSELATION_LINE_SYMETRIC ? symetric : rotated_line);
 
 // Function: TesselationPolygon()
 // Description:
@@ -359,15 +377,18 @@ function TesselationSideLine(path, side) =
 // Arguments:
 //    path = the path to point the side on
 //    side = the pattern to do with the side
-function TesselationPolygon(path, side_indexes, sides) =
+function TesselationPolygon(path, side_indexes, sides, flips) =
   assert(len(path) > 2, str("Input path must be of size 2", path))
-  assert(len(side_indexes) == len(path)-1, str("side indexes -1 and paths must be the same size", path, side_indexes))
+  assert(len(side_indexes) == len(path), str("side indexes and paths must be the same size path=", len(path), "side_indexes=", len(side_indexes)))
   let (
     each_line = [
-      each for (i =[0:len(side_indexes)-1]) TesselationSideLine(
-        [path[i], path[(i+1)%len(path)]], sides[side_indexes[i]])
+      each for (i = [0:len(side_indexes) - 1]) TesselationSideLine(
+        path=[path[i], path[ (i + 1) % len(path)]],
+        side=sides[side_indexes[i]],
+        flip=flips[i]
+      )
     ]
-  ) each_line;
+  ) deduplicate(each_line, closed=true);
 
 // Function&Module: TesselationDrop()
 // Description:
@@ -444,7 +465,7 @@ module TesselationLeafOutline(size, thickness = undef, with_veins = false, vein_
 //   section_height = height of the section
 //   section = the section
 function TesselationLeafOutlineMakePolygon(section_height, section) =
-  path_merge_collinear(
+  deduplicate(
     [
       [section_height * 2, 0],
       [0, section * 1],
@@ -847,9 +868,9 @@ function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
   ) union(
     [
       for (i = [0:2]) difference(
-        path_merge_collinear(
+        deduplicate(
           offset(
-            path_merge_collinear(
+            deduplicate(
               [
                 pts[i],
                 (pts[i] + pts[ (i + 1) % 3] * 2) / 3,
@@ -863,7 +884,7 @@ function HalfRegularHexagon(size, thickness = 1, outer_offset = 0) =
           )
         ),
         offset(
-          path_merge_collinear(
+          deduplicate(
             [
               pts[i],
               (pts[i] + pts[ (i + 1) % 3] * 2) / 3,

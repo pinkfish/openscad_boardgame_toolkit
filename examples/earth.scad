@@ -26,7 +26,7 @@ box_length = 288;
 box_height = 72;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
-default_lid_shape_type = SHAPE_TYPE_CHICKEN;
+default_lid_shape_type = SHAPE_TYPE_SHEEP;
 default_lid_shape_width = 30;
 
 player_board_width = 242;
@@ -716,12 +716,160 @@ module BoxLayoutC() // `document` me
 function round_to_2(val) = round(val * 100) / 100;
 
 if (FROM_MAKE != 1) {
-  
+  CanopyBoxLid();
+
+  /*
+  bez = [
+    [0.0, 101.46],
+    [13.6, 101.16999999999999],
+    [25.87, 100.63],
+    [38.41, 96.16999999999999],
+    [70.52, 84.74999999999999],
+    [57.809999999999995, 45.569999999999986],
+    [69.03, 24.389999999999986],
+    [86.91, -9.360000000000014],
+    [132.09, -2.5700000000000145],
+    [163.84, 11.949999999999987],
+    [179.71, 19.209999999999987],
+    [193.66, 28.86999999999999],
+    [204.05, 42.789999999999985],
+    [209.60000000000002, 50.23999999999999],
+    [211.97, 58.569999999999986],
+    [210.58, 67.78999999999999],
+    [208.79000000000002, 79.61999999999999],
+    [204.3, 90.55999999999999],
+    [197.77, 100.85999999999999],
+  ];
+  //max_y = max([for (i = bez) i[0]]);
+  max_y = 197.77;
+  min_y = min([for (i = bez) i[0]]);
+  ratio = 1 / max_y;
+  new_bez = rot(a=0, p=[for (i = bez) [i[0], i[1] - 101.46] * ratio]);
+
+  // echo([for (i = new_bez) [round_to_2(i[0]), round_to_2(i[1])]]);
+  // color("blue")
+  //  stroke(new_bez * 100);
   //echo(PentagonTesselation("R2", 30, 0,0, 2));
-  R2 = [[0.418919, 0.787846], [-0.355744, 1.1354], [-0.97282, 0.4], [-0.28, 0], [0.28, 0]];
-  echo(TesselationPolygon(R2, [0, 0, 0, 0], [[[0, 0], [1, 0]]]) * 100);
-  region(TesselationPolygon(R2, [0, 0, 0, 0], [[[0, 0], [1, 0]]]) * 100);
-  //PentagonTesselation("R2", 30, 0,0, 2);
+  line3 = [
+    [0, 0],
+    [0.01, -0.04],
+    [0.02, -0.08],
+    [0.05, -0.11],
+    [0.09, -0.18],
+    [0.18, -0.18],
+    [0.25, -0.14],
+    [0.33, -0.1],
+    [0.41, -0.07],
+    [0.49, -0.07],
+    [0.56, -0.11],
+    [0.68, -0.17],
+    [0.71, -0.19],
+    [0.74, -0.19],
+    [0.77, -0.18],
+    [0.85, -0.15],
+    [0.92, -0.11],
+    [0.98, -0.04],
+    [0.99, -0.03],
+    [1, -0.02],
+    [1, 0],
+  ];
+  line2 = [
+    [0, 0],
+    [0.07, 0],
+    [0.13, 0],
+    [0.19, -0.03],
+    [0.36, -0.08],
+    [0.29, -0.28],
+    [0.35, -0.39],
+    [0.44, -0.56],
+    [0.67, -0.53],
+    [0.83, -0.45],
+    [0.91, -0.42],
+    [0.98, -0.37],
+    [1.03, -0.3],
+    [1.06, -0.26],
+    [1.07, -0.22],
+    [1.06, -0.17],
+    [1.06, -0.11],
+    [1.03, -0.06],
+    [1, 0],
+  ];
+  line1 = [[0, 0], [1, 0]];
+  // len = 0.9324
+  // len2 = 0.79904
+  P1 = [-0.355744, 1.1354];
+  P2 = [-0.97282, 0.4];
+  P3 = [-0.28, 0];
+  P4 = [0.28, 0];
+  // val = 0.85697125697;
+  len = sqrt((P1[0] - P2[0]) * (P1[0] - P2[0]) + (P1[1] - P2[1]) * (P1[1] - P2[1]));
+  len_2 = sqrt((P3[0] - P4[0]) * (P3[0] - P4[0]) + (P3[1] - P4[1]) * (P3[1] - P4[1]));
+  val = len_2 / len;
+  P5 = [
+    P1[0] + (P2[0] - P1[0]) * val,
+    P1[1] + (P2[1] - P1[1]) * val,
+  ];
+  /*
+  echo(
+    len, len_2,
+    len * val,
+    P5,
+  );
+
+  R2 = [[0.79423, 0.612836], [0.0525799, 0.680932], [-0.892836, 0.51423], [-0.28, 0], [0.28, 0]] * 30;
+
+  data = TesselationPolygon(
+    R2,
+    [1, 0, 2, 1, 2],
+    [
+      line1,
+      reverse([for (i = line2) [abs(i[0] - 1), i[1]]]),
+      //line3
+      reverse([for (i = line3) [abs(i[0] - 1), i[1]]]),
+    ],
+    [0, 0, 0, 0, 0],
+  );
+  color("blue")
+    polygon(data);
+
+  //  data = TesselationPolygon(
+  //    R2, [1, 2, -3, -2, 3],
+  //    [line3, line2, line1]
+  // );
+  //color("blue")
+  //  stroke([R2[2], R2[3]], width=10);
+  // echo(
+  //   data
+  // );
+  //region(data);
+
+  PentagonTesselation(
+    "R2", 100, 0, 0, 2,
+    first_angle_modifier=-45, second_angle_modifier=5,
+    first_length_modifier=0.5,
+    second_length_modifier=0,
+    third_length_modifier=0,
+    line1=line1,
+    //line2=line1,
+    //line3=line1
+    //line2=reverse([for (i = line2) [abs(i[0] - 1), i[1]]]),
+    line2=line2,
+    line3=reverse([for (i = line3) [abs(i[0] - 1), i[1]]])
+  );
+  PentagonTesselation(
+    "R2", 100, 0, 0, 2,
+    first_angle_modifier=-45, second_angle_modifier=5,
+    first_length_modifier=0.5,
+    second_length_modifier=0,
+    third_length_modifier=0,
+    line1=line1,
+    //line2=line1,
+    //line3=line1
+    //line2=reverse([for (i = line2) [abs(i[0] - 1), i[1]]]),
+    line2=line2,
+    line3=reverse([for (i = line3) [abs(i[0] - 1), i[1]]])
+  );
+
   //linear_extrude(height=2)
   // TesselationGooseArea(width=200, length=100, size=30, thickness=1);
 

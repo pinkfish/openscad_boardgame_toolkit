@@ -74,6 +74,7 @@ include <tesselations/chicken.scad>
 include <tesselations/goose.scad>
 include <tesselations/kite_tesselation.scad>
 include <tesselations/lizard.scad>
+include <tesselations/pentagons.scad>
 include <tesselations/quad_tesselation.scad>
 include <tesselations/voronoi.scad>
 

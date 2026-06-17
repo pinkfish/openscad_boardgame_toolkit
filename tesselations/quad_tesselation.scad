@@ -23,7 +23,6 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-
 // Function: QuadrilateralCoords()
 // Description:
 //   Computes the four 2-D vertices [P0, P1, P2, P3] of a quadrilateral given
@@ -100,7 +99,6 @@ function QuadrilateralCoords(angles, side, side_ratio = 1) =
   assert(t4 > 0, str("Invalid quadrilateral geometry: side P3→P0 length is non-positive (", t4, "). Try a different side_ratio."))
   [P0, P1, P2, P3];
 
-
 // Function: TesselationFromQuadradicPoints()
 // Description:
 //    Make a nice tesselation from a set of points and sides.
@@ -112,9 +110,11 @@ function QuadrilateralCoords(angles, side, side_ratio = 1) =
 //    side4 = the line for the one side, [-0.5, x] - [0.5, x]
 function TesselationFromQuadradicPoints(points, side1, side2, side3, side4) =
   let (
-  ) path_merge_collinear([
-      each TesselationSideLine([points[0], points[1]], side1),
-      each TesselationSideLine([points[1], points[2]], side2),
-      each TesselationSideLine([points[2], points[3]], side3),
-      each TesselationSideLine([points[len(points) - 1], points[0]], side4)
-  ]);
+  ) path_merge_collinear(
+    [
+      each TesselationSideLine([points[0], points[1]], side1, TESSELATION_LINE_NORMAL),
+      each TesselationSideLine([points[1], points[2]], side2, TESSELATION_LINE_NORMAL),
+      each TesselationSideLine([points[2], points[3]], side3, TESSELATION_LINE_NORMAL),
+      each TesselationSideLine([points[len(points) - 1], points[0]], side4, TESSELATION_LINE_NORMAL)
+    ]
+  );

@@ -96,20 +96,23 @@ function InnerPentagonTesselation(
 
 ////////////////////////////////////////////////////////////////////////////////
 // PENTAGON AND LATTICE MODULES
-
 function pentagonBorder(vertices, size, thickness) =
   difference(
     offset(
-      scale(
-        size,
-        vertices,
+      deduplicate(
+        scale(
+          size,
+          vertices,
+        )
       ),
       delta=0.1 * thickness
     ),
     offset(
-      scale(
-        size,
-        vertices,
+      deduplicate(
+        scale(
+          size,
+          vertices,
+        )
       ),
       delta=-1 * thickness
     )
@@ -130,11 +133,11 @@ function PentagonTesselation(
   line2 = [[0, 0], [1, 0]],
   line3 = [[0, 0], [1, 0]],
 ) =
-  assert(first_angle_modifier > -60 && first_angle_modifier < 60, str("Invalid first angle odifier first_angle_modifier", first_angle_modifier))
-  assert(second_angle_modifier > -60 && second_angle_modifier < 60, str("Invalid second angle odifier second_angle_modifier", second_angle_modifier))
-  assert(first_length_modifier > -1 && first_length_modifier < 1, str("Invalid first length odifier first_length_modifier", first_length_modifier))
-  assert(second_length_modifier > -1 && second_length_modifier < 1, str("Invalid second length odifier second_length_modifier", second_length_modifier))
-  assert(third_length_modifier > -1 && third_length_modifier < 1, str("Invalid third length odifier third_length_modifier", third_length_modifier))
+  assert(first_angle_modifier >= -60 && first_angle_modifier <= 60, str("Invalid first angle odifier first_angle_modifier", first_angle_modifier))
+  assert(second_angle_modifier >= -60 && second_angle_modifier <= 60, str("Invalid second angle odifier second_angle_modifier", second_angle_modifier))
+  assert(first_length_modifier >= -1 && first_length_modifier <= 1, str("Invalid first length odifier first_length_modifier", first_length_modifier))
+  assert(second_length_modifier >= -1 && second_length_modifier <= 1, str("Invalid second length odifier second_length_modifier", second_length_modifier))
+  assert(third_length_modifier >= -1 && third_length_modifier <= 1, str("Invalid third length odifier third_length_modifier", third_length_modifier))
   let (
     // convex initial conditions for each pentagon
     // R1: AA = 70; BB = 140; b = 1; c = 0.5; e = 0.7;
@@ -241,36 +244,56 @@ function PentagonTesselation(
     R2scale = .8,
 
     // main pentagon
-    R2 = R2scale * [
-      [.5 * (b - 2 * cos(BB)), sin(BB)],
-      [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
-      [-.5 * b + cos(AA), sin(AA)],
-      [-.5 * b, 0],
-      [.5 * b, 0],
-    ],
+    R2 = TesselationPolygon(
+      R2scale * [
+        [.5 * (b - 2 * cos(BB)), sin(BB)],
+        [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
+        [-.5 * b + cos(AA), sin(AA)],
+        [-.5 * b, 0],
+        [.5 * b, 0],
+      ],
+      [0, 1, 2, 1, 2],
+      [line1, line2, line3],
+      [TESSELATION_LINE_SYMETRIC, TESSELATION_LINE_NORMAL, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL]
+    ),
 
     // other pentagons in the pattern
-    R2_2 = R2scale * [
-      [.5 * (b - 2 * cos(AA) + 2 * b * cos(AA - BB) - 2 * cos(BB)), -sin(AA) + b * sin(AA - BB) + sin(BB)],
-      [.5 * b + e, 0],
-      [b / 2, 0],
-      [.5 * (b - 2 * cos(BB)), sin(BB)],
-      [.5 * (b + 2 * b * cos(AA - BB) - 2 * cos(BB)), b * sin(AA - BB) + sin(BB)],
-    ],
-    R2_3 = R2scale * [
-      [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
-      [.5 * (b - 2 * cos(BB)), sin(BB)],
-      [.5 * b + e * cos(AA - BB) - cos(BB), e * sin(AA - BB) + sin(BB)],
-      [.5 * b + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
-      [-.5 * b + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
-    ],
-    R2_4 = R2scale * [
-      [-.5 * b + 2 * cos(AA) + ( -b + e) * cos(AA - BB), 2 * sin(AA) + ( -b + e) * sin(AA - BB)],
-      [-.5 * b - e + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
-      [-b / 2 + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
-      [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
-      [-.5 * b + cos(AA) + ( -b + e) * cos(AA - BB), sin(AA) + ( -b + e) * sin(AA - BB)],
-    ],
+    R2_2 = TesselationPolygon(
+      R2scale * [
+        [.5 * (b - 2 * cos(AA) + 2 * b * cos(AA - BB) - 2 * cos(BB)), -sin(AA) + b * sin(AA - BB) + sin(BB)],
+        [.5 * b + e, 0],
+        [b / 2, 0],
+        [.5 * (b - 2 * cos(BB)), sin(BB)],
+        [.5 * (b + 2 * b * cos(AA - BB) - 2 * cos(BB)), b * sin(AA - BB) + sin(BB)],
+      ],
+      [0, 1, 2, 1, 2],
+      [line1, line2, line3],
+      [TESSELATION_LINE_SYMETRIC, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL, TESSELATION_LINE_NORMAL, TESSELATION_LINE_FLIPPED]
+    ),
+    R2_3 = TesselationPolygon(
+      R2scale * [
+        [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
+        [.5 * (b - 2 * cos(BB)), sin(BB)],
+        [.5 * b + e * cos(AA - BB) - cos(BB), e * sin(AA - BB) + sin(BB)],
+        [.5 * b + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
+        [-.5 * b + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
+      ],
+      [0, 1, 2, 1, 2],
+      [line1, line2, line3],
+      [TESSELATION_LINE_SYMETRIC, TESSELATION_LINE_NORMAL, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL]
+    ),
+    R2_4 = TesselationPolygon(
+      R2scale * [
+        [-.5 * b + 2 * cos(AA) + ( -b + e) * cos(AA - BB), 2 * sin(AA) + ( -b + e) * sin(AA - BB)],
+        [-.5 * b - e + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
+        [-b / 2 + cos(AA) + e * cos(AA - BB) - cos(BB), sin(AA) + e * sin(AA - BB) + sin(BB)],
+        [-.5 * b + cos(AA) + e * cos(AA - BB), sin(AA) + e * sin(AA - BB)],
+        [-.5 * b + cos(AA) + ( -b + e) * cos(AA - BB), sin(AA) + ( -b + e) * sin(AA - BB)],
+      ],
+      [0, 1, 2, 1, 2],
+      [line1, line2, line3],
+      [TESSELATION_LINE_SYMETRIC, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL, TESSELATION_LINE_NORMAL, TESSELATION_LINE_FLIPPED]
+    ),
 
     // offsets
     R2xoff = R2scale * [.5 * b - cos(AA) + .5 * (b + 2 * b * cos(AA - BB) - 2 * cos(BB)), -sin(AA) + b * sin(AA - BB) + sin(BB)],
@@ -1429,7 +1452,6 @@ function PentagonTesselation(
 
     ////////////////////////////////////////////////////////////////////////////////
     // RENDERS
-   
     pattern = (pentagon_type == "R1") ?
       [R1, [R1, R1_2], R1xoff, R1yoff]
     : (pentagon_type == "R2") ? [

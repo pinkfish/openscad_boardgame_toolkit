@@ -249,6 +249,10 @@ SHAPE_TYPE_GOOSE = 39;
 // Description:
 //   Make a nice chicken shape.
 SHAPE_TYPE_CHICKEN = 40;
+// Constant: SHAPE_TYPE_SHEEP
+// Description:
+//   Make a nice sheep shape.
+SHAPE_TYPE_SHEEP = 41;
 
 // Constant: CATCH_NONE
 // Description:

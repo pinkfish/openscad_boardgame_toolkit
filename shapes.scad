@@ -3632,7 +3632,7 @@ module Sign2d(size) {
 //   shnape_type = the type of shape to check
 function ShapeNeedsInnerControl(shape_type) =
   (
-    shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL
+    shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL || shape_type == SHAPE_TYPE_SHEEP
   ) ?
     1
   : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 || shape_type == SHAPE_TYPE_GOOSE || shape_type == SHAPE_TYPE_CHICKEN ? 2 : 0);
@@ -3782,6 +3782,10 @@ function ShapeNeedsInnerControl(shape_type) =
 //   $polygon_width = 100;
 //   $polygon_length = 100;
 //   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_CHICKEN, shape_thickness = 1, shape_width = 25));
+// Example:
+//   $polygon_x = 0;
+//   $polygon_y = 0;
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SHEEP, shape_thickness = 1, shape_width = 25));
 module ShapeByType(
   options
 ) {
@@ -3860,130 +3864,131 @@ module ShapeByType(
         PentagonTesselation(
           pentagon_type="R1", pentagon_size=calc_shape_width,
           thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-          first_angle_modifier=options.polygon_first_angle_modifier,
-          second_angle_modifier=options.polygon_second_angle_modifier,
-          first_length_modifier=options.polygon_first_length_modifier,
-          second_length_modifier=options.polygon_second_length_modifier,
-          third_length_modifier=options.polygon_third_length_modifier,
+          first_angle_modifier=options.pentagon_first_angle_modifier,
+          second_angle_modifier=options.pentagon_second_angle_modifier,
+          first_length_modifier=options.pentagon_first_length_modifier,
+          second_length_modifier=options.pentagon_second_length_modifier,
+          third_length_modifier=options.pentagon_third_length_modifier,
         );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R2) {
       PentagonTesselation(
         pentagon_type="R2", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R3) {
       PentagonTesselation(
         pentagon_type="R3", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R4) {
       PentagonTesselation(
         pentagon_type="R4", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R5) {
       PentagonTesselation(
         pentagon_type="R5", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R6) {
       PentagonTesselation(
         pentagon_type="R6", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R7) {
       PentagonTesselation(
         pentagon_type="R7", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R8) {
       PentagonTesselation(
         pentagon_type="R8", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
-        first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R9) {
       PentagonTesselation(
-        pentagon_type="R9", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R9", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R10) {
       PentagonTesselation(
-        pentagon_type="R10", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R10", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R11) {
       PentagonTesselation(
-        pentagon_type="R11", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R11", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R12) {
       PentagonTesselation(
-        pentagon_type="R12", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R12", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R13) {
       PentagonTesselation(
-        pentagon_type="R13", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R13", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R14) {
       PentagonTesselation(
-        pentagon_type="R14", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R14", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENTAGON_R15) {
       PentagonTesselation(
-        pentagon_type="R15", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, first_angle_modifier=options.polygon_first_angle_modifier,
-        second_angle_modifier=options.polygon_second_angle_modifier,
-        first_length_modifier=options.polygon_first_length_modifier,
-        second_length_modifier=options.polygon_second_length_modifier,
-        third_length_modifier=options.polygon_third_length_modifier,
+        pentagon_type="R15", pentagon_size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
+        first_angle_modifier=options.pentagon_first_angle_modifier,
+        second_angle_modifier=options.pentagon_second_angle_modifier,
+        first_length_modifier=options.pentagon_first_length_modifier,
+        second_length_modifier=options.pentagon_second_length_modifier,
+        third_length_modifier=options.pentagon_third_length_modifier,
       );
     } else if (calc_shape_type == SHAPE_TYPE_LIZARD) {
       LizardRepeatAtLocation(size=calc_shape_width, thickness=calc_shape_thickness / 2, x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0, y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0, outer_offset=0.1);
@@ -3999,6 +4004,12 @@ module ShapeByType(
       TesselationGooseArea(
         width=$polygon_width, length=$polygon_length, thickness=calc_shape_thickness,
         size=calc_shape_width
+      );
+    } else if (calc_shape_type == SHAPE_TYPE_SHEEP) {
+      SheepTesselation(
+        size=calc_shape_width, thickness=calc_shape_thickness / 2,
+        x=$polygon_x ? floor($polygon_grid_rows / 2) - $polygon_x : 0,
+        y=$polygon_y ? floor($polygon_grid_cols / 2) - $polygon_y : 0,
       );
     } else if (calc_shape_type == SHAPE_TYPE_PENROSE_TILING_5) {
       max_width = max($polygon_width, $polygon_length);
