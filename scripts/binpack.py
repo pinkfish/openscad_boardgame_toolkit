@@ -151,9 +151,9 @@ def CreateOpenScadLayout(fname: str, solution: dict, metadata: dict):
                 else:
                     print(
                         "       cuboid(["
-                        + str(item[2] / 10 - spacing / 10)
+                        + str(item[2] / 10 - spacing / 20)
                         + ", "
-                        + str(item[3] / 10 - spacing / 10)
+                        + str(item[3] / 10 - spacing / 20)
                         + ", height],",
                         file=file,
                     )

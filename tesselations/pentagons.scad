@@ -34,115 +34,42 @@ under the License.
 // Example:
 //    SheepTesselation(size=20, x=0, y=0, thickness=2);
 module SheepTesselation(size, x, y, thickness) {
-  line3 = [
-    [0, 0],
-    [0.01, -0.04],
-    [0.02, -0.08],
-    [0.05, -0.11],
-    [0.09, -0.18],
-    [0.18, -0.18],
-    [0.25, -0.14],
-    [0.33, -0.1],
-    [0.41, -0.07],
-    [0.49, -0.07],
-    [0.56, -0.11],
-    [0.68, -0.17],
-    [0.71, -0.19],
-    [0.74, -0.19],
-    [0.77, -0.18],
-    [0.85, -0.15],
-    [0.92, -0.11],
-    [0.98, -0.04],
-    [0.99, -0.03],
-    [1, -0.02],
-    [1, 0],
-  ];
-  line2 = [
-    [0, 0],
-    [0.07, 0],
-    [0.13, 0],
-    [0.19, -0.03],
-    [0.36, -0.08],
-    [0.29, -0.28],
-    [0.35, -0.39],
-    [0.44, -0.56],
-    [0.67, -0.53],
-    [0.83, -0.45],
-    [0.91, -0.42],
-    [0.98, -0.37],
-    [1.03, -0.3],
-    [1.06, -0.26],
-    [1.07, -0.22],
-    [1.06, -0.17],
-    [1.06, -0.11],
-    [1.03, -0.06],
-    [1, 0],
-  ];
-  line1 = [[0, 0], [1, 0]];
-  echo([size, y, y]);
-
-  PentagonTesselation(
-    "R2", size, x, y, thickness,
-    first_angle_modifier=-45, second_angle_modifier=5,
-    first_length_modifier=0.5,
-    second_length_modifier=0,
-    third_length_modifier=0,
-    line1=line1,
-    line2=line2,
-    line3=reverse([for (i = line3) [abs(i[0] - 1), i[1]]])
-  );
+  data = SheepTesselation(size, x, y, thickness);
+  translate(size * x * data.x_offset)
+    translate(size * y * data.y_offset)
+      region(
+        data.points
+      );
 }
 
-module SheepTesselationArea(size, width, length, thickness) {
-  line3 = [
-    [0, 0],
-    [0.01, -0.04],
-    [0.02, -0.08],
-    [0.05, -0.11],
-    [0.09, -0.18],
-    [0.18, -0.18],
-    [0.25, -0.14],
-    [0.33, -0.1],
-    [0.41, -0.07],
-    [0.49, -0.07],
-    [0.56, -0.11],
-    [0.68, -0.17],
-    [0.71, -0.19],
-    [0.74, -0.19],
-    [0.77, -0.18],
-    [0.85, -0.15],
-    [0.92, -0.11],
-    [0.98, -0.04],
-    [0.99, -0.03],
-    [1, -0.02],
-    [1, 0],
-  ];
-  line2 = [
-    [0, 0],
-    [0.07, 0],
-    [0.13, 0],
-    [0.19, -0.03],
-    [0.36, -0.08],
-    [0.29, -0.28],
-    [0.35, -0.39],
-    [0.44, -0.56],
-    [0.67, -0.53],
-    [0.83, -0.45],
-    [0.91, -0.42],
-    [0.98, -0.37],
-    [1.03, -0.3],
-    [1.06, -0.26],
-    [1.07, -0.22],
-    [1.06, -0.17],
-    [1.06, -0.11],
-    [1.03, -0.06],
-    [1, 0],
-  ];
-  line1 = [[0, 0], [1, 0]];
-
-  data = PentagonTesselation(
-    "R2", pentagon_size=size, x=0, y=0, thickness=thickness,
-    first_angle_modifier=-45, second_angle_modifier=5,
+function SheepTesselation(size, x, y, thickness) =
+  let (
+    line3 = bezier_curve(
+      flatten(
+        [
+          bez_begin([0, 0], -60, 0.4),
+          bez_tang([0.4, -0.04], 0, 0.2, 0.5),
+          bez_tang([0.8, -0.2], 0, 0.5, 0.2),
+          bez_end([1, 0], 210, 0.2),
+        ]
+      ), 20
+    ),
+    line2 = bezier_curve(
+      flatten(
+        [
+          bez_begin([0, 0], 0, 0.4),
+          bez_tang([0.4, 0.0], 0, 0.1, 0.5),
+          bez_tang([0.6, -0.04], 270, 0.1, 0.5),
+          bez_tang([0.8, -0.3], 0, 0.5, 0.2),
+          bez_tang([0.9, -0.3], 20, 0.5, 0.2),
+          bez_end([1, 0], 300, 0.3),
+        ]
+      ), 20
+    ),
+    line1 = [[0, 0], [1, 0]],
+  ) PentagonTesselation(
+    "R2", size, x, y, thickness,
+    first_angle_modifier=-50, second_angle_modifier=0,
     first_length_modifier=0.5,
     second_length_modifier=0,
     third_length_modifier=0,
@@ -151,15 +78,43 @@ module SheepTesselationArea(size, width, length, thickness) {
     line3=reverse([for (i = line3) [abs(i[0] - 1), i[1]]])
   );
 
-  echo("x", data.x_offset, "y", data.y_offset);
-  rows = floor(width / (max(abs(data.x_offset[0]), abs(data.y_offset[0])) * size)) + 1;
-  cols = floor(length / (max(abs(data.x_offset[1]), abs(data.y_offset[1])) * size)) * 8 / 4;
-  echo([rows, cols]);
+module SheepTesselationArea(size, width, length, thickness) {
+  line3 = bezier_curve(
+    flatten(
+      [
+        bez_begin([0, 0], -80, 0.4),
+        bez_tang([0.4, -0.04], 0, 0.2, 0.5),
+        bez_tang([0.8, -0.2], 0, 0.5, 0.2),
+        bez_end([1, 0], 210, 0.2),
+      ]
+    ), 20
+  );
+
+  line2 = bezier_curve(
+    flatten(
+      [
+        bez_begin([0, 0], 0, 0.4),
+        bez_tang([0.4, 0.0], 0, 0.1, 0.5),
+        bez_tang([0.6, -0.04], 270, 0.1, 0.5),
+        bez_tang([0.8, -0.3], 0, 0.5, 0.2),
+        bez_tang([0.9, -0.3], 20, 0.5, 0.2),
+        bez_end([1, 0], 300, 0.3),
+      ]
+    ), 20
+  );
+  line1 = [[0, 0], [1, 0]];
+
+  data = SheepTesselation(
+    size, 0, 0, thickness
+  );
+
+  rows = floor(width / (max(abs(data.x_offset[0]), abs(data.y_offset[0])) * size)) + 2;
+  cols = floor(length / (max(abs(data.x_offset[1]), abs(data.y_offset[1])) * size)) * 8 / 4 + 1;
   x_offset = [data.x_offset[0], -data.x_offset[1]];
   y_offset = [data.y_offset[0], -data.y_offset[1]];
   fix_y_offset = [-data.y_offset[0], 0];
 
-  translate([-rows * size, 0])for (x = [0:rows])
+  translate([-cols * size, -size * 3 / 4])for (x = [0:rows])
     for (y = [0:cols])
       translate(size * x * x_offset)
         translate(size * y * y_offset)

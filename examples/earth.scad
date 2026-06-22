@@ -19,15 +19,13 @@ under the License.
 // However the animal kingdom one will not fit in the box.
 
 include <boardgame_toolkit.scad>
-include <lib/dominion.scad>
 
 box_width = 288;
 box_length = 288;
 box_height = 72;
 
-default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMED_SOLID : LABEL_TYPE_FRAMED;
-default_lid_shape_type = SHAPE_TYPE_SHEEP;
-default_lid_shape_width = 20;
+default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMELESS : LABEL_TYPE_FRAMED;
+default_lid_shape_type = SHAPE_TYPE_VORONOI;
 
 player_board_width = 242;
 player_board_length = 288;
@@ -36,7 +34,7 @@ player_board_count = 6;
 adundance_middle_board_thickness = 2.1;
 
 abundance_board_width = 57;
-abundance_board_length = 240;
+abundance_board_length = 241;
 abundance_board_thickness = 2.1;
 abundance_board_count = 6;
 
@@ -115,32 +113,28 @@ season_cards_height = default_floor_thickness + default_lid_thickness + single_c
 abundance_other_cards_height = default_floor_thickness + default_lid_thickness + single_card_thickness * abundance_other_cards + 1;
 start_box_height = card_box_height - climate_cards_height - solo_cards_height - season_cards_height - abundance_other_cards_height;
 
-abundance_box_width = box_width - card_box_width * 4;
-abundance_box_length = abundance_board_length + default_wall_thickness * 2;
-abundance_box_height = box_height;
-
 player_box_width = card_box_width;
 player_box_length = card_box_length;
 player_box_height = card_box_height / 6;
 
-score_pad_box_width = score_pad_length + default_wall_thickness * 4;
+score_pad_box_width = score_pad_length + default_wall_thickness * 4 + 7.4;
 score_pad_box_length = box_length - card_box_length * 2 - 1;
 score_pad_box_height = score_pad_thickness + default_floor_thickness;
 
-canopy_box_width = box_width - abundance_box_width - score_pad_box_width;
+canopy_box_width = box_width - abundance_board_thickness * abundance_board_count - 0.5 - score_pad_box_width;
 canopy_box_length = score_pad_box_length;
 canopy_box_height = card_box_height;
 
-compost_box_width = score_pad_box_width;
-compost_box_length = canopy_box_length;
-compost_box_height = default_floor_thickness + default_lid_thickness + leaf_thickness * 6;
+compost_box_width = box_width - player_board_width;
+compost_box_length = abundance_board_length - 0.5;
+compost_box_height = box_height - abundance_board_width;
 
 sprout_box_width = score_pad_box_width;
 sprout_box_length = canopy_box_length;
 sprout_box_height = (card_box_height - score_pad_box_height - compost_box_height);
 
-seed_box_length = box_length - abundance_box_length;
-seed_box_width = abundance_box_width;
+seed_box_length = box_length - abundance_board_length - 1;
+seed_box_width = box_width - card_box_width * 4;
 seed_box_height = box_height;
 
 player_colours = ["red", "green", "yellow", "blue", "purple", "pink"];
@@ -434,23 +428,6 @@ module StartBoxLid() // `make` me
   );
 }
 
-module AbundanceBoardBox() // `make` me
-{
-  width = abundance_board_count * abundance_board_thickness + 1;
-  MakeBoxWithNoLid(
-    [abundance_box_width, abundance_box_length, abundance_box_height],
-    finger_hole_size=25,
-    finger_hole_wall_width=(abundance_box_width - width) / 2
-  ) {
-    right($inner_width / 2)
-      up($inner_height - abundance_board_width)
-        cuboid(
-          [width, abundance_board_length, abundance_box_height],
-          anchor=BOTTOM + FRONT, rounding=1
-        );
-  }
-}
-
 module PlayerBox(colour = "green") // `make` me
 {
   MakeBoxWithSlipoverLid(
@@ -500,6 +477,7 @@ module PlayerBoxLid() // `make` me
   SlipoverBoxLidWithLabel(
     size=[player_box_width, player_box_length, player_box_height],
     text_str="Player",
+    foot=2
   );
 }
 
@@ -635,10 +613,23 @@ module BoxLayout(layout = 0) {
       EarthCardBox();
   }
   right(4 * card_box_width) {
-    AbundanceBoardBox();
-    back(abundance_box_length)
-      SeedBox();
+    SeedBox();
   }
+  right(box_width - abundance_board_thickness * abundance_board_count)
+    back(seed_box_length) {
+      for (i = [0:abundance_board_count - 1]) {
+        color(player_colours[i])
+          right(abundance_board_thickness * i)
+            cuboid([abundance_board_thickness, abundance_board_length, abundance_board_width], anchor=BOTTOM + LEFT + FRONT);
+      }
+    }
+  right(player_board_width)
+    back(seed_box_length) {
+      if (layout < 2) {
+        up(abundance_board_width)
+          CompostBox();
+      }
+    }
 
   back(card_box_length) {
     EcosystemCardBox();
@@ -689,10 +680,6 @@ module BoxLayout(layout = 0) {
           up(score_pad_box_height)
             SproutBox();
         }
-        if (layout < 2) {
-          up(sprout_box_height + score_pad_box_height)
-            CompostBox();
-        }
       }
     }
   }
@@ -716,9 +703,49 @@ module BoxLayoutC() // `document` me
 function round_to_2(val) = round(val * 100) / 100;
 
 if (FROM_MAKE != 1) {
-//  CanopyBoxLid();
-SheepTesselationArea(size=30, width = 100, length = 100, thickness = 2);
-//Voronoi(width = 200, length = 100, cellsize=30, thickness = 1);
+
+  BoxLayout();
+  //SheepTesselation(20, 0,0, 1);
+  //PlayerBoxLid();
+  /*
+  bez = bezier_curve(
+    flatten(
+      [
+        bez_begin([0, 0], 0, 0.4),
+        bez_tang([0.4, 0.0], 0, 0.1, 0.5),
+        bez_tang([0.6, -0.04], 270, 0.1, 0.5),
+        bez_tang([0.8, -0.3], 0, 0.5, 0.2),
+        bez_tang([0.9, -0.3], 20, 0.5, 0.2),
+        bez_end([1, 0], 300, 0.3),
+      ]
+    ), 20
+  ) * 100;
+  echo(bez);
+  color("blue")
+    stroke(bez);
+  line3 = [
+    [0, 0],
+    [0.07, 0],
+    [0.13, 0],
+    [0.19, -0.03],
+    [0.36, -0.08],
+    [0.29, -0.28],
+    [0.35, -0.39],
+    [0.44, -0.56],
+    [0.67, -0.53],
+    [0.83, -0.45],
+    [0.91, -0.42],
+    [0.98, -0.37],
+    [1.03, -0.3],
+    [1.06, -0.26],
+    [1.07, -0.22],
+    [1.06, -0.17],
+    [1.06, -0.11],
+    [1.03, -0.06],
+    [1, 0],
+  ];
+  color("green")
+    stroke(line3 * 100);
 
   /*
   bez = [

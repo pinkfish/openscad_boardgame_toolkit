@@ -301,7 +301,7 @@ module SlipoverBoxLid(
 
           radius = max(finger_height, 7);
 
-          translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness]) {
+          translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness - foot_offset]) {
             CornerCatch(
               radius=radius,
               height=finger_height,
@@ -310,11 +310,11 @@ module SlipoverBoxLid(
               round_back=false
             );
           }
-          translate([wall_thickness * 3 / 2, wall_thickness * 3 / 2, height - finger_height - lid_thickness]) {
+          translate([wall_thickness * 3 / 2, wall_thickness * 3 / 2, height - finger_height - lid_thickness - foot_offset]) {
             cuboid([wall_thickness, wall_thickness, height], anchor=TOP);
           }
 
-          translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness])
+          translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
             CornerCatch(
               radius=radius,
               height=finger_height,
@@ -325,7 +325,7 @@ module SlipoverBoxLid(
               spin=180
             );
 
-          translate([width - wall_thickness * 3 / 2, length - wall_thickness * 3 / 2, height - finger_height - lid_thickness - wall_thickness / 4]) {
+          translate([width - wall_thickness * 3 / 2, length - wall_thickness * 3 / 2, height - finger_height - lid_thickness - wall_thickness / 4 - foot_offset]) {
             cuboid([wall_thickness, wall_thickness, height], anchor=TOP);
           }
         }

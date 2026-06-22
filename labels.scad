@@ -50,7 +50,7 @@ under the License.
 function MakeLabelOptions(
   text_scale = 1.0,
   text_length = undef,
-  angle = 0,
+  angle = undef,
   label_colour = default_label_colour,
   label_background_colour = default_label_background_colour,
   short_length = false,
@@ -579,7 +579,15 @@ module MakeFramelessLidLabel(
       (temp_text_width > length * 3 / 4 ? calc_text_length_start * (length * 3 / 4) / temp_text_width : calc_text_length_start)
     : (temp_text_width > width * 3 / 4 ? calc_text_length_start * (width * 3 / 4) / temp_text_width : calc_text_length_start);
   calc_text_length = min(temp_text_length, calc_text_length_start);
-  angle = DefaultValue(options.angle, options.label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (length > width ? 90 - cross_angle : cross_angle) : length > width ? 90 : 0);
+  angle = DefaultValue(
+    options.angle,
+    options.label_type == LABEL_TYPE_FRAMELESS_ANGLE ? (
+        length > width ?
+          90 - cross_angle
+        : cross_angle
+      )
+    : (length > width ? 90 : 0)
+  );
   color(DefaultValue(options.label_background_colour, default_label_background_colour))
     translate([(width) / 2 + (sin(angle) * metrics.descent / 2) + options.label_diff[0], (length) / 2 + (cos(angle) * metrics.descent / 2) + options.label_diff[1], 0])
       linear_extrude(lid_thickness - default_slicing_layer_height)

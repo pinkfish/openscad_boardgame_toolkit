@@ -153,23 +153,35 @@ function InnerPentagonTesselation(
 // PENTAGON AND LATTICE MODULES
 function pentagonBorder(vertices, size, thickness) =
   difference(
-    offset(
+    force_region(
       path_merge_collinear(
-        scale(
-          size,
-          vertices,
-        )
-      ),
-      delta=0.1 * thickness
+        offset(
+          path_merge_collinear(
+            scale(
+              size,
+              vertices,
+            ),
+            closed=true
+          ),
+          delta=0.01,
+          closed=true
+        ),
+      )
     ),
-    offset(
+    force_region(
       path_merge_collinear(
-        scale(
-          size,
-          vertices,
-        )
-      ),
-      delta=-1 * thickness
+        offset(
+          path_merge_collinear(
+            scale(
+              size,
+              vertices,
+            ),
+            closed=true
+          ),
+          delta=-1 * thickness,
+          closed=true
+        ),
+      )
     )
   );
 

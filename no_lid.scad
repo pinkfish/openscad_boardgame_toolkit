@@ -451,6 +451,18 @@ module MakePathBoxWithNoLid(
 //   magnet = magnet to use (default object(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0]))
 // Example:
 //   MakePolygonBoxWithNoLid(size = [100, 100, 20], sides = 6);
+// Example:
+//   MakePolygonBoxWithNoLid(
+//     size=[100, 20],
+//     sides=6,
+//     make_finger_x=false,
+//     make_finger_y=false,
+//     hollow=1,
+//     hollow_radius=object(top=2, bottom=20 * 3 / 4, radius=2),
+//     stackable=STACKABLE_TYPE_INSIDE,
+//     magnet=object(type=MAGNET_SLOT_TYPE_RECT, size=[12, 6, 1.5]),
+//     offset_sweep_options=object(offset="delta", check_valid=true, quality=1, steps=16),
+//   );
 module MakePolygonBoxWithNoLid(
   size,
   sides,
@@ -491,7 +503,7 @@ module MakePolygonBoxWithNoLid(
   ) {
     // Handle the magnets here specifically.
     if (magnet.type != MAGNET_SLOT_TYPE_NONE) {
-      calc_path_magnet = regular_ngon(n=sides, d=width - wall_thickness);
+      calc_path_magnet = regular_ngon(n=sides, d=width - wall_thickness / 2);
 
       for (i = [0:1:sides - 1]) {
         p1 = calc_path_magnet[i];

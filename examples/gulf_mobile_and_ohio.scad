@@ -114,7 +114,7 @@ module MoneyBox() // `make` me
 module MoneyBoxLid() // `make` me
 {
   SlidingBoxLidWithLabel(
-    size=[money_box_length, money_box_width], text_str="Bank"
+    size=[money_box_width, money_box_length], text_str="Bank"
   );
 }
 

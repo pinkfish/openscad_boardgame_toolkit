@@ -118,3 +118,141 @@ function TesselationFromQuadradicPoints(points, side1, side2, side3, side4) =
       each TesselationSideLine([points[len(points) - 1], points[0]], side4, TESSELATION_LINE_NORMAL)
     ]
   );
+
+module TesselationBird(size, thickness = 2, outer_offset = 0.1, flip = false) {
+  bezpath = [
+    [0, 0], // Tail base
+    [0.4, 0], // Lower body curve
+    [0.5, 0.55], // Head peak (raised for more obvious head curve)
+  ];
+  other_bez = [
+    [0.5, 0.55], // Head peak
+    [0.85, 0.42], // Back curve
+    [0.6, 0.0], // Chest dip (added curve)
+    [0.65, -0.05], // Under-beak
+    [0.75, 0.05], // Upper beak
+    [0.9, -0.1], // Beak tip
+    [1, 0], // Mouth closing point
+  ];
+
+  bez = concat(
+    bezier_curve(
+      bezpath,
+      20
+    ),
+    bezier_curve(other_bez, 20)
+  );
+  flip_bez = reverse([for (i = bez) [1 - i[0], i[1]]]);
+  DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset)
+    region(
+      TesselationFromQuadradicPoints(
+        [
+          [5, 5],
+          [5, -5],
+          [-5, -4],
+          [-5, 4],
+        ] * size / 10,
+        flip ? [
+            [0, 0],
+            [0.4, 0.1],
+            [0.6, -0.1],
+            [1, 0],
+          ]
+        : [
+          [0, 0],
+          [0.4, -0.1],
+          [0.6, 0.1],
+          [1, 0],
+        ],
+        flip ? flip_bez : bez,
+        [[0, 0], [1, 0]],
+        [for (i = flip ? flip_bez : bez) [i[0], -i[1]]]
+      )
+    );
+}
+
+// Module: TesselationBirdBlock()
+// Description:
+//    The nice bird shape.
+// Arguments:
+//    size = the size of the bird
+//    thickness = the thickness of the bird
+// Example:
+//    TesselationBirdBlock(size=30, thickness=1);
+// Example:
+//    TesselationBirdBlock(size=20, thickness=0.5);
+module TesselationBirdBlock(size, thickness, outer_offset = 0) {
+  assert(size > 0, "need a size");
+  assert(thickness >= 0, "need a thickness");
+  ratio = size / 100;
+  color("red")
+    //fwd(size)
+    TesselationBird(size=size, flip=false, thickness=thickness, outer_offset=outer_offset);
+  color("cyan")
+    back(size - 10 * ratio)
+      xflip()
+        TesselationBird(size=size, flip=false, thickness=thickness, outer_offset=outer_offset);
+
+  left(size)
+    xflip()
+      color("purple")
+        TesselationBird(size=size, flip=true, thickness=thickness, outer_offset=outer_offset);
+  left(size)
+    back(size - 10 * ratio)
+      color("magenta")
+        TesselationBird(size=size, flip=true, thickness=thickness, outer_offset=outer_offset);
+}
+
+// Module: TesselationBirdGrid()
+// Description:
+//    The nice bird shape.
+// Arguments:
+//    row = number of rows
+//    col = number of columns
+//    size = size of the bird
+//    thickness = thickness of the bird
+// Example:
+//    TesselationBirdGrid(5, 5, size=30, thickness=1);
+module TesselationBirdGrid(row, col, size, thickness, outer_offset = 0.1) {
+  assert(row > 0, "Need a row");
+  assert(col > 0, "Need a col");
+  assert(size > 0, "Need a size");
+  assert(thickness > 0, "Need a thickness");
+
+  ratio = size / 100;
+  for (i = [0:row])
+    for (j = [0:col])
+      union() {
+        //back(size*i)
+        back(i * (size * 2 - 20 * ratio))
+          right(size * j * 2)
+            TesselationBirdBlock(size=size, thickness=thickness, outer_offset=outer_offset);
+      }
+}
+
+// Module: TesselationBirdArea()
+// Description:
+//    The nice bird shape.
+// Arguments:
+//    width = width of the space
+//    length = length of the space
+//    size = size of the bird
+//    thickness = thickness of the bird
+// Example:
+//    TesselationBirdArea(200, 100, size=50, thickness=2);
+module TesselationBirdArea(width, length, size, thickness) {
+  assert(width > 0, "Need a width");
+  assert(length > 0, "Need a length");
+  assert(size > 0, "Need a size");
+  assert(thickness > 0, "Need a thickness");
+  rows = floor(width / (size * 1.5) + 1);
+  cols = floor(length / (size * 1.5) + 1);
+  back(size / 2)
+    TesselationBirdGrid(
+      row=rows,
+      col=cols,
+      size=size,
+      thickness=thickness,
+      outer_offset=0.1
+    );
+}

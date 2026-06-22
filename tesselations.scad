@@ -347,6 +347,8 @@ TESSELATION_LINE_FLIPPED = 1;
 // Description:
 //    The line is flipped over half way through so each side matches.
 TESSELATION_LINE_SYMETRIC = 2;
+TESSELATION_LINE_REVERSE = 3;
+TESSELATION_LINE_FLIPPED_REVERSE = 4;
 
 // Function: TesselationSideLine()
 // Description:
@@ -363,7 +365,8 @@ function TesselationSideLine(path, side, flip = TESSELATION_LINE_NORMAL) =
     y = path[1][1] - path[0][1],
     split_length = sqrt(x * x + y * y),
     angle = atan2(y, x),
-    side_flipped = [for (i = side) [i[0], flip == TESSELATION_LINE_FLIPPED ? -i[1] : i[1]]],
+    cur_side = flip == TESSELATION_LINE_FLIPPED_REVERSE || flip == TESSELATION_LINE_REVERSE ? reverse([for (i = side) [1 - i[0], i[1]]]) : side,
+    side_flipped = [for (i = cur_side) [i[0], flip == TESSELATION_LINE_FLIPPED || flip == TESSELATION_LINE_FLIPPED_REVERSE ? -i[1] : i[1]]],
     symetric = concat(
       side * 0.5,
       reverse([for (i = side * 0.5) [i[0], -i[1]]])

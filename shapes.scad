@@ -3635,7 +3635,7 @@ function ShapeNeedsInnerControl(shape_type) =
     shape_type == SHAPE_TYPE_PENTAGON_R1 || shape_type == SHAPE_TYPE_PENTAGON_R2 || shape_type == SHAPE_TYPE_PENTAGON_R3 || shape_type == SHAPE_TYPE_PENTAGON_R4 || shape_type == SHAPE_TYPE_PENTAGON_R5 || shape_type == SHAPE_TYPE_PENTAGON_R6 || shape_type == SHAPE_TYPE_PENTAGON_R7 || shape_type == SHAPE_TYPE_PENTAGON_R8 || shape_type == SHAPE_TYPE_PENTAGON_R9 || shape_type == SHAPE_TYPE_PENTAGON_R10 || shape_type == SHAPE_TYPE_PENTAGON_R11 || shape_type == SHAPE_TYPE_PENTAGON_R12 || shape_type == SHAPE_TYPE_PENTAGON_R13 || shape_type == SHAPE_TYPE_PENTAGON_R14 || shape_type == SHAPE_TYPE_PENTAGON_R15 || shape_type == SHAPE_TYPE_LIZARD || shape_type == SHAPE_TYPE_LEAF || shape_type == SHAPE_TYPE_HALF_REGULAR_HEXAGON || shape_type == SHAPE_TYPE_RHOMBI_TRI_HEXAGONAL
   ) ?
     1
-  : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 || shape_type == SHAPE_TYPE_GOOSE || shape_type == SHAPE_TYPE_CHICKEN || shape_type == SHAPE_TYPE_SHEEP? 2 : 0);
+  : (shape_type == SHAPE_TYPE_VORONOI || shape_type == SHAPE_TYPE_PENROSE_TILING_5 || shape_type == SHAPE_TYPE_PENROSE_TILING_7 || shape_type == SHAPE_TYPE_GOOSE || shape_type == SHAPE_TYPE_CHICKEN || shape_type == SHAPE_TYPE_SHEEP || shape_type == SHAPE_TYPE_BIRD ? 2 : 0);
 
 // Module: ShapeByType()
 // Description:
@@ -3786,6 +3786,10 @@ function ShapeNeedsInnerControl(shape_type) =
 //   $polygon_width = 100;
 //   $polygon_length = 100;
 //   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SHEEP, shape_thickness = 1, shape_width = 25));
+// Example:
+//   $polygon_width = 101;
+//   $polygon_length = 100;
+//   ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_BIRD, shape_thickness = 1, shape_width = 25));
 module ShapeByType(
   options
 ) {
@@ -4002,6 +4006,11 @@ module ShapeByType(
       Voronoi(width=$polygon_width, length=$polygon_length, cellsize=calc_shape_width, thickness=calc_shape_thickness);
     } else if (calc_shape_type == SHAPE_TYPE_GOOSE) {
       TesselationGooseArea(
+        width=$polygon_width, length=$polygon_length, thickness=calc_shape_thickness,
+        size=calc_shape_width
+      );
+    } else if (calc_shape_type == SHAPE_TYPE_BIRD) {
+      TesselationBirdArea(
         width=$polygon_width, length=$polygon_length, thickness=calc_shape_thickness,
         size=calc_shape_width
       );

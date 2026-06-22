@@ -134,7 +134,7 @@ module TesselationHexKiteAtLocation(size, x, y) {
 module TesselationHexKiteArea(width, length, size) {
   apothem = sqrt(size * size - (size / 2) * (size / 2));
 
-  rows = floor(width / (size * 4) + 1);
+  rows = floor(width / (size * 4) + 3);
   cols = floor(length / (apothem * 2) + 3);
 
   left(size / 2)for (x = [0:rows])
