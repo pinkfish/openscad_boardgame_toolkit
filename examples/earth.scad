@@ -26,6 +26,7 @@ box_height = 72;
 
 default_label_type = MAKE_MMU == 1 ? LABEL_TYPE_FRAMELESS : LABEL_TYPE_FRAMED;
 default_lid_shape_type = SHAPE_TYPE_VORONOI;
+default_lid_shape_width = 9;
 
 player_board_width = 242;
 player_board_length = 288;
@@ -120,7 +121,7 @@ player_box_width = card_box_width;
 player_box_length = card_box_length;
 player_box_height = card_box_height / 6;
 
-score_pad_box_width = score_pad_length + default_wall_thickness * 4 + 7.4;
+score_pad_box_width = score_pad_length + default_wall_thickness * 4;
 score_pad_box_length = box_length - card_box_length * 2 - 1;
 score_pad_box_height = score_pad_thickness + default_floor_thickness;
 
@@ -145,6 +146,8 @@ seed_box_width = box_width - card_box_width * 4;
 seed_box_height = box_height;
 
 player_colours = ["red", "green", "yellow", "blue", "purple", "pink"];
+
+echo([sprout_box_length, sprout_box_width]);
 
 module EarthCardBox() // `make` me
 {
@@ -758,5 +761,5 @@ function round_to_2(val) = round(val * 100) / 100;
 
 if (FROM_MAKE != 1) {
 
-  BoxLayout(2);
+  SproutBoxLid(2);
 }

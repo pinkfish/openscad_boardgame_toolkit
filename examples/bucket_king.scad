@@ -208,12 +208,19 @@ module CardBoxLid() // `make` me
 }
 
 if (FROM_MAKE != 1) {
-  /*  
-    hinge_diameter = 6;
-    hinge_width = hinge_diameter * 2 + 1;
-    hinge_length = 200 - 3 * 2;
-    hinge_offset = 0.5;
-    InsetHinge(length = hinge_length, width = hinge_width, offset = hinge_offset, hinge_options = HingeOptions(hole_diameter = hinge_diameter));
-    */
-  PlayerBox();
+PlayerBox();
+  
+  difference() 
+  {
+    /*
+    InsetHinge(
+      length=player_box_length, width=13, offset=0.3,
+      diameter=6,
+    );
+    fwd(30)
+    down(3)
+      left(-0.5)
+        cuboid([player_box_length, 200, 50], anchor=BOTTOM + FRONT + LEFT);
+        */
+  }
 }

@@ -84,54 +84,68 @@ module HingeLine(length, diameter, offset, spin = 90) {
 //    HingeLineWithSpacingAndNum(num = 10, spacing = 6, diameter = 6, offset = 0.5);
 module HingeLineWithSpacingAndNum(diameter, num, spacing, offset, spin = 90) {
   length = num * diameter;
-  rotate([0, 270, 0]) translate([0, 0, -length / 2]) {
-
-      difference() {
-        cylinder(r=diameter / 2, h=length, $fn=32);
-        for (i = [1:1:num]) {
-          translate([0, 0, spacing * i]) mirror([0, 0, i % 2])
-              HingeCone(diameter / 2 - 0.01, offset, $fn=32);
-          if (i % 2 == 1) {
-            difference() {
-              translate([0, 0, spacing * i + diameter - diameter - 0.02])
-                cylinder(r=diameter, h=diameter + 0.04, $fn=32);
-              translate([0, 0, spacing * i + diameter - diameter - 0.03])
-                cylinder(r=diameter / 2 - offset, h=diameter + 0.06, $fn=32);
+  rotate([0, 270, 0])
+    intersection() {
+      cuboid([diameter * 2, diameter * 2, length]);
+      translate([0, 0, -length / 2]) {
+        difference() {
+          cylinder(r=diameter / 2, h=length, $fn=32);
+          for (i = [1:1:num]) {
+            translate([0, 0, spacing * i]) mirror([0, 0, i % 2])
+                HingeCone(diameter / 2 - 0.01, offset, $fn=32);
+            if (i % 2 == 1) {
+              difference() {
+                translate([0, 0, spacing * i + diameter - diameter - 0.02])
+                  cylinder(r=diameter, h=diameter + 0.04, $fn=32);
+                translate([0, 0, spacing * i + diameter - diameter - 0.03])
+                  cylinder(r=diameter / 2 - offset, h=diameter + 0.06, $fn=32);
+              }
             }
           }
         }
-      }
-      for (i = [0:1:num - 1]) {
-        if (i % 2 == 1) {
-          rotate([0, 0, spin]) union() {
-              translate([0, 0, spacing * i + offset / 2])
-                cylinder(r=diameter / 2, h=diameter - offset, $fn=32);
-              translate([0, 0, spacing * i + diameter - diameter / 2]) union() {
-
-                  rotate([0, 90, 0])
-                    prismoid(
-                      size1=[diameter - offset, diameter], size2=[diameter - offset, diameter],
-                      h=diameter / 2 + offset * 2 + 0.01
-                    );
-                  translate([diameter / 2 + offset, 0, 0])
+        for (i = [0:1:num]) {
+          if (i % 2 == 1) {
+            rotate([0, 0, spin]) union() {
+                translate([0, 0, spacing * i + offset / 2])
+                  cylinder(r=diameter / 2, h=diameter - offset, $fn=32);
+                translate([0, 0, spacing * i + diameter - diameter / 2]) union() {
+                    rotate([0, 90, 0])
+                      prismoid(
+                        size1=[diameter - offset, diameter], size2=[diameter - offset, diameter],
+                        h=diameter / 2 + offset * 2 + 0.01
+                      );
+                  }
+              }
+            translate([-diameter / 4 - offset * 3 / 2, 0, spacing * i + diameter / 2]) {
+              difference() {
+                cuboid(
+                  [1 + diameter / 2, diameter, diameter + offset * 3],
+                  edges=[TOP + RIGHT, BOTTOM + RIGHT]
+                );
+                down(spacing / 4 + diameter / 2)
+                  right(diameter / 4 + offset)
+                    cylinder(r=diameter / 2 + offset, h=length, $fn=32);
+                back(diameter / 2)
+                  right(offset * 3 / 2)
                     cuboid(
-                      [offset * 2, diameter, diameter + offset * 3], chamfer=offset * 2,
-                      edges=[TOP + LEFT, BOTTOM + LEFT]
+                      [1 + diameter / 2, diameter, diameter + offset * 3],
+                      edges=[TOP + RIGHT, BOTTOM + RIGHT]
                     );
-                }
+              }
             }
-        } else {
-          union() {
-            translate([-diameter / 2 - offset * 3 / 2, 0, spacing * i + diameter / 2])
-              cuboid(
-                [1, diameter, diameter + offset * 3], chamfer=offset * 2,
-                edges=[TOP + RIGHT, BOTTOM + RIGHT]
-              );
-            difference() {
-              translate([-diameter / 2 - offset, -diameter / 2, spacing * i])
-                cube([diameter / 2 + offset, diameter, diameter]);
-              translate([0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2])
-                cylinder(d=diameter - 0.02, h=diameter * 4, $fn=32);
+          } else {
+            union() {
+              translate([-diameter / 2 - offset * 3 / 2, 0, spacing * i + diameter / 2])
+                cuboid(
+                  [1, diameter, diameter + offset * 3], chamfer=offset * 2,
+                  edges=[TOP + RIGHT, BOTTOM + RIGHT]
+                );
+              difference() {
+                translate([-diameter / 2 - offset, -diameter / 2, spacing * i])
+                  cube([diameter / 2 + offset, diameter, diameter]);
+                translate([0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2])
+                  cylinder(d=diameter - 0.02, h=diameter * 4, $fn=32);
+              }
             }
           }
         }
@@ -157,52 +171,16 @@ module InsetHinge(length, width, diameter, offset) {
   num = length / diameter;
   spacing = length / num;
 
-  translate([0, -width / 2, 0]) difference() {
-      union() {
-        translate([0, width / 2, 0]) cuboid([length, width - diameter * 2 - offset / 2, diameter]);
-        translate([0, diameter / 2, 0]) HingeLineWithSpacingAndNum(
-            diameter=diameter, offset=offset,
-            spin=90, num=num, spacing=spacing
+  translate([0, -width / 2, 0])
+    union() {
+      translate([0, width / 2, 0]) cuboid([length, width - diameter * 2 - offset / 2, diameter]);
+      translate([0, diameter / 2, 0]) HingeLineWithSpacingAndNum(
+          diameter=diameter, offset=offset,
+          spin=90, num=num, spacing=spacing
+        );
+      translate([0, width - diameter / 2, 0]) mirror([0, 1, 0]) HingeLineWithSpacingAndNum(
+            diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing
           );
-        translate([0, width - diameter / 2, 0]) mirror([0, 1, 0]) HingeLineWithSpacingAndNum(
-              diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing
-            );
-      }
-      // Make sure the middle bits are supported by cutting out a 45 degree slice in them.
-      /*
-      for (i = [0:1:num - 1]) {
-        rotate([0, 270, 0]) translate([-diameter, width / 2, -length / 2]) {
-            rotate([0, 0, 90]) union() {
-                translate([0, 0, spacing * i + offset / 2 + spacing / 2]) {
-                  cuboid(
-                    [
-                      diameter * 2,
-                      diameter * 2,
-                      width - diameter * 2 - 0.05,
-                    ], spin=45, orient=LEFT
-                  );
-                }
-                if (i == 0) {
-                  translate([0, -diameter, spacing * i + offset / 2 - spacing / 2]) cuboid(
-                      [
-                        width - diameter * 2 - 0.05,
-                        diameter * 2,
-                        diameter * 2,
-                      ]
-                    );
-                }
-                if (i == num - 1 && num % 2 == 1) {
-                  translate([0, -diameter, spacing * i + offset / 2 + spacing * 3 / 2]) cuboid(
-                      [
-                        width - diameter * 2 - 0.05,
-                        diameter * 2,
-                        diameter * 2,
-                      ]
-                    );
-                }
-              }
-          }
-      }*/
     }
 }
 
@@ -320,7 +298,7 @@ module MakeBoxAndLidWithInsetHinge(
   hinge_diameter = 6,
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
-  hinge_offset = 0.5,
+  hinge_offset = 0.3,
   gap = 1,
   side_gap = 3,
   print_layer_height = 0.2,
@@ -448,7 +426,7 @@ module MakeBoxAndLidWithInsetHinge(
         }
       }
     }
-    translate([width - hinge_diameter - 0.01 - print_in_place_offset, side_gap + print_in_place_offset, height / 2 - hinge_diameter - print_layer_height - hinge_offset])
+    translate([width - hinge_diameter - 0.01 - print_in_place_offset, side_gap - print_in_place_offset, height / 2 - hinge_diameter - print_layer_height - hinge_offset])
       color(material_colour) {
         cube([hinge_width + print_in_place_offset * 2 + 0.02, hinge_length + print_in_place_offset * 2, hinge_diameter + 5 + hinge_offset + 1]);
       }

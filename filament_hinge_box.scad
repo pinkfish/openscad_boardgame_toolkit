@@ -64,6 +64,9 @@ function HingeOptions(
 //    spin = the spin to spin the box by (default 0)
 //    anchor = the anchor to use (default BOTTOM + FRONT + LEFT)
 //    orient = the orientation to use (default UP)
+//    positive_only_children = the list of children to be positive only
+//    positive_negative_children = the list of children to be positive and negative
+//    positive_colour = colour of the postive pieces {{default_positive_colour}}
 // Examples:
 //    MakeBoxWithFilamentHingeLid(size=[100, 50, 20]);
 module MakeBoxWithFilamentHingeLid(
@@ -77,7 +80,10 @@ module MakeBoxWithFilamentHingeLid(
   print_in_place_offset = default_print_in_place_offset,
   spin = 0,
   anchor = BOTTOM + FRONT + LEFT,
-  orient = UP
+  orient = UP,
+  positive_colour = default_positive_colour,
+  positive_only_children = [],
+  positive_negative_children = []
 ) {
   assert(size != undef && is_list(size) && len(size) == 3, str("size must be set to [x,y,z]", size));
   width = size[0];
@@ -178,8 +184,25 @@ module MakeBoxWithFilamentHingeLid(
             $inner_height = height - lid_thickness - floor_thickness;
             $inner_length = length - wall_thickness * 2;
             $material_colour = material_colour;
-            translate([wall_thickness, wall_thickness, floor_thickness]) children();
+            translate([wall_thickness, wall_thickness, floor_thickness])for (i = [0:$children - 1]) {
+              if (!in_list(i, positive_only_children)) {
+                children(i);
+              }
+            }
           }
+  if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
+    $inner_height = height - lid_thickness - floor_thickness;
+    $inner_width = width - wall_thickness * 2;
+    $inner_length = length - wall_thickness * 2;
+    for (i = positive_only_children) {
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+    for (i = positive_negative_children) {
+      color(positive_colour)
+        translate([wall_thickness, wall_thickness, floor_thickness]) children(i);
+    }
+  }
 }
 
 // Module: FilamentBoxInsideMask()

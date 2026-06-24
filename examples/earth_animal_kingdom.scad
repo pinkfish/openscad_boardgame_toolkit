@@ -99,8 +99,12 @@ module SproutBox() // `make` me
     [sprout_box_width, sprout_box_length, sprout_box_height],
     material_colour="green"
   ) {
-    right(1) back(1)
-        RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, sprout_box_height], radius=5);
+    intersection() {
+      FilamentBoxInsideMask(size=[sprout_box_width, sprout_box_length, sprout_box_height]);
+
+      right(1) back(1)
+          RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, sprout_box_height], radius=5);
+    }
   }
 }
 
@@ -110,8 +114,11 @@ module CanopyBox() // `make` me
     [canopy_box_width, canopy_box_length, canopy_box_height],
     material_colour="cornsilk"
   ) {
-    right(1) back(1)
-        RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, canopy_box_height], radius=5);
+    intersection() {
+      FilamentBoxInsideMask(size=[canopy_box_width, canopy_box_length, canopy_box_height]);
+      right(1) back(1)
+          RoundedBoxAllSides([$inner_width - 2, $inner_length - 2, canopy_box_height], radius=5);
+    }
   }
 }
 
