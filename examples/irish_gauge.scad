@@ -164,26 +164,30 @@ module CompanyBoxLidGreatSouthern() // `make` me
 
 module MoneyBoxLid() // `make` me
 {
-  SlidingBoxLidWithLabel(
+  FilamentHingeBoxLidWithLabel(
     size=[money_box_width, money_box_length, money_box_height],
     text_str="Bank",
     lid_thickness=4
   );
 }
 
+
 module MoneyBox() // `make` me
 {
-  MakeBoxWithSlidingLid(
+  MakeBoxWithFilamentHingeLid(
     size=[money_box_width, money_box_length, money_box_height],
     positive_negative_children=[1],
     lid_thickness=4
   ) {
-    union() {
-      for (i = [0:2]) {
-        translate([(card_width + 2) * i, 0, 0]) {
-          cuboid([card_width, card_length, money_box_height], anchor=BOTTOM + LEFT + FRONT);
-          translate([card_width / 2, 0, -2])
-            FingerHoleBase(radius=15, height=money_box_height);
+    intersection() {
+      FilamentBoxInsideMask(size=[money_box_width, money_box_length, money_box_height]);
+      union() {
+        for (i = [0:2]) {
+          translate([(card_width + 2) * i, 0, 0]) {
+            cuboid([card_width, card_length, money_box_height], anchor=BOTTOM + LEFT + FRONT);
+            translate([card_width / 2, 0, -2])
+              FingerHoleBase(radius=15, height=money_box_height);
+          }
         }
       }
     }
