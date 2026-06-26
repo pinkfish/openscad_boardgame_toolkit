@@ -119,6 +119,20 @@ function TesselationFromQuadradicPoints(points, side1, side2, side3, side4) =
     ]
   );
 
+// Module: TesselationBird()
+// Deaription:
+//    A simple bird tesselation.
+// Arguments:
+//    size = the size of the bird
+//    thickness = the thickness of the bird
+// Example:
+//    TesselationBird(size=20);
+// Example:
+//    TesselationBird(size=20, flip=true);
+// Example:
+//    TesselationBird(size=20, thickness=1);
+// Example:
+//    TesselationBird(size=20, thickness=1, outer_offset=0.1);
 module TesselationBird(size, thickness = 2, outer_offset = 0.1, flip = false) {
   bezpath = [
     [0, 0], // Tail base
@@ -143,6 +157,32 @@ module TesselationBird(size, thickness = 2, outer_offset = 0.1, flip = false) {
     bezier_curve(other_bez, 20)
   );
   flip_bez = reverse([for (i = bez) [1 - i[0], i[1]]]);
+  line1 = [
+    for (
+      i = smooth_path(
+        [
+          [-1, 0],
+          [-0.951467, 0.23843],
+          [-0.84139, 0.462284],
+          [-0.746843, 0.428975],
+          [-0.751917, 0.323591],
+          [-0.674043, 0.280095],
+          [-0.576252, 0.374566],
+          [-0.49338, 0.341715],
+          [-0.479721, 0.200504],
+          [-0.269411, 0.261361],
+          [-0.240604, 0.121256],
+          [-0.0694036, 0.168683],
+          [0.00618108, 0.133237],
+          [0.00442596, 0.0381548],
+          [0, 0],
+        ],
+        size=0.3,
+        method="corners",
+        closed=false
+      )
+    ) [i[0] + 1, i[1]],
+  ];
   DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset)
     region(
       TesselationFromQuadradicPoints(

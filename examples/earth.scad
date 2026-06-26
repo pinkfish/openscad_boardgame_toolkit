@@ -153,6 +153,7 @@ module EarthCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     [card_box_width, card_box_length, card_box_height],
+    wall_thickness=card_box_wall_thickness
   ) {
     cube([card_size.width, card_size.length, card_box_height]);
     translate([$inner_width / 2, 0, -2]) {
