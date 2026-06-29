@@ -63,6 +63,7 @@ include <slipover_path_box.scad>
 
 // extra stuff
 include <flags.scad>
+include <shape_type.scad>
 include <shapes.scad>
 include <shapes3d.scad>
 include <pentagon_tilings.scad>
@@ -72,6 +73,7 @@ include <penrose_tiling.scad>
 // Tesselations
 include <tesselations/chicken.scad>
 include <tesselations/goose.scad>
+include <tesselations/hex_tesselation.scad>
 include <tesselations/kite_tesselation.scad>
 include <tesselations/lizard.scad>
 include <tesselations/pentagons.scad>

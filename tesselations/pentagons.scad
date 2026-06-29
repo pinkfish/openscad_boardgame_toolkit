@@ -23,7 +23,7 @@ under the License.
 // Includes:
 //   include <boardgame_toolkit.scad>
 
-// Module: SheepTesselation()
+// Function&Module: SheepTesselation()
 // Description:
 //    Make a sheep tesselation.
 // Arguments:
@@ -78,32 +78,17 @@ function SheepTesselation(size, x, y, thickness) =
     line3=reverse([for (i = line3) [abs(i[0] - 1), i[1]]])
   );
 
+// Module: SheepTesselationArea()
+// Description:
+//    Make a sheep tesselation area.
+// Arguments:
+//    size = length of the sheep
+//    width = width of the space
+//    length = length of the space
+//    thickness = thickness of the sheep
+// Example:
+//    SheepTesselationArea(size=20, width=200, length=100, thickness=1);
 module SheepTesselationArea(size, width, length, thickness) {
-  line3 = bezier_curve(
-    flatten(
-      [
-        bez_begin([0, 0], -80, 0.4),
-        bez_tang([0.4, -0.04], 0, 0.2, 0.5),
-        bez_tang([0.8, -0.2], 0, 0.5, 0.2),
-        bez_end([1, 0], 210, 0.2),
-      ]
-    ), 20
-  );
-
-  line2 = bezier_curve(
-    flatten(
-      [
-        bez_begin([0, 0], 0, 0.4),
-        bez_tang([0.4, 0.0], 0, 0.1, 0.5),
-        bez_tang([0.6, -0.04], 270, 0.1, 0.5),
-        bez_tang([0.8, -0.3], 0, 0.5, 0.2),
-        bez_tang([0.9, -0.3], 20, 0.5, 0.2),
-        bez_end([1, 0], 300, 0.3),
-      ]
-    ), 20
-  );
-  line1 = [[0, 0], [1, 0]];
-
   data = SheepTesselation(
     size, 0, 0, thickness
   );

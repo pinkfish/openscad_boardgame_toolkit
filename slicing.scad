@@ -54,7 +54,7 @@ under the License.
 //        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
-//            cube(97, 47, 20);
+//             cube([$inner_width, $inner_length, 20]);
 //        }
 //        MakePuzzleJoin();
 //   }
@@ -63,7 +63,7 @@ under the License.
 //        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //            foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
-//            cube(97, 47, 20);
+//             cube([$inner_width, $inner_length, 20]);
 //        }
 //        MakePuzzleJoin();
 //   }
@@ -72,7 +72,7 @@ under the License.
 //        MakeBoxWithSlipoverLid(size = [100, 50, 20],
 //        foot = 2, floor_thickness = 1.5, lid_thickness = 1.5, wall_thickness = 1.5)
 //        {
-//            cube(97, 47, 20);
+//             cube([$inner_width, $inner_length, 20]);
 //        }
 //        MakePuzzleJoin();
 //   }

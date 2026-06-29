@@ -93,11 +93,11 @@ function CapBoxDefaultLidFingerHoldRounding(cap_height) = min(3, cap_height / 2)
 // Example:
 //    MakeBoxWithCapLid([100, 50, 20]);
 // Example:
-//    MakeBoxWithCapLid([100, 50, 10], lid_finger_hold_len = 4);
+//    MakeBoxWithCapLid([50, 50, 20], lid_finger_hold_len = 4);
 // Example:
-//    MakeBoxWithCapLid([100, 50, 5], cap_height = 2, finger_hold_height = 1);
+//    MakeBoxWithCapLid([50, 50, 10], cap_height = 2, finger_hold_height = 1);
 // Example:
-//    MakeBoxWithCapLid([100, 50, 5], cap_height = 2, finger_hold_height = 1, corner_rounding=1, top_rounding=2, bottom_rounding=3);
+//    MakeBoxWithCapLid([30, 30, 15], cap_height = 2, finger_hold_height = 1, corner_rounding=1, top_rounding=2, bottom_rounding=3);
 module MakeBoxWithCapLid(
   size,
   cap_height = undef,

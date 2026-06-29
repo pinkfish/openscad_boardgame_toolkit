@@ -65,9 +65,10 @@ module PentagonTesselationArea(
   line1 = [[0, 0], [1, 0]],
   line2 = [[0, 0], [1, 0]],
   line3 = [[0, 0], [1, 0]],
+  spin = 60
 ) {
-  rows = length / pentagon_size;
-  cols = width / pentagon_size;
+  cols = width / pentagon_size + 4;
+  rows = (length * 2) / pentagon_size + 4;
   data = PentagonTesselation(
     pentagon_type, pentagon_size, 0, 0, thickness,
     first_angle_modifier=first_angle_modifier,
@@ -79,12 +80,19 @@ module PentagonTesselationArea(
     line2=line2,
     line3=line3
   );
-
-  for (x = [0:rows])
-    for (y = [0:cols])
-      translate(pentagon_size * x * data.x_offset)
-        translate(pentagon_size * y * data.y_offset)
-          region(data.points);
+  intersection() {
+    back(length / 2)
+      right(width / 2)
+        square(width, length);
+    back(length / 2)
+      right(width / 2)
+        rotate(spin)for (y = [0:rows])
+          left(pentagon_size * 2)
+            fwd(pentagon_size * 2)for (x = [0:cols])
+              translate(pentagon_size * (cols / 2 - x) * data.x_offset)
+                translate(pentagon_size * (rows / 2 - y) * data.y_offset)
+                  region(data.points);
+  }
 }
 
 // Function&Module: PentagonTesselation()
@@ -156,31 +164,39 @@ function pentagonBorder(vertices, size, thickness) =
     force_region(
       path_merge_collinear(
         offset(
-          path_merge_collinear(
-            scale(
-              size,
-              vertices,
+          path=deduplicate(
+            path_merge_collinear(
+              scale(
+                size,
+                vertices,
+              ),
+              closed=true
             ),
             closed=true
           ),
           delta=0.01,
           closed=true
         ),
-      )
+        closed=true
+      ),
     ),
     force_region(
       path_merge_collinear(
         offset(
-          path_merge_collinear(
-            scale(
-              size,
-              vertices,
+          path=deduplicate(
+            path_merge_collinear(
+              scale(
+                size,
+                vertices,
+              ),
+              closed=true
             ),
             closed=true
           ),
           delta=-1 * thickness,
           closed=true
         ),
+        closed=true
       )
     )
   );

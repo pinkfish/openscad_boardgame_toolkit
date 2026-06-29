@@ -41,8 +41,6 @@ alliance_box_length = (box_data.alliance.width + 1) * 2 + default_wall_thickness
 riverfolk_box_length = (box_data.riverfolk.width + 1) * 3 + default_wall_thickness * 2;
 lizard_box_length = (box_data.lizard.width + 1) * 5 + default_wall_thickness * 2;
 
-echo([box_data.marquis, box_data.token.thickness * 0.6667]);
-
 module MarquisCharacterBox() {
   MakeBoxWithCapLid(size=[marquis_box_width, marquis_box_length, marquis_box_height], material_colour="orange") {
     for (j = [0:1:4]) {
@@ -156,6 +154,5 @@ module BoxLayout() {
 }
 
 if (FROM_MAKE != 1) {
-  echo([box_data.box, card_length, card_width, box_data.box.height - only_board_height, 214-card_length*2]);
   BoxLayout();
 }

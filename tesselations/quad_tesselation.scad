@@ -120,7 +120,7 @@ function TesselationFromQuadradicPoints(points, side1, side2, side3, side4) =
   );
 
 // Module: TesselationBird()
-// Deaription:
+// Description:
 //    A simple bird tesselation.
 // Arguments:
 //    size = the size of the bird

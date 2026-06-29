@@ -131,7 +131,7 @@ canopy_box_height = card_box_height;
 
 compost_box_width = card_box_width;
 compost_box_length = card_box_length;
-compost_box_height = card_box_height * 2 / 3;
+compost_box_height = (card_box_height * 2 / 3) / 2;
 
 spacer_box_width = box_width - player_board_width;
 spacer_box_length = abundance_board_length - 0.5;
@@ -147,8 +147,6 @@ seed_box_height = box_height;
 
 player_colours = ["red", "green", "yellow", "blue", "purple", "pink"];
 
-echo([sprout_box_length, sprout_box_width]);
-
 module EarthCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
@@ -159,7 +157,8 @@ module EarthCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=card_box_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -169,13 +168,14 @@ module EarthCardBoxSmall() // `make` me
 {
   MakeBoxWithSlidingLid(
     [card_box_width, card_box_length, earth_small_box_height],
-    wall_thickness=card_box_wall_thickness
+    wall_thickness=card_box_wall_thickness,
   ) {
     cube([card_size.width, card_size.length, earth_small_box_height]);
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=earth_small_box_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -200,7 +200,8 @@ module EcosystemCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=ecosystem_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -225,7 +226,8 @@ module FaunaCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=fauna_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -244,13 +246,15 @@ module IslandCardBox() // `make` me
 {
   MakeBoxWithSlidingLid(
     [card_box_width, card_box_length, island_cards_height],
-    wall_thickness=card_box_wall_thickness
+    wall_thickness=card_box_wall_thickness,
+    sliding_lid_options=MakeSlidingLidOptions(two_layer=true),
   ) {
     cube([card_size.width, card_size.length, island_cards_height]);
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=island_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -261,6 +265,7 @@ module IslandCardBoxLid() // `make` me
   SlidingBoxLidWithLabel(
     size=[card_box_width, card_box_length, island_cards_height],
     text_str="Island",
+    sliding_lid_options=MakeSlidingLidOptions(two_layer=true),
     wall_thickness=card_box_wall_thickness
   );
 }
@@ -275,7 +280,8 @@ module ClimateCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=climate_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -300,7 +306,8 @@ module SoloCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=solo_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -325,7 +332,8 @@ module SeasonCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=season_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -350,7 +358,8 @@ module AbundanceOtherCardBox() // `make` me
     translate([$inner_width / 2, 0, -2]) {
       FingerHoleBase(
         radius=17, height=abundance_other_cards_height - default_lid_thickness,
-        spin=0
+        spin=0,
+        wall_thickness=card_box_wall_thickness
       );
     }
   }
@@ -762,5 +771,5 @@ function round_to_2(val) = round(val * 100) / 100;
 
 if (FROM_MAKE != 1) {
 
-  SproutBoxLid(2);
+  //  CompostBox();
 }

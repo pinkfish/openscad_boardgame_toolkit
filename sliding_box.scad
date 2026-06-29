@@ -29,6 +29,24 @@ under the License.
 // Section: SlidingBox
 //   All the pieces for making sliding lids and different types of sliding lids/boxes.
 
+// Function: MakeSlidingLidOptions()
+// Description: 
+//    Make the sliding lid options object.
+// Arguments:
+//    two_layer = if the lid has a cap layer, a second layer on top (default false)
+//    two_layer_top_lid_ratio = the ratio of the top bit to the sliding bit (default 0.5)
+//    two_layer_vee_shape = if the two layer lid should use a vee slide (default false)
+function MakeSlidingLidOptions(
+  two_layer = false,
+  two_layer_top_lid_ratio = 0.5,
+  two_layer_vee_shape = false
+) =
+  object(
+    two_layer=two_layer,
+    two_layer_top_lid_ratio=two_layer_top_lid_ratio,
+    two_layer_vee_shape=two_layer_vee_shape
+  );
+
 // Module: SlidingLid()
 // Description:
 //   Creates a sliding lid for a sliding lid box, the children to this module are inserted into the lid.
@@ -44,7 +62,7 @@ under the License.
 //   size_spacing = how much of an offset to use in generate the slides spacing (default {{m_piece_wiggle_room}})
 //   lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //   material_colour = the colour of the material in the box (default {{default_material_colour}})
-//   lid_chamfer = how much to chamfer the lid
+//   sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //   SlidingLid(size = [100, 100], lid_thickness=3, wall_thickness = 2)
@@ -54,148 +72,198 @@ under the License.
 //   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2)
 //     translate([ 10, 10, 0 ])
 //       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
+// Example:
+//   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2, sliding_lid_options=MakeSlidingLidOptions(two_layer=true))
+//     translate([ 10, 10, 0 ])
+//       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
+// Example:
+//   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2, 
+//        sliding_lid_options=MakeSlidingLidOptions(two_layer=true, two_layer_vee_shape=true))
+//     translate([ 10, 10, 0 ])
+//       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
+// Example:
+//   SlidingLid(size=[100, 100], lid_thickness=3, wall_thickness = 2, 
+//        sliding_lid_options=MakeSlidingLidOptions(two_layer=true, two_layer_top_lid_ratio=0.25))
+//     translate([ 10, 10, 0 ])
+//       LidMeshHex(size = [100, 100], lid_thickness = 3, boundary = 10, radius = 12);
 module SlidingLid(
   size,
+  sliding_lid_options = undef,
   lid_thickness = default_lid_thickness,
   wall_thickness = undef,
   size_spacing = m_piece_wiggle_room,
   lid_rounding = undef,
-  lid_chamfer = undef,
   material_colour = default_material_colour
 ) {
   assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
   width = size[0];
   length = size[1];
 
-  calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
   calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+  calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
   calc_lid_rounding = DefaultValue(lid_rounding, calc_wall_thickness / 2);
-  calc_lid_chamfer = DefaultValue(lid_chamfer, calc_wall_thickness / 6);
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
-  internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
-    difference() {
-      // Lip and raised bit
-      union() {
-        difference() {
-          lid_width = width - 2 * (calc_wall_thickness + size_spacing);
-          lid_length = length - calc_wall_thickness;
-          translate([calc_wall_thickness / 2 + size_spacing, calc_wall_thickness / 2, 0])
-            color(material_colour)
-              diff()
-                cuboid(
-                  [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
-                  rounding=calc_lid_rounding,
-                  edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-                ) edge_mask(TOP + BACK) rounding_edge_mask(r=calc_lid_rounding / 2, l=lid_width);
-          // Top edge easing.
-          translate(
-            [
-              calc_wall_thickness / 2 - size_spacing,
-              calc_wall_thickness / 2 - size_spacing,
-              calc_lid_thickness / 2 - size_spacing,
-            ]
-          ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
-                right_triangle([size_spacing * 4, 15]);
-          translate(
-            [
-              width - calc_wall_thickness * 2 + size_spacing * 7.5,
-              calc_wall_thickness / 2 - size_spacing,
-              calc_lid_thickness / 2 - size_spacing,
-            ]
-          ) color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
-                  right_triangle([size_spacing * 4, 15]);
-        }
-        // bottom layer.
-        difference() {
-          translate([0, 0, 0]) color(material_colour) cuboid(
-                [
-                  width - calc_wall_thickness - size_spacing * 2,
-                  length - calc_wall_thickness / 2,
-                  calc_lid_thickness / 2 - size_spacing,
-                ],
-                anchor=BOTTOM + FRONT + LEFT, chamfer=calc_lid_chamfer,
-                edges=[TOP + LEFT, TOP + RIGHT, TOP + FRONT, FRONT + LEFT, FRONT + RIGHT]
-              );
+  // Sizes for inside bits.
+  chamfer =
+    calc_sliding_lid_options.two_layer ? 0
+    : calc_wall_thickness / 2 > calc_lid_thickness - size_spacing ? calc_wall_thickness / 2 : calc_lid_thickness - size_spacing;
+  lid_width =
+    calc_sliding_lid_options.two_layer ? width
+    : width - 2 * (calc_wall_thickness) + chamfer * 2 - size_spacing;
+  lid_length =
+    calc_sliding_lid_options.two_layer ? length
+    : length - calc_wall_thickness + chamfer;
+  top_cover = calc_sliding_lid_options.two_layer_top_lid_ratio * calc_lid_thickness;
+  lid_under_cover = calc_lid_thickness - top_cover;
+  middle_chamfer = calc_wall_thickness > lid_under_cover ? lid_under_cover / 2 : calc_wall_thickness / 2;
+  two_layer_chamfer =
+    calc_sliding_lid_options.two_layer_vee_shape ? middle_chamfer
+    : calc_wall_thickness / 2 < lid_under_cover ? calc_wall_thickness / 2 : lid_under_cover;
 
-          translate([0, 0, calc_lid_thickness / 2 - 0.25]) rotate([0, 45, 0])
-              translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2])
-                color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
-                    right_triangle([calc_wall_thickness / 2, 15]);
+  module FlipStuff() {
+    if (calc_sliding_lid_options.two_layer)
+      up(lid_thickness)
+        back(lid_length)
+          xrot(180)
+            children();
+    else
+      children();
+  }
 
-          translate([0, -calc_wall_thickness / 2, calc_wall_thickness - 0.35]) translate(
-              [
-                width - calc_wall_thickness - size_spacing / 1.1,
-                -size_spacing,
-                -calc_lid_thickness / 2,
-              ]
-            ) rotate([0, -45, 0]) color(material_colour) linear_extrude(height=calc_lid_thickness + 10)
-                    xflip() right_triangle([calc_wall_thickness / 2, 15]);
+  module mask_2sliding_lid() {
+    path = (
+      calc_sliding_lid_options.two_layer_vee_shape ?
+        [
+          [0, 0],
+          [calc_wall_thickness / 2 + size_spacing, 0],
+          [calc_wall_thickness / 2 + middle_chamfer + size_spacing, middle_chamfer],
+          [calc_wall_thickness / 2 + size_spacing, lid_under_cover],
+          [0, lid_under_cover],
+        ]
+      : [
+        [0, 0],
+        [size_spacing, 0],
+        [calc_wall_thickness - two_layer_chamfer, 0],
+        [calc_wall_thickness, lid_under_cover],
+        [size_spacing, lid_under_cover],
+        [0, lid_under_cover],
+      ]
+    );
+    attachable(anchor=CENTER, spin=0, two_d=true, path=path, extent=true) {
+      polygon(path);
+      children();
+    }
+  }
+
+  FlipStuff()
+    internal_build_lid(lid_thickness=calc_lid_thickness, size_spacing=size_spacing) {
+      difference() {
+        // Lip and raised bit
+        color(material_colour)
+          diff()
+            cuboid(
+              [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT,
+              chamfer=chamfer + size_spacing,
+              edges=calc_sliding_lid_options.two_layer ?
+                [LEFT + TOP, RIGHT + TOP, TOP + FRONT, LEFT + BOTTOM, RIGHT + BOTTOM, BOTTOM + FRONT]
+              : [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
+            ) {
+              edge_mask([LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK])
+                rounding_edge_mask(r=calc_lid_rounding, l=lid_thickness + size_spacing);
+              edge_mask(
+                calc_sliding_lid_options.two_layer ? [TOP]
+                : [TOP + BACK]
+              )
+                rounding_edge_mask(
+                  r=calc_sliding_lid_options.two_layer ? top_cover
+                  : calc_lid_rounding / 2, l=max(lid_length, lid_width)
+                );
+              // This makes the v cut out in the side if it is a two layer lid.
+              if (calc_sliding_lid_options.two_layer) {
+                edge_profile_asym([BOTTOM + LEFT, BOTTOM + RIGHT])
+                  mask_2sliding_lid();
+              }
+            }
+        if (calc_sliding_lid_options.two_layer) {
+          // The front cutout.
+          down(size_spacing)
+            cuboid(
+              [lid_width, calc_wall_thickness, lid_under_cover + size_spacing],
+              anchor=BOTTOM + FRONT + LEFT,
+            );
+          translate([calc_wall_thickness - two_layer_chamfer, wall_thickness, -top_cover])
+            linear_extrude(h=lid_thickness)
+              mask2d_roundover(r=calc_lid_rounding);
+          translate([lid_width - calc_wall_thickness + two_layer_chamfer, wall_thickness, -top_cover])
+            xflip()
+              linear_extrude(h=lid_thickness)
+                mask2d_roundover(r=calc_lid_rounding);
+        } else {
+          // Edge easing.
+          translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2]) color(material_colour)
+              linear_extrude(height=calc_lid_thickness + 10) right_triangle([calc_wall_thickness / 2, 15]);
+          translate([lid_width + size_spacing / 20, -size_spacing, -calc_lid_thickness / 2])
+            color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
+                  right_triangle([calc_wall_thickness / 2, 15]);
         }
       }
 
-      // Edge easing.
-      translate([-size_spacing / 20, -size_spacing, -calc_lid_thickness / 2]) color(material_colour)
-          linear_extrude(height=calc_lid_thickness + 10) right_triangle([calc_wall_thickness / 2, 15]);
-      translate([width - calc_wall_thickness - size_spacing / 1.1, -size_spacing, -calc_lid_thickness / 2])
-        color(material_colour) linear_extrude(height=calc_lid_thickness + 10) xflip()
-              right_triangle([calc_wall_thickness / 2, 15]);
-    }
+      $inner_width = width - calc_wall_thickness;
+      $inner_length = length - calc_wall_thickness / 2;
 
-    $inner_width = width - calc_wall_thickness;
-    $inner_length = length - calc_wall_thickness / 2;
-
-    if ($children > 0) {
-      children(0);
+      if ($children > 0) {
+        children(0);
+      }
+      if ($children > 1) {
+        children(1);
+      }
+      if ($children > 2) {
+        children(2);
+      }
+      if ($children > 3) {
+        children(3);
+      }
+      if ($children > 4) {
+        children(4);
+      }
+      if ($children > 5) {
+        children(5);
+      }
+      if ($children > 6) {
+        children(6);
+      }
+      if ($children > 7) {
+        children(7);
+      }
+      if ($children > 8) {
+        children(8);
+      }
+      if ($children > 9) {
+        children(9);
+      }
+      if ($children > 10) {
+        children(10);
+      }
+      if ($children > 11) {
+        children(11);
+      }
+      if ($children > 12) {
+        children(12);
+      }
+      if ($children > 13) {
+        children(13);
+      }
+      if ($children > 14) {
+        children(14);
+      }
+      if ($children > 15) {
+        children(15);
+      }
+      if ($children > 16) {
+        children(16);
+      }
     }
-    if ($children > 1) {
-      children(1);
-    }
-    if ($children > 2) {
-      children(2);
-    }
-    if ($children > 3) {
-      children(3);
-    }
-    if ($children > 4) {
-      children(4);
-    }
-    if ($children > 5) {
-      children(5);
-    }
-    if ($children > 6) {
-      children(6);
-    }
-    if ($children > 7) {
-      children(7);
-    }
-    if ($children > 8) {
-      children(8);
-    }
-    if ($children > 9) {
-      children(9);
-    }
-    if ($children > 10) {
-      children(10);
-    }
-    if ($children > 11) {
-      children(11);
-    }
-    if ($children > 12) {
-      children(12);
-    }
-    if ($children > 13) {
-      children(13);
-    }
-    if ($children > 14) {
-      children(14);
-    }
-    if ($children > 15) {
-      children(15);
-    }
-    if ($children > 16) {
-      children(16);
-    }
-  }
 }
 
 // Module: SlidingBoxLidWithCustomShape()
@@ -215,8 +283,8 @@ module SlidingLid(
 //    lid_pattern_dense = if the layout is dense (default false)
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
-//    lid_chamfer = how much to chamfer the lid
 //    pattern_inner_control = if the shape needs inner control (default false)
+//    sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Example:
 //    SlidingBoxLidWithCustomShape([100, 50]) {
 //      ShapeByType(MakeShapeObject(shape_type = SHAPE_TYPE_SUPERSHAPE, shape_thickness = 2, supershape_m1 = 12, supershape_m2 = 12,
@@ -224,6 +292,7 @@ module SlidingLid(
 //    }
 module SlidingBoxLidWithCustomShape(
   size,
+  sliding_lid_options = undef,
   lid_boundary = 10,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
@@ -231,7 +300,6 @@ module SlidingBoxLidWithCustomShape(
   aspect_ratio = 1.0,
   lid_rounding = undef,
   wall_thickness = undef,
-  lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
@@ -242,28 +310,31 @@ module SlidingBoxLidWithCustomShape(
   length = size[1];
   calc_lid_thickness = DefaultValue(lid_thickness, default_lid_thickness);
   calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
   SlidingLid(
     size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
-    lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
-    material_colour=material_colour
+    lid_rounding=lid_rounding, size_spacing=size_spacing,
+    material_colour=material_colour, sliding_lid_options=calc_sliding_lid_options,
   ) {
-    union() {
-      LidMeshBasic(
-        size=[
-          width - calc_wall_thickness,
-          length - calc_wall_thickness / 2,
-        ],
-        lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges, material_colour=material_colour,
-        inner_control=pattern_inner_control
-      ) {
-        if ($children > 0) {
-          children(0);
-        } else {
-          color(material_colour) square([10, 10]);
-        }
+    LidMeshBasic(
+      size=[
+        width - calc_wall_thickness,
+        length - calc_wall_thickness / 2,
+      ],
+      lid_thickness=lid_thickness,
+      boundary=lid_boundary,
+      layout_width=layout_width,
+      aspect_ratio=aspect_ratio,
+      dense=lid_pattern_dense,
+      dense_shape_edges=lid_dense_shape_edges,
+      material_colour=material_colour,
+      inner_control=pattern_inner_control
+    ) {
+      if ($children > 0) {
+        children(0);
+      } else {
+        color(material_colour) square([10, 10]);
       }
     }
 
@@ -335,8 +406,8 @@ module SlidingBoxLidWithCustomShape(
 //    lid_dense_shape_edges = the number of edges on the dense layout (default 6)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
-//    lid_chamfer = how much to chamfer the lid
 //    pattern_inner_control = if the shape needs inner control (default false)
+//    sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Usage: SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog");
 // Example:
 //    SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str = "Frog") {
@@ -346,6 +417,7 @@ module SlidingBoxLidWithCustomShape(
 module SlidingBoxLidWithLabelAndCustomShape(
   size,
   text_str,
+  sliding_lid_options = undef,
   lid_boundary = 10,
   layout_width = undef,
   size_spacing = m_piece_wiggle_room,
@@ -353,7 +425,6 @@ module SlidingBoxLidWithLabelAndCustomShape(
   aspect_ratio = 1.0,
   wall_thickness = default_wall_thickness,
   lid_rounding = undef,
-  lid_chamfer = undef,
   lid_pattern_dense = false,
   lid_dense_shape_edges = 6,
   material_colour = default_material_colour,
@@ -376,20 +447,20 @@ module SlidingBoxLidWithLabelAndCustomShape(
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
   assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
-  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
   assert(text_str != undef, "Need to specify a label, text_str == undef");
 
   calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
   SlidingBoxLidWithCustomShape(
     size=size, lid_thickness=lid_thickness, wall_thickness=wall_thickness,
-    lid_rounding=lid_rounding, size_spacing=size_spacing, lid_chamfer=lid_chamfer,
+    lid_rounding=lid_rounding, size_spacing=size_spacing,
     material_colour=material_colour,
     lid_boundary=lid_boundary,
     layout_width=layout_width,
     aspect_ratio=aspect_ratio,
     lid_pattern_dense=lid_pattern_dense, lid_dense_shape_edges=lid_dense_shape_edges,
-    pattern_inner_control=pattern_inner_control
+    pattern_inner_control=pattern_inner_control, sliding_lid_options=calc_sliding_lid_options
   ) {
     // 0 child is the pattern for the lid.
     children(0);
@@ -399,7 +470,10 @@ module SlidingBoxLidWithLabelAndCustomShape(
         size=[width - calc_wall_thickness * 2, length - calc_wall_thickness * 2],
         lid_thickness=lid_thickness,
         text_str=text_str,
-        options=object(calc_label_options, full_height=false),
+        options=object(
+          calc_label_options,
+          full_height=calc_sliding_lid_options.two_layer
+        ),
       );
     }
 
@@ -457,7 +531,7 @@ module SlidingBoxLidWithLabelAndCustomShape(
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    label_options = options for the label (default undef)
 //    shape_options = options for the shape (default undef)
-//    lid_chamfer = how much to chamfer the lid
+//    sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithLabel(
@@ -465,13 +539,13 @@ module SlidingBoxLidWithLabelAndCustomShape(
 module SlidingBoxLidWithLabel(
   size,
   text_str,
+  sliding_lid_options = undef,
   lid_thickness = default_lid_thickness,
   lid_boundary = 10,
   layout_width = undef,
   aspect_ratio = undef,
   wall_thickness = default_wall_thickness,
   size_spacing = m_piece_wiggle_room,
-  lid_chamfer = undef,
   lid_rounding = undef,
   material_colour = default_material_colour,
   label_options = undef,
@@ -490,26 +564,27 @@ module SlidingBoxLidWithLabel(
     shape_options, MakeShapeObject(
     )
   );
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
   assert(width > 0 && length > 0, str("Need width,lenght > 0 width=", width, " length=", length));
   assert(lid_thickness > 0, str("Need lid thickness > 0, lid_thickness=", lid_thickness));
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
   assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
-  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
   assert(text_str != undef, "Need to specify a label, text_str == undef");
 
   SlidingBoxLidWithLabelAndCustomShape(
     size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     text_str=text_str,
     layout_width=layout_width, size_spacing=size_spacing,
-    aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
+    aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary,
     lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
     lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     material_colour=material_colour,
     pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-    label_options=calc_label_options
+    label_options=calc_label_options,
+    sliding_lid_options=calc_sliding_lid_options
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)
@@ -565,7 +640,7 @@ module SlidingBoxLidWithLabel(
 //    lid_rounding = how much rounding on the edge of the lid (default wall_thickness/2)
 //    material_colour = the colour of the material in the box (default {{default_material_colour}})
 //    shape_options = options for the shape (default undef)
-//    lid_chamfer = how much to chamfer the lid
+//    sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Topics: SlidingBox, SlidingLid
 // Example:
 //    SlidingBoxLidWithShape(
@@ -578,10 +653,10 @@ module SlidingBoxLidWithShape(
   wall_thickness = default_wall_thickness,
   aspect_ratio = undef,
   size_spacing = m_piece_wiggle_room,
-  lid_chamfer = undef,
   lid_rounding = undef,
   material_colour = default_material_colour,
-  shape_options = undef
+  shape_options = undef,
+  sliding_lid_options = undef,
 ) {
   assert(size != undef && is_list(size) && (len(size) == 2 || len(size) == 3), str("size must be set to [x,y]", size));
   width = size[0];
@@ -592,21 +667,22 @@ module SlidingBoxLidWithShape(
   assert(wall_thickness > 0, str("Need wall thickness > 0, wall_thickness=", wall_thickness));
   assert(size_spacing > 0, str("Need size_spacing > 0, size_spacing=", size_spacing));
   assert(lid_rounding == undef || lid_rounding > 0, str("Need lid_rounding undef or > 0", lid_rounding));
-  assert(lid_chamfer == undef || lid_chamfer > 0, str("Need lid_chamfer undef or > 0", lid_chamfer));
   calc_shape_options = DefaultValue(
     shape_options, MakeShapeObject(
     )
   );
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
   SlidingBoxLidWithCustomShape(
     size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness,
     layout_width=layout_width, size_spacing=size_spacing,
-    aspect_ratio=aspect_ratio, lid_chamfer=lid_chamfer, lid_rounding=lid_rounding,
+    aspect_ratio=aspect_ratio, lid_rounding=lid_rounding,
     lid_boundary=lid_boundary,
     lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
     lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
     material_colour=material_colour,
     pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
+    sliding_lid_options=calc_sliding_lid_options
   ) {
     translate([lid_boundary, lid_boundary, 0]) {
       color(material_colour)
@@ -671,9 +747,18 @@ module SlidingBoxLidWithShape(
 //    spin = the spin to spin the box by (default 0)
 //    anchor = the anchor to use (default BOTTOM + FRONT + LEFT)
 //    orient = the orientation to use (default UP)
+//    sliding_lid_options = the sliding lid options (default {{MakeSlidingLidOptions()})
 // Topics: SlidingBox
 // Example:
 //   MakeBoxWithSlidingLid([50, 100, 20]);
+// Example:
+//   MakeBoxWithSlidingLid(size=[100, 100, 20], lid_thickness=3, wall_thickness = 2, sliding_lid_options=MakeSlidingLidOptions(two_layer=true));
+// Example:
+//   MakeBoxWithSlidingLid(size=[100, 100, 20], lid_thickness=3, wall_thickness = 2, 
+//        sliding_lid_options=MakeSlidingLidOptions(two_layer=true, two_layer_vee_shape=true));
+// Example:
+//   MakeBoxWithSlidingLid(size=[100, 100, 20], lid_thickness=3, wall_thickness = 2, 
+//        sliding_lid_options=MakeSlidingLidOptions(two_layer=true, two_layer_top_lid_ratio=0.25));
 module MakeBoxWithSlidingLid(
   size,
   wall_thickness = default_wall_thickness,
@@ -682,6 +767,7 @@ module MakeBoxWithSlidingLid(
   size_spacing = m_piece_wiggle_room,
   material_colour = default_material_colour,
   positive_colour = default_positive_colour,
+  sliding_lid_options = undef,
   positive_only_children = [],
   positive_negative_children = [],
   spin = 0,
@@ -692,36 +778,73 @@ module MakeBoxWithSlidingLid(
   width = size[0];
   length = size[1];
   height = size[2];
+  calc_sliding_lid_options = DefaultValue(sliding_lid_options, MakeSlidingLidOptions());
 
-  tmat = reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, height]);
+  calc_wall_thickness = DefaultValue(wall_thickness, default_wall_thickness);
+
+  top_cover = calc_sliding_lid_options.two_layer_top_lid_ratio * lid_thickness;
+  lid_cutout = calc_sliding_lid_options.two_layer ? lid_thickness - top_cover : lid_thickness;
+  middle_chamfer = wall_thickness > lid_cutout ? lid_cutout / 2 : wall_thickness / 2;
+  calc_height = calc_sliding_lid_options.two_layer ? height - top_cover - size_spacing : height;
+
+  tmat = reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, calc_height]);
   multmatrix(m=tmat) left(width / 2)
       fwd(length / 2) down(height / 2)
           difference() {
             color(material_colour)
               diff()
                 cuboid(
-                  [width, length, height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+                  [width, length, calc_height], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
                   edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT]
                 ) {
-                  edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 2, l=max(length, width));
+                  if (!calc_sliding_lid_options.two_layer) {
+                    edge_mask(TOP) rounding_edge_mask(r=wall_thickness / 2, l=max(length, width));
+                  }
                 }
             rounding_offset = 0.01;
-            translate([wall_thickness, -rounding_offset, height - lid_thickness]) color(material_colour) cuboid(
+
+            // Lid top cutout for the middle.
+            translate([wall_thickness, -rounding_offset, calc_height - lid_cutout]) color(material_colour) cuboid(
                   [
                     width - wall_thickness * 2,
                     length - wall_thickness + size_spacing + rounding_offset,
-                    lid_thickness + size_spacing / 2,
+                    lid_cutout + size_spacing / 2,
                   ],
                   anchor=BOTTOM + FRONT + LEFT
                 );
 
-            translate([wall_thickness / 2, -rounding_offset, height - lid_thickness]) color(material_colour)
-                cuboid(
-                  [width - wall_thickness, length - wall_thickness / 2 + rounding_offset, lid_thickness / 2],
-                  anchor=BOTTOM + FRONT + LEFT, chamfer=lid_thickness / 6,
-                  edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK]
-                );
-            translate([width / 2, 0, height - lid_thickness])
+            // Lid cutout.
+            if (calc_sliding_lid_options.two_layer) {
+              if (calc_sliding_lid_options.two_layer_vee_shape) {
+                translate([wall_thickness - middle_chamfer - size_spacing / 2, 0, calc_height - lid_cutout]) color(material_colour)
+                    cuboid(
+                      [width - wall_thickness * 2 + middle_chamfer * 2 + size_spacing, length - wall_thickness, lid_cutout],
+                      anchor=BOTTOM + FRONT + LEFT,
+                      chamfer=middle_chamfer,
+                      edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT, BOTTOM + RIGHT]
+                    );
+              } else {
+                chamfer = wall_thickness / 2 < lid_cutout ? wall_thickness / 2 : lid_cutout;
+                translate([wall_thickness - chamfer - size_spacing / 2, 0, calc_height - lid_cutout]) color(material_colour)
+                    cuboid(
+                      [width - wall_thickness * 2 + chamfer * 2 + size_spacing, length - wall_thickness, lid_cutout],
+                      anchor=BOTTOM + FRONT + LEFT,
+                      chamfer=chamfer,
+                      edges=[TOP + LEFT, TOP + RIGHT]
+                    );
+              }
+            } else {
+              chamfer = wall_thickness / 2 < lid_cutout ? wall_thickness / 2 : lid_cutout;
+              translate([wall_thickness - chamfer, 0, calc_height - lid_cutout]) color(material_colour)
+                  cuboid(
+                    [width - wall_thickness * 2 + chamfer * 2, length - wall_thickness + chamfer, lid_cutout],
+                    anchor=BOTTOM + FRONT + LEFT,
+                    chamfer=chamfer,
+                    edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK]
+                  );
+            }
+
+            translate([width / 2, 0, calc_height - lid_cutout])
               rotate([0, 90, 0])
                 rounding_edge_mask(r=wall_thickness / 4, height=length - wall_thickness * 2);
 
@@ -735,6 +858,7 @@ module MakeBoxWithSlidingLid(
               }
             }
           }
+
   if (len(positive_only_children) > 0 || (len(positive_negative_children) > 0 && MAKE_MMU == 1)) {
     $inner_width = width - wall_thickness * 2;
     $inner_length = length - wall_thickness * 2;

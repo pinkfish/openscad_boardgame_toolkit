@@ -225,7 +225,6 @@ module FilamentBoxInsideMask(
   wall_thickness = default_wall_thickness,
   floor_thickness = default_floor_thickness,
   lid_thickness = default_lid_thickness,
-  material_colour = default_material_colour,
   filament_thickness = 2.2,
   rounding = 0,
   print_in_place_offset = default_print_in_place_offset,
@@ -240,25 +239,23 @@ module FilamentBoxInsideMask(
   support_height = support_width + calc_hinge_options.thickness;
 
   difference() {
-    color(material_colour)
-      cuboid(
-        [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
-        anchor=BOTTOM + FRONT + LEFT,
-        rounding=rounding,
-        edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
-      );
+    cuboid(
+      [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
+      anchor=BOTTOM + FRONT + LEFT,
+      rounding=rounding,
+      edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK]
+    );
 
     translate([-0.5, -0.5, height - lid_thickness - support_height - floor_thickness])
-      color(material_colour) cuboid(
-          [support_width + print_in_place_offset + 0.5, length + 1, support_height + 1],
-          anchor=BOTTOM + FRONT + LEFT,
-          chamfer=support_width,
-          edges=[BOTTOM + RIGHT],
-        );
+      cuboid(
+        [support_width + print_in_place_offset + 0.5, length + 1, support_height + 1],
+        anchor=BOTTOM + FRONT + LEFT,
+        chamfer=support_width,
+        edges=[BOTTOM + RIGHT],
+      );
     fwd(0.5)
       up(height)
-        color(material_colour)
-          ycyl(d=calc_hinge_options.thickness + print_in_place_offset, length=length + 1, anchor=FRONT + LEFT + TOP);
+        ycyl(d=calc_hinge_options.thickness + print_in_place_offset, length=length + 1, anchor=FRONT + LEFT + TOP);
   }
 }
 

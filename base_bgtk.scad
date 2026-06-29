@@ -256,7 +256,11 @@ SHAPE_TYPE_SHEEP = 41;
 // Constant: SHAPE_TYPE_BIRD
 // Description:
 //   Make a nice bird shape.
-SHAPE_TYPE_BIRD = 41;
+SHAPE_TYPE_BIRD = 42;
+// Constant: SHAPE_TYPE_FLYING_BIRD
+// Description:
+//   Make a nice flying bird shape.
+SHAPE_TYPE_FLYING_BIRD = 43;
 
 // Constant: CATCH_NONE
 // Description:

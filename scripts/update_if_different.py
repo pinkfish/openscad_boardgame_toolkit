@@ -27,8 +27,8 @@ def main():
     parser.add_argument(
         "--tolerance",
         type=float,
-        default=0.01,
-        help="Mean distance error threshold (default: 0.01)",
+        default=0.001,
+        help="Mean distance error threshold (default: 0.001)",
     )
 
     # Define optional argument for title threshold
@@ -78,7 +78,7 @@ def main():
         # Throw error if models deviate beyond the tolerance threshold
         if res["mean"] > args.tolerance:
             print(
-                f"Error: Mean distance {res['mean']} exceeds tolerance {args.tolerance}",
+                f"Overwrite: Mean distance {res['mean']} exceeds tolerance {args.tolerance}",
                 file=sys.stderr,
             )
             # Copy the file and delete the tmp file.
@@ -90,7 +90,7 @@ def main():
 
             sys.exit(0)
         else:
-            print( f"Success: Mean distance {res['mean']} is within tolerance {args.tolerance}")
+            print( f"Skip: Mean distance {res['mean']} is within tolerance {args.tolerance}")
             Path.touch(args.target_mesh)           
             sys.exit(0)
 

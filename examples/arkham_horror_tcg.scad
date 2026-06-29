@@ -177,7 +177,6 @@ module BoxLayout() {
   cube([1, box_length, box_height]);
   cube([box_width, box_length, 1]);
   core_box_size = CardLibrarySize(core_player_cards, card_size);
-  echo("core_box_size = ", core_box_size);
   translate([0, 0, 0])
     ArkhamHorronCoreGameBox();
   translate([0, core_box_size[1], 0])
