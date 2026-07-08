@@ -1,6 +1,14 @@
 venv
-docs
 
 examples/*.stl
 examples/*.3mf
 examples/output/*.deps
+
+__pycache__/
+*.pyc
+*.egg-info/
+pysolidfive/build/
+pysolidfive/docs/_build/
+pysolidfive/docs/_generated/
+tests/_render_output/
+pysolidfive/tests/_render_output/

@@ -110,10 +110,10 @@ module SlidingLid(
     : calc_wall_thickness / 2 > calc_lid_thickness - size_spacing ? calc_wall_thickness / 2 : calc_lid_thickness - size_spacing;
   lid_width =
     calc_sliding_lid_options.two_layer ? width
-    : width - 2 * (calc_wall_thickness) + chamfer * 2 - size_spacing;
+    : width - 2 * calc_wall_thickness + chamfer * 2 + size_spacing;
   lid_length =
     calc_sliding_lid_options.two_layer ? length
-    : length - calc_wall_thickness + chamfer;
+    : length - calc_wall_thickness + chamfer - size_spacing;
   top_cover = calc_sliding_lid_options.two_layer_top_lid_ratio * calc_lid_thickness;
   lid_under_cover = calc_lid_thickness - top_cover;
   middle_chamfer = calc_wall_thickness > lid_under_cover ? lid_under_cover / 2 : calc_wall_thickness / 2;
@@ -170,7 +170,10 @@ module SlidingLid(
               : [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
             ) {
               edge_mask([LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK])
-                rounding_edge_mask(r=calc_lid_rounding, l=lid_thickness + size_spacing);
+                rounding_edge_mask(
+                  r=calc_sliding_lid_options.two_layer ? calc_wall_thickness : calc_lid_rounding,
+                  l=lid_thickness + size_spacing
+                );
               edge_mask(
                 calc_sliding_lid_options.two_layer ? [TOP]
                 : [TOP + BACK]

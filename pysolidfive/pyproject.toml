@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pysolidfive"
+version = "0.1.0"
+description = "A small libfive-based (F-Rep / signed-distance-function) shape library for PythonSCAD."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [{ name = "pinkfish" }]
+requires-python = ">=3.9"
+keywords = ["openscad", "pythonscad", "libfive", "sdf", "signed-distance-function", "f-rep", "csg"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/pinkfish/openscad_boardgame_toolkit/tree/main/pysolidfive"
+Repository = "https://github.com/pinkfish/openscad_boardgame_toolkit"
+Issues = "https://github.com/pinkfish/openscad_boardgame_toolkit/issues"
+
+[project.optional-dependencies]
+# Only needed to build docs/ (`pip install -e ".[docs]"` then `make -C docs html`) -- not a
+# runtime dependency of the library itself.
+docs = ["sphinx>=7"]
+
+[tool.setuptools]
+packages = ["pysolidfive", "pysolidfive.tests"]
+
+[tool.setuptools.package-dir]
+pysolidfive = "."
+"pysolidfive.tests" = "tests"
+
+[tool.setuptools.package-data]
+"pysolidfive.tests" = ["golden_images/*.png"]

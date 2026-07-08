@@ -1,0 +1,147 @@
+{
+  "name": "pythonscad",
+  "displayName": "PythonSCAD",
+  "description": "Compile and syntax-check .scad and PythonSCAD .py files using the PythonSCAD engine directly, with inline diagnostics and model export.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "workspaceContains:**/*.scad"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pythonscad.checkFile",
+        "title": "PythonSCAD: Check/Compile Current File",
+        "icon": "$(check)"
+      },
+      {
+        "command": "pythonscad.exportFile",
+        "title": "PythonSCAD: Export Current File..."
+      },
+      {
+        "command": "pythonscad.selectExecutable",
+        "title": "PythonSCAD: Select Executable..."
+      },
+      {
+        "command": "pythonscad.showOutput",
+        "title": "PythonSCAD: Show Output Channel"
+      },
+      {
+        "command": "pythonscad.trustWorkspaceForPython",
+        "title": "PythonSCAD: Trust This Workspace to Run Python Files"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "pythonscad.checkFile",
+          "when": "resourceExtname == .scad || resourceLangId == python",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "pythonscad.checkFile",
+          "when": "resourceExtname == .scad || resourceLangId == python"
+        },
+        {
+          "command": "pythonscad.exportFile",
+          "when": "resourceExtname == .scad || resourceLangId == python"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PythonSCAD",
+      "properties": {
+        "pythonscad.executablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the PythonSCAD executable (or app bundle on macOS). Leave empty to auto-detect."
+        },
+        "pythonscad.checkOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run a compile/syntax check whenever a .scad or PythonSCAD .py file is saved."
+        },
+        "pythonscad.checkOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run a compile/syntax check while typing, debounced by pythonscad.checkOnTypeDelay."
+        },
+        "pythonscad.checkOnTypeDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Milliseconds to debounce checks when pythonscad.checkOnType is enabled."
+        },
+        "pythonscad.checkExportFormat": {
+          "type": "string",
+          "default": "ast",
+          "enum": [
+            "ast",
+            "csg",
+            "term",
+            "echo"
+          ],
+          "description": "Lightweight export format used to drive the compile check (does not write a kept file)."
+        },
+        "pythonscad.backend": {
+          "type": "string",
+          "default": "Manifold",
+          "enum": [
+            "Manifold",
+            "CGAL"
+          ],
+          "description": "3D geometry backend PythonSCAD should use."
+        },
+        "pythonscad.trustPythonExecution": {
+          "type": "string",
+          "default": "workspaceTrust",
+          "enum": [
+            "workspaceTrust",
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "Only pass --trust-python (execute .py files) when the VS Code workspace is trusted.",
+            "Always pass --trust-python. Only use this for workspaces you fully trust.",
+            "Never execute PythonSCAD .py files; only .scad files are checked."
+          ],
+          "description": "Controls whether PythonSCAD is allowed to execute Python (.py) files, which run arbitrary code."
+        },
+        "pythonscad.pythonFileHeuristic": {
+          "type": "boolean",
+          "default": true,
+          "description": "Only treat .py files as PythonSCAD files when they import the 'openscad' module. Disable to check every open .py file."
+        },
+        "pythonscad.extraArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra command-line arguments passed to PythonSCAD for every check."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0"
+  }
+}
