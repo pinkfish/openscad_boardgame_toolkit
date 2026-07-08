@@ -105,7 +105,14 @@ class PythonSCADExampleDirective(Directive):
 
         _GENERATED_DIR.mkdir(exist_ok=True)
         script = f"import sys\nsys.path.insert(0, {str(PROJECT_ROOT)!r})\nimport pysolidfive\n{code}\n"
-        result = render_script(script, out_png, imgsize=imgsize)
+        try:
+            # High-res SDF meshes can take a while (a single frep() render has hit 60s+ under
+            # load); a generous timeout here, and TimeoutExpired degrades to a warning like any
+            # other render failure rather than killing the whole `make html`.
+            result = render_script(script, out_png, imgsize=imgsize, timeout=300.0)
+        except subprocess.TimeoutExpired:
+            _logger.warning(f"pythonscad-example: render timed out for:\n{code}")
+            return None
         if not result.ok:
             _logger.warning(f"pythonscad-example: render failed ({result.error}) for:\n{code}")
             return None
