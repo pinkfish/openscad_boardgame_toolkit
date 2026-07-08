@@ -38,20 +38,22 @@ See the module docstring in `__init__.py` for the full design rationale and algo
 
 ## Documentation
 
-API docs are built with Sphinx (autodoc + napoleon), pulling directly from the docstrings in
-`__init__.py`:
+The built docs live in [`wiki/`](wiki/index.html) -- checked in, so they're browsable straight
+from the repo. They're generated with Sphinx (autodoc + napoleon), pulling directly from the
+docstrings in `__init__.py`:
 
 ```sh
 pip install -e ".[docs]"
-make -C docs html
-open docs/_build/html/index.html
+make -C docs html      # rebuilds wiki/ -- commit it along with the docstring change
+open wiki/index.html
 ```
 
 Any docstring with an `Examples:` section containing a `.. pythonscad-example::` block gets its
 example code actually rendered with the real PythonSCAD binary and embedded as an image right
 next to the code -- see `docs/_ext/pythonscad_example.py`. Set `PYTHONSCAD_BIN` to point at a
 real PythonSCAD install to get the rendered images; without it, the build still succeeds, just
-showing source code with no image (and a build warning per skipped example).
+showing source code with no image (and a build warning per skipped example). Unchanged examples
+reuse their cached image (`docs/_generated/`) without needing the binary at all.
 
 ## License
 
