@@ -134,6 +134,7 @@ square = _wrap1(lambda v: v * v)
 abs = _wrap1(__import__("builtins").abs)  # noqa: A001
 max = _wrap2(__import__("builtins").max)  # noqa: A001
 min = _wrap2(__import__("builtins").min)  # noqa: A001
+atan2 = _wrap2(math.atan2)
 
 
 class _FrepResult:
@@ -167,7 +168,7 @@ def install():
     (and its `bosl2.shapes2d`/`bosl2.shapes3d` imports) succeed without a real PythonSCAD app.
     Idempotent -- safe to call more than once (e.g. from multiple test modules)."""
     libfive_mock = types.ModuleType("libfive")
-    for name in ["Tree", "x", "y", "z", "sqrt", "square", "abs", "max", "min"]:
+    for name in ["Tree", "x", "y", "z", "sqrt", "square", "abs", "max", "min", "atan2"]:
         setattr(libfive_mock, name, globals()[name])
     sys.modules["libfive"] = libfive_mock
 
@@ -185,14 +186,18 @@ def install():
         setattr(pythonscad_mock, name, lambda *a, **k: None)
     sys.modules["pythonscad"] = pythonscad_mock
 
-    # openscad: only PyOpenSCAD needs to exist (bosl2/shapes3d.py imports the name for a type
-    # hint), it's never instantiated in these tests.
+    # openscad: PyOpenSCAD needs to exist (bosl2/shapes3d.py imports the name for a type
+    # hint), it's never instantiated in these tests. A few geometry free functions are
+    # imported by name too (cap_box_polygon.py does `from openscad import hull, polygon`) --
+    # same harmless no-op treatment as the pythonscad primitives above.
     openscad_mock = types.ModuleType("openscad")
 
     class PyOpenSCAD:
         pass
 
     setattr(openscad_mock, "PyOpenSCAD", PyOpenSCAD)
+    for name in ["hull", "polygon", "cube", "cylinder", "sphere", "square", "circle"]:
+        setattr(openscad_mock, name, lambda *a, **k: None)
     sys.modules["openscad"] = openscad_mock
 
 

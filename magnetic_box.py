@@ -30,15 +30,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def MakeBoxWithMagneticLid(
@@ -89,12 +84,12 @@ def MakeBoxWithMagneticLid(
     assert length > 0, f"Length needs to be set {length}"
     assert height > 0, f"Height needs to be set {height}"
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width, length, height - lid_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
-    ).color(material_colour)
+    )
 
     z = height - lid_thickness - magnet_thickness
     for cx, cy in (
@@ -103,10 +98,12 @@ def MakeBoxWithMagneticLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM, _fn=32).color(material_colour).translate(
-            [cx, cy, z]
-        )
+        hole = pysolidfive.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, z])
         body = body - hole
+
+    # One symbolic SDF for the shell + magnet holes; .color() meshes it once, so the native
+    # child subtractions below get a plain solid.
+    body = body.color(material_colour)
 
     inner_width = width - wall_thickness * 2
     inner_length = length - wall_thickness * 2
@@ -170,18 +167,18 @@ def MakeBoxWithMagneticLidInsideSpace(
     assert magnet_diameter is not None and magnet_diameter > 0, f"Magnet diameter needs to be set {magnet_diameter}"
     assert magnet_thickness is not None and magnet_thickness > 0, f"Magnet thickness needs to be set {magnet_thickness}"
 
-    def make_side_cylinder(box_size: float) -> PyOpenSCAD:
+    def make_side_cylinder(box_size: float) -> "pysolidfive.PyShape":
         actual_height = (height - lid_thickness - floor_thickness) if full_height else box_size
         shape = None
 
         if full_height:
             offset = wall_thickness
-            piece = shapes3d.cyl(h=actual_height, d=box_size, anchor=BOTTOM, _fn=32).color(material_colour).translate(
+            piece = pysolidfive.cyl(h=actual_height, d=box_size, anchor=BOTTOM).translate(
                 [-offset + box_size / 2, -offset + box_size / 2, height - lid_thickness - floor_thickness - actual_height]
             )
             shape = piece
         else:
-            piece1 = shapes3d.cyl(h=magnet_thickness * 1.5, d=box_size, anchor=BOTTOM, _fn=32).color(material_colour).translate(
+            piece1 = pysolidfive.cyl(h=magnet_thickness * 1.5, d=box_size, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size / 2,
                     -wall_thickness + box_size / 2,
@@ -189,14 +186,13 @@ def MakeBoxWithMagneticLidInsideSpace(
                 ]
             )
             offset = wall_thickness + box_size / 2 - wall_thickness
-            piece2 = shapes3d.cyl(
+            piece2 = pysolidfive.cyl(
                 h=actual_height + 0.01,
                 d2=box_size,
                 d1=0,
                 anchor=BOTTOM,
-                _fn=32,
                 shift=[box_size / 2 - wall_thickness, box_size / 2 - wall_thickness],
-            ).color(material_colour).translate(
+            ).translate(
                 [
                     -offset + box_size / 2,
                     -offset + box_size / 2,
@@ -207,22 +203,22 @@ def MakeBoxWithMagneticLidInsideSpace(
 
         side_radius = box_size / 2 - wall_thickness
         if side_radius > 0 and full_height:
-            wedge_a = shapes3d.prismoid(
+            wedge_a = pysolidfive.prismoid(
                 size1=[side_radius * 2, side_radius * 2], size2=[side_radius * 2, side_radius * 2], h=actual_height, anchor=BOTTOM
-            ).color(material_colour).translate(
+            ).translate(
                 [-wall_thickness + box_size, -wall_thickness + box_size / 2 - side_radius, height - lid_thickness - floor_thickness - actual_height]
             )
-            cut_a = shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM, _fn=32).color(material_colour).translate(
+            cut_a = pysolidfive.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
                 [-wall_thickness + box_size + side_radius, -wall_thickness + box_size / 2, height - lid_thickness - floor_thickness - actual_height]
             )
             shape = shape | (wedge_a - cut_a)
 
-            wedge_b = shapes3d.prismoid(
+            wedge_b = pysolidfive.prismoid(
                 size1=[side_radius * 2, side_radius * 2], size2=[side_radius * 2, side_radius * 2], h=actual_height, anchor=BOTTOM
-            ).color(material_colour).translate(
+            ).translate(
                 [-wall_thickness + box_size / 2 - side_radius, -wall_thickness + box_size, height - lid_thickness - floor_thickness - actual_height]
             )
-            cut_b = shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM, _fn=32).color(material_colour).translate(
+            cut_b = pysolidfive.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
                 [-wall_thickness + box_size / 2, -wall_thickness + box_size + side_radius, height - lid_thickness - floor_thickness - actual_height]
             )
             shape = shape | (wedge_b - cut_b)
@@ -230,22 +226,20 @@ def MakeBoxWithMagneticLidInsideSpace(
         return shape
 
     box_size = magnet_diameter + magnet_border * 2
-    base = cube([width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness + 0.1]).color(
-        material_colour
+    base = pysolidfive.cuboid(
+        [width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness + 0.1],
+        anchor=BOTTOM + FRONT + LEFT,
     )
 
-    base = base - make_side_cylinder(box_size).color(material_colour)
-    base = base - make_side_cylinder(box_size).color(material_colour).rotate([0, 0, 90]).translate(
-        [width - wall_thickness * 2, 0, 0]
-    )
-    base = base - make_side_cylinder(box_size).color(material_colour).rotate([0, 0, 180]).translate(
+    base = base - make_side_cylinder(box_size)
+    base = base - make_side_cylinder(box_size).rotate([0, 0, 90]).translate([width - wall_thickness * 2, 0, 0])
+    base = base - make_side_cylinder(box_size).rotate([0, 0, 180]).translate(
         [width - wall_thickness * 2, length - wall_thickness * 2, 0]
     )
-    base = base - make_side_cylinder(box_size).color(material_colour).rotate([0, 0, 270]).translate(
-        [0, length - wall_thickness * 2, 0]
-    )
+    base = base - make_side_cylinder(box_size).rotate([0, 0, 270]).translate([0, length - wall_thickness * 2, 0])
 
-    return base
+    # One symbolic SDF; .color() meshes it for the native intersection at the call sites.
+    return base.color(material_colour)
 
 
 def MagneticBoxLid(
@@ -298,12 +292,12 @@ def MagneticBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness
 
-    top = shapes3d.cuboid(
+    top = pysolidfive.cuboid(
         [width, length, lid_thickness],
         rounding=calc_lid_rounding,
         anchor=BOTTOM + FRONT + LEFT,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
-    ).color(material_colour)
+    )
 
     for cx, cy in (
         (magnet_diameter / 2 + magnet_border, magnet_diameter / 2 + magnet_border),
@@ -311,10 +305,11 @@ def MagneticBoxLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM, _fn=32).color(material_colour).translate(
-            [cx, cy, -1]
-        )
+        hole = pysolidfive.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, -1])
         top = top - hole
+
+    # Meshed once here so internal_build_lid()'s native union gets a plain solid.
+    top = top.color(material_colour)
 
     kids = list(children) if children else []
     lid_children = [top] + [c.translate([wall_thickness, 0, 0]) for c in kids]
@@ -414,7 +409,7 @@ def MagneticBoxLidWithLabelAndCustomShape(
         [width - calc_label_options.border, length - calc_label_options.border, lid_thickness]
     ).color(material_colour) & SlidingLidFingernail(lid_thickness).color(material_colour).translate(
         [width / 2, length - calc_label_options.border - 3, 0]
-    )
+    ).shape
 
     lid_children = [mesh, label_shape, fingernail] + (list(extra_children) if extra_children else [])
 

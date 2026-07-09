@@ -16,7 +16,12 @@
 # under the License.
 
 # LibFile: shapes3d.py
-#    3-D shapes (dice, polyhedra) for board games.
+#    3-D shapes (dice, polyhedra) for board games. Built entirely on pysolidfive -- no bosl2
+#    port and no BOSL2 polyhedra.scad, which could never load through osuse() anyway (it
+#    depends on its include chain for PHI and friends, so the old Octahedron/Trapezohedron
+#    never actually worked in the Python port). Every solid here is a convex polyhedron, which
+#    is exactly what pysolidfive.convex_polyhedron() (a max of hull-face half-spaces) or an
+#    intersection of rotated cuboid slabs expresses directly.
 #
 # FileSummary: 3D Shapes for all sorts of things.
 # FileGroup: Shapes
@@ -28,13 +33,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 
 import math
 
-
-_bosl2 = osuse("BOSL2/std.scad")
-_polyhedra = osuse("BOSL2/polyhedra.scad")
 
 # ---------------------------------------------------------------------------
 # Section: Shapes3d — 3-D polyhedra for use in boxes
@@ -51,11 +53,13 @@ def Dodecahedron(size: float) -> PyOpenSCAD:
     Args:
         size: width of the dodecahedron
     """
+    # Same construction as the original: a unit slab intersected with 5 copies tipped over by
+    # the dodecahedral dihedral angle -- just composed symbolically as SDFs and meshed once.
     dihedral = 116.565
-    shape = shapes3d.cuboid([2, 2, 1])
+    shape = pysolidfive.cuboid([2, 2, 1])
     for i in range(5):
-        shape = shape & shapes3d.cuboid([2, 2, 1]).rotate([dihedral, 0, 0]).rotate([0, 0, 72 * i])
-    return shape.scale([size, size, size])
+        shape = shape & pysolidfive.cuboid([2, 2, 1]).rotate([dihedral, 0, 0]).rotate([0, 0, 72 * i])
+    return shape.scale([size, size, size]).color(default_material_colour)
 
 
 def Tetrahedron(size: float) -> PyOpenSCAD:
@@ -68,10 +72,18 @@ def Tetrahedron(size: float) -> PyOpenSCAD:
     Args:
         size: diameter of the circumscribed sphere
     """
+    # The original built this as a 3-sided cone (cyl with _fn=3): a base triangle inscribed in
+    # the d=size circle (first vertex at +x) with the apex centered above -- reproduced here as
+    # the same four vertices hulled into planes.
     side = math.sqrt(3) * size / 2
     h = math.sqrt(2 / 3) * side
-    return shapes3d.cyl(d1=size, d2=0, h=h, _fn=3).translate(
-        [-(size - side) / 2, 0, (size - side) / 2]
+    r = size / 2
+    pts = [[r * math.cos(math.radians(120 * i)), r * math.sin(math.radians(120 * i)), 0] for i in range(3)]
+    pts.append([0, 0, h])
+    return (
+        pysolidfive.convex_polyhedron(pts)
+        .translate([-(size - side) / 2, 0, (size - side) / 2])
+        .color(default_material_colour)
     )
 
 
@@ -85,7 +97,7 @@ def Octahedron(size: float) -> PyOpenSCAD:
     Args:
         size: diameter of the circumscribed sphere
     """
-    return _polyhedra.octahedron(size=size)
+    return pysolidfive.octahedron(size=size).color(default_material_colour)
 
 
 def Icosahedron(size: float) -> PyOpenSCAD:
@@ -98,13 +110,40 @@ def Icosahedron(size: float) -> PyOpenSCAD:
     Args:
         size: diameter of the circumscribed sphere
     """
-    phi = 0.5 * (math.sqrt(5) + 1)  # golden ratio
+    # The classic three-golden-rectangles construction (what the original hull()ed out of three
+    # thin cubes): the 12 vertices are the cyclic permutations of (0, +-e/2, +-e*phi/2).
+    phi = 0.5 * (math.sqrt(5) + 1)
     edge_length = size / 2 / 0.951
-    st = 0.0001  # microscopic sheet thickness
-    a = cube([edge_length * phi, edge_length, st], center=True)
-    b = cube([edge_length * phi, edge_length, st], center=True).rotate([90, 90, 0])
-    c = cube([edge_length * phi, edge_length, st], center=True).rotate([90, 0, 90])
-    return hull(a, b, c)
+    a, b = edge_length / 2, edge_length * phi / 2
+    pts = []
+    for sa in (-a, a):
+        for sb in (-b, b):
+            pts.extend([[0, sa, sb], [sb, 0, sa], [sa, sb, 0]])
+    return pysolidfive.convex_polyhedron(pts).color(default_material_colour)
+
+
+def _trapezohedron_vertices(size: float) -> tuple[list[list[float]], float, float]:
+    """The d10 trapezohedron's vertices, mirroring BOSL2's _trapezohedron() math for the
+    parameters the original code used (faces=10, d=size, h=size/2): two rings of 5 vertices at
+    radius size/2 offset by 36 degrees and separated by `separation` in z, plus two apexes at
+    +-h. Returns (vertices, ring_separation, apex_height)."""
+    n = 5
+    r = size / 2
+    h = size / 2
+    separation = 2 * h * math.tan(math.radians(90 / n)) ** 2
+    top = [
+        [r * math.cos(math.radians(360 / n * i)), r * math.sin(math.radians(360 / n * i)), separation / 2]
+        for i in range(n)
+    ]
+    bot = [
+        [
+            r * math.cos(math.radians(180 / n + 360 / n * i)),
+            r * math.sin(math.radians(180 / n + 360 / n * i)),
+            -separation / 2,
+        ]
+        for i in range(n)
+    ]
+    return [[0, 0, h], [0, 0, -h]] + top + bot, separation, h
 
 
 def Trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
@@ -113,32 +152,51 @@ def Trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | Non
     Usage::
 
         Trapezohedron(10)
-        Trapezohedron(20)  # with face labels as children
+        Trapezohedron(20, children=text3d)  # with face labels as children
 
     Args:
         size:       diameter of the circumscribed sphere
-        length_mod: modification to the length (default 0, currently unused
-                    by the underlying BOSL2 trapezohedron, kept for API
-                    compatibility)
-        children:   optional child solid(s) placed on each face. Note: unlike
-                    the original SCAD module, the per-face fine-rotation
-                    (-30/15/240 degrees depending on $faceindex) isn't
-                    reproduced here, so labels keep BOSL2's default
-                    rotate_children face alignment instead of the
-                    hand-tuned one.
+        length_mod: modification to the length (default 0, unused -- kept for API
+                    compatibility with the original SCAD module)
+        children:   optional child solid to subtract at each kite face, oriented with its +z
+                    axis along the face normal and positioned at the face centroid (an
+                    engraved-label workflow). Note: the original SCAD module's per-face
+                    fine-rotation (-30/15/240 degrees depending on $faceindex) isn't
+                    reproduced.
     """
-    base = _polyhedra.regular_polyhedron("trapezohedron", faces=10, d=size, h=size / 2, facedown=False)
+    pts, separation, h = _trapezohedron_vertices(size)
+    base = pysolidfive.convex_polyhedron(pts).color(default_material_colour)
     if children is None:
         return base
 
-    cutter = _polyhedra.regular_polyhedron(
-        "trapezohedron",
-        faces=10,
-        d=size,
-        h=size / 2,
-        facedown=False,
-        draw=False,
-        rotate_children=True,
-        _children=children,
-    )
-    return base - cutter
+    # Kite faces: the upper ones run top-apex -> top_i -> bot_i -> top_{i+1}; the lower ones
+    # bottom-apex -> bot_i -> top_{i+1} -> bot_{i+1} (indices into the ring lists).
+    top_apex, bot_apex = pts[0], pts[1]
+    top = pts[2:7]
+    bot = pts[7:12]
+    faces = []
+    for i in range(5):
+        faces.append([top_apex, top[i], bot[i], top[(i + 1) % 5]])
+        faces.append([bot_apex, bot[i], top[(i + 1) % 5], bot[(i + 1) % 5]])
+
+    result = base
+    for face in faces:
+        cx = sum(p[0] for p in face) / 4
+        cy = sum(p[1] for p in face) / 4
+        cz = sum(p[2] for p in face) / 4
+        ux = [face[1][i] - face[0][i] for i in range(3)]
+        vx = [face[2][i] - face[0][i] for i in range(3)]
+        nx = [ux[1] * vx[2] - ux[2] * vx[1], ux[2] * vx[0] - ux[0] * vx[2], ux[0] * vx[1] - ux[1] * vx[0]]
+        nlen = math.sqrt(sum(v * v for v in nx))
+        n = [v / nlen for v in nx]
+        if n[0] * cx + n[1] * cy + n[2] * cz < 0:
+            n = [-v for v in n]
+        # Rotate the child's +z onto the face normal, then move to the centroid.
+        dot = max(-1.0, min(1.0, n[2]))
+        angle = math.degrees(math.acos(dot))
+        axis = [-n[1], n[0], 0]
+        if math.hypot(axis[0], axis[1]) < 1e-9:
+            axis = [1, 0, 0]
+        piece = children.rotate(angle, axis).translate([cx, cy, cz])
+        result = result - piece
+    return result

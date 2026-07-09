@@ -144,6 +144,17 @@ def render_script(
             timeout=timeout,
             cwd=cwd,
         )
+    except subprocess.TimeoutExpired as exc:
+        # Report like any other render failure so batch callers (generate_golden_images.py)
+        # keep going instead of dying mid-run.
+        stderr_bytes = exc.stderr or b""
+        return RenderResult(
+            ok=False,
+            image_path=None,
+            triangles=None,
+            error=f"render timed out after {timeout:.0f}s",
+            stderr=stderr_bytes.decode(errors="replace") if isinstance(stderr_bytes, bytes) else str(stderr_bytes),
+        )
     finally:
         script_path.unlink(missing_ok=True)
 

@@ -30,11 +30,52 @@ if TYPE_CHECKING:
 from base_bgtk import *
 from bosl2 import shapes2d
 from bosl2 import beziers
+# Safe despite shape_type.py's import of this module: lids_base doesn't import shapes (only
+# shape_type does, lazily, inside a function body), so there's no cycle at import time.
+from lids_base import (
+    default_lid_aspect_ratio,
+    default_lid_shape_rounding,
+    default_lid_shape_thickness,
+    default_lid_shape_type,
+    default_lid_shape_width,
+    default_lid_supershape_a,
+    default_lid_supershape_b,
+    default_lid_supershape_m1,
+    default_lid_supershape_m2,
+    default_lid_supershape_n1,
+    default_lid_supershape_n2,
+    default_lid_supershape_n3,
+)
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports.
 _bosl2 = osuse("BOSL2/std.scad")
+
+# svg assets live next to this file; osimport() resolves relative paths from the process
+# CWD (which is NOT the project root when rendered through the test harness).
+_SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
+
+def _stroke(path: list[list[float]], width: float = 1, closed: bool = False) -> PyOpenSCAD:
+    """Draws a path as 2-D geometry with round caps and joins -- the same look BOSL2's
+    stroke() module gives, built as a union of hull()ed circle pairs per segment. Needed
+    because BOSL2's stroke() has NO function form (calling _stroke() as an expression
+    aborts the render with "available only as a module"), so every stroke here has to be
+    constructed natively. Coordinates are forced to plain floats: paths from the bosl2/ port's
+    numpy-based helpers (bezier curves, egg paths) otherwise hit the FFI as numpy.float64.
+    """
+    pts = [[float(q[0]), float(q[1])] for q in path]
+    pairs = list(zip(pts, pts[1:] + ([pts[0]] if closed else [])))
+    shape = None
+    for p1, p2 in pairs:
+        seg = hull(
+            circle(d=width, fn=24).translate([p1[0], p1[1], 0]),
+            circle(d=width, fn=24).translate([p2[0], p2[1], 0]),
+        )
+        shape = seg if shape is None else shape | seg
+    return shape
+
+
 
 
 def _cosd(deg: float) -> float:
@@ -507,7 +548,7 @@ def Bag2d(
     # Rope
     rope_shape = (
         polygon(shapes2d._egg_path(calc_rope_length, calc_rope_length / 3, calc_rope_length / 8, calc_rope_length, _fn=180))
-        .rotate(90)
+        .rotate([0, 0, 90])
         .translate([-size / 2 + calc_rope_length / 6 * 2, size / 2 - calc_rope_length / 2 - calc_neck_width * 1.8])
     )
     rope = DifferenceWithOffset(offset=-calc_rope_length / 10, children=rope_shape)
@@ -733,7 +774,7 @@ def Coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOp
     )
     glyph = _text_primitive(
         text=text, font="Stencil Std:style=Bold", size=calc_text_size, halign="center", valign="center"
-    ).rotate(90)
+    ).rotate([0, 0, 90])
     return outer - inner - glyph
 
 
@@ -762,7 +803,7 @@ def CoinPile2d(size: float, rounding: float | None = None, coin_num: int | None 
     for i in range(calc_coin_num):
         piece = shapes2d.rect([coin_width, size], rounding=calc_rounding).translate([size / 2 - coin_width * i, 0])
         shape = piece if shape is None else shape | piece
-    shape = shape | shapes2d.rect([coin_width, size], rounding=calc_rounding).rotate(15).translate(
+    shape = shape | shapes2d.rect([coin_width, size], rounding=calc_rounding).rotate([0, 0, 15]).translate(
         [-size / 2 + size / 8, 0]
     )
     return shape
@@ -789,9 +830,9 @@ def AustraliaMap2d(length: float) -> PyOpenSCAD:
     Args:
         length: length of the map
     """
-    # `import` is a Python keyword; PythonSCAD's binding for the core import()
-    # module is assumed to be exposed as `import_()` (unverified).
-    return import_("svg/australia.svg").resize([length, AustraliaMapWidth(length)])
+    # `import` is a Python keyword; PythonSCAD exposes the core import() module as
+    # osimport().
+    return osimport(str(_SVG_DIR / "australia.svg")).resize([length, AustraliaMapWidth(length), 0])
 
 
 def Rock2d(length: float, width: float, rounding: float | None = None) -> PyOpenSCAD:
@@ -830,9 +871,9 @@ def Ruins2d(size: float) -> PyOpenSCAD:
     """
     # offset helps fix the shape not closed issue.
     return (
-        import_("svg/ruins.svg")
+        osimport(str(_SVG_DIR / "ruins.svg"))
         .offset(delta=0.01)
-        .resize([size, Ruins2dWidth(size)])
+        .resize([size, Ruins2dWidth(size), 0])
         .translate([-size / 2, -Ruins2dWidth(size) / 2])
     )
 
@@ -880,13 +921,13 @@ def D20Outline2d(size: float, offset: float) -> PyOpenSCAD:
     points = [[r * _cosd(360 * i / 6), r * _sind(360 * i / 6)] for i in range(6)]
     r_triangle = r / 5 * 3
     points_triangle = [[r_triangle * _cosd(360 * i / 3), r_triangle * _sind(360 * i / 3)] for i in range(3)]
-    shape = _bosl2.stroke([points[0], points[5], points_triangle[0], points[0]], width=offset)
-    shape = shape | _bosl2.stroke([points[0], points[1], points_triangle[0], points[1]], width=offset)
-    shape = shape | _bosl2.stroke([points[1], points[2], points_triangle[1], points[1]], width=offset)
-    shape = shape | _bosl2.stroke([points[2], points[3], points_triangle[1], points[2]], width=offset)
-    shape = shape | _bosl2.stroke([points[3], points[4], points_triangle[2], points[3]], width=offset)
-    shape = shape | _bosl2.stroke([points[4], points[5], points_triangle[2], points[4]], width=offset)
-    shape = shape | _bosl2.stroke(
+    shape = _stroke([points[0], points[5], points_triangle[0], points[0]], width=offset)
+    shape = shape | _stroke([points[0], points[1], points_triangle[0], points[1]], width=offset)
+    shape = shape | _stroke([points[1], points[2], points_triangle[1], points[1]], width=offset)
+    shape = shape | _stroke([points[2], points[3], points_triangle[1], points[2]], width=offset)
+    shape = shape | _stroke([points[3], points[4], points_triangle[2], points[3]], width=offset)
+    shape = shape | _stroke([points[4], points[5], points_triangle[2], points[4]], width=offset)
+    shape = shape | _stroke(
         [points_triangle[0], points_triangle[1], points_triangle[2], points_triangle[0]], width=offset
     )
     return shape
@@ -902,7 +943,7 @@ def SawBlade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenSC
     calc_inner_spindle_size = inner_spindle_size
     if calc_inner_spindle_size is None:
         calc_inner_spindle_size = size / 10
-    return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size]) - circle(r=calc_inner_spindle_size)
+    return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0]) - circle(r=calc_inner_spindle_size)
 
 
 def SawBlade2dOutline(size: float, inner_spindle_size: float | None = None, outer_width: float = 1) -> PyOpenSCAD:
@@ -919,7 +960,7 @@ def SawBlade2dOutline(size: float, inner_spindle_size: float | None = None, oute
     """
 
     def OuterBlade() -> PyOpenSCAD:
-        return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size])
+        return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0])
 
     calc_inner_spindle_size = inner_spindle_size
     if calc_inner_spindle_size is None:
@@ -940,10 +981,10 @@ def Handshake2d(size: float) -> PyOpenSCAD:
     """
 
     def Thumb() -> PyOpenSCAD:
-        return _bosl2.stroke(shapes2d._egg_path(15, 5, 4, 60), closed=True).rotate(220).translate([38, 3])
+        return _stroke(shapes2d._egg_path(15, 5, 4, 60), closed=True).rotate([0, 0, 220]).translate([38, 3])
 
     def Finger() -> PyOpenSCAD:
-        return _bosl2.stroke(shapes2d._egg_path(12, 4, 5, 60), closed=True).rotate(230)
+        return _stroke(shapes2d._egg_path(12, 4, 5, 60), closed=True).rotate([0, 0, 230])
 
     base = (
         polygon([[0, 0], [0, 30], [40, 5], [40, -25]])
@@ -957,7 +998,7 @@ def Handshake2d(size: float) -> PyOpenSCAD:
     piece1 = (
         base
         - Thumb()
-        - _bosl2.stroke(bezier_path)
+        - _stroke(bezier_path)
         - Finger().translate([35, -20])
         - Finger().translate([30, -17])
         - Finger().translate([25, -14])
@@ -968,7 +1009,7 @@ def Handshake2d(size: float) -> PyOpenSCAD:
     piece5 = hull(Finger()).offset(r=-1).translate([25, -14]) - Finger().translate([30, -17])
 
     whole = (piece1 | piece2 | piece3 | piece4 | piece5).translate([-40, 0])
-    return whole.resize([size, size * 60 / 80])
+    return whole.resize([size, size * 60 / 80, 0])
 
 
 def Fist2d(size: float) -> PyOpenSCAD:
@@ -3553,13 +3594,13 @@ def Leaf2d(size: float) -> PyOpenSCAD:
     def LeafHalf() -> PyOpenSCAD:
         return hull(
             circle(d=0.25).translate([0, 0.125]),
-            circle(d=8, _fn=64).translate([11, 23]),
-            circle(d=8, _fn=64).translate([14, 48]),
+            circle(d=8, fn=64).translate([11, 23]),
+            circle(d=8, fn=64).translate([14, 48]),
             circle(d=0.25).translate([0, 98.125]),
         )
 
     whole = (LeafHalf() | LeafHalf().mirror([1, 0])).translate([0, -50])
-    return whole.resize([size / 100 * 18 * 2, size])
+    return whole.resize([size / 100 * 18 * 2, size, 0])
 
 
 def LaurelWreath2d(size: float) -> PyOpenSCAD:
@@ -3570,9 +3611,9 @@ def LaurelWreath2d(size: float) -> PyOpenSCAD:
     """
 
     def TwoLeafs() -> PyOpenSCAD:
-        a = Leaf2d(100).mirror([0, 1]).rotate(60).translate([0, 50])
-        b = Leaf2d(100).rotate(-60)
-        return (a | b).translate([0, -25]).rotate(270)
+        a = Leaf2d(100).mirror([0, 1]).rotate([0, 0, 60]).translate([0, 50])
+        b = Leaf2d(100).rotate([0, 0, -60])
+        return (a | b).translate([0, -25]).rotate([0, 0, 270])
 
     def HalfLaurel() -> PyOpenSCAD:
         nleafs = 10
@@ -3580,18 +3621,18 @@ def LaurelWreath2d(size: float) -> PyOpenSCAD:
         for angle in _scad_range(30, 140 / nleafs, 160 - 1):
             piece = (
                 TwoLeafs()
-                .rotate(-30)
+                .rotate([0, 0, -30])
                 .translate([300 + (angle / 180) * 600, 0, 0])
                 .rotate([0, 0, angle - (angle - 30) / 180 * 80])
             )
             shape = piece if shape is None else shape | piece
-        return shape.rotate(-50).translate([-150, 0])
+        return shape.rotate([0, 0, -50]).translate([-150, 0])
 
     basic_height = 859.35
     basic_length = 1021.31
     scale_factor = size / basic_length
     whole = (HalfLaurel() | HalfLaurel().mirror([1, 0])).translate([0, -230])
-    return whole.resize([size, scale_factor * basic_height])
+    return whole.resize([size, scale_factor * basic_height, 0])
 
 
 def Anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
@@ -3612,11 +3653,11 @@ def Anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
     shape = shape | shapes2d.rect([8, 1.5]).translate([0, 1.7])
     shape = shape | shapes2d.rect([10, 1]).translate([0, 3.3])
     shape = shape | shapes2d.rect([10, 6]).translate([0, 6.8])
-    shape = shape | (shapes2d.rect([10, 6]) & circle(r=12, _fn=64).translate([6, 8])).translate([-8, 6.8])
+    shape = shape | (shapes2d.rect([10, 6]) & circle(r=12, fn=64).translate([6, 8])).translate([-8, 6.8])
 
     if with_hammer:
-        shape = shape | shapes2d.rect([5, 1]).rotate(30).translate([-10, 12])
-        shape = shape | shapes2d.rect([4, 3], rounding=0.5).rotate(-60).translate([-8, 13.3])
+        shape = shape | shapes2d.rect([5, 1]).rotate([0, 0, 30]).translate([-10, 12])
+        shape = shape | shapes2d.rect([4, 3], rounding=0.5).rotate([0, 0, -60]).translate([-8, 13.3])
         shape = shape | hull(
             circle(d=0.5).translate([-4, 11]),
             circle(d=0.5).translate([-3, 11]),
@@ -3634,7 +3675,7 @@ def Anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
         )
 
     whole = shape.translate([4, -8.5 if with_hammer else -4.5])
-    return whole.resize([size, new_height])
+    return whole.resize([size, new_height, 0])
 
 
 def HalfEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
@@ -3653,11 +3694,11 @@ def HalfEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil
         pupil_size: size of the pupil
     """
     eye = circle(d=outer_size) - circle(d=inner_size) | circle(d=pupil_size)
-    cutter = shapes2d.rect([outer_size * 2, outer_size * 2]).rotate(angle).translate(
+    cutter = shapes2d.rect([outer_size * 2, outer_size * 2]).rotate([0, 0, angle]).translate(
         [outer_size * _cosd(angle), outer_size * _sind(angle)]
     )
     eye = eye - cutter
-    lid = shapes2d.rect([outer_size, (outer_size - inner_size) / 2]).rotate(angle + 90)
+    lid = shapes2d.rect([outer_size, (outer_size - inner_size) / 2]).rotate([0, 0, angle + 90])
     return eye | lid
 
 
@@ -3694,10 +3735,10 @@ def CloudShape2d(width: float) -> PyOpenSCAD:
     Args:
         width: The width of the cloud. This also determines the height, because the height is half the width.
     """
-    a = circle(r=width * 0.25, _fn=16).translate([width * 0.37, width * 0.25, 0])
-    b = circle(r=width * 0.15, _fn=16).translate([width * 0.15, width * 0.2, 0])
-    c = circle(r=width * 0.2, _fn=16).translate([width * 0.65, width * 0.22, 0])
-    d = circle(r=width * 0.15, _fn=16).translate([width * 0.85, width * 0.2, 0])
+    a = circle(r=width * 0.25, fn=16).translate([width * 0.37, width * 0.25, 0])
+    b = circle(r=width * 0.15, fn=16).translate([width * 0.15, width * 0.2, 0])
+    c = circle(r=width * 0.2, fn=16).translate([width * 0.65, width * 0.22, 0])
+    d = circle(r=width * 0.15, fn=16).translate([width * 0.85, width * 0.2, 0])
     return a | b | c | d
 
 
@@ -3727,7 +3768,7 @@ def SingleLog2d(size: float, line_width: float = 1) -> PyOpenSCAD:
     g = polygon([[7, 3], [7, 4], [25, 13], [25, 12]])
 
     whole = (a | b | c | d | e | f | g).translate([-10, -5])
-    return whole.resize([size, size / 35 * 25])
+    return whole.resize([size, size / 35 * 25, 0])
 
 
 def Tower2d(size: float) -> PyOpenSCAD:
@@ -3807,41 +3848,41 @@ def PortugalCastle(stroke_width: float, width: float) -> PyOpenSCAD:
     # Original SCAD hardcoded width=0.2 on every stroke instead of using the
     # stroke_width parameter -- fixed to honor the caller's stroke_width.
     shape = None
-    piece0 = _bosl2.stroke(beziers.bezpath_curve([[190.19, 154.43], [190.32493, 148.90900000000002], [194.2424, 147.602], [194.2706, 147.5826], [194.2988, 147.56410000000002], [198.502, 148.99020000000002], [198.4879, 154.4812], [198.4879, 154.4812], [190.1901, 154.43], [190.1901, 154.43]]), width=stroke_width).color("black")
+    piece0 = _stroke(beziers.bezpath_curve([[190.19, 154.43], [190.32493, 148.90900000000002], [194.2424, 147.602], [194.2706, 147.5826], [194.2988, 147.56410000000002], [198.502, 148.99020000000002], [198.4879, 154.4812], [198.4879, 154.4812], [190.1901, 154.43], [190.1901, 154.43]]), width=stroke_width).color("black")
     shape = piece0 if shape is None else shape | piece0
-    piece1 = _bosl2.stroke(beziers.bezpath_curve([[186.81, 147.69], [186.81, 147.69], [186.12828, 154.0347], [186.12828, 154.0347], [186.12828, 154.0347], [190.26888, 154.04369999999997], [190.26888, 154.04369999999997], [190.30858, 148.79439999999997], [194.24277999999998, 147.92119999999997], [194.33798, 147.94059999999996], [194.42708, 147.93559999999997], [198.32688, 149.10119999999995], [198.43088, 154.04369999999997], [198.43088, 154.04369999999997], [202.58198, 154.04369999999997], [202.58198, 154.04369999999997], [202.58198, 154.04369999999997], [201.83236, 147.65049999999997], [201.83236, 147.65049999999997], [201.83236, 147.65049999999997], [186.81036, 147.68839999999997], [186.81036, 147.68839999999997], [186.81036, 147.68839999999997], [186.81036, 147.69039999999998], [186.81036, 147.69039999999998]]), width=stroke_width).color("black")
+    piece1 = _stroke(beziers.bezpath_curve([[186.81, 147.69], [186.81, 147.69], [186.12828, 154.0347], [186.12828, 154.0347], [186.12828, 154.0347], [190.26888, 154.04369999999997], [190.26888, 154.04369999999997], [190.30858, 148.79439999999997], [194.24277999999998, 147.92119999999997], [194.33798, 147.94059999999996], [194.42708, 147.93559999999997], [198.32688, 149.10119999999995], [198.43088, 154.04369999999997], [198.43088, 154.04369999999997], [202.58198, 154.04369999999997], [202.58198, 154.04369999999997], [202.58198, 154.04369999999997], [201.83236, 147.65049999999997], [201.83236, 147.65049999999997], [201.83236, 147.65049999999997], [186.81036, 147.68839999999997], [186.81036, 147.68839999999997], [186.81036, 147.68839999999997], [186.81036, 147.69039999999998], [186.81036, 147.69039999999998]]), width=stroke_width).color("black")
     shape = piece1 if shape is None else shape | piece1
-    piece2 = _bosl2.stroke(beziers.bezpath_curve([[185.85, 154.06], [185.85, 154.06], [202.796, 154.06], [202.796, 154.06], [203.15317, 154.06], [203.44508, 154.41277], [203.44508, 154.84404], [203.44508, 155.27443], [203.15317, 155.62545], [202.796, 155.62545], [202.796, 155.62545], [185.85, 155.62545], [185.85, 155.62545], [185.49283, 155.62545], [185.20092, 155.27443], [185.20092, 154.84404], [185.20092, 154.41277], [185.49283, 154.06], [185.85, 154.06]]), width=stroke_width).color("black")
+    piece2 = _stroke(beziers.bezpath_curve([[185.85, 154.06], [185.85, 154.06], [202.796, 154.06], [202.796, 154.06], [203.15317, 154.06], [203.44508, 154.41277], [203.44508, 154.84404], [203.44508, 155.27443], [203.15317, 155.62545], [202.796, 155.62545], [202.796, 155.62545], [185.85, 155.62545], [185.85, 155.62545], [185.49283, 155.62545], [185.20092, 155.27443], [185.20092, 154.84404], [185.20092, 154.41277], [185.49283, 154.06], [185.85, 154.06]]), width=stroke_width).color("black")
     shape = piece2 if shape is None else shape | piece2
-    piece3 = _bosl2.stroke(beziers.bezpath_curve([[192.01, 154.03], [192.02849999999998, 150.7174], [194.2721, 149.7799], [194.28359999999998, 149.7817], [194.28447999999997, 149.7817], [196.62589999999997, 150.74831], [196.64449999999997, 154.03], [196.64449999999997, 154.03], [192.01009999999997, 154.03], [192.01009999999997, 154.03]]), width=stroke_width).color("black")
+    piece3 = _stroke(beziers.bezpath_curve([[192.01, 154.03], [192.02849999999998, 150.7174], [194.2721, 149.7799], [194.28359999999998, 149.7817], [194.28447999999997, 149.7817], [196.62589999999997, 150.74831], [196.64449999999997, 154.03], [196.64449999999997, 154.03], [192.01009999999997, 154.03], [192.01009999999997, 154.03]]), width=stroke_width).color("black")
     shape = piece3 if shape is None else shape | piece3
-    piece4 = _bosl2.stroke(beziers.bezpath_curve([[186.21, 145.05], [186.21, 145.05], [202.455, 145.05], [202.455, 145.05], [202.79718000000003, 145.05], [203.07763, 145.36839], [203.07763, 145.75468], [203.07763, 146.14185], [202.79718, 146.45935], [202.455, 146.45935], [202.455, 146.45935], [186.21, 146.45935], [186.21, 146.45935], [185.86782, 146.45935], [185.58737000000002, 146.14362], [185.58737000000002, 145.75468], [185.58737000000002, 145.36839], [185.86782000000002, 145.05], [186.21, 145.05]]), width=stroke_width).color("black")
+    piece4 = _stroke(beziers.bezpath_curve([[186.21, 145.05], [186.21, 145.05], [202.455, 145.05], [202.455, 145.05], [202.79718000000003, 145.05], [203.07763, 145.36839], [203.07763, 145.75468], [203.07763, 146.14185], [202.79718, 146.45935], [202.455, 146.45935], [202.455, 146.45935], [186.21, 146.45935], [186.21, 146.45935], [185.86782, 146.45935], [185.58737000000002, 146.14362], [185.58737000000002, 145.75468], [185.58737000000002, 145.36839], [185.86782000000002, 145.05], [186.21, 145.05]]), width=stroke_width).color("black")
     shape = piece4 if shape is None else shape | piece4
-    piece5 = _bosl2.stroke(beziers.bezpath_curve([[186.55, 146.47], [186.55, 146.47], [202.08800000000002, 146.47], [202.08800000000002, 146.47], [202.41519000000002, 146.47], [202.68329000000003, 146.78662], [202.68329000000003, 147.17379], [202.68329000000003, 147.56184], [202.41519000000002, 147.87846], [202.08800000000002, 147.87846], [202.08800000000002, 147.87846], [186.55, 147.87846], [186.55, 147.87846], [186.22281, 147.87846], [185.95471, 147.56184], [185.95471, 147.17379], [185.95471, 146.78662], [186.22281, 146.47], [186.55, 146.47]]), width=stroke_width).color("black")
+    piece5 = _stroke(beziers.bezpath_curve([[186.55, 146.47], [186.55, 146.47], [202.08800000000002, 146.47], [202.08800000000002, 146.47], [202.41519000000002, 146.47], [202.68329000000003, 146.78662], [202.68329000000003, 147.17379], [202.68329000000003, 147.56184], [202.41519000000002, 147.87846], [202.08800000000002, 147.87846], [202.08800000000002, 147.87846], [186.55, 147.87846], [186.55, 147.87846], [186.22281, 147.87846], [185.95471, 147.56184], [185.95471, 147.17379], [185.95471, 146.78662], [186.22281, 146.47], [186.55, 146.47]]), width=stroke_width).color("black")
     shape = piece5 if shape is None else shape | piece5
-    piece6 = _bosl2.stroke(beziers.bezpath_curve([[191.57, 135.88], [191.57, 135.88], [192.7967, 135.882], [192.7967, 135.882], [192.7967, 135.882], [192.7967, 136.75336000000001], [192.7967, 136.75336000000001], [192.7967, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 135.86260000000001], [193.69182999999998, 135.86260000000001], [193.69182999999998, 135.86260000000001], [194.94852999999998, 135.8666], [194.94852999999998, 135.8666], [194.94852999999998, 135.8666], [194.94852999999998, 136.75383], [194.94852999999998, 136.75383], [194.94852999999998, 136.75383], [195.84631, 136.75383], [195.84631, 136.75383], [195.84631, 136.75383], [195.84631, 135.86307], [195.84631, 135.86307], [195.84631, 135.86307], [197.10390999999998, 135.86307], [197.10390999999998, 135.86307], [197.10390999999998, 135.86307], [197.10190999999998, 137.87476999999998], [197.10190999999998, 137.87476999999998], [197.10190999999998, 138.19051], [196.84792999999996, 138.39512], [196.55336999999997, 138.39512], [196.55336999999997, 138.39512], [192.14206999999996, 138.39512], [192.14206999999996, 138.39512], [191.84573999999995, 138.39512], [191.57234999999997, 138.15787999999998], [191.57146999999995, 137.8686], [191.57146999999995, 137.8686], [191.56846999999996, 135.8807], [191.56846999999996, 135.8807], [191.56846999999996, 135.8807], [191.56934999999996, 135.8807], [191.56934999999996, 135.8807]]), width=stroke_width).color("black")
+    piece6 = _stroke(beziers.bezpath_curve([[191.57, 135.88], [191.57, 135.88], [192.7967, 135.882], [192.7967, 135.882], [192.7967, 135.882], [192.7967, 136.75336000000001], [192.7967, 136.75336000000001], [192.7967, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 136.75336000000001], [193.69182999999998, 135.86260000000001], [193.69182999999998, 135.86260000000001], [193.69182999999998, 135.86260000000001], [194.94852999999998, 135.8666], [194.94852999999998, 135.8666], [194.94852999999998, 135.8666], [194.94852999999998, 136.75383], [194.94852999999998, 136.75383], [194.94852999999998, 136.75383], [195.84631, 136.75383], [195.84631, 136.75383], [195.84631, 136.75383], [195.84631, 135.86307], [195.84631, 135.86307], [195.84631, 135.86307], [197.10390999999998, 135.86307], [197.10390999999998, 135.86307], [197.10390999999998, 135.86307], [197.10190999999998, 137.87476999999998], [197.10190999999998, 137.87476999999998], [197.10190999999998, 138.19051], [196.84792999999996, 138.39512], [196.55336999999997, 138.39512], [196.55336999999997, 138.39512], [192.14206999999996, 138.39512], [192.14206999999996, 138.39512], [191.84573999999995, 138.39512], [191.57234999999997, 138.15787999999998], [191.57146999999995, 137.8686], [191.57146999999995, 137.8686], [191.56846999999996, 135.8807], [191.56846999999996, 135.8807], [191.56846999999996, 135.8807], [191.56934999999996, 135.8807], [191.56934999999996, 135.8807]]), width=stroke_width).color("black")
     shape = piece6 if shape is None else shape | piece6
-    piece7 = _bosl2.stroke(beziers.bezpath_curve([[196.19, 138.57], [196.19, 138.57], [196.46690999999998, 145.0214], [196.46690999999998, 145.0214], [196.46690999999998, 145.0214], [192.16411, 145.0055], [192.16411, 145.0055], [192.16411, 145.0055], [192.44897, 138.5532], [192.44897, 138.5532], [192.44897, 138.5532], [196.18997000000002, 138.57], [196.18997000000002, 138.57]]), width=stroke_width).color("black")
+    piece7 = _stroke(beziers.bezpath_curve([[196.19, 138.57], [196.19, 138.57], [196.46690999999998, 145.0214], [196.46690999999998, 145.0214], [196.46690999999998, 145.0214], [192.16411, 145.0055], [192.16411, 145.0055], [192.16411, 145.0055], [192.44897, 138.5532], [192.44897, 138.5532], [192.44897, 138.5532], [196.18997000000002, 138.57], [196.18997000000002, 138.57]]), width=stroke_width).color("black")
     shape = piece7 if shape is None else shape | piece7
-    piece8 = _bosl2.stroke(beziers.bezpath_curve([[190.94, 141.56], [190.94, 141.56], [191.07141, 145.0375], [191.07141, 145.0375], [191.07141, 145.0375], [186.94581, 145.0395], [186.94581, 145.0395], [186.94581, 145.0395], [187.06222, 141.5602], [187.06222, 141.5602], [187.06222, 141.5602], [190.94082, 141.5602], [190.94082, 141.5602], [190.94082, 141.5602], [190.93993, 141.5602], [190.93993, 141.5602]]), width=stroke_width).color("black")
+    piece8 = _stroke(beziers.bezpath_curve([[190.94, 141.56], [190.94, 141.56], [191.07141, 145.0375], [191.07141, 145.0375], [191.07141, 145.0375], [186.94581, 145.0395], [186.94581, 145.0395], [186.94581, 145.0395], [187.06222, 141.5602], [187.06222, 141.5602], [187.06222, 141.5602], [190.94082, 141.5602], [190.94082, 141.5602], [190.94082, 141.5602], [190.93993, 141.5602], [190.93993, 141.5602]]), width=stroke_width).color("black")
     shape = piece8 if shape is None else shape | piece8
-    piece9 = _bosl2.stroke(beziers.bezpath_curve([[186.3, 139.04], [186.3, 139.04], [187.4994, 139.04299999999998], [187.4994, 139.04299999999998], [187.4994, 139.04299999999998], [187.4994, 139.91523999999998], [187.4994, 139.91523999999998], [187.4994, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.02271], [188.3769, 139.02271], [188.3769, 139.02271], [189.6063, 139.02670999999998], [189.6063, 139.02670999999998], [189.6063, 139.02670999999998], [189.6063, 139.91571], [189.6063, 139.91571], [189.6063, 139.91571], [190.48556, 139.91571], [190.48556, 139.91571], [190.48556, 139.91571], [190.48556, 139.02318], [190.48556, 139.02318], [190.48556, 139.02318], [191.71576, 139.02518], [191.71576, 139.02518], [191.71576, 139.02518], [191.71375999999998, 141.03688], [191.71375999999998, 141.03688], [191.71375999999998, 141.35085999999998], [191.46505999999997, 141.55546999999999], [191.17755999999997, 141.55546999999999], [191.17755999999997, 141.55546999999999], [186.86065999999997, 141.55546999999999], [186.86065999999997, 141.55546999999999], [186.57139999999995, 141.55546999999999], [186.30241999999996, 141.31999], [186.30152999999996, 141.02982999999998], [186.30152999999996, 141.02982999999998], [186.29852999999997, 139.04102999999998], [186.29852999999997, 139.04102999999998], [186.29852999999997, 139.04102999999998], [186.29940999999997, 139.04102999999998], [186.29940999999997, 139.04102999999998]]), width=stroke_width).color("black")
+    piece9 = _stroke(beziers.bezpath_curve([[186.3, 139.04], [186.3, 139.04], [187.4994, 139.04299999999998], [187.4994, 139.04299999999998], [187.4994, 139.04299999999998], [187.4994, 139.91523999999998], [187.4994, 139.91523999999998], [187.4994, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.91523999999998], [188.3769, 139.02271], [188.3769, 139.02271], [188.3769, 139.02271], [189.6063, 139.02670999999998], [189.6063, 139.02670999999998], [189.6063, 139.02670999999998], [189.6063, 139.91571], [189.6063, 139.91571], [189.6063, 139.91571], [190.48556, 139.91571], [190.48556, 139.91571], [190.48556, 139.91571], [190.48556, 139.02318], [190.48556, 139.02318], [190.48556, 139.02318], [191.71576, 139.02518], [191.71576, 139.02518], [191.71576, 139.02518], [191.71375999999998, 141.03688], [191.71375999999998, 141.03688], [191.71375999999998, 141.35085999999998], [191.46505999999997, 141.55546999999999], [191.17755999999997, 141.55546999999999], [191.17755999999997, 141.55546999999999], [186.86065999999997, 141.55546999999999], [186.86065999999997, 141.55546999999999], [186.57139999999995, 141.55546999999999], [186.30241999999996, 141.31999], [186.30152999999996, 141.02982999999998], [186.30152999999996, 141.02982999999998], [186.29852999999997, 139.04102999999998], [186.29852999999997, 139.04102999999998], [186.29852999999997, 139.04102999999998], [186.29940999999997, 139.04102999999998], [186.29940999999997, 139.04102999999998]]), width=stroke_width).color("black")
     shape = piece9 if shape is None else shape | piece9
-    piece10 = _bosl2.stroke(beziers.bezpath_curve([[193.9, 140.61], [193.8735, 139.98294], [194.77661, 139.97589000000002], [194.76603, 140.61], [194.76603, 140.61], [194.76603, 142.1464], [194.76603, 142.1464], [194.76603, 142.1464], [193.90003, 142.1464], [193.90003, 142.1464], [193.90003, 142.1464], [193.90003, 140.6104], [193.90003, 140.6104]]), width=stroke_width).color("black")
+    piece10 = _stroke(beziers.bezpath_curve([[193.9, 140.61], [193.8735, 139.98294], [194.77661, 139.97589000000002], [194.76603, 140.61], [194.76603, 140.61], [194.76603, 142.1464], [194.76603, 142.1464], [194.76603, 142.1464], [193.90003, 142.1464], [193.90003, 142.1464], [193.90003, 142.1464], [193.90003, 140.6104], [193.90003, 140.6104]]), width=stroke_width).color("black")
     shape = piece10 if shape is None else shape | piece10
-    piece11 = _bosl2.stroke(beziers.bezpath_curve([[188.57, 142.84], [188.567, 142.2341], [189.40693, 142.22176000000002], [189.39634999999998, 142.84], [189.39634999999998, 142.84], [189.39634999999998, 144.0271], [189.39634999999998, 144.0271], [189.39634999999998, 144.0271], [188.57035, 144.0271], [188.57035, 144.0271], [188.57035, 144.0271], [188.57035, 142.84009999999998], [188.57035, 142.84009999999998]]), width=stroke_width).color("black")
+    piece11 = _stroke(beziers.bezpath_curve([[188.57, 142.84], [188.567, 142.2341], [189.40693, 142.22176000000002], [189.39634999999998, 142.84], [189.39634999999998, 142.84], [189.39634999999998, 144.0271], [189.39634999999998, 144.0271], [189.39634999999998, 144.0271], [188.57035, 144.0271], [188.57035, 144.0271], [188.57035, 144.0271], [188.57035, 142.84009999999998], [188.57035, 142.84009999999998]]), width=stroke_width).color("black")
     shape = piece11 if shape is None else shape | piece11
-    piece12 = _bosl2.stroke(beziers.bezpath_curve([[201.549, 141.56], [201.549, 141.56], [201.68041, 145.0375], [201.68041, 145.0375], [201.68041, 145.0375], [197.55481, 145.0395], [197.55481, 145.0395], [197.55481, 145.0395], [197.67122, 141.5602], [197.67122, 141.5602], [197.67122, 141.5602], [201.54982, 141.5602], [201.54982, 141.5602], [201.54982, 141.5602], [201.54893, 141.5602], [201.54893, 141.5602]]), width=stroke_width).color("black")
+    piece12 = _stroke(beziers.bezpath_curve([[201.549, 141.56], [201.549, 141.56], [201.68041, 145.0375], [201.68041, 145.0375], [201.68041, 145.0375], [197.55481, 145.0395], [197.55481, 145.0395], [197.55481, 145.0395], [197.67122, 141.5602], [197.67122, 141.5602], [197.67122, 141.5602], [201.54982, 141.5602], [201.54982, 141.5602], [201.54982, 141.5602], [201.54893, 141.5602], [201.54893, 141.5602]]), width=stroke_width).color("black")
     shape = piece12 if shape is None else shape | piece12
-    piece13 = _bosl2.stroke(beziers.bezpath_curve([[196.90900000000002, 139.04], [196.90900000000002, 139.04], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.91523999999998], [198.10840000000002, 139.91523999999998], [198.10840000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.02271], [198.98590000000002, 139.02271], [198.98590000000002, 139.02271], [200.2153, 139.02670999999998], [200.2153, 139.02670999999998], [200.2153, 139.02670999999998], [200.2153, 139.91571], [200.2153, 139.91571], [200.2153, 139.91571], [201.09456, 139.91571], [201.09456, 139.91571], [201.09456, 139.91571], [201.09456, 139.02318], [201.09456, 139.02318], [201.09456, 139.02318], [202.32476, 139.02518], [202.32476, 139.02518], [202.32476, 139.02518], [202.32276, 141.03688], [202.32276, 141.03688], [202.32276, 141.35085999999998], [202.07405999999997, 141.55546999999999], [201.78655999999998, 141.55546999999999], [201.78655999999998, 141.55546999999999], [197.46965999999998, 141.55546999999999], [197.46965999999998, 141.55546999999999], [197.18039999999996, 141.55546999999999], [196.91141999999996, 141.31999], [196.91052999999997, 141.02982999999998], [196.91052999999997, 141.02982999999998], [196.90752999999998, 139.04102999999998], [196.90752999999998, 139.04102999999998], [196.90752999999998, 139.04102999999998], [196.90840999999998, 139.04102999999998], [196.90840999999998, 139.04102999999998]]), width=stroke_width).color("black")
+    piece13 = _stroke(beziers.bezpath_curve([[196.90900000000002, 139.04], [196.90900000000002, 139.04], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.04299999999998], [198.10840000000002, 139.91523999999998], [198.10840000000002, 139.91523999999998], [198.10840000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.91523999999998], [198.98590000000002, 139.02271], [198.98590000000002, 139.02271], [198.98590000000002, 139.02271], [200.2153, 139.02670999999998], [200.2153, 139.02670999999998], [200.2153, 139.02670999999998], [200.2153, 139.91571], [200.2153, 139.91571], [200.2153, 139.91571], [201.09456, 139.91571], [201.09456, 139.91571], [201.09456, 139.91571], [201.09456, 139.02318], [201.09456, 139.02318], [201.09456, 139.02318], [202.32476, 139.02518], [202.32476, 139.02518], [202.32476, 139.02518], [202.32276, 141.03688], [202.32276, 141.03688], [202.32276, 141.35085999999998], [202.07405999999997, 141.55546999999999], [201.78655999999998, 141.55546999999999], [201.78655999999998, 141.55546999999999], [197.46965999999998, 141.55546999999999], [197.46965999999998, 141.55546999999999], [197.18039999999996, 141.55546999999999], [196.91141999999996, 141.31999], [196.91052999999997, 141.02982999999998], [196.91052999999997, 141.02982999999998], [196.90752999999998, 139.04102999999998], [196.90752999999998, 139.04102999999998], [196.90752999999998, 139.04102999999998], [196.90840999999998, 139.04102999999998], [196.90840999999998, 139.04102999999998]]), width=stroke_width).color("black")
     shape = piece13 if shape is None else shape | piece13
-    piece14 = _bosl2.stroke(beziers.bezpath_curve([[199.21099999999998, 142.84], [199.208, 142.2341], [200.04792999999998, 142.22176000000002], [200.03734999999998, 142.84], [200.03734999999998, 142.84], [200.03734999999998, 144.0271], [200.03734999999998, 144.0271], [200.03734999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 142.84009999999998], [199.21134999999998, 142.84009999999998]]), width=stroke_width).color("black")
+    piece14 = _stroke(beziers.bezpath_curve([[199.21099999999998, 142.84], [199.208, 142.2341], [200.04792999999998, 142.22176000000002], [200.03734999999998, 142.84], [200.03734999999998, 142.84], [200.03734999999998, 144.0271], [200.03734999999998, 144.0271], [200.03734999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 144.0271], [199.21134999999998, 142.84009999999998], [199.21134999999998, 142.84009999999998]]), width=stroke_width).color("black")
     shape = piece14 if shape is None else shape | piece14
 
     whole = shape.translate(
         [-min_width - (max_width - min_width) / 2, -min_height - (max_height - min_height) / 2]
     )
-    return whole.resize([width, (max_height - min_height) * mult])
+    return whole.resize([width, (max_height - min_height) * mult, 0])
 
 
 def TrainOutline(length: float) -> PyOpenSCAD:
@@ -4036,7 +4077,7 @@ def TrainOutline(length: float) -> PyOpenSCAD:
         ]
 
     shape = polygon(bez) - polygon(rect1) - polygon(rect2) - polygon(rect3)
-    whole = shape.resize([length, length * train_width / train_length])
+    whole = shape.resize([length, length * train_width / train_length, 0])
     return whole.translate([-length / 2, -length * train_width / train_length / 2])
 
 
@@ -4217,5 +4258,5 @@ def WagonOutline(length: float) -> PyOpenSCAD:
         ]
 
     shape = polygon(bez) - polygon(line1) - polygon(line2) - polygon(line3) - polygon(line4) - polygon(line5)
-    whole = shape.resize([length, length * wagon_width / wagon_length])
+    whole = shape.resize([length, length * wagon_width / wagon_length, 0])
     return whole.translate([-length / 2, -length * wagon_width / wagon_length / 2])

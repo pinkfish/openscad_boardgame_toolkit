@@ -206,7 +206,8 @@ def _finish(shape: PyOpenSCAD, offset: list[float], spin: float) -> PyOpenSCAD:
     if offset[0] != 0 or offset[1] != 0:
         shape = shape.translate(offset)
     if spin:
-        shape = shape.rotate(spin)
+        # Native 2-D rotate needs the 3-vector form; a bare scalar is rejected.
+        shape = shape.rotate([0, 0, spin])
     return shape
 
 
@@ -1073,7 +1074,7 @@ def text(
     h = halign if halign is not None else "center"
     v = valign if valign is not None else anchor
     shape = _otext(text, size=size, font=font, halign=h, valign=v, spacing=spacing, direction=direction, language=language, script=script)
-    return shape.rotate(spin) if spin else shape
+    return shape.rotate([0, 0, spin]) if spin else shape
 
 
 # ---------------------------------------------------------------------------

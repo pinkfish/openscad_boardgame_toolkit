@@ -2,6 +2,18 @@
     "venvPath": "venv",
     "venv": "openscad",
     "extraPaths": [
-        "venv/openscad/lib/python3.14/site-packages"
+        "venv/openscad/lib/python3.14/site-packages",
+        "tests",
+        "pysolidfive/tests"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "pythonscad",
+        "venv",
+        "scripts/colorscad/3mfmerge",
+        "scripts/img2pdf",
+        "docs/_build",
+        "pysolidfive/wiki"
     ]
 }

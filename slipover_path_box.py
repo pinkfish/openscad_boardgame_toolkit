@@ -31,8 +31,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+import pysolidfive
 from components import FingerHoleWall
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
@@ -153,9 +154,12 @@ def MakePathBoxWithSlipoverLid(
     calc_width = max(x_arr) - min(x_arr)
     calc_length = max(y_arr) - min(y_arr)
 
-    body = polygon(calc_inner_path).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
+    # Symbolic pysolidfive SDF prisms, meshed once at the .color() below -- the catches
+    # (PolygonBoxLidCatch, a native BOSL2 path_sweep) and children subtract after that.
+    body = pysolidfive.polygon_prism(calc_inner_path, h=height - lid_thickness - size_spacing, res=10)
     if foot > 0:
-        body = body | polygon(calc_path).linear_extrude(height=foot).color(material_colour)
+        body = body | pysolidfive.polygon_prism(calc_path, h=foot, res=10)
+    body = body.color(material_colour)
 
     catches = None
     n = len(calc_inner_path)
@@ -228,7 +232,8 @@ def SlipoverPathBoxLid(
         finger_catch: where to put the catches (default CatchType.SHORT)
         lid_rounding: rounding on the lid (default wall_thickness)
         material_colour: colour (default default_material_colour)
-        offset_sweep_options: namespace(offset=, check_valid=, quality=, steps=)
+        offset_sweep_options: unused (kept for call-site compatibility with the old
+                 offset_sweep()-based lid top; the SDF construction has no such knobs)
         lid_catch: catch style (default default_lid_catch_type)
     """
     if lid_thickness is None:
@@ -262,17 +267,16 @@ def SlipoverPathBoxLid(
     y_arr = [p[1] for p in inner_path]
     calc_length = max(y_arr) - min(y_arr)
 
-    outer = polygon(calc_path).linear_extrude(lid_thickness).color(material_colour)
-    smooth = _bosl2.offset_sweep(
-        calc_path,
-        height=lid_thickness,
-        top=_bosl2.os_smooth(joint=lid_thickness / 2),
-        offset=offset_sweep_options.offset,
-        check_valid=offset_sweep_options.check_valid,
-        quality=offset_sweep_options.quality,
-        steps=offset_sweep_options.steps,
-    ).color(material_colour)
-    top = outer & smooth
+    # The original construction intersected the plain extrusion with an os_smooth-topped
+    # offset_sweep (a continuous-curvature eased rim); pysolidfive's polygon_prism approximates
+    # that with a plain circular roundover of the same depth (joint = lid_thickness / 2) -- at
+    # these rim sizes the silhouettes differ by well under half a millimetre. Meshed via
+    # .color() right away: internal_build_lid()'s base child must be native, since it composes
+    # with arbitrary sibling solids. (offset_sweep_options is therefore unused now; kept in the
+    # signature so existing call sites don't break.)
+    top = pysolidfive.polygon_prism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2, res=10).color(
+        material_colour
+    )
 
     kids = list(children) if children else []
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
@@ -280,9 +284,11 @@ def SlipoverPathBoxLid(
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 
-    wall_outer = polygon(calc_path).linear_extrude(height - foot_offset - lid_thickness / 2).color(material_colour)
-    wall_inner = polygon(calc_inner_path).linear_extrude(height + 1).color(material_colour).translate([0, 0, -0.5])
-    wall = wall_outer - wall_inner
+    # Symbolic SDF shell (outer minus inner prism), meshed once at the .color() -- the catches
+    # union and finger cutouts subtract natively after that.
+    wall_outer = pysolidfive.polygon_prism(calc_path, h=height - foot_offset - lid_thickness / 2, res=10)
+    wall_inner = pysolidfive.polygon_prism(calc_inner_path, h=height + 1, res=10).translate([0, 0, -0.5])
+    wall = (wall_outer - wall_inner).color(material_colour)
 
     catches = None
     n = len(calc_inner_path)

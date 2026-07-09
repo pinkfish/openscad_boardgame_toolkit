@@ -32,22 +32,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import shapes2d
-# Aliased: this file has local variables/params named `rounding` (a radius value).
-from bosl2 import rounding as bosl2_rounding
-from bosl2 import masking
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
 from typing import Callable
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. This file specifically
-# needs BOSL2/hinges.scad's knuckle_hinge (loaded as part of std.scad).
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def MakeCardSize(
@@ -194,46 +184,54 @@ def MakeCardLibraryBox(
     height_without_hinge = height - lid_thickness
     hinge_seg = max(math.floor(length / 20), 5)
 
-    main = shapes3d.cuboid(
-        [width, length, height_without_hinge], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+    # The old edge_profile/face_profile/corner_profile chain is three .round() passes on
+    # the same cuboid SDF (corner blending comes from the per-axis edge composition).
+    main = (
+        pysolidfive.cuboid(
+            [width, length, height_without_hinge], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+            # Box-sized rounded solids dominate meshing cost (libfive refines every curved
+            # band ~res-quadratically) -- res=10 is plenty smooth at this scale.
+            res=10,
+        )
+        .round(wall_thickness / 4, edges=[TOP + FRONT, TOP + BACK, TOP + RIGHT])
+        .round(wall_thickness / 2, edges=BOT)
+        .color(material_colour)
     )
-    main = main.edge_profile([TOP + FRONT, TOP + BACK, TOP + RIGHT], children=masking.mask2d_roundover(wall_thickness / 4))
-    main = main.face_profile(BOTTOM, r=wall_thickness / 2)
-    main = main.corner_profile("ALL", r=wall_thickness / 2)
-    main = main.color(material_colour)
 
     inside_cut = (
-        shapes3d.cuboid([width, length - wall_thickness * 2, height_without_hinge], rounding=wall_thickness / 4, anchor=BOTTOM + LEFT + FRONT)
+        pysolidfive.cuboid([width, length - wall_thickness * 2, height_without_hinge], rounding=wall_thickness / 4, anchor=BOTTOM + LEFT + FRONT, res=10)
         .color(material_colour)
         .translate([wall_thickness, wall_thickness, floor_thickness])
     )
     main = main - inside_cut
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        main = main - cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + FRONT + LEFT).translate(
+        main = main - pysolidfive.cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + FRONT + LEFT).translate(
             [width * 3 / 4 - wall_thickness + wall_thickness / 4, -0.01, height_without_hinge + lid_thickness - wall_thickness]
-        )
-        main = main - cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + BACK + LEFT).translate(
+        ).mesh()
+        main = main - pysolidfive.cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + BACK + LEFT).translate(
             [width * 3 / 4 - wall_thickness + wall_thickness / 4, length + 0.01, height_without_hinge + lid_thickness - wall_thickness]
-        )
+        ).mesh()
 
-    hinge_space_cut = shapes3d.cuboid(
+    hinge_space_cut = pysolidfive.cuboid(
         [wall_thickness * 2 + 0.02, length - wall_thickness * 2, wall_thickness + 0.01], anchor=BOTTOM + LEFT + FRONT,
         rounding=-wall_thickness, edges=[TOP + RIGHT],
-    ).translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness])
+    ).translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness]).mesh()
     main = main - hinge_space_cut
 
-    filament_hole = shapes3d.ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT).translate([wall_thickness, 1, height - wall_thickness])
+    filament_hole = pysolidfive.ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT).translate(
+        [wall_thickness, 1, height - wall_thickness]
+    ).mesh()
     main = main - filament_hole
 
     hinge_support = (
-        shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6], anchor=TOP + FRONT + LEFT, chamfer=wall_thickness, edges=[BOTTOM + RIGHT])
+        pysolidfive.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6], anchor=TOP + FRONT + LEFT, chamfer=wall_thickness, edges=[BOTTOM + RIGHT])
         .color(material_colour)
         .translate([0, wall_thickness - 0.01, height_without_hinge - wall_thickness])
     )
     back_support = (
-        shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness, edges=[TOP + RIGHT])
+        pysolidfive.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness, edges=[TOP + RIGHT])
         .color(material_colour)
         .translate([0, wall_thickness - 0.01, default_floor_thickness - 0.01])
     )
@@ -241,21 +239,21 @@ def MakeCardLibraryBox(
     body = main | hinge_support | back_support
 
     if latch == CARD_LIBRARY_LATCH_CLIP:
-        clip_a = shapes3d.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
-        clip_a_cut = shapes3d.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + FRONT + LEFT, edges=[BOTTOM + FRONT]).translate(
+        clip_a = pysolidfive.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
+        clip_a_cut = pysolidfive.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + FRONT + LEFT, edges=[BOTTOM + FRONT]).translate(
             [wall_thickness / 2, wall_thickness / 2 + 0.01, -wall_thickness / 2]
         )
         body = body | (clip_a - clip_a_cut).color(material_colour).translate([width * 3 / 4, 0, height_without_hinge + lid_thickness])
 
-        clip_b = shapes3d.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
-        clip_b_cut = shapes3d.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + BACK + LEFT, edges=[BOTTOM + BACK]).translate(
+        clip_b = pysolidfive.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
+        clip_b_cut = pysolidfive.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + BACK + LEFT, edges=[BOTTOM + BACK]).translate(
             [wall_thickness / 2, -wall_thickness / 2 - 0.01, -wall_thickness / 2]
         )
         body = body | (clip_b - clip_b_cut).color(material_colour).translate([width * 3 / 4, length, height_without_hinge + lid_thickness])
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        latch_a = shapes3d.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
-        latch_a_cut = shapes3d.prismoid(
+        latch_a = pysolidfive.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
+        latch_a_cut = pysolidfive.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
             h=wall_thickness + 0.02, shift=[0, 0], anchor=TOP + FRONT,
@@ -264,8 +262,8 @@ def MakeCardLibraryBox(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, 0, height_without_hinge + lid_thickness]
         )
 
-        latch_b = shapes3d.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
-        latch_b_cut = shapes3d.prismoid(
+        latch_b = pysolidfive.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
+        latch_b_cut = pysolidfive.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
             h=wall_thickness + 0.02, shift=[0, 0], anchor=TOP + BACK,
@@ -274,19 +272,19 @@ def MakeCardLibraryBox(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, length, height_without_hinge + lid_thickness]
         )
 
-    front_lip = shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + RIGHT]).color(material_colour)
+    front_lip = pysolidfive.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + RIGHT]).color(material_colour)
     front_lip_chamfer = (
-        shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness / 3, edges=[BOTTOM + LEFT, TOP + LEFT, TOP + RIGHT])
+        pysolidfive.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness / 3, edges=[BOTTOM + LEFT, TOP + LEFT, TOP + RIGHT])
         .color(material_colour)
         .translate([-wall_thickness / 2, 0, lip_size - wall_thickness])
     )
     body = body | (front_lip | front_lip_chamfer).translate([width - wall_thickness, wall_thickness + 0.01, floor_thickness - 0.01])
 
     back_hinge = (
-        _bosl2.knuckle_hinge(
+        pysolidfive.knuckle_hinge(
             length=length - wall_thickness * 2 - print_in_place_offset * 2, segs=hinge_seg, offset=wall_thickness + lid_thickness,
             knuckle_diam=wall_thickness + lid_thickness, arm_height=0, arm_angle=90, clear_top=False, inner=True, spin=90,
-            pin_diam=hinge_hole_diameter, orient=TOP, anchor=BOTTOM + BACK + LEFT,
+            pin_diam=hinge_hole_diameter, orient=list(TOP), anchor=BOTTOM + BACK + LEFT,
         )
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, height_without_hinge - wall_thickness - lid_thickness])
@@ -319,11 +317,11 @@ def SlidingChannel(size: list[float], wall_thickness: float) -> PyOpenSCAD:
     ab_size = [height * 2, length, height + 0.1]
     ab_anchor = BOTTOM + FRONT + LEFT
 
-    a = shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + RIGHT])
-    a = a.edge_profile([TOP + LEFT], children=masking.mask2d_roundover(height / 2)).translate([-height, 0, -0.1])
+    a = pysolidfive.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + RIGHT])
+    a = a.round(height / 2, edges=[TOP + LEFT]).translate([-height, 0, -0.1])
 
-    b = shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + LEFT])
-    b = b.edge_profile([TOP + RIGHT], children=masking.mask2d_roundover(height / 2)).translate([width - height, 0, -0.1])
+    b = pysolidfive.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + LEFT])
+    b = b.round(height / 2, edges=[TOP + RIGHT]).translate([width - height, 0, -0.1])
 
     return a | b
 
@@ -339,17 +337,17 @@ def SlidingLatch(size: list[float], print_in_place_offset: float, lid_thickness:
     """
     width, length, height = size
 
-    a = shapes3d.prismoid(
+    a = pysolidfive.prismoid(
         size1=[width - print_in_place_offset * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         size2=[width - wall_thickness * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         h=wall_thickness - print_in_place_offset * 1.5, anchor=BOTTOM + FRONT + LEFT,
     ).translate([0, 0, lid_thickness + print_in_place_offset * 1.5])
 
-    b = cuboid([width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset * 2], anchor=BOTTOM + BACK + LEFT).translate(
+    b = pysolidfive.cuboid([width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset * 2], anchor=BOTTOM + BACK + LEFT).translate(
         [print_in_place_offset * 0.25, length - wall_thickness * 1.75 - print_in_place_offset, 0]
     )
 
-    c = cuboid([width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness], anchor=BOTTOM + BACK + LEFT).translate(
+    c = pysolidfive.cuboid([width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness], anchor=BOTTOM + BACK + LEFT).translate(
         [print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0]
     )
 
@@ -413,29 +411,29 @@ def CardLibraryBoxLid(
     hinge_seg = max(math.floor(length / 20), 5)
 
     base_plate = (
-        shapes3d.cuboid([width - wall_thickness * 2, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[BOTTOM])
+        pysolidfive.cuboid([width - wall_thickness * 2, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[BOTTOM], res=10)
         .color(material_colour)
         .translate([wall_thickness * 2, 0, 0])
     )
 
     back_hinge = (
-        _bosl2.knuckle_hinge(
+        pysolidfive.knuckle_hinge(
             length=length - wall_thickness * 2 - print_in_place_offset * 2, segs=hinge_seg, offset=wall_thickness + lid_thickness,
             knuckle_diam=wall_thickness + lid_thickness, pin_diam=hinge_hole_diameter, arm_height=0, arm_angle=90,
-            clear_top=False, spin=90, orient=LEFT, anchor=TOP + BACK + LEFT,
+            clear_top=False, spin=90, orient=list(LEFT), anchor=TOP + BACK + LEFT,
         )
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, 0])
     )
 
     back_holder = (
-        shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 - print_in_place_offset * 2, wall_thickness + lid_thickness], anchor=BOTTOM + FRONT + LEFT)
+        pysolidfive.cuboid([wall_thickness * 2, length - wall_thickness * 2 - print_in_place_offset * 2, wall_thickness + lid_thickness], anchor=BOTTOM + FRONT + LEFT)
         .color(material_colour)
         .translate([wall_thickness * 1.5, wall_thickness + print_in_place_offset, 0])
     )
 
     front_lip = (
-        shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 - 1, lid_thickness + lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + LEFT, TOP + RIGHT])
+        pysolidfive.cuboid([wall_thickness, length - wall_thickness * 2 - 1, lid_thickness + lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + LEFT, TOP + RIGHT])
         .color(material_colour)
         .translate([width - wall_thickness, wall_thickness + 0.5, 0])
     )
@@ -443,12 +441,12 @@ def CardLibraryBoxLid(
     base = base_plate | back_hinge | back_holder | front_lip
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        base = base - cuboid([wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + FRONT + LEFT).translate(
+        base = base - pysolidfive.cuboid([wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + FRONT + LEFT).translate(
             [width * 3 / 4 - print_in_place_offset - wall_thickness, -0.01, -0.01]
-        )
-        base = base - cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + BACK + LEFT).translate(
+        ).mesh()
+        base = base - pysolidfive.cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + BACK + LEFT).translate(
             [width * 3 / 4 - print_in_place_offset, length + 0.01, -0.01]
-        )
+        ).mesh()
 
     kids = list(children) if children else []
     extra = kids[0:2]
@@ -461,10 +459,15 @@ def CardLibraryBoxLid(
             [width * 3 / 4 - print_in_place_offset - wall_thickness, length - edge_size - wall_thickness, 0]
         )
         slide_supports = slide_support_a | slide_support_b
-        handle_cut_a = cuboid([wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1], anchor=TOP + BACK + LEFT).translate(
+        # Plain unrounded boxes as native cubes (translated to match the old TOP+BACK+LEFT /
+        # TOP+FRONT+LEFT anchors): slide_supports gets masked several times inside
+        # internal_build_lid(), and PythonSCAD segfaults when frep()-meshed nodes appear in
+        # a tree that is referenced from more than one CSG branch.
+        _hc_size = [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1]
+        handle_cut_a = cube(_hc_size).translate([0, -_hc_size[1], -_hc_size[2]]).translate(
             [width * 3 / 4 - print_in_place_offset * 0.5, sliding_latch_size[1] - wall_thickness * 0.75, lid_thickness + 0.01]
         )
-        handle_cut_b = cuboid([wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1], anchor=TOP + FRONT + LEFT).translate(
+        handle_cut_b = cube(_hc_size).translate([0, 0, -_hc_size[2]]).translate(
             [width * 3 / 4 - print_in_place_offset * 0.5, length - sliding_latch_size[1] + wall_thickness * 0.75, lid_thickness + 0.01]
         )
         slide_supports = slide_supports - handle_cut_a - handle_cut_b
@@ -477,10 +480,11 @@ def CardLibraryBoxLid(
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
         body = body | SlidingChannel(
-            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]]
+            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
+            wall_thickness=wall_thickness,
         ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
 
-        body = body | shapes3d.cuboid([wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + FRONT + LEFT).color(
+        body = body | pysolidfive.cuboid([wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT).color(
             material_colour
         ).translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
 
@@ -489,10 +493,11 @@ def CardLibraryBoxLid(
         ).translate([width * 3 / 4, wall_thickness, 0])
 
         body = body | SlidingChannel(
-            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]]
+            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
+            wall_thickness=wall_thickness,
         ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
 
-        body = body | shapes3d.cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1], edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + FRONT + LEFT).color(
+        body = body | pysolidfive.cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT).color(
             material_colour
         ).translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1])
 
@@ -717,15 +722,18 @@ def CardSleeveForLibrary(
     size = SleeveSize(num_cards, card_size, wall_thickness)
     width, length, height = size
 
-    metrics = textmetrics(label, font=font)
+    calc_font = font if font is not None else default_label_font
+    # textmetrics() returns a dict, not an object -- metrics["size"], same as the working
+    # labels.py call sites (and font must be a real string).
+    metrics = textmetrics(label, font=calc_font)
     text_length = height - text_length_offset - wall_thickness
     text_width = length - wall_thickness
-    text_aspect = metrics.size[1] / metrics.size[0]
+    text_aspect = metrics["size"][1] / metrics["size"][0]
     text_use_length = text_width / text_aspect > text_length
     text_new_width = text_length * text_aspect if text_use_length else text_width
     text_new_length = text_length if text_use_length else text_width / text_aspect
 
-    body = shapes3d.cuboid(size, anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 4).color(material_colour)
+    body = pysolidfive.cuboid(size, anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 4, res=10).color(material_colour)
 
     cards_array = list(num_cards) if isinstance(num_cards, (list, tuple)) else [num_cards]
     num_compartments = len(cards_array) if isinstance(num_cards, (list, tuple)) else 1
@@ -734,24 +742,32 @@ def CardSleeveForLibrary(
         comp_y_offset = (
             card_size.sleeve_wall_thickness + sumCardsTo(cards_array, i) * card_size.single_card_thickness + i * card_size.sleeve_wall_thickness
         )
-        body = body - shapes3d.cuboid(
+        body = body - pysolidfive.cuboid(
             [width - wall_thickness - card_size.sleeve_wall_thickness, comp_y_size, height], anchor=BOTTOM + FRONT + LEFT,
             rounding=min(wall_thickness / 4, comp_y_size / 2, (width - wall_thickness - card_size.sleeve_wall_thickness) / 2),
+            res=10,
         ).color(material_colour).translate([wall_thickness, comp_y_offset, wall_thickness])
 
-        body = body - shapes3d.cuboid(
-            [width, comp_y_size, height], anchor=BOTTOM + FRONT + LEFT, rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2)
+        body = body - pysolidfive.cuboid(
+            [width, comp_y_size, height], anchor=BOTTOM + FRONT + LEFT, rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2),
+            res=10,
         ).color(material_colour).translate([wall_thickness, comp_y_offset, wall_thickness * 3])
 
     rounding = -min(wall_thickness, length / 2, width / 2)
-    side_round = _bosl2.offset_sweep(
-        bosl2_rounding.round_corners(shapes2d._rect_path([width, height]), r=wall_thickness * 2), bottom=_bosl2.os_circle(r=rounding),
-        top=_bosl2.os_circle(r=rounding), height=length + 0.02, offset="delta",
-    ).color(material_colour).rotate([90, 0, 0]).translate([width / 2 + wall_thickness * 5, length + 0.01, height / 2 + wall_thickness * 5])
+    # The old offset_sweep(round_corners(rect), top/bottom os_circle(-r)) -- a rounded-rect
+    # column with flared ends -- is exactly rect2d(rounding).extrude(flare rims). (The
+    # original never rendered: offset_sweep's function form returns a bare VNF list.)
+    side_round = (
+        pysolidfive.rect2d([width, height], rounding=wall_thickness * 2, res=10)
+        .extrude(length + 0.02, rounding_top=rounding, rounding_bottom=rounding)
+        .color(material_colour)
+        .rotate([90, 0, 0])
+        .translate([width / 2 + wall_thickness * 5, length + 0.01, height / 2 + wall_thickness * 5])
+    )
     body = body - side_round
 
     radius = wall_thickness * math.sqrt(3) / 2
-    catch_cut = shapes3d.cuboid(
+    catch_cut = pysolidfive.cuboid(
         [wall_thickness, length + 0.02, wall_thickness + print_in_place_offset], anchor=FRONT, chamfer=wall_thickness / 3,
         edges=[FRONT + TOP, FRONT + BOTTOM],
     ).color(material_colour).rotate([0, 45, 0]).translate([-radius / 2, -0.01, lip_size + print_in_place_offset / 2 - wall_thickness / 2])
@@ -761,8 +777,8 @@ def CardSleeveForLibrary(
     text_piece = None
     if has_text:
         text_piece = (
-            text(label, font=font, valign="center", halign="center")
-            .resize([text_new_length, text_new_width])
+            text(label, font=calc_font, valign="center", halign="center")
+            .resize([text_new_length, text_new_width, 0])
             .linear_extrude(0.3 + emboss_text)
             .color(label_colour)
             .rotate([180, 90, 0])

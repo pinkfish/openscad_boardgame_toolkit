@@ -23,18 +23,7 @@
 
 from __future__ import annotations
 import math
-from pythonscad import *
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
-from bosl2 import transforms
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+import pysolidfive
 
 # Golden ratio — used in subdivision
 PHI = (1 + math.sqrt(5)) / 2
@@ -99,13 +88,15 @@ def PenroseTrianglesDivision(triangles: list[list], division: int) -> list[list]
     return new_tris
 
 
-def r2d(rad: float) -> float:
-    """Convert radians to degrees."""
-    return math.degrees(rad)
-
-
-def PenroseTiling(width: float, divisions: int = 7, thickness: float = 1, base: int = 5) -> PyOpenSCAD:
-    """Generates a 2-D Penrose tiling.
+def PenroseTiling(
+    width: float, divisions: int = 7, thickness: float = 1, base: int = 5, res: int | None = None
+) -> "pysolidfive.PyShape2D":
+    """Generates a 2-D Penrose tiling as a single pysolidfive shape: the "thin" triangles
+    filled solid, the "thicc" triangles drawn as their two open edges stroked `thickness`
+    wide. (The original coloured the two families red/green and built the strokes with
+    _bosl2.stroke(), which has no BOSL2 function form and always aborted the render -- this
+    construction is the first one that actually works in the Python port. Extrude the result
+    with .linear_extrude(height=...) to get a solid.)
 
     Usage::
 
@@ -117,22 +108,34 @@ def PenroseTiling(width: float, divisions: int = 7, thickness: float = 1, base: 
         divisions: number of recursive subdivisions (default 7)
         thickness: stroke width for "thicc" triangles (default 1)
         base:      number of base sectors (default 5)
+        res:       meshing resolution. Defaults to enough cells that the mesher's grid step
+                   stays at or below the stroke width -- at the library default (20) a
+                   thickness-1 tiling 100 wide meshes with 5-unit cells, which turns the
+                   strokes into dashed lines.
     """
+    if res is None:
+        res = max(20, math.ceil(2 * width / thickness))
     triangles = []
     for i in range(base * 2):
-        p2 = transforms.polar_to_xy(1, r2d((2 * i - 1) * math.pi / (base * 2)))
-        p3 = transforms.polar_to_xy(1, r2d((2 * i + 1) * math.pi / (base * 2)))
+        a1 = (2 * i - 1) * math.pi / (base * 2)
+        a2 = (2 * i + 1) * math.pi / (base * 2)
+        p2 = [math.cos(a1), math.sin(a1)]
+        p3 = [math.cos(a2), math.sin(a2)]
         a, b = (p2, p3) if (i % 2 == 0) else (p3, p2)
         triangles.append(["thin", [0, 0], a, b])
 
     final_triangles = PenroseTrianglesDivision(triangles, divisions)
 
-    shape = None
+    pieces = []
     for kind, p1, p2, p3 in final_triangles:
         pts = [_vec_scale(p1, width), _vec_scale(p2, width), _vec_scale(p3, width)]
         if kind == "thin":
-            piece = polygon(pts).color("red")
+            # Grown a whisker so triangles sharing an edge overlap rather than merely touch:
+            # a min()-union of exactly-abutting SDFs has a zero-level seam along the shared
+            # edge, which the mesher can turn into internal membrane artifacts.
+            pieces.append(pysolidfive.polygon2d(pts, res=res).offset(0.001))
         else:
-            piece = _bosl2.stroke(path=pts, width=thickness).color("green")
-        shape = piece if shape is None else shape | piece
-    return shape
+            pieces.append(pysolidfive.stroke2d(pts, width=thickness, res=res))
+    # union2d, not a linear `|` chain: deep subdivisions produce hundreds of triangles, and a
+    # chain that long overflows Python's recursion limit when the SDF is evaluated.
+    return pysolidfive.union2d(pieces)

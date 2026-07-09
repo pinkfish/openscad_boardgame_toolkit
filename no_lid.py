@@ -31,11 +31,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
 from bosl2 import shapes2d
 from bosl2 import paths
 from bosl2 import rounding
-from components import FingerHoleWall, MagnetSlot
+import pysolidfive
+from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 
 from typing import Callable
 
@@ -71,6 +71,7 @@ def MakeBoxWithNoLid(
     finger_hole_size: float | None = None,
     finger_hole_wall_width: float | None = None,
     hollow: bool = False,
+    mesh_res: int = 10,
 ) -> PyOpenSCAD:
     """Makes a box with no lid, useful for spacers and other things in games.
 
@@ -93,6 +94,8 @@ def MakeBoxWithNoLid(
         finger_hole_size: size of the finger dip (default auto)
         finger_hole_wall_width: width of the hole in the wall (default wall_thickness)
         hollow:          make the inside hollow (default False)
+        mesh_res:        libfive meshing resolution for the SDF solids (default 10 -- a good
+                         detail/speed balance at box scale)
     """
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
@@ -115,28 +118,31 @@ def MakeBoxWithNoLid(
     calc_make_finger_x = (width > length) if (make_finger_x is None and make_finger_y is None) else False
     calc_make_finger_y = (length > width) if (make_finger_y is None and make_finger_x is None) else False
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        res=mesh_res,
     )
-    body = body.face_profile(TOP, r=wall_thickness / 2)
-    body = body.face_profile(BOTTOM, r=wall_thickness / 2)
-    body = body.corner_profile("ALL", r=wall_thickness / 2)
-    body = body.color(material_colour)
+    # The original bosl2 construction treated the top and bottom rims separately from the
+    # vertical edges (face_profile(TOP/BOTTOM) + corner_profile("ALL")); with pysolidfive that
+    # whole trio is just further .round() passes on the remaining edge groups.
+    body = body.round(wall_thickness / 2, edges=[TOP])
+    body = body.round(wall_thickness / 2, edges=[BOTTOM])
 
     if hollow:
-        hole = (
-            shapes3d.cuboid(
-                [width - wall_thickness * 2, length - wall_thickness * 2, height],
-                rounding=wall_thickness / 4,
-                anchor=BOTTOM + LEFT + FRONT,
-            )
-            .color(material_colour)
-            .translate([wall_thickness, wall_thickness, floor_thickness])
-        )
+        hole = pysolidfive.cuboid(
+            [width - wall_thickness * 2, length - wall_thickness * 2, height],
+            rounding=wall_thickness / 4,
+            anchor=BOTTOM + LEFT + FRONT,
+            res=mesh_res,
+        ).translate([wall_thickness, wall_thickness, floor_thickness])
         body = body - hole
+
+    # Everything past here subtracts native (non-pysolidfive) solids -- FingerHoleWall and the
+    # caller's children -- so mesh the SDF once, here, before mixing.
+    body = body.color(material_colour)
 
     fh = min(calc_finger_hole_size, height - default_floor_thickness + 1)
     if calc_make_finger_y:
@@ -251,12 +257,14 @@ def MakePathBoxWithNoLid(
     stackable: int = STACKABLE_TYPE_NONE,
     magnet: types.SimpleNamespace | None = None,
     extra_floors: list[types.SimpleNamespace] | None = None,
+    mesh_res: int = 10,
 ) -> PyOpenSCAD:
     """Makes a box with no lid using a polygon layout.
 
-    Useful for spacers and other things in games. You might need to reduce
-    the $fn-equivalent point counts ("steps" in offset_sweep_options) if you
-    get geometry errors generating corners.
+    Useful for spacers and other things in games. The solids are built with
+    pysolidfive.polygon_prism() (a signed-distance-function sweep, meshed once
+    at the end), so the old advice about reducing offset_sweep() "steps" on
+    corner geometry errors no longer applies.
 
     *children*, if given, may be a plain solid or a
     callable(inner_path, inner_width, inner_length, inner_height) -- this
@@ -281,11 +289,15 @@ def MakePathBoxWithNoLid(
         make_finger_x/make_finger_y: finger dip controls (default auto)
         material_colour: material colour (default "grey")
         finger_hole_size: size of the finger dip (default auto)
-        offset_sweep_options: namespace(offset=, check_valid=, quality=, steps=)
+        offset_sweep_options: unused (kept for call-site compatibility with the old
+                        offset_sweep()-based construction; the SDF sweep has no such knobs)
         hollow:         if the box should be hollow (default False)
         stackable_lid_thickness/stackable: STACKABLE_TYPE_* (default STACKABLE_TYPE_NONE)
         magnet:         namespace(type=, size=, height=) (default MAGNET_SLOT_TYPE_NONE)
         extra_floors:   list of namespace(path=, floor_height=, top_height=) (default [])
+        mesh_res:       libfive meshing resolution for the SDF solids (default 10 -- a good
+                        detail/speed balance at box scale; raise it if the rim roundovers on a
+                        very small box look faceted)
     """
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
@@ -333,107 +345,85 @@ def MakePathBoxWithNoLid(
     inner_path_stackable_bottom_inside = _bosl2.offset(main_path, r=-wall_thickness - stackable_fit_offset)
     inner_path_stackable_bottom_inside_inside = _bosl2.offset(main_path, r=-wall_thickness / 2 - stackable_fit_offset)
 
-    def sweep_kwargs(**extra) -> dict:
-        return dict(
-            offset=offset_sweep_options.offset,
-            check_valid=offset_sweep_options.check_valid,
-            quality=offset_sweep_options.quality,
-            steps=offset_sweep_options.steps,
-            **extra,
-        )
+    # Every solid below is a pysolidfive.polygon_prism() (the SDF equivalent of the original
+    # real-BOSL2 vnf_polyhedron(offset_sweep(path, bottom=os_circle(b), top=os_circle(t)))
+    # construction -- same radius sign convention, positive roundover / negative flare), so the
+    # whole body composes symbolically and meshes exactly once at the .color() below. The 2-D
+    # path/region math (round_corners, offset, union/difference/intersection) stays with
+    # bosl2/real BOSL2 -- that's point-list data, not solids. offset_sweep_options is therefore
+    # unused now (an SDF has no offset/check_valid/quality/steps knobs); it's kept in the
+    # signature so existing call sites don't break.
 
-    def StackableBoxInternal(bottom: bool = False) -> PyOpenSCAD | None:
+    def prism(paths, **kw) -> pysolidfive.PyShape:
+        return pysolidfive.polygon_prism(paths, res=mesh_res, **kw)
+
+    def StackableBoxInternal(bottom: bool = False) -> pysolidfive.PyShape | None:
         if stackable == STACKABLE_TYPE_INSIDE:
-            outer = _bosl2.offset_sweep(
+            outer = prism(
                 rounding.round_corners(
                     inner_path_stackable_bottom_outside if bottom else inner_path_stackable, radius=stackable_thickness / 2
                 ),
-                **sweep_kwargs(
-                    height=stackable_thickness + (stackable_fit_offset if bottom else 0), top=_bosl2.os_circle(wall_thickness / 4)
-                ),
-            ).color(material_colour)
-            inner = (
-                _bosl2.offset_sweep(
-                    rounding.round_corners(inner_path_stackable_bottom_inside if bottom else inner_path, radius=stackable_thickness / 4),
-                    **sweep_kwargs(
-                        height=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
-                        top=_bosl2.os_circle(-wall_thickness / 4),
-                    ),
-                )
-                .color(material_colour)
-                .translate([0, 0, -0.01])
+                h=stackable_thickness + (stackable_fit_offset if bottom else 0),
+                rounding_top=wall_thickness / 4,
             )
+            inner = prism(
+                rounding.round_corners(inner_path_stackable_bottom_inside if bottom else inner_path, radius=stackable_thickness / 4),
+                h=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
+                rounding_top=-wall_thickness / 4,
+            ).translate([0, 0, -0.01])
             return outer - inner
         elif stackable == STACKABLE_TYPE_OUTSIDE:
-            outer = _bosl2.offset_sweep(
+            outer = prism(
                 calc_path,
-                **sweep_kwargs(
-                    height=stackable_thickness + (stackable_fit_offset if bottom else 0), top=_bosl2.os_circle(wall_thickness / 4)
-                ),
-            ).color(material_colour)
-            inner = (
-                _bosl2.offset_sweep(
-                    rounding.round_corners(
-                        inner_path_stackable_bottom_inside_inside if bottom else inner_path_stackable, radius=stackable_thickness / 4
-                    ),
-                    **sweep_kwargs(
-                        height=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
-                        top=_bosl2.os_circle(-wall_thickness / 4),
-                    ),
-                )
-                .color(material_colour)
-                .translate([0, 0, -0.01])
+                h=stackable_thickness + (stackable_fit_offset if bottom else 0),
+                rounding_top=wall_thickness / 4,
             )
+            inner = prism(
+                rounding.round_corners(
+                    inner_path_stackable_bottom_inside_inside if bottom else inner_path_stackable, radius=stackable_thickness / 4
+                ),
+                h=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
+                rounding_top=-wall_thickness / 4,
+            ).translate([0, 0, -0.01])
             return outer - inner
         return None
 
-    main_solid = _bosl2.offset_sweep(
+    main_solid = prism(
         calc_path,
-        **sweep_kwargs(
-            height=(height - stackable_thickness) if stackable else height,
-            bottom=_bosl2.os_circle(wall_thickness / 4 if stackable else wall_thickness / 2),
-            top=_bosl2.os_circle(wall_thickness / 8 if stackable else wall_thickness / 4),
-        ),
+        h=(height - stackable_thickness) if stackable else height,
+        rounding_bottom=wall_thickness / 4 if stackable else wall_thickness / 2,
+        rounding_top=wall_thickness / 8 if stackable else wall_thickness / 4,
     )
     if stackable:
         main_solid = main_solid | StackableBoxInternal(bottom=False).translate([0, 0, height - stackable_thickness])
 
     for f in sorted_floors:
         if f.floor_height > 0:
-            main_solid = main_solid - polygon(f.path).linear_extrude(height=f.floor_height)
+            main_solid = main_solid - prism(f.path, h=f.floor_height)
         if f.top_height > 0:
-            main_solid = main_solid - polygon(f.path).linear_extrude(height=f.top_height).translate(
+            main_solid = main_solid - prism(f.path, h=f.top_height).translate(
                 [0, 0, height - f.top_height]
             )
 
     extra_solid = None
     for f in sorted_floors:
-        piece = _bosl2.offset_sweep(
+        piece = prism(
             rounding.round_corners(f.path, radius=wall_thickness),
-            **sweep_kwargs(
-                height=(height - f.floor_height - stackable_thickness) if stackable else (height - f.floor_height),
-                bottom=_bosl2.os_circle(wall_thickness / 4 if stackable else wall_thickness / 2),
-                top=_bosl2.os_circle(wall_thickness / 8 if stackable else wall_thickness / 4),
-            ),
+            h=(height - f.floor_height - stackable_thickness) if stackable else (height - f.floor_height),
+            rounding_bottom=wall_thickness / 4 if stackable else wall_thickness / 2,
+            rounding_top=wall_thickness / 8 if stackable else wall_thickness / 4,
         ).translate([0, 0, f.floor_height])
         extra_solid = piece if extra_solid is None else extra_solid | piece
 
     body = (main_solid | extra_solid) if extra_solid is not None else main_solid
-    body = body.color(material_colour)
 
     if hollow:
-        hollow_cut = (
-            _bosl2.offset_sweep(
-                rounding.round_corners(inner_path, radius=hollow_radius.radius),
-                **sweep_kwargs(
-                    height=height - floor_thickness,
-                    bottom=_bosl2.os_circle(hollow_radius.bottom),
-                    top=(None if stackable else _bosl2.os_circle(-hollow_radius.top)),
-                ),
-            )
-            .color(material_colour)
-            .translate([0, 0, floor_thickness])
-        )
+        hollow_cut = prism(
+            rounding.round_corners(inner_path, radius=hollow_radius.radius),
+            h=height - floor_thickness,
+            rounding_bottom=hollow_radius.bottom,
+            rounding_top=0 if stackable else -hollow_radius.top,
+        ).translate([0, 0, floor_thickness])
         body = body - hollow_cut
 
         for f in sorted_floors:
@@ -445,18 +435,20 @@ def MakePathBoxWithNoLid(
                     _bosl2.offset(other.path, delta=wall_thickness) for other in sorted_floors if other.floor_height > f.floor_height
                 ]
                 region = _bosl2.intersection(joined_outer, _bosl2.union(inner_union))
-                cut = _bosl2.offset_sweep(
+                cut = prism(
                     region,
-                    **sweep_kwargs(
-                        height=height - floor_thickness - f.floor_height,
-                        bottom=_bosl2.os_circle(hollow_radius.bottom),
-                        top=(None if stackable else _bosl2.os_circle(-hollow_radius.top)),
-                    ),
+                    h=height - floor_thickness - f.floor_height,
+                    rounding_bottom=hollow_radius.bottom,
+                    rounding_top=0 if stackable else -hollow_radius.top,
                 ).translate([0, 0, f.floor_height + floor_thickness])
                 body = body - cut
 
     if stackable:
         body = body - StackableBoxInternal(bottom=True).translate([0, 0, -stackable_fit_offset])
+
+    # Everything past here subtracts native (non-pysolidfive) solids -- FingerHoleWall segments
+    # and the caller's children -- so mesh the SDF once, here, before mixing.
+    body = body.color(material_colour)
 
     calc_middle_path = _bosl2.offset(path, r=-wall_thickness / 2)
     n = len(calc_middle_path)
@@ -508,6 +500,7 @@ def MakePolygonBoxWithNoLid(
     offset_sweep_options: types.SimpleNamespace | None = None,
     hollow_radius: types.SimpleNamespace | None = None,
     magnet: types.SimpleNamespace | None = None,
+    mesh_res: int = 10,
 ) -> PyOpenSCAD:
     """Makes a polygon box with no lid.
 
@@ -531,9 +524,10 @@ def MakePolygonBoxWithNoLid(
         finger_hole_size: size of the finger dip (default auto)
         hollow:         make the inside hollow (default False)
         stackable:      STACKABLE_TYPE_* (default STACKABLE_TYPE_NONE)
-        offset_sweep_options: namespace(offset=, check_valid=, quality=, steps=)
+        offset_sweep_options: unused (kept for call-site compatibility; see MakePathBoxWithNoLid)
         hollow_radius:  namespace(top=, bottom=, radius=) (default 2, 10, 2)
         magnet:         namespace(type=, size=) (default MAGNET_SLOT_TYPE_NONE)
+        mesh_res:       libfive meshing resolution for the SDF solids (see MakePathBoxWithNoLid)
     """
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
@@ -598,4 +592,5 @@ def MakePolygonBoxWithNoLid(
         stackable=stackable,
         hollow_radius=hollow_radius,
         children=inner_children,
+        mesh_res=mesh_res,
     )

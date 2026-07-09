@@ -30,15 +30,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, MakeLidTab, MakeTabs, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def InsetLid(
@@ -89,7 +84,7 @@ def InsetLid(
     inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2
 
     top = (
-        shapes3d.cuboid(
+        pysolidfive.cuboid(
             [inner_width, inner_length, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=calc_lid_rounding,
@@ -381,7 +376,7 @@ def MakeBoxWithInsetLidTabbed(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -510,13 +505,15 @@ def InsetLidRabbitClip(
         children=children,
     )
 
-    base = shapes3d.cuboid([rabbit_length + rabbit_offset, wall_thickness, lid_thickness]).translate(
+    base = pysolidfive.cuboid([rabbit_length + rabbit_offset, wall_thickness, lid_thickness]).translate(
         [(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, -lid_thickness / 2]
     )
-    clip = _bosl2.rabbit_clip(
+    clip = pysolidfive.rabbit_clip(
         type="pin", length=rabbit_length, width=rabbit_width, snap=rabbit_snap, thickness=rabbit_thickness, depth=rabbit_depth, compression=rabbit_compression, lock=rabbit_lock
     ).translate([(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, lid_thickness / 2])
-    tab = base | clip
+    # A factory, not a pre-meshed solid: PythonSCAD segfaults when one frep()-meshed handle
+    # is transformed in more than one CSG branch, and MakeTabs places the tab several times.
+    tab = lambda: (base | clip).mesh()  # noqa: E731
 
     tabs = MakeTabs(
         size=[width, length], lid_thickness=lid_thickness, make_tab_width=make_rabbit_width, make_tab_length=make_rabbit_length, children=tab
@@ -757,7 +754,7 @@ def MakeBoxWithInsetLidRabbitClip(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width, length, height - lid_thickness - size_spacing],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -771,17 +768,14 @@ def MakeBoxWithInsetLidRabbitClip(
     )
     body = body - lid_cut
 
-    socket_box = shapes3d.cuboid([rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01]).color(
-        material_colour
+    socket_box = pysolidfive.cuboid(
+        [rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01]
     ).translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness / 2])
-    socket_clip = (
-        _bosl2.rabbit_clip(
-            type="socket", length=rabbit_length, width=rabbit_width, snap=rabbit_snap, thickness=rabbit_thickness, depth=rabbit_depth + 0.01, compression=rabbit_compression, lock=rabbit_lock
-        )
-        .color(material_colour)
-        .translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness])
-    )
-    socket = socket_box | socket_clip
+    socket_clip = pysolidfive.rabbit_clip(
+        type="socket", length=rabbit_length, width=rabbit_width, snap=rabbit_snap, thickness=rabbit_thickness, depth=rabbit_depth + 0.01, compression=rabbit_compression, lock=rabbit_lock
+    ).translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness])
+    # A factory for the same frep-handle-reuse reason as the pin tab above.
+    socket = lambda: (socket_box | socket_clip).color(material_colour)  # noqa: E731
 
     tabs_cut = (
         MakeTabs(

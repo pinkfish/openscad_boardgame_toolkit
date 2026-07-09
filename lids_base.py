@@ -494,17 +494,24 @@ def MakeTabs(
 
     shape = None
 
+    # `children` may be a plain solid or a zero-argument factory returning one. The factory
+    # form exists because PythonSCAD SEGFAULTS if one frep()-meshed handle is transformed in
+    # more than one CSG branch (plain CSG handles reuse fine) -- callers placing a
+    # pysolidfive-meshed tab pass a lambda so every placement below gets a fresh mesh.
+    def tab_piece() -> PyOpenSCAD:
+        return children() if callable(children) else children
+
     def add(piece: PyOpenSCAD) -> None:
         nonlocal shape
         shape = piece if shape is None else shape | piece
 
     if make_tab_length:
-        add(children.rotate([0, 0, 270]).translate([0, (box_length + tab_length) / 2, lid_thickness]))
-        add(children.rotate([0, 0, 90]).translate([box_width, (box_length - tab_length) / 2, lid_thickness]))
+        add(tab_piece().rotate([0, 0, 270]).translate([0, (box_length + tab_length) / 2, lid_thickness]))
+        add(tab_piece().rotate([0, 0, 90]).translate([box_width, (box_length - tab_length) / 2, lid_thickness]))
 
     if make_tab_width:
-        add(children.translate([(box_width - tab_length) / 2, 0, lid_thickness]))
-        add(children.rotate([0, 0, 180]).translate([(box_width + tab_length) / 2, box_length, lid_thickness]))
+        add(tab_piece().translate([(box_width - tab_length) / 2, 0, lid_thickness]))
+        add(tab_piece().rotate([0, 0, 180]).translate([(box_width + tab_length) / 2, box_length, lid_thickness]))
 
     return shape
 

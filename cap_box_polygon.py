@@ -32,18 +32,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import paths
-from bosl2 import rounding
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+import pysolidfive
+from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, default_lid_catch_type
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box import CapBoxDefaultCapHeight, CapBoxDefaultFingerHoldHeight, CapBoxDefaultLidFingerHoldRounding, CapBoxDefaultLidWallThickness
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def _segment_angle(normal: list[list[float]]) -> float:
@@ -71,8 +64,8 @@ def FingerHoleSegmentCutout(
         wall_thickness: the thickness of the walls
     """
     assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    split_length = paths.path_length(path)
-    normal = paths.path_normals(path)
+    split_length = pysolidfive.path_length(path)
+    normal = pysolidfive.path_normals(path)
     calc_len = split_length / 5
     calc_radius = wall_thickness + 0.1 if wall_thickness >= radius else radius
 
@@ -82,21 +75,25 @@ def FingerHoleSegmentCutout(
     angle = _segment_angle(normal)
 
     if calc_len + radius > calc_len * 4 - radius:
-        pts = paths.path_cut_points(path=path, cutdist=[split_length / 2])
-        return shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[0][0][0], pts[0][0][1], 0])
+        pts = pysolidfive.path_cut_points(path, [split_length / 2])
+        return pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate(
+            [pts[0][0][0], pts[0][0][1], 0]
+        ).mesh()
 
-    pts = paths.path_cut_points(
-        path=path,
-        cutdist=[calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
+    pts = pysolidfive.path_cut_points(
+        path,
+        [calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
     )
-    c1 = shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[1][0][0], pts[1][0][1], height - calc_radius])
-    c2 = shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[2][0][0], pts[2][0][1], height - calc_radius])
-    c3 = shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
+    # Fresh .mesh() per piece: native hull() only takes raw solids (and PythonSCAD
+    # segfaults on frep-handle reuse anyway).
+    c1 = pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[1][0][0], pts[1][0][1], height - calc_radius]).mesh()
+    c2 = pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[2][0][0], pts[2][0][1], height - calc_radius]).mesh()
+    c3 = pysolidfive.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
         [pts[0][0][0], pts[0][0][1], calc_radius - height]
-    )
-    c4 = shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
+    ).mesh()
+    c4 = pysolidfive.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
         [pts[3][0][0], pts[3][0][1], calc_radius - height]
-    )
+    ).mesh()
     return hull(c1, c2, c3, c4)
 
 
@@ -122,7 +119,7 @@ def PolygonBoxLidCatch(
     """
     assert len(path) == 2, f"Path must be exactly 2 elements. path_length={len(path)}"
     assert delta is not None, "delta None in PolygonBoxLidCatch."
-    split_length = paths.path_length(path)
+    split_length = pysolidfive.path_length(path)
     calc_len = split_length / 5
 
     if not (
@@ -140,12 +137,25 @@ def PolygonBoxLidCatch(
     if not qualifies:
         return None
 
-    pts = paths.path_cut_points(
-        path=path, cutdist=[calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
+    pts = pysolidfive.path_cut_points(
+        path, [calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
     )
-    return _bosl2.path_sweep(
-        [[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]],
-        [pts[0][0], pts[1][0]],
+    p1 = [pts[0][0][0], pts[0][0][1]]
+    p2 = [pts[1][0][0], pts[1][0][1]]
+    # The old _bosl2.path_sweep of the triangle profile along the 2-point segment is a
+    # triangular prism: extrude the profile (centered along Z), stand it up (profile y -> Z,
+    # extrusion axis -> the segment direction, profile x -> the LEFT of travel, matching
+    # path_sweep's 2-D frame), and move it onto the segment midpoint.
+    seg_angle = math.degrees(math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
+    return (
+        pysolidfive.polygon_extrude(
+            [[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]],
+            length=math.dist(p1, p2),
+        )
+        .rotate([90, 0, 0])
+        .rotate([0, 0, seg_angle + 90])
+        .translate([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, 0])
+        .mesh()
     )
 
 
@@ -215,13 +225,13 @@ def MakePathBoxWithCapLid(
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
     calc_finger_hold_height = finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
-    calc_path = rounding.round_corners(path, radius=wall_thickness)
-    inner_path = _bosl2.offset(path, r=-wall_thickness)
-
-    x_arr = [p[0] for p in inner_path]
-    y_arr = [p[1] for p in inner_path]
-    calc_width = max(x_arr) - min(x_arr)
-    calc_length = max(y_arr) - min(y_arr)
+    calc_path = pysolidfive.round_corners(path, radius=wall_thickness)
+    # The old _bosl2.offset(path, r=-wall) inner path only ever fed this bounding-box
+    # bookkeeping -- the wall-inset bbox is the bbox shrunk by a wall on each side.
+    x_arr = [p[0] for p in path]
+    y_arr = [p[1] for p in path]
+    calc_width = max(x_arr) - min(x_arr) - 2 * wall_thickness
+    calc_length = max(y_arr) - min(y_arr) - 2 * wall_thickness
 
     body = polygon(calc_path).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
 
@@ -348,20 +358,17 @@ def CapPathBoxLid(
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
-    calc_path = rounding.round_corners(path, radius=wall_thickness, _fn=16)
+    calc_path = pysolidfive.round_corners(path, radius=wall_thickness, fn=16)
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
 
     y_arr = [p[1] for p in path]
     calc_length = max(y_arr) - min(y_arr)
 
-    top = _bosl2.offset_sweep(
-        calc_path,
-        height=lid_thickness,
-        top=_bosl2.os_smooth(joint=wall_thickness / 2),
-        offset=offset_sweep_options.offset,
-        check_valid=offset_sweep_options.check_valid,
-        quality=offset_sweep_options.quality,
-        steps=offset_sweep_options.steps,
+    # The old offset_sweep with an os_smooth(joint=wall/2) top is a straight extrusion of
+    # the rounded outline with an eased top rim -- polygon_prism's circular roundover of the
+    # same joint size is a near-identical profile.
+    top = pysolidfive.polygon_prism(
+        calc_path, h=lid_thickness, rounding_top=min(wall_thickness / 2, lid_thickness * 0.49)
     ).color(material_colour)
 
     kids = list(children) if children else []
@@ -549,6 +556,8 @@ def CapPathBoxLidWithLabel(
         label_options: :class:`~labels.LabelOptions`
         shape_options: :class:`~shape_type.ShapeObject`
     """
+    if material_colour is None:
+        material_colour = default_material_colour
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
     calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
 

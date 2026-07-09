@@ -24,15 +24,11 @@
 from __future__ import annotations
 from pythonscad import *
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-
-# BOSL2 is the only library loaded via Posuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 # ---------------------------------------------------------------------------
 # Section: Dividers
@@ -57,21 +53,20 @@ def MakeDividerTab(
         tab_radius:  corner curve radius (default 2)
         children:    optional solid to subtract from the tab
     """
-    top = shapes3d.cuboid(
+    top = pysolidfive.cuboid(
         [tab_length, tab_height, thickness],
         rounding=tab_radius,
         edges=[FRONT + LEFT, FRONT + RIGHT],
         anchor=BACK + LEFT + BOTTOM,
-        fn=20,
     )
-    base = shapes3d.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
-    cut_a = shapes3d.cyl(r=tab_radius, h=thickness + 1, fn=20).translate([0, -tab_radius, 0.5])
-    cut_b = shapes3d.cyl(r=tab_radius, h=thickness + 1, fn=20).translate(
-        [tab_length + tab_radius * 2, -tab_radius, 0.5]
-    )
+    base = pysolidfive.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
+    cut_a = pysolidfive.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
+    cut_b = pysolidfive.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
     base_shape = (base - cut_a - cut_b).translate([-tab_radius, 0, 0])
 
-    tab = (top | base_shape).translate([0, tab_height, 0])
+    # One symbolic SDF for the whole tab; .mesh() so the native child subtraction (and the
+    # caller's native union with the divider body) get a plain solid.
+    tab = (top | base_shape).translate([0, tab_height, 0]).mesh()
     if children is not None:
         tab = tab - children
     return tab
@@ -130,24 +125,25 @@ def MakeDivider(
         children=kids[0] if len(kids) >= 1 else None,
     ).translate([spacing * tab_position, 0, 0])
 
-    body = cube([width, length, thickness]) - cube([width + 1, tab_height + 1, thickness + 1]).translate(
-        [-0.5, -1, -0.5]
-    )
+    body = pysolidfive.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT) - pysolidfive.cuboid(
+        [width + 1, tab_height + 1, thickness + 1], anchor=BOTTOM + FRONT + LEFT
+    ).translate([-0.5, -1, -0.5])
 
     for i in range(num_holes):
-        hole = shapes3d.cuboid(
+        hole = pysolidfive.cuboid(
             [hole_width, hole_height, thickness + 1],
             rounding=tab_radius,
             edges=[FRONT + LEFT, FRONT + RIGHT],
             anchor=BACK + LEFT + BOTTOM,
-            _fn=20,
         ).translate([hole_offset + (hole_width + hole_offset) * i, length - hole_offset, -0.5])
         body = body - hole
 
+    # Meshed once here; the extra children and the tab are native solids.
+    body = body.mesh()
     for extra in kids[1:]:
         body = body - extra
 
-    return cube([width, length, thickness]) & (tab | body)
+    return (tab | body) & cube([width, length, thickness])
 
 
 def MakeDividerWithText(
@@ -202,9 +198,13 @@ def MakeDividerWithText(
     text_height_calc = text_height if text_height is not None else tab_height - text_offset
     text_depth_calc = text_depth if text_depth is not None else thickness + 1
 
+    calc_font = font if font is not None else default_label_font
+    # Native text() has no spin= (that was a bosl2-ism in the port) -- rotate the shape
+    # instead, which is what the working labels.py call sites do.
     text_cut = (
-        text(text=str(text_str), font=font, size=10, spacing=1, halign="right", valign="bottom", spin=180)
-        .resize([text_width, text_height_calc, 0], auto=True)
+        text(text=str(text_str), font=calc_font, size=10, spacing=1, halign="right", valign="bottom")
+        .rotate([0, 0, 180])
+        .resize([text_width, text_height_calc, 0])
         .linear_extrude(height=text_depth_calc + 0.5)
         .translate([text_offset, tab_height - text_offset * 1 / 4, thickness - text_depth_calc])
     )

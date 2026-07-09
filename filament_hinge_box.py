@@ -32,17 +32,40 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import masking
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. This file specifically
-# needs BOSL2/hinges.scad's knuckle_hinge (loaded as part of std.scad).
-_bosl2 = osuse("BOSL2/std.scad")
+# The six axis orientations BOSL2 orient= takes at these call sites, as native Euler
+# rotations of UP toward the axis (used by _apply_reorient below).
+_ORIENT_EULER = {
+    (0, 0, 1): None,
+    (0, 0, -1): [180, 0, 0],
+    (-1, 0, 0): [0, -90, 0],
+    (1, 0, 0): [0, 90, 0],
+    (0, -1, 0): [90, 0, 0],
+    (0, 1, 0): [-90, 0, 0],
+}
+
+
+def _apply_reorient(shape, anchor, spin, orient, size):
+    """BOSL2 reorient() emulation for a native shape already centered at the origin: move
+    the anchor point to the origin, spin around Z, then rotate UP toward `orient` -- replaces
+    the old `_bosl2.reorient(...)` + `.multmatrix(tmat)` (which never worked here anyway;
+    this whole file's knuckle-hinge paths raised before reaching it)."""
+    a = [int(v) for v in anchor]
+    if any(a):
+        shape = shape.translate([-a[0] * size[0] / 2, -a[1] * size[1] / 2, -a[2] * size[2] / 2])
+    if spin:
+        shape = shape.rotate([0, 0, spin])
+    key = tuple(int(v) for v in orient)
+    assert key in _ORIENT_EULER, f"orient must be one of the six axis directions, got {orient}"
+    euler = _ORIENT_EULER[key]
+    if euler is not None:
+        shape = shape.rotate(euler)
+    return shape
 
 
 def HingeOptions(
@@ -141,21 +164,19 @@ def MakeBoxWithFilamentHingeLid(
     lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness)
     lip_length = max(length / 4, 15)
 
-    tmat = _bosl2.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, height])
-
-    main = shapes3d.cuboid(
-        [width, length, height - lid_thickness - print_in_place_offset],
-        rounding=wall_thickness / 2,
-        anchor=BOTTOM + FRONT + LEFT,
-        edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
+    main = (
+        pysolidfive.cuboid(
+            [width, length, height - lid_thickness - print_in_place_offset],
+            rounding=wall_thickness / 2,
+            anchor=BOTTOM + FRONT + LEFT,
+            edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
+        )
+        .round(wall_thickness / 4, edges=[TOP + FRONT, TOP + BACK, TOP + RIGHT])
+        .color(material_colour)
     )
-    main = main.edge_mask(TOP + FRONT, children=masking.rounding_edge_mask(l=width, r=wall_thickness / 4))
-    main = main.edge_mask(TOP + BACK, children=masking.rounding_edge_mask(l=width, r=wall_thickness / 4))
-    main = main.edge_mask(TOP + RIGHT, children=masking.rounding_edge_mask(l=length, r=wall_thickness / 4))
-    main = main.color(material_colour)
 
     ramp = (
-        shapes3d.cuboid(
+        pysolidfive.cuboid(
             [calc_hinge_options.thickness * 1.25 + print_in_place_offset, length, wall_thickness + print_in_place_offset],
             anchor=BOTTOM + LEFT + FRONT,
             rounding=-wall_thickness,
@@ -166,29 +187,29 @@ def MakeBoxWithFilamentHingeLid(
     )
     main = main - ramp
 
-    hinge_cut = shapes3d.cuboid(
+    hinge_cut = pysolidfive.cuboid(
         [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
         anchor=TOP + FRONT,
         rounding=calc_hinge_options.thickness / 2,
         edges=[BOTTOM + RIGHT],
-    ).translate([calc_hinge_options.thickness / 2 + print_in_place_offset * 2, 0, height - lid_thickness])
+    ).translate([calc_hinge_options.thickness / 2 + print_in_place_offset * 2, 0, height - lid_thickness]).mesh()
     main = main - hinge_cut
 
-    catch_box = shapes3d.cuboid(
+    catch_box = pysolidfive.cuboid(
         [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
         anchor=BOTTOM + RIGHT,
         rounding=wall_thickness / 4,
         edges=[BOTTOM + LEFT],
-    ).color(material_colour)
-    catch_sphere_a = sphere(d=wall_thickness, anchor=RIGHT).color(material_colour).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = sphere(d=wall_thickness, anchor=RIGHT).color(material_colour).translate([0, -lip_length / 4, lip_height / 2])
-    catch = (catch_box | catch_sphere_a | catch_sphere_b).translate(
+    )
+    catch_sphere_a = pysolidfive.sphere(d=wall_thickness, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
+    catch_sphere_b = pysolidfive.sphere(d=wall_thickness, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
+    catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
         [width, length / 2, height - lid_thickness - lip_height - print_in_place_offset]
     )
     main = main - catch
 
     knuckle = (
-        _bosl2.knuckle_hinge(
+        pysolidfive.knuckle_hinge(
             length=length,
             segs=hinge_seg,
             offset=calc_hinge_options.thickness,
@@ -199,7 +220,7 @@ def MakeBoxWithFilamentHingeLid(
             inner=True,
             spin=90,
             pin_diam=calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
-            orient=TOP,
+            orient=list(TOP),
             anchor=TOP + BACK + LEFT,
         )
         .color(material_colour)
@@ -217,7 +238,9 @@ def MakeBoxWithFilamentHingeLid(
             piece = ResolveChild(c, inner_width, inner_length, inner_height)
             body = body - piece.translate([wall_thickness, wall_thickness, floor_thickness])
 
-    result = body.translate([-width / 2, -length / 2, -height / 2]).multmatrix(tmat)
+    result = _apply_reorient(
+        body.translate([-width / 2, -length / 2, -height / 2]), anchor, spin, orient, [width, length, height]
+    )
 
     if len(positive_only_children) > 0 or (len(positive_negative_children) > 0 and MAKE_MMU == 1):
         extra_indices = list(positive_only_children) + (list(positive_negative_children) if MAKE_MMU == 1 else [])
@@ -276,14 +299,14 @@ def FilamentBoxInsideMask(
     support_width = calc_hinge_options.thickness * 1.25 - wall_thickness
     support_height = support_width + calc_hinge_options.thickness
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=rounding,
         edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     )
 
-    cut1 = shapes3d.cuboid(
+    cut1 = pysolidfive.cuboid(
         [support_width + print_in_place_offset + 0.5, length + 1, support_height + 1],
         anchor=BOTTOM + FRONT + LEFT,
         chamfer=support_width,
@@ -291,12 +314,13 @@ def FilamentBoxInsideMask(
     ).translate([-0.5, -0.5, height - lid_thickness - support_height - floor_thickness])
     body = body - cut1
 
-    cut2 = shapes3d.ycyl(d=calc_hinge_options.thickness + print_in_place_offset, length=length + 1, anchor=FRONT + LEFT + TOP).translate(
+    cut2 = pysolidfive.ycyl(d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP).translate(
         [0, 0.5, height]
     )
     body = body - cut2
 
-    return body
+    # One symbolic SDF; .mesh() so the native intersection at the call sites gets a solid.
+    return body.mesh()
 
 
 def MakeLidForFilamentBox(
@@ -353,7 +377,7 @@ def MakeLidForFilamentBox(
     lip_length = max(length / 4, 15)
 
     top = (
-        shapes3d.cuboid(
+        pysolidfive.cuboid(
             [width - wall_thickness * 2.5, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=lid_thickness / 2, edges=BOTTOM
         )
         .color(material_colour)
@@ -363,7 +387,7 @@ def MakeLidForFilamentBox(
     kids = list(children) if children else []
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
 
-    knuckle = _bosl2.knuckle_hinge(
+    knuckle = pysolidfive.knuckle_hinge(
         length=length,
         segs=hinge_seg,
         offset=calc_hinge_options.thickness,
@@ -373,28 +397,31 @@ def MakeLidForFilamentBox(
         arm_angle=90,
         clear_top=True,
         spin=270,
-        orient=LEFT,
+        orient=list(LEFT),
         anchor=TOP + FRONT + RIGHT,
     )
-    # knuckle is a _bosl2.knuckle_hinge() shape, not a cuboid, so masking.edge_mask() (cuboid-only)
-    # can't position edges on it -- still using _bosl2.edge_mask() for positioning here, but with
-    # our own pure-Python rounding_edge_mask() as the cutter.
-    knuckle = _bosl2.edge_mask(knuckle, LEFT + FRONT, _children=masking.rounding_edge_mask(l=width, r=wall_thickness / 2))
-    knuckle = _bosl2.edge_mask(knuckle, RIGHT + FRONT, _children=masking.rounding_edge_mask(l=width, r=wall_thickness / 2))
+    # After anchor=TOP+FRONT+RIGHT, spin=270, orient=LEFT the hinge's declared box lands at
+    # x in [0, 1.5*thickness], y in [0, length], z in [0, thickness] -- round its two front
+    # vertical edges, which is what the original positioned with _bosl2.edge_mask() (that
+    # call never worked; knuckle_hinge had no FFI function form).
+    kd = calc_hinge_options.thickness
+    edge_round = pysolidfive.rounding_edge_mask(l=width, r=wall_thickness / 2)
+    knuckle = knuckle - edge_round.translate([0, 0, kd / 2])
+    knuckle = knuckle - edge_round.rotate([0, 0, 90]).translate([kd * 1.5, 0, kd / 2])
     knuckle = knuckle.color(material_colour)
 
-    catch_box = shapes3d.cuboid(
+    catch_box = pysolidfive.cuboid(
         [wall_thickness / 2, lip_length, lip_height + print_in_place_offset], anchor=BOTTOM + RIGHT, rounding=wall_thickness / 4, edges=[TOP + LEFT]
     )
-    catch_sphere_a = sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
+    catch_sphere_a = pysolidfive.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
+    catch_sphere_b = pysolidfive.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
     catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
         [width, length / 2, lid_thickness - print_in_place_offset]
     )
 
     body = lid_stack | knuckle | catch
 
-    hole = shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT).color(
+    hole = pysolidfive.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT).color(
         material_colour
     ).translate([wall_thickness, 0.5, wall_thickness])
     body = body - hole

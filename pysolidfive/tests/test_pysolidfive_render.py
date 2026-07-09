@@ -70,6 +70,14 @@ SHAPES = [
     ("cyl_rounded", "pysolidfive.cyl(h=20, r=8, rounding=2)"),
     ("torus", "pysolidfive.torus(r_maj=15, r_min=5)"),
     ("teardrop", "pysolidfive.teardrop(h=10, r=8)"),
+    # A concave L-shaped outline (exact winding-number polygon SDF -- exercises concave-outline
+    # sign correctness, which polygon_extrude()'s convex half-planes can't do), with a rounded
+    # bottom rim and a flared top rim (both offset_sweep/os_circle-style end treatments).
+    (
+        "polygon_prism_concave_rims",
+        "pysolidfive.polygon_prism([[0, 0], [40, 0], [40, 15], [15, 15], [15, 40], [0, 40]], "
+        "h=12, rounding_bottom=2, rounding_top=-2)",
+    ),
 ]
 
 
@@ -126,6 +134,9 @@ class RealRenderTestCase(unittest.TestCase):
 
     def test_teardrop(self) -> None:
         self._render_and_compare(*SHAPES[6])
+
+    def test_polygon_prism_concave_rims(self) -> None:
+        self._render_and_compare(*SHAPES[7])
 
 
 if __name__ == "__main__":

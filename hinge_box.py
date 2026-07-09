@@ -30,16 +30,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, MakeLidTab
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. This file specifically
-# needs BOSL2/hinges.scad's prismoid-style helpers (loaded as part of std.scad).
-_bosl2 = osuse("BOSL2/std.scad")
 
 # ---------------------------------------------------------------------------
 # Section: Hinges
@@ -60,8 +54,8 @@ def HingeCone(r: float, offset: float) -> PyOpenSCAD:
         r:      radius of the cone
         offset: how far inside the cone to leave space
     """
-    outer = cylinder(h=r, r1=r, r2=0, _fn=32)
-    inner = cylinder(h=r - offset, r1=r - offset, r2=0, _fn=32).translate([0, 0, -0.01])
+    outer = pysolidfive.cylinder(h=r, r1=r, r2=0, center=False)
+    inner = pysolidfive.cylinder(h=r - offset, r1=r - offset, r2=0, center=False).translate([0, 0, -0.01])
     return outer - inner
 
 
@@ -84,15 +78,17 @@ def HingeLineWithSpacingAndNum(
     num = int(num)
     length = num * diameter
 
-    cyl = cylinder(r=diameter / 2, h=length, _fn=32)
+    cyl = pysolidfive.cylinder(r=diameter / 2, h=length, center=False)
     for i in range(1, num + 1):
         cone = HingeCone(diameter / 2 - 0.01, offset)
         if i % 2 == 1:
             cone = cone.mirror([0, 0, 1])
         cyl = cyl - cone.translate([0, 0, spacing * i])
         if i % 2 == 1:
-            ring_outer = cylinder(r=diameter, h=diameter + 0.04, _fn=32).translate([0, 0, spacing * i - 0.02])
-            ring_inner = cylinder(r=diameter / 2 - offset, h=diameter + 0.06, _fn=32).translate(
+            ring_outer = pysolidfive.cylinder(r=diameter, h=diameter + 0.04, center=False).translate(
+                [0, 0, spacing * i - 0.02]
+            )
+            ring_inner = pysolidfive.cylinder(r=diameter / 2 - offset, h=diameter + 0.06, center=False).translate(
                 [0, 0, spacing * i - 0.03]
             )
             cyl = cyl - (ring_outer - ring_inner)
@@ -101,35 +97,37 @@ def HingeLineWithSpacingAndNum(
     for i in range(0, num + 1):
         if i % 2 == 1:
             knuckle = (
-                cylinder(r=diameter / 2, h=diameter - offset, _fn=32).translate([0, 0, spacing * i + offset / 2])
-                | shapes3d.prismoid(
+                pysolidfive.prismoid(
                     size1=[diameter - offset, diameter],
                     size2=[diameter - offset, diameter],
                     h=diameter / 2 + offset * 2 + 0.01,
                 )
                 .rotate([0, 90, 0])
                 .translate([0, 0, spacing * i + diameter / 2])
+                | pysolidfive.cylinder(r=diameter / 2, h=diameter - offset, center=False).translate(
+                    [0, 0, spacing * i + offset / 2]
+                )
             ).rotate([0, 0, spin])
 
-            arm_outer = shapes3d.cuboid([1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT])
-            cut_a = cylinder(r=diameter / 2 + offset, h=length, _fn=32).translate(
+            arm_outer = pysolidfive.cuboid([1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT])
+            cut_a = pysolidfive.cylinder(r=diameter / 2 + offset, h=length, center=False).translate(
                 [diameter / 4 + offset, 0, -(spacing / 4 + diameter / 2)]
             )
-            cut_b = shapes3d.cuboid(
+            cut_b = pysolidfive.cuboid(
                 [1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT]
             ).translate([offset * 3 / 2, diameter / 2, 0])
             arm = (arm_outer - cut_a - cut_b).translate([-diameter / 4 - offset * 3 / 2, 0, spacing * i + diameter / 2])
 
             piece = knuckle | arm
         else:
-            block_a = shapes3d.cuboid(
+            block_a = pysolidfive.cuboid(
                 [1, diameter, diameter + offset * 3], chamfer=offset * 2, edges=[TOP + RIGHT, BOTTOM + RIGHT]
             ).translate([-diameter / 2 - offset * 3 / 2, 0, spacing * i + diameter / 2])
 
-            box_outer = cube([diameter / 2 + offset, diameter, diameter]).translate(
-                [-diameter / 2 - offset, -diameter / 2, spacing * i]
-            )
-            hole = cylinder(d=diameter - 0.02, h=diameter * 4, _fn=32).translate(
+            box_outer = pysolidfive.cuboid(
+                [diameter / 2 + offset, diameter, diameter], anchor=BOTTOM + FRONT + LEFT
+            ).translate([-diameter / 2 - offset, -diameter / 2, spacing * i])
+            hole = pysolidfive.cylinder(d=diameter - 0.02, h=diameter * 4, center=False).translate(
                 [0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2]
             )
             block_b = box_outer - hole
@@ -137,10 +135,10 @@ def HingeLineWithSpacingAndNum(
             piece = block_a | block_b
         legs = piece if legs is None else legs | piece
 
-    combined = (cyl | legs) if legs is not None else cyl
+    combined = (legs | cyl) if legs is not None else cyl
     combined = combined.translate([0, 0, -length / 2])
 
-    bound = shapes3d.cuboid([diameter * 2, diameter * 2, length])
+    bound = pysolidfive.cuboid([diameter * 2, diameter * 2, length])
     return (bound & combined).rotate([0, 270, 0])
 
 
@@ -185,7 +183,7 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
     num = length / diameter
     spacing = length / num
 
-    middle = shapes3d.cuboid([length, width - diameter * 2 - offset / 2, diameter]).translate([0, width / 2, 0])
+    middle = pysolidfive.cuboid([length, width - diameter * 2 - offset / 2, diameter]).translate([0, width / 2, 0])
     line1 = HingeLineWithSpacingAndNum(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing).translate(
         [0, diameter / 2, 0]
     )
@@ -195,7 +193,9 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
         .translate([0, width - diameter / 2, 0])
     )
 
-    return (middle | line1 | line2).translate([0, -width / 2, 0])
+    # One symbolic SDF for the whole hinge; .mesh() so callers get a plain solid to
+    # colour/rotate/union natively.
+    return (middle | line1 | line2).translate([0, -width / 2, 0]).mesh()
 
 
 def HingeBoxLidLabel(
@@ -255,10 +255,9 @@ def HingeBoxLidLabel(
     )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
-    top = shapes3d.cuboid(
+    top = pysolidfive.cuboid(
         [inner_width, inner_length, lid_thickness],
         anchor=BOTTOM + FRONT + LEFT,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     ).color(material_colour)
 
     mesh = LidMeshBasic(
@@ -361,7 +360,7 @@ def MakeBoxAndLidWithInsetHinge(
     kids = list(children) if children else []
 
     # --- Base half ---
-    base_body = shapes3d.cuboid(
+    base_body = pysolidfive.cuboid(
         [width, length, height / 2],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -376,13 +375,13 @@ def MakeBoxAndLidWithInsetHinge(
     )
     base_body = base_body | latch
 
-    rim_outer = shapes3d.cuboid(
+    rim_outer = pysolidfive.cuboid(
         [width - wall_thickness, length - wall_thickness, wall_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     ).translate([wall_thickness / 2, wall_thickness / 2, height / 2 - wall_thickness / 2])
-    rim_inner = shapes3d.cuboid(
+    rim_inner = pysolidfive.cuboid(
         [
             width - wall_thickness * 2 - print_in_place_offset * 2,
             length - wall_thickness * 2 - print_in_place_offset * 2,
@@ -392,7 +391,7 @@ def MakeBoxAndLidWithInsetHinge(
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     ).translate([wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness / 2])
-    base_body = base_body - (rim_outer - rim_inner)
+    base_body = base_body - (rim_outer - rim_inner).color(material_colour)
 
     base_inner_width = width - wall_thickness - hinge_width
     base_inner_height = height / 2 - floor_thickness
@@ -406,20 +405,20 @@ def MakeBoxAndLidWithInsetHinge(
         base_body = base_body | c2.translate([wall_thickness, wall_thickness, -0.01])
 
     # --- Lid half ---
-    lid_body = shapes3d.cuboid(
+    lid_body = pysolidfive.cuboid(
         [width, length, height / 2],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     ).color(material_colour)
 
-    lid_rim_outer = shapes3d.cuboid(
+    lid_rim_outer = pysolidfive.cuboid(
         [width - wall_thickness, length - wall_thickness, wall_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + BACK, TOP + FRONT, TOP + LEFT, TOP + RIGHT],
     ).translate([wall_thickness / 2, wall_thickness / 2, height / 2])
-    lid_rim_inner = shapes3d.cuboid(
+    lid_rim_inner = pysolidfive.cuboid(
         [
             width - wall_thickness * 2 - print_in_place_offset * 2,
             length - wall_thickness * 2 - print_in_place_offset * 2,
@@ -451,9 +450,9 @@ def MakeBoxAndLidWithInsetHinge(
         lid_body = lid_body - c1.translate([hinge_width, wall_thickness, lid_thickness])
 
     if len(kids) > 3 and kids[3] is not None:
-        hole = shapes3d.cuboid(
+        hole = pysolidfive.cuboid(
             [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
-        ).translate([wall_thickness, wall_thickness, -1])
+        ).translate([wall_thickness, wall_thickness, -1]).color(material_colour)
         lid_body = lid_body - hole
 
         c3 = ResolveChild(kids[3], width - wall_thickness * 2, length - wall_thickness * 2, lid_inner_height)

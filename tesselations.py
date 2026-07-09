@@ -542,9 +542,12 @@ def TesselationLeafOutlineThree(
     section_height = section * math.sqrt(3) / 2
 
     leaf = TesselationLeafOutline(size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness)
-    p1 = transforms.move([0, -section * 3 / 2], leaf)
-    p2 = transforms.move([-section_height * 2, section * 3 / 2], transforms.rot(a=180, p=leaf))
-    p3 = transforms.move([section_height * 2, section / 2], leaf)
+    # `leaf` is REGION data (a list of outlines of differing lengths); the numpy-backed
+    # transforms helpers only handle one path at a time, so move/rotate each outline
+    # separately rather than feeding them the ragged region wholesale.
+    p1 = [transforms.move([0, -section * 3 / 2], path) for path in leaf]
+    p2 = [transforms.move([-section_height * 2, section * 3 / 2], transforms.rot(a=180, p=path)) for path in leaf]
+    p3 = [transforms.move([section_height * 2, section / 2], path) for path in leaf]
     data = _bosl2.union([p1, p2, p3])
     return region(data)
 
@@ -669,7 +672,7 @@ def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 
     apothem = math.cos(math.radians(30)) * radius
     inner_side_length = apothem * math.sqrt(3) / 2
 
-    ring = circle(d=inner_side_length * 2, _fn=6).offset(outer_offset) - circle(d=inner_side_length * 2, _fn=6).offset(-thickness)
+    ring = circle(d=inner_side_length * 2, fn=6).offset(outer_offset) - circle(d=inner_side_length * 2, fn=6).offset(-thickness)
 
     petals = ring
     for i in range(6):
@@ -687,7 +690,7 @@ def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 
         )
         petals = petals | (outer_sq - inner_sq)
 
-    return circle(d=size, _fn=6) & petals
+    return circle(d=size, fn=6) & petals
 
 
 def TesselationPegasus(size: list[float], thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:

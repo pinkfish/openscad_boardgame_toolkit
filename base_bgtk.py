@@ -224,6 +224,26 @@ class InnerObject:
 # ---------------------------------------------------------------------------
 
 
+def region(paths: list) -> PyOpenSCAD:
+    """Turns BOSL2 region data (a list of [x, y] outlines, even-odd nesting for holes) into
+    real 2-D geometry via the native polygon(points, paths=...) multi-path form -- PythonSCAD
+    has no region() builtin of its own, but several tesselations.py/shapes.py constructions
+    return raw region data from the real-BOSL2 region functions (union/difference/
+    make_region/offset_stroke) and need rendering. Coordinates are forced to plain floats:
+    region data that flowed through the bosl2/ port's numpy-based path math otherwise reaches
+    the FFI as numpy.float64, which the native side rejects.
+    """
+    # A single bare path is fine too.
+    path_list = paths if isinstance(paths[0][0], (list, tuple)) or hasattr(paths[0][0], "__len__") else [paths]
+    pts: list[list[float]] = []
+    idx: list[list[int]] = []
+    for path in path_list:
+        base = len(pts)
+        pts.extend([[float(p[0]), float(p[1])] for p in path])
+        idx.append(list(range(base, base + len(path))))
+    return polygon(pts, paths=idx)
+
+
 def ResolveChild(
     c: PyOpenSCAD, inner_width: float, inner_length: float, inner_height: float
 ) -> PyOpenSCAD:

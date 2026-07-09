@@ -30,15 +30,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
+import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def MakeBoxWithSlidingCatchLid(
@@ -90,73 +85,75 @@ def MakeBoxWithSlidingCatchLid(
 
     calc_sliding_len = (length - wall_thickness) / 6
 
-    body = shapes3d.cuboid(
+    body = pysolidfive.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
-    ).color(material_colour)
-
-    middle = cube([width - wall_thickness * 2, length - wall_thickness * 2, height]).color(material_colour).translate(
-        [wall_thickness, wall_thickness, floor_thickness]
     )
+
+    middle = pysolidfive.cuboid(
+        [width - wall_thickness * 2, length - wall_thickness * 2, height], anchor=BOTTOM + FRONT + LEFT
+    ).translate([wall_thickness, wall_thickness, floor_thickness])
     body = body - middle
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
-    ).color(material_colour).translate([-0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness])
+    ).translate([-0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness])
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
-    ).color(material_colour).translate(
+    ).translate(
         [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness]
     )
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
         edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK],
-        _fn=32,
-    ).color(material_colour).translate(
+    ).translate(
         [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing]
     )
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         rounding=lid_thickness,
         anchor=FRONT + LEFT + BOTTOM,
         edges=[BACK + TOP],
-    ).color(material_colour).translate(
+    ).translate(
         [-0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness - top_thickness]
     )
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
-    ).color(material_colour).translate([-0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness])
+    ).translate([-0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness])
 
-    body = body - shapes3d.cuboid(
+    body = body - pysolidfive.cuboid(
         [width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
         edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK],
-        _fn=32,
-    ).color(material_colour).translate(
+    ).translate(
         [
             -0.5,
             wall_thickness + length - calc_sliding_len - wall_thickness - size_spacing * 2,
             height - top_thickness + size_spacing,
         ]
     )
+
+    # Everything above is one symbolic SDF; .color() meshes it once, so the native child
+    # subtractions below get a plain solid.
+    body = body.color(material_colour)
 
     # Children are only carved in the interior area (not the walls).
     inner_width = width - wall_thickness * 2
@@ -220,42 +217,34 @@ def SlidingCatchBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = top_thickness / 2
 
-    base = cube([width, length - wall_thickness, lid_thickness - size_spacing]).color(material_colour)
+    base = pysolidfive.cuboid(
+        [width, length - wall_thickness, lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT
+    )
     if fill_middle:
-        fill = (
-            shapes3d.cuboid(
-                [width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1],
-                anchor=FRONT + LEFT + BOTTOM,
-                rounding=calc_lid_rounding,
-                edges=TOP,
-                _fn=32,
-            )
-            .color(material_colour)
-            .translate([wall_thickness, 0, lid_thickness - 0.1])
-        )
-        base = base | fill
+        fill = pysolidfive.cuboid(
+            [width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1],
+            anchor=FRONT + LEFT + BOTTOM,
+            rounding=calc_lid_rounding,
+            edges=TOP,
+        ).translate([wall_thickness, 0, lid_thickness - 0.1])
+        base = fill | base
 
-    cut_w = wall_thickness + size_spacing + 1
-    front_a = cube([cut_w, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]).color(material_colour).translate(
-        [-1, -1, -0.5]
-    )
-    front_b = cube([cut_w, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]).color(material_colour).translate(
-        [width - wall_thickness - size_spacing, -1, -0.5]
-    )
-    mid_a = cube([cut_w, wall_thickness + calc_sliding_len * 2, lid_thickness + 1]).color(material_colour).translate(
-        [-1, calc_sliding_len * 2, -0.5]
-    )
-    mid_b = cube([cut_w, wall_thickness + calc_sliding_len * 2, lid_thickness + 1]).color(material_colour).translate(
-        [width - wall_thickness - size_spacing, calc_sliding_len * 2, -0.5]
-    )
-    end_a = cube([cut_w, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]).color(material_colour).translate(
-        [-1, calc_sliding_len * 5, -0.5]
-    )
-    end_b = cube([cut_w, wall_thickness + calc_sliding_len + 1, lid_thickness + 1]).color(material_colour).translate(
-        [width - wall_thickness - size_spacing, calc_sliding_len * 5, -0.5]
-    )
+    def _cut(size_y: float, tx: float, ty: float) -> "pysolidfive.PyShape":
+        cut_w = wall_thickness + size_spacing + 1
+        return pysolidfive.cuboid(
+            [cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
+        ).translate([tx, ty, -0.5])
 
-    lid_top = base - front_a - front_b - mid_a - mid_b - end_a - end_b
+    front_a = _cut(wall_thickness + calc_sliding_len + 1, -1, -1)
+    front_b = _cut(wall_thickness + calc_sliding_len + 1, width - wall_thickness - size_spacing, -1)
+    mid_a = _cut(wall_thickness + calc_sliding_len * 2, -1, calc_sliding_len * 2)
+    mid_b = _cut(wall_thickness + calc_sliding_len * 2, width - wall_thickness - size_spacing, calc_sliding_len * 2)
+    end_a = _cut(wall_thickness + calc_sliding_len + 1, -1, calc_sliding_len * 5)
+    end_b = _cut(wall_thickness + calc_sliding_len + 1, width - wall_thickness - size_spacing, calc_sliding_len * 5)
+
+    # One symbolic SDF for the whole finger layout; .color() meshes it once for
+    # internal_build_lid()'s native union with the label/pattern children.
+    lid_top = (base - front_a - front_b - mid_a - mid_b - end_a - end_b).color(material_colour)
 
     kids = list(children) if children else []
     lid_children = [lid_top] + [c.translate([wall_thickness, 0, 0]) for c in kids]
@@ -344,7 +333,7 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
         [width - calc_label_options.border, length - calc_label_options.border, lid_thickness]
     ).color(material_colour) & SlidingLidFingernail(lid_thickness).color(material_colour).translate(
         [width / 2, length - calc_label_options.border - 3, 0]
-    )
+    ).shape
 
     lid_children = [mesh, label_shape, fingernail] + (list(extra_children) if extra_children else [])
 

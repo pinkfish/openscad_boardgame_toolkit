@@ -30,10 +30,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import masking
+import pysolidfive
 from components import CornerCatch
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -43,10 +42,11 @@ from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInne
 _bosl2 = osuse("BOSL2/std.scad")
 
 
-def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> PyOpenSCAD:
+def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> "pysolidfive.PyShape":
     box = wall_thickness * 6 / 4
-    # Bosl2Solid on the left so its __and__ (not sphere()'s native __and__) handles the mixed operand.
-    return shapes3d.cuboid([box, box, box], anchor=anchor_dir) & sphere(r=radius)
+    # Both operands pysolidfive, so the intersection stays a symbolic SDF -- callers compose it
+    # further (union with the opposite bump, translate) and mesh once via .color().
+    return pysolidfive.cuboid([box, box, box], anchor=anchor_dir) & pysolidfive.sphere(r=radius)
 
 
 def MakeBoxWithSlipoverLid(
@@ -116,70 +116,74 @@ def MakeBoxWithSlipoverLid(
 
     wall_height_calc = wall_height if wall_height is not None else height - lid_thickness - size_spacing
 
-    inner = shapes3d.cuboid(
+    # The whole body graph below is symbolic pysolidfive SDFs -- unions, wedge/bump cuts and
+    # all -- meshed exactly once at the .color() before the native children get carved.
+    inner = pysolidfive.cuboid(
         [width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2, wall_height_calc],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        res=10,
     )
-    inner = inner.edge_mask(TOP, children=masking.rounding_edge_mask(r=wall_thickness / 4, l=max(length, width)))
-    body = inner.color(material_colour).translate([wall_thickness + size_spacing, wall_thickness + size_spacing, 0])
+    # The original bosl2 construction rounded the top rim with an edge_mask() sweep; with
+    # pysolidfive that's just another .round() pass on the TOP edge group.
+    inner = inner.round(wall_thickness / 4, edges=[TOP])
+    body = inner.translate([wall_thickness + size_spacing, wall_thickness + size_spacing, 0])
 
     if foot > 0:
-        foot_piece = shapes3d.cuboid(
+        foot_piece = pysolidfive.cuboid(
             [width, length, foot],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=min(wall_thickness / 2, foot / 2),
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
-        ).color(material_colour)
+            res=10,
+        )
         body = body | foot_piece
 
     if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
         catch_width = width - wall_thickness * 2
-        body = body - shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).color(material_colour).translate(
+        body = body - pysolidfive.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).translate(
             [(catch_width * 2 / 8) + wall_thickness, wall_thickness, foot]
         )
-        body = body - shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 180]).color(material_colour).translate(
+        body = body - pysolidfive.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 180]).translate(
             [(catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot]
         )
     if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
         catch_length = length - wall_thickness * 2
-        body = body - shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 90]).color(material_colour).translate(
+        body = body - pysolidfive.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 90]).translate(
             [width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot]
         )
-        body = body - shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 270]).color(material_colour).translate(
+        body = body - pysolidfive.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 270]).translate(
             [wall_thickness, catch_length * 6 / 8 + wall_thickness, foot]
         )
     if (lid_catch == CatchType.BUMPS_SHORT and width < length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
-            bump_a = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, FRONT).color(material_colour)
-            bump_b = (
-                _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, BACK)
-                .color(material_colour)
-                .translate([0, length - wall_thickness * 2, 0])
+            bump_a = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, FRONT)
+            bump_b = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, BACK).translate(
+                [0, length - wall_thickness * 2, 0]
             )
             body = body - (bump_a | bump_b).translate([x, wall_thickness, wall_thickness + foot])
     if (lid_catch == CatchType.BUMPS_SHORT and length <= width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
         catch_offset = length - wall_thickness * 2
         y1 = (catch_offset * 6 / 8) + wall_thickness
-        bump_a1 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, LEFT).color(material_colour)
-        bump_b1 = (
-            _catch_bump(wall_thickness, wall_thickness * 5 / 6 + m_piece_wiggle_room, RIGHT)
-            .color(material_colour)
-            .translate([width - wall_thickness * 2, 0, 0])
+        bump_a1 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, LEFT)
+        bump_b1 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + m_piece_wiggle_room, RIGHT).translate(
+            [width - wall_thickness * 2, 0, 0]
         )
         body = body - (bump_a1 | bump_b1).translate([wall_thickness, y1, wall_thickness + foot])
 
         y2 = (catch_offset * 2 / 8) + wall_thickness
-        bump_a2 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, LEFT).color(material_colour)
-        bump_b2 = (
-            _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, RIGHT)
-            .color(material_colour)
-            .translate([width - wall_thickness * 2, 0, 0])
+        bump_a2 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, LEFT)
+        bump_b2 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, RIGHT).translate(
+            [width - wall_thickness * 2, 0, 0]
         )
         body = body - (bump_a2 | bump_b2).translate([wall_thickness, y2, wall_thickness + foot])
+
+    # Everything past here subtracts native (non-pysolidfive) solids -- the caller's children --
+    # so mesh the SDF once, here, before mixing.
+    body = body.color(material_colour)
 
     inner_width = width - wall_thickness * 4
     inner_length = length - wall_thickness * 4
@@ -260,8 +264,10 @@ def SlipoverBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness / 2
 
+    # internal_build_lid()'s base child must be native (it composes with arbitrary sibling
+    # solids), so this one meshes via .color() right away.
     top = (
-        shapes3d.cuboid([width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness], anchor=BOTTOM + FRONT + LEFT)
+        pysolidfive.cuboid([width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness], anchor=BOTTOM + FRONT + LEFT)
         .color(material_colour)
         .translate([wall_thickness * 5 / 6, wall_thickness * 5 / 6, 0])
     )
@@ -272,52 +278,39 @@ def SlipoverBoxLid(
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 
-    shell = shapes3d.cuboid(
+    # The shell and its box cuts compose symbolically (subtractions commute, so the two plain
+    # cube cuts moved ahead of the native CornerCatch ones); one .color() meshes the SDF before
+    # the CornerCatch subtractions, which are native solids.
+    shell = pysolidfive.cuboid(
         [width, length, height - foot_offset],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=calc_lid_rounding,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP],
+        res=10,
     )
-    shell = shell.edge_mask(BOT, children=masking.rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length)))
-    shell = shell.color(material_colour)
+    # The original bosl2 construction rounded the bottom rim with an edge_mask() sweep; with
+    # pysolidfive that's just another .round() pass on the BOTTOM edge group.
+    shell = shell.round(max(calc_lid_rounding / 4, 0.5), edges=[BOTTOM])
 
-    cut1 = (
-        shapes3d.cuboid([width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT)
-        .color(material_colour)
-        .translate([wall_thickness, wall_thickness, height - foot_offset - lid_thickness - 0.01])
-    )
+    cut1 = pysolidfive.cuboid(
+        [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT, res=10
+    ).translate([wall_thickness, wall_thickness, height - foot_offset - lid_thickness - 0.01])
     shell = shell - cut1
 
-    cut2 = (
-        shapes3d.cuboid(
-            [width - wall_thickness * 2, length - wall_thickness * 2, height - foot_offset + 1],
-            anchor=BOTTOM + FRONT + LEFT,
-            rounding=calc_lid_rounding / 2,
-            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP],
-        )
-        .color(material_colour)
-        .translate([wall_thickness, wall_thickness, -1 - lid_thickness])
-    )
+    cut2 = pysolidfive.cuboid(
+        [width - wall_thickness * 2, length - wall_thickness * 2, height - foot_offset + 1],
+        anchor=BOTTOM + FRONT + LEFT,
+        rounding=calc_lid_rounding / 2,
+        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP],
+        res=10,
+    ).translate([wall_thickness, wall_thickness, -1 - lid_thickness])
     shell = shell - cut2
 
-    radius = max(finger_height, 7)
-
-    corner1 = CornerCatch(
-        radius=radius, height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4,
-        round_back=False,
-    ).translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
-    shell = shell - corner1
-    cube1 = cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
+    cube1 = pysolidfive.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
         [wall_thickness * 3 / 2, wall_thickness * 3 / 2, height - finger_height - lid_thickness - foot_offset]
     )
     shell = shell - cube1
-
-    corner2 = CornerCatch(
-        radius=radius, height=finger_height, depth_of_hole=wall_thickness + 0.02, rounding_edge=wall_thickness / 4,
-        round_back=False, round_corner_back=False, spin=180,
-    ).translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
-    shell = shell - corner2
-    cube2 = cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
+    cube2 = pysolidfive.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
         [
             width - wall_thickness * 3 / 2,
             length - wall_thickness * 3 / 2,
@@ -326,6 +319,31 @@ def SlipoverBoxLid(
     )
     shell = shell - cube2
 
+    shell = shell.color(material_colour)
+
+    radius = max(finger_height, 7)
+
+    # depth_of_hole spans THREE wall thicknesses (centered on the wall) rather than barely one:
+    # FingerHoleWall's rounded-lip flare (os_circle(-rounding_edge)) makes the cutter narrower
+    # in the middle of its sweep than at its end faces, so a cutter only fractionally deeper
+    # than the wall leaves a thin mid-wall fin standing inside the scallop -- the wall must sit
+    # entirely within the sweep's straight middle section to be cleared across its full width.
+    # The extra depth is harmless: it hangs outside the shell on one side and into the already
+    # hollowed interior on the other.
+    corner1 = CornerCatch(
+        radius=radius, height=finger_height, depth_of_hole=wall_thickness * 3, rounding_edge=wall_thickness / 4,
+        round_back=False,
+    ).translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
+    shell = shell - corner1
+
+    corner2 = CornerCatch(
+        radius=radius, height=finger_height, depth_of_hole=wall_thickness * 3, rounding_edge=wall_thickness / 4,
+        round_back=False, round_corner_back=False, spin=180,
+    ).translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
+    shell = shell - corner2
+
+    # Each catch piece composes symbolically (pysolidfive wedge/bump + rotate/translate) and
+    # meshes at its trailing .color() -- catches then union natively with the shell/lid stack.
     catches = None
 
     def add_catch(piece: PyOpenSCAD) -> None:
@@ -335,58 +353,63 @@ def SlipoverBoxLid(
     if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
         catch_width = width - wall_thickness * 2
         add_catch(
-            shapes3d.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
-            .color(material_colour)
+            pysolidfive.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
             .translate([(catch_width * 2 / 8) + size_spacing + wall_thickness, wall_thickness, 0])
+            .color(material_colour)
         )
         add_catch(
-            shapes3d.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            pysolidfive.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
             .rotate([0, 0, 180])
-            .color(material_colour)
             .translate([(catch_width * 6 / 8) + size_spacing + wall_thickness, length - wall_thickness, 0])
+            .color(material_colour)
         )
     if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
         catch_length = length - wall_thickness * 2
         add_catch(
-            shapes3d.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            pysolidfive.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
             .rotate([0, 0, 90])
-            .color(material_colour)
             .translate([width - wall_thickness, catch_length * 2 / 8 + size_spacing + wall_thickness, 0])
+            .color(material_colour)
         )
         add_catch(
-            shapes3d.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            pysolidfive.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
             .rotate([0, 0, 270])
-            .color(material_colour)
             .translate([wall_thickness, catch_length * 6 / 8 + size_spacing + wall_thickness, 0])
+            .color(material_colour)
         )
     if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
-            bump_a = _catch_bump(wall_thickness, wall_thickness * 4 / 6, FRONT).color(material_colour)
-            bump_b = (
-                _catch_bump(wall_thickness, wall_thickness * 4 / 6, BACK)
-                .color(material_colour)
-                .translate([0, length - wall_thickness * 10 / 8, 0])
+            bump_a = _catch_bump(wall_thickness, wall_thickness * 4 / 6, FRONT)
+            bump_b = _catch_bump(wall_thickness, wall_thickness * 4 / 6, BACK).translate(
+                [0, length - wall_thickness * 10 / 8, 0]
             )
-            add_catch((bump_a | bump_b).translate([x, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8]))
+            add_catch(
+                (bump_a | bump_b).translate([x, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8]).color(material_colour)
+            )
     if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
         catch_offset = length - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             y = (catch_offset * frac) + wall_thickness
-            bump_a = _catch_bump(wall_thickness, wall_thickness * 4 / 6, LEFT).color(material_colour)
-            bump_b = (
-                _catch_bump(wall_thickness, wall_thickness * 4 / 6, RIGHT)
-                .color(material_colour)
-                .translate([width - wall_thickness * 10 / 8, 0, 0])
+            bump_a = _catch_bump(wall_thickness, wall_thickness * 4 / 6, LEFT)
+            bump_b = _catch_bump(wall_thickness, wall_thickness * 4 / 6, RIGHT).translate(
+                [width - wall_thickness * 10 / 8, 0, 0]
             )
-            add_catch((bump_a | bump_b).translate([wall_thickness * 5 / 8, y, wall_thickness + wall_thickness / 8]))
+            add_catch(
+                (bump_a | bump_b).translate([wall_thickness * 5 / 8, y, wall_thickness + wall_thickness / 8]).color(material_colour)
+            )
 
     body = lid_stack | shell
     if catches is not None:
         body = body | catches
 
-    return body.translate([0, length, height - foot]).rotate([180, 0, 0])
+    # Returned label-face-up (construction orientation), matching SlidingLid's convention: the
+    # lid's decorated top -- the mesh pattern and any label -- is what shows in renders and is
+    # the face an MMU print colors in its final layers. The original SCAD module flipped the
+    # lid upside-down here (opening up, label buried against the build plate), which is why
+    # labeled slipover lids appeared to have no label in the output.
+    return body
 
 
 def SlipoverBoxLidWithLabelAndCustomShape(
