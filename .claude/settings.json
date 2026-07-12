@@ -100,10 +100,27 @@
       "Bash(npm --version)",
       "Bash(code --version)",
       "Bash(npm install *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(python3 -m py_compile *)",
+      "Bash(python3 -m unittest *)",
+      "Bash(mdfind *)",
+      "Bash(codesign -d *)",
+      "Bash(codesign -dv *)",
+      "Bash(codesign -dvvv *)",
+      "Bash(pip3 show *)",
+      "Bash(pip3 list)",
+      "Bash(python3 *)",
+      "Bash(python3)",
+      "Bash(/Applications/PythonSCAD.app/Contents/MacOS/PythonSCAD *)",
+      "Bash(/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD *)",
+      "Bash(PYTHONSCAD_BIN=/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD python3 *)",
+      "Bash(PYTHONSCAD_BIN=/Applications/PythonSCAD.app/Contents/MacOS/PythonSCAD python3 *)",
+      "Bash(npx --yes pyright *)",
+      "Bash(npx pyright *)"
     ],
     "additionalDirectories": [
       "/private/tmp/claude-501/-Volumes-ExternalDocs-Documents-openscad-boardgame-toolkit/1f8ab8a8-1d00-43e2-9bc4-b9d57f32f326/scratchpad"
-    ]
+    ],
+    "defaultMode": "bypassPermissions"
   }
 }

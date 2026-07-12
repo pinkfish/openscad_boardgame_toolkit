@@ -167,6 +167,7 @@ def TesselationGooseGrid(row: int, col: int, size: float, thickness: float, oute
                 [x, y, 0]
             )
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 

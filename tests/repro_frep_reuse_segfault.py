@@ -41,7 +41,7 @@
 import os
 
 try:
-    from pythonscad import frep  # only importable inside the PythonSCAD app
+    import pythonscad  # noqa: F401  -- only importable inside the PythonSCAD app
     _IN_APP = True
 except ImportError:
     _IN_APP = False
@@ -84,6 +84,7 @@ CASES = {
 def _sphere_mesh():
     """A frep()-meshed sphere of radius 5 -- the simplest possible libfive solid."""
     import libfive as lv
+    from pythonscad import frep
 
     x, y, z = lv.x(), lv.y(), lv.z()
     sdf = lv.sqrt(x * x + y * y + z * z) - 5

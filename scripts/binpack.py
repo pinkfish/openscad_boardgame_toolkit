@@ -17,7 +17,7 @@ pattern_container = re.compile(
 )
 
 
-def ReadItemsFromOpenScad(filename: str) -> dict:
+def ReadItemsFromOpenScad(filename: str) -> tuple[dict, dict, dict] | dict:
     with open(filename, "r") as file:
         items = {}
         container = {}

@@ -1,7 +1,7 @@
 import pymeshlab as ml
 import sys
 
-ms = ml.MeshSet()
+ms = ml.MeshSet()  # pyright: ignore[reportAttributeAccessIssue] -- present at runtime, missing from the compiled module's stubs
 ms.load_new_mesh(sys.argv[1]) # Target mesh
 ms.load_new_mesh(sys.argv[2]) # Sample mesh
 

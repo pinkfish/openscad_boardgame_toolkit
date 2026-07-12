@@ -1,5 +1,9 @@
 #!/bin/python
 
+# The svg library this wraps annotates segment endpoints as Optional even though every
+# parsed path segment has them -- relax those two checks for this one CLI script rather
+# than asserting on every access.
+# pyright: reportOptionalMemberAccess=false, reportAttributeAccessIssue=false
 from svgelements import *
 import logging
 

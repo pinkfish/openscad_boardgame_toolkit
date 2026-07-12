@@ -31,10 +31,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+import numpy as np
+import bosl2.masking
+import bosl2.shapes3d
 from bosl2 import shapes2d
 from bosl2 import paths
 from bosl2 import rounding
-import pysolidfive
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 
 from typing import Callable
@@ -118,30 +120,26 @@ def MakeBoxWithNoLid(
     calc_make_finger_x = (width > length) if (make_finger_x is None and make_finger_y is None) else False
     calc_make_finger_y = (length > width) if (make_finger_y is None and make_finger_x is None) else False
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-        res=mesh_res,
     )
-    # The original bosl2 construction treated the top and bottom rims separately from the
-    # vertical edges (face_profile(TOP/BOTTOM) + corner_profile("ALL")); with pysolidfive that
-    # whole trio is just further .round() passes on the remaining edge groups.
-    body = body.round(wall_thickness / 2, edges=[TOP])
-    body = body.round(wall_thickness / 2, edges=[BOTTOM])
+    # Top and bottom rims plus corners get their own roundover, exactly the original .scad
+    # construction (face_profile(TOP/BOTTOM) + corner_profile("ALL"), all r=wall/2).
+    body = body.face_profile([TOP], r=wall_thickness / 2)
+    body = body.face_profile([BOTTOM], r=wall_thickness / 2)
+    body = body.corner_profile("ALL", r=wall_thickness / 2)
 
     if hollow:
-        hole = pysolidfive.cuboid(
+        hole = bosl2.shapes3d.cuboid(
             [width - wall_thickness * 2, length - wall_thickness * 2, height],
             rounding=wall_thickness / 4,
             anchor=BOTTOM + LEFT + FRONT,
-            res=mesh_res,
         ).translate([wall_thickness, wall_thickness, floor_thickness])
         body = body - hole
 
-    # Everything past here subtracts native (non-pysolidfive) solids -- FingerHoleWall and the
-    # caller's children -- so mesh the SDF once, here, before mixing.
     body = body.color(material_colour)
 
     fh = min(calc_finger_hole_size, height - default_floor_thickness + 1)
@@ -180,7 +178,7 @@ def MakeBoxWithNoLid(
         if kids_shape is not None:
             body = body - kids_shape.translate([wall_thickness, wall_thickness, floor_thickness])
 
-    return body
+    return body.shape
 
 
 def FingerHoleWallSegment(
@@ -262,9 +260,10 @@ def MakePathBoxWithNoLid(
     """Makes a box with no lid using a polygon layout.
 
     Useful for spacers and other things in games. The solids are built with
-    pysolidfive.polygon_prism() (a signed-distance-function sweep, meshed once
-    at the end), so the old advice about reducing offset_sweep() "steps" on
-    corner geometry errors no longer applies.
+    base_bgtk.OffsetSweep() (direct Manifold CSG -- native polygon extrusion
+    with offset()-sliced rim roundovers/flares), so the old advice about
+    reducing offset_sweep() "steps" on corner geometry errors no longer
+    applies.
 
     *children*, if given, may be a plain solid or a
     callable(inner_path, inner_width, inner_length, inner_height) -- this
@@ -345,19 +344,17 @@ def MakePathBoxWithNoLid(
     inner_path_stackable_bottom_inside = _bosl2.offset(main_path, r=-wall_thickness - stackable_fit_offset)
     inner_path_stackable_bottom_inside_inside = _bosl2.offset(main_path, r=-wall_thickness / 2 - stackable_fit_offset)
 
-    # Every solid below is a pysolidfive.polygon_prism() (the SDF equivalent of the original
-    # real-BOSL2 vnf_polyhedron(offset_sweep(path, bottom=os_circle(b), top=os_circle(t)))
-    # construction -- same radius sign convention, positive roundover / negative flare), so the
-    # whole body composes symbolically and meshes exactly once at the .color() below. The 2-D
-    # path/region math (round_corners, offset, union/difference/intersection) stays with
-    # bosl2/real BOSL2 -- that's point-list data, not solids. offset_sweep_options is therefore
-    # unused now (an SDF has no offset/check_valid/quality/steps knobs); it's kept in the
-    # signature so existing call sites don't break.
+    # Every solid below is an OffsetSweep() (base_bgtk's direct-Manifold equivalent of the
+    # original real-BOSL2 vnf_polyhedron(offset_sweep(path, bottom=os_circle(b),
+    # top=os_circle(t))) construction -- same radius sign convention, positive roundover /
+    # negative flare). The 2-D path/region math (round_corners, offset, union/difference/
+    # intersection) stays with bosl2/real BOSL2 -- that's point-list data, not solids.
+    # offset_sweep_options and mesh_res are unused now; both are kept in the signature so
+    # existing call sites don't break.
 
-    def prism(paths, **kw) -> pysolidfive.PyShape:
-        return pysolidfive.polygon_prism(paths, res=mesh_res, **kw)
+    prism = PolygonPrism
 
-    def StackableBoxInternal(bottom: bool = False) -> pysolidfive.PyShape | None:
+    def StackableBoxInternal(bottom: bool = False) -> "PyOpenSCAD | None":
         if stackable == STACKABLE_TYPE_INSIDE:
             outer = prism(
                 rounding.round_corners(
@@ -395,7 +392,9 @@ def MakePathBoxWithNoLid(
         rounding_top=wall_thickness / 8 if stackable else wall_thickness / 4,
     )
     if stackable:
-        main_solid = main_solid | StackableBoxInternal(bottom=False).translate([0, 0, height - stackable_thickness])
+        stack_top = StackableBoxInternal(bottom=False)
+        assert stack_top is not None
+        main_solid = main_solid | stack_top.translate([0, 0, height - stackable_thickness])
 
     for f in sorted_floors:
         if f.floor_height > 0:
@@ -444,10 +443,10 @@ def MakePathBoxWithNoLid(
                 body = body - cut
 
     if stackable:
-        body = body - StackableBoxInternal(bottom=True).translate([0, 0, -stackable_fit_offset])
+        stack_bottom = StackableBoxInternal(bottom=True)
+        assert stack_bottom is not None
+        body = body - stack_bottom.translate([0, 0, -stackable_fit_offset])
 
-    # Everything past here subtracts native (non-pysolidfive) solids -- FingerHoleWall segments
-    # and the caller's children -- so mesh the SDF once, here, before mixing.
     body = body.color(material_colour)
 
     calc_middle_path = _bosl2.offset(path, r=-wall_thickness / 2)

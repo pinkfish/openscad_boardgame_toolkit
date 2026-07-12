@@ -32,6 +32,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+import bosl2.masking
+import bosl2.shapes3d
 import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
@@ -60,7 +62,7 @@ def _apply_reorient(shape, anchor, spin, orient, size):
         shape = shape.translate([-a[0] * size[0] / 2, -a[1] * size[1] / 2, -a[2] * size[2] / 2])
     if spin:
         shape = shape.rotate([0, 0, spin])
-    key = tuple(int(v) for v in orient)
+    key = (int(orient[0]), int(orient[1]), int(orient[2]))
     assert key in _ORIENT_EULER, f"orient must be one of the six axis directions, got {orient}"
     euler = _ORIENT_EULER[key]
     if euler is not None:
@@ -164,19 +166,22 @@ def MakeBoxWithFilamentHingeLid(
     lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness)
     lip_length = max(length / 4, 15)
 
-    main = (
-        pysolidfive.cuboid(
-            [width, length, height - lid_thickness - print_in_place_offset],
-            rounding=wall_thickness / 2,
-            anchor=BOTTOM + FRONT + LEFT,
-            edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
-        )
-        .round(wall_thickness / 4, edges=[TOP + FRONT, TOP + BACK, TOP + RIGHT])
-        .color(material_colour)
+    main = bosl2.shapes3d.cuboid(
+        [width, length, height - lid_thickness - print_in_place_offset],
+        rounding=wall_thickness / 2,
+        anchor=BOTTOM + FRONT + LEFT,
+        edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
     )
+    main = main.edge_mask(
+        [TOP + FRONT, TOP + BACK], children=bosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
+    )
+    main = main.edge_mask(
+        [TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4)
+    )
+    main = main.color(material_colour)
 
     ramp = (
-        pysolidfive.cuboid(
+        bosl2.shapes3d.cuboid(
             [calc_hinge_options.thickness * 1.25 + print_in_place_offset, length, wall_thickness + print_in_place_offset],
             anchor=BOTTOM + LEFT + FRONT,
             rounding=-wall_thickness,
@@ -187,25 +192,25 @@ def MakeBoxWithFilamentHingeLid(
     )
     main = main - ramp
 
-    hinge_cut = pysolidfive.cuboid(
+    hinge_cut = bosl2.shapes3d.cuboid(
         [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
         anchor=TOP + FRONT,
         rounding=calc_hinge_options.thickness / 2,
         edges=[BOTTOM + RIGHT],
-    ).translate([calc_hinge_options.thickness / 2 + print_in_place_offset * 2, 0, height - lid_thickness]).mesh()
+    ).translate([calc_hinge_options.thickness / 2 + print_in_place_offset * 2, 0, height - lid_thickness])
     main = main - hinge_cut
 
-    catch_box = pysolidfive.cuboid(
+    catch_box = bosl2.shapes3d.cuboid(
         [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
         anchor=BOTTOM + RIGHT,
         rounding=wall_thickness / 4,
         edges=[BOTTOM + LEFT],
     )
-    catch_sphere_a = pysolidfive.sphere(d=wall_thickness, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = pysolidfive.sphere(d=wall_thickness, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
+    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
+    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
     catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
         [width, length / 2, height - lid_thickness - lip_height - print_in_place_offset]
-    )
+    ).shape
     main = main - catch
 
     knuckle = (
@@ -299,14 +304,14 @@ def FilamentBoxInsideMask(
     support_width = calc_hinge_options.thickness * 1.25 - wall_thickness
     support_height = support_width + calc_hinge_options.thickness
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=rounding,
         edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     )
 
-    cut1 = pysolidfive.cuboid(
+    cut1 = bosl2.shapes3d.cuboid(
         [support_width + print_in_place_offset + 0.5, length + 1, support_height + 1],
         anchor=BOTTOM + FRONT + LEFT,
         chamfer=support_width,
@@ -314,13 +319,13 @@ def FilamentBoxInsideMask(
     ).translate([-0.5, -0.5, height - lid_thickness - support_height - floor_thickness])
     body = body - cut1
 
-    cut2 = pysolidfive.ycyl(d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP).translate(
+    cut2 = bosl2.shapes3d.ycyl(d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP).translate(
         [0, 0.5, height]
     )
     body = body - cut2
 
-    # One symbolic SDF; .mesh() so the native intersection at the call sites gets a solid.
-    return body.mesh()
+    # Unwrapped: the native intersection at the call sites needs a raw solid.
+    return body.shape
 
 
 def MakeLidForFilamentBox(
@@ -377,7 +382,7 @@ def MakeLidForFilamentBox(
     lip_length = max(length / 4, 15)
 
     top = (
-        pysolidfive.cuboid(
+        bosl2.shapes3d.cuboid(
             [width - wall_thickness * 2.5, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=lid_thickness / 2, edges=BOTTOM
         )
         .color(material_colour)
@@ -410,20 +415,20 @@ def MakeLidForFilamentBox(
     knuckle = knuckle - edge_round.rotate([0, 0, 90]).translate([kd * 1.5, 0, kd / 2])
     knuckle = knuckle.color(material_colour)
 
-    catch_box = pysolidfive.cuboid(
+    catch_box = bosl2.shapes3d.cuboid(
         [wall_thickness / 2, lip_length, lip_height + print_in_place_offset], anchor=BOTTOM + RIGHT, rounding=wall_thickness / 4, edges=[TOP + LEFT]
     )
-    catch_sphere_a = pysolidfive.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = pysolidfive.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
+    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
+    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
     catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
         [width, length / 2, lid_thickness - print_in_place_offset]
-    )
+    ).shape
 
     body = lid_stack | knuckle | catch
 
-    hole = pysolidfive.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT).color(
+    hole = bosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT).color(
         material_colour
-    ).translate([wall_thickness, 0.5, wall_thickness])
+    ).translate([wall_thickness, 0.5, wall_thickness]).shape
     body = body - hole
 
     return body
@@ -444,7 +449,7 @@ def FilamentHingeBoxLidWithCustomShape(
     size_spacing: float | None = None,
     lid_pattern_dense: bool = False,
     lid_dense_shape_edges: int = 6,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     pattern_inner_control: int = False,
     lid_boundary: float = 10,
     layout_width: float | None = None,
@@ -517,7 +522,7 @@ def FilamentHingeBoxLidWithShape(
     size_spacing: float | None = None,
     lid_boundary: float = 10,
     layout_width: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     shape_options: ShapeObject | None = None,
 ) -> PyOpenSCAD:
     """Makes a lid for a filament-hinge box with a pre-defined shape pattern.
@@ -537,7 +542,12 @@ def FilamentHingeBoxLidWithShape(
         material_colour = default_material_colour
 
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    pattern_shape = shape_child if shape_child is not None else ShapeByType(options=calc_shape_options).color(material_colour)
+    if shape_child is not None:
+        pattern_shape = shape_child
+    else:
+        _shape_raw = ShapeByType(options=calc_shape_options)
+        assert _shape_raw is not None, "shape_options must not be ShapeType.NONE here"
+        pattern_shape = _shape_raw.color(material_colour)
 
     return FilamentHingeBoxLidWithCustomShape(
         size=size,
@@ -578,7 +588,7 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
     size_spacing: float | None = None,
     lid_boundary: float = 10,
     layout_width: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     shape_options: ShapeObject | None = None,
 ) -> PyOpenSCAD:
     """Makes a lid for a filament-hinge box with a text label and a custom shape.
@@ -608,13 +618,15 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
     width, length = size[0], size[1]
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_shape = (
-        MakeLidLabel(
+    _label_raw = MakeLidLabel(
             size=[width - wall_thickness - lid_boundary * 2, length - lid_boundary * 2],
             options=label_opts,
             lid_thickness=lid_thickness,
             text_str=text_str,
         )
+    assert _label_raw is not None, "label did not generate"
+    label_shape = (
+        _label_raw
         .mirror([1, 0, 0])
         .mirror([0, 0, 1])
         .translate([width - lid_boundary, lid_boundary, lid_thickness])
@@ -658,7 +670,7 @@ def FilamentHingeBoxLidWithLabel(
     size_spacing: float | None = None,
     lid_boundary: float = 10,
     layout_width: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     shape_options: ShapeObject | None = None,
 ) -> PyOpenSCAD:
     """Makes a lid for a filament-hinge box with a text label and an automatic shape.
@@ -681,7 +693,9 @@ def FilamentHingeBoxLidWithLabel(
     calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return FilamentHingeBoxLidWithLabelAndCustomShape(
         size=size,

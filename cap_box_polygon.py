@@ -24,22 +24,27 @@
 from __future__ import annotations
 import copy
 import math
+
+import numpy as np
 import types
 
 from openscad import hull, polygon
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import pysolidfive
+import numpy as np
+import bosl2.shapes3d
+from bosl2 import paths as b2paths
+from bosl2 import rounding as b2rounding
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, default_lid_catch_type
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box import CapBoxDefaultCapHeight, CapBoxDefaultFingerHoldHeight, CapBoxDefaultLidFingerHoldRounding, CapBoxDefaultLidWallThickness
 
 
-def _segment_angle(normal: list[list[float]]) -> float:
+def _segment_angle(normal: "np.ndarray | list[list[float]]") -> float:
     if normal[0][0] == 0:
         return 90 if normal[0][1] > 0 else -90
     return math.degrees(math.atan(normal[0][1] / normal[0][0]))
@@ -64,8 +69,8 @@ def FingerHoleSegmentCutout(
         wall_thickness: the thickness of the walls
     """
     assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    split_length = pysolidfive.path_length(path)
-    normal = pysolidfive.path_normals(path)
+    split_length = b2paths.path_length(path)
+    normal = b2paths.path_normals(path)
     calc_len = split_length / 5
     calc_radius = wall_thickness + 0.1 if wall_thickness >= radius else radius
 
@@ -75,25 +80,24 @@ def FingerHoleSegmentCutout(
     angle = _segment_angle(normal)
 
     if calc_len + radius > calc_len * 4 - radius:
-        pts = pysolidfive.path_cut_points(path, [split_length / 2])
-        return pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate(
-            [pts[0][0][0], pts[0][0][1], 0]
-        ).mesh()
+        pts = b2paths.path_cut_points(path, [split_length / 2])
+        return bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate(
+            [float(pts[0][0][0]), float(pts[0][0][1]), 0.0]
+        ).shape
 
-    pts = pysolidfive.path_cut_points(
+    pts = b2paths.path_cut_points(
         path,
         [calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
     )
-    # Fresh .mesh() per piece: native hull() only takes raw solids (and PythonSCAD
-    # segfaults on frep-handle reuse anyway).
-    c1 = pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[1][0][0], pts[1][0][1], height - calc_radius]).mesh()
-    c2 = pysolidfive.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([pts[2][0][0], pts[2][0][1], height - calc_radius]).mesh()
-    c3 = pysolidfive.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
-        [pts[0][0][0], pts[0][0][1], calc_radius - height]
-    ).mesh()
-    c4 = pysolidfive.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
-        [pts[3][0][0], pts[3][0][1], calc_radius - height]
-    ).mesh()
+    # .shape unwraps each Bosl2Solid: native hull() only takes raw solids.
+    c1 = bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius]).shape
+    c2 = bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius]).shape
+    c3 = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
+        [float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height]
+    ).shape
+    c4 = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
+        [float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height]
+    ).shape
     return hull(c1, c2, c3, c4)
 
 
@@ -119,7 +123,7 @@ def PolygonBoxLidCatch(
     """
     assert len(path) == 2, f"Path must be exactly 2 elements. path_length={len(path)}"
     assert delta is not None, "delta None in PolygonBoxLidCatch."
-    split_length = pysolidfive.path_length(path)
+    split_length = b2paths.path_length(path)
     calc_len = split_length / 5
 
     if not (
@@ -137,7 +141,7 @@ def PolygonBoxLidCatch(
     if not qualifies:
         return None
 
-    pts = pysolidfive.path_cut_points(
+    pts = b2paths.path_cut_points(
         path, [calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
     )
     p1 = [pts[0][0][0], pts[0][0][1]]
@@ -148,14 +152,11 @@ def PolygonBoxLidCatch(
     # path_sweep's 2-D frame), and move it onto the segment midpoint.
     seg_angle = math.degrees(math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
     return (
-        pysolidfive.polygon_extrude(
-            [[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]],
-            length=math.dist(p1, p2),
-        )
+        polygon([[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]])
+        .linear_extrude(height=math.dist(p1, p2), center=True)
         .rotate([90, 0, 0])
         .rotate([0, 0, seg_angle + 90])
-        .translate([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, 0])
-        .mesh()
+        .translate([float((p1[0] + p2[0]) / 2), float((p1[1] + p2[1]) / 2), 0.0])
     )
 
 
@@ -225,7 +226,10 @@ def MakePathBoxWithCapLid(
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
     calc_finger_hold_height = finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
-    calc_path = pysolidfive.round_corners(path, radius=wall_thickness)
+    calc_path = np.asarray(b2rounding.round_corners(path, radius=wall_thickness))
+    # Plain lists for the native polygon() calls below: raw ndarrays across the native
+    # boundary raise (and poison the interpreter) -- see the numpy interop convention.
+    calc_path_native = calc_path.tolist()
     # The old _bosl2.offset(path, r=-wall) inner path only ever fed this bounding-box
     # bookkeeping -- the wall-inset bbox is the bbox shrunk by a wall on each side.
     x_arr = [p[0] for p in path]
@@ -233,16 +237,16 @@ def MakePathBoxWithCapLid(
     calc_width = max(x_arr) - min(x_arr) - 2 * wall_thickness
     calc_length = max(y_arr) - min(y_arr) - 2 * wall_thickness
 
-    body = polygon(calc_path).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
+    body = polygon(calc_path_native).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
 
-    lid_outer = polygon(calc_path).offset(size_spacing).linear_extrude(height=height).color(material_colour)
-    lid_inner = polygon(calc_path).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height + 1).color(
+    lid_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
+    lid_inner = polygon(calc_path_native).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height + 1).color(
         material_colour
     ).translate([0, 0, -0.5])
     body = body - (lid_outer - lid_inner).translate([0, 0, height - calc_cap_height])
 
-    finger_outer = polygon(calc_path).offset(size_spacing).linear_extrude(height=height).color(material_colour)
-    finger_inner = polygon(calc_path).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height=height).color(
+    finger_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
+    finger_inner = polygon(calc_path_native).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height=height).color(
         material_colour
     )
     finger_cut = finger_outer - finger_inner
@@ -284,7 +288,7 @@ def MakePathBoxWithCapLid(
 
     for i, c in enumerate(kids):
         if i not in positive_only_children:
-            piece = c(calc_path, calc_width, calc_length, inner_height) if callable(c) else c
+            piece: Any = c(calc_path, calc_width, calc_length, inner_height) if callable(c) else c
             body = body - piece.translate([wall_thickness, wall_thickness, calc_floor_thickness])
 
     result = body
@@ -293,9 +297,13 @@ def MakePathBoxWithCapLid(
         extra_indices = list(positive_only_children) + (list(positive_negative_children) if MAKE_MMU == 1 else [])
         extra = None
         for i in extra_indices:
-            piece = ResolveChild(kids[i], calc_path, calc_width, calc_length, inner_height).translate(
-                [wall_thickness, wall_thickness, floor_thickness]
+            # Path-box children take (path, width, length, height) -- ResolveChild() is the
+            # 3-argument box form and this call passed 5 arguments (a latent TypeError in the
+            # never-exercised positive-children branch); resolve inline like the branch above.
+            resolved: Any = (
+                kids[i](calc_path, calc_width, calc_length, inner_height) if callable(kids[i]) else kids[i]
             )
+            piece = resolved.translate([wall_thickness, wall_thickness, floor_thickness])
             extra = piece if extra is None else extra | piece
         if extra is not None:
             result = result | extra
@@ -358,7 +366,8 @@ def CapPathBoxLid(
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
-    calc_path = pysolidfive.round_corners(path, radius=wall_thickness, fn=16)
+    calc_path = np.asarray(b2rounding.round_corners(path, radius=wall_thickness, _fn=16))
+    calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
 
     y_arr = [p[1] for p in path]
@@ -367,7 +376,7 @@ def CapPathBoxLid(
     # The old offset_sweep with an os_smooth(joint=wall/2) top is a straight extrusion of
     # the rounded outline with an eased top rim -- polygon_prism's circular roundover of the
     # same joint size is a near-identical profile.
-    top = pysolidfive.polygon_prism(
+    top = PolygonPrism(
         calc_path, h=lid_thickness, rounding_top=min(wall_thickness / 2, lid_thickness * 0.49)
     ).color(material_colour)
 
@@ -375,8 +384,8 @@ def CapPathBoxLid(
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
     lid_stack = lid_stack.translate([0, 0, calc_cap_height - lid_thickness])
 
-    base_outer = polygon(calc_path).linear_extrude(height=calc_cap_height - lid_thickness / 2).color(material_colour)
-    base_inner = polygon(calc_path).offset(-wall_thickness + size_spacing).linear_extrude(
+    base_outer = polygon(calc_path_native).linear_extrude(height=calc_cap_height - lid_thickness / 2).color(material_colour)
+    base_inner = polygon(calc_path_native).offset(-wall_thickness + size_spacing).linear_extrude(
         height=calc_cap_height - lid_thickness / 2 + 1
     ).color(material_colour).translate([0, 0, -0.5])
     base = base_outer - base_inner
@@ -417,7 +426,7 @@ def CapPathBoxLidWithLabelAndCustomShape(
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
     lid_wall_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     lid_inner_rounding: float | None = None,
     lid_pattern_dense: bool = False,
@@ -523,7 +532,7 @@ def CapPathBoxLidWithLabel(
     wall_thickness: float | None = None,
     cap_height: float | None = None,
     layout_width: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
     lid_wall_thickness: float | None = None,
@@ -565,7 +574,9 @@ def CapPathBoxLidWithLabel(
     assert height > 0, f"Height must be >0 height={height}"
     assert text_str is not None, "text_str must be set"
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return CapPathBoxLidWithLabelAndCustomShape(
         path=path,

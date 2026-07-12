@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+import bosl2.shapes3d
 import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, MakeLidTab, MakeTabs, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
@@ -84,7 +85,7 @@ def InsetLid(
     inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2
 
     top = (
-        pysolidfive.cuboid(
+        bosl2.shapes3d.cuboid(
             [inner_width, inner_length, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=calc_lid_rounding,
@@ -173,7 +174,7 @@ def InsetLidTabbedWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     tab_length: float = 10,
     tab_height: float = 8,
@@ -282,7 +283,9 @@ def InsetLidTabbedWithLabel(
     calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return InsetLidTabbedWithLabelAndCustomShape(
         size=size,
@@ -376,7 +379,7 @@ def MakeBoxWithInsetLidTabbed(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -531,7 +534,7 @@ def InsetLidRabbitClipWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     make_rabbit_width: bool = False,
     make_rabbit_length: bool = True,
@@ -621,7 +624,7 @@ def InsetLidRabbitClipWithLabel(
     lid_boundary: float = 10,
     make_rabbit_width: bool = False,
     make_rabbit_length: bool = True,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     rabbit_width: float = 7,
     rabbit_length: float = 6,
     rabbit_lock: bool = False,
@@ -654,7 +657,9 @@ def InsetLidRabbitClipWithLabel(
     calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return InsetLidRabbitClipWithLabelAndCustomShape(
         size=size,
@@ -754,7 +759,7 @@ def MakeBoxWithInsetLidRabbitClip(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width, length, height - lid_thickness - size_spacing],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,

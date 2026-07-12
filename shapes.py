@@ -56,7 +56,7 @@ _bosl2 = osuse("BOSL2/std.scad")
 # CWD (which is NOT the project root when rendered through the test harness).
 _SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
 
-def _stroke(path: list[list[float]], width: float = 1, closed: bool = False) -> PyOpenSCAD:
+def _stroke(path, width: float = 1, closed: bool = False) -> PyOpenSCAD:
     """Draws a path as 2-D geometry with round caps and joins -- the same look BOSL2's
     stroke() module gives, built as a union of hull()ed circle pairs per segment. Needed
     because BOSL2's stroke() has NO function form (calling _stroke() as an expression
@@ -73,6 +73,7 @@ def _stroke(path: list[list[float]], width: float = 1, closed: bool = False) -> 
             circle(d=width, fn=24).translate([p2[0], p2[1], 0]),
         )
         shape = seg if shape is None else shape | seg
+    assert shape is not None
     return shape
 
 
@@ -903,6 +904,7 @@ def RockWall2d(size: float, num_rows: int = 10, num_cols: int = 40, spacing: flo
             y = -size / 2 + calc_rock_width * i + calc_rock_width / 2
             piece = Rock2d(calc_rock_length - calc_spacing, calc_rock_width - calc_spacing).translate([x, y])
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -3626,6 +3628,7 @@ def LaurelWreath2d(size: float) -> PyOpenSCAD:
                 .rotate([0, 0, angle - (angle - 30) / 180 * 80])
             )
             shape = piece if shape is None else shape | piece
+        assert shape is not None
         return shape.rotate([0, 0, -50]).translate([-150, 0])
 
     basic_height = 859.35

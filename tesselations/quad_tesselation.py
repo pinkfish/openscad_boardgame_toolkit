@@ -63,8 +63,8 @@ def QuadrilateralCoords(angles: list[float], side: float, side_ratio: float = 1)
     assert side > 0, "side must be positive"
     assert side_ratio > 0, "side_ratio must be positive"
 
-    P0 = [0, 0]
-    P1 = [side, 0]
+    P0 = [0.0, 0.0]
+    P1 = [float(side), 0.0]
 
     dir1 = 180 - angles[1]
     dir2 = dir1 + (180 - angles[2])
@@ -92,11 +92,11 @@ def QuadrilateralCoords(angles: list[float], side: float, side_ratio: float = 1)
 
 
 def TesselationFromQuadradicPoints(
-    points: list[list[float]],
-    side1: list[list[float]],
-    side2: list[list[float]],
-    side3: list[list[float]],
-    side4: list[list[float]],
+    points,
+    side1,
+    side2,
+    side3,
+    side4,
 ) -> list[list[float]]:
     """Builds a tesselation path from four quad corner points and four profile lines.
 
@@ -214,6 +214,7 @@ def TesselationBirdGrid(row: int, col: int, size: float, thickness: float, outer
                 [x, y, 0]
             )
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 

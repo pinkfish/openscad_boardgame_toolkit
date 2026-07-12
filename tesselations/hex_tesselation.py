@@ -191,6 +191,7 @@ def TesselationFlyingBirdGrid(
                 [i * bird.x_vec[0] + j * bird.y_vec[0], i * bird.x_vec[1] + j * bird.y_vec[1], 0]
             )
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 

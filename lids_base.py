@@ -23,10 +23,11 @@
 
 from __future__ import annotations
 from pythonscad import *
-from typing import TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+    from pysolidfive import PyShape, PyShape2D  # noqa: F401
 from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import shapes2d
@@ -94,8 +95,8 @@ def LidMeshDense(
     shape_edges: int = 6,
     material_colour: str | None = None,
     inner_control: int | bool = False,
-    children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
+    children: "PyOpenSCAD | PyShape2D | Callable | None" = None,
+) -> "PyOpenSCAD | PyShape":
     """Make a dense hex/triangle mesh for a lid.
 
     Usage::
@@ -143,7 +144,7 @@ def LidMeshHex(
     radius: float,
     shape_thickness: float = 2,
     inner_control: int | bool = False,
-) -> PyOpenSCAD:
+) -> "PyOpenSCAD | PyShape":
     """Make a hex mesh for a lid.
 
     Usage::
@@ -162,10 +163,12 @@ def LidMeshHex(
     width, length = size[0], size[1]
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
-    def shape_for(polygon_width: float) -> PyOpenSCAD:
+    def shape_for(polygon_width: float) -> "PyOpenSCAD | PyShape2D":
         from shape_type import MakeShapeObject, ShapeByType
 
-        return ShapeByType(MakeShapeObject(shape_type=ShapeType.DENSE_HEX, shape_width=polygon_width))
+        piece = ShapeByType(MakeShapeObject(shape_type=ShapeType.DENSE_HEX, shape_width=polygon_width))
+        assert piece is not None
+        return piece
 
     children = (lambda i, j: shape_for(radius * 2)) if inner_control else shape_for(radius * 2)
 
@@ -242,10 +245,10 @@ def LidMeshRepeating(
 def LidMeshBasic(
     lid_thickness: float,
     boundary: float,
-    layout_width: float,
+    layout_width: float | None,
     size: list[float] | None = None,
     path: list[list[float]] | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     dense: bool = False,
     dense_shape_edges: int = 6,
     material_colour: str | None = None,
@@ -299,6 +302,7 @@ def LidMeshBasic(
     # calc_path, and needs to line up with it. shapes2d._rect_path() is BOSL2-style (centered on
     # the origin) and would leave half the boundary untiled if used here instead.
     calc_path = [[0, 0], [size[0], 0], [size[0], size[1]], [0, size[1]]] if size is not None else path
+    assert calc_path is not None, "must give size or path"
 
     if dense:
         mesh = LidMeshDense(
@@ -464,7 +468,7 @@ def MakeTabs(
     tab_length: float = 10,
     make_tab_width: bool = False,
     make_tab_length: bool = True,
-    children: PyOpenSCAD | None = None,
+    children: "PyOpenSCAD | Callable[[], PyOpenSCAD] | None" = None,
 ) -> PyOpenSCAD:
     """Layout tabs for a tabbed box lid.
 
@@ -513,6 +517,7 @@ def MakeTabs(
         add(tab_piece().translate([(box_width - tab_length) / 2, 0, lid_thickness]))
         add(tab_piece().rotate([0, 0, 180]).translate([(box_width + tab_length) / 2, box_length, lid_thickness]))
 
+    assert shape is not None, "MakeTabs(): at least one of make_tab_width/make_tab_length must be True"
     return shape
 
 

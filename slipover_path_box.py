@@ -26,12 +26,11 @@ import copy
 import types
 
 from pythonscad import *
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import pysolidfive
 from components import FingerHoleWall
 from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
@@ -154,11 +153,9 @@ def MakePathBoxWithSlipoverLid(
     calc_width = max(x_arr) - min(x_arr)
     calc_length = max(y_arr) - min(y_arr)
 
-    # Symbolic pysolidfive SDF prisms, meshed once at the .color() below -- the catches
-    # (PolygonBoxLidCatch, a native BOSL2 path_sweep) and children subtract after that.
-    body = pysolidfive.polygon_prism(calc_inner_path, h=height - lid_thickness - size_spacing, res=10)
+    body = PolygonPrism(calc_inner_path, h=height - lid_thickness - size_spacing)
     if foot > 0:
-        body = body | pysolidfive.polygon_prism(calc_path, h=foot, res=10)
+        body = body | PolygonPrism(calc_path, h=foot)
     body = body.color(material_colour)
 
     catches = None
@@ -183,7 +180,7 @@ def MakePathBoxWithSlipoverLid(
     kids = list(children) if children else []
     for i, c in enumerate(kids):
         if i not in positive_only_children:
-            piece = c(calc_width, calc_length, inner_height) if callable(c) else c
+            piece: Any = c(calc_width, calc_length, inner_height) if callable(c) else c
             body = body - piece.translate([wall_thickness * 2, wall_thickness * 2, floor_thickness])
 
     result = body
@@ -268,15 +265,12 @@ def SlipoverPathBoxLid(
     calc_length = max(y_arr) - min(y_arr)
 
     # The original construction intersected the plain extrusion with an os_smooth-topped
-    # offset_sweep (a continuous-curvature eased rim); pysolidfive's polygon_prism approximates
-    # that with a plain circular roundover of the same depth (joint = lid_thickness / 2) -- at
-    # these rim sizes the silhouettes differ by well under half a millimetre. Meshed via
-    # .color() right away: internal_build_lid()'s base child must be native, since it composes
-    # with arbitrary sibling solids. (offset_sweep_options is therefore unused now; kept in the
-    # signature so existing call sites don't break.)
-    top = pysolidfive.polygon_prism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2, res=10).color(
-        material_colour
-    )
+    # offset_sweep (a continuous-curvature eased rim); PolygonPrism() approximates that
+    # with a plain circular roundover of the same depth (joint = lid_thickness / 2) -- at
+    # these rim sizes the silhouettes differ by well under half a millimetre.
+    # (offset_sweep_options is therefore unused now; kept in the signature so existing
+    # call sites don't break.)
+    top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2).color(material_colour)
 
     kids = list(children) if children else []
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
@@ -284,10 +278,8 @@ def SlipoverPathBoxLid(
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 
-    # Symbolic SDF shell (outer minus inner prism), meshed once at the .color() -- the catches
-    # union and finger cutouts subtract natively after that.
-    wall_outer = pysolidfive.polygon_prism(calc_path, h=height - foot_offset - lid_thickness / 2, res=10)
-    wall_inner = pysolidfive.polygon_prism(calc_inner_path, h=height + 1, res=10).translate([0, 0, -0.5])
+    wall_outer = PolygonPrism(calc_path, h=height - foot_offset - lid_thickness / 2)
+    wall_inner = PolygonPrism(calc_inner_path, h=height + 1).translate([0, 0, -0.5])
     wall = (wall_outer - wall_inner).color(material_colour)
 
     catches = None
@@ -336,7 +328,7 @@ def SlipoverPathBoxLidWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     wall_thickness: float | None = None,
     foot: float = 0,
@@ -498,7 +490,9 @@ def SlipoverPathBoxLidWithLabel(
     assert height > 0, f"Height must be >0 height={height}"
     assert text_str is not None, "text_str must be set"
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return SlipoverPathBoxLidWithLabelAndCustomShape(
         path=path,

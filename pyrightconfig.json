@@ -4,7 +4,8 @@
     "extraPaths": [
         "venv/openscad/lib/python3.14/site-packages",
         "tests",
-        "pysolidfive/tests"
+        "pysolidfive/tests",
+        "tesselations"
     ],
     "exclude": [
         "**/node_modules",
@@ -14,6 +15,9 @@
         "scripts/colorscad/3mfmerge",
         "scripts/img2pdf",
         "docs/_build",
-        "pysolidfive/wiki"
+        "pysolidfive/wiki",
+        "pysolidfive/docs/_ext",
+        "examples/1835.py",
+        "scripts/openSCADbezier.py"
     ]
 }

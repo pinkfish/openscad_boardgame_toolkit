@@ -24,7 +24,7 @@
 from __future__ import annotations
 from pythonscad import *
 from base_bgtk import *
-import pysolidfive
+import bosl2.shapes3d
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -53,20 +53,18 @@ def MakeDividerTab(
         tab_radius:  corner curve radius (default 2)
         children:    optional solid to subtract from the tab
     """
-    top = pysolidfive.cuboid(
+    top = bosl2.shapes3d.cuboid(
         [tab_length, tab_height, thickness],
         rounding=tab_radius,
         edges=[FRONT + LEFT, FRONT + RIGHT],
         anchor=BACK + LEFT + BOTTOM,
     )
-    base = pysolidfive.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
-    cut_a = pysolidfive.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
-    cut_b = pysolidfive.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
+    base = bosl2.shapes3d.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
+    cut_a = bosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
+    cut_b = bosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
     base_shape = (base - cut_a - cut_b).translate([-tab_radius, 0, 0])
 
-    # One symbolic SDF for the whole tab; .mesh() so the native child subtraction (and the
-    # caller's native union with the divider body) get a plain solid.
-    tab = (top | base_shape).translate([0, tab_height, 0]).mesh()
+    tab = (top | base_shape).translate([0, tab_height, 0]).shape
     if children is not None:
         tab = tab - children
     return tab
@@ -125,12 +123,12 @@ def MakeDivider(
         children=kids[0] if len(kids) >= 1 else None,
     ).translate([spacing * tab_position, 0, 0])
 
-    body = pysolidfive.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT) - pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT) - bosl2.shapes3d.cuboid(
         [width + 1, tab_height + 1, thickness + 1], anchor=BOTTOM + FRONT + LEFT
     ).translate([-0.5, -1, -0.5])
 
     for i in range(num_holes):
-        hole = pysolidfive.cuboid(
+        hole = bosl2.shapes3d.cuboid(
             [hole_width, hole_height, thickness + 1],
             rounding=tab_radius,
             edges=[FRONT + LEFT, FRONT + RIGHT],
@@ -138,12 +136,10 @@ def MakeDivider(
         ).translate([hole_offset + (hole_width + hole_offset) * i, length - hole_offset, -0.5])
         body = body - hole
 
-    # Meshed once here; the extra children and the tab are native solids.
-    body = body.mesh()
     for extra in kids[1:]:
         body = body - extra
 
-    return (tab | body) & cube([width, length, thickness])
+    return (tab | body.shape) & cube([width, length, thickness])
 
 
 def MakeDividerWithText(

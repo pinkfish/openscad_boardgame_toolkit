@@ -78,6 +78,34 @@ SHAPES = [
         "pysolidfive.polygon_prism([[0, 0], [40, 0], [40, 15], [15, 15], [15, 40], [0, 40]], "
         "h=12, rounding_bottom=2, rounding_top=-2)",
     ),
+    # The named n-ary CSG combinators. union/difference/intersection are thin SDF min/max
+    # composition (the operators |, &, - with list/varargs conventions); hull() is the
+    # polyhedral support-plane construction -- two smooth children give the faceted-capsule
+    # look on purpose (see hull()'s docstring), and the cuboid+point spike is exact.
+    (
+        "op_union",
+        "pysolidfive.union(pysolidfive.cuboid([20.0, 20.0, 10.0], rounding=3, res=10), "
+        "pysolidfive.sphere(r=8, res=10).translate([0.0, 0.0, 8.0]))",
+    ),
+    (
+        "op_intersection",
+        "pysolidfive.intersection(pysolidfive.cuboid([20.0, 20.0, 20.0], rounding=4, res=10), "
+        "pysolidfive.sphere(r=12, res=10))",
+    ),
+    (
+        "op_difference",
+        "pysolidfive.difference(pysolidfive.cuboid([20.0, 20.0, 20.0], rounding=3, res=10), "
+        "pysolidfive.zcyl(h=30, r=5, res=10), pysolidfive.xcyl(h=30, r=5, res=10))",
+    ),
+    (
+        "op_hull_spheres",
+        "pysolidfive.hull(pysolidfive.sphere(r=6, res=10), "
+        "pysolidfive.sphere(r=6, res=10).translate([18.0, 0.0, 0.0]), directions=96)",
+    ),
+    (
+        "op_hull_spike",
+        "pysolidfive.hull(pysolidfive.cuboid([16.0, 16.0, 8.0], res=10), [[0.0, 0.0, 18.0]])",
+    ),
 ]
 
 

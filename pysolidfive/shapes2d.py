@@ -28,10 +28,14 @@ from __future__ import annotations
 
 import math
 
+from collections.abc import Sequence
+
 import libfive as lv
 
 from pysolidfive._constants import CENTER
 from pysolidfive.paths import (
+    as_path_list,
+    as_points,
     _PENALTY,
     _collinear,
     _halfplane_max_sdf,
@@ -66,7 +70,7 @@ class PyShape2D:
     which is almost never what you want, so extrude explicitly.
     """
 
-    def __init__(self, sdf_fn, mn, mx, res: int = 20):
+    def __init__(self, sdf_fn, mn, mx, res: int = 10):
         self._sdf_fn = sdf_fn
         self.mn = [float(mn[0]), float(mn[1])]
         self.mx = [float(mx[0]), float(mx[1])]
@@ -215,24 +219,32 @@ class PyShape2D:
         return getattr(self.extrude(0.01).mesh(), name)
 
 
-def circle2d(r: float | None = None, d: float | None = None, res: int = 20) -> PyShape2D:
+def circle2d(r: float | None = None, d: float | None = None, res: int = 10) -> PyShape2D:
     """A circle at the origin -- the exact SDF `length(p) - r`."""
     rad = _radius(r=r, d=d, dflt=1)
     return PyShape2D(lambda x, y: _lv_hypot(x, y) - rad, [-rad, -rad], [rad, rad], res)
 
 
-def rect2d(size, rounding=0, chamfer=0, anchor: list[float] = CENTER, res: int = 20) -> PyShape2D:
+def rect2d(
+    size,
+    rounding: "float | Sequence[float]" = 0,
+    chamfer: "float | Sequence[float]" = 0,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
+) -> PyShape2D:
     """An axis-aligned rectangle with optional corner rounding or chamfering -- a single radius
     for all four corners, or a per-corner list in BOSL2 rect() order ([X+Y+, X-Y+, X-Y-, X+Y-],
     counterclockwise from the +x+y corner), reusing the same per-corner quadrant SDF the 3-D
     cuboid edge machinery is built on. `anchor` uses the usual direction-vector convention.
     """
-    sz = [float(v) for v in size] if isinstance(size, (list, tuple)) else [float(size)] * 2
+    sz = [float(size), float(size)] if isinstance(size, (int, float)) else [float(v) for v in size]
     hx, hy = sz[0] / 2, sz[1] / 2
-    assert not (rounding and chamfer), "Cannot specify nonzero rounding and chamfer together"
-    mode = "chamfer" if chamfer else "round"
-    amt = chamfer if chamfer else rounding
-    per_corner = [float(v) for v in amt] if isinstance(amt, (list, tuple)) else [float(amt)] * 4
+    has_rounding = (rounding != 0) if isinstance(rounding, (int, float)) else any(rounding)
+    has_chamfer = (chamfer != 0) if isinstance(chamfer, (int, float)) else any(chamfer)
+    assert not (has_rounding and has_chamfer), "Cannot specify nonzero rounding and chamfer together"
+    mode = "chamfer" if has_chamfer else "round"
+    amt = chamfer if has_chamfer else rounding
+    per_corner = [float(amt)] * 4 if isinstance(amt, (int, float)) else [float(v) for v in amt]
     assert len(per_corner) == 4, f"per-corner treatment needs 4 values, got {per_corner}"
     assert max(per_corner) <= min(hx, hy) + 1e-9, f"corner treatment {per_corner} exceeds half the rectangle {sz}"
     # BOSL2 corner order [(+,+), (-,+), (-,-), (+,-)] -> _rect2d's [(-,-), (+,-), (-,+), (+,+)].
@@ -260,17 +272,18 @@ def supershape2d(
     b: float | None = None,
     r: float | None = None,
     d: float | None = None,
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape2D:
     """A superformula shape -- the outline sampled in plain Python (pysolidfive._paths, same
     parameters and sampling as the bosl2 port's supershape()) and turned into a polygon2d()."""
     return polygon2d(_supershape_path(step=step, n=n, m1=m1, m2=m2, n1=n1, n2=n2, n3=n3, a=a, b=b, r=r, d=d), res=res)
 
 
-def polygon2d(paths: list, res: int = 20) -> PyShape2D:
+def polygon2d(paths, res: int = 10) -> PyShape2D:
     """An arbitrary SIMPLE polygon (or a list of disjoint ones), via the same convex-deficiency
-    decomposition polygon_prism() uses -- concave outlines welcome, holes not supported."""
-    path_list = paths if isinstance(paths[0][0], (list, tuple)) else [paths]
+    decomposition polygon_prism() uses -- concave outlines welcome, holes not supported.
+    Accepts any array-like path spelling (per the numpy-paths convention)."""
+    path_list = as_path_list(paths)
     for p in path_list:
         assert len(p) >= 3, f"polygon2d(): every path needs >= 3 points, got {len(p)}"
 
@@ -286,7 +299,7 @@ def polygon2d(paths: list, res: int = 20) -> PyShape2D:
     return PyShape2D(sdf_fn, [min(xs), min(ys)], [max(xs), max(ys)], res)
 
 
-def region2d(paths: list, res: int = 20) -> PyShape2D:
+def region2d(paths: list, res: int = 10) -> PyShape2D:
     """BOSL2-style REGION data as a PyShape2D: a list of simple outlines with even-odd nesting
     semantics -- an outline inside another outline is a hole, an outline inside a hole is an
     island, and so on -- exactly what the real-BOSL2 region functions (make_region/union/
@@ -296,12 +309,11 @@ def region2d(paths: list, res: int = 20) -> PyShape2D:
     outline against the others), holes subtract from their direct parents, and islands rejoin
     the union.
     """
-    path_list = paths if isinstance(paths[0][0], (list, tuple)) else [paths]
-    cleaned = [[[float(p[0]), float(p[1])] for p in path] for path in path_list]
+    cleaned = as_path_list(paths)
     for p in cleaned:
         assert len(p) >= 3, f"region2d(): every outline needs >= 3 points, got {len(p)}"
 
-    def contains(poly: list[list[float]], pt: list[float]) -> bool:
+    def contains(poly, pt) -> bool:
         # Standard even-odd ray cast (+x direction).
         x, y = pt
         inside = False
@@ -351,10 +363,10 @@ def union2d(shapes: list[PyShape2D]) -> PyShape2D:
     return shapes[0]
 
 
-def stroke2d(path: list[list[float]], width: float = 1, closed: bool = False, res: int = 20) -> PyShape2D:
+def stroke2d(path, width: float = 1, closed: bool = False, res: int = 10) -> PyShape2D:
     """A path drawn with round caps and joins (BOSL2 stroke()'s default look) -- exactly, as
     the min over the segments' capsule SDFs (distance-to-segment minus width/2)."""
-    pts = [[float(q[0]), float(q[1])] for q in path]
+    pts = as_points(path)
     assert len(pts) >= 2, "stroke2d() needs at least 2 points"
     segs = pts if closed else pts[:-1]
 
@@ -381,7 +393,7 @@ def stroke2d(path: list[list[float]], width: float = 1, closed: bool = False, re
     return PyShape2D(sdf_fn, [min(xs) - g, min(ys) - g], [max(xs) + g, max(ys) + g], res)
 
 
-def hull2d_discs(discs: list, res: int = 20) -> PyShape2D:
+def hull2d_discs(discs: list, res: int = 10) -> PyShape2D:
     """The convex hull of a set of discs [(x, y, r), ...] -- the SDF equivalent of the
     hull(circle().translate(), circle().translate(), ...) idiom all over shapes.py. EXACT for
     equal radii (the true distance to the centers' convex hull, minus r -- computed with the

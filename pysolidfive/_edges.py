@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -143,12 +144,12 @@ def _edges(v, except_: list | None = None) -> list[list[int]]:
 # ---------------------------------------------------------------------------
 
 
-def _anchor_offset_box3(size: list[float], anchor: list[int]) -> list[float]:
+def _anchor_offset_box3(size: "Sequence[float]", anchor: "Sequence[float]") -> list[float]:
     a = list(anchor)
     return [-a[i] * size[i] / 2 for i in range(3)]
 
 
-def _anchor_offset_hull3(points: list[list[float]], anchor: list[float]) -> list[float]:
+def _anchor_offset_hull3(points: "Sequence[Sequence[float]]", anchor: "Sequence[float]") -> list[float]:
     a = list(anchor)
     if a[0] == 0 and a[1] == 0 and a[2] == 0:
         return [0.0, 0.0, 0.0]
@@ -156,7 +157,7 @@ def _anchor_offset_hull3(points: list[list[float]], anchor: list[float]) -> list
     return [-best[0], -best[1], -best[2]]
 
 
-def _anchor_offset_cyl(r1: float, r2: float, length: float, anchor: list[float], axis: int = 2) -> list[float]:
+def _anchor_offset_cyl(r1: float, r2: float, length: float, anchor: "Sequence[float]", axis: int = 2) -> list[float]:
     a = list(anchor)
     az = a[axis]
     r_at = r1 if az < 0 else (r2 if az > 0 else (r1 + r2) / 2)
@@ -172,7 +173,7 @@ def _anchor_offset_cyl(r1: float, r2: float, length: float, anchor: list[float],
     return [-x for x in offset]
 
 
-def _anchor_offset_sphere(r: float, anchor: list[float]) -> list[float]:
+def _anchor_offset_sphere(r: float, anchor: "Sequence[float]") -> list[float]:
     a = list(anchor)
     n = math.hypot(*a)
     if n == 0:

@@ -28,10 +28,9 @@ from __future__ import annotations
 
 import math
 
+import numpy as np
+
 from .paths import (
-    _v_add,
-    _v_scale,
-    _v_sub,
     bezpath_points,
     circle_circle_tangents,
     line_normal,
@@ -84,7 +83,7 @@ def knuckle_hinge(
     anchor=(0, 0, -1),
     spin: float = 0,
     orient=(0, 0, 1),
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape:
     """A knuckle hinge: alternating cylinder segments (with a pin hole) on an arm, mounted
     along the +X axis -- BOSL2 hinges.scad's knuckle_hinge, ported for the parameter subset
@@ -151,7 +150,7 @@ def rabbit_clip(
     anchor=None,
     orient=None,
     spin: float = 0,
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape:
     """A rabbit-ear snap clip ("pin") or its matching cavity ("socket") -- a port of BOSL2
     joiners.scad's rabbit_clip (same path construction, bezier smoothing, and attachable
@@ -168,17 +167,17 @@ def rabbit_clip(
     earwidth = 2 * thickness + snap
     point_length = earwidth / 2.15
     scaled_len = length - 0.5 * (earwidth * snap + point_length * length) / math.sqrt(snap**2 + (length / 2) ** 2)
-    bottom_pt = [0.0, max(scaled_len * 0.15 + thickness, 2 * thickness)]
-    ctr = _v_add([width / 2, scaled_len], _v_scale(line_normal([width / 2 - snap, scaled_len / 2], [width / 2, scaled_len]), earwidth / 2))
+    bottom_pt = np.array([0.0, max(scaled_len * 0.15 + thickness, 2 * thickness)])
+    ctr = np.array([width / 2, scaled_len]) + line_normal([width / 2 - snap, scaled_len / 2], [width / 2, scaled_len]) * (earwidth / 2)
     inside_pt = circle_circle_tangents(0, bottom_pt, earwidth / 2, ctr)[0][1]
-    sidepath = [
+    sidepath = np.array([
         [width / 2, 0.0],
         [width / 2 - snap, scaled_len / 2],
         [width / 2 + (compression if is_pin else 0), scaled_len],
-        _v_sub(ctr, _v_scale(line_normal([width / 2, scaled_len], inside_pt), point_length)),
+        ctr - line_normal([width / 2, scaled_len], inside_pt) * point_length,
         inside_pt,
-    ]
-    fullpath = sidepath + [bottom_pt] + [[-p[0], p[1]] for p in reversed(sidepath)]
+    ])
+    fullpath = np.vstack([sidepath, [bottom_pt], sidepath[::-1] * [-1.0, 1.0]])
     assert fullpath[4][1] < fullpath[3][1], "Pin is too wide for its length"
 
     fulltangent = path_tangents(fullpath, closed=False, uniform=False)
@@ -187,8 +186,8 @@ def rabbit_clip(
     fulltangent[8] = [0.0, -1.0]
 
     subset = list(range(11)) if is_pin else [0, 1, 2, 3, 7, 8, 9, 10]
-    tangent = [fulltangent[i] for i in subset]
-    path = [fullpath[i] for i in subset]
+    tangent = fulltangent[subset]
+    path = fullpath[subset]
 
     pin_smooth = [0.075, 0.075, 0.15, 0.12, 0.06]
     if is_pin:
@@ -198,9 +197,9 @@ def rabbit_clip(
         smoothing = side_smooth + [0.04] + list(reversed(side_smooth))
     bez = path_to_bezpath(path, closed=False, relsize=smoothing, tangents=tangent)
     rounded = bezpath_points(bez, splinesteps=splinesteps)
-    xs = [p[0] for p in rounded]
-    ys = [p[1] for p in rounded]
-    bounds_dx, bounds_dy = max(xs) - min(xs), max(ys) - min(ys)
+    mins = rounded.min(axis=0)
+    maxs = rounded.max(axis=0)
+    bounds_dx, bounds_dy = float(maxs[0] - mins[0]), float(maxs[1] - mins[1])
 
     if is_pin:
         # offset_stroke(rounded, width=[thickness, 0]): a ribbon between the path and its
@@ -209,19 +208,23 @@ def rabbit_clip(
         profile: PyShape2D = stroke2d(midline, width=thickness, res=res)
     else:
         withclearance = offset_polyline(rounded, -clearance)
-        finalpath = [[withclearance[0][0], -extra]] + withclearance + [[-withclearance[0][0], -extra]]
+        # np.vstack, NOT `list + ndarray`: the latter silently BROADCASTS (adds the closure
+        # point onto every row) instead of concatenating.
+        finalpath = np.vstack(
+            [[[withclearance[0][0], -extra]], withclearance, [[-withclearance[0][0], -extra]]]
+        )
         profile = polygon2d(finalpath, res=res)
 
     if lock:
-        lock_poly = [
+        lock_poly = np.array([
             [sidepath[1][0] - thickness / 10, sidepath[1][1] + lock_clearance],
             [sidepath[2][0] - thickness * 0.75, sidepath[2][1]],
             [sidepath[2][0], sidepath[2][1]],
             [sidepath[2][0], sidepath[1][1] + lock_clearance],
-        ]
-        lock_shape = polygon2d([[p[0] + clearance, p[1]] for p in lock_poly], res=res)
+        ])
+        lock_shape = polygon2d(lock_poly + [clearance, 0.0], res=res)
         # lock=True mirrors the lock tab to both sides (BOSL2 xflip_copy()).
-        profile = profile | lock_shape | polygon2d([[-p[0] - clearance, p[1]] for p in lock_poly], res=res)
+        profile = profile | lock_shape | polygon2d(lock_poly * [-1.0, 1.0] - [clearance, 0.0], res=res)
 
     solid = profile.extrude(depth, center=True)
     # xrot(90) * translate([0, -dy/2, -depth/2]) on the pre-extruded profile centers the

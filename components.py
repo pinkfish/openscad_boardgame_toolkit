@@ -31,6 +31,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+    from pysolidfive import PyShape2D  # noqa: F401
 from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import shapes2d
@@ -147,6 +148,7 @@ def HexBoxDivisions(
         )
         shape = piece if shape is None else shape | piece
 
+    assert shape is not None
     return shape.translate([0, 0, 2])
 
 
@@ -238,6 +240,7 @@ def RoundedBoxGrid(
                 piece = RoundedBoxOnLength([row_length, col_length, height], radius=radius)
             piece = piece.translate([x * (row_length + spacing), y * (col_length + spacing), 0])
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -321,7 +324,7 @@ def CylinderWithIndents(
     cyl_fn: int | None = None,
     anchor: list[int] | None = None,
     children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
+) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
     """Makes a cylinder with optional finger-hole indents at specified angles.
 
     Usage:
@@ -352,6 +355,7 @@ def CylinderWithIndents(
 
     calc_height = height if (height is not None and height > 0) else h
     calc_radius = radius if (radius is not None and radius > 0) else (d / 2 if (d is not None and d > 0) else r)
+    assert calc_height is not None and calc_radius is not None  # enforced by the asserts above
 
     if cyl_fn is not None:
         shape = shapes3d.cyl(r=calc_radius, h=calc_height, anchor=anchor, _fn=cyl_fn)
@@ -389,7 +393,7 @@ def CuboidWithIndentsBottom(
     edges: list | None = None,
     anchor: list[int] | None = None,
     children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
+) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
     """Makes a cuboid with finger-hole indents on specified sides, anchored at the bottom.
 
     Usage:
@@ -461,8 +465,8 @@ def CuboidWithIndentsBottom(
 
 def RegularPolygonGrid(
     width: float,
-    rows: int,
-    cols: int,
+    rows: float,
+    cols: float,
     spacing: float = 2,
     shape_edges: int = 6,
     aspect_ratio: float = 1.0,
@@ -499,6 +503,7 @@ def RegularPolygonGrid(
         space_length:  used when inner_control==2
         children:      solid(s) (or callable, see above) to place at each grid position
     """
+    assert children is not None, "children must be given"
     assert rows > 0, "rows must be > 0"
     assert cols > 0, "cols must be > 0"
     assert width > 0, "width must be > 0"
@@ -533,17 +538,18 @@ def RegularPolygonGrid(
                 piece = children(i, j) if callable(children) else children
                 piece = piece.translate([i * dy + offset_x - radius, j * dx + i * dx_y + offset_y - radius, 0])
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
 def RegularPolygonGridDense(
     radius: float,
-    rows: int,
-    cols: int,
+    rows: float,
+    cols: float,
     shape_edges: int = 6,
-    inner_control: bool = False,
-    children: PyOpenSCAD | Callable | None = None,
-) -> PyOpenSCAD:
+    inner_control: int | bool = False,
+    children: "PyOpenSCAD | PyShape2D | Callable | None" = None,
+) -> "PyOpenSCAD | PyShape2D":
     """Lays out a dense (space-filling) grid for triangles and hexagons.
 
     Usage:
@@ -561,6 +567,7 @@ def RegularPolygonGridDense(
         inner_control: if True, client controls layout via a children callable
         children:      solid(s) (or callable, see above) to place at each grid position
     """
+    assert children is not None, "children must be given"
     assert rows > 0, f"rows must be > 0, rows={rows}"
     assert cols > 0, f"cols must be > 0, cols={cols}"
     assert radius > 0, f"radius must be > 0, radius={radius}"
@@ -596,6 +603,7 @@ def RegularPolygonGridDense(
                     piece = children() if callable(children) else children
                     piece = piece.translate([i * dy - radius, j * dx - radius, 0])
                 shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -707,34 +715,24 @@ def FingerHoleWall(
     if height >= radius + rounding_radius:
         top_height = radius * 2 - height
         middle_height = radius - top_height
-        # Built with the real BOSL2 square()/circle()/union()/difference() (via _bosl2, not our
-        # shapes2d.py port) since, called as expressions, these dispatch to BOSL2's region
-        # (point-list) function overloads rather than producing real 2D geometry -- required by
-        # offset_sweep() below, which needs a region path, not a solid.
-        region = _bosl2.union(
-            _bosl2.move([0, height / 2], _bosl2.square([radius * 2, middle_height], anchor=TOP)),
-            _bosl2.difference(
-                _bosl2.move(
-                    [0, rounding_radius],
-                    _bosl2.square([radius * 2 + rounding_radius * 2, rounding_radius], anchor=TOP),
-                ),
-                _bosl2.move(
-                    [radius + rounding_radius, rounding_radius * 2], _bosl2.circle(r=rounding_radius, anchor=TOP)
-                ),
-                _bosl2.move(
-                    [-radius - rounding_radius, rounding_radius * 2], _bosl2.circle(r=rounding_radius, anchor=TOP)
-                ),
-            ),
-            _bosl2.circle(r=radius, _fn=64, anchor=BOTTOM),
+        # Native 2-D booleans (clipper-backed, effectively free) composing the same profile
+        # the old interpreted-BOSL2 region math built in ~2.6s, then OffsetSweep() (Manifold
+        # CSG) in place of the interpreted offset_sweep() -- same geometry, seconds faster
+        # per call. Anchor math is inlined: square(center=True) centers both axes, so
+        # anchor=TOP becomes a -h/2 shift, circle anchors become a -+r shift.
+        slot = square([radius * 2, middle_height], center=True).translate([0, height / 2 - middle_height / 2])
+        shoulders = (
+            square([radius * 2 + rounding_radius * 2, rounding_radius], center=True).translate([0, rounding_radius / 2])
+            - circle(r=rounding_radius, fn=32).translate([radius + rounding_radius, rounding_radius])
+            - circle(r=rounding_radius, fn=32).translate([-radius - rounding_radius, rounding_radius])
         )
+        profile = slot | shoulders | circle(r=radius, fn=64).translate([0, radius])
         shape = (
-            _bosl2.vnf_polyhedron(
-                _bosl2.offset_sweep(
-                    region[0],
-                    height=depth_of_hole,
-                    bottom=_bosl2.os_circle(-rounding_edge if round_front else 0),
-                    top=_bosl2.os_circle(-rounding_edge if round_back else 0),
-                )
+            OffsetSweep(
+                profile,
+                height=depth_of_hole,
+                rounding_bottom=-rounding_edge if round_front else 0,
+                rounding_top=-rounding_edge if round_back else 0,
             )
             .rotate([270, 0, 0])
             .translate([0, -depth_of_hole / 2, height])
@@ -752,44 +750,37 @@ def FingerHoleWall(
             [tangents[3][0][0] + 0.1, 0],
             [tangents[3][1][0], 0],
         ]
-        top_region = _bosl2.hull_region(_bosl2.make_region([top_polygon, transforms.mirror([1, 0], top_polygon)]))
-        # See the `if` branch above: real BOSL2 square()/circle()/move() (via _bosl2), not
-        # shapes2d.py's, so these stay region (point-list) data compatible with offset_sweep().
-        side_region = _bosl2.difference(
-            _bosl2.move(
-                [radius + rounding_radius, -rounding_radius],
-                _bosl2.difference(
-                    _bosl2.square([rounding_radius, rounding_radius], anchor=BOTTOM + RIGHT),
-                    _bosl2.move([0, -rounding_radius], _bosl2.circle(r=rounding_radius, anchor=BOTTOM, _fn=64)),
-                ),
-            ),
+        # Native 2-D booleans in place of the interpreted-BOSL2 region math (see the `if`
+        # branch above). Point-list pieces (the tangent quads) become native polygon()s;
+        # hull_region becomes a native 2-D hull(); mirrors across the Y axis are native
+        # mirror([1, 0, 0]) on the built 2-D geometry.
+        def _poly(pts) -> "PyOpenSCAD":
+            return polygon([[float(u), float(v)] for u, v in pts])
+
+        top_shape = hull(_poly(top_polygon), _poly(transforms.mirror([1, 0], top_polygon)))
+        side_shape = (
+            (
+                square([rounding_radius, rounding_radius], center=True).translate([-rounding_radius / 2, rounding_radius / 2])
+                - circle(r=rounding_radius, fn=64)
+            ).translate([radius + rounding_radius, -rounding_radius])
+        ) - _poly(
             [
                 tangents[3][1],
                 tangents[3][0],
                 [tangents[3][0][0], height - radius * 2],
                 [tangents[3][1][0], height - radius * 2],
-            ],
+            ]
         )
-        middle_region = _bosl2.move([0, -height + radius], _bosl2.circle(r=radius))
-        region = _bosl2.intersection(
-            _bosl2.move(
-                [0, -height / 2], _bosl2.square([radius * 2 + rounding_radius * 2, height], anchor=CENTER)
-            ),
-            _bosl2.union(
-                top_region,
-                middle_region,
-                _bosl2.union(side_region, transforms.mirror([1, 0], side_region)),
-            ),
+        middle_shape = circle(r=radius, fn=32).translate([0, -height + radius])
+        profile = square([radius * 2 + rounding_radius * 2, height], center=True).translate([0, -height / 2]) & (
+            top_shape | middle_shape | side_shape | side_shape.mirror([1, 0, 0])
         )
         shape = (
-            _bosl2.vnf_polyhedron(
-                _bosl2.offset_sweep(
-                    region[0],
-                    height=depth_of_hole,
-                    bottom=_bosl2.os_circle(-rounding_edge if round_front else 0),
-                    top=_bosl2.os_circle(-rounding_edge if round_back else 0),
-                    _fn=16,
-                )
+            OffsetSweep(
+                profile,
+                height=depth_of_hole,
+                rounding_bottom=-rounding_edge if round_front else 0,
+                rounding_top=-rounding_edge if round_back else 0,
             )
             .rotate([90, 0, 0])
             .translate([0, depth_of_hole / 2, height])
@@ -1021,7 +1012,7 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
 
 def MagnetSlot(
     size: list[float], magnet_type: int, spin: float = 0, orient: list[float] | None = None, anchor: list[int] | None = None
-) -> PyOpenSCAD:
+) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
     """Creates a slot for a magnet of a given size and type.
 
     Usage:

@@ -24,6 +24,7 @@ try:
     from graphviz import Digraph
     HAS_GRAPHVIZ = True
 except Exception:
+    Digraph = None
     HAS_GRAPHVIZ = False
 
 # --------------------------
@@ -942,7 +943,7 @@ def ast_to_graph(ast, graph=None, parent=None, nid=None):
     if nid is None:
         nid = [0]
     if graph is None:
-        if not HAS_GRAPHVIZ:
+        if not HAS_GRAPHVIZ or Digraph is None:
             raise ImportError("graphviz module not available")
         graph = Digraph()
 
@@ -1111,7 +1112,9 @@ def main():
     ap.add_argument("-d", "--debug", action="store_true", help="print AST debug information")
     ap.add_argument("-v", "--visualize", action="store_true", help="generate ast_diagram.png or print ascii AST")
     args = ap.parse_args()
-    debug==args.debug
+    # was `debug==args.debug` -- a comparison, not an assignment, so --debug never worked
+    global debug
+    debug = args.debug
     # Determine output filename
     if args.output:
         output_file = args.output

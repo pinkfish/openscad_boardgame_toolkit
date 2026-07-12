@@ -20,9 +20,10 @@
 #    Everything 2-D-outline related that the shape layers build on: the exact/decomposed
 #    polygon SDF machinery (convex fast path, convex-deficiency decomposition for concave
 #    outlines, unsigned outline distance), the per-corner rounded/chamfered rect SDF, the
-#    2-D convex hull, shared SDF utilities (_lv_hypot/_radius/_PENALTY), and the pure-Python
+#    2-D convex hull, shared SDF utilities (_lv_hypot/_radius/_PENALTY), and the numpy-based
 #    path samplers (superformula outlines, Bezier paths, the BOSL2-style egg curve) that feed
-#    polygon2d()/stroke2d(). See pysolidfive/__init__.py's module docstring for the design
+#    polygon2d()/stroke2d(). Path data is numpy throughout (see as_points()); only the native
+#    boundaries get plain-python lists. See pysolidfive/__init__.py's module docstring for the design
 #    rationale behind the SDF techniques used here.
 #
 # FileGroup: pysolidfive
@@ -32,8 +33,33 @@ from __future__ import annotations
 import math
 
 import libfive as lv
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 from pysolidfive._edges import _pick_radius
+
+
+def as_path_list(paths) -> "list[NDArray[np.float64]]":
+    """Normalize `paths` -- one path, or a list of paths, in any array-like spelling -- to a
+    list of (n, 2) float arrays (the multi-outline entry-point convention polygon2d()/
+    region2d() accept)."""
+    if isinstance(paths, np.ndarray):
+        return [as_points(paths)] if paths.ndim == 2 else [as_points(q) for q in paths]
+    first = paths[0]
+    if isinstance(first, np.ndarray) or isinstance(first[0], (list, tuple, np.ndarray)):
+        return [as_points(q) for q in paths]
+    return [as_points(paths)]
+
+
+def as_points(pts: ArrayLike) -> NDArray[np.float64]:
+    """The library-wide normalization for 2-D point paths: an (n, 2) float array. Accepts
+    any array-like (lists, tuples, arrays, Vec-ish rows). Per the project convention, path
+    data is numpy everywhere INSIDE the libraries -- but must be `.tolist()`ed before
+    crossing any native boundary (frep bounds, polygon(), translate(), the osuse FFI):
+    raw ndarrays there raise SystemError/TypeError and poison the interpreter."""
+    arr = np.asarray(pts, dtype=float)
+    assert arr.ndim == 2, f"expected a point path, got shape {arr.shape}"
+    return arr
 
 
 # Penalty multiplier used to push a quadrant candidate's SDF value far above any other
@@ -98,7 +124,7 @@ def _rect2d(u, v, bu: float, bv: float, amount: list[float], mode):
     return lv.min(lv.min(candidates[0], candidates[1]), lv.min(candidates[2], candidates[3]))
 
 
-def _polygon_sdf_xy(x, y, pts: list[list[float]]):
+def _polygon_sdf_xy(x, y, pts: ArrayLike):
     """Signed distance to an arbitrary SIMPLE polygon (convex or concave, either winding order)
     at the 2-D point (x, y) -- unlike polygon_extrude()'s max-of-half-planes (convex only),
     this handles concave outlines correctly. The zero set (the actual surface, and therefore
@@ -116,16 +142,17 @@ def _polygon_sdf_xy(x, y, pts: list[list[float]]):
     on dense round_corners() outlines, and it interval-pruned terribly on top). The
     decomposition has no branch cuts anywhere and prunes like any other max() chain.
     """
-    return _convex_deficiency_sdf(x, y, _ccw(pts))
+    return _convex_deficiency_sdf(x, y, _ccw(as_points(pts)))
 
 
-def _ccw(pts: list[list[float]]) -> list[list[float]]:
+def _ccw(pts: NDArray[np.float64]) -> NDArray[np.float64]:
     """`pts` in counter-clockwise order (reversed if the signed area says clockwise)."""
-    area2 = sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts)))
-    return list(pts) if area2 > 0 else list(reversed(pts))
+    nxt = np.roll(pts, -1, axis=0)
+    area2 = float(np.sum(pts[:, 0] * nxt[:, 1] - nxt[:, 0] * pts[:, 1]))
+    return pts if area2 > 0 else pts[::-1]
 
 
-def _halfplane_max_sdf(x, y, ccw_pts: list[list[float]]):
+def _halfplane_max_sdf(x, y, ccw_pts: NDArray[np.float64]):
     """max of signed half-plane distances over a CCW convex polygon's edges (zero-length edges
     skipped, tolerating duplicate points from densified/offset path data)."""
     d = None
@@ -139,17 +166,18 @@ def _halfplane_max_sdf(x, y, ccw_pts: list[list[float]]):
             continue
         e = (ey / elen) * (x - x0) + (-ex / elen) * (y - y0)
         d = e if d is None else lv.max(d, e)
+    assert d is not None, "polygon has no non-degenerate edges"
     return d
 
 
-def _convex_deficiency_sdf(x, y, ccw_pts: list[list[float]], _depth: int = 0):
+def _convex_deficiency_sdf(x, y, ccw_pts: NDArray[np.float64], _depth: int = 0):
     """See _polygon_sdf_xy(): CCW polygon as (convex hull) minus (recursive pockets)."""
     assert _depth < 16, "polygon decomposition recursed implausibly deep -- is the outline self-intersecting?"
     if _is_convex(ccw_pts):
         return _halfplane_max_sdf(x, y, ccw_pts)
 
     hull_idx = _convex_hull_indices(ccw_pts)
-    d = _halfplane_max_sdf(x, y, [ccw_pts[i] for i in hull_idx])
+    d = _halfplane_max_sdf(x, y, ccw_pts[hull_idx])
 
     # Each stretch of boundary between consecutive hull vertices with interior points in
     # between is a pocket: the chain plus the hull's bridge edge closing it. The chain runs
@@ -166,12 +194,12 @@ def _convex_deficiency_sdf(x, y, ccw_pts: list[list[float]], _depth: int = 0):
         chain.append(ccw_pts[i1])
         if len(chain) < 3:
             continue
-        pocket = _convex_deficiency_sdf(x, y, _ccw(chain), _depth + 1)
+        pocket = _convex_deficiency_sdf(x, y, _ccw(np.asarray(chain)), _depth + 1)
         d = lv.max(d, -pocket)
     return d
 
 
-def _convex_hull_indices(ccw_pts: list[list[float]]) -> list[int]:
+def _convex_hull_indices(ccw_pts: NDArray[np.float64]) -> list[int]:
     """Indices (into `ccw_pts`, in CCW boundary order) of the polygon's convex hull vertices --
     a wrap-aware pass dropping every vertex that turns clockwise (or is collinear) between its
     surviving neighbours."""
@@ -195,10 +223,11 @@ def _convex_hull_indices(ccw_pts: list[list[float]]) -> list[int]:
     return idx
 
 
-def _polygon_dist2_xy(x, y, pts: list[list[float]]):
+def _polygon_dist2_xy(x, y, pts: ArrayLike):
     """UNSIGNED squared distance to the polygon outline `pts` at (x, y): the min over per-edge
     point-to-segment distances (the segment clamp is just min/max -- no atan2/winding needed,
     so unlike the signed form this stays branch-cut-free everywhere)."""
+    pts = as_points(pts)
     n = len(pts)
     dist2_min = None
     for i in range(n):
@@ -214,7 +243,7 @@ def _polygon_dist2_xy(x, y, pts: list[list[float]]):
     return dist2_min
 
 
-def _is_convex(pts: list[list[float]]) -> bool:
+def _is_convex(pts: NDArray[np.float64]) -> bool:
     """True if the simple polygon `pts` is convex: every consecutive edge pair turns the same
     way (cross products all >= 0 or all <= 0, tolerating collinear runs from densified arcs)."""
     n = len(pts)
@@ -233,19 +262,20 @@ def _is_convex(pts: list[list[float]]) -> bool:
     return True
 
 
-def _collinear(pts: list[list[float]]) -> bool:
-    if len(pts) < 3:
+def _collinear(pts: ArrayLike) -> bool:
+    arr = as_points(pts)
+    if len(arr) < 3:
         return True
-    ax, ay = pts[0]
-    bx, by = pts[1]
-    return all(abs((bx - ax) * (p[1] - ay) - (by - ay) * (p[0] - ax)) < 1e-9 for p in pts[2:])
+    ax, ay = arr[0]
+    bx, by = arr[1]
+    return bool(np.all(np.abs((bx - ax) * (arr[2:, 1] - ay) - (by - ay) * (arr[2:, 0] - ax)) < 1e-9))
 
 
-def _hull2d_points(pts: list[list[float]]) -> list[list[float]]:
+def _hull2d_points(pts: ArrayLike) -> NDArray[np.float64]:
     """2-D convex hull (Andrew's monotone chain), CCW, of the given points."""
-    unique = sorted({(float(p[0]), float(p[1])) for p in pts})
+    unique = sorted({(float(p[0]), float(p[1])) for p in as_points(pts)})
     if len(unique) <= 2:
-        return [list(p) for p in unique]
+        return np.asarray([list(p) for p in unique], dtype=float)
 
     def cross(o, a, b):
         return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
@@ -260,7 +290,7 @@ def _hull2d_points(pts: list[list[float]]) -> list[list[float]]:
         while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
             upper.pop()
         upper.append(p)
-    return [list(p) for p in lower[:-1] + upper[:-1]]
+    return np.asarray([list(p) for p in lower[:-1] + upper[:-1]], dtype=float)
 
 
 
@@ -284,7 +314,7 @@ def supershape_path(
     b: float | None = None,
     r: float | None = None,
     d: float | None = None,
-) -> list[list[float]]:
+) -> NDArray[np.float64]:
     """The superformula outline as a closed point path -- same parameters and sampling as the
     bosl2 port's supershape() (which builds a polygon() from the identical path)."""
     n_pts = n if n is not None else math.ceil(360.0 / step)
@@ -297,37 +327,37 @@ def supershape_path(
     rvals = [superformula(t, m1, m2v, n1v, n2v, n3v, a, bv) for t in angs]
     rad = r if r is not None else (d / 2 if d is not None else None)
     scale = (rad / max(rvals)) if rad is not None else 1.0
-    return [
-        [scale * rvals[i] * math.cos(math.radians(angs[i])), scale * rvals[i] * math.sin(math.radians(angs[i]))]
-        for i in range(n_pts)
-    ]
+    ang_r = np.radians(np.asarray(angs))
+    rv = scale * np.asarray(rvals)
+    return np.stack([rv * np.cos(ang_r), rv * np.sin(ang_r)], axis=1)
 
 
-def bezier_points(curve: list[list[float]], u: float) -> list[float]:
+def bezier_points(curve: ArrayLike, u: float) -> NDArray[np.float64]:
     """Evaluate a Bezier curve (any degree, from its control points) at parameter u in [0, 1]
-    -- plain de Casteljau, no numpy."""
-    pts = [[float(c) for c in p] for p in curve]
+    -- de Casteljau."""
+    pts = np.asarray(curve, dtype=float)
     while len(pts) > 1:
-        pts = [[p[k] + (q[k] - p[k]) * u for k in range(len(p))] for p, q in zip(pts, pts[1:])]
+        pts = pts[:-1] + (pts[1:] - pts[:-1]) * u
     return pts[0]
 
 
-def bezpath_points(bezpath: list[list[float]], splinesteps: int = 16, N: int = 3, endpoint: bool = True) -> list[list[float]]:
+def bezpath_points(bezpath: ArrayLike, splinesteps: int = 16, N: int = 3, endpoint: bool = True) -> NDArray[np.float64]:
     """Sample a Bezier path (degree-N segments sharing endpoints, len % N == 1) into a point
-    list -- same shape as the bosl2 port's bezpath_curve()."""
-    assert len(bezpath) % N == 1, f"A degree {N} bezier path should have a multiple of {N} points in it, plus 1."
-    segs = (len(bezpath) - 1) // N
-    out: list[list[float]] = []
+    array -- same shape as the bosl2 port's bezpath_curve()."""
+    bez = as_points(bezpath)
+    assert len(bez) % N == 1, f"A degree {N} bezier path should have a multiple of {N} points in it, plus 1."
+    segs = (len(bez) - 1) // N
+    out = []
     for seg in range(segs):
-        ctrl = bezpath[seg * N : (seg + 1) * N + 1]
+        ctrl = bez[seg * N : (seg + 1) * N + 1]
         for i in range(splinesteps):
             out.append(bezier_points(ctrl, i / splinesteps))
     if endpoint:
-        out.append([float(c) for c in bezpath[-1]])
-    return out
+        out.append(bez[-1])
+    return np.asarray(out, dtype=float)
 
 
-def egg_path(length: float, r1: float, r2: float, R: float, n: int = 90) -> list[list[float]]:
+def egg_path(length: float, r1: float, r2: float, R: float, n: int = 90) -> NDArray[np.float64]:
     """The BOSL2-style egg outline: two end circles of radius r1 (left) and r2 (right), a
     total length, and side arcs of radius R blending them -- as a closed point path.
     Mirrors the bosl2 port's _egg_path() construction, with a fixed arc sampling density."""
@@ -349,7 +379,7 @@ def egg_path(length: float, r1: float, r2: float, R: float, n: int = 90) -> list
     path += _arc_through(c1, arcparms[0][1], [-length / 2, 0.0], arcparms[1][1], n)
     path += _arc_between(arcparms[1][0], arcparms[1][1], arcparms[1][2], n)
     path += _arc_between(c2, arcparms[1][2], [length / 2, 0.0], n)
-    return path
+    return np.asarray(path, dtype=float)
 
 
 def _unit2(v: list[float]) -> list[float]:
@@ -406,91 +436,99 @@ def _arc_through(cp: list[float], p_start: list[float], p_mid: list[float], p_en
 # ---------------------------------------------------------------------------
 
 
-def _v_sub(a, b):
-    return [a[i] - b[i] for i in range(len(a))]
+def _v_sub(a, b) -> NDArray[np.float64]:
+    return np.asarray(a, dtype=float) - np.asarray(b, dtype=float)
 
 
-def _v_add(a, b):
-    return [a[i] + b[i] for i in range(len(a))]
+def _v_add(a, b) -> NDArray[np.float64]:
+    return np.asarray(a, dtype=float) + np.asarray(b, dtype=float)
 
 
-def _v_scale(a, s):
-    return [x * s for x in a]
+def _v_scale(a, s) -> NDArray[np.float64]:
+    return np.asarray(a, dtype=float) * float(s)
 
 
-def _v_norm(a):
-    return math.sqrt(sum(x * x for x in a))
+def _v_norm(a) -> float:
+    return float(np.linalg.norm(np.asarray(a, dtype=float)))
 
 
-def _v_unit(a):
-    n = _v_norm(a)
+def _v_unit(a) -> NDArray[np.float64]:
+    arr = np.asarray(a, dtype=float)
+    n = float(np.linalg.norm(arr))
     assert n > 1e-12, "cannot normalize a zero vector"
-    return [x / n for x in a]
+    return arr / n
 
 
-def _v_dot(a, b):
-    return sum(a[i] * b[i] for i in range(len(a)))
+def _v_dot(a, b) -> float:
+    return float(np.asarray(a, dtype=float) @ np.asarray(b, dtype=float))
 
 
-def _lerp_pt(a, b, t):
-    return [a[i] + (b[i] - a[i]) * t for i in range(len(a))]
+def _lerp_pt(a, b, t) -> NDArray[np.float64]:
+    aa = np.asarray(a, dtype=float)
+    return aa + (np.asarray(b, dtype=float) - aa) * float(t)
 
 
-def line_normal(p1, p2) -> list[float]:
+def line_normal(p1, p2) -> NDArray[np.float64]:
     """Unit 2-D normal (perpendicular, to the LEFT of travel) of the line through p1, p2 --
     byte-for-byte the bosl2 port's convention."""
     return _v_unit([p1[1] - p2[1], p2[0] - p1[0]])
 
 
-def deriv(data: list, h=1, closed: bool = False) -> list:
+def deriv(data: ArrayLike, h: "float | ArrayLike" = 1, closed: bool = False) -> NDArray[np.float64]:
     """BOSL2 deriv(): numerical first derivative of vector-valued samples, with either a
     scalar step or a per-segment step list (the non-uniform variant path_tangents() feeds
     with segment lengths)."""
-    L = len(data)
+    pts = np.asarray(data, dtype=float)
+    L = len(pts)
     assert L >= 2
     if isinstance(h, (int, float)):
         if closed:
-            return [_v_scale(_v_sub(data[(i + 1) % L], data[(L + i - 1) % L]), 1 / (2 * h)) for i in range(L)]
-        first = _v_sub(data[1], data[0]) if L < 3 else _v_sub(_v_scale(_v_sub(data[1], data[0]), 3), _v_sub(data[2], data[1]))
-        last = _v_sub(data[L - 1], data[L - 2]) if L < 3 else _v_sub(_v_sub(data[L - 3], data[L - 2]), _v_scale(_v_sub(data[L - 2], data[L - 1]), 3))
-        return (
-            [_v_scale(first, 1 / (2 * h))]
-            + [_v_scale(_v_sub(data[i + 1], data[i - 1]), 1 / (2 * h)) for i in range(1, L - 1)]
-            + [_v_scale(last, 1 / (2 * h))]
-        )
+            return (np.roll(pts, -1, axis=0) - np.roll(pts, 1, axis=0)) / (2 * h)
+        first = pts[1] - pts[0] if L < 3 else 3 * (pts[1] - pts[0]) - (pts[2] - pts[1])
+        last = pts[L - 1] - pts[L - 2] if L < 3 else (pts[L - 3] - pts[L - 2]) - 3 * (pts[L - 2] - pts[L - 1])
+        mid = (pts[2:] - pts[:-2]) / (2 * h) if L > 2 else np.empty((0, pts.shape[1]))
+        return np.vstack([[first / (2 * h)], mid, [last / (2 * h)]])
 
-    def dnu(f1, fc, f2, h1, h2):
+    hs = np.asarray(h, dtype=float)
+
+    def dnu(f1, fc, f2, h1: float, h2: float) -> NDArray[np.float64]:
         g1 = _lerp_pt(fc, f1, h2 / h1) if h2 < h1 else f1
         g2 = _lerp_pt(fc, f2, h1 / h2) if h1 < h2 else f2
-        return _v_scale(_v_sub(g2, g1), 1 / (2 * min(h1, h2)))
+        return (np.asarray(g2, dtype=float) - np.asarray(g1, dtype=float)) / (2 * min(h1, h2))
 
     if closed:
-        assert len(h) == L
-        return [dnu(data[(L + i - 1) % L], data[i], data[(i + 1) % L], h[(i - 1) % L], h[i]) for i in range(L)]
-    assert len(h) == L - 1
-    return (
-        [_v_scale(_v_sub(data[1], data[0]), 1 / h[0])]
-        + [dnu(data[i - 1], data[i], data[i + 1], h[i - 1], h[i]) for i in range(1, L - 1)]
-        + [_v_scale(_v_sub(data[L - 1], data[L - 2]), 1 / h[L - 2])]
+        assert len(hs) == L
+        return np.asarray(
+            [dnu(pts[(L + i - 1) % L], pts[i], pts[(i + 1) % L], hs[(i - 1) % L], hs[i]) for i in range(L)]
+        )
+    assert len(hs) == L - 1
+    return np.vstack(
+        [[(pts[1] - pts[0]) / hs[0]]]
+        + [[dnu(pts[i - 1], pts[i], pts[i + 1], hs[i - 1], hs[i])] for i in range(1, L - 1)]
+        + [[(pts[L - 1] - pts[L - 2]) / hs[L - 2]]]
     )
 
 
-def path_tangents(path: list, closed: bool = False, uniform: bool = True) -> list:
+def path_tangents(path: ArrayLike, closed: bool = False, uniform: bool = True) -> NDArray[np.float64]:
     """BOSL2 path_tangents(): unit tangent at each path point (uniform=False weights the
     derivative by segment lengths, which is what rabbit_clip() uses)."""
+    pts = as_points(path)
     if uniform:
-        d = deriv(path, closed=closed)
+        d = deriv(pts, closed=closed)
     else:
-        n = len(path)
-        segs = [math.dist(path[i], path[(i + 1) % n]) for i in range(n if closed else n - 1)]
-        d = deriv(path, h=segs, closed=closed)
-    return [_v_unit(t) for t in d]
+        seg_ends = np.roll(pts, -1, axis=0) if closed else pts[1:]
+        seg_starts = pts if closed else pts[:-1]
+        segs = np.linalg.norm(seg_ends - seg_starts, axis=1)
+        d = deriv(pts, h=segs, closed=closed)
+    norms = np.linalg.norm(d, axis=1, keepdims=True)
+    assert np.all(norms > 1e-12), "cannot normalize a zero tangent"
+    return d / norms
 
 
 def _cubic_real_roots(p: list[float]) -> list[float]:
     """Real roots of a polynomial in power form (highest degree first), degree <= 3 --
     enough for path_to_bezpath()'s extreme-finding cubic. Closed-form (Cardano with the
-    trigonometric casework), no numpy."""
+    trigonometric casework)."""
     # trim leading (near-)zeros
     coeffs = list(p)
     while coeffs and abs(coeffs[0]) < 1e-14:
@@ -525,18 +563,23 @@ def _cubic_real_roots(p: list[float]) -> list[float]:
 
 
 def path_to_bezpath(
-    path: list, closed: bool = False, tangents: list | None = None, uniform: bool = False, size=None, relsize=None
-) -> list:
+    path: ArrayLike, closed: bool = False, tangents: ArrayLike | None = None, uniform: bool = False, size=None, relsize=None
+) -> NDArray[np.float64]:
     """BOSL2 path_to_bezpath(): a cubic bezier path through the input points with the given
     (or derived) tangents, control-point lengths chosen so the curve deviates from each
     segment by `size` (absolute) or `relsize` (fraction of segment length)."""
     assert size is None or relsize is None, "Can't define both size and relsize"
+    path = as_points(path)
     curvesize = size if size is not None else (relsize if relsize is not None else 0.1)
     relative = size is None
     lastpt = len(path) - (0 if closed else 1)
     sizevect = [curvesize] * lastpt if isinstance(curvesize, (int, float)) else list(curvesize)
     assert len(sizevect) == lastpt
-    tang = [_v_unit(t) for t in tangents] if tangents is not None else path_tangents(path, uniform=uniform, closed=closed)
+    tang = (
+        np.asarray([_v_unit(tv) for tv in np.asarray(tangents, dtype=float)])
+        if tangents is not None
+        else path_tangents(path, uniform=uniform, closed=closed)
+    )
 
     out = []
     for i in range(lastpt):
@@ -544,14 +587,14 @@ def path_to_bezpath(
         second = path[(i + 1) % len(path)]
         seglength = math.dist(first, second)
         assert seglength > 0, f"zero-length path segment at index {i}"
-        segdir = _v_scale(_v_sub(second, first), 1 / seglength)
+        segdir = (second - first) / seglength
         tangent1 = tang[i]
-        tangent2 = _v_scale(tang[(i + 1) % len(path)], -1)  # points backward, along the curve
+        tangent2 = -tang[(i + 1) % len(path)]  # points backward, along the curve
         parallel = abs(_v_dot(tangent1, segdir)) + abs(_v_dot(tangent2, segdir))
         lmax = seglength / parallel if parallel > 1e-12 else float("inf")
         sz = sizevect[i] * seglength if relative else sizevect[i]
-        normal1 = _v_sub(tangent1, _v_scale(segdir, _v_dot(tangent1, segdir)))
-        normal2 = _v_sub(tangent2, _v_scale(segdir, _v_dot(tangent2, segdir)))
+        normal1 = tangent1 - segdir * _v_dot(tangent1, segdir)
+        normal2 = tangent2 - segdir * _v_dot(tangent2, segdir)
         n11, n12, n22 = _v_dot(normal1, normal1), _v_dot(normal1, normal2), _v_dot(normal2, normal2)
         poly = [
             -3 * n11 + 6 * n12 - 3 * n22,
@@ -563,7 +606,7 @@ def path_to_bezpath(
             uextreme = []
         else:
             uextreme = [r for r in _cubic_real_roots(poly) if 0 < r < 1]
-        ctrl = [[0.0] * len(normal1), normal1, normal2, [0.0] * len(normal1)]
+        ctrl = np.asarray([np.zeros_like(normal1), normal1, normal2, np.zeros_like(normal1)])
         distlist = [_v_norm(bezier_points(ctrl, u)) for u in uextreme]
         if len(distlist) == 0:
             scale = 0.0
@@ -573,19 +616,21 @@ def path_to_bezpath(
             scale = sum(distlist) - 2 * min(distlist)
         ldesired = sz / scale if scale > 1e-12 else float("inf")
         ln = min(lmax, ldesired)
-        out.append(list(first))
-        out.append(_v_add(first, _v_scale(tangent1, ln)))
-        out.append(_v_add(second, _v_scale(tangent2, ln)))
-    out.append(list(path[lastpt % len(path)]))
-    return out
+        out.append(first)
+        out.append(first + tangent1 * ln)
+        out.append(second + tangent2 * ln)
+    out.append(path[lastpt % len(path)])
+    return np.asarray(out, dtype=float)
 
 
-def circle_circle_tangents(r1: float, cp1, r2: float, cp2) -> list[list[list[float]]]:
+def circle_circle_tangents(r1: float, cp1: ArrayLike, r2: float, cp2: ArrayLike) -> NDArray[np.float64]:
     """Tangent lines between two circles, each returned as a [point_on_circle1,
     point_on_circle2] pair -- same construction and ORDERING as bosl2's port (rabbit_clip()
     indexes [0][1], so the ordering matters): 2 external tangents, then 2 internal ones if
     the circles don't overlap."""
-    dist = math.dist(cp1, cp2)
+    cp1 = np.asarray(cp1, dtype=float)
+    cp2 = np.asarray(cp2, dtype=float)
+    dist = float(np.linalg.norm(cp2 - cp1))
     r_vals = [(r2 - r1) / dist, (r2 - r1) / dist, (-r2 - r1) / dist, (-r2 - r1) / dist]
     k_vals = [-1, 1, -1, 1]
     ext = [1, 1, -1, -1]
@@ -601,20 +646,22 @@ def circle_circle_tangents(r1: float, cp1, r2: float, cp2) -> list[list[list[flo
         r = r_vals[i]
         s = math.sqrt(max(0.0, 1 - r * r))
         k = k_vals[i]
-        coef = [r * u[0] - k * s * u[1], k * s * u[0] + r * u[1]]
-        p1 = [cp1[0] - r1 * coef[0], cp1[1] - r1 * coef[1]]
-        p2 = [cp2[0] - ext[i] * r2 * coef[0], cp2[1] - ext[i] * r2 * coef[1]]
-        if p1 != p2:
+        coef = np.asarray([r * u[0] - k * s * u[1], k * s * u[0] + r * u[1]])
+        p1 = cp1 - r1 * coef
+        p2 = cp2 - ext[i] * r2 * coef
+        if not np.array_equal(p1, p2):
             result.append([p1, p2])
-    return result
+    return np.asarray(result, dtype=float)
 
 
-def offset_polyline(path: list, d: float) -> list:
+def offset_polyline(path: ArrayLike, d: float) -> NDArray[np.float64]:
     """The input open polyline shifted `d` to the LEFT of its direction of travel, using
     per-vertex averaged normals -- exact for smooth densely-sampled curves (which is all
     rabbit_clip() feeds it; it is NOT a general polygon offset with joint handling)."""
-    tang = path_tangents(path, closed=False, uniform=False)
-    return [[p[0] - t[1] * d, p[1] + t[0] * d] for p, t in zip(path, tang)]
+    pts = as_points(path)
+    tang = path_tangents(pts, closed=False, uniform=False)
+    left = np.stack([-tang[:, 1], tang[:, 0]], axis=1)
+    return pts + left * d
 
 
 # ---------------------------------------------------------------------------
@@ -623,19 +670,20 @@ def offset_polyline(path: list, d: float) -> list:
 # ---------------------------------------------------------------------------
 
 
-def path_length(path: list, closed: bool = False) -> float:
+def path_length(path: ArrayLike, closed: bool = False) -> float:
     """Total arc length of an open (or closed) polyline."""
-    n = len(path)
-    total = sum(math.dist(path[i], path[i + 1]) for i in range(n - 1))
-    if closed and n > 1:
-        total += math.dist(path[-1], path[0])
+    pts = as_points(path)
+    total = float(np.sum(np.linalg.norm(np.diff(pts, axis=0), axis=1)))
+    if closed and len(pts) > 1:
+        total += float(np.linalg.norm(pts[-1] - pts[0]))
     return total
 
 
-def path_cut_points(path: list, cutdist, closed: bool = False):
+def path_cut_points(path: ArrayLike, cutdist, closed: bool = False):
     """The point(s) at the given arc-length distance(s) from the start of `path`, each as
-    [point, next_index] -- same return shape (and increasing-distances requirement) as the
-    bosl2 port's path_cut_points()."""
+    [point, next_index] (point is an ndarray) -- same return shape (and increasing-distances
+    requirement) as the bosl2 port's path_cut_points()."""
+    path = as_points(path)
     if isinstance(cutdist, (int, float)):
         return path_cut_points(path, [cutdist], closed)[0]
     assert all(cutdist[i] < cutdist[i + 1] for i in range(len(cutdist) - 1)), "Cut distances must be an increasing list"
@@ -647,8 +695,8 @@ def path_cut_points(path: list, cutdist, closed: bool = False):
         while True:
             if ind == len(path) - (0 if closed else 1):
                 assert dist < eps, "Path is too short for specified cut distance"
-                return [list(select(path, ind)), ind + 1]
-            d = math.dist(path[ind], select(path, ind + 1))
+                return [np.array(select(path, ind)), ind + 1]
+            d = float(np.linalg.norm(select(path, ind + 1) - path[ind]))
             if d > dist:
                 return [_lerp_pt(path[ind], select(path, ind + 1), dist / d), ind + 1]
             dist -= d
@@ -659,7 +707,7 @@ def path_cut_points(path: list, cutdist, closed: bool = False):
     dtotal = 0.0
     for dist in cutdist:
         lastpt = None if not result else result[-1][0]
-        dpartial = 0.0 if not result else math.dist(lastpt, select(path, pind))
+        dpartial = 0.0 if not result else float(np.linalg.norm(select(path, pind) - lastpt))
         if dist < dpartial + dtotal:
             t = (dist - dtotal) / dpartial
             nextpoint = [_lerp_pt(lastpt, select(path, pind), t), pind]
@@ -671,10 +719,10 @@ def path_cut_points(path: list, cutdist, closed: bool = False):
     return result
 
 
-def path_normals(path: list, closed: bool = False) -> list:
+def path_normals(path: ArrayLike, closed: bool = False) -> NDArray[np.float64]:
     """The 2-D normal (to the RIGHT of travel, matching the bosl2 port) at each path point."""
     tangents = path_tangents(path, closed=closed)
-    return [[t[1], -t[0]] for t in tangents]
+    return np.stack([tangents[:, 1], -tangents[:, 0]], axis=1)
 
 
 def _frag_count(r: float, fn: float | None = None, fa: float | None = None, fs: float | None = None) -> int:
@@ -718,9 +766,10 @@ def _circlecorner(p0, p1, p2, d: float, r: float, fn=None) -> list:
     ]
 
 
-def round_corners(path: list, radius=None, r=None, closed: bool = True, fn: float | None = None) -> list:
+def round_corners(path: ArrayLike, radius=None, r=None, closed: bool = True, fn: float | None = None) -> NDArray[np.float64]:
     """Round every corner of a 2-D path to the given radius, inserting a tangent arc at each
     vertex -- the bosl2 port's round_corners() (radius method), pure python."""
+    path = as_points(path)
     n = len(path)
     assert n > 2, f"Path has length {n}. Length must be 3 or more."
     size = radius if radius is not None else r
@@ -740,7 +789,7 @@ def round_corners(path: list, radius=None, r=None, closed: bool = True, fn: floa
     out: list = []
     for i in range(n):
         if dk[i][0] == 0:
-            out.append(list(path[i]))
+            out.append(path[i])
             continue
         p0, p1, p2 = path[(i - 1) % n], path[i], path[(i + 1) % n]
         out.extend(_circlecorner(p0, p1, p2, dk[i][0], dk[i][1], fn))
@@ -751,4 +800,4 @@ def round_corners(path: list, radius=None, r=None, closed: bool = True, fn: floa
             cleaned.append(q)
     if closed and len(cleaned) > 1 and math.dist(cleaned[0], cleaned[-1]) < 1e-9:
         cleaned.pop()
-    return cleaned
+    return np.asarray(cleaned, dtype=float)

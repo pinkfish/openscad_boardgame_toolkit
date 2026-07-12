@@ -43,7 +43,8 @@ def main():
     args = parser.parse_args()
 
     # Initialize MeshLab
-    ms = ml.MeshSet()
+    # pyright can't see into pymeshlab's compiled module; these attributes exist at runtime.
+    ms = ml.MeshSet()  # pyright: ignore[reportAttributeAccessIssue]
 
     temp_mesh_path = ""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -56,14 +57,14 @@ def main():
         # 2. PyMeshLab can now safely parse it based on the extension
         try:
             ms.load_new_mesh(temp_mesh_path)
-        except ml.PyMeshLabException as e:
+        except ml.PyMeshLabException as e:  # pyright: ignore[reportAttributeAccessIssue]
             print(f"Error loading meshes: {e}", file=sys.stderr)
             sys.exit(2)
         
         skipTest = False
         try:
             ms.load_new_mesh(args.target_mesh)  # Index 0
-        except ml.PyMeshLabException as e:
+        except ml.PyMeshLabException as e:  # pyright: ignore[reportAttributeAccessIssue]
             skipTest = True
             print(f"Not loading {args.target_mesh}")
 

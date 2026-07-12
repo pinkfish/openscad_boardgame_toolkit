@@ -486,7 +486,7 @@ def MakeFramedLidLabel(
 
     result = None
 
-    def add(piece: PyOpenSCAD) -> None:
+    def add(piece: "PyOpenSCAD | shapes3d.Bosl2Solid") -> None:
         nonlocal result
         result = piece if result is None else result | piece
 
@@ -525,6 +525,7 @@ def MakeFramedLidLabel(
             )
         )
 
+    assert result is not None, "label produced no geometry"
     result = result.rotate([0, 0, rotate_angle])
     # `result` is a Bosl2Solid here whenever the finger-hole cutout applies (its `.color()`
     # rewraps it above), otherwise native from MakeMainLidLabelSolid()/MakeMainLidLabelStriped()

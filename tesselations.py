@@ -23,6 +23,8 @@
 # FileGroup: Shapes
 
 from __future__ import annotations
+
+from collections.abc import Sequence
 import math
 
 from pythonscad import *
@@ -78,6 +80,7 @@ def HexagonTesselationRepeatAtLocation(
     apothem = math.sqrt(3) / 2 * side_length
     dx = apothem * 2
     dy = radius * 4 + apothem * 0.8
+    assert children is not None, "children must be given"
     return children.translate([x / 2 * dy, y * dx + ((x + 1) % 2) * (dx / 2), 0])
 
 
@@ -105,11 +108,13 @@ def HexagonTesselationRepeat(
     dx = apothem * 2
     dy = radius * 4 + apothem * 0.8
 
+    assert children is not None, "children must be given"
     shape = None
     for i in range(rows):
         for j in range(cols):
             piece = children.translate([i / 2 * dy, j * dx + ((i + 1) % 2) * (dx / 2), 0])
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -133,6 +138,7 @@ def TriangleTesselationRepeatAtLocation(
     assert isinstance(y, int), f"Need to have a y int specified y={y}"
     side_length = size * math.sin(math.radians(60))
     height = side_length * (math.sqrt(3) / 2)
+    assert children is not None, "children must be given"
     return children.rotate([0, 0, 60 * (x % 2)]).translate([side_length / 2 * x, height * y + (size - height) * (x % 2), 0])
 
 
@@ -157,6 +163,7 @@ def TriangleTesselationRepeat(
     side_length = size * math.sin(math.radians(60))
     height = side_length * (math.sqrt(3) / 2)
 
+    assert children is not None, "children must be given"
     shape = None
     for i in range(rows):
         for j in range(cols):
@@ -164,6 +171,7 @@ def TriangleTesselationRepeat(
                 [side_length / 2 * i, height * j + (size - height) * (i % 2), 0]
             )
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -314,7 +322,7 @@ def TesselationSideLine(
 
 
 def TesselationPolygon(
-    path: list[list[float]], side_indexes: list[int], sides: list[list[list[float]]], flips: list[int]
+    path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]"
 ) -> list[list[float]]:
     """Distorts every side of a polygon using profile lines and indexes.
 

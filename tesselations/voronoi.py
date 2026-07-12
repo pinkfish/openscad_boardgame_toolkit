@@ -20,6 +20,7 @@
 
 from __future__ import annotations
 import math
+import random
 from pythonscad import *
 from typing import TYPE_CHECKING
 
@@ -46,7 +47,7 @@ def VoronoiPoints(
         seed:      seed for the random number generator (default random)
     """
     if seed is None:
-        seed_calc = round(rands(0, 100000, 1)[0])
+        seed_calc = round(_rands(0, 100000, 1)[0])
     else:
         seed_calc = seed + width * length / allowable + cellsize
 
@@ -56,7 +57,7 @@ def VoronoiPoints(
     allowable_min = half_cell - allowable * half_cell
     allowable_max = half_cell + allowable * half_cell
     num_points = x_cells * y_cells
-    rnd_points = rands(allowable_min, allowable_max, num_points * 2, seed=seed_calc)
+    rnd_points = _rands(allowable_min, allowable_max, num_points * 2, seed=seed_calc)
 
     return [
         [x * cellsize + rnd_points[(x + y * x_cells) * 2], y * cellsize + rnd_points[(x + y * x_cells) * 2 + 1]]
@@ -69,6 +70,14 @@ def NormalizeVector(v: list[float]) -> list[float]:
     """Normalizes the vector to a size of 1, keeping the relative ratio of components."""
     mag = math.sqrt(v[0] * v[0] + v[1] * v[1])
     return [v[0] / mag, v[1] / mag]
+
+
+def _rands(minval: float, maxval: float, n: int, seed: float | None = None) -> list[float]:
+    """BOSL2 rands(): n uniform random floats in [minval, maxval], deterministic when seeded.
+    (The original code called rands() without ever importing or porting it -- a NameError on
+    every run -- so this local port is the first working version.)"""
+    rng = random.Random(seed)
+    return [rng.uniform(minval, maxval) for _ in range(n)]
 
 
 def Voronoi(

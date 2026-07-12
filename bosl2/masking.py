@@ -52,6 +52,8 @@
 # FileGroup: BOSL2
 
 from __future__ import annotations
+
+from collections.abc import Sequence
 from pythonscad import cube as _ocube, sphere as _osphere, polygon as _opolygon
 from typing import TYPE_CHECKING
 
@@ -89,7 +91,10 @@ def mask2d_roundover(
         d:      rounding diameter (alternative to r)
         _fn/_fa/_fs: arc smoothness overrides
     """
-    rad = r if r is not None else d / 2
+    if r is None:
+        assert d is not None, "mask2d_roundover(): must give r or d"
+        r = d / 2
+    rad = r
     inset_l = list(inset) if isinstance(inset, (list, tuple)) else [inset, inset]
     steps = max(1, int(_quantup(_frag_count(rad, _fn, _fa, _fs), 4) // 4))
     step = 90.0 / steps
@@ -143,7 +148,7 @@ def rounding_edge_mask(
     return _opolygon(cross).linear_extrude(height=length, center=True, scale=scale)
 
 
-def _pick_axes(vec: list[float]) -> tuple[int, int, int, float, float]:
+def _pick_axes(vec: Sequence[float]) -> tuple[int, int, int, float, float]:
     """For an edge vector (one axis 0, two axes +-1), return (run_axis, a1, a2, s1, s2)."""
     run_axis = next(i for i in range(3) if vec[i] == 0)
     nz = [i for i in range(3) if vec[i] != 0]
@@ -151,7 +156,7 @@ def _pick_axes(vec: list[float]) -> tuple[int, int, int, float, float]:
     return run_axis, a1, a2, vec[a1], vec[a2]
 
 
-def _orient_mask_along_edge(shape: PyOpenSCAD, size: list[float], vec: list[float]) -> PyOpenSCAD:
+def _orient_mask_along_edge(shape: PyOpenSCAD, size: Sequence[float], vec: Sequence[float]) -> PyOpenSCAD:
     """Reorient/position an already-built edge cutter (local +X/+Y into the solid, centered
     along its own local Z which runs along the edge) onto the cuboid edge given by *vec*."""
     run_axis, a1, a2, s1, s2 = _pick_axes(vec)
@@ -173,7 +178,7 @@ def _orient_mask_along_edge(shape: PyOpenSCAD, size: list[float], vec: list[floa
     return shape.multmatrix(m).translate(center)
 
 
-def _extrude_mask_along_edge(mask_path: list[list[float]], length: float, size: list[float], vec: list[float]) -> PyOpenSCAD:
+def _extrude_mask_along_edge(mask_path: Sequence[Sequence[float]], length: float, size: Sequence[float], vec: Sequence[float]) -> PyOpenSCAD:
     shape = _opolygon(mask_path).linear_extrude(height=length, center=True)
     return _orient_mask_along_edge(shape, size, vec)
 
@@ -183,22 +188,25 @@ def edge_mask(
     edges: str | list = "ALL",
     except_edges: list | None = None,
     children: PyOpenSCAD | None = None,
-    size: list[float] | None = None,
-    anchor: list[int] = CENTER,
+    size: Sequence[float] | None = None,
+    anchor: Sequence[float] = CENTER,
+    center: Sequence[float] | None = None,
 ) -> PyOpenSCAD:
     """Cut an already-built 3-D edge cutter (e.g. from rounding_edge_mask()) along each selected
-    edge of the cuboid *body*.
+    edge of the box-shaped *body*.
 
     Args:
-        body:         the cuboid solid to cut
+        body:         the box solid to cut
         edges:        edges to mask (default "ALL")
         except_edges: edges to explicitly not mask (BOSL2's `except=` synonym)
         children:     the pre-built 3-D edge cutter (BOSL2's `_children=`)
-        size:         the cuboid's [x,y,z] size (BOSL2 gets this from $parent_geom; here it must be passed explicitly)
-        anchor:       the anchor *body* itself was built with (default CENTER); the cutter geometry
-                      is computed as if body were centered, then shifted to match
+        size:         the box's [x,y,z] size (BOSL2 gets this from $parent_geom)
+        anchor:       the anchor *body* was built with (default CENTER); used only to locate the
+                      box center when `center` isn't given
+        center:       the box center in body's current frame; when given (e.g. from a native
+                      bbox query) it's used directly and `anchor` is ignored
     """
-    assert size is not None, "size= (the cuboid's size) must be given"
+    assert size is not None, "size= (the box's size) must be given"
     assert children is not None, "children= (the edge cutter) must be given"
     edge_set = _edges(edges, except_edges or [])
     cutter = None
@@ -209,7 +217,7 @@ def edge_mask(
                 cutter = piece if cutter is None else (cutter | piece)
     if cutter is None:
         return body
-    cutter = cutter.translate(_anchor_offset_box3(size, anchor))
+    cutter = cutter.translate(center if center is not None else _anchor_offset_box3(size, anchor))
     return body - cutter
 
 
@@ -217,24 +225,27 @@ def edge_profile(
     body: PyOpenSCAD,
     edges: str | list = "ALL",
     except_edges: list | None = None,
-    children: list[list[float]] | None = None,
-    size: list[float] | None = None,
+    children: Sequence[Sequence[float]] | None = None,
+    size: Sequence[float] | None = None,
     convexity: int = 10,
-    anchor: list[int] = CENTER,
+    anchor: Sequence[float] = CENTER,
+    center: Sequence[float] | None = None,
 ) -> PyOpenSCAD:
     """Cut a 2-D mask profile (e.g. from mask2d_roundover()), extruded along the edge's own
-    length, along each selected edge of the cuboid *body*.
+    length, along each selected edge of the box-shaped *body*.
 
     Args:
-        body:         the cuboid solid to cut
+        body:         the box solid to cut
         edges:        edges to mask (default "ALL")
         except_edges: edges to explicitly not mask
         children:     the 2-D mask cross-section path (BOSL2's `_children=`)
-        size:         the cuboid's [x,y,z] size
+        size:         the box's [x,y,z] size
         convexity:    accepted for signature compatibility; unused (no rotate_extrude needed here)
-        anchor:       the anchor *body* itself was built with (default CENTER)
+        anchor:       the anchor *body* was built with (default CENTER); used only when `center`
+                      isn't given
+        center:       the box center in body's current frame; when given it's used directly
     """
-    assert size is not None, "size= (the cuboid's size) must be given"
+    assert size is not None, "size= (the box's size) must be given"
     assert children is not None, "children= (the 2-D mask path) must be given"
     edge_set = _edges(edges, except_edges or [])
     cutter = None
@@ -247,7 +258,7 @@ def edge_profile(
                 cutter = piece if cutter is None else (cutter | piece)
     if cutter is None:
         return body
-    cutter = cutter.translate(_anchor_offset_box3(size, anchor))
+    cutter = cutter.translate(center if center is not None else _anchor_offset_box3(size, anchor))
     return body - cutter
 
 
@@ -287,7 +298,7 @@ def _corners(v, except_: list | None = None) -> list[int]:
     return [1 if (normed[i] - (1 if exc[i] > 0 else 0)) > 0 else 0 for i in range(8)]
 
 
-def _corner_cutter(size: list[float], corner_vec: list[float], r: float, _fn=None, _fa=None, _fs=None) -> PyOpenSCAD:
+def _corner_cutter(size: Sequence[float], corner_vec: Sequence[float], r: float, _fn=None, _fa=None, _fs=None) -> PyOpenSCAD:
     cube_center = [corner_vec[i] * (size[i] / 2 - r / 2) for i in range(3)]
     sphere_center = [corner_vec[i] * (size[i] / 2 - r) for i in range(3)]
     cube_shape = _ocube([r, r, r], center=True).translate(cube_center)
@@ -301,33 +312,39 @@ def corner_profile(
     except_corners: list | None = None,
     r: float | None = None,
     d: float | None = None,
-    size: list[float] | None = None,
-    children: list[list[float]] | None = None,
+    size: Sequence[float] | None = None,
+    children: Sequence[Sequence[float]] | None = None,
     convexity: int = 10,
-    anchor: list[int] = CENTER,
+    anchor: Sequence[float] = CENTER,
+    center: Sequence[float] | None = None,
     _fn: float | None = None,
     _fa: float | None = None,
     _fs: float | None = None,
 ) -> PyOpenSCAD:
-    """Round each selected corner of the cuboid *body* to radius *r* (cube-octant-minus-sphere).
+    """Round each selected corner of the box-shaped *body* to radius *r* (cube-octant-minus-sphere).
 
     Args:
-        body:           the cuboid solid to cut
+        body:           the box solid to cut
         corners:        corners to mask -- "ALL"/"NONE", a face vector (all corners on that face),
                          or a corner vector (default "ALL")
         except_corners: corners to explicitly not mask
         r:              rounding radius
         d:              rounding diameter (alternative to r)
-        size:           the cuboid's [x,y,z] size
+        size:           the box's [x,y,z] size
         children:       accepted for call-site compatibility with BOSL2's `_children=`; unused
                          (this port always uses the cube-minus-sphere construction, which is only
                          exactly equivalent to mask2d_roundover(), the only 2-D mask this project uses)
         convexity:      accepted for signature compatibility; unused
-        anchor:         the anchor *body* itself was built with (default CENTER)
+        anchor:         the anchor *body* was built with (default CENTER); used only when `center`
+                         isn't given
+        center:         the box center in body's current frame; when given it's used directly
         _fn/_fa/_fs:    arc smoothness overrides
     """
-    rad = r if r is not None else d / 2
-    assert size is not None, "size= (the cuboid's size) must be given"
+    if r is None:
+        assert d is not None, "corner_profile(): must give r or d"
+        r = d / 2
+    rad = r
+    assert size is not None, "size= (the box's size) must be given"
     corner_set = _corners(corners, except_corners or [])
     cutter = None
     for idx, sel in enumerate(corner_set):
@@ -336,7 +353,7 @@ def corner_profile(
             cutter = piece if cutter is None else (cutter | piece)
     if cutter is None:
         return body
-    cutter = cutter.translate(_anchor_offset_box3(size, anchor))
+    cutter = cutter.translate(center if center is not None else _anchor_offset_box3(size, anchor))
     return body - cutter
 
 
@@ -345,31 +362,37 @@ def face_profile(
     faces: str | list = "ALL",
     r: float | None = None,
     d: float | None = None,
-    size: list[float] | None = None,
-    children: list[list[float]] | None = None,
+    size: Sequence[float] | None = None,
+    children: Sequence[Sequence[float]] | None = None,
     convexity: int = 10,
-    anchor: list[int] = CENTER,
+    anchor: Sequence[float] = CENTER,
+    center: Sequence[float] | None = None,
     _fn: float | None = None,
     _fa: float | None = None,
     _fs: float | None = None,
 ) -> PyOpenSCAD:
-    """Round all edges and corners bounding the given face(s) of the cuboid *body* to radius *r*.
+    """Round all edges and corners bounding the given face(s) of the box-shaped *body* to radius *r*.
 
     Equivalent to edge_profile(faces) followed by corner_profile(faces, r).
 
     Args:
-        body:      the cuboid solid to cut
+        body:      the box solid to cut
         faces:     face(s) to round the border of, e.g. TOP, or "ALL" (default "ALL")
         r:         rounding radius
         d:         rounding diameter (alternative to r)
-        size:      the cuboid's [x,y,z] size
+        size:      the box's [x,y,z] size
         children:  the 2-D mask cross-section path used for the edges (BOSL2's `_children=`);
                    defaults to mask2d_roundover(r) if not given
         convexity: accepted for signature compatibility; unused
-        anchor:    the anchor *body* itself was built with (default CENTER)
+        anchor:    the anchor *body* was built with (default CENTER); used only when `center`
+                   isn't given
+        center:    the box center in body's current frame; when given it's used directly
         _fn/_fa/_fs: arc smoothness overrides
     """
-    rad = r if r is not None else d / 2
+    if r is None:
+        assert d is not None, "face_profile(): must give r or d"
+        r = d / 2
+    rad = r
     mask = children if children is not None else mask2d_roundover(rad, _fn=_fn, _fa=_fa, _fs=_fs)
-    body = edge_profile(body, faces, children=mask, size=size, convexity=convexity, anchor=anchor)
-    return corner_profile(body, faces, r=rad, size=size, convexity=convexity, anchor=anchor, _fn=_fn, _fa=_fa, _fs=_fs)
+    body = edge_profile(body, faces, children=mask, size=size, convexity=convexity, anchor=anchor, center=center)
+    return corner_profile(body, faces, r=rad, size=size, convexity=convexity, anchor=anchor, center=center, _fn=_fn, _fa=_fa, _fs=_fs)

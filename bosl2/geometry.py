@@ -61,7 +61,7 @@ def is_collinear(a, b=None, c=None, eps: float = EPSILON) -> bool:
     if n1 <= eps or n2 <= eps:
         return True
     if a.shape[0] == 2:
-        return abs(cross(v1, v2)) <= eps * max(n1, n2)
+        return bool(abs(cross(v1, v2)) <= eps * max(n1, n2))
     return float(np.linalg.norm(cross(v1, v2))) <= eps * n1 * n2
 
 
@@ -102,7 +102,7 @@ def _is_point_on_segment(point, seg, eps: float = EPSILON) -> bool:
     if vv1 < eps:
         return float(np.linalg.norm(v0)) <= eps
     t = float(v0 @ v1) / vv1
-    on_line = abs(cross(v0, v1)) <= eps * float(np.linalg.norm(v1))
+    on_line = bool(abs(cross(v0, v1)) <= eps * float(np.linalg.norm(v1)))
     return on_line and (-eps <= t < 1 + eps)
 
 

@@ -18,8 +18,8 @@
 # LibFile: tests/generate_golden_images.py
 #    Run this manually (not part of the automated test suite) on a machine where the real
 #    PythonSCAD binary can actually render pysolidfive/cap_box/components/lids_base/labels/base_bgtk/
-#    sliding_box shapes -- pysolidfive itself needs nothing beyond the binary (no bosl2/numpy
-#    dependency; see pysolidfive/__init__.py's module docstring), but cap_box/components/
+#    sliding_box shapes -- pysolidfive needs the binary plus numpy (its sequence/path currency;
+#    see pysolidfive/__init__.py's module docstring), and cap_box/components/
 #    lids_base/labels/base_bgtk/sliding_box also need bosl2's numpy dependency to load inside the
 #    app, and a working (PythonSCAD-compatible) BOSL2 install (see tests/render_cap_box.py's
 #    module docstring) -- to (re)generate the golden images that pysolidfive/tests/

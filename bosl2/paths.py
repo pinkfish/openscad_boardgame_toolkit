@@ -42,6 +42,7 @@
 # FileSummary: Operations on paths: length, resampling, tangents, splitting into subpaths.
 # FileGroup: BOSL2
 
+from collections.abc import Sequence
 import math
 
 import numpy as np
@@ -244,7 +245,7 @@ def _scad_round(x: float) -> float:
     return math.floor(x + 0.5) if x >= 0 else math.ceil(x - 0.5)
 
 
-def _sum_preserving_round(data: list[float]) -> list[float]:
+def _sum_preserving_round(data: Sequence[float]) -> list[float]:
     """Round every entry to an integer, carrying the rounding error forward so the sum is preserved."""
     out = list(data)
     error = 0.0
@@ -277,6 +278,7 @@ def subdivide_path(path, n=None, refine=None, maxlen=None, closed: bool = True, 
     method = "length" if method is None else method
     assert method in ("length", "segment")
     if n is None:
+        assert refine is not None, "Must give exactly one of n, refine, and maxlen"
         n = len(path) * refine
     assert (isinstance(n, (int, float)) and n > 0) or isinstance(n, (list, tuple)), "Parameter n to subdivide_path must be positive number or vector"
     count = len(path) - (0 if closed else 1)
@@ -291,7 +293,8 @@ def subdivide_path(path, n=None, refine=None, maxlen=None, closed: bool = True, 
         path_lens = path_segment_lengths(path, closed)
         add_density = (n - len(path)) / sum(path_lens)
         add_guess = [ln * add_density for ln in path_lens]
-    add = _sum_preserving_round(add_guess) if exact else [_scad_round(v) for v in add_guess]
+    add_list = [float(v) for v in add_guess]
+    add = _sum_preserving_round(add_list) if exact else [_scad_round(v) for v in add_list]
     out = []
     for i in range(count):
         out.extend(lerpn(path[i], select(path, i + 1), 1 + int(add[i]), endpoint=False))
@@ -306,7 +309,11 @@ def resample_path(path, n=None, spacing=None, closed: bool = True) -> list:
     assert is_path(path)
     assert (n is None) != (spacing is None), "Must define exactly one of n and spacing"
     length = path_length(path, closed)
-    n_use = (n - (0 if closed else 1)) if n is not None else round(length / spacing)
+    if n is not None:
+        n_use = n - (0 if closed else 1)
+    else:
+        assert spacing is not None
+        n_use = round(length / spacing)
     distlist = lerpn(0, length, n_use, endpoint=False)
     cuts = path_cut_points(path, distlist, closed=closed)
     out = [c[0] for c in cuts]
@@ -339,7 +346,7 @@ def is_path_simple(path, closed: bool | None = None, eps: float = EPSILON) -> bo
     return len(_path_self_intersections(path, closed=closed, eps=eps)) == 0
 
 
-def path_closest_point(path, pt: list[float], closed: bool = True) -> list:
+def path_closest_point(path, pt: Sequence[float], closed: bool = True) -> list:
     """[SEGNUM, POINT]: the closest path segment to *pt*, and the closest point (an ndarray) on it."""
     path = force_path(path)
     assert is_path(path), "Input must be a path"
@@ -479,7 +486,7 @@ def path_cut_points(path, cutdist, closed: bool = False, direction: bool = False
         return path_cut_points(path, [cutdist], closed, direction)[0]
     assert isinstance(cutdist, (list, tuple, np.ndarray))
     assert all(cutdist[i] < cutdist[i + 1] for i in range(len(cutdist) - 1)), "Cut distances must be an increasing list"
-    cuts = path_cut_points_recurse(path, cutdist, closed)
+    cuts = path_cut_points_recurse(path, [float(v) for v in cutdist], closed)
     if not direction:
         return cuts
     dirs = _path_cuts_dir(path, cuts, closed)
@@ -487,7 +494,7 @@ def path_cut_points(path, cutdist, closed: bool = False, direction: bool = False
     return [[cuts[i][0], cuts[i][1], dirs[i], normals[i]] for i in range(len(cuts))]
 
 
-def path_cut_points_recurse(path, dists: list[float], closed: bool = False) -> list:
+def path_cut_points_recurse(path, dists: Sequence[float], closed: bool = False) -> list:
     result = []
     pind = 0
     dtotal = 0
@@ -610,7 +617,7 @@ def _tag_self_crossing_subpaths(path, nonzero: bool, closed: bool = True, eps: f
     out = []
     for subpath in subpaths:
         seg = select(subpath, 0, 1)
-        mp = mean(seg)
+        mp = np.asarray(seg, dtype=float).mean(axis=0)
         n = [x / 2048 for x in line_normal(seg[0], seg[1])]
         p1 = [mp[0] + n[0], mp[1] + n[1]]
         p2 = [mp[0] - n[0], mp[1] - n[1]]

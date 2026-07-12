@@ -24,13 +24,17 @@
 # FileGroup: BOSL2
 
 
-def select(lst: list, start: int | list[int], end: int | None = None) -> object:
+def select(lst: list, start: int | list[int], end: int | None = None):
     """Circular list indexing/slicing.
 
     select(lst, i) returns lst[i], wrapping i modulo len(lst).
     select(lst, [i, j, ...]) returns [lst[i], lst[j], ...], each wrapped.
     select(lst, s, e) returns the circular slice lst[s..e] inclusive, wrapping
     around the end of the list if s > e.
+
+    Deliberately un-annotated return: the result type depends on the calling form
+    (single element vs list), which a fixed `object` annotation only obscures --
+    callers know which form they used.
     """
     n = len(lst)
     if n == 0:
@@ -39,6 +43,7 @@ def select(lst: list, start: int | list[int], end: int | None = None) -> object:
         if isinstance(start, (list, tuple)):
             return [lst[i % n] for i in start]
         return lst[start % n]
+    assert isinstance(start, int), "select(): slice form needs integer start"
     s = start % n
     e = end % n
     if s <= e:

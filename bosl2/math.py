@@ -26,6 +26,7 @@
 # FileGroup: BOSL2
 
 import math
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -101,14 +102,14 @@ def _deriv_nonuniform(data, h, closed: bool) -> np.ndarray:
     return np.asarray(out, dtype=float)
 
 
-def deriv(data, h=1, closed: bool = False) -> np.ndarray:
+def deriv(data, h: "float | Sequence[float] | np.ndarray" = 1, closed: bool = False) -> np.ndarray:
     """Numeric first-derivative estimate of *data* (scalar- or vector-valued points), as an ndarray.
 
     Uses a symmetric derivative approximation for internal points and a
     two-point method at the endpoints of an open path. If *h* is a list it
     is treated as the (possibly non-uniform) per-segment sampling distance.
     """
-    if isinstance(h, (list, tuple, np.ndarray)):
+    if not isinstance(h, (int, float)):
         return _deriv_nonuniform(data, h, closed)
     arr = np.asarray(data, dtype=float)
     length = len(arr)

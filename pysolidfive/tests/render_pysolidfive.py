@@ -135,6 +135,11 @@ def render_script(
                 "--imgsize",
                 f"{imgsize[0]},{imgsize[1]}",
                 "--render=true",
+                # Manifold is the app's fast rendering backend (CGAL is the old/slow one).
+                # It already appears to be the default, but pin it so a default change (or a
+                # user config) can never silently put golden renders on the slow path.
+                "--backend",
+                "Manifold",
                 "--autocenter",
                 "--viewall",
                 str(script_path),

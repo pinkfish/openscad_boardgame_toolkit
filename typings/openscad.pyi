@@ -2,7 +2,21 @@
 # Deliberately permissive (see pythonscad.pyi).
 from typing import Any
 
+class PyOpenSCADVector:
+    # The native vector type returned by .size/.position -- indexable ([0]/[1]/[2]) and
+    # float()-able per element, but NOT iterable. Deliberately permissive.
+    def __getitem__(self, i: int) -> float: ...
+
 class PyOpenSCAD:
+    # Native axis-aligned bounding-box accessors, evaluated by meshing the object:
+    #   .size     -> [dx, dy, dz] extent of the AABB
+    #   .position -> [xmin, ymin, zmin] min corner of the AABB
+    #   .bbox     -> a cube/square solid spanning the AABB
+    # Each is None for empty/degenerate geometry. Used by bosl2's bbox-backed anchoring so
+    # attachments/rotations don't need the size passed in explicitly.
+    size: Any
+    position: Any
+    bbox: "PyOpenSCAD"
     def __getattr__(self, name: str) -> Any: ...
     def __or__(self, other: Any) -> "PyOpenSCAD": ...
     def __and__(self, other: Any) -> "PyOpenSCAD": ...

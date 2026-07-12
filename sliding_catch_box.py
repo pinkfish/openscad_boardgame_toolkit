@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import pysolidfive
+import bosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -85,26 +85,26 @@ def MakeBoxWithSlidingCatchLid(
 
     calc_sliding_len = (length - wall_thickness) / 6
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     )
 
-    middle = pysolidfive.cuboid(
+    middle = bosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height], anchor=BOTTOM + FRONT + LEFT
     ).translate([wall_thickness, wall_thickness, floor_thickness])
     body = body - middle
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
     ).translate([-0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness])
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
@@ -113,7 +113,7 @@ def MakeBoxWithSlidingCatchLid(
         [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness]
     )
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
@@ -122,7 +122,7 @@ def MakeBoxWithSlidingCatchLid(
         [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing]
     )
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         rounding=lid_thickness,
         anchor=FRONT + LEFT + BOTTOM,
@@ -131,14 +131,14 @@ def MakeBoxWithSlidingCatchLid(
         [-0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness - top_thickness]
     )
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
     ).translate([-0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness])
 
-    body = body - pysolidfive.cuboid(
+    body = body - bosl2.shapes3d.cuboid(
         [width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
@@ -168,7 +168,7 @@ def MakeBoxWithSlidingCatchLid(
         if kids_shape is not None:
             body = body - (bound & kids_shape).translate([wall_thickness, wall_thickness, floor_thickness])
 
-    return body
+    return body.shape
 
 
 def SlidingCatchBoxLid(
@@ -217,11 +217,11 @@ def SlidingCatchBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = top_thickness / 2
 
-    base = pysolidfive.cuboid(
+    base = bosl2.shapes3d.cuboid(
         [width, length - wall_thickness, lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT
     )
     if fill_middle:
-        fill = pysolidfive.cuboid(
+        fill = bosl2.shapes3d.cuboid(
             [width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1],
             anchor=FRONT + LEFT + BOTTOM,
             rounding=calc_lid_rounding,
@@ -229,11 +229,11 @@ def SlidingCatchBoxLid(
         ).translate([wall_thickness, 0, lid_thickness - 0.1])
         base = fill | base
 
-    def _cut(size_y: float, tx: float, ty: float) -> "pysolidfive.PyShape":
+    def _cut(size_y: float, tx: float, ty: float) -> "PyOpenSCAD":
         cut_w = wall_thickness + size_spacing + 1
-        return pysolidfive.cuboid(
+        return bosl2.shapes3d.cuboid(
             [cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
-        ).translate([tx, ty, -0.5])
+        ).translate([tx, ty, -0.5]).shape
 
     front_a = _cut(wall_thickness + calc_sliding_len + 1, -1, -1)
     front_b = _cut(wall_thickness + calc_sliding_len + 1, width - wall_thickness - size_spacing, -1)
@@ -261,7 +261,7 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     font: str | None = None,
     lid_rounding: float | None = None,
     wall_thickness: float | None = None,
@@ -403,7 +403,9 @@ def SlidingCatchBoxLidWithLabel(
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
     calc_lid_thickness = lid_thickness + top_thickness if fill_middle else lid_thickness
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return SlidingCatchBoxLidWithLabelAndCustomShape(
         size=size,

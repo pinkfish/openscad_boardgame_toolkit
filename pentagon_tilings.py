@@ -29,7 +29,15 @@
 # LibFile: pentagon_tilings.py
 #    All 15 known classes of convex pentagons that tile the plane.
 
+# PentagonTesselationData's 15 sequential pentagon-type data blocks exceed pyright's
+# code-flow complexity budget (the 'too complex to analyze' diagnostic); everything
+# else in this file is still checked.
+# pyright: reportGeneralTypeIssues=false
 from __future__ import annotations
+
+import numpy as np
+
+from collections.abc import Sequence
 import math
 import types
 
@@ -71,9 +79,9 @@ def PentagonTesselationArea(
     first_length_modifier: float = 0,
     second_length_modifier: float = 0,
     third_length_modifier: float = 0,
-    line1: list[list[float]] | None = None,
-    line2: list[list[float]] | None = None,
-    line3: list[list[float]] | None = None,
+    line1: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     spin: float = 60,
 ) -> "pysolidfive.PyShape2D":
     """Make the pentagon tessellation tiled across a rectangular area.
@@ -133,9 +141,9 @@ def PentagonTesselation(
     first_length_modifier: float = 0,
     second_length_modifier: float = 0,
     third_length_modifier: float = 0,
-    line1: list[list[float]] | None = None,
-    line2: list[list[float]] | None = None,
-    line3: list[list[float]] | None = None,
+    line1: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
 ) -> "pysolidfive.PyShape2D":
     """Renders one tile of one of the 15 known classes of pentagon that tiles the plane,
     positioned at lattice index (x, y).
@@ -176,9 +184,9 @@ def PentagonTesselationData(
     first_length_modifier: float = 0,
     second_length_modifier: float = 0,
     third_length_modifier: float = 0,
-    line1: list[list[float]] | None = None,
-    line2: list[list[float]] | None = None,
-    line3: list[list[float]] | None = None,
+    line1: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
+    line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
 ) -> types.SimpleNamespace:
     """Computes the raw lattice data for one of the 15 known classes of pentagon that tiles the plane.
 

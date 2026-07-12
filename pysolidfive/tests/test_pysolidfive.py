@@ -137,6 +137,103 @@ class TestPyShape(unittest.TestCase):
             shape.round(1)
 
 
+class TestNamedCombinators(unittest.TestCase):
+    """The named, n-ary CSG entry points (union/difference/intersection/hull) -- the operator
+    forms (|, &, -) are covered by TestPyShape above; these check the varargs/list calling
+    conventions, n-ary composition, bounds/res propagation, and hull()'s point pooling."""
+
+    def test_union_varargs_and_list_forms_match(self):
+        a = pysolidfive.cuboid(size=[6.0, 6.0, 6.0])
+        b = pysolidfive.cuboid(size=[6.0, 6.0, 6.0]).translate([5, 0, 0])
+        c = pysolidfive.cuboid(size=[6.0, 6.0, 6.0]).translate([10, 0, 0])
+        for u in (pysolidfive.union(a, b, c), pysolidfive.union([a, b, c])):
+            m = u.mesh()
+            self.assertLess(m.sample(-2, 0, 0), 0, "inside a")
+            self.assertLess(m.sample(10, 0, 0), 0, "inside c")
+            self.assertGreater(m.sample(0, 10, 0), 0, "outside all three")
+        self.assertEqual(pysolidfive.union(a, b, c).mx[0], 13.0, "bounds widen to the union")
+
+    def test_union_of_one_is_identity(self):
+        a = pysolidfive.cuboid(size=[6.0, 6.0, 6.0])
+        self.assertIs(pysolidfive.union(a), a)
+
+    def test_union_res_is_finest_child(self):
+        a = pysolidfive.cuboid(size=[6.0, 6.0, 6.0], res=10)
+        b = pysolidfive.cuboid(size=[6.0, 6.0, 6.0], res=30)
+        self.assertEqual(pysolidfive.union(a, b).res, 30)
+
+    def test_union_rejects_non_shapes(self):
+        with self.assertRaises(AssertionError):
+            pysolidfive.union(pysolidfive.cuboid(size=[6.0, 6.0, 6.0]), "not a shape")
+        with self.assertRaises(AssertionError):
+            pysolidfive.union()
+
+    def test_intersection_nary(self):
+        a = pysolidfive.cuboid(size=[10.0, 10.0, 10.0])
+        b = pysolidfive.cuboid(size=[10.0, 10.0, 10.0]).translate([6, 0, 0])
+        c = pysolidfive.cuboid(size=[10.0, 10.0, 10.0]).translate([3, 3, 0])
+        m = pysolidfive.intersection(a, b, c).mesh()
+        self.assertLess(m.sample(3, 3, 0), 0, "inside all three")
+        self.assertGreater(m.sample(3, -3, 0), 0, "outside c")
+        self.assertGreater(m.sample(-3, 0, 0), 0, "outside b")
+
+    def test_intersection_asserts_on_disjoint_bounds(self):
+        a = pysolidfive.cuboid(size=[4.0, 4.0, 4.0])
+        b = pysolidfive.cuboid(size=[4.0, 4.0, 4.0]).translate([100, 0, 0])
+        with self.assertRaises(AssertionError):
+            pysolidfive.intersection(a, b)
+
+    def test_difference_multiple_tools(self):
+        base = pysolidfive.cuboid(size=[20.0, 20.0, 20.0])
+        t1 = pysolidfive.sphere(r=3)
+        t2 = pysolidfive.sphere(r=3).translate([6, 0, 0])
+        d = pysolidfive.difference(base, t1, t2).mesh()
+        self.assertGreater(d.sample(0, 0, 0), 0, "carved by t1")
+        self.assertGreater(d.sample(6, 0, 0), 0, "carved by t2")
+        self.assertLess(d.sample(-6, 0, 0), 0, "still solid away from both tools")
+        self.assertEqual(pysolidfive.difference(base, t1).res, base.res, "keeps the base's res")
+
+    def test_difference_with_no_tools_is_identity(self):
+        base = pysolidfive.cuboid(size=[20.0, 20.0, 20.0])
+        self.assertIs(pysolidfive.difference(base), base)
+
+    def test_hull_bridges_two_separated_cubes(self):
+        a = pysolidfive.cuboid(size=[8.0, 8.0, 8.0], res=8).translate([-10, 0, 0])
+        b = pysolidfive.cuboid(size=[8.0, 8.0, 8.0], res=8).translate([10, 0, 0])
+        h = pysolidfive.hull(a, b)
+        m = h.mesh()
+        self.assertLess(m.sample(0, 0, 0), 0, "the bridge between the cubes is inside the hull")
+        self.assertLess(m.sample(-10, 0, 0), 0, "inside a")
+        self.assertLess(m.sample(10, 0, 0), 0, "inside b")
+        self.assertGreater(m.sample(0, 0, 10), 0, "above the hull")
+        self.assertGreater(m.sample(0, 8, 0), 0, "beside the hull")
+        self.assertEqual(h.mn[0], -14.0, "hull bounds == union bounds")
+        self.assertEqual(h.mx[0], 14.0)
+
+    def test_hull_is_lazy_until_first_mesh(self):
+        a = pysolidfive.cuboid(size=[8.0, 8.0, 8.0], res=8).translate([-10, 0, 0])
+        b = pysolidfive.cuboid(size=[8.0, 8.0, 8.0], res=8).translate([10, 0, 0])
+        h = pysolidfive.hull(a, b)
+        self.assertIsNone(a._mesh_cache, "constructing the hull must not mesh its children")
+        self.assertIsNone(b._mesh_cache)
+        h.mesh().sample(0, 0, 0)
+        self.assertIsNotNone(a._mesh_cache, "sampling the hull meshes the children (once)")
+
+    def test_hull_mixes_shapes_and_raw_points(self):
+        base = pysolidfive.cuboid(size=[16.0, 16.0, 8.0], res=8)
+        h = pysolidfive.hull(base, [[0.0, 0.0, 18.0]]).mesh()
+        self.assertLess(h.sample(0, 0, 12), 0, "on the axis of the spike, between base and apex")
+        self.assertGreater(h.sample(0, 0, 19), 0, "past the apex")
+        self.assertGreater(h.sample(7, 7, 12), 0, "outside the taper")
+
+    def test_hull_of_raw_points_matches_convex_polyhedron(self):
+        pts = [[0, 0, 0], [10, 0, 0], [0, 10, 0], [0, 0, 10]]
+        h = pysolidfive.hull(pts).mesh()
+        ref = pysolidfive.convex_polyhedron(pts).mesh()
+        for p in [(2, 2, 2), (5, 5, 5), (-1, -1, -1), (3, 0, 0)]:
+            self.assertAlmostEqual(h.sample(*p), ref.sample(*p), places=9)
+
+
 class TestCuboid(unittest.TestCase):
     def test_sharp_box_matches_reference_formula(self):
         size, b = [10.0, 10.0, 10.0], [5.0, 5.0, 5.0]
@@ -834,7 +931,9 @@ class TestKnuckleHinge(unittest.TestCase):
 class TestRabbitClip(unittest.TestCase):
     """rabbit_clip(): pin is a thin sprung outline, socket is the filled cavity."""
 
-    ARGS = dict(length=6, width=7, snap=0.4, thickness=0.8, depth=2)
+    from typing import Any
+
+    ARGS: dict[str, Any] = dict(length=6, width=7, snap=0.4, thickness=0.8, depth=2)
 
     def test_pin_is_hollow_outline(self):
         pin = pysolidfive.rabbit_clip(type="pin", **self.ARGS).mesh()
@@ -851,6 +950,17 @@ class TestRabbitClip(unittest.TestCase):
         self.assertLess(sock.sample(3.0, 0, -3.0), 0, msg="socket edge included")
         self.assertGreater(sock.sample(0, 0, 1.0), 0, msg="nothing above the plane")
 
+    def test_socket_base_closure_spans_full_width(self):
+        # Regression: the socket outline is closed along its base by two [-x, -extra] points.
+        # An earlier numpy conversion concatenated them with `list + ndarray`, which silently
+        # BROADCASTS (adding the point onto every row) instead of appending -- shifting the
+        # outline and losing the base strip. The strip means the band just below the base
+        # plane is solid across the socket's whole width.
+        sock = pysolidfive.rabbit_clip(type="socket", **self.ARGS).mesh()
+        for x in (0.0, 1.5, 3.0, -3.0):
+            self.assertLess(sock.sample(x, 0, -0.2), 0, msg=f"base band solid at x={x}")
+        self.assertGreater(sock.sample(3.9, 0, -0.2), 0, msg="empty outside the clip width")
+
     def test_socket_wider_than_pin_by_clearance(self):
         pin = pysolidfive.rabbit_clip(type="pin", **self.ARGS).mesh()
         sock = pysolidfive.rabbit_clip(type="socket", **self.ARGS, orient=[0, 0, 1]).mesh()
@@ -863,9 +973,9 @@ class TestPathToBezpath(unittest.TestCase):
         path = [[0, 0], [10, 0], [10, 10]]
         bez = pysolidfive.path_to_bezpath(path, relsize=0.1)
         self.assertEqual(len(bez), 7, msg="two cubic segments")
-        self.assertEqual(bez[0], [0, 0])
-        self.assertEqual(bez[3], [10, 0])
-        self.assertEqual(bez[6], [10, 10])
+        self.assertEqual(list(bez[0]), [0, 0])
+        self.assertEqual(list(bez[3]), [10, 0])
+        self.assertEqual(list(bez[6]), [10, 10])
         pts = pysolidfive.bezpath_points(bez, splinesteps=8)
         self.assertEqual(len(pts), 17)
 
@@ -879,8 +989,8 @@ class TestPathToBezpath(unittest.TestCase):
 class TestPathSamplers(unittest.TestCase):
     def test_bezier_points_endpoints_and_midpoint(self):
         curve = [[0, 0], [0, 10], [10, 10], [10, 0]]  # symmetric cubic
-        self.assertEqual(pysolidfive.bezier_points(curve, 0), [0, 0])
-        self.assertEqual(pysolidfive.bezier_points(curve, 1), [10, 0])
+        self.assertEqual(list(pysolidfive.bezier_points(curve, 0)), [0, 0])
+        self.assertEqual(list(pysolidfive.bezier_points(curve, 1)), [10, 0])
         mid = pysolidfive.bezier_points(curve, 0.5)
         self.assertAlmostEqual(mid[0], 5, places=9)
         self.assertAlmostEqual(mid[1], 7.5, places=9)
@@ -889,9 +999,9 @@ class TestPathSamplers(unittest.TestCase):
         bez = [[0, 0], [0, 5], [5, 5], [5, 0], [5, -5], [10, -5], [10, 0]]  # two cubics
         pts = pysolidfive.bezpath_points(bez, splinesteps=8)
         self.assertEqual(len(pts), 17)
-        self.assertEqual(pts[0], [0, 0])
-        self.assertEqual(pts[-1], [10, 0])
-        self.assertEqual(pts[8], [5, 0], msg="segment joint hit exactly")
+        self.assertEqual(list(pts[0]), [0, 0])
+        self.assertEqual(list(pts[-1]), [10, 0])
+        self.assertEqual(list(pts[8]), [5, 0], msg="segment joint hit exactly")
 
     def test_egg_path_extents(self):
         # Each arc omits its endpoint (the next arc supplies it), so the +-length/2 apexes are

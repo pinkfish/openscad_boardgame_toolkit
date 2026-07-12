@@ -16,8 +16,12 @@
 # under the License.
 
 # LibFile: pysolidfive/__init__.py
-#    A small libfive-based (F-Rep / signed-distance-function) shape library. Self-contained --
-#    it does not import bosl2 (and so carries no transitive numpy dependency): the small pieces
+#    A small libfive-based (F-Rep / signed-distance-function) shape library. Independent of
+#    the bosl2 port (it does not import bosl2), but built on numpy: all sequence/path/point
+#    data is held as numpy arrays internally (accept array-likes in, hand NDArrays out), with
+#    plain-python floats produced only at the native boundaries -- frep() bounds, polygon(),
+#    translate(), and the osuse() FFI all reject (or are corrupted by) raw ndarrays. The
+#    small pieces
 #    it needs from there (direction-vector constants, the edges= mini-language, anchor-offset
 #    math) are vendored into pysolidfive/_constants.py and pysolidfive/_edges.py instead,
 #    byte-for-byte identical to bosl2's own algorithm, the same way base_bgtk.py and
@@ -190,8 +194,11 @@ from pysolidfive.shapes3d import (  # noqa: F401
     cuboid,
     cyl,
     cylinder,
+    difference,
     heightfield,
+    hull,
     interior_fillet,
+    intersection,
     octahedron,
     onion,
     pie_slice,
@@ -205,6 +212,7 @@ from pysolidfive.shapes3d import (  # noqa: F401
     teardrop,
     torus,
     tube,
+    union,
     wedge,
     xcyl,
     ycyl,
@@ -229,9 +237,10 @@ __all__ = [
     "line_normal", "offset_polyline", "path_cut_points", "path_length", "path_normals",
     "path_tangents", "path_to_bezpath", "round_corners", "supershape_path",
     "knuckle_hinge", "rabbit_clip",
-    "PyShape", "convex_polyhedron", "cube", "cuboid", "cyl", "cylinder", "heightfield",
-    "interior_fillet", "octahedron", "onion", "pie_slice", "polygon_extrude", "polygon_prism",
-    "prismoid", "rect_tube", "rounding_edge_mask", "sphere", "spheroid", "teardrop", "torus",
-    "tube", "wedge", "xcyl", "ycyl", "zcyl",
+    "PyShape", "convex_polyhedron", "cube", "cuboid", "cyl", "cylinder", "difference",
+    "heightfield", "hull", "interior_fillet", "intersection", "octahedron", "onion",
+    "pie_slice", "polygon_extrude", "polygon_prism", "prismoid", "rect_tube",
+    "rounding_edge_mask", "sphere", "spheroid", "teardrop", "torus", "tube", "union",
+    "wedge", "xcyl", "ycyl", "zcyl",
     "PyShape2D", "circle2d", "hull2d_discs", "polygon2d", "rect2d", "region2d", "stroke2d", "supershape2d", "union2d",
 ]

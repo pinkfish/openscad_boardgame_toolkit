@@ -31,7 +31,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import pysolidfive
+import numpy as np
+import bosl2.masking
+import bosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -152,61 +154,84 @@ def SlidingLid(
         if calc_sliding_lid_options.two_layer
         else [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
     )
-    main = pysolidfive.cuboid(
+    main = bosl2.shapes3d.cuboid(
         [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT, chamfer=chamfer + size_spacing, edges=edges
     )
-    main = main.round(
-        calc_wall_thickness if calc_sliding_lid_options.two_layer else calc_lid_rounding,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+    main = main.edge_mask(
+        [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        children=bosl2.masking.rounding_edge_mask(
+            r=calc_wall_thickness if calc_sliding_lid_options.two_layer else calc_lid_rounding,
+            l=calc_lid_thickness + size_spacing,
+        ),
     )
     top_edges = [TOP] if calc_sliding_lid_options.two_layer else [TOP + BACK]
-    main = main.round(top_cover if calc_sliding_lid_options.two_layer else calc_lid_rounding / 2, edges=top_edges)
+    main = main.edge_mask(
+        top_edges,
+        children=bosl2.masking.rounding_edge_mask(
+            r=top_cover if calc_sliding_lid_options.two_layer else calc_lid_rounding / 2,
+            l=max(lid_length, lid_width),
+        ),
+    )
 
     if calc_sliding_lid_options.two_layer:
         # A custom (non-round/chamfer) profile cut along the BOTTOM+LEFT/BOTTOM+RIGHT edges --
-        # pysolidfive.polygon_extrude() sweeps it along Z, so it needs rotating onto the edge's own
-        # run axis (Y here) first. BOSL2's own edge_profile_asym() (which this replaces)
-        # computes that same per-edge orientation via a matrix that, for these two specific
-        # edges, is a mirror (BOTTOM+LEFT) or a pure rotation (BOTTOM+RIGHT) composed with a
-        # 180-degree turn around the (Y+Z) diagonal -- verified by rendering both against the
-        # original edge_profile_asym()-based cross-section and comparing pixel-for-pixel.
-        profile = mask_2sliding_lid()
-        mirrored_profile = [[-u, v] for u, v in profile]
+        # the profile is swept along each edge's own run axis (Y here) by hand with an explicit
+        # rotate()/translate(), the same per-edge orientation BOSL2's edge_profile_asym()
+        # computes internally: a mirror (BOTTOM+LEFT) or a pure rotation (BOTTOM+RIGHT)
+        # composed with a 180-degree turn around the (Y+Z) diagonal -- verified by rendering
+        # both against the original edge_profile_asym()-based cross-section and comparing
+        # pixel-for-pixel.
+        profile = np.asarray(mask_2sliding_lid(), dtype=float)
+        mirrored_profile = profile * np.array([-1.0, 1.0])
         run_length = lid_length + 0.1
-        cutter_left = pysolidfive.polygon_extrude(mirrored_profile, length=run_length).rotate(180, [0, 1, 1]).translate([0, lid_length / 2, 0])
-        cutter_right = pysolidfive.polygon_extrude(profile, length=run_length).rotate(180, [0, 1, 1]).translate([lid_width, lid_length / 2, 0])
+        cutter_left = (
+            polygon([[float(u), float(v)] for u, v in mirrored_profile])
+            .linear_extrude(height=run_length, center=True)
+            .rotate(180, [0, 1, 1])
+            .translate([0, lid_length / 2, 0])
+        )
+        cutter_right = (
+            polygon([[float(u), float(v)] for u, v in profile])
+            .linear_extrude(height=run_length, center=True)
+            .rotate(180, [0, 1, 1])
+            .translate([lid_width, lid_length / 2, 0])
+        )
         main = main - cutter_left - cutter_right
 
     if calc_sliding_lid_options.two_layer:
-        front_cut = pysolidfive.cuboid([lid_width, calc_wall_thickness, lid_under_cover + size_spacing], anchor=BOTTOM + FRONT + LEFT).translate(
-            [0, 0, -size_spacing]
-        )
+        front_cut = bosl2.shapes3d.cuboid(
+            [lid_width, calc_wall_thickness, lid_under_cover + size_spacing], anchor=BOTTOM + FRONT + LEFT
+        ).translate([0, 0, -size_spacing])
         main = main - front_cut
         # rounding_edge_mask() sweeps centered on Z (unlike the manual, non-centered
         # linear_extrude(calc_lid_thickness) this replaces), so its Z placement is shifted up
         # by half the swept length to land on the same absolute span.
-        round_a = pysolidfive.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding).translate(
+        round_a = bosl2.masking.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding).translate(
             [calc_wall_thickness - two_layer_chamfer, calc_wall_thickness, -top_cover + calc_lid_thickness / 2]
         )
         round_b = (
-            pysolidfive.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding)
+            bosl2.masking.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding)
             .rotate([0, 180, 0])  # mirrors the +X-opening cutter to open toward -X instead
             .translate([lid_width - calc_wall_thickness + two_layer_chamfer, calc_wall_thickness, -top_cover + calc_lid_thickness / 2])
         )
         main = main - round_a - round_b
     else:
         # right_triangle([w, l])'s default anchor puts the right-angle corner at the origin,
-        # legs along +X (w) and +Y (l) -- reproduced directly as polygon_extrude() points
-        # rather than reorienting wedge() (whose own triangular cross-section/extrusion axes
-        # don't match right_triangle()'s convention). Non-centered linear_extrude(height) is
-        # replaced the same way as round_a/round_b above: shift the Z translate by +height/2.
+        # legs along +X (w) and +Y (l) -- reproduced directly as polygon points rather than
+        # reorienting wedge() (whose own triangular cross-section/extrusion axes don't match
+        # right_triangle()'s convention). The centered linear_extrude matches the SDF-era
+        # polygon_extrude() convention: shift the Z translate by +height/2.
         tri_h = calc_lid_thickness + 10
         tri_z = -calc_lid_thickness / 2 + tri_h / 2
-        tri_a = pysolidfive.polygon_extrude([[calc_wall_thickness / 2, 0], [0, 0], [0, 15]], length=tri_h).translate(
-            [-size_spacing / 20, -size_spacing, tri_z]
+        tri_a = (
+            polygon([[calc_wall_thickness / 2, 0], [0, 0], [0, 15]])
+            .linear_extrude(height=tri_h, center=True)
+            .translate([-size_spacing / 20, -size_spacing, tri_z])
         )
-        tri_b = pysolidfive.polygon_extrude([[-calc_wall_thickness / 2, 0], [0, 0], [0, 15]], length=tri_h).translate(
-            [lid_width + size_spacing / 20, -size_spacing, tri_z]
+        tri_b = (
+            polygon([[-calc_wall_thickness / 2, 0], [0, 0], [0, 15]])
+            .linear_extrude(height=tri_h, center=True)
+            .translate([lid_width + size_spacing / 20, -size_spacing, tri_z])
         )
         main = main - tri_a - tri_b
 
@@ -234,7 +259,7 @@ def SlidingBoxLidWithCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     wall_thickness: float | None = None,
     lid_pattern_dense: bool = False,
@@ -282,6 +307,8 @@ def SlidingBoxLidWithCustomShape(
     calc_wall_thickness = wall_thickness
     if calc_wall_thickness is None:
         calc_wall_thickness = default_wall_thickness
+    if lid_thickness is None:
+        lid_thickness = default_lid_thickness
     calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
@@ -298,21 +325,17 @@ def SlidingBoxLidWithCustomShape(
         children=pattern_shape,
     )
 
-    fingernail = pysolidfive.cuboid(
+    fingernail = bosl2.shapes3d.cuboid(
         [width - calc_wall_thickness, length - calc_wall_thickness, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT
     ).color(material_colour) & SlidingLidFingernail(calc_lid_thickness, material_colour=material_colour).translate(
         [width / 2 - calc_wall_thickness / 2, length - calc_wall_thickness - 3, 0]
     ).shape
 
     extra = list(extra_children) if extra_children else []
-    # fingernail must be FIRST here, not last: internal_build_lid()'s masking algorithm calls
-    # .projection() on the j-th extra child j times (once per earlier sibling's carve-out, plus
-    # once building the base) -- fine for mesh/extra (native/CGAL geometry), but the installed
-    # PythonSCAD dev build segfaults if .projection() runs more than once on the same frep()
-    # (pysolidfive) node. Putting fingernail first guarantees exactly one projection of it, regardless
-    # of how many other children follow. Verified this reordering doesn't change the final
-    # geometry (internal_build_lid()'s carve-then-union is order-independent) -- only sidesteps
-    # a real render crash, confirmed via a minimal repro outside of this codebase entirely.
+    # fingernail stays FIRST: the ordering dates from the SDF (frep) era, when a second
+    # .projection() on the same frep node crashed the app. All-native geometry no longer
+    # needs it, but internal_build_lid()'s carve-then-union is order-independent, so keeping
+    # the order costs nothing and keeps the diff history readable.
     lid_children = [fingernail, mesh] + extra
 
     return SlidingLid(
@@ -337,7 +360,7 @@ def SlidingBoxLidWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     wall_thickness: float | None = None,
     lid_rounding: float | None = None,
     lid_pattern_dense: bool = False,
@@ -401,10 +424,12 @@ def SlidingBoxLidWithLabelAndCustomShape(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = calc_sliding_lid_options.two_layer
-    label_shape = MakeLidLabel(
+    label_shape_raw = MakeLidLabel(
         size=[width - calc_wall_thickness * 2, length - calc_wall_thickness * 2], lid_thickness=lid_thickness,
         text_str=text_str, options=label_opts,
-    ).translate([calc_wall_thickness / 2, calc_wall_thickness / 2, 0])
+    )
+    assert label_shape_raw is not None, "label did not generate"
+    label_shape = label_shape_raw.translate([calc_wall_thickness / 2, calc_wall_thickness / 2, 0])
 
     lid_extra = [label_shape] + (list(extra_children) if extra_children else [])
 
@@ -486,7 +511,9 @@ def SlidingBoxLidWithLabel(
     assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
     assert text_str is not None, "Need to specify a label, text_str == None"
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour).translate([lid_boundary, lid_boundary, 0])
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour).translate([lid_boundary, lid_boundary, 0])
 
     return SlidingBoxLidWithLabelAndCustomShape(
         size=size,
@@ -562,7 +589,9 @@ def SlidingBoxLidWithShape(
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
     calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour).translate([lid_boundary, lid_boundary, 0])
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour).translate([lid_boundary, lid_boundary, 0])
 
     return SlidingBoxLidWithCustomShape(
         size=size,
@@ -658,17 +687,19 @@ def MakeBoxWithSlidingLid(
 
     tmat = _bosl2.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, calc_height])
 
-    body = pysolidfive.cuboid(
+    body = bosl2.shapes3d.cuboid(
         [width, length, calc_height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     )
     if not calc_sliding_lid_options.two_layer:
-        body = body.round(wall_thickness / 2, edges=[TOP])
+        body = body.edge_mask(
+            [TOP], children=bosl2.masking.rounding_edge_mask(r=wall_thickness / 2, l=max(length, width))
+        )
 
     rounding_offset = 0.01
-    mid_cut = pysolidfive.cuboid(
+    mid_cut = bosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness + size_spacing + rounding_offset, lid_cutout + size_spacing / 2],
         anchor=BOTTOM + FRONT + LEFT,
     ).translate([wall_thickness, -rounding_offset, calc_height - lid_cutout])
@@ -676,7 +707,7 @@ def MakeBoxWithSlidingLid(
 
     if calc_sliding_lid_options.two_layer:
         if calc_sliding_lid_options.two_layer_vee_shape:
-            lid_cut = pysolidfive.cuboid(
+            lid_cut = bosl2.shapes3d.cuboid(
                 [width - wall_thickness * 2 + middle_chamfer * 2 + size_spacing, length - wall_thickness, lid_cutout],
                 anchor=BOTTOM + FRONT + LEFT,
                 chamfer=middle_chamfer,
@@ -684,7 +715,7 @@ def MakeBoxWithSlidingLid(
             ).translate([wall_thickness - middle_chamfer - size_spacing / 2, 0, calc_height - lid_cutout])
         else:
             chamfer2 = wall_thickness / 2 if wall_thickness / 2 < lid_cutout else lid_cutout
-            lid_cut = pysolidfive.cuboid(
+            lid_cut = bosl2.shapes3d.cuboid(
                 [width - wall_thickness * 2 + chamfer2 * 2 + size_spacing, length - wall_thickness, lid_cutout],
                 anchor=BOTTOM + FRONT + LEFT,
                 chamfer=chamfer2,
@@ -692,7 +723,7 @@ def MakeBoxWithSlidingLid(
             ).translate([wall_thickness - chamfer2 - size_spacing / 2, 0, calc_height - lid_cutout])
     else:
         chamfer2 = wall_thickness / 2 if wall_thickness / 2 < lid_cutout else lid_cutout
-        lid_cut = pysolidfive.cuboid(
+        lid_cut = bosl2.shapes3d.cuboid(
             [width - wall_thickness * 2 + chamfer2 * 2, length - wall_thickness + chamfer2, lid_cutout],
             anchor=BOTTOM + FRONT + LEFT,
             chamfer=chamfer2,
@@ -700,11 +731,10 @@ def MakeBoxWithSlidingLid(
         ).translate([wall_thickness - chamfer2, 0, calc_height - lid_cutout])
     body = body - lid_cut
 
-    # Note: was `height=` (not a valid rounding_edge_mask() parameter -- `l=`/`h=` are; this was
-    # presumably always silently falling back to the default length of 1, since this call site
-    # had apparently never been round-tripped through the real PythonSCAD app to catch it).
+    # Note: the original .scad passed `height=` here (a BOSL2 alias); the port's
+    # rounding_edge_mask() takes `l=`/`h=`.
     edge_round = (
-        pysolidfive.rounding_edge_mask(r=wall_thickness / 4, h=length - wall_thickness * 2)
+        bosl2.masking.rounding_edge_mask(r=wall_thickness / 4, h=length - wall_thickness * 2)
         .rotate([0, 90, 0])
         .translate([width / 2, 0, calc_height - lid_cutout])
     )

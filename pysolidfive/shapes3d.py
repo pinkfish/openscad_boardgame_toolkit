@@ -29,9 +29,11 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from typing import Any, Callable
 
 import libfive as lv
+import numpy as np
 
 from pythonscad import frep
 from pysolidfive._constants import CENTER, BOTTOM, TOP, LEFT, RIGHT, FRONT, BACK
@@ -45,6 +47,8 @@ from pysolidfive._edges import (
     _pick_radius,
 )
 from pysolidfive.paths import (
+    as_path_list,
+    as_points,
     _PENALTY,
     _SQRT2,
     _lv_hypot,
@@ -174,7 +178,7 @@ class PyShape:
     """
 
     def __init__(
-        self, sdf_fn, mn, mx, res: int = 20, cuboid_size=None, cuboid_center=(0.0, 0.0, 0.0),
+        self, sdf_fn, mn, mx, res: int = 10, cuboid_size=None, cuboid_center=(0.0, 0.0, 0.0),
         cuboid_edge_amounts=None, cuboid_edge_modes=None,
     ):
         self._sdf_fn = sdf_fn
@@ -333,7 +337,7 @@ class PyShape:
 
     def _edge_treat(self, amount: float, edges, except_edges, mode: str) -> "PyShape":
         assert self.cuboid_size is not None, f"{mode}() requires a cuboid-shaped PyShape (from pysolidfive.cuboid())"
-        assert self.cuboid_edge_amounts is not None, (
+        assert self.cuboid_edge_amounts is not None and self.cuboid_edge_modes is not None, (
             f"{mode}() requires the cuboid's per-edge treatment state (lost by rotate()/scale()/booleans)"
         )
         edge_set = _edges(edges, except_edges or [])
@@ -358,6 +362,273 @@ class PyShape:
     def chamfer(self, size: float, edges: str | list = "ALL", except_edges: list | None = None) -> "PyShape":
         """Chamfer the selected edges by `size`, in addition to any existing edge treatment."""
         return self._edge_treat(size, edges, except_edges, "chamfer")
+
+
+# ---------------------------------------------------------------------------
+# Section: Named CSG combinators (union / difference / intersection / hull)
+# ---------------------------------------------------------------------------
+
+
+def _as_shape_list(shapes: tuple) -> list[PyShape]:
+    """Varargs-or-single-iterable: `union(a, b)` and `union([a, b])` both work, matching the
+    two calling conventions the box libraries already mix (OpenSCAD-style children vs.
+    bosl2-style list arguments)."""
+    if len(shapes) == 1 and isinstance(shapes[0], (list, tuple)):
+        shapes = tuple(shapes[0])
+    out = list(shapes)
+    assert out, "need at least one shape"
+    assert all(isinstance(s, PyShape) for s in out), (
+        f"every argument must be a PyShape, got {[type(s).__name__ for s in out]}"
+    )
+    return out
+
+
+def _balanced(op, vals: list):
+    """Reduce `vals` with `op` as a balanced tree (depth log n) rather than a left fold
+    (depth n) -- same node count either way, but libfive re-evaluates the whole expression
+    per sample point and shallow trees keep its interval pruning effective on wide unions."""
+    while len(vals) > 1:
+        vals = [op(vals[i], vals[i + 1]) if i + 1 < len(vals) else vals[i] for i in range(0, len(vals), 2)]
+    return vals[0]
+
+
+def union(*shapes: PyShape) -> PyShape:
+    """The union of the given PyShapes (min() of their SDFs), as one PyShape -- the named,
+    n-ary form of the `|` operator, matching OpenSCAD's union(){}.
+
+    Accepts either varargs (`union(a, b, c)`) or a single list (`union([a, b, c])`). The
+    result's meshing resolution is the finest (max) `res` among the children.
+
+    Examples:
+        .. pythonscad-example::
+
+            a = pysolidfive.cuboid([20.0, 20.0, 10.0], rounding=3, res=10)
+            b = pysolidfive.sphere(r=8, res=10).translate([0.0, 0.0, 8.0])
+            shape = pysolidfive.union(a, b)
+            shape.show()
+    """
+    shs = _as_shape_list(shapes)
+    if len(shs) == 1:
+        return shs[0]
+    fns = [s._sdf_fn for s in shs]
+    sdf_fn = lambda x, y, z: _balanced(lv.min, [f(x, y, z) for f in fns])  # noqa: E731
+    mn = [min(s.mn[i] for s in shs) for i in range(3)]
+    mx = [max(s.mx[i] for s in shs) for i in range(3)]
+    return PyShape(sdf_fn, mn, mx, max(s.res for s in shs))
+
+
+def intersection(*shapes: PyShape) -> PyShape:
+    """The intersection of the given PyShapes (max() of their SDFs), as one PyShape -- the
+    named, n-ary form of the `&` operator, matching OpenSCAD's intersection(){}.
+
+    Accepts either varargs or a single list. The meshing region shrinks to the overlap of
+    the children's bounding boxes (which is what makes cropping a big shape with a small
+    one cheap); asserts if the boxes don't overlap at all, since the intersection SDF
+    would then have nothing to mesh.
+
+    Examples:
+        .. pythonscad-example::
+
+            a = pysolidfive.cuboid([20.0, 20.0, 20.0], rounding=4, res=10)
+            b = pysolidfive.sphere(r=12, res=10)
+            shape = pysolidfive.intersection(a, b)
+            shape.show()
+    """
+    shs = _as_shape_list(shapes)
+    if len(shs) == 1:
+        return shs[0]
+    fns = [s._sdf_fn for s in shs]
+    sdf_fn = lambda x, y, z: _balanced(lv.max, [f(x, y, z) for f in fns])  # noqa: E731
+    mn = [max(s.mn[i] for s in shs) for i in range(3)]
+    mx = [min(s.mx[i] for s in shs) for i in range(3)]
+    assert all(mn[i] < mx[i] for i in range(3)), (
+        f"intersection(): the shapes' bounding boxes don't overlap (got mn={mn}, mx={mx})"
+    )
+    return PyShape(sdf_fn, mn, mx, max(s.res for s in shs))
+
+
+def difference(shape: PyShape, *tools: PyShape) -> PyShape:
+    """`shape` minus the union of every `tool` (max(f, -min(tools))), as one PyShape -- the
+    named, n-ary form of the `-` operator, matching OpenSCAD's difference(){} (first child
+    keeps, the rest cut).
+
+    Accepts the tools as varargs or a single list; with no tools, returns `shape` unchanged.
+    Keeps `shape`'s bounds and resolution, like `-`.
+
+    Examples:
+        .. pythonscad-example::
+
+            a = pysolidfive.cuboid([20.0, 20.0, 20.0], rounding=3, res=10)
+            b = pysolidfive.zcyl(h=30, r=5, res=10)
+            c = pysolidfive.xcyl(h=30, r=5, res=10)
+            shape = pysolidfive.difference(a, b, c)
+            shape.show()
+    """
+    assert isinstance(shape, PyShape), f"difference() base must be a PyShape, got {type(shape).__name__}"
+    if not tools:
+        return shape
+    tls = _as_shape_list(tools)
+    fa = shape._sdf_fn
+    fns = [t._sdf_fn for t in tls]
+    sdf_fn = lambda x, y, z: lv.max(fa(x, y, z), -_balanced(lv.min, [f(x, y, z) for f in fns]))  # noqa: E731
+    return PyShape(sdf_fn, list(shape.mn), list(shape.mx), shape.res)
+
+
+def _support_points(points, n_dirs: int):
+    """Decimate a point cloud to at most `n_dirs + 6` extreme (support) points: for each of
+    `n_dirs` directions spread over the sphere (a Fibonacci lattice, plus the 6 axis
+    directions so bounding-box extremes always survive), keep the farthest point along it.
+    The hull of the survivors is an inscribed approximation of the cloud's hull: exact at
+    every vertex that is the unique maximizer of some kept direction (a cuboid's 8 corners
+    all are, well before n_dirs reaches double digits), with error bounded by the direction
+    spacing for smooth clouds."""
+    pts = np.asarray(points, dtype=float)
+    i = np.arange(n_dirs)
+    golden = math.pi * (3.0 - math.sqrt(5.0))
+    zc = 1.0 - 2.0 * (i + 0.5) / n_dirs
+    rad = np.sqrt(np.maximum(0.0, 1.0 - zc * zc))
+    dirs = np.stack([np.cos(golden * i) * rad, np.sin(golden * i) * rad, zc], axis=1)
+    axes = np.array([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], dtype=float)
+    dirs = np.concatenate([dirs, axes])
+    idx = np.unique(np.argmax(pts @ dirs.T, axis=0))
+    return pts[idx]
+
+
+def _hull_planes(pts: list[list[float]]) -> list[tuple[float, float, float, float]]:
+    """The supporting planes of the convex hull of `pts`, as (nx, ny, nz, offset) tuples with
+    unit outward normals -- brute force over point triples (every non-degenerate triple whose
+    plane has all points on one side is a hull face plane, deduplicated). O(n^4) in the point
+    count, entirely fine for the tens-of-points sets convex_polyhedron()/hull() feed it, and
+    it happens once in Python at construction time, not per SDF evaluation."""
+    n = len(pts)
+    scale = max(max(abs(v) for v in p) for p in pts) or 1.0
+    eps = 1e-9 * scale
+
+    planes: list[tuple[float, float, float, float]] = []
+    seen: set = set()
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                ax, ay, az = pts[i]
+                ux, uy, uz = (pts[j][0] - ax, pts[j][1] - ay, pts[j][2] - az)
+                vx, vy, vz = (pts[k][0] - ax, pts[k][1] - ay, pts[k][2] - az)
+                nx, ny, nz = (uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
+                nlen = math.sqrt(nx * nx + ny * ny + nz * nz)
+                if nlen < eps * scale:
+                    continue  # collinear triple
+                nx, ny, nz = nx / nlen, ny / nlen, nz / nlen
+                d = nx * ax + ny * ay + nz * az
+                side = [nx * p[0] + ny * p[1] + nz * p[2] - d for p in pts]
+                assert not all(abs(s) <= eps for s in side), (
+                    "hull planes: points are coplanar -- that's a 2-D outline, not a solid"
+                )
+                if all(s <= eps for s in side):
+                    pass  # already outward
+                elif all(s >= -eps for s in side):
+                    nx, ny, nz, d = -nx, -ny, -nz, -d
+                else:
+                    continue  # not a supporting plane
+                key = (round(nx, 7), round(ny, 7), round(nz, 7), round(d / scale, 7))
+                if key in seen:
+                    continue
+                seen.add(key)
+                planes.append((nx, ny, nz, d))
+    assert planes, "hull planes: no supporting planes found -- are the points coplanar?"
+    return planes
+
+
+def hull(*shapes, directions: int = 64, res: int | None = None) -> PyShape:
+    """The convex hull of the given PyShapes (and/or raw Nx3 point arrays), as a libfive SDF
+    PyShape -- the named form of OpenSCAD's hull(){}.
+
+    Because no closed-form SDF exists for the hull of arbitrary SDFs, the hull is polyhedral,
+    built like convex_polyhedron(): each PyShape child is meshed (once, lazily -- the first
+    .sdf()/.mesh()/native fall-through on the RESULT triggers it; constructing the hull is
+    free), its mesh vertices are pooled with any raw points given, the pool is decimated to
+    at most `directions` support points (see _support_points()), and the SDF is the max of
+    the supporting planes' half-space distances. Consequences worth knowing:
+
+      - Corner-dominated children (cuboids, prisms) hull exactly; smooth children (spheres,
+        cylinders) get a faceted hull whose fidelity is set by `directions` (default 64) --
+        raise it for a finer hull, at O(directions^4) one-off plane-extraction cost.
+      - Meshing the children costs the same as rendering them, so prefer hulling simple/
+        low-res shapes; for the exact smooth hull of meshed solids, the native
+        pythonscad hull() on already-meshed children remains the right tool.
+      - Like every PyShape, the result composes symbolically (booleans, transforms) without
+        re-meshing.
+
+    Args:
+        shapes:     PyShapes and/or array-likes of 3-D points, varargs or a single list
+        directions: support-direction budget for the polyhedral approximation (default 64)
+        res:        meshing resolution of the result (default: finest child res, or 10)
+
+    Examples:
+        .. pythonscad-example::
+
+            a = pysolidfive.sphere(r=6, res=10)
+            b = pysolidfive.sphere(r=6, res=10).translate([18.0, 0.0, 0.0])
+            shape = pysolidfive.hull(a, b, directions=96)
+            shape.show()
+
+        Mixing shapes and raw points (the point pulls the hull out to a spike):
+
+        .. pythonscad-example::
+
+            a = pysolidfive.cuboid([16.0, 16.0, 8.0], res=10)
+            shape = pysolidfive.hull(a, [[0.0, 0.0, 18.0]])
+            shape.show()
+    """
+    args = list(shapes)
+    if len(args) == 1 and isinstance(args[0], (list, tuple)) and args[0] and isinstance(args[0][0], PyShape):
+        args = list(args[0])
+    assert args, "hull() needs at least one shape or point set"
+
+    entries: list[tuple[str, Any]] = []
+    mn = [math.inf] * 3
+    mx = [-math.inf] * 3
+    child_res: list[int] = []
+    for a in args:
+        if isinstance(a, PyShape):
+            entries.append(("shape", a))
+            child_res.append(a.res)
+            for i in range(3):
+                mn[i] = min(mn[i], a.mn[i])
+                mx[i] = max(mx[i], a.mx[i])
+        else:
+            pts = np.asarray(a, dtype=float)
+            if pts.ndim == 1:
+                pts = pts.reshape(1, -1)
+            assert pts.ndim == 2 and pts.shape[1] == 3, (
+                f"hull(): point arguments must be Nx3 array-likes, got shape {pts.shape}"
+            )
+            entries.append(("points", pts))
+            for i in range(3):
+                mn[i] = min(mn[i], float(pts[:, i].min()))
+                mx[i] = max(mx[i], float(pts[:, i].max()))
+    # The hull's bounding box IS the union's bounding box (an axis extreme of the hull is an
+    # axis extreme of some child), so bounds are exact without meshing anything yet.
+
+    state: dict = {}
+
+    def planes() -> list[tuple[float, float, float, float]]:
+        if "planes" not in state:
+            pools = []
+            for kind, v in entries:
+                if kind == "points":
+                    pools.append(v)
+                else:
+                    verts, _faces = v.mesh().mesh()
+                    assert verts, "hull(): a child shape meshed to nothing (empty geometry)"
+                    pools.append(np.asarray(verts, dtype=float))
+            sup = _support_points(np.concatenate(pools), directions)
+            state["planes"] = _hull_planes([[float(c) for c in p] for p in sup])
+        return state["planes"]
+
+    def sdf_fn(x, y, z):
+        terms = [nx * x + ny * y + nz * z - off for nx, ny, nz, off in planes()]
+        return _balanced(lv.max, terms)
+
+    return PyShape(sdf_fn, mn, mx, res if res is not None else (max(child_res) if child_res else 10))
 
 
 def _cuboid_flare_sdf(x, y, z, size: list[float], r: float, edge_set: list[list[int]]):
@@ -398,8 +669,8 @@ def cuboid(
     chamfer: float = 0,
     edges: str | list = "ALL",
     except_edges: list | None = None,
-    res: int = 20,
-    anchor: list[float] = CENTER,
+    res: int = 10,
+    anchor: "Sequence[float]" = CENTER,
 ) -> PyShape:
     """A cuboid with optional per-edge rounding or chamfering, built as a libfive signed
     distance function (F-Rep) and returned as a PyShape (meshed lazily, via frep(), on first
@@ -420,7 +691,7 @@ def cuboid(
                       TOP+LEFT), a list of edge vectors, or a raw 3x4 edge array (default "ALL")
         except_edges: edges to explicitly exclude from `edges` (BOSL2's `except=` synonym;
                       `except` is a Python keyword)
-        res:          libfive meshing resolution passed to frep() (default 20; higher = finer mesh)
+        res:          libfive meshing resolution passed to frep() (default 10; higher = finer mesh)
         anchor:       anchor point (default CENTER)
 
     Examples:
@@ -483,7 +754,7 @@ def cuboid(
     return shape
 
 
-def cube(size: float | list[float] = 1, anchor: list[float] = CENTER, res: int = 20) -> PyShape:
+def cube(size: float | list[float] = 1, anchor: "Sequence[float]" = CENTER, res: int = 10) -> PyShape:
     """A cube, as a plain (unrounded) libfive SDF. See cuboid() for rounding/chamfering."""
     return cuboid(size=size, anchor=anchor, res=res)
 
@@ -493,7 +764,7 @@ def cube(size: float | list[float] = 1, anchor: list[float] = CENTER, res: int =
 # ---------------------------------------------------------------------------
 
 
-def octahedron(size: float = 1, anchor: list[float] = CENTER, res: int = 20) -> PyShape:
+def octahedron(size: float = 1, anchor: "Sequence[float]" = CENTER, res: int = 10) -> PyShape:
     """An octahedron with axis-aligned points (`|x|+|y|+|z| <= size/2`), as a libfive SDF."""
     s = size / 2
     sdf_fn = lambda x, y, z: lv.abs(x) + lv.abs(y) + lv.abs(z) - s  # noqa: E731
@@ -505,7 +776,7 @@ def octahedron(size: float = 1, anchor: list[float] = CENTER, res: int = 20) -> 
     return shape
 
 
-def convex_polyhedron(points: list[list[float]], res: int = 20) -> PyShape:
+def convex_polyhedron(points, res: int = 10) -> PyShape:
     """The convex hull of `points` as a libfive SDF: the max of the hull faces' signed
     half-space distances -- the 3-D analogue of polygon_extrude()'s half-plane form, with the
     same documented value tradeoff (exact perpendicular distance at faces, sign-correct
@@ -518,42 +789,11 @@ def convex_polyhedron(points: list[list[float]], res: int = 20) -> PyShape:
     count -- entirely fine for the tens-of-vertices solids this is for, and it happens once in
     Python at construction time, not per SDF evaluation.
     """
+    points = np.asarray(points, dtype=float)
     pts = [[float(v) for v in p] for p in points]
     n = len(pts)
     assert n >= 4, f"convex_polyhedron() needs at least 4 points, got {n}"
-    scale = max(max(abs(v) for v in p) for p in pts) or 1.0
-    eps = 1e-9 * scale
-
-    planes: list[tuple[float, float, float, float]] = []  # (nx, ny, nz, offset), unit normal
-    seen: set = set()
-    for i in range(n):
-        for j in range(i + 1, n):
-            for k in range(j + 1, n):
-                ax, ay, az = pts[i]
-                ux, uy, uz = (pts[j][0] - ax, pts[j][1] - ay, pts[j][2] - az)
-                vx, vy, vz = (pts[k][0] - ax, pts[k][1] - ay, pts[k][2] - az)
-                nx, ny, nz = (uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx)
-                nlen = math.sqrt(nx * nx + ny * ny + nz * nz)
-                if nlen < eps * scale:
-                    continue  # collinear triple
-                nx, ny, nz = nx / nlen, ny / nlen, nz / nlen
-                d = nx * ax + ny * ay + nz * az
-                side = [nx * p[0] + ny * p[1] + nz * p[2] - d for p in pts]
-                assert not all(abs(s) <= eps for s in side), (
-                    "convex_polyhedron(): points are coplanar -- that's a 2-D outline, not a solid"
-                )
-                if all(s <= eps for s in side):
-                    pass  # already outward
-                elif all(s >= -eps for s in side):
-                    nx, ny, nz, d = -nx, -ny, -nz, -d
-                else:
-                    continue  # not a supporting plane
-                key = (round(nx, 7), round(ny, 7), round(nz, 7), round(d / scale, 7))
-                if key in seen:
-                    continue
-                seen.add(key)
-                planes.append((nx, ny, nz, d))
-    assert planes, "convex_polyhedron(): no supporting planes found -- are the points coplanar?"
+    planes = _hull_planes(pts)
 
     def sdf_fn(x, y, z):
         d = None
@@ -567,7 +807,7 @@ def convex_polyhedron(points: list[list[float]], res: int = 20) -> PyShape:
     return PyShape(sdf_fn, mn, mx, res)
 
 
-def wedge(size: list[float] = [1, 1, 1], anchor: list[float] | None = None, res: int = 20) -> PyShape:
+def wedge(size: list[float] = [1, 1, 1], anchor: "Sequence[float] | None" = None, res: int = 10) -> PyShape:
     """A 3-D triangular wedge with the hypotenuse in the X+Z+ quadrant, as a libfive SDF.
 
     Args:
@@ -596,7 +836,7 @@ def wedge(size: list[float] = [1, 1, 1], anchor: list[float] | None = None, res:
     return shape
 
 
-def sphere(r: float | None = None, d: float | None = None, anchor: list[float] = CENTER, res: int = 20) -> PyShape:
+def sphere(r: float | None = None, d: float | None = None, anchor: "Sequence[float]" = CENTER, res: int = 10) -> PyShape:
     """A sphere, as a libfive SDF (`length(p) - r`).
 
     Examples:
@@ -614,7 +854,7 @@ def sphere(r: float | None = None, d: float | None = None, anchor: list[float] =
     return shape
 
 
-def spheroid(r: float | None = None, d: float | None = None, anchor: list[float] = CENTER, res: int = 20) -> PyShape:
+def spheroid(r: float | None = None, d: float | None = None, anchor: "Sequence[float]" = CENTER, res: int = 10) -> PyShape:
     """An approximate sphere; this pure-libfive port just builds a plain sphere() (matching
     bosl2.shapes3d.spheroid()'s own choice to ignore style/dual for its pure-Python port)."""
     return sphere(r=r, d=d, anchor=anchor, res=res)
@@ -629,8 +869,8 @@ def torus(
     ir: float | None = None,
     od: float | None = None,
     id: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A torus (donut) shape, as a libfive SDF (`length(vec2(length(p.xy)-r_maj, p.z)) - r_min`).
 
@@ -741,8 +981,8 @@ def cylinder(
     d: float | None = None,
     d1: float | None = None,
     d2: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A cylinder/cone (no rounding) as a libfive SDF -- see cyl() for rounding/chamfering."""
     length = l if l is not None else (h if h is not None else 1)
@@ -777,8 +1017,8 @@ def cyl(
     rounding1: float | None = None,
     rounding2: float | None = None,
     shift: list[float] | None = None,
-    anchor: list[float] | None = None,
-    res: int = 20,
+    anchor: "Sequence[float] | None" = None,
+    res: int = 10,
 ) -> PyShape:
     """A cylinder/cone with optional rounding or chamfering of its end rims, as a libfive SDF.
     See bosl2.shapes3d.cyl() for the full BOSL2-style version this mirrors (circum=/realign=/
@@ -844,7 +1084,7 @@ def _cyl_axis(
     rounding: float | None,
     rounding1: float | None,
     rounding2: float | None,
-    anchor: list[float],
+    anchor: "Sequence[float]",
     res: int,
 ) -> PyShape:
     length = l if l is not None else (h if h is not None else 1)
@@ -889,8 +1129,8 @@ def xcyl(
     rounding: float | None = None,
     rounding1: float | None = None,
     rounding2: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A cylinder oriented along the X axis. See cyl() for argument details."""
     return _cyl_axis(0, h, r, l, r1, r2, d, d1, d2, chamfer, chamfer1, chamfer2, rounding, rounding1, rounding2, anchor, res)
@@ -911,8 +1151,8 @@ def ycyl(
     rounding: float | None = None,
     rounding1: float | None = None,
     rounding2: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A cylinder oriented along the Y axis. See cyl() for argument details."""
     return _cyl_axis(1, h, r, l, r1, r2, d, d1, d2, chamfer, chamfer1, chamfer2, rounding, rounding1, rounding2, anchor, res)
@@ -933,8 +1173,8 @@ def zcyl(
     rounding: float | None = None,
     rounding1: float | None = None,
     rounding2: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A cylinder oriented along the Z axis (same as cyl()). See cyl() for argument details."""
     return _cyl_axis(2, h, r, l, r1, r2, d, d1, d2, chamfer, chamfer1, chamfer2, rounding, rounding1, rounding2, anchor, res)
@@ -956,8 +1196,8 @@ def tube(
     id1: float | None = None,
     id2: float | None = None,
     l: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A hollow cylindrical tube (outer cylinder minus inner cylinder), as a libfive SDF.
 
@@ -999,8 +1239,8 @@ def pie_slice(
     d1: float | None = None,
     d2: float | None = None,
     l: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A pie slice (wedge of a cylinder/cone), as a libfive SDF: a cylinder intersected with
     an angular sector (built from 1-2 half-planes -- `ang` is a plain Python float fixed at
@@ -1041,8 +1281,8 @@ def prismoid(
     h: float | None = None,
     shift: list[float] = [0, 0],
     l: float | None = None,
-    anchor: list[float] = BOTTOM,
-    res: int = 20,
+    anchor: "Sequence[float]" = BOTTOM,
+    res: int = 10,
 ) -> PyShape:
     """A rectangular prismoid (truncated pyramid), as a libfive SDF.
 
@@ -1062,7 +1302,7 @@ def prismoid(
         h/l:    height of the prism
         shift:  [X,Y] shift of the top center relative to the bottom center
         anchor: anchor point (default BOTTOM)
-        res:    libfive meshing resolution passed to frep() (default 20)
+        res:    libfive meshing resolution passed to frep() (default 10)
     """
     height = h if h is not None else (l if l is not None else 1)
     bx1, by1 = size1[0] / 2, size1[1] / 2
@@ -1098,8 +1338,8 @@ def rect_tube(
     rounding: float = 0,
     irounding: float | None = None,
     l: float | None = None,
-    anchor: list[float] = BOTTOM,
-    res: int = 20,
+    anchor: "Sequence[float]" = BOTTOM,
+    res: int = 10,
 ) -> PyShape:
     """A rectangular tube (a rectangle with a rectangular hole through it), as a libfive SDF
     (outer rounded-rect-extrusion minus inner rounded-rect-extrusion, reusing
@@ -1116,7 +1356,7 @@ def rect_tube(
         rounding:  outer vertical-edge rounding radius (default: no rounding)
         irounding: inner vertical-edge rounding radius (default: same as `rounding`)
         anchor:    anchor point (default BOTTOM)
-        res:       libfive meshing resolution passed to frep() (default 20)
+        res:       libfive meshing resolution passed to frep() (default 10)
     """
     length = h if h is not None else (l if l is not None else 1)
     assert size is not None, "rect_tube(): must give size."
@@ -1154,8 +1394,8 @@ def interior_fillet(
     r: float | None = None,
     ang: float = 90,
     d: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A shape to fillet an interior corner between two faces meeting at `ang` degrees, as a
     libfive SDF: the wedge between the two faces, minus a cylindrical arc of radius `r`
@@ -1196,7 +1436,7 @@ def rounding_edge_mask(
     r: float | None = None,
     d: float | None = None,
     excess: float = 0.1,
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape:
     """A standalone 3-D edge-rounding CUTTER of length `l`, as a libfive SDF, for subtracting
     from another PyShape to round over a sharp 90-degree edge that isn't part of a cuboid()'s
@@ -1226,7 +1466,7 @@ def rounding_edge_mask(
     return PyShape(sdf_fn, [-excess, -excess, -length / 2], [rad, rad, length / 2], res)
 
 
-def polygon_extrude(pts: list[list[float]], length: float, res: int = 20) -> PyShape:
+def polygon_extrude(pts, length: float, res: int = 10) -> PyShape:
     """Extrude an arbitrary CONVEX 2-D polygon `pts` (either winding order) along Z by
     `length`, centered -- for a custom edge-profile cutter with no simple closed form (like
     bosl2.shapes3d.Bosl2Solid.edge_profile_asym()'s `children=` path, but swept here by hand
@@ -1241,6 +1481,7 @@ def polygon_extrude(pts: list[list[float]], length: float, res: int = 20) -> PyS
     CAVEAT: `pts` must describe a CONVEX polygon. A concave vertex's half-plane doesn't bound
     the shape there, so both the sign and the surface would come out wrong.
     """
+    pts = as_points(pts)
     area2 = sum(pts[i][0] * pts[(i + 1) % len(pts)][1] - pts[(i + 1) % len(pts)][0] * pts[i][1] for i in range(len(pts)))
     ordered = pts if area2 > 0 else list(reversed(pts))
     n = len(ordered)
@@ -1266,11 +1507,11 @@ def polygon_extrude(pts: list[list[float]], length: float, res: int = 20) -> PyS
 
 
 def polygon_prism(
-    paths: list,
+    paths,
     h: float,
     rounding_top: float = 0,
     rounding_bottom: float = 0,
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape:
     """Extrude an arbitrary SIMPLE polygon (convex or concave -- exact 2-D SDF via
     _polygon_sdf_xy(), unlike polygon_extrude()'s convex-only half-planes) from z=0 up to z=h,
@@ -1295,10 +1536,10 @@ def polygon_prism(
         h:               extrusion height (z from 0 to h)
         rounding_top:    top-rim treatment: >0 roundover radius, <0 flare, 0 square (default 0)
         rounding_bottom: bottom-rim treatment, same convention (default 0)
-        res:             libfive meshing resolution passed to frep() (default 20)
+        res:             libfive meshing resolution passed to frep() (default 10)
     """
     assert len(paths) >= 1, "polygon_prism(): paths must not be empty"
-    path_list = paths if isinstance(paths[0][0], (list, tuple)) else [paths]
+    path_list = as_path_list(paths)
     for p in path_list:
         assert len(p) >= 3, f"polygon_prism(): every path needs >= 3 points, got {len(p)}"
     assert h > 0, f"polygon_prism(): h must be > 0, h={h}"
@@ -1309,6 +1550,7 @@ def polygon_prism(
         for p in path_list:
             d = _polygon_sdf_xy(x, y, p)
             d2d = d if d2d is None else lv.min(d2d, d)
+        assert d2d is not None, "polygon_prism(): no paths"
 
         # Sharp prism, then max() in each roundover rim (each reduces to the sharp distance
         # away from its own rim -- see docstring).
@@ -1331,6 +1573,7 @@ def polygon_prism(
         # whenever a flared concave prism built on a dense round_corners() outline was
         # subtracted from another shape (sharp low-point-count outlines rendered fine; the
         # densified ones degenerated).
+        u_d = None
         if rounding_top < 0 or rounding_bottom < 0:
             u2 = None
             for p in path_list:
@@ -1338,12 +1581,14 @@ def polygon_prism(
                 u2 = d2 if u2 is None else lv.min(u2, d2)
             u_d = lv.sqrt(u2)
         if rounding_top < 0:
+            assert u_d is not None
             f = -rounding_top
             du = lv.min(u_d, f + 1)
             ring = lv.max(f - _lv_hypot(du - f, z - (h - f)), lv.max(z - h, (h - f) - z))
             ring = lv.max(ring, u_d - f)
             out = lv.min(out, ring)
         if rounding_bottom < 0:
+            assert u_d is not None
             f = -rounding_bottom
             du = lv.min(u_d, f + 1)
             ring = lv.max(f - _lv_hypot(du - f, z - f), lv.max(-z, z - f))
@@ -1372,8 +1617,8 @@ def teardrop(
     d: float | None = None,
     d1: float | None = None,
     d2: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """A teardrop shape (useful for 3-D-printable horizontal holes), as a libfive SDF: the
     union of a circle and a "roof" of two planes meeting at the apex, tangent to the circle,
@@ -1431,8 +1676,8 @@ def onion(
     ang: float = 45,
     cap_h: float | None = None,
     d: float | None = None,
-    anchor: list[float] = CENTER,
-    res: int = 20,
+    anchor: "Sequence[float]" = CENTER,
+    res: int = 10,
 ) -> PyShape:
     """An onion-dome shape (a sphere with a conical cap), as a libfive SDF: the union of a
     sphere and a cone tangent to it, revolved around Z.
@@ -1467,7 +1712,7 @@ def heightfield(
     size: list[float] = [100, 100],
     bottom: float = -20,
     maxz: float = 99,
-    res: int = 20,
+    res: int = 10,
 ) -> PyShape:
     """A 3-D surface from a height function, as a libfive SDF.
 
@@ -1484,7 +1729,7 @@ def heightfield(
         size:   [X,Y] size of the surface (default [100,100])
         bottom: Z coordinate for the bottom of the object (default -20)
         maxz:   maximum height to model, taller values are clamped (default 99)
-        res:    libfive meshing resolution passed to frep() (default 20)
+        res:    libfive meshing resolution passed to frep() (default 10)
     """
     assert callable(data), "pysolidfive.heightfield() only supports callable data -- see the CAVEAT in its docstring."
     bx, by = size[0] / 2, size[1] / 2

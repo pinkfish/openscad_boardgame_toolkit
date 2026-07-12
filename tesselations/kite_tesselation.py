@@ -84,6 +84,7 @@ def MakeTesselationKiteHexagon(
         )
         piece = region(region_data)
         shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape
 
 
@@ -100,6 +101,7 @@ def TesselationHexKiteAtLocation(size: float, x: int, y: int, children: PyOpenSC
     apothem = math.sqrt(radius * radius - (radius / 2) * (radius / 2))
     dx = apothem * 2 * y + (x % 2) * apothem
     dy = x * radius * 3 / 2
+    assert children is not None, "children must be given"
     return children.translate([dx, dy, 0])
 
 
@@ -121,4 +123,5 @@ def TesselationHexKiteArea(width: float, length: float, size: float, children: P
         for y in range(cols + 1):
             piece = TesselationHexKiteAtLocation(size=size, x=x, y=y, children=children)
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape.translate([-size / 2, 0, 0])

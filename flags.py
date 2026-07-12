@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from bosl2 import shapes2d
+from bosl2 import shapes3d
 from bosl2 import beziers
 from labels import Make3dStripedGrid
 
@@ -69,19 +70,20 @@ def FlagBackgroundAndBorder(
         children: [cutout, inside] pair of shapes
     """
     calc_width = width
+    assert children is not None and len(children) >= 2, "FlagBackgroundAndBorder(): children[0] (cutout) and children[1] (face) are required"
     if calc_width is None:
         calc_width = length / 2
     shape = None
     if border > 0:
-        piece = cuboid([length + border, calc_width + border, height], anchor=BOTTOM) - cuboid(
+        piece = shapes3d.cuboid([length + border, calc_width + border, height], anchor=BOTTOM) - shapes3d.cuboid(
             [length - 0.02, calc_width - 0.02, height + 1], anchor=BOTTOM
         ).translate([0, 0, -0.5])
         shape = piece.color(default_material_colour)
     if background:
         if solid_background:
-            base = cuboid([length, calc_width, height], anchor=BOTTOM)
+            base = shapes3d.cuboid([length, calc_width, height], anchor=BOTTOM)
         else:
-            base = cuboid([length, calc_width, height], anchor=BOTTOM) & Make3dStripedGrid(
+            base = shapes3d.cuboid([length, calc_width, height], anchor=BOTTOM) & Make3dStripedGrid(
                 size=[length, calc_width], height=height, spacing=grid_spacing
             ).translate([-length * 5.5 / 4, -calc_width / 2, 0])
         piece = (base - children[0].translate([0, 0, -0.5])).color(background_color)
@@ -101,9 +103,9 @@ def StAndrewsCross(length: float, height: float) -> PyOpenSCAD:
         length: length of the flag
         height: height of the cross
     """
-    a = cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, 22.5]).color("white")
-    b = cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, -22.5]).color("white")
-    return a | b
+    a = shapes3d.cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, 22.5]).color("white")
+    b = shapes3d.cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, -22.5]).color("white")
+    return (a | b).shape
 
 
 def StPatricksCross(length: float, height: float) -> PyOpenSCAD:
@@ -117,11 +119,11 @@ def StPatricksCross(length: float, height: float) -> PyOpenSCAD:
         length: length of the flag
         height: height of the cross
     """
-    a = cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + FRONT + LEFT).rotate([0, 0, 22.5]).color("red")
-    b = cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + FRONT + RIGHT).rotate([0, 0, -22.5]).color("red")
-    c = cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + BACK + RIGHT).rotate([0, 0, 22.5]).color("red")
-    d = cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + BACK + LEFT).rotate([0, 0, -22.5]).color("red")
-    return a | b | c | d
+    a = shapes3d.cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + FRONT + LEFT).rotate([0, 0, 22.5]).color("red")
+    b = shapes3d.cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + FRONT + RIGHT).rotate([0, 0, -22.5]).color("red")
+    c = shapes3d.cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + BACK + RIGHT).rotate([0, 0, 22.5]).color("red")
+    d = shapes3d.cuboid([length * 2, length / 2 / 15, height], anchor=BOTTOM + BACK + LEFT).rotate([0, 0, -22.5]).color("red")
+    return (a | b | c | d).shape
 
 
 def StGeorgesCross(length: float, white_height: float, red_height: float) -> PyOpenSCAD:
@@ -138,14 +140,14 @@ def StGeorgesCross(length: float, white_height: float, red_height: float) -> PyO
     """
 
     def RedBit(height: float) -> PyOpenSCAD:
-        a = cuboid([length, length / 15, height], anchor=BOTTOM)
-        b = cuboid([length, length / 15, height], anchor=BOTTOM).rotate([0, 0, 90])
-        return a | b
+        a = shapes3d.cuboid([length, length / 15, height], anchor=BOTTOM)
+        b = shapes3d.cuboid([length, length / 15, height], anchor=BOTTOM).rotate([0, 0, 90])
+        return (a | b).shape
 
     fimbration = length / 15 / 2
     white = (
-        cuboid([length, length / 15 + fimbration, white_height], anchor=BOTTOM).color("white")
-        | cuboid([length, length / 15 + fimbration, white_height], anchor=BOTTOM).rotate([0, 0, 90]).color("white")
+        shapes3d.cuboid([length, length / 15 + fimbration, white_height], anchor=BOTTOM).color("white")
+        | shapes3d.cuboid([length, length / 15 + fimbration, white_height], anchor=BOTTOM).rotate([0, 0, 90]).color("white")
     )
     shape = white - RedBit(white_height + 1)
     return shape | RedBit(red_height).color("red")
@@ -171,7 +173,7 @@ def UnionJack(
     """
     shape = None
     if border > 0:
-        shape = cuboid([length + border, length / 2 + border, max(white_height, red_height)], anchor=BOTTOM) - cuboid(
+        shape = shapes3d.cuboid([length + border, length / 2 + border, max(white_height, red_height)], anchor=BOTTOM) - shapes3d.cuboid(
             [length - 0.02, length / 2 - 0.02, max(white_height, red_height) + 1], anchor=BOTTOM
         ).translate([0, 0, -0.5])
 
@@ -193,7 +195,7 @@ def UnionJack(
     union_all = andrews | StGeorgesCross(length=length, white_height=white_height, red_height=red_height)
     union_all = union_all if pieces is None else pieces | union_all
 
-    bound = cuboid([length, length / 2, max(white_height, red_height) + 1], anchor=BOTTOM).translate([0, 0, -0.5])
+    bound = shapes3d.cuboid([length, length / 2, max(white_height, red_height) + 1], anchor=BOTTOM).translate([0, 0, -0.5])
     piece = bound & union_all
     return piece if shape is None else shape | piece
 
@@ -238,8 +240,8 @@ def AustralianFlag(
     shape = None
     if border > 0:
         shape = (
-            cuboid([length + border, length / 2 + border, max(white_height, red_height)], anchor=BOTTOM)
-            - cuboid([length - 0.02, length / 2 - 0.02, max(white_height, red_height) + 1], anchor=BOTTOM).translate(
+            shapes3d.cuboid([length + border, length / 2 + border, max(white_height, red_height)], anchor=BOTTOM)
+            - shapes3d.cuboid([length - 0.02, length / 2 - 0.02, max(white_height, red_height) + 1], anchor=BOTTOM).translate(
                 [0, 0, -0.5]
             )
         ).color(default_material_colour)
@@ -247,12 +249,12 @@ def AustralianFlag(
     bg_union = None
     if background:
         if solid_background:
-            blue_base = cuboid([length, length / 2, blue_height], anchor=BOTTOM).translate([length / 2, length / 4, 0])
+            blue_base = shapes3d.cuboid([length, length / 2, blue_height], anchor=BOTTOM).translate([length / 2, length / 4, 0])
         else:
             blue_base = Make3dStripedGrid(size=[length, length / 2], height=blue_height, spacing=1.5).translate(
                 [-length / 4, 0, 0]
             )
-        blue_bound = cuboid(
+        blue_bound = shapes3d.cuboid(
             [length / 2 - 0.01, length / 4 - 0.01, max(white_height, red_height) + 1], anchor=BOTTOM + BACK + LEFT
         ).translate([0, length / 2, -0.5])
         union_jack = UnionJack(
@@ -302,7 +304,7 @@ def SwedenFlag(
     height: float,
     background: bool = True,
     border: float = 0,
-    solid_background: int = 0,
+    solid_background: bool = False,
     layer_thickness: float = default_slicing_layer_height,
 ) -> PyOpenSCAD:
     """Flag of Sweden to use for anything.
@@ -326,9 +328,9 @@ def SwedenFlag(
     line_vert = length * 2 / 16
 
     def CrossBit(height: float) -> PyOpenSCAD:
-        a = cuboid([length, line_horiz, height], anchor=TOP)
-        b = cuboid([line_vert, width, height], anchor=TOP).translate([-length * 3 / 16, 0, 0])
-        return a | b
+        a = shapes3d.cuboid([length, line_horiz, height], anchor=TOP)
+        b = shapes3d.cuboid([line_vert, width, height], anchor=TOP).translate([-length * 3 / 16, 0, 0])
+        return (a | b).shape
 
     background_height = height - layer_thickness * 2 if solid_background else height * 3 / 4
     cross_height = layer_thickness if solid_background else height
@@ -341,7 +343,7 @@ def SwedenFlag(
         children=[cross1, cross2],
     )
     if solid_background:
-        shape = shape | cuboid([length, width, layer_thickness], anchor=BOTTOM).translate(
+        shape = shape | shapes3d.cuboid([length, width, layer_thickness], anchor=BOTTOM).translate(
             [0, 0, height - layer_thickness * 2]
         ).color("blue")
     return shape
@@ -405,6 +407,7 @@ def UnitedStatesFlag(
                     .color("white")
                 )
                 shape = piece if shape is None else shape | piece
+        assert shape is not None
         return shape
 
     def StarSection(white_height: float) -> PyOpenSCAD:
@@ -417,30 +420,30 @@ def UnitedStatesFlag(
             children=[Stars(), Stars()],
         )
         if solid_background:
-            section = section | cuboid([top_bit_width, top_bit_length, layer_thickness], anchor=BOTTOM).translate(
+            section = section | shapes3d.cuboid([top_bit_width, top_bit_length, layer_thickness], anchor=BOTTOM).translate(
                 [0, 0, background_stars_material_thickness]
             ).color("blue")
         return section
 
     def Stripes(white_height: float, red_height: float) -> PyOpenSCAD:
-        base = cuboid([width, length, background_material_thickness], anchor=BOTTOM + LEFT).color(default_material_colour)
+        base = shapes3d.cuboid([width, length, background_material_thickness], anchor=BOTTOM + LEFT).color(default_material_colour)
         stripes = None
         for i in range(6):
-            red = cuboid([stripe, length, red_height - background_material_thickness], anchor=BOTTOM + LEFT).translate(
+            red = shapes3d.cuboid([stripe, length, red_height - background_material_thickness], anchor=BOTTOM + LEFT).translate(
                 [stripe * 2 * i, 0, background_material_thickness]
             ).color("red")
-            white = cuboid(
+            white = shapes3d.cuboid(
                 [stripe, length, white_height - background_material_thickness], anchor=BOTTOM + LEFT
             ).translate([stripe * 2 * i + stripe, 0, background_material_thickness]).color("white")
             stripes = red | white if stripes is None else stripes | red | white
-        stripes = stripes | cuboid(
+        stripes = stripes | shapes3d.cuboid(
             [stripe, length, red_height - background_material_thickness], anchor=BOTTOM + LEFT
         ).translate([stripe * 2 * 6, 0, background_material_thickness]).color("red")
         whole = base | stripes
-        cutout = cuboid(
+        cutout = shapes3d.cuboid(
             [top_bit_width + 0.01, top_bit_length + 0.01, max(white_height, red_height) + 2], anchor=BOTTOM + LEFT
         ).translate([-width / 2 + stripe * 6.5, -length / 2 + top_bit_length / 2, -1])
-        return whole - cutout
+        return (whole - cutout).shape
 
     def MainFlag(white_height: float, red_height: float) -> PyOpenSCAD:
         a = Stripes(white_height=white_height, red_height=red_height).translate([-width / 2, 0, 0])
@@ -450,8 +453,8 @@ def UnitedStatesFlag(
     shape = MainFlag(white_height=white_height, red_height=red_height)
     if border > 0:
         shape = shape | (
-            cuboid([width + border, length + border, max(white_height, red_height)], anchor=BOTTOM)
-            - cuboid([width - 0.02, length - 0.02, max(white_height, red_height) + 1], anchor=BOTTOM).translate(
+            shapes3d.cuboid([width + border, length + border, max(white_height, red_height)], anchor=BOTTOM)
+            - shapes3d.cuboid([width - 0.02, length - 0.02, max(white_height, red_height) + 1], anchor=BOTTOM).translate(
                 [0, 0, -0.5]
             )
         ).color(default_material_colour)
@@ -825,12 +828,12 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         return shape.mirror([0, 1, 0])
 
     def WhiteDots(length: float, height: float) -> PyOpenSCAD:
-        a = cyl(d=length / 5, h=height, anchor=BOTTOM)
-        b = cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, length / 2, 0])
-        c = cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, length / 2, 0])
-        d = cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, -length / 2, 0])
-        e = cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, -length / 2, 0])
-        return a | b | c | d | e
+        a = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM)
+        b = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, length / 2, 0])
+        c = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, length / 2, 0])
+        d = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, -length / 2, 0])
+        e = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, -length / 2, 0])
+        return (a | b | c | d | e).shape
 
     def BlueDotsShield(width: float, height: float, white_dot_height: float) -> PyOpenSCAD:
         width_shield = width
@@ -850,11 +853,11 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         c = BlueDotsShield(shield_width, height, white_dot_height).translate([-inner_layout / 2, 0, 0])
         d = BlueDotsShield(shield_width, height, white_dot_height).translate([0, inner_layout / 2, 0])
         e = BlueDotsShield(shield_width, height, white_dot_height).translate([0, -inner_layout / 2, 0])
-        return a | b | c | d | e
+        return (a | b | c | d | e).shape
 
     shape = None
     if border > 0:
-        shape = cuboid([length + border, width + border, height], anchor=BOTTOM) - cuboid(
+        shape = shapes3d.cuboid([length + border, width + border, height], anchor=BOTTOM) - shapes3d.cuboid(
             [length - 0.02, width - 0.02, height + 1], anchor=BOTTOM
         ).translate([0, 0, -0.5])
 
@@ -862,7 +865,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
     if background:
         green = (
             (
-                cuboid([length * 2 / 5, width, height], anchor=BOTTOM + LEFT)
+                shapes3d.cuboid([length * 2 / 5, width, height], anchor=BOTTOM + LEFT)
                 & Make3dStripedGrid(size=[length, width], height=height, spacing=1.5)
                 .mirror([0, 1, 0])
                 .translate([-length / 2, width / 2, 0])
@@ -871,7 +874,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         ).color("#006600")
         red = (
             (
-                cuboid([length * 3 / 5, width, height], anchor=BOTTOM + LEFT)
+                shapes3d.cuboid([length * 3 / 5, width, height], anchor=BOTTOM + LEFT)
                 & Make3dStripedGrid(size=[length, width], height=height, spacing=1.5).translate(
                     [-length / 2 - 1, -width / 2, 0]
                 )
@@ -880,8 +883,8 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         bg = green | red
 
     coin = (
-        cyl(d=width / 2, h=height, anchor=BOTTOM)
-        - cyl(d=width / 2 - width / 12, h=height + 1, anchor=BOTTOM).translate([0, 0, -0.5])
+        shapes3d.cyl(d=width / 2, h=height, anchor=BOTTOM)
+        - shapes3d.cyl(d=width / 2 - width / 12, h=height + 1, anchor=BOTTOM).translate([0, 0, -0.5])
     ).color("#FFFF00")
     scrolls = MiddleScrolls(height=height, width=width / 2 + width / 150) - Quina(length / 5, height).translate([0, 0, -0.5])
     white_quina = (Quina(length / 5, height) - Quina(length / 5 * 19 / 20, height).translate([0, 0, -0.5])).color("white")

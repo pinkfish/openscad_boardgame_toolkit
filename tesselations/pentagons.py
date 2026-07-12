@@ -127,4 +127,5 @@ def SheepTesselationArea(size: float, width: float, length: float, thickness: fl
                 .translate([size * y * y_offset[0], size * y * y_offset[1], 0])
             )
             shape = piece if shape is None else shape | piece
+    assert shape is not None
     return shape.translate([-cols * size, -size * 3 / 4, 0])

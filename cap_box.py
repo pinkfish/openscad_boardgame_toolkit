@@ -244,7 +244,7 @@ def MakeBoxWithCapLid(
     # Lid catches (cut into the box wall so the lid's matching catch nubs/wedges click in).
     catches = None
 
-    def add_catch(piece: PyOpenSCAD) -> None:
+    def add_catch(piece: "PyOpenSCAD | shapes3d.Bosl2Solid") -> None:
         nonlocal catches
         catches = piece if catches is None else catches | piece
 
@@ -461,7 +461,7 @@ def CapBoxLid(
     # end up in the same final frame as the rest of the lid).
     catches = None
 
-    def add_catch(piece: PyOpenSCAD) -> None:
+    def add_catch(piece: "PyOpenSCAD | shapes3d.Bosl2Solid") -> None:
         nonlocal catches
         catches = piece if catches is None else catches | piece
 
@@ -533,7 +533,7 @@ def CapBoxLidWithCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     lid_inner_rounding: float | None = None,
     lid_pattern_dense: bool = False,
@@ -631,7 +631,7 @@ def CapBoxLidWithLabelAndCustomShape(
     layout_width: float | None = None,
     size_spacing: float | None = None,
     lid_thickness: float | None = None,
-    aspect_ratio: float = 1.0,
+    aspect_ratio: float | None = 1.0,
     lid_rounding: float | None = None,
     lid_inner_rounding: float | None = None,
     lid_pattern_dense: bool = False,
@@ -700,12 +700,14 @@ def CapBoxLidWithLabelAndCustomShape(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_shape = MakeLidLabel(
+    label_shape_raw = MakeLidLabel(
         size=[width - lid_boundary * 2, length - lid_boundary * 2],
         options=label_opts,
         lid_thickness=lid_thickness,
         text_str=text_str,
-    ).translate([lid_boundary, lid_boundary, 0])
+    )
+    assert label_shape_raw is not None, "label did not generate"
+    label_shape = label_shape_raw.translate([lid_boundary, lid_boundary, 0])
 
     all_extra = [label_shape] + (list(extra_children) if extra_children else [])
 
@@ -798,7 +800,9 @@ def CapBoxLidWithLabel(
     assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
     assert cap_height is None or cap_height > 0, f"Need cap height None or > 0 {cap_height}"
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return CapBoxLidWithLabelAndCustomShape(
         size=size,
@@ -883,7 +887,9 @@ def CapBoxLidWithShape(
     assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
     assert cap_height is None or cap_height > 0, f"Need cap height None or > 0 {cap_height}"
 
-    shape_piece = ShapeByType(options=calc_shape_options).color(material_colour)
+    shape_piece_raw = ShapeByType(options=calc_shape_options)
+    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
+    shape_piece = shape_piece_raw.color(material_colour)
 
     return CapBoxLidWithCustomShape(
         size=size,
