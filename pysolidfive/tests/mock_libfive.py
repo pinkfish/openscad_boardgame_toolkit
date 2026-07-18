@@ -264,6 +264,24 @@ class _AabbSolid:
     def color(self, *a, **k):
         return _AabbSolid(self.mn, self.mx)
 
+    def resize(self, newsize, auto=None, **k):
+        # Modelled (rather than left to the permissive __getattr__) because the real
+        # resize() REJECTS a 2-element vector with "TypeError: Invalid resize dimensions"
+        # even for 2-D geometry -- a shape_type.py CLOUD bug that shipped precisely because
+        # the mock accepted it silently. A 0 component means "leave that axis alone".
+        if not isinstance(newsize, (list, tuple)) or len(newsize) != 3:
+            raise TypeError("Invalid resize dimensions")
+        mn, mx = self.mn, self.mx
+        if mn is None or mx is None:
+            return _AabbSolid()
+        out_mn, out_mx = list(mn), list(mx)
+        for i in range(3):
+            want = float(newsize[i])
+            if want > 0:
+                out_mn[i] = mn[i]
+                out_mx[i] = mn[i] + want
+        return _AabbSolid(out_mn, out_mx)
+
     def multmatrix(self, m):
         # Shear (the only multmatrix bosl2 uses, for cyl/prism shift) doesn't grow the AABB
         # enough to matter for anchoring tests; keep the box as-is.

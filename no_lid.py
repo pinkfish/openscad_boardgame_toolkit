@@ -35,8 +35,7 @@ import numpy as np
 import bosl2.masking
 import bosl2.shapes3d
 from bosl2 import shapes2d
-from bosl2 import paths
-from bosl2 import rounding
+from bosl2.paths import Path
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 
 from typing import Callable
@@ -44,7 +43,7 @@ from typing import Callable
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+_bosl2 = osuse(BOSL2_STD_PATH)
 
 STACKABLE_TYPE_NONE = 0
 STACKABLE_TYPE_INSIDE = 1
@@ -215,8 +214,9 @@ def FingerHoleWallSegment(
     assert height > 0, f"Need height > 0, height={height}"
     assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
 
-    split_length = paths.path_length(path)
-    normal = paths.path_normals(path)
+    seg = Path(path, closed=False)
+    split_length = seg.perimeter()
+    normal = seg.normals()
     if normal[0][0] == 0:
         angle = 90 if normal[0][1] > 0 else -90
     else:
@@ -226,7 +226,7 @@ def FingerHoleWallSegment(
     if not (split_length > finger_hole_size * 2.5 and use_finger):
         return None
 
-    pts = paths.path_cut_points(path=path, cutdist=[split_length / 2])
+    pts = seg.cut_points([split_length / 2])
     return (
         FingerHoleWall(
             radius=finger_hole_size, height=finger_hole_height, spin=90, depth_of_hole=wall_thickness + 0.03,
@@ -235,6 +235,282 @@ def FingerHoleWallSegment(
         .rotate([0, 0, angle])
         .translate([pts[0][0][0], pts[0][0][1], height - finger_hole_height + 0.01])
     )
+
+
+class PathBoxWithNoLid:
+    """Builds a no-lid box from a polygon outline.
+
+    This used to be one long function whose intermediate pieces (the rounded outer path, the
+    five inset paths, the finger-hole sizing) were threaded through nested closures. They are
+    instance attributes now, so each stage is a method that reads them rather than a closure
+    capturing them, and a caller can build a box in stages or inspect the derived paths.
+    :func:`MakePathBoxWithNoLid` is the thin functional wrapper over it.
+
+    The 2-D work splits deliberately (see Path.offset): the outline insets are POINT
+    math, done in numpy, because the wall-segment features have to walk each edge; everything
+    that only needs a shape to extrude uses the native primitives instead.
+
+    Attributes:
+        path/height/...:        the constructor arguments, defaults resolved
+        width/length:           bounding size of the outline
+        sorted_floors:          extra_floors ordered by floor_height
+        outside_path/main_path: the outline before rounding, with extra floors merged/cut
+        calc_path:              outer path with corners rounded by wall_thickness
+        inner_path:             outline inset by the wall -- the hollow cut's profile
+        inner_path_stackable*:  the inset outlines the stackable rings are built from
+        middle_path:            outline inset by half a wall; the finger holes walk its edges
+    """
+
+    def __init__(
+        self,
+        path: list[list[float]],
+        height: float,
+        children: "PyOpenSCAD | Callable | None" = None,
+        wall_thickness: float | None = None,
+        floor_thickness: float | None = None,
+        stackable_thickness: float | None = None,
+        stackable_fit_offset: float = 0.1,
+        hollow_radius: types.SimpleNamespace | None = None,
+        make_finger_x: bool | None = None,
+        make_finger_y: bool | None = None,
+        material_colour: str = "grey",
+        finger_hole_size: float | None = None,
+        offset_sweep_options: types.SimpleNamespace | None = None,
+        hollow: bool = False,
+        stackable: int = STACKABLE_TYPE_NONE,
+        magnet: types.SimpleNamespace | None = None,
+        extra_floors: list[types.SimpleNamespace] | None = None,
+        mesh_res: int = 10,
+    ) -> None:
+        self.path = path
+        self.height = height
+        self.children = children
+        self.wall_thickness = default_wall_thickness if wall_thickness is None else wall_thickness
+        self.floor_thickness = default_floor_thickness if floor_thickness is None else floor_thickness
+        self.stackable_thickness = default_stackable_thickness if stackable_thickness is None else stackable_thickness
+        self.stackable_fit_offset = stackable_fit_offset
+        self.hollow_radius = hollow_radius if hollow_radius is not None else types.SimpleNamespace(
+            top=self.wall_thickness / 4, bottom=self.wall_thickness / 4, radius=self.wall_thickness / 2
+        )
+        self.material_colour = material_colour
+        self.hollow = hollow
+        self.stackable = stackable
+        self.magnet = magnet if magnet is not None else types.SimpleNamespace(
+            type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0
+        )
+        self.extra_floors = extra_floors if extra_floors is not None else []
+        # offset_sweep_options/mesh_res are vestigial (the solids are OffsetSweep() now); kept
+        # so existing call sites don't break.
+        self.offset_sweep_options = offset_sweep_options
+        self.mesh_res = mesh_res
+
+        assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+        assert self.floor_thickness > 0, f"Need floor thickness > 0, floor_thickness={self.floor_thickness}"
+        assert self.wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={self.wall_thickness}"
+        assert height > 0, f"Need height > 0, height={height}"
+
+        self._measure(make_finger_x, make_finger_y, finger_hole_size)
+        self._resolve_paths()
+
+    # -- setup -----------------------------------------------------------------------------
+
+    def _measure(self, make_finger_x, make_finger_y, finger_hole_size) -> None:
+        """Bounding size of the outline and the finger-hole sizing derived from it."""
+        pts = np.asarray(self.path, dtype=float)
+        self.width = float(pts[:, 0].max() - pts[:, 0].min())
+        self.length = float(pts[:, 1].max() - pts[:, 1].min())
+
+        self.finger_hole_size = finger_hole_size
+        if self.finger_hole_size is None:
+            self.finger_hole_size = min(20, min(self.length, self.width) / 4,
+                                        self.height - self.floor_thickness + 1)
+        self.finger_hole_height = min(self.finger_hole_size,
+                                      self.height - default_floor_thickness * 2 + 1)
+        auto = make_finger_x is None and make_finger_y is None
+        self.make_finger_x = (self.width > self.length) if auto else False
+        self.make_finger_y = (self.length > self.width) if auto else False
+
+    def _resolve_paths(self) -> None:
+        """The outline variants every later stage reads.
+
+        Region algebra is only needed when extra_floors overlap the outline. Without them --
+        every box in examples/ -- make_region(path) is just [path] and the union/difference of
+        a single region is that region, so this collapses to the path itself and stays pure
+        Python. (See the module note on the remaining extra_floors osuse dependency.)
+        """
+        wall = self.wall_thickness
+        self.sorted_floors = QuicksortExtraFloors(self.extra_floors)
+        if self.sorted_floors:
+            region_outside = _bosl2.union(
+                [_bosl2.make_region(self.path)] + [_bosl2.make_region(f.path) for f in self.sorted_floors]
+            )
+            self.outside_path = region_outside[0]
+            self.main_path = _bosl2.difference([self.path] + [f.path for f in self.sorted_floors])
+        else:
+            self.outside_path = self.path
+            self.main_path = self.path
+
+        self.calc_path = Path(self.outside_path).round_corners(radius=wall)
+        fit = self.stackable_fit_offset
+        self.inner_path = Path(self.main_path).offset(r=-wall)
+        self.inner_path_stackable = Path(self.main_path).offset(r=-wall / 2)
+        self.inner_path_stackable_bottom_outside = Path(self.main_path).offset(r=-wall / 2 + fit)
+        self.inner_path_stackable_bottom_inside = Path(self.main_path).offset(r=-wall - fit)
+        self.inner_path_stackable_bottom_inside_inside = Path(self.main_path).offset(r=-wall / 2 - fit)
+        self.middle_path = Path(self.path).offset(r=-wall / 2)
+
+    # -- pieces ----------------------------------------------------------------------------
+
+    def inner(self) -> InnerPath:
+        """The :class:`~base_bgtk.InnerPath` handed to a child.
+
+        The inset outline is deliberately not precomputed for the child: `profile` closes over
+        the outline and insets it with the NATIVE 2-D offset() only if the child asks, so a box
+        whose children ignore the inside never pays for it, and one that does want it gets real
+        geometry rather than points it would only have had to re-polygon.
+        """
+        outer_path = self.main_path
+        wall = self.wall_thickness
+
+        def profile(inset: float = 0.0):
+            return polygon([[float(x), float(y)] for x, y in outer_path]).offset(r=-(wall + float(inset)))
+
+        return InnerPath(
+            width=self.width, length=self.length, height=self.height - self.floor_thickness,
+            path=outer_path, profile=profile,
+        )
+
+    def stackable_ring(self, bottom: bool = False) -> "PyOpenSCAD | None":
+        """The interlocking ring for a stackable box (was the StackableBoxInternal closure)."""
+        wall, stack, fit = self.wall_thickness, self.stackable_thickness, self.stackable_fit_offset
+        grow = fit if bottom else 0
+        if self.stackable == STACKABLE_TYPE_INSIDE:
+            outer_src = self.inner_path_stackable_bottom_outside if bottom else self.inner_path_stackable
+            inner_src = self.inner_path_stackable_bottom_inside if bottom else self.inner_path
+            outer = PolygonPrism(Path(outer_src).round_corners(radius=stack / 2),
+                                 h=stack + grow, rounding_top=wall / 4)
+        elif self.stackable == STACKABLE_TYPE_OUTSIDE:
+            inner_src = self.inner_path_stackable_bottom_inside_inside if bottom else self.inner_path_stackable
+            outer = PolygonPrism(self.calc_path, h=stack + grow, rounding_top=wall / 4)
+        else:
+            return None
+        inner = PolygonPrism(Path(inner_src).round_corners(radius=stack / 4),
+                             h=stack + 0.02 + grow, rounding_top=-wall / 4).translate([0, 0, -0.01])
+        return outer - inner
+
+    def outer_body(self) -> "PyOpenSCAD":
+        """The solid outside of the box: the main prism, its stack ring, and any extra floors."""
+        wall, stack = self.wall_thickness, self.stackable_thickness
+        solid = PolygonPrism(
+            self.calc_path,
+            h=(self.height - stack) if self.stackable else self.height,
+            rounding_bottom=wall / 4 if self.stackable else wall / 2,
+            rounding_top=wall / 8 if self.stackable else wall / 4,
+        )
+        if self.stackable:
+            top = self.stackable_ring(bottom=False)
+            assert top is not None
+            solid = solid | top.translate([0, 0, self.height - stack])
+
+        for f in self.sorted_floors:
+            if f.floor_height > 0:
+                solid = solid - PolygonPrism(f.path, h=f.floor_height)
+            if f.top_height > 0:
+                solid = solid - PolygonPrism(f.path, h=f.top_height).translate([0, 0, self.height - f.top_height])
+
+        extra = None
+        for f in self.sorted_floors:
+            piece = PolygonPrism(
+                Path(f.path).round_corners(radius=wall),
+                h=(self.height - f.floor_height - stack) if self.stackable else (self.height - f.floor_height),
+                rounding_bottom=wall / 4 if self.stackable else wall / 2,
+                rounding_top=wall / 8 if self.stackable else wall / 4,
+            ).translate([0, 0, f.floor_height])
+            extra = piece if extra is None else extra | piece
+        return (solid | extra) if extra is not None else solid
+
+    def internal_parts(self, body: "PyOpenSCAD") -> "PyOpenSCAD":
+        """Carve the inside out of *body*: the hollow, the per-extra-floor hollows, the children.
+
+        Everything that makes the box a container rather than a lump lives here.
+        """
+        if self.hollow:
+            body = body - self.hollow_cut()
+            for f in self.sorted_floors:
+                cut = self.extra_floor_cut(f)
+                if cut is not None:
+                    body = body - cut
+        return self.carve_children(body)
+
+    def hollow_cut(self) -> "PyOpenSCAD":
+        """The main cavity."""
+        return PolygonPrism(
+            Path(self.inner_path).round_corners(radius=self.hollow_radius.radius),
+            h=self.height - self.floor_thickness,
+            rounding_bottom=self.hollow_radius.bottom,
+            rounding_top=0 if self.stackable else -self.hollow_radius.top,
+        ).translate([0, 0, self.floor_thickness])
+
+    def extra_floor_cut(self, f: types.SimpleNamespace) -> "PyOpenSCAD | None":
+        """The cavity above one raised floor."""
+        if f.floor_height <= 0:
+            return None
+        wall = self.wall_thickness
+        joined_outer = Path(_bosl2.union([f.path, self.path])).offset(r=-wall).round_corners(radius=wall)
+        inner_union = [Path(f.path).offset(delta=wall), self.inner_path] + [
+            Path(other.path).offset(delta=wall)
+            for other in self.sorted_floors if other.floor_height > f.floor_height
+        ]
+        region = _bosl2.intersection(joined_outer, _bosl2.union(inner_union))
+        return PolygonPrism(
+            region,
+            h=self.height - self.floor_thickness - f.floor_height,
+            rounding_bottom=self.hollow_radius.bottom,
+            rounding_top=0 if self.stackable else -self.hollow_radius.top,
+        ).translate([0, 0, f.floor_height + self.floor_thickness])
+
+    def carve_children(self, body: "PyOpenSCAD") -> "PyOpenSCAD":
+        """Subtract the caller's children, resolving a callable against :meth:`inner`."""
+        if self.children is None:
+            return body
+        child = self.children(self.inner()) if callable(self.children) else self.children
+        if child is None:
+            return body
+        # A child may be a Bosl2Solid wrapper (e.g. MagnetSlot()); body is native here, and
+        # native `-` doesn't accept the wrapper, so unwrap to the native solid first.
+        if isinstance(child, bosl2.shapes3d.Bosl2Solid):
+            child = child.shape
+        return body - child
+
+    def carve_finger_holes(self, body: "PyOpenSCAD") -> "PyOpenSCAD":
+        """Cut a finger dip into each wall, walking the half-wall-inset outline's segments."""
+        pts = self.middle_path
+        count = len(pts)
+        for i in range(count):
+            seg = FingerHoleWallSegment(
+                path=[pts[i], pts[(i + 1) % count]],
+                wall_thickness=self.wall_thickness,
+                finger_hole_size=self.finger_hole_size,
+                finger_hole_height=self.finger_hole_height,
+                make_finger_y=self.make_finger_y,
+                make_finger_x=self.make_finger_x,
+                height=self.height,
+            )
+            if seg is not None:
+                body = body - seg
+        return body
+
+    # -- assembly --------------------------------------------------------------------------
+
+    def build(self) -> "PyOpenSCAD":
+        """The finished box."""
+        body = self.internal_parts(self.outer_body())
+        if self.stackable:
+            bottom = self.stackable_ring(bottom=True)
+            assert bottom is not None
+            body = body - bottom.translate([0, 0, -self.stackable_fit_offset])
+        body = body.color(self.material_colour)
+        return self.carve_finger_holes(body)
 
 
 def MakePathBoxWithNoLid(
@@ -265,10 +541,12 @@ def MakePathBoxWithNoLid(
     reducing offset_sweep() "steps" on corner geometry errors no longer
     applies.
 
-    *children*, if given, may be a plain solid or a
-    callable(inner_path, inner_width, inner_length, inner_height) -- this
-    replaces the original SCAD module's $inner_path/$inner_width/
-    $inner_length/$inner_height special variables.
+    *children*, if given, may be a plain solid or a callable(inner) taking a single
+    :class:`~base_bgtk.InnerPath` -- the replacement for the original SCAD module's
+    $inner_path/$inner_width/$inner_length/$inner_height special variables. It carries
+    .width/.length/.height/.path, plus .profile(inset=0), a function pointer returning the
+    inside as native 2-D geometry. The inset outline is only built if a child calls .profile();
+    the old contract passed an inner_path point list that nothing ever read.
 
     Usage::
 
@@ -298,189 +576,15 @@ def MakePathBoxWithNoLid(
                         detail/speed balance at box scale; raise it if the rim roundovers on a
                         very small box look faceted)
     """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if floor_thickness is None:
-        floor_thickness = default_floor_thickness
-    if stackable_thickness is None:
-        stackable_thickness = default_stackable_thickness
-    if hollow_radius is None:
-        hollow_radius = types.SimpleNamespace(top=wall_thickness / 4, bottom=wall_thickness / 4, radius=wall_thickness / 2)
-    if offset_sweep_options is None:
-        offset_sweep_options = types.SimpleNamespace(offset="round", check_valid=True, quality=1, steps=16)
-    if magnet is None:
-        magnet = types.SimpleNamespace(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0)
-    if extra_floors is None:
-        extra_floors = []
-
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
-    assert floor_thickness > 0, f"Need floor thickness > 0, floor_thickness={floor_thickness}"
-    assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
-    assert height > 0, f"Need height > 0, height={height}"
-
-    x_arr = [p[0] for p in path]
-    y_arr = [p[1] for p in path]
-    calc_length = max(y_arr) - min(y_arr)
-    calc_width = max(x_arr) - min(x_arr)
-
-    calc_finger_hole_size = finger_hole_size
-    if calc_finger_hole_size is None:
-        calc_finger_hole_size = min(20, min(calc_length, calc_width) / 4, height - floor_thickness + 1)
-    calc_finger_hole_height = min(calc_finger_hole_size, height - default_floor_thickness * 2 + 1)
-    calc_make_finger_x = (calc_width > calc_length) if (make_finger_x is None and make_finger_y is None) else False
-    calc_make_finger_y = (calc_length > calc_width) if (make_finger_y is None and make_finger_x is None) else False
-
-    sorted_floors = QuicksortExtraFloors(extra_floors)
-    region_path = _bosl2.make_region(path)
-    region_extra_floors = [_bosl2.make_region(f.path) for f in sorted_floors]
-    region_outside = _bosl2.union([region_path] + region_extra_floors)
-
-    calc_path = rounding.round_corners(region_outside[0], radius=wall_thickness)
-    main_path = _bosl2.difference([path] + [f.path for f in sorted_floors])
-
-    inner_path = _bosl2.offset(main_path, r=-wall_thickness)
-    inner_path_stackable = _bosl2.offset(main_path, r=-wall_thickness / 2)
-    inner_path_stackable_bottom_outside = _bosl2.offset(main_path, r=-wall_thickness / 2 + stackable_fit_offset)
-    inner_path_stackable_bottom_inside = _bosl2.offset(main_path, r=-wall_thickness - stackable_fit_offset)
-    inner_path_stackable_bottom_inside_inside = _bosl2.offset(main_path, r=-wall_thickness / 2 - stackable_fit_offset)
-
-    # Every solid below is an OffsetSweep() (base_bgtk's direct-Manifold equivalent of the
-    # original real-BOSL2 vnf_polyhedron(offset_sweep(path, bottom=os_circle(b),
-    # top=os_circle(t))) construction -- same radius sign convention, positive roundover /
-    # negative flare). The 2-D path/region math (round_corners, offset, union/difference/
-    # intersection) stays with bosl2/real BOSL2 -- that's point-list data, not solids.
-    # offset_sweep_options and mesh_res are unused now; both are kept in the signature so
-    # existing call sites don't break.
-
-    prism = PolygonPrism
-
-    def StackableBoxInternal(bottom: bool = False) -> "PyOpenSCAD | None":
-        if stackable == STACKABLE_TYPE_INSIDE:
-            outer = prism(
-                rounding.round_corners(
-                    inner_path_stackable_bottom_outside if bottom else inner_path_stackable, radius=stackable_thickness / 2
-                ),
-                h=stackable_thickness + (stackable_fit_offset if bottom else 0),
-                rounding_top=wall_thickness / 4,
-            )
-            inner = prism(
-                rounding.round_corners(inner_path_stackable_bottom_inside if bottom else inner_path, radius=stackable_thickness / 4),
-                h=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
-                rounding_top=-wall_thickness / 4,
-            ).translate([0, 0, -0.01])
-            return outer - inner
-        elif stackable == STACKABLE_TYPE_OUTSIDE:
-            outer = prism(
-                calc_path,
-                h=stackable_thickness + (stackable_fit_offset if bottom else 0),
-                rounding_top=wall_thickness / 4,
-            )
-            inner = prism(
-                rounding.round_corners(
-                    inner_path_stackable_bottom_inside_inside if bottom else inner_path_stackable, radius=stackable_thickness / 4
-                ),
-                h=stackable_thickness + 0.02 + (stackable_fit_offset if bottom else 0),
-                rounding_top=-wall_thickness / 4,
-            ).translate([0, 0, -0.01])
-            return outer - inner
-        return None
-
-    main_solid = prism(
-        calc_path,
-        h=(height - stackable_thickness) if stackable else height,
-        rounding_bottom=wall_thickness / 4 if stackable else wall_thickness / 2,
-        rounding_top=wall_thickness / 8 if stackable else wall_thickness / 4,
-    )
-    if stackable:
-        stack_top = StackableBoxInternal(bottom=False)
-        assert stack_top is not None
-        main_solid = main_solid | stack_top.translate([0, 0, height - stackable_thickness])
-
-    for f in sorted_floors:
-        if f.floor_height > 0:
-            main_solid = main_solid - prism(f.path, h=f.floor_height)
-        if f.top_height > 0:
-            main_solid = main_solid - prism(f.path, h=f.top_height).translate(
-                [0, 0, height - f.top_height]
-            )
-
-    extra_solid = None
-    for f in sorted_floors:
-        piece = prism(
-            rounding.round_corners(f.path, radius=wall_thickness),
-            h=(height - f.floor_height - stackable_thickness) if stackable else (height - f.floor_height),
-            rounding_bottom=wall_thickness / 4 if stackable else wall_thickness / 2,
-            rounding_top=wall_thickness / 8 if stackable else wall_thickness / 4,
-        ).translate([0, 0, f.floor_height])
-        extra_solid = piece if extra_solid is None else extra_solid | piece
-
-    body = (main_solid | extra_solid) if extra_solid is not None else main_solid
-
-    if hollow:
-        hollow_cut = prism(
-            rounding.round_corners(inner_path, radius=hollow_radius.radius),
-            h=height - floor_thickness,
-            rounding_bottom=hollow_radius.bottom,
-            rounding_top=0 if stackable else -hollow_radius.top,
-        ).translate([0, 0, floor_thickness])
-        body = body - hollow_cut
-
-        for f in sorted_floors:
-            if f.floor_height > 0:
-                joined_outer = rounding.round_corners(
-                    _bosl2.offset(_bosl2.union([f.path, path]), r=-wall_thickness), radius=wall_thickness
-                )
-                inner_union = [_bosl2.offset(f.path, delta=wall_thickness), inner_path] + [
-                    _bosl2.offset(other.path, delta=wall_thickness) for other in sorted_floors if other.floor_height > f.floor_height
-                ]
-                region = _bosl2.intersection(joined_outer, _bosl2.union(inner_union))
-                cut = prism(
-                    region,
-                    h=height - floor_thickness - f.floor_height,
-                    rounding_bottom=hollow_radius.bottom,
-                    rounding_top=0 if stackable else -hollow_radius.top,
-                ).translate([0, 0, f.floor_height + floor_thickness])
-                body = body - cut
-
-    if stackable:
-        stack_bottom = StackableBoxInternal(bottom=True)
-        assert stack_bottom is not None
-        body = body - stack_bottom.translate([0, 0, -stackable_fit_offset])
-
-    body = body.color(material_colour)
-
-    calc_middle_path = _bosl2.offset(path, r=-wall_thickness / 2)
-    n = len(calc_middle_path)
-    for i in range(n - 1):
-        seg = FingerHoleWallSegment(
-            path=[calc_middle_path[i], calc_middle_path[i + 1]],
-            wall_thickness=wall_thickness,
-            finger_hole_size=calc_finger_hole_size,
-            finger_hole_height=calc_finger_hole_height,
-            make_finger_y=calc_make_finger_y,
-            make_finger_x=calc_make_finger_x,
-            height=height,
-        )
-        if seg is not None:
-            body = body - seg
-    seg = FingerHoleWallSegment(
-        path=[calc_middle_path[n - 1], calc_middle_path[0]],
-        wall_thickness=wall_thickness,
-        finger_hole_size=calc_finger_hole_size,
-        finger_hole_height=calc_finger_hole_height,
-        height=height,
-        make_finger_y=calc_make_finger_y,
-        make_finger_x=calc_make_finger_x,
-    )
-    if seg is not None:
-        body = body - seg
-
-    if children is not None:
-        c = children(inner_path, calc_width, calc_length, height - floor_thickness) if callable(children) else children
-        if c is not None:
-            body = body - c
-
-    return body
+    return PathBoxWithNoLid(
+        path=path, height=height, children=children, wall_thickness=wall_thickness,
+        floor_thickness=floor_thickness, stackable_thickness=stackable_thickness,
+        stackable_fit_offset=stackable_fit_offset, hollow_radius=hollow_radius,
+        make_finger_x=make_finger_x, make_finger_y=make_finger_y,
+        material_colour=material_colour, finger_hole_size=finger_hole_size,
+        offset_sweep_options=offset_sweep_options, hollow=hollow, stackable=stackable,
+        magnet=magnet, extra_floors=extra_floors, mesh_res=mesh_res,
+    ).build()
 
 
 def MakePolygonBoxWithNoLid(
@@ -503,9 +607,8 @@ def MakePolygonBoxWithNoLid(
 ) -> PyOpenSCAD:
     """Makes a polygon box with no lid.
 
-    *children*, if given, may be a plain solid or a
-    callable(inner_path, inner_width, inner_length, inner_height) (same as
-    MakePathBoxWithNoLid).
+    *children*, if given, may be a plain solid or a callable(inner) taking an
+    :class:`~base_bgtk.InnerPath` (same as MakePathBoxWithNoLid).
 
     Usage::
 
@@ -547,9 +650,7 @@ def MakePolygonBoxWithNoLid(
 
     calc_path = shapes2d._regular_ngon_path(sides, width / 2)
 
-    def inner_children(
-        inner_path: list[list[float]], inner_width: float, inner_length: float, inner_height: float
-    ) -> PyOpenSCAD | None:
+    def inner_children(inner: InnerPath) -> PyOpenSCAD | None:
         pieces = []
         if magnet.type != MAGNET_SLOT_TYPE_NONE:
             calc_path_magnet = shapes2d._regular_ngon_path(sides, (width - wall_thickness / 2) / 2)
@@ -566,7 +667,7 @@ def MakePolygonBoxWithNoLid(
                 )
                 pieces.append(slot)
         if children is not None:
-            c = children(inner_path, inner_width, inner_length, inner_height) if callable(children) else children
+            c = children(inner) if callable(children) else children
             if c is not None:
                 pieces.append(c)
         if not pieces:

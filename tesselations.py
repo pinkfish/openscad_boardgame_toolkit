@@ -33,13 +33,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import comparisons
-from bosl2 import transforms
+from bosl2 import shapes2d
+from bosl2.regions import Path, Region
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+_bosl2 = osuse(BOSL2_STD_PATH)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -211,15 +211,15 @@ def HexagonalTesselation(points: list[list[list[float]]], radius: float = 10) ->
 
     poly = []
     for i in range(6):
-        center_pt = transforms.rot(a=60 * i, p=[[apothem, 0]])[0]
+        center_pt = Path([[apothem, 0]]).rot(60 * i)[0]
         side_idx = (i // 2) % 3
         if i % 2 == 0:
-            edge_pts = list(reversed(transforms.rot(a=180, p=points[side_idx])))
+            edge_pts = list(reversed(Path(points[side_idx]).rot(180)))
         else:
             edge_pts = points[side_idx]
         edge = HexagonalTesselationGenerateEdge(pts=edge_pts, side_length=side_length)
-        rotated_edge = transforms.rot(a=60 * i + 90, p=edge)
-        poly.extend(transforms.move(center_pt, rotated_edge))
+        rotated_edge = Path(edge).rot(60 * i + 90)
+        poly.extend(rotated_edge.move(center_pt))
     return poly
 
 
@@ -263,16 +263,16 @@ def SquareTesselation(
     width_line = SquareTesselationGenerateEdge(points[1], width)
 
     poly = (
-        transforms.move([-width / 2, 0], list(reversed(transforms.rot(a=90, p=width_line))))
-        + transforms.move([0, -length / 2], transforms.rot(a=0, p=length_line))
-        + transforms.move([width / 2, 0], transforms.rot(a=90, p=width_line))
-        + transforms.move([0, length / 2], list(reversed(transforms.rot(a=0, p=length_line))))
+        Path(width_line).rot(90).reversed_path().move([-width / 2, 0])
+        + Path(length_line).rot(0).move([0, -length / 2])
+        + Path(width_line).rot(90).move([width / 2, 0])
+        + Path(length_line).rot(0).reversed_path().move([0, length / 2])
     )
-    poly = comparisons.deduplicate(poly, closed=True)
+    poly = Path._deduplicate(poly, closed=True)
 
-    outer = _bosl2.offset(poly, delta=outer_offset, chamfer=True) if outer_offset != 0 else poly
+    outer = Path(poly).offset(delta=outer_offset, chamfer=True) if outer_offset != 0 else poly
     if thickness != 0:
-        inner = comparisons.deduplicate(_bosl2.offset(poly, delta=-thickness, chamfer=True), closed=True)
+        inner = Path._deduplicate(Path(poly).offset(delta=-thickness, chamfer=True), closed=True)
     else:
         inner = [[-100, -100], [-101, -100], [-101, -101]]
     return _bosl2.difference(_bosl2.make_region(outer), _bosl2.make_region(inner))
@@ -316,9 +316,9 @@ def TesselationSideLine(
         result_path = half + list(reversed([[p[0], -p[1]] for p in half]))
     else:
         scaled = [[p[0] * split_length, p[1] * split_length] for p in side_flipped]
-        result_path = transforms.rot(a=angle, p=scaled)
+        result_path = Path(scaled).rot(angle)
 
-    return transforms.move(path[0], result_path)
+    return Path(result_path).move(path[0])
 
 
 def TesselationPolygon(
@@ -342,7 +342,7 @@ def TesselationPolygon(
         each_line.extend(
             TesselationSideLine(path=[path[i], path[(i + 1) % len(path)]], side=sides[side_indexes[i]], flip=flips[i])
         )
-    return comparisons.deduplicate(each_line, closed=True)
+    return Path._deduplicate(each_line, closed=True)
 
 
 def TesselationDrop(
@@ -362,8 +362,8 @@ def TesselationDrop(
         arc_points: how many points on the arc (default 10)
     """
     assert size != 0, "Need to have a size specified"
-    arc1 = _bosl2.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
-    arc2 = _bosl2.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
+    arc1 = shapes2d.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
+    arc2 = shapes2d.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
     data = SquareTesselation(points=[arc1, arc2], size=size, thickness=thickness, outer_offset=outer_offset)
     return region(data)
 
@@ -396,7 +396,7 @@ def TesselationLeaf(size: float) -> PyOpenSCAD:
 
 def TesselationLeafOutlineMakePolygon(section_height: float, section: float) -> list[list[float]]:
     """Internal boundary path for the leaf outline."""
-    return comparisons.deduplicate(
+    return Path._deduplicate(
         [
             [section_height * 2, 0],
             [0, section * 1],
@@ -437,58 +437,42 @@ def TesselationLeafOutlineMakeVeins(
         little_veins.append(stroke_region([x0, 0], [x1, 15]))
         little_veins.append(stroke_region([x0, 0], [x1, -15]))
 
-        a1 = transforms.move(
-            [vein_base_x, 0],
-            transforms.rot(
-                a=(90 - line_angle),
-                p=_bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                ),
-            ),
-        )
-        a2 = transforms.move(
-            [vein_base_x, 0],
-            transforms.rot(
-                a=90 - line_angle,
-                p=_bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                ),
-            ),
-        )
-        a3 = transforms.move(
-            [vein_base_x, 0],
-            transforms.rot(
-                a=-(90 - line_angle),
-                p=_bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
-                    ],
-                    width=calc_vein_thickness,
-                ),
-            ),
-        )
-        a4 = transforms.move(
-            [vein_base_x, 0],
-            transforms.rot(
-                a=-(90 - line_angle),
-                p=_bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                ),
-            ),
-        )
+        a1 = Path(
+            _bosl2.offset_stroke(
+                [
+                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                    [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
+                ],
+                width=calc_vein_thickness,
+            )
+        ).rot(90 - line_angle).move([vein_base_x, 0])
+        a2 = Path(
+            _bosl2.offset_stroke(
+                [
+                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                    [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
+                ],
+                width=calc_vein_thickness,
+            )
+        ).rot(90 - line_angle).move([vein_base_x, 0])
+        a3 = Path(
+            _bosl2.offset_stroke(
+                [
+                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                    [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
+                ],
+                width=calc_vein_thickness,
+            )
+        ).rot(-(90 - line_angle)).move([vein_base_x, 0])
+        a4 = Path(
+            _bosl2.offset_stroke(
+                [
+                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                    [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
+                ],
+                width=calc_vein_thickness,
+            )
+        ).rot(-(90 - line_angle)).move([vein_base_x, 0])
         little_veins.append(_bosl2.union([a1, a2, a3, a4]))
 
     region_union = _bosl2.union([main_stem, _bosl2.union([side_a, side_b, _bosl2.union(little_veins)])])
@@ -517,7 +501,7 @@ def TesselationLeafOutline(
     section_height = section * math.sqrt(3) / 2
 
     outline = TesselationLeafOutlineMakePolygon(section=section, section_height=section_height)
-    ring = _bosl2.difference(outline, _bosl2.offset(outline, delta=-calc_thickness))
+    ring = _bosl2.difference(outline, Path(outline).offset(delta=-calc_thickness))
 
     if with_veins:
         veins = TesselationLeafOutlineMakeVeins(
@@ -550,12 +534,12 @@ def TesselationLeafOutlineThree(
     section_height = section * math.sqrt(3) / 2
 
     leaf = TesselationLeafOutline(size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness)
-    # `leaf` is REGION data (a list of outlines of differing lengths); the numpy-backed
-    # transforms helpers only handle one path at a time, so move/rotate each outline
-    # separately rather than feeding them the ragged region wholesale.
-    p1 = [transforms.move([0, -section * 3 / 2], path) for path in leaf]
-    p2 = [transforms.move([-section_height * 2, section * 3 / 2], transforms.rot(a=180, p=path)) for path in leaf]
-    p3 = [transforms.move([section_height * 2, section / 2], path) for path in leaf]
+    # `leaf` is REGION data (a list of outlines of differing lengths); Path's move/rot only
+    # handle one path at a time, so transform each outline separately rather than feeding
+    # them the ragged region wholesale.
+    p1 = [Path(path).move([0, -section * 3 / 2]) for path in leaf]
+    p2 = [Path(path).rot(180).move([-section_height * 2, section * 3 / 2]) for path in leaf]
+    p3 = [Path(path).move([section_height * 2, section / 2]) for path in leaf]
     data = _bosl2.union([p1, p2, p3])
     return region(data)
 
@@ -581,13 +565,16 @@ def DeltoidTrihexagonalTilingGetPoints(pts: list[list[float]], i: int, kite: boo
 
 def DeltoidTrihexagonalTilingInnerParts(
     pts: list[list[float]], thickness: float, kite: bool = False
-) -> list[list[float]]:
-    """Internal: region data for the deltoid tiling's inner wedges."""
-    pieces = []
+) -> "PyOpenSCAD":
+    """Internal: native 2-D geometry for the deltoid tiling's inner wedges."""
+    # Each wedge is a concentric ring (outer offset minus inner offset -- no clipping, see
+    # Region.with_holes); the wedges overlap, so their union is real 2-D CSG done natively.
+    geom = None
     for i in range(6):
         p = DeltoidTrihexagonalTilingGetPoints(pts, i, kite)
-        pieces.append(_bosl2.difference(_bosl2.offset(p, delta=thickness / 10), _bosl2.offset(p, delta=-thickness)))
-    return _bosl2.union(pieces)
+        ring = Region.with_holes(Path(p).offset(delta=thickness / 10), Path(p).offset(delta=-thickness)).geometry()
+        geom = ring if geom is None else geom | ring
+    return geom
 
 
 def DeltoidTrihexagonalTiling(
@@ -617,10 +604,9 @@ def DeltoidTrihexagonalTiling(
         [-width, 0],
         [width * -0.5, height / 2],
     ]
-    outer_ring = _bosl2.difference(_bosl2.offset(pts, delta=outer_offset), _bosl2.offset(pts, delta=-thickness))
-    inner = _bosl2.intersection(DeltoidTrihexagonalTilingInnerParts(pts, thickness, kite), _bosl2.offset(pts, delta=-thickness + 0.1))
-    data = _bosl2.union(outer_ring, inner)
-    return region(data)
+    outer_ring = Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=-thickness)).geometry()
+    inner = DeltoidTrihexagonalTilingInnerParts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
+    return outer_ring | inner
 
 
 def HalfRegularHexagon(size: float, thickness: float = 1, outer_offset: float = 0) -> PyOpenSCAD:
@@ -640,12 +626,13 @@ def HalfRegularHexagon(size: float, thickness: float = 1, outer_offset: float = 
     height = side_length * (math.sqrt(3) / 2)
     pts = [[0, size / 2], [side_length / 2, size / 2 - height], [-side_length / 2, size / 2 - height]]
 
-    pieces = []
+    # Three concentric-ring wedges that overlap at the centre; union them in native 2-D CSG.
+    geom = None
     for i in range(3):
         p_i = pts[i]
         p_next = pts[(i + 1) % 3]
         p_prev = pts[(i + 2) % 3]
-        poly = comparisons.deduplicate(
+        poly = Path._deduplicate(
             [
                 p_i,
                 [(p_i[0] + p_next[0] * 2) / 3, (p_i[1] + p_next[1] * 2) / 3],
@@ -655,11 +642,11 @@ def HalfRegularHexagon(size: float, thickness: float = 1, outer_offset: float = 
             ],
             closed=True,
         )
-        outer = comparisons.deduplicate(_bosl2.offset(poly, delta=outer_offset))
-        inner = _bosl2.offset(poly, delta=-thickness)
-        pieces.append(_bosl2.difference(outer, inner))
-    data = _bosl2.union(pieces)
-    return region(data)
+        outer = Path._deduplicate(Path(poly).offset(delta=outer_offset))
+        inner = Path(poly).offset(delta=-thickness)
+        ring = Region.with_holes(outer, inner).geometry()
+        geom = ring if geom is None else geom | ring
+    return geom
 
 
 def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 0.1) -> PyOpenSCAD:

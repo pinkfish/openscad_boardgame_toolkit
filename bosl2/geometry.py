@@ -106,61 +106,6 @@ def _is_point_on_segment(point, seg, eps: float = EPSILON) -> bool:
     return on_line and (-eps <= t < 1 + eps)
 
 
-def point_in_polygon(point, poly, nonzero: bool = False, eps: float = EPSILON) -> int:
-    """Test whether *point* is inside 2D polygon *poly*.
-
-    Returns 1 if inside, -1 if outside, 0 if on the boundary.
-    """
-    point = np.asarray(point, dtype=float)
-    box = pointlist_bounds(poly)
-    if point[0] < box[0][0] - eps or point[0] > box[1][0] + eps or point[1] < box[0][1] - eps or point[1] > box[1][1] + eps:
-        return -1
-
-    poly = np.asarray(poly, dtype=float)
-    n = len(poly)
-    segs = [(poly[i], poly[(i + 1) % n]) for i in range(n)]
-
-    for seg in segs:
-        if float(np.linalg.norm(seg[1] - seg[0])) > eps and _is_point_on_segment(point, seg, eps=eps):
-            return 0
-
-    if nonzero:
-        winding = 0
-        for seg in segs:
-            p0 = seg[0] - point
-            p1 = seg[1] - point
-            if float(np.linalg.norm(p1 - p0)) <= eps:
-                continue
-            if p0[1] <= 0:
-                if p1[1] > 0 and cross(p0, p1 - p0) > 0:
-                    winding += 1
-            else:
-                if p1[1] <= 0 and cross(p0, p1 - p0) < 0:
-                    winding -= 1
-        return 1 if winding != 0 else -1
-
-    crossings = 0
-    for seg in segs:
-        p0 = seg[0] - point
-        p1 = seg[1] - point
-        if (p1[1] > eps and p0[1] <= eps) or (p1[1] <= eps and p0[1] > eps):
-            if -eps < p0[0] - p0[1] * (p1[0] - p0[0]) / (p1[1] - p0[1]):
-                crossings += 1
-    return 2 * (crossings % 2) - 1
-
-
-def polygon_area(poly, signed: bool = False) -> float:
-    """Area of a 2D polygon (shoelace formula). Only 2D polygons are supported."""
-    arr = np.asarray(poly, dtype=float)
-    n = len(arr)
-    if n < 3:
-        return 0.0
-    p0 = arr[0]
-    rest = arr[1:] - p0
-    total = float(np.sum(rest[:-1, 0] * rest[1:, 1] - rest[1:, 0] * rest[:-1, 1])) / 2
-    return total if signed else abs(total)
-
-
 def general_line_intersection(s1, s2, eps: float = EPSILON):
     """Intersection of infinite lines through segments s1=(a,b), s2=(c,d).
 

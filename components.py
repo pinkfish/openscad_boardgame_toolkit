@@ -36,7 +36,7 @@ from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import shapes2d
 from bosl2 import transforms
-from bosl2 import rounding
+from bosl2.paths import Path
 from bosl2 import geometry
 from bosl2 import masking
 
@@ -46,7 +46,7 @@ from typing import Callable
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+_bosl2 = osuse(BOSL2_STD_PATH)
 
 # Magnet-slot-type constants
 MAGNET_SLOT_TYPE_NONE = 0
@@ -132,12 +132,12 @@ def HexBoxDivisions(
 
     shape = None
     for i in range(divisions):
-        wedge_path = [[0, 0]] + _bosl2.arc(r=width * 2, start=i * ang, angle=ang)
-        thinned_wedge = _bosl2.offset(wedge_path, r=-w_div / 2, closed=True)
+        wedge_path = [[0, 0]] + shapes2d.arc(r=width * 2, start=i * ang, angle=ang)
+        thinned_wedge = Path(wedge_path).offset(r=-w_div / 2)
         sub_region = _bosl2.intersection([hex_path], [thinned_wedge])
         piece = _bosl2.vnf_polyhedron(
             _bosl2.offset_sweep(
-                rounding.round_corners(sub_region[0], radius=2),
+                Path(sub_region[0]).round_corners(radius=2),
                 height=height,
                 bottom=_bosl2.os_circle(calc_bottom_radius),
                 offset="delta",
@@ -710,7 +710,7 @@ def FingerHoleWall(
     assert height > 0, f"Height must be > 0, height={height}"
     assert rounding_edge >= 0, f"rounding_edge must be >= 0, rounding_edge={rounding_edge}"
 
-    tmat = _bosl2.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
+    tmat = transforms.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
 
     if height >= radius + rounding_radius:
         top_height = radius * 2 - height
@@ -757,7 +757,7 @@ def FingerHoleWall(
         def _poly(pts) -> "PyOpenSCAD":
             return polygon([[float(u), float(v)] for u, v in pts])
 
-        top_shape = hull(_poly(top_polygon), _poly(transforms.mirror([1, 0], top_polygon)))
+        top_shape = hull(_poly(top_polygon), _poly(Path(top_polygon).mirror([1, 0])))
         side_shape = (
             (
                 square([rounding_radius, rounding_radius], center=True).translate([-rounding_radius / 2, rounding_radius / 2])
@@ -826,7 +826,7 @@ def CornerCatch(
     if material_colour is None:
         material_colour = default_material_colour
 
-    tmat = _bosl2.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
+    tmat = transforms.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
 
     wall_a = (
         FingerHoleWall(
@@ -860,10 +860,10 @@ def CornerCatch(
 
     base = shapes3d.cuboid([depth_of_hole, depth_of_hole, height], anchor=BOTTOM)
     if round_corner_back and rounding_edge > 0:
-        base = base.edge_profile([BOTTOM + FRONT, BOTTOM + LEFT], children=transforms.yflip(masking.mask2d_roundover(rounding_edge)))
+        base = base.edge_profile([BOTTOM + FRONT, BOTTOM + LEFT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip())
         base = base.corner_profile([BOTTOM + FRONT + LEFT], r=depth_of_hole / 2)
     elif rounding_edge > 0:
-        base = base.edge_profile([BOTTOM + BACK, BOTTOM + RIGHT], children=transforms.yflip(masking.mask2d_roundover(rounding_edge)))
+        base = base.edge_profile([BOTTOM + BACK, BOTTOM + RIGHT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip())
         base = base.corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2)
     base = base.color(material_colour).mirror([0, 0, 1])
 
@@ -900,18 +900,17 @@ def FingerHoleBase(
     assert height > 0, f"Need height > 0, height={height}"
     assert radius > 0, f"Need radius > 0, radius={radius}"
 
-    tmat = _bosl2.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
+    tmat = transforms.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
 
     cyl_part = shapes3d.cyl(r=radius, h=height, anchor=TOP + LEFT, _fn=64).translate([0, wall_thickness / 2, 0])
 
-    path = _bosl2.rect(
+    path = shapes2d.rect_path(
         [radius * 2, wall_thickness + 1],
         rounding=[-rounding_radius, -rounding_radius, 0, 0],
         anchor=TOP + LEFT,
-        _fn=32,
     )
     sweep_part = (
-        _bosl2.vnf_polyhedron(_bosl2.offset_sweep(path, height=wall_thickness + 0.02, top=_bosl2.os_circle(-wall_thickness / 2)))
+        PolygonPrism(path, h=wall_thickness + 0.02, rounding_top=-wall_thickness / 2)
         .rotate([90, 0, 0])
         .translate([0, wall_thickness / 2 + 0.01, 0])
     )
@@ -1046,5 +1045,5 @@ def MagnetSlot(
     else:
         shape = shapes3d.cuboid(size)
 
-    tmat = _bosl2.reorient(anchor=anchor, spin=spin, orient=orient, size=size)
+    tmat = transforms.reorient(anchor=anchor, spin=spin, orient=orient, size=size)
     return shape.multmatrix(tmat)

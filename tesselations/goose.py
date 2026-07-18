@@ -26,14 +26,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import paths
+from bosl2.paths import Path
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports. TesselationFromQuadradicPoints
 # is imported lazily below since tesselations is a large sibling module
 # converted separately.
-_bosl2 = osuse("BOSL2/std.scad")
 
 TESSELATION_GOOSE_SIDE = 30
 TESSELATION_GOOSE_MIDDLE = 3
@@ -92,7 +91,7 @@ def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0
             [1, 0],
         ],
     )
-    merged = paths.path_merge_collinear(path=path, closed=True)
+    merged = Path(path).merge_collinear()
     return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=polygon(merged))
 
 

@@ -34,14 +34,10 @@ from base_bgtk import *
 import numpy as np
 import bosl2.masking
 import bosl2.shapes3d
+import bosl2.transforms
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def MakeSlidingLidOptions(
@@ -428,10 +424,13 @@ def SlidingBoxLidWithLabelAndCustomShape(
         size=[width - calc_wall_thickness * 2, length - calc_wall_thickness * 2], lid_thickness=lid_thickness,
         text_str=text_str, options=label_opts,
     )
-    assert label_shape_raw is not None, "label did not generate"
-    label_shape = label_shape_raw.translate([calc_wall_thickness / 2, calc_wall_thickness / 2, 0])
-
-    lid_extra = [label_shape] + (list(extra_children) if extra_children else [])
+    # A lid too narrow for the label yields None (labels.py warns "ignoring label"); match the
+    # .scad and just build the lid without a label rather than failing.
+    _base = list(extra_children) if extra_children else []
+    if label_shape_raw is not None:
+        lid_extra = [label_shape_raw.translate([calc_wall_thickness / 2, calc_wall_thickness / 2, 0])] + _base
+    else:
+        lid_extra = _base
 
     return SlidingBoxLidWithCustomShape(
         size=size,
@@ -685,7 +684,7 @@ def MakeBoxWithSlidingLid(
     middle_chamfer = lid_cutout / 2 if wall_thickness > lid_cutout else wall_thickness / 2
     calc_height = (height - top_cover - size_spacing) if calc_sliding_lid_options.two_layer else height
 
-    tmat = _bosl2.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, calc_height])
+    tmat = bosl2.transforms.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, calc_height])
 
     body = bosl2.shapes3d.cuboid(
         [width, length, calc_height],

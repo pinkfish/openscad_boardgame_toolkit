@@ -27,15 +27,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import transforms
-from bosl2 import beziers
+from bosl2.paths import Path
+from bosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports. TesselationPolygon and
 # the TESSELATION_LINE_* constants are imported lazily below since
 # tesselations is a large sibling module converted separately.
-_bosl2 = osuse("BOSL2/std.scad")
+_bosl2 = osuse(BOSL2_STD_PATH)
 
 
 def generate_hexagon(
@@ -82,7 +82,7 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
         outer_offset: extra outward offset (default 0)
         spin:      rotation of the underlying hexagon (default 0)
     Returns:
-        a tile-data object with .pts, .x_vec, .y_vec, .angles
+        a tile-data object with .geometry (native 2-D shape), .x_vec, .y_vec, .angles
     """
     from tesselations import TesselationPolygon, TESSELATION_LINE_FLIPPED_REVERSE, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL
 
@@ -92,24 +92,21 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     sides = [s1, s1, s1, s3, s1]
     angles = [180, 125.1, 79.5, 156.428, 100]
 
-    line2 = beziers.bezier_curve(
-        beziers.flatten(
-            [
-                beziers.bez_begin([0, 0], -20, 0.4),
-                beziers.bez_tang([0.25, 0.0], 0, 0.2, 0.4),
-                beziers.bez_tang([0.4, -0.25], 0, 0, 0),
-                beziers.bez_end([1, 0], 230, 1),
-            ]
-        ),
-        20,
-    )
+    line2 = Bezier.flatten(
+        [
+            Bezier.begin([0, 0], -20, 0.4),
+            Bezier.tang([0.25, 0.0], 0, 0.2, 0.4),
+            Bezier.tang([0.4, -0.25], 0, 0, 0),
+            Bezier.end([1, 0], 230, 1),
+        ]
+    ).curve(20)
     line3 = list(
         reversed(
             [
                 [1 - i[0], i[1]]
-                for i in beziers.bezier_curve(
-                    beziers.flatten([beziers.bez_begin([0, 0], -45, 0.8), beziers.bez_end([1, 0], 235, 0.8)]), 20
-                )
+                for i in Bezier.flatten(
+                    [Bezier.begin([0, 0], -45, 0.8), Bezier.end([1, 0], 235, 0.8)]
+                ).curve(20)
             ]
         )
     )
@@ -128,7 +125,7 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     )
     line1 = [[i[0] + 1, i[1]] for i in smoothed]
 
-    hexagon = transforms.rot(p=generate_hexagon(sides, angles), a=spin) if spin != 0 else generate_hexagon(sides, angles)
+    hexagon = Path(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)
 
     new_hex = TesselationPolygon(
         hexagon,
@@ -144,19 +141,22 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
         ],
     )
 
-    rot_hex = transforms.move(hexagon[3], transforms.rot(p=transforms.yflip(hexagon), a=180 - (angles[1] - spin * 2)))
-    rot_new_hex = transforms.move(hexagon[3], transforms.rot(p=transforms.yflip(new_hex), a=180 - (angles[1] - spin * 2)))
+    rot_hex = Path(hexagon).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
+    rot_new_hex = Path(new_hex).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
     x_vec = [hexagon[4][0] - hexagon[0][0], hexagon[4][1] - hexagon[0][1]]
     y_vec = rot_hex[3]
 
-    pts = _bosl2.union(
-        [
-            DifferenceWithOffset(pts=new_hex, offset=-thickness, outer_offset=outer_offset),
-            DifferenceWithOffset(pts=rot_new_hex, offset=-thickness, outer_offset=outer_offset),
-        ]
+    # The two bird outlines OVERLAP, so their union is real polygon clipping -- but the only
+    # consumer immediately renders the region to 2-D geometry, so do the union in NATIVE 2-D
+    # CSG (Manifold) instead: DifferenceWithOffset returns a Path/Region whose .geometry() is
+    # the native outline-minus-hole shape, and native `|` unions the two. No point-list region
+    # clipping needed, and no osuse.
+    geometry = (
+        DifferenceWithOffset(pts=new_hex, offset=-thickness, outer_offset=outer_offset).geometry()
+        | DifferenceWithOffset(pts=rot_new_hex, offset=-thickness, outer_offset=outer_offset).geometry()
     )
 
-    return types.SimpleNamespace(pts=pts, y_vec=y_vec, x_vec=x_vec, angles=angles)
+    return types.SimpleNamespace(geometry=geometry, y_vec=y_vec, x_vec=x_vec, angles=angles)
 
 
 def TesselationFlyingBirdGrid(
@@ -182,7 +182,7 @@ def TesselationFlyingBirdGrid(
     assert thickness > 0, "Need a thickness"
 
     bird = FlyingBirdTesselation(size, thickness=thickness, outer_offset=outer_offset, spin=spin)
-    tile = region(bird.pts)
+    tile = bird.geometry
 
     shape = None
     for i in range(row + 1):

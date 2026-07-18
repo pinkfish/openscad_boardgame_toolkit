@@ -26,11 +26,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from kite_tesselation import MakeTesselationKiteHexagon
-from bosl2 import transforms
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+from bosl2.paths import Path
 
 
 def TesselationChickenHex(size: float, thickness: float = 2, outer_offset: float = 0.1) -> PyOpenSCAD:
@@ -60,6 +56,6 @@ def TesselationChickenHex(size: float, thickness: float = 2, outer_offset: float
         [0.32, 0.14], [0.32, 0.13], [0.34, 0.12], [0.38, 0.09], [0.63, 0.03], [0.80, 0.00],
         [0.97, -0.02], [1, 0],
     ]
-    line2 = [[i[0] - 0.5, i[1]] for i in transforms.rot(a=0, p=raw2)]
+    line2 = [[i[0] - 0.5, i[1]] for i in Path(raw2).rot(0)]
 
     return MakeTesselationKiteHexagon(size, line2, line1, thickness=thickness, outer_offset=outer_offset)

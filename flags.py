@@ -27,15 +27,12 @@ if TYPE_CHECKING:
 from base_bgtk import *
 from bosl2 import shapes2d
 from bosl2 import shapes3d
-from bosl2 import beziers
+from bosl2.beziers import Bezier
 from labels import Make3dStripedGrid
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. PortugalCastle is
-# imported lazily below since shapes is a large sibling module converted
-# separately.
-_bosl2 = osuse("BOSL2/std.scad")
+# PortugalCastle is imported lazily below since shapes is a large sibling
+# module converted separately.
 
 
 def FlagBackgroundAndBorder(
@@ -492,7 +489,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
             [247.6548, 217.4357], [232.6628, 217.4234], [232.6628, 217.4234],
             [232.6628, 217.4234], [232.6355, 228.18939999999998], [232.6355, 228.18939999999998],
         ]
-        path = beziers.bezpath_curve(bez)
+        path = Bezier(bez).path_curve()
         return (
             polygon(path)
             .resize([calc_len * mult, width])
@@ -589,7 +586,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [293.3846, 233.78929999999997], [289.1488, 241.26199999999997], [289.1488, 241.26199999999997],
             ],
         ]
-        polys = [polygon(beziers.bezpath_curve(p)) for p in paths]
+        polys = [polygon(Bezier(p).path_curve()) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p
@@ -811,7 +808,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [329.08979, 247.21568],
             ],
         ]
-        polys = [polygon(beziers.bezpath_curve(p)) for p in paths]
+        polys = [polygon(Bezier(p).path_curve()) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p

@@ -36,13 +36,7 @@ from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, 
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
-from bosl2 import paths
-from bosl2 import rounding
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+from bosl2.paths import Path
 
 
 def FingerHoleWallSegmentCutout(
@@ -62,8 +56,9 @@ def FingerHoleWallSegmentCutout(
         finger_catch: the type of catch to use and where to put them
     """
     assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    split_length = paths.path_length(path)
-    normal = paths.path_normals(path)
+    seg = Path(path, closed=False)
+    split_length = seg.perimeter()
+    normal = seg.normals()
     vec_m = abs(path[0][0] - path[1][0]) / abs(path[0][1] - path[1][1]) if path[0][1] != path[1][1] else float("inf")
 
     qualifies = (
@@ -74,7 +69,7 @@ def FingerHoleWallSegmentCutout(
     if not (qualifies and split_length > radius * 3):
         return None
 
-    pts = paths.path_cut_points(path=path, cutdist=[split_length / 2])
+    pts = seg.cut_points([split_length / 2])
     angle = _segment_angle(normal)
     return (
         FingerHoleWall(radius=radius, height=height, depth_of_hole=depth)
@@ -144,9 +139,9 @@ def MakePathBoxWithSlipoverLid(
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
-    inner_path = _bosl2.offset(path, r=-wall_thickness - size_spacing)
-    calc_inner_path = rounding.round_corners(inner_path, radius=wall_thickness / 2)
-    calc_path = rounding.round_corners(path, radius=wall_thickness)
+    inner_path = Path(path).offset(r=-wall_thickness - size_spacing)
+    calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
+    calc_path = Path(path).round_corners(radius=wall_thickness)
 
     x_arr = [p[0] for p in inner_path]
     y_arr = [p[1] for p in inner_path]
@@ -256,9 +251,9 @@ def SlipoverPathBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness
 
-    inner_path = _bosl2.offset(path, r=-wall_thickness + size_spacing)
-    calc_inner_path = rounding.round_corners(inner_path, radius=wall_thickness / 2)
-    calc_path = rounding.round_corners(path, radius=calc_lid_rounding)
+    inner_path = Path(path).offset(r=-wall_thickness + size_spacing)
+    calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
+    calc_path = Path(path).round_corners(radius=calc_lid_rounding)
 
     x_arr = [p[0] for p in inner_path]
     y_arr = [p[1] for p in inner_path]

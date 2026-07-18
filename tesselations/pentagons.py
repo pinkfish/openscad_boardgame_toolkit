@@ -27,14 +27,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import beziers
+from bosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports. PentagonTesselation is
 # imported lazily below since pentagon_tilings is a large sibling module
 # converted separately.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def SheepTesselation(size: float, x: float, y: float, thickness: float) -> types.SimpleNamespace:
@@ -54,30 +53,24 @@ def SheepTesselation(size: float, x: float, y: float, thickness: float) -> types
     """
     from pentagon_tilings import PentagonTesselationData
 
-    line3 = beziers.bezier_curve(
-        beziers.flatten(
-            [
-                beziers.bez_begin([0, 0], -60, 0.4),
-                beziers.bez_tang([0.4, -0.04], 0, 0.2, 0.5),
-                beziers.bez_tang([0.8, -0.2], 0, 0.5, 0.2),
-                beziers.bez_end([1, 0], 210, 0.2),
-            ]
-        ),
-        20,
-    )
-    line2 = beziers.bezier_curve(
-        beziers.flatten(
-            [
-                beziers.bez_begin([0, 0], 0, 0.4),
-                beziers.bez_tang([0.4, 0.0], 0, 0.1, 0.5),
-                beziers.bez_tang([0.6, -0.04], 270, 0.1, 0.5),
-                beziers.bez_tang([0.8, -0.3], 0, 0.5, 0.2),
-                beziers.bez_tang([0.9, -0.3], 20, 0.5, 0.2),
-                beziers.bez_end([1, 0], 300, 0.3),
-            ]
-        ),
-        20,
-    )
+    line3 = Bezier.flatten(
+        [
+            Bezier.begin([0, 0], -60, 0.4),
+            Bezier.tang([0.4, -0.04], 0, 0.2, 0.5),
+            Bezier.tang([0.8, -0.2], 0, 0.5, 0.2),
+            Bezier.end([1, 0], 210, 0.2),
+        ]
+    ).curve(20)
+    line2 = Bezier.flatten(
+        [
+            Bezier.begin([0, 0], 0, 0.4),
+            Bezier.tang([0.4, 0.0], 0, 0.1, 0.5),
+            Bezier.tang([0.6, -0.04], 270, 0.1, 0.5),
+            Bezier.tang([0.8, -0.3], 0, 0.5, 0.2),
+            Bezier.tang([0.9, -0.3], 20, 0.5, 0.2),
+            Bezier.end([1, 0], 300, 0.3),
+        ]
+    ).curve(20)
     line1 = [[0, 0], [1, 0]]
     line3_rev = list(reversed([[abs(i[0] - 1), i[1]] for i in line3]))
 

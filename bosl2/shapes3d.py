@@ -56,7 +56,7 @@ from .constants import *
 from .shapes2d import _frag_count, _pick_radius, text as _text2d
 from bosl2.geometry import cross
 from bosl2.vectors import unit, is_vector
-from bosl2.paths import path_length, path_cut_points
+from bosl2.paths import Path
 
 
 # ---------------------------------------------------------------------------
@@ -71,8 +71,8 @@ class Bosl2Solid:
     needing size=/anchor= threaded through by hand at every call site. Every function in this
     file returns an instance of this class (or a subclass).
 
-    Every geometry method (translate/rotate/mirror/multmatrix/scale/color, the |/&/- CSG
-    operators) delegates to the wrapped native shape and returns a new Bosl2Solid carrying the
+    Every geometry method (translate/rotate/mirror/multmatrix/scale/color, the union/intersection/
+    difference CSG operators) delegates to the wrapped native shape and returns a new Bosl2Solid carrying the
     same size/anchor metadata forward. Any other method not explicitly listed here (e.g.
     resize(), offset()) falls through via __getattr__ to the native shape and returns its raw,
     *unwrapped* result, since we can't know whether the size/anchor metadata still applies.
@@ -116,11 +116,37 @@ class Bosl2Solid:
     def translate(self, v: Sequence[float]) -> "Bosl2Solid":
         return self._wrap(self.shape.translate(v))
 
+    move = translate
+
     def rotate(self, *a, **k) -> "Bosl2Solid":
         return self._wrap(self.shape.rotate(*a, **k))
 
+    rot = rotate
+
     def mirror(self, v: Sequence[float]) -> "Bosl2Solid":
         return self._wrap(self.shape.mirror(v))
+
+    # Directional translates (BOSL2 transforms.scad): right/left +/-X, back/fwd +/-Y, up/down +/-Z.
+
+    def right(self, x: float) -> "Bosl2Solid":
+        return self.translate([x, 0.0, 0.0])
+
+    def left(self, x: float) -> "Bosl2Solid":
+        return self.translate([-x, 0.0, 0.0])
+
+    def back(self, y: float) -> "Bosl2Solid":
+        return self.translate([0.0, y, 0.0])
+
+    def forward(self, y: float) -> "Bosl2Solid":
+        return self.translate([0.0, -y, 0.0])
+
+    fwd = forward
+
+    def up(self, z: float) -> "Bosl2Solid":
+        return self.translate([0.0, 0.0, z])
+
+    def down(self, z: float) -> "Bosl2Solid":
+        return self.translate([0.0, 0.0, -z])
 
     def multmatrix(self, m: Sequence[Sequence[float]]) -> "Bosl2Solid":
         return self._wrap(self.shape.multmatrix(m))
@@ -734,6 +760,17 @@ def cuboid(
         spin:         Z-axis rotation in degrees (default 0)
         orient:       direction to rotate the top towards (default UP)
         _fn/_fa/_fs:  arc smoothness overrides for rounded edges/corners
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.cuboid([40, 30, 20])
+            shape.show()
+
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.cuboid([40, 30, 20], rounding=5)
+            shape.show()
     """
     if teardrop:
         raise NotImplementedError("cuboid(): teardrop= is not supported by this pure-Python port.")
@@ -839,6 +876,12 @@ def prismoid(
         spin:      Z-axis rotation in degrees after anchor (default 0)
         orient:    direction to rotate the top towards, after spin (default UP)
         _fn/_fa/_fs: arc smoothness overrides for rounded corners
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.prismoid([40, 40], [20, 25], h=30)
+            shape.show()
     """
     from .shapes2d import _rect_path
 
@@ -1160,6 +1203,17 @@ def cyl(
         spin:        Z-axis rotation in degrees after anchor (default 0)
         orient:      direction to rotate the top towards, after spin (default UP)
         _fn/_fa/_fs: arc smoothness overrides
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.cyl(h=30, r=10)
+            shape.show()
+
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.cyl(h=30, r=10, rounding=3)
+            shape.show()
     """
     if texture is not None:
         raise NotImplementedError("cyl(): texture= is not supported by this pure-Python port.")
@@ -1274,11 +1328,10 @@ def regular_prism(
     way cyl() is (native cylinder with fn=n for the plain case; a revolved half-profile with
     fn=n for chamfered/rounded ends), so it shares cyl()'s exact rim geometry.
 
-    Sizing gives the CIRCUMradius (vertex distance) unless noted -- exactly one of:
-        r/d:    radius/diameter to the vertices
-        ir/id:  inradius/apothem to the face centers (converted via /cos(180/n))
-        side:   edge length (converted via /(2 sin(180/n)))
-    r1/r2 (or the corresponding taper) set the bottom/top radius independently for a frustum.
+    Sizing gives the CIRCUMradius (vertex distance) unless noted -- exactly one of ``r``/``d``
+    (radius/diameter to the vertices), ``ir``/``id`` (inradius/apothem to the face centers,
+    converted via ``/cos(180/n)``), or ``side`` (edge length, converted via ``/(2 sin(180/n))``).
+    ``r1``/``r2`` (or the corresponding taper) set the bottom/top radius independently for a frustum.
 
     Note: BOSL2 regular_prism()'s texture=/teardrop= options are not ported (they need the VNF
     texturing machinery this pure-Python port doesn't implement).
@@ -1518,6 +1571,12 @@ def tube(
         anchor:   anchor point (default CENTER)
         spin:     Z-axis rotation in degrees after anchor (default 0)
         orient:   direction to rotate the top towards, after spin (default UP)
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.tube(h=20, outer_r=15, ir=10)
+            shape.show()
     """
     height = h if h is not None else (l if l is not None else 1)
     orr1 = _pick_radius(r1=outer_r1, d1=od1, r=outer_r, d=od, dflt=None)
@@ -1628,6 +1687,12 @@ def sphere(
         spin:   Z-axis rotation in degrees after anchor (default 0)
         orient: direction to rotate the top towards, after spin (default UP)
         _fn/_fa/_fs: arc smoothness overrides
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.sphere(r=15)
+            shape.show()
     """
     rad = r if r is not None else (d / 2 if d is not None else 1)
     shape = _osphere(r=rad, fn=_fn, fa=_fa, fs=_fs)
@@ -1751,6 +1816,12 @@ def torus(
         id:     inside diameter of the torus (use with outer_r or od)
         anchor: anchor point (default CENTER)
         orient: direction to rotate the top towards, after spin (default UP)
+
+    Examples:
+        .. pythonscad-example::
+
+            shape = bosl2.shapes3d.torus(r_maj=25, r_min=8)
+            shape.show()
     """
     from .shapes2d import _arc_points, _opolygon
 
@@ -2076,7 +2147,7 @@ def path_text(
     # free of a numpy dependency -- bosl2.paths uses numpy internally, and numpy isn't always
     # loadable inside the real PythonSCAD app (e.g. a hardened-runtime-signed build combined
     # with an ad-hoc-signed/unsigned numpy install fails library validation).
-    from bosl2.paths import path_length, path_cut_points
+    from bosl2.paths import Path
 
     assert len(text) > 0, "path_text(): text must be non-empty."
     assert size > 0, "path_text(): must give positive text size."
@@ -2113,12 +2184,12 @@ def path_text(
             kern_prefix += kern_list[i]
     textlength = prefix + kern_prefix
 
-    plen = path_length(path)
+    plen = Path._path_length(path)
     assert textlength <= plen, "path_text(): path is too short for the text."
     start = (plen - textlength) / 2.0 if center else 0.0
     dists = [start + c for c in centers]
 
-    pts = path_cut_points(path, dists, direction=True)
+    pts = Path._path_cut_points(path, dists, direction=True)
 
     normal_pv = _path_text_bcast_dir(normal, 3, path, "normal")
     top_pv = _path_text_bcast_dir(top, dim, path, "top")

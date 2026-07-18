@@ -38,11 +38,6 @@ from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
-
-
 def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> "PyOpenSCAD":
     box = wall_thickness * 6 / 4
     return (bosl2.shapes3d.cuboid([box, box, box], anchor=anchor_dir) & bosl2.shapes3d.sphere(r=radius)).shape

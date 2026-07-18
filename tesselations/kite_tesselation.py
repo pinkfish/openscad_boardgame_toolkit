@@ -26,13 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import paths
-from bosl2 import transforms
-
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+from bosl2.paths import Path
 
 
 def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[float]]) -> list[list[float]]:
@@ -52,13 +46,13 @@ def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[
     line_small = [[p[0] * small_c, p[1] * small_c] for p in side1]
     line_long = [[p[0] * long_c, p[1] * long_c] for p in side2]
 
-    part1 = transforms.move([b1 / 2, -a / 2], transforms.rot(p=line_small, a=60))
-    part2 = list(reversed(transforms.move([b1 / 2, a / 2], transforms.rot(p=line_small, a=-60))))
-    part3 = list(reversed(transforms.move([-(size - b1) / 2, a / 2], transforms.rot(p=line_long, a=30))))
-    part4 = transforms.move([-(size - b1) / 2, -a / 2], transforms.rot(p=line_long, a=-30))
+    part1 = Path(line_small).rot(60).move([b1 / 2, -a / 2])
+    part2 = list(reversed(Path(line_small).rot(-60).move([b1 / 2, a / 2])))
+    part3 = list(reversed(Path(line_long).rot(30).move([-(size - b1) / 2, a / 2])))
+    part4 = Path(line_long).rot(-30).move([-(size - b1) / 2, -a / 2])
 
-    merged = paths.path_merge_collinear(path=part1 + part2 + part3 + part4, closed=True)
-    return transforms.move([size / 2 - b1, 0], merged)
+    merged = Path(part1 + part2 + part3 + part4).merge_collinear()
+    return merged.move([size / 2 - b1, 0])
 
 
 def MakeTesselationKiteHexagon(
@@ -80,7 +74,7 @@ def MakeTesselationKiteHexagon(
         region_data = DifferenceWithOffset(
             outer_offset=outer_offset,
             offset=-thickness,
-            pts=transforms.rot(p=transforms.right(size / 2, kites), a=i * 60),
+            pts=Path(kites).right(size / 2).rot(i * 60),
         )
         piece = region(region_data)
         shape = piece if shape is None else shape | piece

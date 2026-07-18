@@ -36,8 +36,7 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import numpy as np
 import bosl2.shapes3d
-from bosl2 import paths as b2paths
-from bosl2 import rounding as b2rounding
+from bosl2.paths import Path
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, default_lid_catch_type
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -69,8 +68,9 @@ def FingerHoleSegmentCutout(
         wall_thickness: the thickness of the walls
     """
     assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    split_length = b2paths.path_length(path)
-    normal = b2paths.path_normals(path)
+    seg = Path(path, closed=False)
+    split_length = seg.perimeter()
+    normal = seg.normals()
     calc_len = split_length / 5
     calc_radius = wall_thickness + 0.1 if wall_thickness >= radius else radius
 
@@ -80,13 +80,12 @@ def FingerHoleSegmentCutout(
     angle = _segment_angle(normal)
 
     if calc_len + radius > calc_len * 4 - radius:
-        pts = b2paths.path_cut_points(path, [split_length / 2])
+        pts = seg.cut_points([split_length / 2])
         return bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate(
             [float(pts[0][0][0]), float(pts[0][0][1]), 0.0]
         ).shape
 
-    pts = b2paths.path_cut_points(
-        path,
+    pts = seg.cut_points(
         [calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
     )
     # .shape unwraps each Bosl2Solid: native hull() only takes raw solids.
@@ -123,7 +122,8 @@ def PolygonBoxLidCatch(
     """
     assert len(path) == 2, f"Path must be exactly 2 elements. path_length={len(path)}"
     assert delta is not None, "delta None in PolygonBoxLidCatch."
-    split_length = b2paths.path_length(path)
+    seg = Path(path, closed=False)
+    split_length = seg.perimeter()
     calc_len = split_length / 5
 
     if not (
@@ -141,8 +141,8 @@ def PolygonBoxLidCatch(
     if not qualifies:
         return None
 
-    pts = b2paths.path_cut_points(
-        path, [calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
+    pts = seg.cut_points(
+        [calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
     )
     p1 = [pts[0][0][0], pts[0][0][1]]
     p2 = [pts[1][0][0], pts[1][0][1]]
@@ -178,8 +178,10 @@ def MakePathBoxWithCapLid(
 ) -> PyOpenSCAD:
     """Makes a polygon-outline box with a cap lid.
 
-    *children* is a list of solids (or callables(inner_path, inner_width,
-    inner_length, inner_height)) carved into the box interior.
+    *children* is a list of solids (or callables(inner_width, inner_length,
+    inner_height), resolved by ResolveChild) carved into the box interior. Despite what this
+    docstring used to claim, no inner_path is passed -- this box resolves children exactly like
+    the rectangular ones.
 
     Usage::
 
@@ -226,7 +228,7 @@ def MakePathBoxWithCapLid(
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
     calc_finger_hold_height = finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
-    calc_path = np.asarray(b2rounding.round_corners(path, radius=wall_thickness))
+    calc_path = np.asarray(Path(path).round_corners(radius=wall_thickness))
     # Plain lists for the native polygon() calls below: raw ndarrays across the native
     # boundary raise (and poison the interpreter) -- see the numpy interop convention.
     calc_path_native = calc_path.tolist()
@@ -366,7 +368,7 @@ def CapPathBoxLid(
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
-    calc_path = np.asarray(b2rounding.round_corners(path, radius=wall_thickness, _fn=16))
+    calc_path = np.asarray(Path(path).round_corners(radius=wall_thickness, _fn=16))
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
 

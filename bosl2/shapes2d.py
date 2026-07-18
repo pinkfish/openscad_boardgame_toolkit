@@ -337,6 +337,104 @@ def rect(
     return _finish(shape, offset, spin)
 
 
+def rect_path(
+    size: float | Sequence[float] = 1,
+    rounding: float | Sequence[float] = 0,
+    chamfer: float | Sequence[float] = 0,
+    anchor: Sequence[float] = CENTER,
+    _fn: float | None = None,
+    _fa: float | None = None,
+    _fs: float | None = None,
+) -> list[list[float]]:
+    """The *points* of a (optionally rounded/chamfered) rectangle -- BOSL2's ``rect()`` in its
+    function form, as opposed to :func:`rect` which returns native 2-D geometry.
+
+    Use this when the rectangle is an input to further path math (e.g. a profile fed to
+    :func:`base_bgtk.PolygonPrism`), not something to draw.
+
+    Usage::
+
+        rect_path([20, 4], rounding=[-3, -3, 0, 0], anchor=TOP + LEFT)
+
+    Args:
+        size:     [x, y] size (or a single number for a square)
+        rounding: corner radius; a single value or per-corner list. Negative = concave.
+        chamfer:  corner chamfer; a single value or per-corner list
+        anchor:   BOSL2 anchor the path is translated onto (default CENTER)
+
+    Note:
+        For small radii this can emit one more point per corner than the real BOSL2 does
+        (BOSL2 rounds the corner-arc segment count, this rounds up); the arc geometry is
+        identical, only the sampling differs.
+    """
+    sz = [float(size), float(size)] if isinstance(size, (int, float)) else [float(v) for v in size]
+    path = _rect_path(sz, rounding=rounding, chamfer=chamfer, _fn=_fn, _fa=_fa, _fs=_fs)
+    offset = _anchor_offset_box(sz, anchor)
+    return [[float(p[0]) + offset[0], float(p[1]) + offset[1]] for p in path]
+
+
+def arc(
+    n: int | None = None,
+    r: float | None = None,
+    angle: float | None = None,
+    d: float | None = None,
+    cp: Sequence[float] | None = None,
+    points: Sequence[Sequence[float]] | None = None,
+    start: float | None = None,
+    endpoint: bool = True,
+    _fn: float | None = None,
+    _fa: float | None = None,
+    _fs: float | None = None,
+) -> list[list[float]]:
+    """A 2-D arc as a list of points -- the Python equivalent of BOSL2's ``arc()``.
+
+    Two forms are supported (the two the toolkit uses):
+
+    * ``arc(r=, start=, angle=, cp=)`` -- an arc of radius *r* about *cp*, from *start*
+      sweeping *angle* degrees.
+    * ``arc(n=, points=[p1, p2, p3])`` -- the arc through three points, from p1 through p2
+      to p3.
+
+    When *n* is omitted the point count follows OpenSCAD's $fn/$fa/$fs rules, matching BOSL2:
+    ``ceil(segs(r) * |angle| / 360) + 1``.
+
+    Usage::
+
+        arc(r=16, start=0, angle=60)
+        arc(n=8, points=[[-0.5, 0], [0, 0.3], [0.5, 0]])
+
+    Args:
+        n:        number of points (default: from $fn/$fa/$fs)
+        r:        radius of the arc
+        angle:    degrees to sweep from *start*
+        d:        diameter (overrides *r*)
+        cp:       centre point (default [0, 0])
+        points:   three points the arc passes through (overrides r/angle/start)
+        start:    starting angle in degrees (default 0)
+        endpoint: include the final point (default True)
+    """
+    if points is not None:
+        pts = [list(p) for p in points]
+        assert len(pts) == 3, f"arc(points=) needs exactly 3 points, got {len(pts)}"
+        centre, radius = _circle_from_3pts(pts)
+        a0 = math.degrees(math.atan2(pts[0][1] - centre[1], pts[0][0] - centre[0]))
+        am = math.degrees(math.atan2(pts[1][1] - centre[1], pts[1][0] - centre[0]))
+        a1 = math.degrees(math.atan2(pts[2][1] - centre[1], pts[2][0] - centre[0]))
+        d_mid = (am - a0) % 360
+        d_end = (a1 - a0) % 360
+        delta = d_end if d_mid <= d_end else d_end - 360
+        count = n if n is not None else max(3, math.ceil(_frag_count(radius, _fn, _fa, _fs) * abs(delta) / 360))
+        return _arc_points(count, radius, a0, delta, centre, endpoint=endpoint)
+
+    radius = _pick_radius(r=r, d=d)
+    assert radius is not None, "arc() needs r=/d= or points="
+    calc_angle = 360.0 if angle is None else float(angle)
+    calc_start = 0.0 if start is None else float(start)
+    calc_cp = (0.0, 0.0) if cp is None else cp
+    count = n if n is not None else math.ceil(_frag_count(radius, _fn, _fa, _fs) * abs(calc_angle) / 360) + 1
+    return _arc_points(count, radius, calc_start, calc_angle, calc_cp, endpoint=endpoint)
+
+
 def circle(
     r: float | None = None,
     d: float | None = None,

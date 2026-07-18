@@ -39,7 +39,6 @@ import math
 # pentagon-tiling / cloud-shape modules are imported lazily inside
 # ShapeByType() below since they are large sibling modules converted
 # separately and this avoids an import-order dependency.
-_bosl2 = osuse("BOSL2/std.scad")
 
 # ---------------------------------------------------------------------------
 # ShapeObject — mirrors the SCAD 'object()' used by MakeShapeObject
@@ -274,8 +273,10 @@ def ShapeByType(
     if t == ShapeType.CLOUD:
         from shapes import CloudShape2d
 
-        outer = CloudShape2d(width=w).resize([w * aspect, w])
-        inner = CloudShape2d(width=w).resize([w * aspect, w]).offset(delta=-th)
+        # resize() needs a 3-vector even for 2-D geometry (a 2-element vector raises
+        # "TypeError: Invalid resize dimensions"); 0 leaves the unused Z axis alone.
+        outer = CloudShape2d(width=w).resize([w * aspect, w, 0])
+        inner = CloudShape2d(width=w).resize([w * aspect, w, 0]).offset(delta=-th)
         return (outer - inner).translate([-w / 2, -w / 2])
 
     if t in (

@@ -29,11 +29,6 @@ if TYPE_CHECKING:
 from base_bgtk import *
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
-
-
 def VoronoiPoints(
     width: float, length: float, cellsize: float, allowable: float, seed: float | None = None
 ) -> list[list[float]]:

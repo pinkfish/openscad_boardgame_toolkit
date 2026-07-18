@@ -1,0 +1,108 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+"""Tests for bosl2/shapes2d.py: the pure point-generating helpers and path builders."""
+
+import math
+
+import numpy as np
+
+from bosl2.shapes2d import (
+    _arc_points,
+    _circle_from_3pts,
+    _circle_pts,
+    _frag_count,
+    _polar_to_xy,
+    _rotate2d,
+    arc,
+    circle,
+    rect_path,
+)
+
+
+def test_frag_count_fn_override():
+    assert _frag_count(10, _fn=8) == 8
+    assert _frag_count(10, _fn=3) == 3
+    assert _frag_count(10, _fn=2) != 2  # fn < 3 ignored, falls back to fa/fs
+
+
+def test_frag_count_default_fa_fs():
+    # min(360/12, 2*pi*r/2) with r=10 -> min(30, ~31.4) -> 30
+    assert _frag_count(10) == 30
+    assert _frag_count(0.001) == 5  # floor is 5
+
+
+def test_polar_to_xy():
+    np.testing.assert_allclose(_polar_to_xy(10, 0), [10, 0], atol=1e-12)
+    np.testing.assert_allclose(_polar_to_xy(10, 90), [0, 10], atol=1e-12)
+
+
+def test_rotate2d():
+    np.testing.assert_allclose(_rotate2d([1, 0], 90), [0, 1], atol=1e-12)
+    np.testing.assert_allclose(_rotate2d([1, 0], 180), [-1, 0], atol=1e-12)
+
+
+def test_circle_pts():
+    pts = _circle_pts(1, 4)
+    np.testing.assert_allclose(pts, [[1, 0], [0, 1], [-1, 0], [0, -1]], atol=1e-12)
+
+
+def test_arc_points_span():
+    pts = _arc_points(3, 1, 0, 90)
+    assert len(pts) == 3
+    np.testing.assert_allclose(pts[0], [1, 0], atol=1e-12)
+    np.testing.assert_allclose(pts[-1], [0, 1], atol=1e-12)
+    np.testing.assert_allclose(pts[1], [math.cos(math.radians(45)), math.sin(math.radians(45))], atol=1e-12)
+
+
+def test_arc_points_no_endpoint_drops_last():
+    assert len(_arc_points(4, 1, 0, 90, endpoint=False)) == 4
+    assert _arc_points(4, 1, 0, 90, endpoint=False) != _arc_points(4, 1, 0, 90)
+
+
+def test_arc_points_centered():
+    pts = _arc_points(3, 2, 0, 90, cp=[10, 10])
+    np.testing.assert_allclose(pts[0], [12, 10], atol=1e-12)
+
+
+def test_arc_by_radius():
+    pts = arc(n=3, r=5, start=0, angle=90)
+    np.testing.assert_allclose(pts[0], [5, 0], atol=1e-9)
+    np.testing.assert_allclose(pts[-1], [0, 5], atol=1e-9)
+
+
+def test_arc_through_three_points():
+    pts = arc(n=7, points=[[1, 0], [0, 1], [-1, 0]])
+    # all points lie on the unit circle about the origin
+    for p in pts:
+        assert math.isclose(math.hypot(p[0], p[1]), 1.0, abs_tol=1e-9)
+
+
+def test_rect_path_corners():
+    pts = np.asarray(rect_path(size=[10, 20]))
+    np.testing.assert_allclose([pts[:, 0].min(), pts[:, 0].max()], [-5, 5])
+    np.testing.assert_allclose([pts[:, 1].min(), pts[:, 1].max()], [-10, 10])
+
+
+def test_circle_from_3pts():
+    center, radius = _circle_from_3pts([[1, 0], [0, 1], [-1, 0]])
+    np.testing.assert_allclose(center, [0, 0], atol=1e-9)
+    assert math.isclose(radius, 1.0, abs_tol=1e-9)
+
+
+def test_circle_builds_a_solid_via_mock():
+    assert circle(r=5) is not None

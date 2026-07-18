@@ -4,11 +4,24 @@ import glob
 import re
 import os.path
 
-class ScadFile:
-   def __init__(self, filename:str, module:str, basename:str):
-       self.filename = filename
-       self.module = module
-       self.basename = basename
+from make_lib import ScadFile, scan_py_sections
+
+
+def ported_to_py():
+    """Basenames of example .scad files that have been switched to a marked .py sibling. Such a
+    .scad is skipped below so the .py takes over its build rules -- there's then exactly one rule
+    per output, and porting an example to python is just adding (and marking) the .py."""
+    names = set()
+    for f in glob.glob("./*.py"):
+        if os.path.basename(f) == "__init__.py":
+            continue
+        base = os.path.splitext(os.path.basename(f))[0]
+        if any(True for _ in scan_py_sections(open(f).read().splitlines())):
+            names.add(base)
+    return names
+
+
+ported = ported_to_py()
 
 onlyfiles =glob.glob("./*.scad")
 data: list[ScadFile] = []
@@ -19,6 +32,8 @@ for fname in onlyfiles:
     with open(fname, 'r') as file:
        fdata = re.search(".*/(.*).scad", fname)
        assert fdata
+       if fdata.group(1) in ported:
+           continue  # a .py sibling now owns this example's build rules
        for line in file:
            line = line.strip()
            x = re.search("^module *([a-zA-Z0-9_-]*)\\(.*\\).*`make` me", line)
@@ -86,3 +101,15 @@ with open("generate.makefile", "w") as mfile:
             d,
             " ".join(map(lambda x: "release/" + x.basename + "/" + x.module + ".png", packing[d]))))
         mfile.write("\t-../scripts/img2pdf/src/img2pdf.py $(shell printf \"%s \" $^ | sort -n) -o release/{0}/packing.pdf --title \"Packing for {0}\" --author openscad_boardgame_toolkit \n".format(d))
+
+
+
+# ---------------------------------------------------------------------------
+# PythonSCAD (.py) examples are NOT built from a generated makefile any more. Their mmu/
+# single 3mf (and doc png) build is handled dynamically by scripts/build_boxes.py, which
+# discovers the @make_box / @document_box sections and traces each example's transitive .py
+# dependencies at build time -- so adding a marked function, or editing any .py it imports,
+# is picked up automatically without re-running this script. Run it via `make py` (see
+# examples/Makefile). This script still (a) generates generate.makefile for the .scad
+# examples and (b) skips a .scad example whose basename has a marked .py sibling (the
+# `ported` set above), so a ported example builds from .py only.

@@ -25,7 +25,6 @@
 # FileSummary: General numeric helpers and numerical calculus (BOSL2 math.scad).
 # FileGroup: BOSL2
 
-import math
 from collections.abc import Sequence
 
 import numpy as np
@@ -54,27 +53,6 @@ def lerpn(a, b, n: int, endpoint: bool = True) -> np.ndarray:
         return np.asarray([a], dtype=float)
     denom = (n - 1) if endpoint else n
     return np.asarray([lerp(a, b, i / denom) for i in range(n)], dtype=float)
-
-
-def cumsum(data) -> np.ndarray:
-    """Running (cumulative) sum of *data*."""
-    return np.cumsum(np.asarray(data, dtype=float), axis=0)
-
-
-def constrain(v: float, minval: float, maxval: float) -> float:
-    """Clamp *v* to the closed interval [minval, maxval]."""
-    return max(minval, min(maxval, v))
-
-
-def mean(data) -> np.ndarray | float:
-    """Arithmetic mean of a list of numbers or a list of same-length vectors."""
-    arr = np.asarray(data, dtype=float)
-    return arr.mean(axis=0)
-
-
-def sign(x: float) -> float:
-    """-1, 0, or 1 depending on the sign of *x* (0 for exactly zero)."""
-    return 0.0 if x == 0 else math.copysign(1.0, x)
 
 
 def _dnu_calc(f1, fc, f2, h1, h2):

@@ -27,15 +27,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import paths
-from bosl2 import beziers
+from bosl2.paths import Path
+from bosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
 # project is reached through normal Python imports. TesselationSideLine and
 # TESSELATION_LINE_NORMAL are imported lazily below since tesselations is a
 # large sibling module converted separately.
-_bosl2 = osuse("BOSL2/std.scad")
 
 
 def QuadrilateralCoords(angles: list[float], side: float, side_ratio: float = 1) -> list[list[float]]:
@@ -112,7 +111,7 @@ def TesselationFromQuadradicPoints(
         + TesselationSideLine([points[2], points[3]], side3, TESSELATION_LINE_NORMAL)
         + TesselationSideLine([points[len(points) - 1], points[0]], side4, TESSELATION_LINE_NORMAL)
     )
-    return paths.path_merge_collinear(path, closed=True)
+    return Path(path).merge_collinear()
 
 
 def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1, flip: bool = False) -> PyOpenSCAD:
@@ -134,7 +133,7 @@ def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1
     bezpath = [[0, 0], [0.4, 0], [0.5, 0.55]]
     other_bez = [[0.5, 0.55], [0.85, 0.42], [0.6, 0.0], [0.65, -0.05], [0.75, 0.05], [0.9, -0.1], [1, 0]]
 
-    bez = np.concatenate([beziers.bezier_curve(bezpath, 20), beziers.bezier_curve(other_bez, 20)])
+    bez = np.concatenate([Bezier(bezpath).curve(20), Bezier(other_bez).curve(20)])
     flip_bez = list(reversed([[1 - i[0], i[1]] for i in bez]))
 
     chosen_bez = flip_bez if flip else bez

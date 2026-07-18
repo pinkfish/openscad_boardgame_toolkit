@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 import math
+import os
 
 import numpy as np
 
@@ -39,15 +40,89 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
+# base_bgtk itself no longer calls into BOSL2 -- the path maths it used to need is now
+# bosl2/ (pure Python + numpy). BOSL2_STD_PATH is still exported for the modules that do
+# still osuse() it. osuse() resolves a bare relative path against the process CWD
+# (not the script dir), so when BOSL2_SCAD_DIR is set (the make build and the render tests both
+# set it) load BOSL2 by absolute path -- that works from any CWD, including running an
+# examples/ box from the repo root. BOSL2_STD_PATH is exported so every other toolkit module
+# that also osuse()s BOSL2 resolves it the same way (they all `from base_bgtk import *` first).
+_bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
+BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
+
+# The numpy path maths (DifferenceWithOffset's pts= form); bosl2/ never imports back here.
+from bosl2.regions import Path, Region
+
 
 # ---------------------------------------------------------------------------
-# Tolerances & defaults
+# Make-build parameters (the PythonSCAD analogue of the .scad `-D MAKE_MMU=... -D
+# FROM_MAKE=...` the OpenSCAD Makefile passes).
 # ---------------------------------------------------------------------------
+#
+# Declared via PythonSCAD's add_parameter() so they appear in the customizer, but the make
+# build overrides them through the environment (e.g. `MAKE_MMU=1 FROM_MAKE=1 pythonscad ...`),
+# which is how scripts/make_files.py drives them -- add_parameter's own -p/-P customizer-set
+# override isn't wired for the CLI, and env vars are the one mechanism that reliably reaches a
+# running script. Both fall back gracefully to the env/default when add_parameter isn't
+# available (the numeric test mock, where `pythonscad` is a stand-in without it).
+try:  # pragma: no cover - exercised only inside the real PythonSCAD app
+    from pythonscad import add_parameter as _add_parameter
+except ImportError:  # the numeric test mock has no add_parameter
+    _add_parameter = None
 
-MAKE_MMU = 0  # Set to 1 to also render the positive_negative_children copies for multi-material printing
+
+def MakeParameter(name: str, default: int) -> int:
+    """Declare an integer make/customizer parameter and return its effective value.
+
+    The default is taken from the environment variable `name` when set (this is how the make
+    build overrides it), otherwise `default`. When running inside PythonSCAD the value is also
+    registered with add_parameter() so it shows up in the customizer; outside it (tests) the
+    env/default is returned directly."""
+    env = os.environ.get(name)
+    base = int(env) if env is not None and env != "" else default
+    if _add_parameter is not None:
+        try:
+            return int(_add_parameter(name, base))
+        except Exception:
+            return base
+    return base
+
+
+# MAKE_MMU: 1 also emits the positive_negative_children colour copies for multi-material (MMU)
+# printing; 0 is a single-material print. FROM_MAKE: 1 when driven by the Makefile (the example
+# scripts skip their own preview render then, the way the .scad `if (FROM_MAKE != 1)` guard does).
+MAKE_MMU = MakeParameter("MAKE_MMU", 0)
+FROM_MAKE = MakeParameter("FROM_MAKE", 0)
+
+
+# ---------------------------------------------------------------------------
+# Box-section markers for the make pipeline.
+# ---------------------------------------------------------------------------
+#
+# A .py example file marks which of its functions produce a printable box (and which produce a
+# documentation image) so scripts/make_files.py can generate exactly those build rules -- the
+# .py analogue of the .scad `module Name() // `make` me` / `// `document` me` markers.
+#
+# `@make_box` / `@document_box` are the Pythonic, self-documenting way to mark a section: they
+# are identity decorators (they return the function unchanged) that also tag it with an
+# attribute, so a tool that IMPORTS the module can discover the sections too. make_files.py
+# can't import a toolkit module (that needs the PythonSCAD app), so it scans the source
+# statically -- it recognises the decorator OR the legacy `# `make` me` / `# `document` me`
+# comment on the def line or the line right after it (which is where scripts/s2p.py emits it).
+
+
+def make_box(fn):
+    """Mark a zero-argument function as a printable box. scripts/make_files.py emits the mmu +
+    single 3mf build rules for it. Put `@make_box` on the line above the `def`."""
+    fn._bgtk_make = True
+    return fn
+
+
+def document_box(fn):
+    """Mark a zero-argument function as producing a documentation image (a png, and a packing
+    pdf entry) -- the .py analogue of the .scad `// `document` me` marker."""
+    fn._bgtk_document = True
+    return fn
 m_piece_wiggle_room       = 0.2   # Gap in mm used between joining pieces
 default_lid_thickness     = 2     # Default lid thickness
 default_wall_thickness    = 2     # Default wall thickness
@@ -210,6 +285,43 @@ class InnerSize:
     length: float
     height: float
 
+@dataclass
+class InnerPath:
+    """What a path-box child is told about the inside of its box.
+
+    This replaces the old positional contract
+    ``callable(inner_path, inner_width, inner_length, inner_height)`` (the port of the SCAD
+    ``$inner_path``/``$inner_*`` special variables) used by
+    :func:`no_lid.MakePathBoxWithNoLid` and friends. Passing the *inner path* as a bare point
+    list forced every box to compute an inset polygon up front even though nothing ever read it
+    -- and point lists are the wrong currency for a child, which wants to build solids.
+
+    So the inset outline is NOT precomputed. Ask for it through :attr:`profile`, a function
+    pointer the box installs: ``inner.profile()`` hands back the inside as native 2-D geometry
+    (ready to ``.linear_extrude()``/intersect), and ``inner.profile(inset)`` insets it further.
+    Nothing is built unless a child actually calls it.
+
+    Usage::
+
+        def children(inner):
+            # a tray floor that follows the box outline, 1mm clear of the wall
+            return inner.profile(1).linear_extrude(height=2)
+
+        MakePathBoxWithNoLid(path=..., height=20, children=children)
+
+    Attributes:
+        width:   bounding width of the inside
+        length:  bounding length of the inside
+        height:  usable height of the inside (box height minus the floor)
+        path:    the box's own outline points (the OUTER path -- no offset needed to know it)
+        profile: function pointer, ``profile(inset=0) -> native 2-D geometry`` of the inside
+    """
+    width: float
+    length: float
+    height: float
+    path: Any
+    profile: Any  # Callable[[float], PyOpenSCAD]; kept loose so the test mock can stand in
+
 class ObjectType(IntEnum):
     NEGATIVE = 0
     POSTIVE = 1
@@ -279,8 +391,14 @@ def DifferenceWithOffset(
     """
     if pts is not None:
         if offset != 0:
-            return _bosl2.difference(_bosl2.offset(pts, delta=outer_offset), _bosl2.offset(pts, delta=offset))
-        return _bosl2.offset(pts, delta=outer_offset)
+            # The two offsets are CONCENTRIC, so the inner one is always strictly inside the
+            # outer: the difference needs no polygon clipping, it is just "outline plus hole",
+            # which is exactly how a BOSL2 region is represented. Verified against the real
+            # BOSL2: difference(outer, inner) is literally [outer, inner], same winding
+            # (tests/test_difference_with_offset.py).
+            return Region.with_holes(Path(pts).offset(delta=outer_offset),
+                                     Path(pts).offset(delta=offset))
+        return Path(pts).offset(delta=outer_offset)
 
     assert children is not None, "DifferenceWithOffset: provide pts or children"
     if offset != 0:
@@ -297,8 +415,10 @@ def DifferenceWithOffsetRounded(
     """Like :func:`DifferenceWithOffset` but using a rounded (r=) offset."""
     if pts is not None:
         if offset != 0:
-            return _bosl2.difference(_bosl2.offset(pts, r=outer_offset), _bosl2.offset(pts, r=offset))
-        return _bosl2.offset(pts, r=outer_offset)
+            # Concentric, so no clipping -- see the note in DifferenceWithOffset().
+            return Region.with_holes(Path(pts).offset(r=outer_offset),
+                                     Path(pts).offset(r=offset))
+        return Path(pts).offset(r=outer_offset)
 
     assert children is not None, "DifferenceWithOffsetRounded: provide pts or children"
     if offset != 0:

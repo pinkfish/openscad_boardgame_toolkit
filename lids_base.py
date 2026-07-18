@@ -38,10 +38,6 @@ import math
 import types
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
-
 # ---------------------------------------------------------------------------
 # Lid defaults (can be overridden at the file level by the user)
 # ---------------------------------------------------------------------------

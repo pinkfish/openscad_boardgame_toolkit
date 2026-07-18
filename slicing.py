@@ -28,13 +28,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+from bosl2 import transforms
 
 import math
 
-
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 # ---------------------------------------------------------------------------
 # Section: Slicing
@@ -92,8 +89,8 @@ def SplitBox(
         orient = TOP
 
     yy = y if len(y) > 0 else _scad_range(minY, (maxY - minY) / 10, maxY)
-    tmat = _bosl2.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
-    new_pts = _bosl2.apply(tmat, [[apart / 2, 0, 0], [-apart / 2, 0, 0]])
+    tmat = transforms.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
+    new_pts = transforms.apply(tmat, [[apart / 2, 0, 0], [-apart / 2, 0, 0]])
 
     def bound_box() -> PyOpenSCAD:
         return cube([maxX, maxY - minY, maxZ - minZ]).translate([0, minY, minZ]).multmatrix(tmat)
@@ -104,7 +101,7 @@ def SplitBox(
     # (widened by `play` via a Minkowski sum) at each y position.
     right = obj_centered & bound_box()
     for yval in yy:
-        y_pt = _bosl2.apply(tmat, [[0, yval, minZ]])[0]
+        y_pt = transforms.apply(tmat, [[0, yval, minZ]])[0]
         cutter = minkowski(join_shape.linear_extrude(height=maxZ - minZ), sphere(r=play)).multmatrix(tmat).translate(y_pt)
         right = right - cutter
     right = right.translate(new_pts[0])
@@ -113,7 +110,7 @@ def SplitBox(
     # (without play) back out of that cut so the two halves interlock.
     bound = bound_box()
     for yval in yy:
-        y_pt = _bosl2.apply(tmat, [[0, yval, minZ]])[0]
+        y_pt = transforms.apply(tmat, [[0, yval, minZ]])[0]
         plug = join_shape.linear_extrude(height=maxZ - minZ).multmatrix(tmat).translate(y_pt)
         bound = bound - plug
     left = (obj_centered - bound).translate(new_pts[1])

@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from bosl2 import shapes3d
+from bosl2 import transforms
 from bosl2 import masking
 from lids_base import default_lid_catch_type, internal_build_lid, IsDenseShapeType, DenseShapeEdges, MakeLidLabel, LidMeshBasic
 from labels import MakeLabelOptions, LabelOptions
@@ -38,9 +39,6 @@ from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInne
 
 from typing import Callable
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse("BOSL2/std.scad")
 
 # ---------------------------------------------------------------------------
 # Helper functions (pure Python equivalents)
@@ -192,7 +190,7 @@ def MakeBoxWithCapLid(
     assert calc_corner_rounding >= 0
 
     box_height = height - lid_thickness - size_spacing
-    tmat = _bosl2.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, box_height])
+    tmat = transforms.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, box_height])
 
     body = shapes3d.cuboid(
         [width, length, box_height],
@@ -706,10 +704,13 @@ def CapBoxLidWithLabelAndCustomShape(
         lid_thickness=lid_thickness,
         text_str=text_str,
     )
-    assert label_shape_raw is not None, "label did not generate"
-    label_shape = label_shape_raw.translate([lid_boundary, lid_boundary, 0])
-
-    all_extra = [label_shape] + (list(extra_children) if extra_children else [])
+    # A lid too narrow for the label yields None (labels.py warns "ignoring label"); match the
+    # .scad behaviour and just build the lid without a label rather than failing.
+    base_extra = list(extra_children) if extra_children else []
+    if label_shape_raw is not None:
+        all_extra = [label_shape_raw.translate([lid_boundary, lid_boundary, 0])] + base_extra
+    else:
+        all_extra = base_extra
 
     return CapBoxLidWithCustomShape(
         size=size,

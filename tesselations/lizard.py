@@ -26,8 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import paths
-from bosl2 import transforms
+from bosl2.paths import Path
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -68,14 +67,14 @@ def LizardHexTesselation(radius: float, thickness: float = 0, outer_offset: floa
     """
     from tesselations import HexagonalTesselation
 
-    sized_lizard_points = paths.path_merge_collinear(
-        HexagonalTesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius), closed=True
-    )
+    sized_lizard_points = Path(
+        HexagonalTesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius)
+    ).merge_collinear()
     if outer_offset == 0 and thickness == 0:
         return sized_lizard_points
 
-    outer = _bosl2.offset(sized_lizard_points, delta=outer_offset)
-    inner = _bosl2.offset(sized_lizard_points, delta=-thickness) if thickness > 0 else []
+    outer = sized_lizard_points.offset(delta=outer_offset)
+    inner = sized_lizard_points.offset(delta=-thickness) if thickness > 0 else []
     return _bosl2.difference(outer, inner)
 
 
@@ -127,11 +126,11 @@ def HexagonalTesselationTriangle(size: float, pts: list) -> list:
     combined = _bosl2.union(
         [
             pts,
-            transforms.move([apothem / 2, size * 3 / 4], transforms.rot(p=pts, a=240)),
-            transforms.move([apothem, 0], transforms.rot(p=pts, a=120)),
+            Path(pts).rot(240).move([apothem / 2, size * 3 / 4]),
+            Path(pts).rot(120).move([apothem, 0]),
         ]
     )
-    return transforms.move([-apothem / 2, size], combined)
+    return Path(combined).move([-apothem / 2, size])
 
 
 def LizardTriangle(size: float, thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:

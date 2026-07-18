@@ -277,10 +277,13 @@ def HingeBoxLidLabel(
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
     label_raw = MakeLidLabel(size=[inner_width, inner_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
-    assert label_raw is not None, "label did not generate"
-    label = label_raw.translate([-inner_width, 0, -lid_thickness]).rotate([0, 180, 0])
+    # A lid too narrow for the label yields None (labels.py warns "ignoring label"); build the
+    # lid without a label rather than failing, matching the .scad.
+    children = [top, mesh]
+    if label_raw is not None:
+        children.append(label_raw.translate([-inner_width, 0, -lid_thickness]).rotate([0, 180, 0]))
 
-    return internal_build_lid(lid_thickness=lid_thickness, children=[top, mesh, label], size_spacing=size_spacing)
+    return internal_build_lid(lid_thickness=lid_thickness, children=children, size_spacing=size_spacing)
 
 
 def MakeBoxAndLidWithInsetHinge(
