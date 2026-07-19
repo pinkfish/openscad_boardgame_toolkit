@@ -57,6 +57,7 @@ from .shapes2d import _frag_count, _pick_radius, text as _text2d
 from bosl2.geometry import cross
 from bosl2.vectors import unit, is_vector
 from bosl2.paths import Path
+from bosl2.distributors import Distributable
 
 
 # ---------------------------------------------------------------------------
@@ -64,7 +65,7 @@ from bosl2.paths import Path
 # ---------------------------------------------------------------------------
 
 
-class Bosl2Solid:
+class Bosl2Solid(Distributable):
     """Wraps a PyOpenSCAD solid together with the geometry metadata (nominal `size` and
     `anchor`) that BOSL2's $parent_geom attachment system would otherwise track, so that
     edge/corner/face masking (bosl2/masking.py) work as plain chained methods instead of
@@ -175,6 +176,22 @@ class Bosl2Solid:
     def __rsub__(self, other) -> "Bosl2Solid":
         return self._wrap(Bosl2Solid._unwrap(other) - self.shape)
 
+    # ---- distributors (bosl2/distributors.py) ----
+    #
+    # The distributors.scad copiers, inherited from Distributable, resolve to _distribute(), which
+    # for a solid means: multmatrix a copy for each transform and union them into one new solid.
+    # This reuses the wrapped native handle across the copies, which is safe for direct-CSG solids
+    # (the norm here); a pysolidfive/frep-backed shape must instead be distributed via a factory to
+    # avoid the frep handle-reuse segfault (see the SDF-vs-direct note in CLAUDE.md).
+
+    def _distribute(self, mats) -> "Bosl2Solid":
+        """Union a multmatrix copy of this solid for each transform matrix (BOSL2's module form)."""
+        assert len(mats), "distributor produced no copies."
+        out = self.shape.multmatrix(np.asarray(mats[0]).tolist())
+        for m in mats[1:]:
+            out = out | self.shape.multmatrix(np.asarray(m).tolist())
+        return self._wrap(out)
+
     # ---- bounding-box anchoring (works on ANY object, via PythonSCAD's native bbox) ----
     #
     # PythonSCAD exposes obj.position (min corner) / obj.size (extent) / obj.bbox (a solid),
@@ -223,28 +240,48 @@ class Bosl2Solid:
             "metadata (are you calling this under the numeric mock on a non-cuboid?)"
         )
 
-    def anchor_point(self, anchor: Sequence[float]) -> list[float]:
+    def _resolve_bounds(self, bbox=None) -> "tuple[list[float], list[float]]":
+        """(center, size) for anchoring: from a passed-in *bbox* override if given, else the
+        object's native bounding box (:meth:`bounds`).
+
+        *bbox* overrides the object's own box -- useful when the native bbox is wrong for the
+        purpose (a shape with an overhang, a mask positioned against a nominal box, or a cheap way
+        to skip the meshing the native bbox needs). It is a min/max corner pair
+        ``[[min_x, min_y, min_z], [max_x, max_y, max_z]]`` (the same shape :meth:`Path.bounds` and
+        the native ``obj.bbox`` use)."""
+        if bbox is None:
+            return self.bounds()
+        arr = np.asarray(bbox, dtype=float)
+        assert arr.shape == (2, 3), "bbox must be [[min_x,min_y,min_z],[max_x,max_y,max_z]]."
+        lo, hi = arr[0], arr[1]
+        assert bool(np.all(hi >= lo - 1e-12)), "bbox must be [[min...],[max...]] with max >= min."
+        return [(lo[i] + hi[i]) / 2 for i in range(3)], [hi[i] - lo[i] for i in range(3)]
+
+    def anchor_point(self, anchor: Sequence[float], bbox=None) -> list[float]:
         """The [x, y, z] point on this object's bounding box for the given anchor vector, in the
-        object's current coordinate frame: center + anchor * size / 2. Works on any object."""
-        center, size = self.bounds()
+        object's current coordinate frame: center + anchor * size / 2. Works on any object.
+
+        Pass *bbox* to anchor against a supplied box instead of the object's own (see
+        :meth:`_resolve_bounds`)."""
+        center, size = self._resolve_bounds(bbox)
         a = list(anchor)
         return [center[i] + a[i] * size[i] / 2 for i in range(3)]
 
-    def reanchor(self, anchor: Sequence[float]) -> "Bosl2Solid":
+    def reanchor(self, anchor: Sequence[float], bbox=None) -> "Bosl2Solid":
         """Return this object translated so its bounding-box `anchor` point sits at the origin.
         Re-anchors any object by its bbox after the fact (cube()/cuboid() only do this at
-        construction, and only for cuboids)."""
-        p = self.anchor_point(anchor)
+        construction, and only for cuboids). Pass *bbox* to use a supplied box."""
+        p = self.anchor_point(anchor, bbox=bbox)
         moved = self.translate([-p[0], -p[1], -p[2]])
         if moved.size is not None:
             moved.anchor = list(anchor)
         return moved
 
-    def position(self, anchor: Sequence[float], child) -> "Bosl2Solid":
+    def position(self, anchor: Sequence[float], child, bbox=None) -> "Bosl2Solid":
         """BOSL2 position(): place `child` so its local origin lands on this object's
         bounding-box `anchor` point, keeping the child's own orientation, and return self
         unioned with the placed child. `child` may be a Bosl2Solid or a raw native solid."""
-        p = self.anchor_point(anchor)
+        p = self.anchor_point(anchor, bbox=bbox)
         placed = Bosl2Solid._unwrap(child).translate(p)
         # Untracked result: bounds() on it queries the true combined bbox rather than the
         # parent box, so a chained attach/position builds on the combined shape.
@@ -257,6 +294,7 @@ class Bosl2Solid:
         align: Sequence[float] | None = None,
         inside: bool = False,
         overlap: float = 0.0,
+        bbox=None,
     ) -> "Bosl2Solid":
         """BOSL2 align(): place `child` on this object's `anchor` face and return self unioned
         with it. Like attach() it mates a child face to a parent face, but WITHOUT reorienting
@@ -283,7 +321,7 @@ class Bosl2Solid:
         # outside), shifted to the aligned edge/corner. Matches BOSL2's thisedge - factor*thisface.
         child_anchor = [edge[i] - factor * face[i] for i in range(3)]
         cpt = csolid.anchor_point(child_anchor)
-        dest = self.anchor_point([face[i] + edge[i] for i in range(3)])
+        dest = self.anchor_point([face[i] + edge[i] for i in range(3)], bbox=bbox)
         fdir = list(unit(face)) if any(face) else [0.0, 0.0, 0.0]
         ov = -overlap if inside else overlap
         placed = csolid.translate([dest[i] - cpt[i] - fdir[i] * ov for i in range(3)])
@@ -296,6 +334,7 @@ class Bosl2Solid:
         child_anchor: Sequence[float] | None = None,
         overlap: float = 0.0,
         spin: float = 0.0,
+        bbox=None,
     ) -> "Bosl2Solid":
         """BOSL2 attach(): orient and place `child` so its `child_anchor` face mates flush
         against this object's `parent_anchor` face, then return self unioned with the placed
@@ -324,10 +363,30 @@ class Bosl2Solid:
         if spin and any(pa):
             placed = placed.rotate(spin, list(unit(pa)))
         # 4. move onto the parent's anchor point, pulling in by `overlap`
-        ppt = self.anchor_point(pa)
+        ppt = self.anchor_point(pa, bbox=bbox)
         pdir = list(unit(pa)) if any(pa) else [0.0, 0.0, 0.0]
         placed = placed.translate([ppt[i] - pdir[i] * overlap for i in range(3)])
         return Bosl2Solid(self.shape | placed.shape)
+
+    def reorient(self, anchor: Sequence[float] = CENTER, spin: float = 0,
+                 orient: Sequence[float] = UP, bbox=None) -> "Bosl2Solid":
+        """Reorient this already-built object by its bounding box (BOSL2 reorient()).
+
+        Moves the bounding-box *anchor* point to the origin, spins *spin* degrees about Z, then
+        rotates the object's UP toward *orient*. The size comes from the native bbox, so -- unlike
+        BOSL2's function form -- you never pass it. cube()/cuboid()/etc. take anchor/spin/orient at
+        construction; this applies the same transform to any object after the fact. Pass *bbox* to
+        reorient against a supplied box instead of the object's own."""
+        from bosl2.transforms import reorient as _reorient_matrix
+
+        center, size = self._resolve_bounds(bbox)
+        m = _reorient_matrix(anchor=list(anchor), spin=spin, orient=list(orient), size=size)
+        centered = self.translate([-center[0], -center[1], -center[2]])
+        return centered.multmatrix(np.asarray(m).tolist())
+
+    def orient(self, direction: Sequence[float] = UP, spin: float = 0, bbox=None) -> "Bosl2Solid":
+        """Rotate this object so its top (UP) faces *direction* (BOSL2 orient()); uses the bbox."""
+        return self.reorient(anchor=CENTER, spin=spin, orient=direction, bbox=bbox)
 
     # ---- edge/corner/face masking (bosl2/masking.py), box-shaped objects ----
     #
@@ -335,18 +394,18 @@ class Bosl2Solid:
     # bounds() (tracked metadata when available, else the native bbox), so callers no longer
     # have to pass size= or keep the object as a freshly-built cuboid.
 
-    def edge_mask(self, edges: str | list = "ALL", except_edges: list | None = None, children: PyOpenSCAD | None = None) -> "Bosl2Solid":
+    def edge_mask(self, edges: str | list = "ALL", except_edges: list | None = None, children: PyOpenSCAD | None = None, bbox=None) -> "Bosl2Solid":
         from . import masking
 
-        center, size = self.bounds()
+        center, size = self._resolve_bounds(bbox)
         return self._wrap(masking.edge_mask(self.shape, edges, except_edges, children, size=size, center=center))
 
     def edge_profile(
-        self, edges: str | list = "ALL", except_edges: list | None = None, children: Sequence[Sequence[float]] | None = None, convexity: int = 10
+        self, edges: str | list = "ALL", except_edges: list | None = None, children: Sequence[Sequence[float]] | None = None, convexity: int = 10, bbox=None
     ) -> "Bosl2Solid":
         from . import masking
 
-        center, size = self.bounds()
+        center, size = self._resolve_bounds(bbox)
         return self._wrap(masking.edge_profile(self.shape, edges, except_edges, children, size=size, convexity=convexity, center=center))
 
     def edge_profile_asym(
@@ -365,10 +424,11 @@ class Bosl2Solid:
         _fn: float | None = None,
         _fa: float | None = None,
         _fs: float | None = None,
+        bbox=None,
     ) -> "Bosl2Solid":
         from . import masking
 
-        center, size = self.bounds()
+        center, size = self._resolve_bounds(bbox)
         return self._wrap(
             masking.corner_profile(
                 self.shape, corners, except_corners, r, d, size=size, children=children,
@@ -386,10 +446,11 @@ class Bosl2Solid:
         _fn: float | None = None,
         _fa: float | None = None,
         _fs: float | None = None,
+        bbox=None,
     ) -> "Bosl2Solid":
         from . import masking
 
-        center, size = self.bounds()
+        center, size = self._resolve_bounds(bbox)
         return self._wrap(
             masking.face_profile(
                 self.shape, faces, r, d, size=size, children=children,
@@ -2598,6 +2659,185 @@ def cylindrical_heightfield(
     shape, pts = _heightfield_polyhedron(pts, faces)
     offset = _anchor_offset_cyl(r1v, r2v, l_val, anchor)
     return Bosl2Solid(_finish3(shape, offset, spin, orient), size=None, anchor=anchor)
+
+
+def plot3d(f, x, y, zclip=None, zspan=None, base: float = 1, style: str = "default") -> Bosl2Solid:
+    """A surface plot of ``z = f(x, y)`` over a grid of *x*, *y* values (BOSL2 plot3d()).
+
+    Args:
+        f:     a callable ``f(x, y) -> z``
+        x, y:  strictly increasing lists of sample coordinates
+        zclip: [zmin, zmax] to clamp the surface (default no clip)
+        zspan: [zmin, zmax] to rescale the surface height into (default no rescale)
+        base:  thickness of solid base below the surface; 0 gives just the (open) surface (default 1)
+        style: vnf_vertex_array quad-subdivision style
+
+    Examples:
+        A rippled surface plotted as a solid slab:
+
+        .. pythonscad-example::
+
+            s3.plot3d(lambda x, y: 6 * math.cos(math.hypot(x, y) / 6),
+                      list(range(-30, 31, 3)), list(range(-30, 31, 3))).show()
+    """
+    from bosl2.vnf import VNF
+
+    xs, ys = list(x), list(y)
+    zlo, zhi = (zclip if zclip is not None else [-math.inf, math.inf])
+    data = [[[float(xi), float(yi), min(max(float(f(xi, yi)), zlo), zhi)] for yi in ys] for xi in xs]
+    assert len(data) > 1 and len(data[0]) > 1, "plot3d(): x and y must each give at least 2 points."
+    if zspan is not None:
+        allz = [p[2] for row in data for p in row]
+        minv, maxv = min(allz), max(allz)
+        scale = (zspan[1] - zspan[0]) / (maxv - minv)
+        data = [[[p[0], p[1], scale * (p[2] - minv) + zspan[0]] for p in row] for row in data]
+    if base == 0:
+        vnf = VNF.vertex_array(data, style=style)
+    else:
+        allz = [p[2] for row in data for p in row]
+        bottom = (zspan[0] - base) if zspan is not None else (min(allz) - base)
+        skirted = ([[[p[0], p[1], bottom] for p in data[0]]] + data
+                   + [[[p[0], p[1], bottom] for p in data[-1]]])
+        tdata = [[skirted[i][j] for i in range(len(skirted))] for j in range(len(skirted[0]))]
+        vnf = VNF.vertex_array(tdata, col_wrap=True, caps=True, style=style, reverse=True)
+        if vnf.volume() < 0:  # ensure outward winding for a valid manifold solid
+            vnf = vnf.reverse()
+    return Bosl2Solid(vnf.polyhedron())
+
+
+def plot_revolution(f, angle, z=None, r=None, r1=None, r2=None, d=None, d1=None, d2=None,
+                    path=None, rclip=None, rspan=None, horiz: bool = False,
+                    style: str = "min_edge") -> Bosl2Solid:
+    """A surface of revolution whose radius is modulated by ``r = f(angle, z)`` (BOSL2 plot_revolution()).
+
+    The profile is either a straight taper (*z* plus *r1*/*r2*) or an explicit 2-D *path* of
+    ``[r, z]`` points; ``f(theta, z)`` displaces each profile point along its normal (or radially,
+    with *horiz*). A full 360-degree *angle* range revolves seamlessly; a partial range is capped
+    to the axis. The BOSL2 ``arclength`` form is not ported.
+
+    Args:
+        f:      a callable ``f(theta_degrees, z) -> radial displacement``
+        angle:  a strictly increasing list/range of revolution angles in degrees
+        z:      strictly increasing profile heights (with *r1*/*r2*)
+        r1/r2/r/d1/d2/d: the profile's bottom/top radius (straight taper form)
+        path:   an explicit ``[[r, z], ...]`` profile (instead of z + radii)
+        rclip:  [rmin, rmax] to clamp the modulated radius
+        rspan:  [rmin, rmax] to rescale the displacement into
+        horiz:  displace radially (normal [1, 0]) instead of along the profile normal
+        style:  vnf_vertex_array quad-subdivision style
+
+    Examples:
+        A vase whose radius ripples with height and angle:
+
+        .. pythonscad-example::
+
+            s3.plot_revolution(lambda a, z: 3 * math.sin(math.radians(4 * a)) * (z / 30),
+                               angle=list(range(0, 361, 6)), z=list(range(0, 31, 2)),
+                               r1=12, r2=8).show()
+    """
+    from bosl2.vnf import VNF
+    from bosl2.paths import Path
+
+    r1v = r1 if r1 is not None else (r if r is not None else (d1 / 2 if d1 is not None else (d / 2 if d is not None else None)))
+    r2v = r2 if r2 is not None else (r if r is not None else (d2 / 2 if d2 is not None else (d / 2 if d is not None else None)))
+    theta = list(angle)
+    assert len(theta) > 1, "plot_revolution(): angle must have at least 2 values."
+    if path is not None:
+        prof = [[float(p[0]), float(p[1])] for p in path]
+    else:
+        zs = list(z)
+        assert r1v is not None and r2v is not None and len(zs) > 1, "plot_revolution(): give z with r1 and r2 (or a path)."
+        z0, z1 = zs[0], zs[-1]
+        prof = [[r1v + (r2v - r1v) * (zz - z0) / (z1 - z0), zz] for zz in zs]
+    normals = [[1.0, 0.0]] * len(prof) if horiz else np.asarray(Path._path_normals(prof), dtype=float).tolist()
+    rlo, rhi = (rclip if rclip is not None else [-math.inf, math.inf])
+    rdata = [[min(max(float(f(t, pt[1])), rlo), rhi) for t in theta] for pt in prof]
+    if rspan is not None:
+        allv = [v for row in rdata for v in row]
+        minv, maxv = min(allv), max(allv)
+        sc = (rspan[1] - rspan[0]) / (maxv - minv)
+        rdata = [[sc * (v - minv) + rspan[0] for v in row] for row in rdata]
+    closed = (theta[-1] - theta[0]) == 360
+    rmin = 0.01
+    grid = []
+    for i, pt in enumerate(prof):
+        row = [] if closed else [[0.0, 0.0, pt[1]]]
+        for j, t in enumerate(theta):
+            rr = max(rmin, pt[0] + rdata[i][j] * normals[i][0])
+            zz = pt[1] + rdata[i][j] * normals[i][1]
+            row.append([rr * math.cos(math.radians(t)), rr * math.sin(math.radians(t)), zz])
+        grid.append(row)
+    vnf = VNF.vertex_array(grid, col_wrap=True, caps=True, style=style)
+    if vnf.volume() < 0:
+        vnf = vnf.reverse()
+    return Bosl2Solid(vnf.polyhedron())
+
+
+def fillet(l=None, r: float | None = None, ang: float = 90, r1: float | None = None,
+           r2: float | None = None, d: float | None = None, d1: float | None = None,
+           d2: float | None = None, excess: float = 0.01, h=None, height=None, length=None,
+           _fn: float | None = None, _fa: float | None = None, _fs: float | None = None) -> Bosl2Solid:
+    """A concave edge-fillet mask of length *l* and radius *r* (BOSL2 fillet()).
+
+    A cutter you subtract to round a 90-degree edge (the concave complement of a rounded corner).
+    Positioned manually like ``rounding_edge_mask`` -- origin at the sharp edge, +X/+Y into the
+    material, centered along its own Z. Only 90-degree edges are ported (BOSL2's ``ang`` for other
+    dihedral angles is not).
+
+    Examples:
+        .. pythonscad-example::
+
+            block = s3.cuboid([30, 30, 20])
+            mask = s3.fillet(l=20, r=6).right(15).forward(15)
+            (block - mask).show()
+    """
+    from . import masking
+
+    assert ang == 90, "fillet(): only 90-degree edges (ang=90) are supported in this port."
+    lv = l if l is not None else (h if h is not None else (height if height is not None else (length if length is not None else 1)))
+    return Bosl2Solid(masking.rounding_edge_mask(l=lv, r=r, r1=r1, r2=r2, d=d, d1=d1, d2=d2,
+                                                 excess=excess, _fn=_fn, _fa=_fa, _fs=_fs))
+
+
+def textured_tile(texture, size, tex_reps=None, tex_size=None, tex_depth: float = 1,
+                  tex_inset=False, style: str = "min_edge") -> Bosl2Solid:
+    """A rectangular tile carrying a repeated height-field *texture* (BOSL2 textured_tile()).
+
+    Only the height-field texture form is ported: *texture* is a 2-D array of scalar heights (0..1),
+    tiled *tex_reps* times (or ``tex_size`` chosen) across the *size* rectangle and raised by
+    *tex_depth*. VNF-tile textures and BOSL2's named-texture table are not ported.
+
+    Args:
+        texture:   a 2-D array (rows x cols) of scalar heights in [0, 1]
+        size:      [x, y] size of the tile
+        tex_reps:  integer or [nx, ny] tile repetitions (give this or *tex_size*)
+        tex_size:  target tile size, from which the repetition count is computed
+        tex_depth: how far the texture is raised (default 1); negative inverts it
+        tex_inset: lower the texture into the surface by this fraction (True == full depth)
+        style:     vnf_vertex_array quad-subdivision style
+
+    Examples:
+        A pyramid-bump tile:
+
+        .. pythonscad-example::
+
+            bump = [[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+            s3.textured_tile(bump, size=[40, 40], tex_reps=[4, 4], tex_depth=3).show()
+    """
+    sz = [float(size[0]), float(size[1])]
+    rows, cols = len(texture), len(texture[0])
+    if tex_reps is None:
+        assert tex_size is not None, "textured_tile(): give tex_reps or tex_size."
+        ts = [float(tex_size), float(tex_size)] if isinstance(tex_size, (int, float)) else [float(tex_size[0]), float(tex_size[1])]
+        tex_reps = [max(1, round(sz[0] / ts[0])), max(1, round(sz[1] / ts[1]))]
+    reps = [int(tex_reps[0]), int(tex_reps[1])] if hasattr(tex_reps, "__len__") else [int(tex_reps), int(tex_reps)]
+    inset = 1.0 if tex_inset is True else float(tex_inset or 0)
+    tiled = [[(float(texture[r][c]) - inset) * tex_depth
+              for _rx in range(reps[0]) for c in range(cols)]
+             for _ry in range(reps[1]) for r in range(rows)]
+    flat = [v for row in tiled for v in row]
+    bottom = min(flat) - 0.1
+    return heightfield(tiled, size=sz, bottom=bottom, style=style)
 
 
 def ruler(

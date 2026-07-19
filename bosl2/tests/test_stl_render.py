@@ -149,3 +149,353 @@ def test_two_objects_differ(tmp_path):
     small = _render(tmp_path, "s3.cuboid([10, 10, 10])", name="small")
     big = _render(tmp_path, "s3.cuboid([20, 20, 20])", name="big")
     assert big.volume > small.volume * 7  # 8x the volume
+
+
+# -- the wider skin.scad surface generators -----------------------------------------------
+
+def test_skin_lofts_two_profiles(tmp_path):
+    setup = (
+        "circle = [[6*math.cos(t), 6*math.sin(t)] for t in np.linspace(0, 2*math.pi, 24, endpoint=False)]\n"
+        "square = [[-8, -8], [8, -8], [8, 8], [-8, 8]]\n"
+    )
+    m = _render(tmp_path, "skin([circle, square], slices=16, method='reindex', z=[0, 25]).polyhedron()",
+                setup=setup, name="skin")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 25.0, abs_tol=1e-3)
+
+
+def test_linear_sweep_twist_scale(tmp_path):
+    setup = "square = [[-10, -10], [10, -10], [10, 10], [-10, 10]]\n"
+    m = _render(tmp_path, "linear_sweep(square, height=40, twist=120, scale=0.4).polyhedron()",
+                setup=setup, name="linsweep")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 40.0, abs_tol=1e-3)
+
+
+def test_linear_sweep_plain_volume(tmp_path):
+    setup = "square = [[-10, -10], [10, -10], [10, 10], [-10, 10]]\n"
+    m = _render(tmp_path, "linear_sweep(square, height=5).polyhedron()", setup=setup, name="linplain")
+    assert math.isclose(m.volume, 20 * 20 * 5, rel_tol=1e-3)  # 2000
+    assert m.watertight
+
+
+def test_rotate_sweep_full_revolution(tmp_path):
+    setup = "profile = [[4, -10], [12, -10], [12, -6], [7, -2], [7, 2], [12, 6], [12, 10], [4, 10]]\n"
+    m = _render(tmp_path, "rotate_sweep(profile, 360).polyhedron()", setup=setup, name="revolve")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [24, 24], atol=0.5)  # diameter ~ 2 * xmax(12)
+
+
+def test_rotate_sweep_partial(tmp_path):
+    setup = "profile = [[4, -10], [12, -10], [12, 10], [4, 10]]\n"
+    m = _render(tmp_path, "rotate_sweep(profile, 270).polyhedron()", setup=setup, name="revolve270")
+    assert m.volume > 0
+    assert m.watertight  # a partial revolution is end-capped into a closed solid
+
+
+def test_spiral_sweep_coil(tmp_path):
+    setup = "section = [[-1.2, -1.2], [1.2, -1.2], [1.2, 1.2], [-1.2, 1.2]]\n"
+    m = _render(tmp_path, "spiral_sweep(section, h=40, r=12, turns=5).polyhedron()",
+                setup=setup, name="coil")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 40 + 2.4, abs_tol=1.0)  # height + a section's worth of overhang
+
+
+def test_path_sweep2d_wavy_bar(tmp_path):
+    setup = (
+        "shape = [[-2, -2], [2, -2], [2, 2], [-2, 2]]\n"
+        "path = [[t, 8*math.sin(t/12)] for t in range(0, 90, 3)]\n"
+    )
+    m = _render(tmp_path, "path_sweep2d(shape, path).polyhedron()", setup=setup, name="psweep2d")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert m.watertight  # a capped open sweep is a closed solid
+
+
+def test_rot_resample_then_sweep(tmp_path):
+    setup = (
+        "sq = [[-1.5, -1.5], [1.5, -1.5], [1.5, 1.5], [-1.5, 1.5]]\n"
+        "curve = [[0, 0, 0], [20, 0, 8], [20, 20, 16], [0, 20, 24]]\n"
+        "tl = rot_resample(path_sweep(sq, curve, transforms=True), n=30)\n"
+    )
+    m = _render(tmp_path, "sweep(sq, tl).polyhedron()", setup=setup, name="rotresample")
+    assert m.ntris > 0
+    assert m.volume > 0
+
+
+# -- newly-ported shapes ------------------------------------------------------------------
+
+def test_squircle_extruded(tmp_path):
+    m = _render(tmp_path, "s2.squircle(40, squareness=0.7).linear_extrude(height=5)", name="squircle")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [40, 40], atol=0.5)
+    assert math.isclose(m.size[2], 5.0, abs_tol=1e-3)
+
+
+def test_keyhole_extruded(tmp_path):
+    m = _render(tmp_path, "s2.keyhole(l=25, r1=4, r2=9, shoulder_r=2).linear_extrude(height=4)",
+                name="keyhole")
+    assert m.volume > 0
+    assert m.watertight
+
+
+def test_ring_extruded(tmp_path):
+    m = _render(tmp_path, "s2.ring(r=20, ring_width=4).linear_extrude(height=5)", name="ring")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [48, 48], atol=1.0)  # outer diameter ~ 2*(20+4)
+
+
+def test_plot3d_surface_solid(tmp_path):
+    setup = (
+        "xs = list(range(-30, 31, 3)); ys = list(range(-30, 31, 3))\n"
+        "f = lambda x, y: 6 * math.cos(math.hypot(x, y) / 6)\n"
+    )
+    m = _render(tmp_path, "s3.plot3d(f, xs, ys)", setup=setup, name="plot3d")
+    assert m.ntris > 0
+    assert m.volume > 0
+
+
+def test_fillet_subtracts_a_concave_edge(tmp_path):
+    # subtracting a fillet mask from a box rounds one edge inward -> less volume than the box
+    box = 30 * 30 * 20
+    m = _render(
+        tmp_path,
+        "(s3.cuboid([30, 30, 20]) - s3.fillet(l=20, r=6).right(15).forward(15))",
+        name="fillet",
+    )
+    np.testing.assert_allclose(m.size, [30, 30, 20], atol=1e-2)
+    assert 0 < m.volume < box  # material removed at the edge
+    assert m.watertight
+
+
+def test_plot_revolution_makes_a_revolved_solid(tmp_path):
+    setup = (
+        "f = lambda a, z: 3 * math.sin(math.radians(4 * a)) * (z / 30)\n"
+        "ang = list(range(0, 361, 6)); zs = list(range(0, 31, 2))\n"
+    )
+    m = _render(tmp_path, "s3.plot_revolution(f, angle=ang, z=zs, r1=12, r2=8)", setup=setup,
+                name="plotrev")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 30.0, abs_tol=1.0)
+
+
+def test_textured_tile_heightfield(tmp_path):
+    setup = "bump = [[0, 0, 0], [0, 1, 0], [0, 0, 0]]\n"
+    m = _render(tmp_path, "s3.textured_tile(bump, size=[40, 40], tex_reps=[4, 4], tex_depth=3)",
+                setup=setup, name="texttile")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [40, 40], atol=1e-2)
+    assert m.watertight
+
+
+def test_attach_with_bbox_override(tmp_path):
+    # override the parent's bbox so the child attaches to a TOP that is higher than the real box
+    m = _render(
+        tmp_path,
+        "s3.cuboid([30, 30, 20]).attach(TOP, s3.cuboid([10, 10, 10]), bbox=[[-15,-15,-10],[15,15,20]])",
+        name="attachbbox",
+    )
+    # child bottom lands on z=20 (the overriding TOP), so the union reaches z=30 while the
+    # real parent still tops out at z=10 -> a gap, but total height is 10..30 span for child + parent
+    assert math.isclose(m.bbmax[2], 30.0, abs_tol=0.5)
+
+
+# -- attachment methods (use the native bbox, no size passed) -----------------------------
+
+def test_orient_rotates_up_to_direction(tmp_path):
+    # UP -> RIGHT swaps the z (20) and x (40) extents
+    m = _render(tmp_path, "s3.cuboid([40, 30, 20]).orient(RIGHT)", name="orient")
+    np.testing.assert_allclose(m.size, [20, 30, 40], atol=1e-3)
+
+
+def test_reorient_anchor_moves_face_to_origin(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([40, 30, 20]).reorient(anchor=TOP)", name="reorient")
+    np.testing.assert_allclose(m.size, [40, 30, 20], atol=1e-3)
+    assert math.isclose(m.bbmax[2], 0.0, abs_tol=1e-3)  # top face on z=0
+
+
+def test_reanchor_puts_anchor_at_origin(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([40, 30, 20]).reanchor(BOTTOM)", name="reanchor")
+    assert math.isclose(m.bbmin[2], 0.0, abs_tol=1e-3)  # bottom face on z=0
+
+
+def test_attach_places_child_on_face(tmp_path):
+    # a small cube attached to the TOP of a big one -> the combined bbox is taller
+    m = _render(tmp_path, "s3.cuboid([30, 30, 20]).attach(TOP, s3.cuboid([10, 10, 10]))", name="attach")
+    assert m.volume > 30 * 30 * 20  # bigger than the parent alone
+    assert math.isclose(m.size[2], 30.0, abs_tol=0.5)  # 20 + 10 stacked
+
+
+# -- drawing.scad renderers ---------------------------------------------------------------
+
+def test_stroke_2d_arc_ribbon(tmp_path):
+    # a stroked arc extruded into a curved wall -> a real thin solid
+    m = _render(tmp_path, "arc(r=30, angle=200).stroke(width=4).linear_extrude(height=3)",
+                name="stroke2d")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 3.0, abs_tol=1e-2)
+    # the ribbon spans roughly the arc's diameter but is only ~4 wide, so it is not a full disk
+    assert m.volume < math.pi * 32 ** 2 * 3
+
+
+def test_stroke_2d_closed_square(tmp_path):
+    setup = "sq = Path([[0, 0], [40, 0], [40, 40], [0, 40]], closed=True)\n"
+    m = _render(tmp_path, "sq.stroke(width=3, joints='round').linear_extrude(height=2)",
+                setup=setup, name="strokesq")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [43, 43], atol=1.0)  # 40 + width, round joints
+
+
+def test_stroke_3d_helix_tube(tmp_path):
+    m = _render(tmp_path, "stroke(helix(turns=2, h=40, r=15), width=4)", name="stroke3d")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 40 + 4, abs_tol=2.0)  # helix height + tube diameter
+
+
+def test_dashed_stroke_makes_multiple_solids(tmp_path):
+    setup = (
+        "dashes = dashed_stroke(arc(r=30, angle=360), dashpat=[8, 5], closed=True)\n"
+        "solid = dashes[0].stroke(width=2)\n"
+        "for d in dashes[1:]:\n"
+        "    solid = solid | d.stroke(width=2)\n"
+        "obj0 = solid.linear_extrude(height=2)\n"
+    )
+    m = _render(tmp_path, "obj0", setup=setup, name="dashed")
+    assert m.volume > 0
+    # dashes leave gaps, so total volume is well under a solid ring of the same width
+    assert m.volume < math.pi * (32 ** 2 - 28 ** 2) * 2
+
+
+def test_catenary_stroke(tmp_path):
+    m = _render(tmp_path, "catenary(width=80, droop=30).stroke(width=3).linear_extrude(height=2)",
+                name="catenary")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[0], 80, atol=3.0)  # spans the requested width
+
+
+def test_turtle_stroke(tmp_path):
+    setup = (
+        "path = turtle(['move', 40, 'arcleft', 8, 'move', 40, 'arcleft', 8, "
+        "'move', 40, 'arcleft', 8, 'move', 40, 'arcleft', 8])\n"
+    )
+    m = _render(tmp_path, "path.stroke(width=3, closed=True).linear_extrude(height=2)",
+                setup=setup, name="turtle")
+    assert m.volume > 0
+
+
+# -- fancy endcaps generated directly -----------------------------------------------------
+
+def test_stroke_arrow_endcap_2d(tmp_path):
+    # an arrow endcap fans out wider than the 3-wide line: bbox in Y exceeds the line width
+    m = _render(tmp_path, "stroke([[0, 0], [40, 0]], width=3, endcaps='arrow').linear_extrude(height=2)",
+                name="arrow2d")
+    assert m.volume > 0
+    assert m.size[1] > 3 + 1  # arrowhead (width 3.5*3) is wider than the 3mm line
+    assert math.isclose(m.bbmin[0], 0.0, abs_tol=0.2)   # arrow tip sits at the line end, no overshoot
+    assert math.isclose(m.bbmax[0], 40.0, abs_tol=0.2)
+
+
+def test_stroke_diamond_endcap_straddles_end(tmp_path):
+    # a diamond endcap is centred on the endpoint, so it overshoots both ends
+    m = _render(tmp_path, "stroke([[0, 0], [40, 0]], width=3, endcaps='diamond').linear_extrude(height=2)",
+                name="diamond2d")
+    assert m.bbmin[0] < -1.0     # overshoots the start
+    assert m.bbmax[0] > 41.0     # overshoots the end
+
+
+def test_stroke_tail_and_arrow_mixed(tmp_path):
+    m = _render(tmp_path,
+                "stroke([[0, 0], [40, 0]], width=3, endcap1='tail', endcap2='arrow').linear_extrude(height=2)",
+                name="tailarrow")
+    assert m.volume > 0
+    assert m.bbmin[0] < 0  # the tail extends behind the start
+
+
+def test_stroke_arrow_endcap_3d_is_a_cone(tmp_path):
+    # the 3-D arrow endcap is a revolved cone: it is thicker across than the 4mm tube
+    m = _render(tmp_path, "stroke([[0, 0, 0], [40, 0, 0]], width=4, endcaps='arrow')", name="arrow3d")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert m.size[1] > 4 + 1 and m.size[2] > 4 + 1  # cone base wider than the tube in Y and Z
+
+
+# -- Path3D transforms feed the renderers -------------------------------------------------
+
+def test_path3d_rotated_helix_stroke(tmp_path):
+    # rotating the helix about X swaps its Z-height into -Y; the tube follows
+    setup = "coil = helix(turns=2, h=40, r=12).rotate(90, [1, 0, 0])\n"
+    m = _render(tmp_path, "coil.stroke(width=3)", setup=setup, name="helixrot")
+    assert m.volume > 0
+    # after a 90-deg X rotation the ~40 tall extent now lies along Y (plus tube thickness)
+    assert m.size[1] > 40
+
+
+def test_path3d_resampled_helix_stroke(tmp_path):
+    setup = "coil = helix(turns=3, h=60, r=20).resample(n=150)\n"
+    m = _render(tmp_path, "coil.stroke(width=4)", setup=setup, name="helixresample")
+    assert m.ntris > 0
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 60 + 4, abs_tol=3.0)  # helix height + tube diameter
+
+
+def test_path3d_translate_moves_stroke(tmp_path):
+    setup = "coil = helix(turns=1.5, h=30, r=10).up(100)\n"
+    m = _render(tmp_path, "coil.stroke(width=3)", setup=setup, name="helixup")
+    assert m.bbmin[2] > 90  # lifted 100mm up
+
+
+# -- distributors: solid copies -----------------------------------------------------------
+
+def test_grid_copies_span_and_volume(tmp_path):
+    # a 3x3 grid of 10mm cubes at 30mm spacing -> outer span 2*30 + 10 = 70, 9x the volume
+    m = _render(tmp_path, "s3.cuboid([10, 10, 10]).grid_copies(n=[3, 3], spacing=30)", name="grid")
+    np.testing.assert_allclose(m.size[:2], [70, 70], atol=0.5)
+    assert math.isclose(m.volume, 9 * 1000, rel_tol=1e-3)
+    assert m.watertight
+
+
+def test_line_copies_volume(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([6, 6, 6]).xcopies(20, n=4)", name="linecopies")
+    assert math.isclose(m.volume, 4 * 6 ** 3, rel_tol=1e-3)
+    np.testing.assert_allclose(m.size[0], 3 * 20 + 6, atol=0.5)  # span of 4 copies
+
+
+def test_zrot_copies_ring(tmp_path):
+    # 6 cubes in a ring of radius 30 -> spread across a ~60mm-diameter footprint in X and Y
+    m = _render(tmp_path, "s3.cuboid([6, 6, 6]).zrot_copies(n=6, r=30)", name="ring")
+    assert m.volume > 5 * 6 ** 3  # roughly 6 cubes (minus any tiny overlap)
+    assert 55 < m.size[0] < 70 and 55 < m.size[1] < 70
+    assert math.isclose(m.size[2], 6.0, abs_tol=0.2)  # ring stays flat in Z
+
+
+def test_xflip_copy_mirrors(tmp_path):
+    # an off-center cube flipped across X=0 -> symmetric pair straddling the origin
+    m = _render(tmp_path, "s3.cuboid([8, 8, 8]).right(20).xflip_copy()", name="xflip")
+    assert math.isclose(m.volume, 2 * 8 ** 3, rel_tol=1e-3)
+    np.testing.assert_allclose(m.bbmin[0], -24, atol=0.5)
+    np.testing.assert_allclose(m.bbmax[0], 24, atol=0.5)
+
+
+def test_arc_copies_solid(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([5, 5, 5]).arc_copies(n=8, r=25, sa=0, ea=180)", name="arccopies")
+    assert m.volume > 0
+    assert m.watertight
+
+
+def test_distribute_list_of_children(tmp_path):
+    setup = "parts = [s3.cuboid([10, 10, 10]), s3.sphere(r=8), s3.cyl(h=14, r=5)]\n"
+    m = _render(tmp_path, "xdistribute(parts, spacing=8)", setup=setup, name="distribute")
+    assert m.volume > 0
+    assert m.size[0] > 30  # spread out along X
+
+
+def test_path_copies_along_path(tmp_path):
+    setup = "route = Path([[0, 0], [40, 0], [40, 40]], closed=False)\n"
+    m = _render(tmp_path, "s3.cuboid([4, 8, 4]).path_copies(route, n=6)", setup=setup, name="pathcopies")
+    assert m.volume > 0
+    # copies span the L-shaped route: roughly 0..40 in X and 0..40 in Y
+    assert m.size[0] > 35 and m.size[1] > 35

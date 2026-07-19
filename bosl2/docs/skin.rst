@@ -34,12 +34,20 @@ Coverage of BOSL2 ``skin.scad``
    * - ``spiral_sweep(poly, h, r)``
      - ported
      - :func:`~bosl2.skin.spiral_sweep` — without the lead-in taper options
+   * - ``path_sweep2d(shape, path)``
+     - ported
+     - :func:`~bosl2.skin.path_sweep2d` — 2-D shape along a 2-D path (mitre offset; local creases
+       handled up to the path's tightest radius)
+   * - ``rot_resample(rotlist, n)``
+     - ported
+     - :func:`~bosl2.skin.rot_resample` — resample a transform list along its screw motion, with
+       ``rot_decode`` / ``rot_inverse`` in :mod:`bosl2.transforms`
+   * - ``subdivide_and_slice`` / ``slice_profiles``
+     - ported
+     - :func:`~bosl2.skin.subdivide_and_slice`, :func:`~bosl2.skin.slice_profiles`
    * - ``skin()`` ``distance`` / ``tangent`` methods
      - not ported
      - use ``direct`` / ``reindex`` (they need the dynamic-programming vertex matcher)
-   * - ``path_sweep2d()``
-     - not ported
-     - the 2-D self-intersecting (offset-based) sweep
    * - ``sweep_attach()``, anchors
      - not ported
      - need the BOSL2 attachment/anchor system

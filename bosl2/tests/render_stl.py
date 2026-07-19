@@ -72,9 +72,14 @@ _PREAMBLE = (
     f"sys.path.insert(0, {str(REPO_ROOT)!r})\n"
     "import numpy as np\n"
     "import bosl2.shapes3d as s3\n"
+    "import bosl2.shapes2d as s2\n"
     "from bosl2.beziers import Bezier, BezierPatch\n"
-    "from bosl2.skin import path_sweep, sweep\n"
-    "from bosl2.paths import Path\n"
+    "from bosl2.skin import path_sweep, path_sweep2d, sweep, skin, linear_sweep, rotate_sweep, spiral_sweep, rot_resample\n"
+    "from bosl2.drawing import arc, catenary, helix, turtle, stroke, dashed_stroke\n"
+    "from bosl2.distributors import distribute, xdistribute, ydistribute, zdistribute\n"
+    "from bosl2.paths import Path, Path3D\n"
+    "from bosl2.regions import Region\n"
+    "from bosl2.constants import *\n"
 )
 
 

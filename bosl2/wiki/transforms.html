@@ -80,6 +80,51 @@ degrees about a perpendicular axis).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="bosl2.transforms.rot_about_axis">
+<span class="sig-prename descclassname"><span class="pre">bosl2.transforms.</span></span><span class="sig-name descname"><span class="pre">rot_about_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/transforms.html#rot_about_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.transforms.rot_about_axis" title="Link to this definition">¶</a></dt>
+<dd><p>4x4 matrix rotating <em>angle</em> degrees about the line through <em>cp</em> in direction <em>axis</em>.</p>
+<p>The 4x4 form of BOSL2’s <code class="docutils literal notranslate"><span class="pre">rot(a=,</span> <span class="pre">v=,</span> <span class="pre">cp=)</span></code>: translate <em>cp</em> to the origin, rotate, translate
+back.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>angle</strong> (<em>float</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.transforms.rot_inverse">
+<span class="sig-prename descclassname"><span class="pre">bosl2.transforms.</span></span><span class="sig-name descname"><span class="pre">rot_inverse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/transforms.html#rot_inverse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.transforms.rot_inverse" title="Link to this definition">¶</a></dt>
+<dd><p>Inverse of a rigid 4x4 transform (BOSL2 rot_inverse()): transpose the rotation, un-translate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.transforms.rot_decode">
+<span class="sig-prename descclassname"><span class="pre">bosl2.transforms.</span></span><span class="sig-name descname"><span class="pre">rot_decode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/transforms.html#rot_decode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.transforms.rot_decode" title="Link to this definition">¶</a></dt>
+<dd><p>Decode a rigid 4x4 transform into its screw motion (BOSL2 rot_decode()).</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">[angle_degrees,</span> <span class="pre">axis,</span> <span class="pre">cp,</span> <span class="pre">translation_along_axis]</span></code> – rotating by <em>angle</em> about the
+line through <em>cp</em> in direction <em>axis</em> then translating along the axis reproduces <em>m</em>. <em>axis</em>,
+<em>cp</em> and the axial translation are returned as <a class="reference internal" href="constants.html#bosl2.constants.Vec3" title="bosl2.constants.Vec3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vec3</span></code></a>. With <em>long</em>, the
+complementary (&gt;180 degree) rotation about the reversed axis is chosen.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>long</strong> (<em>bool</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="bosl2.transforms.reorient">
 <span class="sig-prename descclassname"><span class="pre">bosl2.transforms.</span></span><span class="sig-name descname"><span class="pre">reorient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/transforms.html#reorient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.transforms.reorient" title="Link to this definition">¶</a></dt>
 <dd><p>The 4x4 matrix that reorients a cuboid of <em>size</em> onto <em>anchor</em>/<em>spin</em>/<em>orient</em>.</p>
@@ -169,6 +214,9 @@ cross the native FFI boundary.</p>
 <li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.polar_to_xy"><code class="docutils literal notranslate"><span class="pre">polar_to_xy()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.rot_from_to"><code class="docutils literal notranslate"><span class="pre">rot_from_to()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.axis_angle_matrix"><code class="docutils literal notranslate"><span class="pre">axis_angle_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.rot_about_axis"><code class="docutils literal notranslate"><span class="pre">rot_about_axis()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.rot_inverse"><code class="docutils literal notranslate"><span class="pre">rot_inverse()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.rot_decode"><code class="docutils literal notranslate"><span class="pre">rot_decode()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.reorient"><code class="docutils literal notranslate"><span class="pre">reorient()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bosl2.transforms.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
 </ul>

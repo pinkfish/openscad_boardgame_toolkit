@@ -33,8 +33,110 @@
 
           <div class="body" role="main">
             
-  <section id="module-bosl2.shapes3d">
-<span id="d-shapes-and-bosl2solid"></span><h1>3-D shapes and Bosl2Solid<a class="headerlink" href="#module-bosl2.shapes3d" title="Link to this heading">¶</a></h1>
+  <section id="d-shapes-and-bosl2solid">
+<h1>3-D shapes and Bosl2Solid<a class="headerlink" href="#d-shapes-and-bosl2solid" title="Link to this heading">¶</a></h1>
+<p>Pure-Python port of the 3-D shape generators from BOSL2’s <code class="docutils literal notranslate"><span class="pre">shapes3d.scad</span></code>. Each returns a
+<a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bosl2Solid</span></code></a> wrapping native geometry, with BOSL2-style anchor/spin/orient
+support and bbox-backed attachment methods.</p>
+<section id="coverage-of-bosl2-shapes3d-scad">
+<h2>Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">shapes3d.scad</span></code><a class="headerlink" href="#coverage-of-bosl2-shapes3d-scad" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 15.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>BOSL2 shape</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cube</span></code> / <code class="docutils literal notranslate"><span class="pre">cuboid</span></code></p></td>
+<td><p>ported</p></td>
+<td><p>with chamfer / rounding / edge selection</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">prismoid</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regular_prism</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">octahedron</span></code> / <code class="docutils literal notranslate"><span class="pre">wedge</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cylinder</span></code> / <code class="docutils literal notranslate"><span class="pre">cyl</span></code> / <code class="docutils literal notranslate"><span class="pre">xcyl</span></code> / <code class="docutils literal notranslate"><span class="pre">ycyl</span></code> / <code class="docutils literal notranslate"><span class="pre">zcyl</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tube</span></code> / <code class="docutils literal notranslate"><span class="pre">rect_tube</span></code> / <code class="docutils literal notranslate"><span class="pre">pie_slice</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sphere</span></code> / <code class="docutils literal notranslate"><span class="pre">spheroid</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">torus</span></code> / <code class="docutils literal notranslate"><span class="pre">teardrop</span></code> / <code class="docutils literal notranslate"><span class="pre">onion</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">text3d</span></code> / <code class="docutils literal notranslate"><span class="pre">path_text</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">interior_fillet</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">heightfield</span></code> / <code class="docutils literal notranslate"><span class="pre">cylindrical_heightfield</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ruler</span></code></p></td>
+<td><p>ported</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot3d</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.shapes3d.plot3d" title="bosl2.shapes3d.plot3d"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot3d()</span></code></a> — a <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">f(x,</span> <span class="pre">y)</span></code> surface plot, with an optional solid base</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fillet</span></code></p></td>
+<td><p>not ported</p></td>
+<td><p>the concave edge-fillet mask (module-only in BOSL2); use <code class="docutils literal notranslate"><span class="pre">interior_fillet</span></code> /
+<code class="docutils literal notranslate"><span class="pre">mask2d_roundover</span></code> — port on request</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plot_revolution</span></code></p></td>
+<td><p>not ported</p></td>
+<td><p>the revolved-function plotter (<code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">=</span> <span class="pre">f(angle,</span> <span class="pre">z)</span></code>); niche — port on request</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">textured_tile</span></code></p></td>
+<td><p>not ported</p></td>
+<td><p>needs the BOSL2 texture engine (not ported)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="bosl2solid-attachment">
+<h2>Bosl2Solid &amp; attachment<a class="headerlink" href="#bosl2solid-attachment" title="Link to this heading">¶</a></h2>
+<p>Every 3-D shape is a <a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bosl2Solid</span></code></a>, which carries the transform methods
+(<code class="docutils literal notranslate"><span class="pre">translate</span></code>/<code class="docutils literal notranslate"><span class="pre">move</span></code>, <code class="docutils literal notranslate"><span class="pre">rotate</span></code>/<code class="docutils literal notranslate"><span class="pre">rot</span></code>, <code class="docutils literal notranslate"><span class="pre">right</span></code>/<code class="docutils literal notranslate"><span class="pre">left</span></code>/<code class="docutils literal notranslate"><span class="pre">back</span></code>/<code class="docutils literal notranslate"><span class="pre">forward</span></code>/<code class="docutils literal notranslate"><span class="pre">up</span></code>/<code class="docutils literal notranslate"><span class="pre">down</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mirror</span></code>, <code class="docutils literal notranslate"><span class="pre">scale</span></code>, <code class="docutils literal notranslate"><span class="pre">color</span></code>) and the BOSL2 attachment methods —
+<code class="docutils literal notranslate"><span class="pre">bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">anchor_point</span></code>, <code class="docutils literal notranslate"><span class="pre">reanchor</span></code>, <code class="docutils literal notranslate"><span class="pre">reorient</span></code>, <code class="docutils literal notranslate"><span class="pre">orient</span></code>, <code class="docutils literal notranslate"><span class="pre">position</span></code>, <code class="docutils literal notranslate"><span class="pre">attach</span></code>,
+<code class="docutils literal notranslate"><span class="pre">align</span></code>, plus the edge/corner/face masking (<code class="docutils literal notranslate"><span class="pre">edge_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">edge_profile</span></code>, <code class="docutils literal notranslate"><span class="pre">corner_profile</span></code>,
+<code class="docutils literal notranslate"><span class="pre">face_profile</span></code>). All of these read the object’s <strong>native bounding box</strong>, so a size never needs to
+be threaded through the calls — e.g. <code class="docutils literal notranslate"><span class="pre">cuboid([40,30,20]).attach(TOP,</span> <span class="pre">sphere(r=6))</span></code> or
+<code class="docutils literal notranslate"><span class="pre">cyl(h=20,</span> <span class="pre">r=5).orient(RIGHT)</span></code> just work on the built object.</p>
+<p>The BOSL2 attachment <em>framework</em> internals (<code class="docutils literal notranslate"><span class="pre">attachable</span></code>, <code class="docutils literal notranslate"><span class="pre">attach_geom</span></code>, named anchors, the
+<code class="docutils literal notranslate"><span class="pre">tag</span></code>/<code class="docutils literal notranslate"><span class="pre">diff</span></code>/<code class="docutils literal notranslate"><span class="pre">intersect</span></code> tagged-CSG operations, and the <code class="docutils literal notranslate"><span class="pre">show_anchors</span></code>/description helpers)
+are not ported — the methods above cover positioning/masking directly on the object.</p>
+</section>
+<section id="module-bosl2.shapes3d">
+<span id="api-reference"></span><h2>API reference<a class="headerlink" href="#module-bosl2.shapes3d" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="bosl2.shapes3d.Bosl2Solid">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">bosl2.shapes3d.</span></span><span class="sig-name descname"><span class="pre">Bosl2Solid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#Bosl2Solid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.Bosl2Solid" title="Link to this definition">¶</a></dt>
@@ -370,6 +472,45 @@ face OPPOSITE parent_anchor, so the two mate naturally)</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="bosl2.shapes3d.Bosl2Solid.reorient">
+<span class="sig-name descname"><span class="pre">reorient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#Bosl2Solid.reorient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.Bosl2Solid.reorient" title="Link to this definition">¶</a></dt>
+<dd><p>Reorient this already-built object by its bounding box (BOSL2 reorient()).</p>
+<p>Moves the bounding-box <em>anchor</em> point to the origin, spins <em>spin</em> degrees about Z, then
+rotates the object’s UP toward <em>orient</em>. The size comes from the native bbox, so – unlike
+BOSL2’s function form – you never pass it. cube()/cuboid()/etc. take anchor/spin/orient at
+construction; this applies the same transform to any object after the fact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>anchor</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>)</p></li>
+<li><p><strong>spin</strong> (<em>float</em>)</p></li>
+<li><p><strong>orient</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><em>Bosl2Solid</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosl2.shapes3d.Bosl2Solid.orient">
+<span class="sig-name descname"><span class="pre">orient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#Bosl2Solid.orient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.Bosl2Solid.orient" title="Link to this definition">¶</a></dt>
+<dd><p>Rotate this object so its top (UP) faces <em>direction</em> (BOSL2 orient()); uses the bbox.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>)</p></li>
+<li><p><strong>spin</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><em>Bosl2Solid</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="bosl2.shapes3d.Bosl2Solid.edge_mask">
 <span class="sig-name descname"><span class="pre">edge_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ALL'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">except_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#Bosl2Solid.edge_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.Bosl2Solid.edge_mask" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -530,13 +671,13 @@ create external fillets, but only apply to edges around the top or bottom face.<
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-c449a5b6c90e483a8b4fcb2e75159243" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-ddb682b515c84b16b418aa418c7c551e" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-c449a5b6c90e483a8b4fcb2e75159243");
+const el = document.getElementById("stlviewer-ddb682b515c84b16b418aa418c7c551e");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -585,13 +726,13 @@ window.addEventListener("resize", resize);
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-f8719c71aaae4c7e90d7d4453acdb5a3" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-952691c2d0ca41d98e624cd973d10e35" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-f8719c71aaae4c7e90d7d4453acdb5a3");
+const el = document.getElementById("stlviewer-952691c2d0ca41d98e624cd973d10e35");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -676,13 +817,13 @@ window.addEventListener("resize", resize);
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-cd221ef6bc6447fd9e11f8bc974cc405" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-12a46250d4354961baf136f14bd29e1a" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-cd221ef6bc6447fd9e11f8bc974cc405");
+const el = document.getElementById("stlviewer-12a46250d4354961baf136f14bd29e1a");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -912,13 +1053,13 @@ and revolves it with rotate_extrude().</p>
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-df19dabb9d5d4dfe9564de3cc0b8eb50" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-5d262b34aaa443c5a0023d855fe3a6ef" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-df19dabb9d5d4dfe9564de3cc0b8eb50");
+const el = document.getElementById("stlviewer-5d262b34aaa443c5a0023d855fe3a6ef");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -967,13 +1108,13 @@ window.addEventListener("resize", resize);
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-9ef52a1ffe504bad9ec10045a1cc5904" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-c16bbfe99f4d4973985981a6552a1db5" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-9ef52a1ffe504bad9ec10045a1cc5904");
+const el = document.getElementById("stlviewer-c16bbfe99f4d4973985981a6552a1db5");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1080,13 +1221,13 @@ texturing machinery this pure-Python port doesn’t implement).</p>
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-174bcc3bac5843bc9fe7e4000d90e329" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-a690f470b9d944b8ae91f3d0cace3b92" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-174bcc3bac5843bc9fe7e4000d90e329");
+const el = document.getElementById("stlviewer-a690f470b9d944b8ae91f3d0cace3b92");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1135,13 +1276,13 @@ window.addEventListener("resize", resize);
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-1d05ea739eb04b88a82f1034a757adc6" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-bf7b52e4133748ed91ec8736de2664bb" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-1d05ea739eb04b88a82f1034a757adc6");
+const el = document.getElementById("stlviewer-bf7b52e4133748ed91ec8736de2664bb");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1344,13 +1485,13 @@ Python keyword <cite>or</cite>; they are exposed here as <cite>outer_r</cite>/<c
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-ea6077b85b34413f94f4442985a3062d" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-5808e2831e4f46de837eddaa9dcbbb0e" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-ea6077b85b34413f94f4442985a3062d");
+const el = document.getElementById("stlviewer-5808e2831e4f46de837eddaa9dcbbb0e");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1459,13 +1600,13 @@ builtin sphere() is used directly.</p>
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-ea660cec8edd41fea7531dc13c2391e3" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-f9765510389c46d6a4ee2947abff5698" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-ea660cec8edd41fea7531dc13c2391e3");
+const el = document.getElementById("stlviewer-f9765510389c46d6a4ee2947abff5698");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1571,13 +1712,13 @@ keyword <cite>or</cite>; it is exposed here as <cite>outer_r</cite> instead.</p>
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-8583417bc97a4e2a96c4ae0981961897" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-316d34b80ae04b40a631d0eb7de55e4b" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-8583417bc97a4e2a96c4ae0981961897");
+const el = document.getElementById("stlviewer-316d34b80ae04b40a631d0eb7de55e4b");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -1831,6 +1972,85 @@ window.addEventListener("resize", resize);
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="bosl2.shapes3d.plot3d">
+<span class="sig-prename descclassname"><span class="pre">bosl2.shapes3d.</span></span><span class="sig-name descname"><span class="pre">plot3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zclip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zspan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#plot3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.plot3d" title="Link to this definition">¶</a></dt>
+<dd><p>A surface plot of <code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">f(x,</span> <span class="pre">y)</span></code> over a grid of <em>x</em>, <em>y</em> values (BOSL2 plot3d()).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – a callable <code class="docutils literal notranslate"><span class="pre">f(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">z</span></code></p></li>
+<li><p><strong>x</strong> – strictly increasing lists of sample coordinates</p></li>
+<li><p><strong>y</strong> – strictly increasing lists of sample coordinates</p></li>
+<li><p><strong>zclip</strong> – [zmin, zmax] to clamp the surface (default no clip)</p></li>
+<li><p><strong>zspan</strong> – [zmin, zmax] to rescale the surface height into (default no rescale)</p></li>
+<li><p><strong>base</strong> (<em>float</em>) – thickness of solid base below the surface; 0 gives just the (open) surface (default 1)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><em>Bosl2Solid</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A rippled surface plotted as a solid slab:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s3</span><span class="o">.</span><span class="n">plot3d</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="mi">6</span><span class="p">),</span>
+          <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-1bb0c7dd46c74a1d8006d7bed069fe28" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-1bb0c7dd46c74a1d8006d7bed069fe28");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/109ab2fbea42392b.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/109ab2fbea42392b.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="bosl2.shapes3d.ruler">
 <span class="sig-prename descclassname"><span class="pre">bosl2.shapes3d.</span></span><span class="sig-name descname"><span class="pre">ruler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3333333333333333</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['black',</span> <span class="pre">'white']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[-1,</span> <span class="pre">1,</span> <span class="pre">1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">1]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes3d.html#ruler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes3d.ruler" title="Link to this definition">¶</a></dt>
 <dd><p>BOSL2 ruler() – a ruler for measuring objects in the viewport.</p>
@@ -1859,6 +2079,7 @@ window.addEventListener("resize", resize);
 </dl>
 </dd></dl>
 
+</section>
 </section>
 
 
@@ -1894,32 +2115,9 @@ window.addEventListener("resize", resize);
 <li class="toctree-l1"><a class="reference internal" href="vnf.html">VNF meshes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="skin.html">Sweeps (skin)</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3-D shapes and Bosl2Solid</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.Bosl2Solid"><code class="docutils literal notranslate"><span class="pre">Bosl2Solid</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.cube"><code class="docutils literal notranslate"><span class="pre">cube()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.cuboid"><code class="docutils literal notranslate"><span class="pre">cuboid()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.prismoid"><code class="docutils literal notranslate"><span class="pre">prismoid()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.octahedron"><code class="docutils literal notranslate"><span class="pre">octahedron()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.wedge"><code class="docutils literal notranslate"><span class="pre">wedge()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.rect_tube"><code class="docutils literal notranslate"><span class="pre">rect_tube()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.cylinder"><code class="docutils literal notranslate"><span class="pre">cylinder()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.cyl"><code class="docutils literal notranslate"><span class="pre">cyl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.regular_prism"><code class="docutils literal notranslate"><span class="pre">regular_prism()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.xcyl"><code class="docutils literal notranslate"><span class="pre">xcyl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.ycyl"><code class="docutils literal notranslate"><span class="pre">ycyl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.zcyl"><code class="docutils literal notranslate"><span class="pre">zcyl()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.tube"><code class="docutils literal notranslate"><span class="pre">tube()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.pie_slice"><code class="docutils literal notranslate"><span class="pre">pie_slice()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.sphere"><code class="docutils literal notranslate"><span class="pre">sphere()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.spheroid"><code class="docutils literal notranslate"><span class="pre">spheroid()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.torus"><code class="docutils literal notranslate"><span class="pre">torus()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.teardrop"><code class="docutils literal notranslate"><span class="pre">teardrop()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.onion"><code class="docutils literal notranslate"><span class="pre">onion()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.text3d"><code class="docutils literal notranslate"><span class="pre">text3d()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.path_text"><code class="docutils literal notranslate"><span class="pre">path_text()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.interior_fillet"><code class="docutils literal notranslate"><span class="pre">interior_fillet()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.heightfield"><code class="docutils literal notranslate"><span class="pre">heightfield()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.cylindrical_heightfield"><code class="docutils literal notranslate"><span class="pre">cylindrical_heightfield()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bosl2.shapes3d.ruler"><code class="docutils literal notranslate"><span class="pre">ruler()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coverage-of-bosl2-shapes3d-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">shapes3d.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bosl2solid-attachment">Bosl2Solid &amp; attachment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bosl2.shapes3d">API reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="shapes2d.html">2-D shapes</a></li>

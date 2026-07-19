@@ -36,9 +36,13 @@ for _p in (_examples, _root):
     if _p not in sys.path: sys.path.insert(0, _p)
 from base_bgtk import *
 import base_bgtk
+from pythonscad import osuse
 
-b = base_bgtk._bosl2
-out = {"reorient": [], "apply": [], "arc": []}
+# The pure-Python bosl2/ port no longer osuse()s BOSL2, so load the real library directly here
+# (this generator is the sole remaining osuse() user, kept to re-derive the fixture).
+b = osuse(base_bgtk.BOSL2_STD_PATH)
+out = {"reorient": [], "apply": [], "arc": [], "catenary": [], "helix": [], "turtle": [],
+       "distrib": []}
 
 ANCH = {"CENTER": CENTER, "BOTTOM": BOTTOM, "TOP": TOP,
         "BFL": BOTTOM+FRONT+LEFT, "TRB": TOP+RIGHT+BACK, "LEFT": LEFT}
@@ -70,6 +74,49 @@ out["arc"].append({"kw": "r16_start0_ang60_n?", "res": jl(b.arc(r=16, start=0, a
 out["arc"].append({"kw": "r5_start30_ang90", "res": jl(b.arc(r=5, start=30, angle=90))})
 out["arc"].append({"kw": "n8_pts3", "res": jl(b.arc(n=8, points=[[-0.5,0],[0,0.3],[0.5,0]]))})
 out["arc"].append({"kw": "n12_pts3b", "res": jl(b.arc(n=12, points=[[-1,0],[0,1],[1,0]]))})
+out["arc"].append({"kw": "wedge_r10_ang90", "res": jl(b.arc(r=10, angle=90, wedge=True))})
+out["arc"].append({"kw": "range_r10_30_90_n?", "res": jl(b.arc(r=10, angle=[30,90]))})
+out["arc"].append({"kw": "width10_thick3_n7", "res": jl(b.arc(n=7, width=10, thickness=3))})
+out["arc"].append({"kw": "cp2pts_short_n6", "res": jl(b.arc(n=6, cp=[0,0], points=[[10,0],[0,10]]))})
+out["arc"].append({"kw": "cp2pts_long_n6", "res": jl(b.arc(n=6, cp=[0,0], points=[[10,0],[0,10]], long=True))})
+out["arc"].append({"kw": "corner_r3", "res": jl(b.arc(corner=[[0,10],[0,0],[10,0]], r=3))})
+
+# catenary
+out["catenary"].append({"kw": "w80_droop30_n20", "res": jl(b.catenary(width=80, droop=30, n=20))})
+out["catenary"].append({"kw": "w80_angle45_n20", "res": jl(b.catenary(width=80, angle=45, n=20))})
+out["catenary"].append({"kw": "w50_droopneg15_n15", "res": jl(b.catenary(width=50, droop=-15, n=15))})
+
+# helix
+out["helix"].append({"kw": "turns2.5_h100_r30", "res": jl(b.helix(turns=2.5, h=100, r=30))})
+out["helix"].append({"kw": "flat_r1_50_r2_25_turns4", "res": jl(b.helix(h=0, r1=50, r2=25, l=0, turns=4))})
+out["helix"].append({"kw": "turnsneg2_h60_r20", "res": jl(b.helix(turns=-2, h=60, r=20))})
+
+# turtle
+out["turtle"].append({"kw": "square_left", "res": jl(b.turtle(["move",40,"left",90,"move",40,"left",90,"move",40,"left",90,"move",40]))})
+out["turtle"].append({"kw": "repeat4", "res": jl(b.turtle(["repeat",4,["move",40,"left",90]]))})
+out["turtle"].append({"kw": "arcleft_rounded", "res": jl(b.turtle(["move",40,"arcleft",8,"move",40,"arcleft",8,"move",40,"arcleft",8,"move",40,"arcleft",8]))})
+out["turtle"].append({"kw": "arcrightto", "res": jl(b.turtle(["move",20,"arcrightto",10,-90]))})
+
+# distributors (function form: a list of 4x4 transformation matrices)
+_dpath = [[0,0],[20,0],[20,20],[40,20]]
+out["distrib"].append({"kw": "move_copies", "res": jl(b.move_copies([[0,0,0],[5,5,5],[10,0,-3]]))})
+out["distrib"].append({"kw": "xcopies_n", "res": jl(b.xcopies(20, n=3))})
+out["distrib"].append({"kw": "ycopies_l", "res": jl(b.ycopies(l=50, n=4))})
+out["distrib"].append({"kw": "zcopies_list", "res": jl(b.zcopies([1,3,7]))})
+out["distrib"].append({"kw": "line_spacing", "res": jl(b.line_copies(spacing=10, n=5))})
+out["distrib"].append({"kw": "line_vec_l", "res": jl(b.line_copies(l=[10,20,0], n=4))})
+out["distrib"].append({"kw": "grid_nspacing", "res": jl(b.grid_copies(n=[3,2], spacing=10))})
+out["distrib"].append({"kw": "grid_stagger", "res": jl(b.grid_copies(spacing=8, n=[4,3], stagger=True))})
+out["distrib"].append({"kw": "rot_n6", "res": jl(b.rot_copies(n=6))})
+out["distrib"].append({"kw": "xrot_ring", "res": jl(b.xrot_copies(n=5, r=10))})
+out["distrib"].append({"kw": "yrot_ring", "res": jl(b.yrot_copies(n=4, r=12))})
+out["distrib"].append({"kw": "zrot_list", "res": jl(b.zrot_copies([0,30,60], r=8))})
+out["distrib"].append({"kw": "arc_r", "res": jl(b.arc_copies(n=6, r=20))})
+out["distrib"].append({"kw": "arc_ellipse", "res": jl(b.arc_copies(n=5, rx=20, ry=10, sa=30, ea=200))})
+out["distrib"].append({"kw": "sphere", "res": jl(b.sphere_copies(n=8, r=30, cone_ang=90))})
+out["distrib"].append({"kw": "mirror_off", "res": jl(b.mirror_copy([1,1,0], offset=2))})
+out["distrib"].append({"kw": "xflip", "res": jl(b.xflip_copy(offset=3, x=1))})
+out["distrib"].append({"kw": "path_n", "res": jl(b.path_copies(_dpath, n=5))})
 
 open(os.environ["TRUTH_OUT"], "w").write(json.dumps(out, indent=1))
 cube(1).show()

@@ -31,9 +31,9 @@ from typing import Any
 
 import numpy as np
 
-from bosl2.paths import Path  # Path lives in paths.py now; re-exported here for compatibility
+from bosl2.paths import Path, Path3D  # Path/Path3D live in paths.py; re-exported here for compatibility
 
-__all__ = ["Path", "Region"]
+__all__ = ["Path", "Path3D", "Region"]
 
 
 class Region(list):
@@ -109,6 +109,18 @@ class Region(list):
         for hole in self.holes:
             shape = shape - hole.polygon()
         return shape
+
+    def stroke(self, width: float = 1, **kwargs: Any):
+        """Draw every path in this region as a closed solid line (see :func:`bosl2.drawing.stroke`)."""
+        from bosl2.drawing import stroke as _stroke
+
+        return _stroke(self, width=width, **kwargs)
+
+    def dashed_stroke(self, dashpat: Sequence[float] = (3, 3), **kwargs: Any) -> list[Path]:
+        """Break every path in this region into dash sub-paths (see :func:`bosl2.drawing.dashed_stroke`)."""
+        from bosl2.drawing import dashed_stroke as _dashed
+
+        return _dashed(self, dashpat=dashpat, **kwargs)
 
     def __repr__(self) -> str:
         return f"Region({len(self)} paths: {[len(p) for p in self]})"

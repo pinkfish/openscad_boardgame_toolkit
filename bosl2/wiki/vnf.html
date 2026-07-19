@@ -59,13 +59,13 @@ rectangular grid of sample points with <a class="reference internal" href="#bosl
 </pre></div>
 </div>
 
-<div class="stl-viewer" id="stlviewer-bebaee3c67b3488f8071791240370ca7" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<div class="stl-viewer" id="stlviewer-aa03f4b16570404f8fd79edca12eb6b6" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
 <script type="module">
 import * as THREE from "https://esm.sh/three@0.160.0";
 import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
-const el = document.getElementById("stlviewer-bebaee3c67b3488f8071791240370ca7");
+const el = document.getElementById("stlviewer-aa03f4b16570404f8fd79edca12eb6b6");
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#f7f7f9");
 const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
@@ -127,6 +127,19 @@ window.addEventListener("resize", resize);
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="bosl2.vnf.VNF.volume">
+<span class="sig-name descname"><span class="pre">volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/vnf.html#VNF.volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.vnf.VNF.volume" title="Link to this definition">¶</a></dt>
+<dd><p>Signed enclosed volume (BOSL2 vnf_volume()); negative when the faces wind inward.</p>
+<p>Used to detect and fix inverted meshes (a swept/skinned surface whose winding came out
+inside-out): <code class="docutils literal notranslate"><span class="pre">vnf</span> <span class="pre">if</span> <span class="pre">vnf.volume()</span> <span class="pre">&gt;=</span> <span class="pre">0</span> <span class="pre">else</span> <span class="pre">vnf.reverse()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>

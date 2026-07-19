@@ -65,6 +65,8 @@ API reference
    skin
    shapes3d
    shapes2d
+   drawing
+   distributors
    masking
    transforms
    geometry

@@ -170,6 +170,24 @@
         <span class="k">return</span> <span class="n">VNF</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="p">[</span><span class="n">f</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">])</span></div>
 
 
+<div class="viewcode-block" id="VNF.volume">
+<a class="viewcode-back" href="../../vnf.html#bosl2.vnf.VNF.volume">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Signed enclosed volume (BOSL2 vnf_volume()); negative when the faces wind inward.</span>
+
+<span class="sd">        Used to detect and fix inverted meshes (a swept/skinned surface whose winding came out</span>
+<span class="sd">        inside-out): ``vnf if vnf.volume() &gt;= 0 else vnf.reverse()``.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>  <span class="c1"># fan-triangulate each (possibly n-gon) face</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">total</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">]],</span> <span class="n">v</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])))</span>
+        <span class="k">return</span> <span class="n">total</span> <span class="o">/</span> <span class="mf">6.0</span></div>
+
+
 <div class="viewcode-block" id="VNF.join">
 <a class="viewcode-back" href="../../vnf.html#bosl2.vnf.VNF.join">[docs]</a>
     <span class="nd">@staticmethod</span>

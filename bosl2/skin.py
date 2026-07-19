@@ -32,14 +32,17 @@
 #      * linear_sweep(region, h)    -- extrude an outline with twist/scale/shift
 #      * rotate_sweep(shape, angle) -- revolve a profile around Z
 #      * spiral_sweep(poly, h, r)   -- sweep a cross-section along a helix
+#      * path_sweep2d(shape, path)  -- sweep a 2-D shape along a 2-D path
+#      * rot_resample(rotlist, n)   -- resample a transform list along its screw motion
+#      * subdivide_and_slice() / slice_profiles() -- the skin() profile helpers
 #
 #    NOT ported (they depend on machinery this pure-Python port does not
 #    implement, and nothing in the toolkit needs them): the texture engine
 #    (texture()/tex_* options), the attachment/anchor system (anchors,
 #    sweep_attach()), rounded/chamfered "fancy" end caps, region shapes with
 #    holes (use a native linear_extrude/CSG), the skin() "distance"/
-#    "fast_distance"/"tangent" vertex-matching methods, spiral_sweep()'s lead-in
-#    tapers, path_sweep2d(), and the rot_resample()/associate_vertices() helpers.
+#    "fast_distance"/"tangent" vertex-matching methods (and associate_vertices()),
+#    and spiral_sweep()'s lead-in tapers.
 #
 # FileSummary: Skin/sweep/revolve 2-D profiles into VNF surfaces (BOSL2 skin.scad).
 # FileGroup: BOSL2
@@ -48,11 +51,12 @@ import math
 
 import numpy as np
 
-from bosl2.transforms import apply as _apply
+from bosl2.transforms import apply as _apply, rot_about_axis, rot_decode, rot_inverse
+from bosl2.constants import Vec3
 from bosl2.vnf import VNF
 
-UP = [0.0, 0.0, 1.0]
-BACK = [0.0, 1.0, 0.0]
+UP = Vec3([0.0, 0.0, 1.0])
+BACK = Vec3([0.0, 1.0, 0.0])
 
 
 def _u(v) -> np.ndarray:
@@ -520,3 +524,223 @@ def spiral_sweep(poly, h, r=None, turns: float = 1.0, r1=None, r2=None, d=None, 
                           @ _translate4([rad, 0, 0]) @ _xrot4(90))
     vnf = sweep(poly, transforms, closed=False, caps=True, style=style)
     return vnf if vnf.volume() >= 0 else vnf.reverse()
+
+
+def subdivide_and_slice(profiles, slices, numpoints=None, method: str = "length", closed: bool = False) -> list:
+    """Resample every profile up to *numpoints* then interpolate *slices* between them (BOSL2 subdivide_and_slice()).
+
+    *numpoints* defaults to the largest profile's length; "lcm" uses the least common multiple of
+    the profile lengths. Returns the stacked list of (equal-length) profiles."""
+    from bosl2.paths import Path
+
+    maxsize = max(len(p) for p in profiles)
+    if numpoints is None:
+        numpoints = maxsize
+    elif numpoints == "lcm":
+        from functools import reduce
+        numpoints = reduce(lambda a, b: a * b // math.gcd(a, b), [len(p) for p in profiles])
+    numpoints = int(round(numpoints))
+    assert numpoints >= maxsize, "subdivide_and_slice(): numpoints is smaller than the largest profile."
+    fixed = [Path._subdivide_path(p, n=numpoints, closed=True, method=method) for p in profiles]
+    return slice_profiles(fixed, slices, closed)
+
+
+# ---------------------------------------------------------------------------------------------
+# path_sweep2d() -- sweep a 2-D shape along a 2-D path (creases allowed)
+# ---------------------------------------------------------------------------------------------
+
+
+def path_sweep2d(shape, path, closed: bool = False, caps=None, quality: int = 1,
+                 style: str = "min_edge") -> VNF:
+    """Sweep a 2-D *shape* along a 2-D *path*, mapping the shape's Y to Z (BOSL2 path_sweep2d()).
+
+    Both *shape* and *path* are 2-D :class:`~bosl2.paths.Path` objects (coerced from point lists).
+    Each shape point offsets the path by its X and lifts it to its Y, so a shape with a wide X
+    range becomes a wall of varying width along the path. Unlike :func:`path_sweep`, moderate local
+    concavity is handled by the offset (mitre joins); an offset large enough to collapse a feature
+    of the path will still fold, so keep the shape's X extent below the path's tightest radius.
+
+    Args:
+        shape:  the 2-D cross-section (a closed path); its X is the offset from the path, its Y the height
+        path:   the 2-D path to sweep along
+        closed: the path is a closed loop (default False)
+        caps:   cap the open ends (default: True for open, False for closed)
+        quality: accepted for signature parity (unused -- the mitre offset needs no quality knob)
+        style:  vnf_vertex_array quad-subdivision style
+
+    Examples:
+        A rounded bar swept along a wavy 2-D path:
+
+        .. pythonscad-example::
+
+            shape = [[-2, -2], [2, -2], [2, 2], [-2, 2]]
+            path = [[t, 8 * math.sin(t / 12)] for t in range(0, 90, 3)]
+            path_sweep2d(shape, path).polyhedron().show()
+    """
+    from bosl2.paths import Path
+
+    shape = Path(shape)
+    path = Path(path)
+    if caps is None:
+        caps = False if closed else True
+    fullcaps = [False, False] if closed else ([caps, caps] if isinstance(caps, bool) else [bool(caps[0]), bool(caps[1])])
+    profile = shape if not shape.is_clockwise() else shape.reversed_path()  # ccw_polygon
+    flip = -1.0 if (closed and path.is_clockwise()) else 1.0
+    pth = path if flip > 0 else path.reversed_path()
+
+    # For each profile point, offset the path by -flip*x and lift the result to z=y.
+    per_point = []
+    for pt in profile:
+        off = pth.offset(delta=-flip * pt[0])
+        assert len(off) == len(pth), (
+            "path_sweep2d(): the offset dropped points (the shape is too wide for the path here); "
+            "reduce the shape's X extent."
+        )
+        per_point.append([[float(p[0]), float(p[1]), float(pt[1])] for p in off])
+    # transpose: one grid row per path position, each a full cross-section
+    grid = [[per_point[j][i] for j in range(len(profile))] for i in range(len(pth))]
+    if closed:
+        grid = grid + [grid[0]]
+    vnf = VNF.vertex_array(grid, cap1=fullcaps[0], cap2=fullcaps[1], col_wrap=True, style=style)
+    return vnf if vnf.volume() >= 0 else vnf.reverse()
+
+
+# ---------------------------------------------------------------------------------------------
+# rot_resample() -- resample a list of transforms to uniform screw-motion spacing
+# ---------------------------------------------------------------------------------------------
+
+
+def _closest_angle(alpha: float, beta):
+    """Congruent angle to *beta* nearest *alpha* (within +/-180 degrees); *beta* may be a list."""
+    if isinstance(beta, (list, tuple, np.ndarray)):
+        return [_closest_angle(alpha, b) for b in beta]
+    if beta - alpha > 180:
+        return beta - math.ceil((beta - alpha - 180) / 360) * 360
+    if beta - alpha < -180:
+        return beta + math.ceil((alpha - beta - 180) / 360) * 360
+    return beta
+
+
+def _smooth(data, length: int, closed: bool = False, angle: bool = False) -> list:
+    """Moving-average smooth of *data* over a window of *length* (BOSL2 _smooth()).
+
+    With *angle*, values are unwrapped to the nearest congruent angle before averaging so the mean
+    does not jump across the +/-180 boundary. Ends are padded with the edge value (open case)."""
+    halfwidth = length // 2
+    n = len(data)
+    out = []
+    if closed:
+        for i in range(n):
+            window = [data[(i + k) % n] for k in range(-halfwidth, halfwidth + 1)]
+            if angle:
+                window = _closest_angle(data[i], window)
+            out.append(sum(window) / len(window))
+    else:
+        for i in range(n):
+            lo, hi = max(i - halfwidth, 0), min(i + halfwidth, n - 1)
+            window = list(data[lo:hi + 1])
+            pad = data[0] if (i - halfwidth) < 0 else data[-1]
+            out.append((sum(window) + pad * (length - len(window))) / length)
+    return out
+
+
+def rot_resample(rotlist, n, twist=None, scale=None, smoothlen: int = 1, long=False,
+                 turns=0, closed: bool = False, method: str = "length") -> list:
+    """Resample a list of 4x4 transforms to uniform screw-motion spacing (BOSL2 rot_resample()).
+
+    Interpolates between successive transforms along their screw motion (via :func:`rot_decode`),
+    optionally adding *twist* and *scale* (smoothed over *smoothlen*). Handy for regularizing the
+    transform list from ``path_sweep(..., transforms=True)`` before handing it to :func:`sweep`.
+
+    Args:
+        rotlist: list of 4x4 transform matrices
+        n:       number of output samples (method="length") or samples per gap (method="count")
+        twist:   extra twist in degrees (scalar or per-gap list)
+        scale:   extra scale (scalar or per-gap list, multiplied cumulatively)
+        smoothlen: odd window length for smoothing the twist/scale (default 1 = none)
+        long:    take the >180-degree rotation at a gap (scalar or per-gap list)
+        turns:   extra full turns to add at a gap (scalar or per-gap list)
+        closed:  the transform list forms a loop (default False)
+        method:  "length" (uniform screw-distance) or "count" (fixed samples per gap)
+    """
+    rotlist = [np.asarray(t, dtype=float) for t in rotlist]
+    assert smoothlen > 0 and smoothlen % 2 == 1, "rot_resample(): smoothlen must be a positive odd integer."
+    assert method in ("length", "count")
+    m = len(rotlist)
+    tcount = m + (0 if closed else -1)
+    if method == "length":
+        count = (n + 1) if closed else n
+    else:
+        count = (sum(n) if isinstance(n, (list, tuple)) else tcount * n) + 1
+    long_l = list(long) if isinstance(long, (list, tuple)) else [long] * tcount
+    turns_l = list(turns) if isinstance(turns, (list, tuple)) else [turns] * tcount
+
+    steps = [rot_inverse(rotlist[i]) @ rotlist[(i + 1) % m] for i in range(tcount)]
+    parms = []
+    for i in range(tcount):
+        tp = rot_decode(steps[i], long_l[i])
+        parms.append([tp[0] + turns_l[i] * 360, np.asarray(tp[1], dtype=float),
+                      np.asarray(tp[2], dtype=float), np.asarray(tp[3], dtype=float)])
+    radius = [float(np.linalg.norm(p[2])) for p in parms]
+    length = [float(math.hypot(float(np.linalg.norm(parms[i][3])), parms[i][0] / 360 * 2 * math.pi * radius[i]))
+              for i in range(tcount)]
+    if method == "length":
+        assert all(x > 0 for x in length), "rot_resample(): a repeated/origin rotation makes method='length' undefined."
+
+    cumlen = [0.0]
+    for x in length:
+        cumlen.append(cumlen[-1] + x)
+    totlen = cumlen[-1]
+    stepsize = totlen / (count - 1) if count > 1 else totlen
+
+    if method == "count":
+        nlist = list(n) if isinstance(n, (list, tuple)) else [n] * tcount
+        samples = [[k / N for k in range(N)] for N in nlist]  # lerpn(0,1,N,endpoint=False)
+    else:
+        samples = []
+        for i in range(tcount):
+            remainder = cumlen[i] % stepsize
+            offset = 0.0 if remainder == 0 else stepsize - remainder
+            num = math.ceil((length[i] - offset) / stepsize)
+            samples.append([(offset + k * stepsize) / length[i] for k in range(num)])
+
+    twist_v = 0 if twist is None else twist
+    scale_v = 1 if scale is None else scale
+    lastsample = samples[-1][-1] if samples[-1] else 1.0
+    needlast = abs(lastsample - 1.0) > 1e-9
+
+    if isinstance(twist_v, (int, float)):
+        sampletwist = list(np.linspace(0, twist_v, count))
+    else:
+        cumtwist = [0.0]
+        for t in twist_v:
+            cumtwist.append(cumtwist[-1] + t)
+        sampletwist = [cumtwist[i] + (cumtwist[i + 1] - cumtwist[i]) * u for i in range(tcount) for u in samples[i]]
+        if needlast:
+            sampletwist.append(cumtwist[-1])
+
+    if isinstance(scale_v, (int, float)):
+        samplescale = [1 + (scale_v - 1) * u for u in np.linspace(0, 1, count)]
+    else:
+        cumscale = [1.0]
+        for s in scale_v:
+            cumscale.append(cumscale[-1] * s)
+        samplescale = [cumscale[i] + (cumscale[i + 1] - cumscale[i]) * u for i in range(tcount) for u in samples[i]]
+        if needlast:
+            samplescale.append(cumscale[-1])
+
+    smoothtwist = _smooth(sampletwist[:-1] if closed else sampletwist, smoothlen, closed=closed, angle=True)
+    smoothscale = _smooth(samplescale, smoothlen, closed=closed)
+
+    interpolated = []
+    for i in range(tcount):
+        for u in samples[i]:
+            mv = np.eye(4)
+            mv[:3, 3] = u * parms[i][3]
+            interpolated.append(rotlist[i] @ mv @ rot_about_axis(u * parms[i][0], parms[i][1], parms[i][2]))
+    if needlast:
+        interpolated.append(rotlist[-1])
+
+    end = len(interpolated) - (1 if closed else 0)
+    return [interpolated[i] @ _zrot4(smoothtwist[i]) @ _scale4([smoothscale[i], smoothscale[i], 1.0])
+            for i in range(end)]

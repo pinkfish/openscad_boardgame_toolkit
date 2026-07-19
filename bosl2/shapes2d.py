@@ -39,6 +39,8 @@ from collections.abc import Sequence
 import math
 import random
 
+import numpy as np
+
 # Imported explicitly (rather than `from pythonscad import *`) so editors/type-checkers
 # can resolve these names -- this module immediately shadows all five with its own
 # BOSL2-style square()/circle()/polygon()/text()/hull() below, so the plain builtins are
@@ -50,6 +52,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from .constants import *
 from bosl2.vectors import unit
+from bosl2.geometry import is_collinear
+from bosl2.paths import Path
 
 
 # ---------------------------------------------------------------------------
@@ -194,6 +198,24 @@ def _opp_ang_to_adj(opp: float, ang: float) -> float:
 
 def _v_theta(v: Sequence[float]) -> float:
     return math.degrees(math.atan2(v[1], v[0]))
+
+
+def _det2(a: Sequence[float], b: Sequence[float]) -> float:
+    """The 2-D cross product a x b -- sign gives the turn direction (z of the 3-D cross)."""
+    return float(a[0] * b[1] - a[1] * b[0])
+
+
+def _sign(x: float) -> int:
+    x = float(x)
+    return (x > 0) - (x < 0)
+
+
+def _vector_angle(a: Sequence[float], b: Sequence[float], c: Sequence[float]) -> float:
+    """The angle in degrees at vertex *b* of the corner a-b-c."""
+    va = np.asarray(a, dtype=float) - np.asarray(b, dtype=float)
+    vc = np.asarray(c, dtype=float) - np.asarray(b, dtype=float)
+    cosv = float(np.dot(va, vc)) / (float(np.linalg.norm(va)) * float(np.linalg.norm(vc)))
+    return math.degrees(math.acos(max(-1.0, min(1.0, cosv))))
 
 
 def _dir2(anchor: Sequence[float]) -> list[float]:
@@ -376,46 +398,110 @@ def rect_path(
 def arc(
     n: int | None = None,
     r: float | None = None,
-    angle: float | None = None,
+    angle: float | Sequence[float] | None = None,
     d: float | None = None,
     cp: Sequence[float] | None = None,
     points: Sequence[Sequence[float]] | None = None,
+    corner: Sequence[Sequence[float]] | None = None,
+    width: float | None = None,
+    thickness: float | None = None,
     start: float | None = None,
+    wedge: bool = False,
+    long: bool = False,
+    cw: bool = False,
+    ccw: bool = False,
     endpoint: bool = True,
     _fn: float | None = None,
     _fa: float | None = None,
     _fs: float | None = None,
-) -> list[list[float]]:
-    """A 2-D arc as a list of points -- the Python equivalent of BOSL2's ``arc()``.
+) -> Path:
+    """A 2-D arc, returned as a :class:`~bosl2.paths.Path` of points (BOSL2's ``arc()``).
 
-    Two forms are supported (the two the toolkit uses):
+    All of BOSL2's 2-D arc specifications are supported (3-D arcs, which project onto a plane,
+    are not):
 
-    * ``arc(r=, start=, angle=, cp=)`` -- an arc of radius *r* about *cp*, from *start*
-      sweeping *angle* degrees.
-    * ``arc(n=, points=[p1, p2, p3])`` -- the arc through three points, from p1 through p2
-      to p3.
+    * ``arc(r=, angle=, [start=], [cp=])`` -- radius *r* about *cp*, sweeping *angle* degrees from
+      *start* (or ``angle=[start, end]`` for an explicit range).
+    * ``arc(width=, thickness=)`` -- a circular segment starting and ending on the X axis.
+    * ``arc(cp=, points=[P0, P1])`` -- around *cp* from ``P0`` toward the direction of ``P1``; the
+      short way by default, or the long/``cw``/``ccw`` way.
+    * ``arc(points=[P0, P1, P2])`` -- through three points, from ``P0`` via ``P1`` to ``P2``.
+    * ``arc(corner=[P0, P1, P2], r=)`` -- the fillet arc of radius *r* tangent to both legs of the
+      corner ``P0-P1-P2``.
 
-    When *n* is omitted the point count follows OpenSCAD's $fn/$fa/$fs rules, matching BOSL2:
-    ``ceil(segs(r) * |angle| / 360) + 1``.
-
-    Usage::
-
-        arc(r=16, start=0, angle=60)
-        arc(n=8, points=[[-0.5, 0], [0, 0.3], [0.5, 0]])
+    Set ``wedge=True`` to prepend the centre point, giving a closed pie/sector path. When *n* is
+    omitted the point count follows OpenSCAD's $fn/$fa/$fs rules, matching BOSL2.
 
     Args:
-        n:        number of points (default: from $fn/$fa/$fs)
-        r:        radius of the arc
-        angle:    degrees to sweep from *start*
-        d:        diameter (overrides *r*)
-        cp:       centre point (default [0, 0])
-        points:   three points the arc passes through (overrides r/angle/start)
-        start:    starting angle in degrees (default 0)
-        endpoint: include the final point (default True)
+        n:         number of points (default: from $fn/$fa/$fs)
+        r/d:       radius / diameter of the arc
+        angle:     degrees to sweep from *start*, or ``[start, end]``
+        cp:        centre point (default ``[0, 0]``)
+        points:    two points (with *cp*) or three points the arc passes through
+        corner:    three points; the arc is the *r*-radius fillet tangent to both legs
+        width:     chord width for the width/thickness form
+        thickness: height of the circular segment for the width/thickness form
+        start:     starting angle in degrees (default 0)
+        wedge:     prepend the centre point, producing a closed sector (default False)
+        long/cw/ccw: for the two-point form, take the long way / a given handedness
+        endpoint:  include the final point (default True)
+
+    Returns:
+        A :class:`~bosl2.paths.Path` (closed when *wedge* is set).
     """
+    # -- width + thickness: a circular segment through 3 points on/above the X axis ----------
+    if width is not None and thickness is not None:
+        assert not any(v is not None for v in (r, cp, points, angle, start)), "conflicting arc() params"
+        return arc(n=n, points=[[width / 2, 0], [0, thickness], [-width / 2, 0]],
+                   wedge=wedge, endpoint=endpoint, _fn=_fn, _fa=_fa, _fs=_fs)
+
+    # -- corner: the fillet arc tangent to both legs of a 3-point corner ---------------------
+    if corner is not None:
+        assert len(corner) == 3, "corner= needs exactly 3 points"
+        assert not is_collinear(corner[0], corner[1], corner[2]), "Collinear corner does not define an arc"
+        rad = _pick_radius(r=r, d=d)
+        assert rad is not None and rad > 0, "arc(corner=) needs r= or d="
+        p0, p1, p2 = (np.asarray(p, dtype=float) for p in corner)
+        v1, v2 = unit(p0 - p1), unit(p2 - p1)
+        half = math.acos(max(-1.0, min(1.0, float(np.dot(v1, v2))))) / 2
+        d_tan = rad / math.tan(half)
+        cp2 = _circle_from_corner(corner, rad)
+        tp1, tp2 = p1 + v1 * d_tan, p1 + v2 * d_tan
+        forward = _det2(p1 - p0, p2 - p1) > 0
+        c0, c1 = (tp1, tp2) if forward else (tp2, tp1)
+        ts = math.degrees(math.atan2(c0[1] - cp2[1], c0[0] - cp2[0]))
+        te = math.degrees(math.atan2(c1[1] - cp2[1], c1[0] - cp2[0]))
+        sweep = (te - ts) % 360
+        rng = [ts, ts + sweep] if forward else [ts + sweep, ts]
+        return arc(n=n, cp=cp2, r=rad, angle=rng, wedge=wedge, endpoint=endpoint, _fn=_fn, _fa=_fa, _fs=_fs)
+
+    # -- points forms ------------------------------------------------------------------------
     if points is not None:
-        pts = [list(p) for p in points]
-        assert len(pts) == 3, f"arc(points=) needs exactly 3 points, got {len(pts)}"
+        pts = [[float(p[0]), float(p[1])] for p in points]
+        assert all(len(p) == 2 for p in points), "arc() port handles 2-D points only"
+        if len(pts) == 2:
+            assert cp is not None, "cp= is required when points has length 2"
+            assert pts[0] != pts[1], "arc endpoints are equal"
+            centre = [float(cp[0]), float(cp[1])]
+            v1 = np.asarray(pts[0]) - np.asarray(centre)
+            v2 = np.asarray(pts[1]) - np.asarray(centre)
+            ang = _vector_angle(pts[0], centre, pts[1])
+            prelim = _sign(_det2(v1, v2))
+            if prelim != 0:
+                direction = prelim
+            else:
+                assert cw or ccw, "Collinear inputs don't define a unique arc"
+                direction = 1
+            rad = float(np.hypot(v1[0], v1[1]))
+            if long or (ccw and direction < 0) or (cw and direction > 0):
+                final_angle = -direction * (360 - ang)
+            else:
+                final_angle = direction * ang
+            sa = math.degrees(math.atan2(v1[1], v1[0]))
+            return arc(n=n, cp=centre, r=rad, start=sa, angle=final_angle, wedge=wedge,
+                       endpoint=endpoint, _fn=_fn, _fa=_fa, _fs=_fs)
+        assert len(pts) == 3, f"arc(points=) needs 2 or 3 points, got {len(pts)}"
+        assert not is_collinear(pts[0], pts[1], pts[2]), "Collinear inputs do not define an arc"
         centre, radius = _circle_from_3pts(pts)
         a0 = math.degrees(math.atan2(pts[0][1] - centre[1], pts[0][0] - centre[0]))
         am = math.degrees(math.atan2(pts[1][1] - centre[1], pts[1][0] - centre[0]))
@@ -424,15 +510,27 @@ def arc(
         d_end = (a1 - a0) % 360
         delta = d_end if d_mid <= d_end else d_end - 360
         count = n if n is not None else max(3, math.ceil(_frag_count(radius, _fn, _fa, _fs) * abs(delta) / 360))
-        return _arc_points(count, radius, a0, delta, centre, endpoint=endpoint)
+        out = _arc_points(count, radius, a0, delta, centre, endpoint=endpoint)
+        if wedge:
+            out = [list(centre)] + out
+        return Path(out, closed=wedge)
 
+    # -- radius + angle (with optional [start, end] range) -----------------------------------
     radius = _pick_radius(r=r, d=d)
-    assert radius is not None, "arc() needs r=/d= or points="
-    calc_angle = 360.0 if angle is None else float(angle)
-    calc_start = 0.0 if start is None else float(start)
+    assert radius is not None, "arc() needs r=/d=, points=, corner=, or width=/thickness="
+    if isinstance(angle, (list, tuple, np.ndarray)):
+        assert start is None, "start= is not allowed with angle=[start, end]"
+        calc_start = float(angle[0])
+        calc_angle = float(angle[1]) - float(angle[0])
+    else:
+        calc_angle = 360.0 if angle is None else float(angle)
+        calc_start = 0.0 if start is None else float(start)
     calc_cp = (0.0, 0.0) if cp is None else cp
     count = n if n is not None else math.ceil(_frag_count(radius, _fn, _fa, _fs) * abs(calc_angle) / 360) + 1
-    return _arc_points(count, radius, calc_start, calc_angle, calc_cp, endpoint=endpoint)
+    out = _arc_points(count, radius, calc_start, calc_angle, calc_cp, endpoint=endpoint)
+    if wedge:
+        out = [list(calc_cp)] + out
+    return Path(out, closed=wedge)
 
 
 def circle(
@@ -1124,6 +1222,150 @@ def supershape(
     path = [[scale * rvals[i] * math.cos(math.radians(angs[i])), scale * rvals[i] * math.sin(math.radians(angs[i]))] for i in range(n_pts)]
     shape = _opolygon(path)
     offset = _anchor_offset_hull(path, anchor)
+    return _finish(shape, offset, spin)
+
+
+def _linearize_squareness(s: float) -> float:
+    # Chamberlain Fong (2016), "Squircular Calculations", arXiv:1604.02174v5.
+    c = 2 - 2 * math.sqrt(2)
+    d = 1 - 0.5 * c * s
+    return 2 * math.sqrt((1 + c) * s * s - c * s) / (d * d)
+
+
+def squircle_radius_fg(squareness: float, r: float, angle: float) -> float:
+    """The Fong-Garcia squircle radius at *angle* degrees for squareness *squareness* and size *r*."""
+    s2a = abs(squareness * math.sin(math.radians(2 * angle)))
+    return r * math.sqrt(2) / s2a * math.sqrt(1 - math.sqrt(1 - s2a * s2a)) if s2a > 0 else r
+
+
+def _squircle_fg_path(size, squareness, _fn, _fa, _fs) -> list:
+    sq = _linearize_squareness(squareness)
+    aspect = size[1] / size[0]
+    r = 0.5 * size[0]
+    fn = _frag_count(r, _fn, _fa, _fs)
+    astep = 90.0 / round(fn / 4) if fn >= 12 else 360.0 / 48
+    pts = []
+    a = 360.0
+    while a > 0.01:
+        theta = a + sq * math.sin(math.radians(4 * a)) * 30 / math.pi
+        p = squircle_radius_fg(sq, r, theta)
+        pts.append([p * math.cos(math.radians(theta)), p * aspect * math.sin(math.radians(theta))])
+        a -= astep
+    return pts
+
+
+def squircle(size, squareness: float = 0.5, style: str = "fg", anchor: Sequence[float] = CENTER,
+             spin: float = 0, _fn: float | None = None, _fa: float | None = None,
+             _fs: float | None = None) -> PyOpenSCAD:
+    """A squircle -- a rounded square that morphs between a square and a circle (BOSL2 squircle()).
+
+    *squareness* runs 0 (a circle) to 1 (a square). Only the default ``"fg"`` (Fong-Garcia) style
+    is ported; the ``"superellipse"`` and ``"bezier"`` styles are not.
+
+    Args:
+        size:       scalar or [x, y] size of the bounding box
+        squareness: 0 (circle) .. 1 (square); default 0.5
+        style:      only "fg" is supported
+        anchor/spin: standard BOSL2 2-D anchor / spin
+        _fn/_fa/_fs: smoothness overrides
+
+    Examples:
+        .. pythonscad-example::
+
+            s2.squircle(40, squareness=0.7).linear_extrude(height=5).show()
+    """
+    assert 0 <= squareness <= 1, "squircle(): squareness must be between 0 and 1."
+    sz = [float(size), float(size)] if isinstance(size, (int, float)) else [float(size[0]), float(size[1])]
+    assert style == "fg", 'squircle(): only the default "fg" style is ported.'
+    path = _squircle_fg_path(sz, squareness, _fn, _fa, _fs)
+    shape = _opolygon(path)
+    offset = _anchor_offset_hull(path, anchor)
+    return _finish(shape, offset, spin)
+
+
+def keyhole(l=None, r1: float | None = None, r2: float | None = None, shoulder_r: float = 0,
+            d1: float | None = None, d2: float | None = None, length=None, anchor: Sequence[float] = CENTER,
+            spin: float = 0, _fn: float | None = None, _fa: float | None = None, _fs: float | None = None) -> PyOpenSCAD:
+    """A keyhole slot -- a small circle joined to a larger one by tangent shoulders (BOSL2 keyhole()).
+
+    Args:
+        l:          overall length between the two circle centers (aliases: *length*; default 15)
+        r1/d1:      radius/diameter of the small (bottom) circle (default 5)
+        r2/d2:      radius/diameter of the large (top) circle (default 10)
+        shoulder_r: fillet radius where the shoulders meet the circles (default 0)
+        anchor/spin: standard BOSL2 2-D anchor / spin
+
+    Examples:
+        .. pythonscad-example::
+
+            s2.keyhole(l=25, r1=4, r2=9, shoulder_r=2).linear_extrude(height=4).show()
+    """
+    lv = float(l if l is not None else (length if length is not None else 15))
+    r1v = float(r1 if r1 is not None else (d1 / 2 if d1 is not None else 5))
+    r2v = float(r2 if r2 is not None else (d2 / 2 if d2 is not None else 10))
+    assert lv > 0 and lv >= max(r1v, r2v), "keyhole(): l must be positive and at least max(r1, r2)."
+    sh = float(shoulder_r) if shoulder_r is not None else min(r1v, r2v) / 2
+    cp1, cp2 = [0.0, 0.0], [0.0, -lv]
+    minr, maxr = min(r1v, r2v) + sh, max(r1v, r2v) + sh
+    dy = math.sqrt(maxr * maxr - minr * minr)
+    spt1 = [cp1[0] + minr, cp1[1] - dy] if r1v > r2v else [cp2[0] + minr, cp2[1] + dy]
+    spt2 = [-spt1[0], spt1[1]]
+    base = cp1 if r1v > r2v else cp2
+    ds = [spt1[0] - base[0], spt1[1] - base[1]]
+    ang = math.degrees(math.atan2(abs(ds[1]), abs(ds[0])))
+
+    def _arc(**kw):
+        return arc(endpoint=False, _fn=_fn, _fa=_fa, _fs=_fs, **kw)
+
+    path = []
+    if r1v > r2v:
+        path += [spt1] if sh <= 0 else _arc(r=sh, cp=spt1, start=180 - ang, angle=ang)
+        path += _arc(r=r2v, cp=cp2, start=0, angle=-180)
+        path += [spt2] if sh <= 0 else _arc(r=sh, cp=spt2, start=0, angle=ang)
+        path += _arc(r=r1v, cp=cp1, start=180 + ang, angle=-180 - 2 * ang)
+    else:
+        path += [spt1] if sh <= 0 else _arc(r=sh, cp=spt1, start=180, angle=ang)
+        path += _arc(r=r2v, cp=cp2, start=ang, angle=-180 - 2 * ang)
+        path += [spt2] if sh <= 0 else _arc(r=sh, cp=spt2, start=360 - ang, angle=ang)
+        path += _arc(r=r1v, cp=cp1, start=180, angle=-180)
+    shape = _opolygon(path)
+    offset = _anchor_offset_hull(path, anchor)
+    return _finish(shape, offset, spin)
+
+
+def ring(n: int | None = None, ring_width: float | None = None, r: float | None = None,
+         r1: float | None = None, r2: float | None = None, d: float | None = None, d1: float | None = None,
+         d2: float | None = None, angle=None, anchor: Sequence[float] = CENTER, spin: float = 0,
+         _fn: float | None = None, _fa: float | None = None, _fs: float | None = None) -> PyOpenSCAD:
+    """A 2-D ring (annulus) between two concentric radii (BOSL2 ring(), full-annulus form).
+
+    Give either both radii (*r1*/*r2* or *d1*/*d2*) or one radius plus *ring_width*. The arc /
+    3-point / corner / width+thickness forms of BOSL2 ``ring()`` are not ported.
+
+    Args:
+        r1/r2 (or d1/d2): the two radii/diameters
+        r/d + ring_width: one radius plus the wall width
+        n:      number of sides (overrides the smoothness overrides)
+        anchor/spin: standard BOSL2 2-D anchor / spin
+
+    Examples:
+        .. pythonscad-example::
+
+            s2.ring(r=20, ring_width=4).linear_extrude(height=5).show()
+    """
+    assert angle is None, "ring(): only the full-annulus form is ported (no angle=)."
+    r1v = r1 if r1 is not None else (d1 / 2 if d1 is not None else None)
+    r2v = r2 if r2 is not None else (d2 / 2 if d2 is not None else None)
+    rv = r if r is not None else (d / 2 if d is not None else None)
+    if r1v is not None and r2v is not None:
+        inner, outer = min(r1v, r2v), max(r1v, r2v)
+    else:
+        assert rv is not None and ring_width is not None, "ring(): give (r1 and r2) or (r and ring_width)."
+        inner, outer = min(rv, rv + ring_width), max(rv, rv + ring_width)
+    assert inner != outer and outer > 0, "ring(): zero (or invalid) width."
+    fnv = n if n is not None else _fn
+    shape = circle(r=outer, _fn=fnv, _fa=_fa, _fs=_fs) - circle(r=inner, _fn=fnv, _fa=_fa, _fs=_fs)
+    offset = _anchor_offset_box([2 * outer, 2 * outer], anchor)
     return _finish(shape, offset, spin)
 
 

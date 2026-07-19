@@ -51,7 +51,7 @@ _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
 # The numpy path maths (DifferenceWithOffset's pts= form); bosl2/ never imports back here.
-from bosl2.regions import Path, Region
+from bosl2.regions import Path, Path3D, Region
 
 
 # ---------------------------------------------------------------------------

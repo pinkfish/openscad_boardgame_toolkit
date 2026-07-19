@@ -22,7 +22,16 @@ import math
 import numpy as np
 
 from bosl2.constants import CENTER, LEFT, UP
-from bosl2.transforms import apply, axis_angle_matrix, polar_to_xy, reorient, rot_from_to
+from bosl2.transforms import (
+    apply,
+    axis_angle_matrix,
+    polar_to_xy,
+    reorient,
+    rot_about_axis,
+    rot_decode,
+    rot_from_to,
+    rot_inverse,
+)
 
 
 def test_polar_to_xy():
@@ -78,3 +87,35 @@ def test_apply_single_point_vs_list():
 def test_apply_returns_plain_lists():
     out = apply(np.eye(4), [[1, 2, 3]])
     assert isinstance(out, list) and isinstance(out[0], list)
+
+
+def test_rot_about_axis_through_point():
+    m = rot_about_axis(90, [0, 0, 1], cp=[5, 0, 0])  # rotate 90 about the vertical line at x=5
+    np.testing.assert_allclose(apply(m, [5, 0, 0]), [5, 0, 0], atol=1e-9)  # the axis point is fixed
+    np.testing.assert_allclose(apply(m, [6, 0, 0]), [5, 1, 0], atol=1e-9)
+
+
+def test_rot_inverse_undoes_transform():
+    m = rot_about_axis(37, [0.3, 0.5, 0.8], cp=[2, -1, 4])
+    np.testing.assert_allclose(rot_inverse(m) @ m, np.eye(4), atol=1e-9)
+
+
+def test_rot_decode_round_trip():
+    m = rot_about_axis(40, [0, 0, 1], cp=[5, 0, 0])
+    angle, axis, cp, axial = rot_decode(m)
+    assert math.isclose(angle, 40.0, abs_tol=1e-6)
+    np.testing.assert_allclose(axis, [0, 0, 1], atol=1e-9)
+    np.testing.assert_allclose(cp[:2], [5, 0], atol=1e-6)
+    np.testing.assert_allclose(axial, [0, 0, 0], atol=1e-9)
+
+
+def test_rot_decode_identity_is_zero_angle():
+    angle, axis, cp, axial = rot_decode(np.eye(4))
+    assert math.isclose(angle, 0.0, abs_tol=1e-9)
+
+
+def test_rot_decode_axis_is_vec3():
+    from bosl2.constants import Vec3
+
+    _, axis, cp, axial = rot_decode(rot_about_axis(30, [1, 0, 0], cp=[0, 2, 0]))
+    assert isinstance(axis, Vec3) and isinstance(cp, Vec3) and isinstance(axial, Vec3)

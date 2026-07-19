@@ -61,6 +61,7 @@ from bosl2.math import EPSILON, lerp, lerpn, deriv, deriv2, deriv3
 from bosl2.vectors import is_vector, add_scalar, unit
 from bosl2.comparisons import approx
 from bosl2.geometry import line_normal, line_closest_point, pointlist_bounds, _is_point_on_segment, is_collinear, cross, general_line_intersection
+from bosl2.distributors import Distributable, _apply4  # the distributors.scad copiers, as methods
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +74,7 @@ from bosl2.geometry import line_normal, line_closest_point, pointlist_bounds, _i
 # keeps the Region class.
 
 
-class Path(list):
+class Path(Distributable, list):
     """A 2-D path: a list of [x, y] points, with every path operation as a method.
 
     Subclasses ``list`` deliberately -- the same trick as :class:`base_bgtk.Vec3`. Every place
@@ -342,6 +343,40 @@ class Path(list):
         """Native 2-D geometry -- the name :class:`Region` also exposes, so a caller that may
         hold either a Path or a Region can ask for geometry without checking which it got."""
         return self.polygon()
+
+    # -- drawing (bosl2/drawing.py) --------------------------------------------------------
+
+    def stroke(self, width: float = 1, closed: bool | None = None, **kwargs: Any):
+        """Draw this path as a solid line of the given *width* (see :func:`bosl2.drawing.stroke`)."""
+        from bosl2.drawing import stroke as _stroke
+
+        return _stroke(self, width=width, closed=self.closed if closed is None else closed, **kwargs)
+
+    def dashed_stroke(self, dashpat: Sequence[float] = (3, 3), closed: bool | None = None,
+                      **kwargs: Any) -> list["Path"]:
+        """Break this path into dash sub-paths (see :func:`bosl2.drawing.dashed_stroke`)."""
+        from bosl2.drawing import dashed_stroke as _dashed
+
+        return _dashed(self, dashpat=dashpat, closed=self.closed if closed is None else closed, **kwargs)
+
+    # -- distributors (bosl2/distributors.py) ----------------------------------------------
+
+    def _distribute(self, mats) -> list["Path"]:
+        """Apply each copier matrix, returning the list of 2-D copies (BOSL2's function form).
+
+        Raises if a copier would lift the 2-D path out of the XY plane -- use :class:`Path3D` for
+        those (``zcopies``, ``xrot_copies``, ``sphere_copies``, ...).
+        """
+        if not len(self):
+            return [self._like([]) for _ in mats]
+        pts3 = np.hstack([self.array, np.zeros((len(self), 1))])
+        out = []
+        for m in mats:
+            res = _apply4(m, pts3)
+            assert float(np.max(np.abs(res[:, 2]))) < 1e-7, \
+                "this copier moves the 2-D path out of the XY plane; convert to Path3D first"
+            out.append(self._like(res[:, :2]))
+        return out
 
     def __repr__(self) -> str:
         return f"Path({len(self)} pts, closed={self.closed})"
@@ -1289,3 +1324,240 @@ class Path(list):
             p0, p1, p2 = path[(i - 1) % n], path[i], path[(i + 1) % n]
             out.extend(Path._circlecorner([p0, p1, p2], dk[i][0], dk[i][1], _fn, _fa, _fs))
         return Path._deduplicate(out, closed=closed)
+
+
+# ---------------------------------------------------------------------------
+# Section: Path3D object
+# ---------------------------------------------------------------------------
+#
+# The 3-D sibling of Path, for the paths that carry a Z (helix(), and any other 3-D point
+# generator). It reuses Path's numeric kernels -- they were written dimension-agnostically for
+# exactly this (see the module docstring) -- and only carries the operations that make sense on
+# a set of 3-D points: no polygon()/region()/offset()/area (those are inherently 2-D), but full
+# measurement (length, tangents, normals, curvature, torsion), resampling/cutting, and the 3-D
+# transforms (translate/move, the six directional moves including up/down, scale, mirror, rotate).
+
+
+class Path3D(Distributable, list):
+    """A 3-D path: a list of ``[x, y, z]`` points, with the path operations that make sense in 3-D.
+
+    The 3-D counterpart of :class:`Path`. Like ``Path`` it subclasses ``list`` (so it stays a
+    drop-in for the raw 3-D point lists the sweep/loft functions consume), and every method returns
+    a NEW object. It carries the dimension-independent measurements (length, segment lengths,
+    tangents, :meth:`normals`, curvature, :meth:`torsion`), resampling/subdividing/cutting, and the
+    3-D transforms (``translate``/``move``, ``right``/``left``/``back``/``forward``/``up``/``down``,
+    ``scale``, ``mirror``, ``rotate``). The inherently-2-D operations of ``Path`` (``polygon``,
+    ``area``, ``offset``, ``round_corners``, point-in-polygon) are intentionally absent; use
+    :meth:`path2d` to drop to the XY plane when you want them.
+
+    Args:
+        points: the ``[x, y, z]`` points (anything array-like; numpy scalars are converted to float)
+        closed: whether the path is a closed loop (default True)
+
+    Examples:
+        A helix resampled to fewer points and swept into a coil:
+
+        .. pythonscad-example::
+
+            coil = helix(turns=3, h=60, r=20).resample(n=120)
+            coil.stroke(width=4).show()
+    """
+
+    def __init__(self, points: Sequence = (), closed: bool = True) -> None:
+        pts = np.asarray(list(points), dtype=float)
+        if pts.size == 0:
+            super().__init__()
+        else:
+            assert pts.ndim == 2 and pts.shape[1] == 3, f"Path3D needs [x, y, z] points, got shape {pts.shape}"
+            super().__init__([[float(x), float(y), float(z)] for x, y, z in pts])
+        self.closed = closed
+
+    def _like(self, points) -> "Path3D":
+        return Path3D(points, closed=self.closed)
+
+    @property
+    def array(self) -> np.ndarray:
+        """The points as an (N, 3) numpy array, for doing your own vectorised maths."""
+        return np.asarray(self, dtype=float)
+
+    # -- measurement -----------------------------------------------------------------------
+
+    def bounds(self) -> np.ndarray:
+        """[[min_x, min_y, min_z], [max_x, max_y, max_z]]."""
+        pts = self.array
+        return np.array([pts.min(axis=0), pts.max(axis=0)])
+
+    def perimeter(self) -> float:
+        """Total length along the path."""
+        return float(Path._path_length(self, closed=self.closed))
+
+    length = perimeter
+
+    def segment_lengths(self) -> np.ndarray:
+        """Length of each segment, as an ndarray."""
+        return Path._path_segment_lengths(self, closed=self.closed)
+
+    def length_fractions(self) -> np.ndarray:
+        """Cumulative length fraction at each point, as an ndarray."""
+        return Path._path_length_fractions(self, closed=self.closed)
+
+    @property
+    def is_closed(self) -> bool:
+        """True if the first and last points of the path coincide."""
+        return bool(Path._is_closed_path(self))
+
+    def closest_point(self, pt: Sequence[float]) -> list:
+        """[SEGNUM, POINT]: the closest path segment to *pt*, and the closest point on it."""
+        return Path._path_closest_point(self, pt, closed=self.closed)
+
+    def tangents(self, uniform: bool = True) -> np.ndarray:
+        """Unit tangent at each point, as an ndarray."""
+        return Path._path_tangents(self, closed=self.closed, uniform=uniform)
+
+    def normals(self, tangents=None) -> np.ndarray:
+        """Unit normal at each point (in the local plane of the curve), as an ndarray."""
+        return Path._path_normals(self, tangents=tangents, closed=self.closed)
+
+    def curvature(self) -> np.ndarray:
+        """Curvature at each point, as an ndarray."""
+        return Path._path_curvature(self, closed=self.closed)
+
+    def torsion(self) -> np.ndarray:
+        """Numeric torsion estimate at each point, as an ndarray."""
+        return Path._path_torsion(self, closed=self.closed)
+
+    def cut_points(self, cutdist, direction: bool = False):
+        """Point(s) at the given distance(s) along the path."""
+        return Path._path_cut_points(self, cutdist, closed=self.closed, direction=direction)
+
+    # -- derived paths ---------------------------------------------------------------------
+
+    def close(self) -> "Path3D":
+        """Append the start point if the path isn't already closed."""
+        return self._like(Path._close_path(self))
+
+    def cleanup(self) -> "Path3D":
+        """Drop a duplicate closing point if present."""
+        return self._like(Path._cleanup_path(self))
+
+    def reversed_path(self) -> "Path3D":
+        """The same path wound the other way."""
+        return self._like(list(reversed(self)))
+
+    def deduplicated(self) -> "Path3D":
+        """Drop consecutive repeated points."""
+        return self._like(Path._deduplicate(self, closed=self.closed))
+
+    def subdivide(self, **kwargs: Any) -> "Path3D":
+        """Insert points along the path."""
+        return self._like(Path._subdivide_path(self, closed=self.closed, **kwargs))
+
+    def resample(self, **kwargs: Any) -> "Path3D":
+        """Resample to evenly spaced points."""
+        return self._like(Path._resample_path(self, closed=self.closed, **kwargs))
+
+    def cut(self, cutdist) -> list["Path3D"]:
+        """Split the path at the given distance(s), returning the sub-paths."""
+        return [self._like(sub) for sub in Path._path_cut(self, cutdist, closed=self.closed)]
+
+    # -- transforms ------------------------------------------------------------------------
+    #
+    # 3-D versions of the Path transforms. Directions follow BOSL2: right/left are +/-X, back/
+    # forward are +/-Y, up/down are +/-Z. Every method returns a NEW Path3D.
+
+    def translate(self, v: Sequence[float]) -> "Path3D":
+        """Translate every point by *v* (a shorter vector pads with zeros)."""
+        vv = np.zeros(3)
+        v = np.asarray(v, dtype=float)
+        vv[: min(3, len(v))] = v[: min(3, len(v))]
+        return self._like(self.array + vv)
+
+    move = translate
+
+    def scale(self, v: "float | Sequence[float]") -> "Path3D":
+        """Scale every point by a scalar or a per-axis ``[sx, sy, sz]`` factor."""
+        s = np.asarray([v, v, v] if isinstance(v, (int, float)) else list(v), dtype=float)
+        return self._like(self.array * s)
+
+    def rotate(self, a: "float | Sequence[float]", v: Sequence[float] | None = None) -> "Path3D":
+        """Rotate the points. ``rotate(ang, axis)`` spins about *axis*; ``rotate(ang)`` about +Z;
+        ``rotate([rx, ry, rz])`` applies the OpenSCAD X-then-Y-then-Z Euler rotation."""
+        from bosl2.transforms import axis_angle_matrix
+
+        if v is not None:
+            m = np.asarray(axis_angle_matrix(a, v), dtype=float)
+        elif isinstance(a, (list, tuple, np.ndarray)):
+            rx, ry, rz = (list(a) + [0, 0, 0])[:3]
+            mx = np.asarray(axis_angle_matrix(rx, [1, 0, 0]), dtype=float)
+            my = np.asarray(axis_angle_matrix(ry, [0, 1, 0]), dtype=float)
+            mz = np.asarray(axis_angle_matrix(rz, [0, 0, 1]), dtype=float)
+            m = mz @ my @ mx
+        else:
+            m = np.asarray(axis_angle_matrix(a, [0, 0, 1]), dtype=float)
+        return self._like(self.array @ m.T)
+
+    rot = rotate
+
+    def mirror(self, v: Sequence[float]) -> "Path3D":
+        """Reflect every point across the plane through the origin with normal *v*."""
+        n = np.asarray(v, dtype=float)
+        n = n / np.linalg.norm(n)
+        pts = self.array
+        return self._like(pts - 2 * np.outer(pts @ n, n))
+
+    def right(self, x: float) -> "Path3D":
+        """Translate by *x* along +X."""
+        return self.translate([x, 0.0, 0.0])
+
+    def left(self, x: float) -> "Path3D":
+        """Translate by *x* along -X."""
+        return self.translate([-x, 0.0, 0.0])
+
+    def back(self, y: float) -> "Path3D":
+        """Translate by *y* along +Y."""
+        return self.translate([0.0, y, 0.0])
+
+    def forward(self, y: float) -> "Path3D":
+        """Translate by *y* along -Y (BOSL2 fwd())."""
+        return self.translate([0.0, -y, 0.0])
+
+    fwd = forward
+
+    def up(self, z: float) -> "Path3D":
+        """Translate by *z* along +Z."""
+        return self.translate([0.0, 0.0, z])
+
+    def down(self, z: float) -> "Path3D":
+        """Translate by *z* along -Z."""
+        return self.translate([0.0, 0.0, -z])
+
+    # -- conversion / rendering ------------------------------------------------------------
+
+    def path2d(self) -> "Path":
+        """Drop the Z coordinate, giving a 2-D :class:`Path` (the XY projection)."""
+        return Path(self.array[:, :2], closed=self.closed)
+
+    def stroke(self, width: float = 1, closed: bool | None = None, **kwargs: Any):
+        """Draw this 3-D path as a solid tube of the given *width* (see :func:`bosl2.drawing.stroke`)."""
+        from bosl2.drawing import stroke as _stroke
+
+        return _stroke(self, width=width, closed=self.closed if closed is None else closed, **kwargs)
+
+    def dashed_stroke(self, dashpat: Sequence[float] = (3, 3), closed: bool | None = None,
+                      **kwargs: Any) -> list["Path3D"]:
+        """Break this 3-D path into dash sub-paths (see :func:`bosl2.drawing.dashed_stroke`)."""
+        from bosl2.drawing import dashed_stroke as _dashed
+
+        return _dashed(self, dashpat=dashpat, closed=self.closed if closed is None else closed, **kwargs)
+
+    # -- distributors (bosl2/distributors.py) ----------------------------------------------
+
+    def _distribute(self, mats) -> list["Path3D"]:
+        """Apply each copier matrix, returning the list of 3-D copies (BOSL2's function form)."""
+        if not len(self):
+            return [self._like([]) for _ in mats]
+        pts3 = self.array
+        return [self._like(_apply4(m, pts3)) for m in mats]
+
+    def __repr__(self) -> str:
+        return f"Path3D({len(self)} pts, closed={self.closed})"

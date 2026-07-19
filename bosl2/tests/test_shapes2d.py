@@ -22,6 +22,10 @@ import math
 import numpy as np
 
 from bosl2.shapes2d import (
+    keyhole,
+    ring,
+    squircle,
+    squircle_radius_fg,
     _arc_points,
     _circle_from_3pts,
     _circle_pts,
@@ -106,3 +110,57 @@ def test_circle_from_3pts():
 
 def test_circle_builds_a_solid_via_mock():
     assert circle(r=5) is not None
+
+
+def test_squircle_circle_at_zero_squareness():
+    from bosl2.shapes2d import _squircle_fg_path
+    pts = _squircle_fg_path([40, 40], 0.0, None, None, None)
+    radii = [math.hypot(x, y) for x, y in pts]
+    assert math.isclose(min(radii), 20.0, abs_tol=1e-6)
+    assert math.isclose(max(radii), 20.0, abs_tol=1e-6)
+
+
+def test_squircle_square_at_high_squareness():
+    from bosl2.shapes2d import _squircle_fg_path
+    pts = _squircle_fg_path([40, 40], 0.99, None, None, None)
+    assert math.isclose(max(abs(x) for x, y in pts), 20.0, abs_tol=0.2)
+    assert math.isclose(max(abs(y) for x, y in pts), 20.0, abs_tol=0.2)
+
+
+def test_squircle_radius_fg_circle():
+    assert math.isclose(squircle_radius_fg(0, 10, 45), 10.0)
+
+
+def test_squircle_builds_solid():
+    assert squircle(40, squareness=0.7) is not None
+
+
+def test_squircle_rejects_bad_squareness():
+    import pytest
+    with pytest.raises(AssertionError):
+        squircle(40, squareness=1.5)
+
+
+def test_keyhole_builds_both_orientations():
+    assert keyhole(l=25, r1=4, r2=9, shoulder_r=2) is not None
+    assert keyhole(l=25, r1=9, r2=4, shoulder_r=2) is not None
+    assert keyhole(l=20, r1=5, r2=10) is not None
+
+
+def test_keyhole_rejects_short_length():
+    import pytest
+    with pytest.raises(AssertionError):
+        keyhole(l=3, r1=5, r2=10)
+
+
+def test_ring_forms():
+    assert ring(r=20, ring_width=4) is not None
+    assert ring(r1=10, r2=16) is not None
+
+
+def test_ring_requires_valid_params():
+    import pytest
+    with pytest.raises(AssertionError):
+        ring(r=10)
+    with pytest.raises(AssertionError):
+        ring(r=10, ring_width=0)

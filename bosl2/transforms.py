@@ -80,6 +80,61 @@ def axis_angle_matrix(angle: float, axis) -> np.ndarray:
     )
 
 
+def rot_about_axis(angle: float, axis, cp=(0.0, 0.0, 0.0)) -> np.ndarray:
+    """4x4 matrix rotating *angle* degrees about the line through *cp* in direction *axis*.
+
+    The 4x4 form of BOSL2's ``rot(a=, v=, cp=)``: translate *cp* to the origin, rotate, translate
+    back."""
+    m = np.eye(4)
+    m[:3, :3] = axis_angle_matrix(angle, axis)
+    cpv = np.asarray(cp, dtype=float)
+    m[:3, 3] = cpv - m[:3, :3] @ cpv
+    return m
+
+
+def rot_inverse(t) -> np.ndarray:
+    """Inverse of a rigid 4x4 transform (BOSL2 rot_inverse()): transpose the rotation, un-translate."""
+    t = np.asarray(t, dtype=float)
+    r = t[:3, :3]
+    inv = np.eye(4)
+    inv[:3, :3] = r.T
+    inv[:3, 3] = -r.T @ t[:3, 3]
+    return inv
+
+
+def rot_decode(m, long: bool = False) -> list:
+    """Decode a rigid 4x4 transform into its screw motion (BOSL2 rot_decode()).
+
+    Returns ``[angle_degrees, axis, cp, translation_along_axis]`` -- rotating by *angle* about the
+    line through *cp* in direction *axis* then translating along the axis reproduces *m*. *axis*,
+    *cp* and the axial translation are returned as :class:`~bosl2.constants.Vec3`. With *long*, the
+    complementary (>180 degree) rotation about the reversed axis is chosen."""
+    from bosl2.constants import Vec3  # local: constants is lightweight, avoid a load-order cycle
+
+    m = np.asarray(m, dtype=float)
+    r = m[:3, :3]
+    translation = m[:3, 3]
+    largest = int(np.argmax([r[0, 0], r[1, 1], r[2, 2]]))
+    axis_matrix = r + r.T - (np.trace(r) - 1) * np.eye(3)
+    q_im = axis_matrix[largest]
+    q_re = r[(largest + 2) % 3][(largest + 1) % 3] - r[(largest + 1) % 3][(largest + 2) % 3]
+    c_sin = float(np.linalg.norm(q_im))
+    c_cos = abs(float(q_re))
+    if c_sin < 1e-12:
+        return [0.0, Vec3([0.0, 0.0, 1.0]), Vec3([0.0, 0.0, 0.0]), Vec3([float(v) for v in translation])]
+    angle = math.degrees(2 * math.atan2(c_sin, c_cos))
+    axis = (1.0 if q_re >= 0 else -1.0) * q_im / c_sin
+    tproj = translation - (translation @ axis) * axis
+    cp = (tproj + np.cross(axis, tproj) * c_cos / c_sin) / 2
+    axial = (translation @ axis) * axis
+    return [
+        360 - angle if long else angle,
+        Vec3([float(v) for v in (-axis if long else axis)]),
+        Vec3([float(v) for v in cp]),
+        Vec3([float(v) for v in axial]),
+    ]
+
+
 def reorient(anchor=None, spin: float = 0, orient=None, size=None) -> list[list[float]]:
     """The 4x4 matrix that reorients a cuboid of *size* onto *anchor*/*spin*/*orient*.
 
