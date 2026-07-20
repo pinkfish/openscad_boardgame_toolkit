@@ -58,6 +58,9 @@ from bosl2.geometry import cross
 from bosl2.vectors import unit, is_vector
 from bosl2.paths import Path
 from bosl2.distributors import Distributable
+from bosl2.color import Colorable
+from bosl2.partitions import Partitionable
+from bosl2.miscellaneous import Miscellaneous
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +68,7 @@ from bosl2.distributors import Distributable
 # ---------------------------------------------------------------------------
 
 
-class Bosl2Solid(Distributable):
+class Bosl2Solid(Distributable, Colorable, Partitionable, Miscellaneous):
     """Wraps a PyOpenSCAD solid together with the geometry metadata (nominal `size` and
     `anchor`) that BOSL2's $parent_geom attachment system would otherwise track, so that
     edge/corner/face masking (bosl2/masking.py) work as plain chained methods instead of
@@ -155,8 +158,22 @@ class Bosl2Solid(Distributable):
     def scale(self, v) -> "Bosl2Solid":
         return self._wrap(self.shape.scale(v))
 
-    def color(self, *a, **k) -> "Bosl2Solid":
-        return self._wrap(self.shape.color(*a, **k))
+    # ---- colour (bosl2/color.py) ----
+    #
+    # The color.scad operators (color/recolor/color_this/hsl/hsv/highlight/ghost) come from the
+    # Colorable mixin, which resolves to these native primitives: PythonSCAD's color(),
+    # highlight() (the # modifier) and background() (the % / ghost modifier).
+
+    def _color_native(self, c=None, alpha=None) -> "Bosl2Solid":
+        args = () if c is None else (c,)
+        kw = {} if alpha is None else {"alpha": alpha}
+        return self._wrap(self.shape.color(*args, **kw))
+
+    def _highlight_native(self) -> "Bosl2Solid":
+        return self._wrap(self.shape.highlight())
+
+    def _ghost_native(self) -> "Bosl2Solid":
+        return self._wrap(self.shape.background())
 
     def __or__(self, other) -> "Bosl2Solid":
         return self._wrap(self.shape | Bosl2Solid._unwrap(other))

@@ -42,7 +42,7 @@ from pythonscad import osuse
 # (this generator is the sole remaining osuse() user, kept to re-derive the fixture).
 b = osuse(base_bgtk.BOSL2_STD_PATH)
 out = {"reorient": [], "apply": [], "arc": [], "catenary": [], "helix": [], "turtle": [],
-       "distrib": []}
+       "distrib": [], "color": [], "partition": [], "nurbs": []}
 
 ANCH = {"CENTER": CENTER, "BOTTOM": BOTTOM, "TOP": TOP,
         "BFL": BOTTOM+FRONT+LEFT, "TRB": TOP+RIGHT+BACK, "LEFT": LEFT}
@@ -117,6 +117,61 @@ out["distrib"].append({"kw": "sphere", "res": jl(b.sphere_copies(n=8, r=30, cone
 out["distrib"].append({"kw": "mirror_off", "res": jl(b.mirror_copy([1,1,0], offset=2))})
 out["distrib"].append({"kw": "xflip", "res": jl(b.xflip_copy(offset=3, x=1))})
 out["distrib"].append({"kw": "path_n", "res": jl(b.path_copies(_dpath, n=5))})
+
+# color: hsl/hsv -> RGB(A)
+for _h in (0, 60, 120, 180, 240, 300, 270, 33):
+    out["color"].append({"fn": "hsl", "args": [_h, 0.75, 0.6], "res": jl(b.hsl(_h, 0.75, 0.6))})
+    out["color"].append({"fn": "hsv", "args": [_h, 0.75, 0.9], "res": jl(b.hsv(_h, 0.75, 0.9))})
+out["color"].append({"fn": "hsl", "args": [200, 1, 0.5, 0.4], "res": jl(b.hsl(200, 1, 0.5, 0.4))})
+out["color"].append({"fn": "hsv", "args": [200, 1, 1, 0.4], "res": jl(b.hsv(200, 1, 1, 0.4))})
+
+# partition_path (polygonal patterns are $fn-independent; arc-based ones use the default $fa/$fs)
+def _pp(desc, **kw):
+    return jl(b.partition_path(desc, **kw))
+out["partition"].append({"kw": "flat", "res": _pp(["flat"])})
+out["partition"].append({"kw": "sawtooth", "res": _pp(["sawtooth"])})
+out["partition"].append({"kw": "square", "res": _pp(["square"])})
+out["partition"].append({"kw": "triangle", "res": _pp(["triangle"])})
+out["partition"].append({"kw": "dovetail", "res": _pp(["dovetail"])})
+out["partition"].append({"kw": "hammerhead", "res": _pp(["hammerhead"])})
+out["partition"].append({"kw": "comb", "res": _pp(["comb"])})
+out["partition"].append({"kw": "finger", "res": _pp(["finger"])})
+out["partition"].append({"kw": "sawtooth_xflip", "res": _pp(["sawtooth xflip"])})
+out["partition"].append({"kw": "sawtooth_addflip", "res": _pp(["sawtooth addflip"])})
+out["partition"].append({"kw": "sawtooth_3x", "res": _pp(["sawtooth 3x"])})
+out["partition"].append({"kw": "hammerhead_yflip", "res": _pp(["hammerhead yflip"])})
+out["partition"].append({"kw": "square_skew", "res": _pp(["square skew:15"])})
+out["partition"].append({"kw": "square_pinch", "res": _pp(["square pinch:30"])})
+out["partition"].append({"kw": "mixed_flat", "res": _pp([40, "dovetail", 40])})
+out["partition"].append({"kw": "closed_y", "res": _pp([30, "hammerhead", 30], y=150)})
+
+# nurbs curve/patch/elevate evaluation (nurbs.scad is not in std.scad, so osuse a wrapper that
+# includes both std.scad and nurbs.scad by absolute path)
+_bdir = os.path.dirname(base_bgtk.BOSL2_STD_PATH)
+_wrap = os.path.join(_bdir, "_truth_nurbs_wrapper.scad")
+open(_wrap, "w").write("include <%s>\ninclude <%s>\n" % (
+    os.path.join(_bdir, "std.scad"), os.path.join(_bdir, "nurbs.scad")))
+bn = osuse(_wrap)
+_c3 = [[0,0,0],[10,20,5],[30,-10,10],[50,20,0],[60,0,15]]
+_c2 = [[0,0],[10,20],[30,-10],[50,20],[60,0]]
+out["nurbs"].append({"kw": "clamped3_ss", "res": jl(bn.nurbs_curve(_c3, 3, splinesteps=5))})
+out["nurbs"].append({"kw": "clamped2_u", "res": jl(bn.nurbs_curve(_c2, 3, u=[0,0.2,0.4,0.6,0.8,1]))})
+out["nurbs"].append({"kw": "open3_ss", "res": jl(bn.nurbs_curve(_c3, 3, splinesteps=4, type="open"))})
+out["nurbs"].append({"kw": "closed2_ss", "res": jl(bn.nurbs_curve(_c2, 2, splinesteps=4, type="closed"))})
+out["nurbs"].append({"kw": "deg2_ss", "res": jl(bn.nurbs_curve(_c3, 2, splinesteps=6))})
+out["nurbs"].append({"kw": "weighted_u", "res": jl(bn.nurbs_curve([[0,0],[10,0],[10,10],[0,10]], 2, u=[0,0.25,0.5,0.75,1], weights=[1,5,1,5]))})
+out["nurbs"].append({"kw": "mult_ss", "res": jl(bn.nurbs_curve(_c3+[[70,10,5]], 3, splinesteps=4, mult=[1,2,1]))})
+out["nurbs"].append({"kw": "knots_u", "res": jl(bn.nurbs_curve(_c2, 3, u=[0,0.3,0.6,1], knots=[0,0.4,1]))})
+_patch = [[[-50,50,0],[-16,50,20],[16,50,20],[50,50,0]],
+          [[-50,16,20],[-16,16,40],[16,16,40],[50,16,20]],
+          [[-50,-16,20],[-16,-16,40],[16,-16,40],[50,-16,20]],
+          [[-50,-50,0],[-16,-50,20],[16,-50,20],[50,-50,0]]]
+out["nurbs"].append({"kw": "patch3_ss", "res": jl(bn.nurbs_patch_points(_patch, 3, splinesteps=3))})
+out["nurbs"].append({"kw": "patch_uv", "res": jl(bn.nurbs_patch_points(_patch, 3, u=[0,0.5,1], v=[0,0.5,1]))})
+out["nurbs"].append({"kw": "patch_mixed", "res": jl(bn.nurbs_patch_points(_patch, [3,2], splinesteps=[2,3]))})
+_el = bn.nurbs_elevate_degree(_c2, 3)
+out["nurbs"].append({"kw": "elevate_deg", "res": _el[1]})
+out["nurbs"].append({"kw": "elevate_ctrl", "res": jl(_el[2])})
 
 open(os.environ["TRUTH_OUT"], "w").write(json.dumps(out, indent=1))
 cube(1).show()

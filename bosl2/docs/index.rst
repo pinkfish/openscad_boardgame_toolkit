@@ -61,12 +61,16 @@ API reference
    paths
    regions
    beziers
+   nurbs
    vnf
    skin
    shapes3d
    shapes2d
    drawing
    distributors
+   color
+   partitions
+   miscellaneous
    masking
    transforms
    geometry

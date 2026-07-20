@@ -499,3 +499,230 @@ def test_path_copies_along_path(tmp_path):
     assert m.volume > 0
     # copies span the L-shaped route: roughly 0..40 in X and 0..40 in Y
     assert m.size[0] > 35 and m.size[1] > 35
+
+
+# -- colour operators (geometry survives; colour is a display attribute) -------------------
+
+def test_color_name_keeps_geometry(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([10, 10, 10]).color('red')", name="colorname")
+    assert math.isclose(m.volume, 1000, rel_tol=1e-4)
+    assert m.watertight
+
+
+def test_hsv_and_hsl_methods_render(tmp_path):
+    a = _render(tmp_path, "s3.cuboid([10, 10, 10]).hsv(200, 0.8, 0.9)", name="hsv")
+    b = _render(tmp_path, "s3.cuboid([10, 10, 10]).hsl(120, 0.6, 0.5, 0.7)", name="hsl")
+    assert math.isclose(a.volume, 1000, rel_tol=1e-4)
+    assert math.isclose(b.volume, 1000, rel_tol=1e-4)
+
+
+def test_recolor_highlight_ghost_render(tmp_path):
+    for expr, name in (("s3.cuboid([10, 10, 10]).recolor('green')", "recolor"),
+                       ("s3.cuboid([10, 10, 10]).highlight()", "highlight"),
+                       ("s3.cuboid([10, 10, 10]).ghost()", "ghost")):
+        m = _render(tmp_path, expr, name=name)
+        assert math.isclose(m.volume, 1000, rel_tol=1e-4)
+
+
+def test_rainbow_colors_a_list(tmp_path):
+    # rainbow returns a list of coloured solids; union them and check the combined geometry
+    setup = (
+        "parts = [s3.cuboid([6, 6, 6]).right(i * 10) for i in range(4)]\n"
+        "coloured = rainbow(parts)\n"
+        "obj0 = coloured[0]\n"
+        "for piece in coloured[1:]:\n"
+        "    obj0 = obj0 | piece\n"
+    )
+    m = _render(tmp_path, "obj0", setup=setup, name="rainbow")
+    assert math.isclose(m.volume, 4 * 6 ** 3, rel_tol=1e-3)
+    np.testing.assert_allclose(m.size[0], 3 * 10 + 6, atol=0.5)  # spread of 4 cubes
+
+
+def test_recolor_child_keeps_its_own_color(tmp_path):
+    # a coloured child unioned into a recoloured parent still contributes its geometry
+    setup = "part = s3.cuboid([20, 20, 10]).color('blue').attach(TOP, s3.cuboid([8, 8, 8]).color('red'))\n"
+    m = _render(tmp_path, "part.recolor('green')", setup=setup, name="recolorchild")
+    assert m.volume > 20 * 20 * 10  # parent + attached child
+    assert math.isclose(m.size[2], 18.0, abs_tol=0.5)
+
+
+# -- partitions: planar cuts and interlocking splits --------------------------------------
+
+def test_axis_halves_keep_exactly_half(tmp_path):
+    full = 40 * 30 * 20
+    left = _render(tmp_path, "s3.cuboid([40, 30, 20]).left_half()", name="lefthalf")
+    top = _render(tmp_path, "s3.cuboid([40, 30, 20]).top_half()", name="tophalf")
+    assert math.isclose(left.volume, full / 2, rel_tol=1e-3)
+    np.testing.assert_allclose([left.bbmin[0], left.bbmax[0]], [-20, 0], atol=1e-2)
+    assert math.isclose(top.volume, full / 2, rel_tol=1e-3)
+    np.testing.assert_allclose([top.bbmin[2], top.bbmax[2]], [0, 10], atol=1e-2)
+
+
+def test_bottom_half_offset_plane(tmp_path):
+    # bottom_half(z=5) keeps z in [-10, 5] -> 15/20 of the box
+    m = _render(tmp_path, "s3.cuboid([40, 30, 20]).bottom_half(z=5)", name="bottomz5")
+    assert math.isclose(m.volume, 40 * 30 * 15, rel_tol=1e-3)
+    np.testing.assert_allclose(m.bbmax[2], 5, atol=1e-2)
+
+
+def test_half_of_diagonal_plane(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([40, 30, 20]).half_of([0, 1, 1])", name="halfdiag")
+    assert math.isclose(m.volume, 40 * 30 * 20 / 2, rel_tol=1e-2)  # a plane through the centre halves it
+    assert m.watertight
+
+
+def test_half_of_auto_sizes_from_bbox(tmp_path):
+    # no s= given: the mask auto-sizes to the (large) object
+    m = _render(tmp_path, "s3.cuboid([200, 120, 60]).right_half()", name="autosize")
+    assert math.isclose(m.volume, 200 * 120 * 60 / 2, rel_tol=1e-3)
+    np.testing.assert_allclose([m.bbmin[0], m.bbmax[0]], [0, 100], atol=1e-1)
+
+
+def test_jigsaw_cut_path_half(tmp_path):
+    setup = "cp = partition_path([60, 'jigsaw', 60], _fn=16)\n"
+    m = _render(tmp_path, "s3.cuboid([120, 40, 20]).back_half(cut_path=cp)", setup=setup, name="jigsawcut")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[0], 120, atol=0.5)
+    assert m.watertight
+
+
+def test_partition_two_pieces_conserve_volume(tmp_path):
+    # the two dovetail pieces together reconstruct the whole box (spread apart)
+    setup = (
+        "p = s3.cuboid([60, 40, 20]).partition(spread=12, cutpath='dovetail')\n"
+        "obj0 = p[0] | p[1]\n"
+    )
+    m = _render(tmp_path, "obj0", setup=setup, name="partition")
+    assert math.isclose(m.volume, 60 * 40 * 20, rel_tol=1e-3)  # volume conserved
+    np.testing.assert_allclose(m.size[1], 40 + 12, atol=0.5)   # spread widens Y by 12
+
+
+def test_partition_single_piece_is_interlocking_half(tmp_path):
+    setup = "obj0 = s3.cuboid([60, 40, 20]).partition(spread=0, cutpath='jigsaw', _fn=16)[0]\n"
+    m = _render(tmp_path, "obj0", setup=setup, name="partback")
+    assert math.isclose(m.volume, 60 * 40 * 20 / 2, rel_tol=1e-2)  # each piece is ~half
+    assert m.watertight
+
+
+def test_partition_mask_renders(tmp_path):
+    m = _render(tmp_path, "partition_mask(l=60, w=30, h=20, cutpath='dovetail')", name="partmask")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 20, abs_tol=1e-2)
+
+
+# -- miscellaneous.scad extrusions and transforms -----------------------------------------
+
+def test_path_extrude2d_follows_the_path(tmp_path):
+    # a moulding (4 wide, 8 tall profile) along an L-path spans the L footprint and stands 8 tall
+    setup = "route = Path([[0, 0], [40, 0], [40, 40]], closed=False)\n"
+    m = _render(tmp_path, "route.path_extrude2d(s2.square([4, 8], center=True))", setup=setup, name="pe2d")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [42, 42], atol=1.0)  # 40 path + profile width
+    assert math.isclose(m.size[2], 8.0, abs_tol=1e-2)           # profile height
+    assert m.watertight
+
+
+def test_path_extrude2d_closed_loop(tmp_path):
+    setup = "route = Path([[0, 0], [40, 0], [40, 40], [0, 40]], closed=True)\n"
+    m = _render(tmp_path, "route.path_extrude2d(s2.square([4, 6], center=True), closed=True)",
+                setup=setup, name="pe2dclosed")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 6.0, abs_tol=1e-2)
+    assert m.watertight
+
+
+def test_path_extrude2d_takes_a_factory(tmp_path):
+    # the "children" form: a factory produces a fresh profile per placement
+    setup = "route = Path([[0, 0], [30, 0]], closed=False)\n"
+    m = _render(tmp_path, "route.path_extrude2d(lambda: s2.circle(r=4, _fn=16))", setup=setup, name="pe2dfac")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 8.0, abs_tol=0.3)  # circle d=8 stands 8 tall
+
+
+def test_path_extrude_3d_path(tmp_path):
+    setup = "route = Path3D([[0, 0, 0], [30, 0, 10], [30, 30, 20], [0, 30, 30]], closed=False)\n"
+    m = _render(tmp_path, "route.path_extrude(s2.circle(r=4, _fn=16))", setup=setup, name="pe3d")
+    assert m.volume > 0
+    assert m.bbmax[2] > 25  # follows the rising path up to z~30
+
+
+def test_extrude_from_to_column(tmp_path):
+    m = _render(tmp_path, "extrude_from_to(s2.circle(r=4, _fn=24), [0, 0, 0], [0, 0, 30])", name="eft")
+    assert math.isclose(m.size[2], 30.0, abs_tol=1e-2)
+    np.testing.assert_allclose(m.size[:2], [8, 8], atol=0.2)
+    assert m.watertight
+
+
+def test_extrude_from_to_diagonal_with_twist(tmp_path):
+    m = _render(tmp_path, "extrude_from_to(s2.square([8, 4], center=True), [0, 0, 0], [10, 20, 30], twist=180, scale=2)",
+                name="eftdiag")
+    assert m.volume > 0
+    # the far end sits at [10,20,30]
+    np.testing.assert_allclose([m.bbmax[0], m.bbmax[1], m.bbmax[2]], [10, 20, 30], atol=6)
+
+
+def test_bounding_box_wraps_object(tmp_path):
+    m = _render(tmp_path, "s3.sphere(r=15).bounding_box(excess=2)", name="bbox")
+    np.testing.assert_allclose(m.size, [34, 34, 34], atol=0.4)  # d=30 + 2*2 excess
+    assert m.watertight
+
+
+def test_chain_hull_connects_shapes(tmp_path):
+    m = _render(tmp_path, "chain_hull(s3.cuboid([5, 5, 5]), s3.sphere(r=4).right(20))", name="chainhull")
+    assert m.volume > 0
+    assert m.size[0] > 20  # spans from the cube to the sphere
+    assert m.watertight
+
+
+def test_offset3d_grows_solid(tmp_path):
+    grown = _render(tmp_path, "s3.cuboid([20, 20, 20]).offset3d(3)", name="offset3d")
+    assert grown.volume > 20 ** 3       # bigger than the original cube
+    np.testing.assert_allclose(grown.size, [26, 26, 26], atol=1.0)  # grown ~3 each side
+
+
+def test_cylindrical_extrude_wraps(tmp_path):
+    # a 30-wide profile wraps a ~57-degree arc of a r=30 cylinder, standing 8 tall in Z
+    m = _render(tmp_path, "cylindrical_extrude(s2.square([30, 8], center=True), ir=25, or_=30)",
+                name="cylext")
+    assert m.volume > 0
+    assert math.isclose(m.size[2], 8.0, abs_tol=0.5)      # profile height -> cylinder axis
+    assert m.bbmax[1] <= 30.5 and m.size[0] > 15          # curved band out near r=25..30
+
+
+# -- nurbs.scad curve / surface evaluation ------------------------------------------------
+
+def test_nurbs_curve_spans_control_points(tmp_path):
+    # a clamped cubic curve starts/ends at the first/last control point
+    setup = "ctrl = [[0, 0, 0], [10, 20, 5], [30, -10, 10], [50, 20, 0], [60, 0, 15]]\n"
+    m = _render(tmp_path, "nurbs_curve(ctrl, 3, splinesteps=12).stroke(width=3)", setup=setup, name="nurbscurve")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.bbmin[0], 0, atol=1.6)   # starts at x=0
+    np.testing.assert_allclose(m.bbmax[0], 60, atol=1.6)  # ends at x=60
+
+
+def test_nurbs_surface_patch(tmp_path):
+    setup = (
+        "patch = [[[-50,50,0],[-16,50,20],[16,50,20],[50,50,0]],"
+        "[[-50,16,20],[-16,16,40],[16,16,40],[50,16,20]],"
+        "[[-50,-16,20],[-16,-16,40],[16,-16,40],[50,-16,20]],"
+        "[[-50,-50,0],[-16,-50,20],[16,-50,20],[50,-50,0]]]\n"
+    )
+    m = _render(tmp_path, "nurbs_vnf(patch, 3, splinesteps=8).polyhedron()", setup=setup, name="nurbspatch")
+    assert m.ntris > 0
+    np.testing.assert_allclose(m.size[:2], [100, 100], atol=1.0)  # spans the control grid
+
+
+def test_nurbs_rational_sphere_is_watertight(tmp_path):
+    # the classic rational-NURBS unit sphere (weights + repeated v-knots) meshes to a closed solid
+    setup = (
+        "patch = [[[0,0,1]]*7,"
+        "[[2,0,1],[2,4,1],[-2,4,1],[-2,0,1],[-2,-4,1],[2,-4,1],[2,0,1]],"
+        "[[2,0,-1],[2,4,-1],[-2,4,-1],[-2,0,-1],[-2,-4,-1],[2,-4,-1],[2,0,-1]],"
+        "[[0,0,-1]]*7]\n"
+        "weights = [[w/9 for w in row] for row in [[9,3,3,9,3,3,9],[3,1,1,3,1,1,3],[3,1,1,3,1,1,3],[9,3,3,9,3,3,9]]]\n"
+        "vknots = [0, 0.5, 0.5, 0.5, 1]\n"
+    )
+    m = _render(tmp_path, "nurbs_vnf(patch, 3, weights=weights, knots=[None, vknots], splinesteps=12).polyhedron()",
+                setup=setup, name="nurbssphere")
+    assert m.watertight
+    np.testing.assert_allclose(m.size, [2, 2, 2], atol=0.1)  # unit sphere, diameter 2

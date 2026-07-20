@@ -210,5 +210,79 @@ class TestDistributorsMatchBosl2(unittest.TestCase):
                 np.testing.assert_allclose(got, exp, atol=1e-6)
 
 
+class TestColorMatchesBosl2(unittest.TestCase):
+    def test_every_truth_case(self):
+        from bosl2.color import hsl, hsv
+        for case in TRUTH["color"]:
+            with self.subTest(fn=case["fn"], args=case["args"]):
+                fn = hsl if case["fn"] == "hsl" else hsv
+                got = np.array(fn(*case["args"]), dtype=float)
+                exp = np.array(case["res"], dtype=float)
+                self.assertEqual(got.shape, exp.shape, "RGB(A) length must match BOSL2")
+                np.testing.assert_allclose(got, exp, atol=1e-6)
+
+
+class TestPartitionPathMatchesBosl2(unittest.TestCase):
+    def test_every_truth_case(self):
+        from bosl2.partitions import partition_path
+        calls = {
+            "flat": lambda: partition_path(["flat"]),
+            "sawtooth": lambda: partition_path(["sawtooth"]),
+            "square": lambda: partition_path(["square"]),
+            "triangle": lambda: partition_path(["triangle"]),
+            "dovetail": lambda: partition_path(["dovetail"]),
+            "hammerhead": lambda: partition_path(["hammerhead"]),
+            "comb": lambda: partition_path(["comb"]),
+            "finger": lambda: partition_path(["finger"]),
+            "sawtooth_xflip": lambda: partition_path(["sawtooth xflip"]),
+            "sawtooth_addflip": lambda: partition_path(["sawtooth addflip"]),
+            "sawtooth_3x": lambda: partition_path(["sawtooth 3x"]),
+            "hammerhead_yflip": lambda: partition_path(["hammerhead yflip"]),
+            "square_skew": lambda: partition_path(["square skew:15"]),
+            "square_pinch": lambda: partition_path(["square pinch:30"]),
+            "mixed_flat": lambda: partition_path([40, "dovetail", 40]),
+            "closed_y": lambda: partition_path([30, "hammerhead", 30], y=150),
+        }
+        for case in TRUTH["partition"]:
+            with self.subTest(kw=case["kw"]):
+                got = np.array(calls[case["kw"]](), dtype=float)
+                exp = np.array(case["res"], dtype=float)
+                self.assertEqual(got.shape, exp.shape, "point count must match BOSL2")
+                np.testing.assert_allclose(got, exp, atol=1e-6)
+
+
+class TestNurbsMatchesBosl2(unittest.TestCase):
+    def test_every_truth_case(self):
+        from bosl2.nurbs import nurbs_curve, nurbs_patch_points, nurbs_elevate_degree
+        c3 = [[0, 0, 0], [10, 20, 5], [30, -10, 10], [50, 20, 0], [60, 0, 15]]
+        c2 = [[0, 0], [10, 20], [30, -10], [50, 20], [60, 0]]
+        patch = [[[-50, 50, 0], [-16, 50, 20], [16, 50, 20], [50, 50, 0]],
+                 [[-50, 16, 20], [-16, 16, 40], [16, 16, 40], [50, 16, 20]],
+                 [[-50, -16, 20], [-16, -16, 40], [16, -16, 40], [50, -16, 20]],
+                 [[-50, -50, 0], [-16, -50, 20], [16, -50, 20], [50, -50, 0]]]
+        calls = {
+            "clamped3_ss": lambda: nurbs_curve(c3, 3, splinesteps=5),
+            "clamped2_u": lambda: nurbs_curve(c2, 3, u=[0, 0.2, 0.4, 0.6, 0.8, 1]),
+            "open3_ss": lambda: nurbs_curve(c3, 3, splinesteps=4, type="open"),
+            "closed2_ss": lambda: nurbs_curve(c2, 2, splinesteps=4, type="closed"),
+            "deg2_ss": lambda: nurbs_curve(c3, 2, splinesteps=6),
+            "weighted_u": lambda: nurbs_curve([[0, 0], [10, 0], [10, 10], [0, 10]], 2,
+                                              u=[0, 0.25, 0.5, 0.75, 1], weights=[1, 5, 1, 5]),
+            "mult_ss": lambda: nurbs_curve(c3 + [[70, 10, 5]], 3, splinesteps=4, mult=[1, 2, 1]),
+            "knots_u": lambda: nurbs_curve(c2, 3, u=[0, 0.3, 0.6, 1], knots=[0, 0.4, 1]),
+            "patch3_ss": lambda: nurbs_patch_points(patch, 3, splinesteps=3),
+            "patch_uv": lambda: nurbs_patch_points(patch, 3, u=[0, 0.5, 1], v=[0, 0.5, 1]),
+            "patch_mixed": lambda: nurbs_patch_points(patch, [3, 2], splinesteps=[2, 3]),
+            "elevate_deg": lambda: nurbs_elevate_degree(c2, 3)[1],
+            "elevate_ctrl": lambda: nurbs_elevate_degree(c2, 3)[2],
+        }
+        for case in TRUTH["nurbs"]:
+            with self.subTest(kw=case["kw"]):
+                got = np.array(calls[case["kw"]](), dtype=float)
+                exp = np.array(case["res"], dtype=float)
+                self.assertEqual(got.shape, exp.shape, "shape must match BOSL2")
+                np.testing.assert_allclose(got, exp, atol=1e-6)
+
+
 if __name__ == "__main__":
     unittest.main()

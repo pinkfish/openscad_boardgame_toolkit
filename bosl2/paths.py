@@ -62,6 +62,7 @@ from bosl2.vectors import is_vector, add_scalar, unit
 from bosl2.comparisons import approx
 from bosl2.geometry import line_normal, line_closest_point, pointlist_bounds, _is_point_on_segment, is_collinear, cross, general_line_intersection
 from bosl2.distributors import Distributable, _apply4  # the distributors.scad copiers, as methods
+from bosl2.miscellaneous import Extrudable  # path_extrude / path_extrude2d, as methods
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +75,7 @@ from bosl2.distributors import Distributable, _apply4  # the distributors.scad c
 # keeps the Region class.
 
 
-class Path(Distributable, list):
+class Path(Distributable, Extrudable, list):
     """A 2-D path: a list of [x, y] points, with every path operation as a method.
 
     Subclasses ``list`` deliberately -- the same trick as :class:`base_bgtk.Vec3`. Every place
@@ -1338,7 +1339,7 @@ class Path(Distributable, list):
 # transforms (translate/move, the six directional moves including up/down, scale, mirror, rotate).
 
 
-class Path3D(Distributable, list):
+class Path3D(Distributable, Extrudable, list):
     """A 3-D path: a list of ``[x, y, z]`` points, with the path operations that make sense in 3-D.
 
     The 3-D counterpart of :class:`Path`. Like ``Path`` it subclasses ``list`` (so it stays a
