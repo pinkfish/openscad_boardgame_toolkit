@@ -63,6 +63,7 @@ API reference
    beziers
    nurbs
    vnf
+   isosurface
    skin
    shapes3d
    shapes2d
@@ -71,6 +72,7 @@ API reference
    color
    partitions
    miscellaneous
+   rounding
    masking
    transforms
    geometry

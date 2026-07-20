@@ -42,7 +42,7 @@ from pythonscad import osuse
 # (this generator is the sole remaining osuse() user, kept to re-derive the fixture).
 b = osuse(base_bgtk.BOSL2_STD_PATH)
 out = {"reorient": [], "apply": [], "arc": [], "catenary": [], "helix": [], "turtle": [],
-       "distrib": [], "color": [], "partition": [], "nurbs": []}
+       "distrib": [], "color": [], "partition": [], "nurbs": [], "rounding": [], "isosurface": []}
 
 ANCH = {"CENTER": CENTER, "BOTTOM": BOTTOM, "TOP": TOP,
         "BFL": BOTTOM+FRONT+LEFT, "TRB": TOP+RIGHT+BACK, "LEFT": LEFT}
@@ -172,6 +172,50 @@ out["nurbs"].append({"kw": "patch_mixed", "res": jl(bn.nurbs_patch_points(_patch
 _el = bn.nurbs_elevate_degree(_c2, 3)
 out["nurbs"].append({"kw": "elevate_deg", "res": _el[1]})
 out["nurbs"].append({"kw": "elevate_ctrl", "res": jl(_el[2])})
+
+# rounding: round_corners (circle/smooth/chamfer, radius/cut/joint/width) and smooth_path
+_sq = [[0,0],[40,0],[40,30],[0,30]]
+_op = [[0,0],[40,0],[40,30],[20,45],[0,30]]
+_p3 = [[0,0,0],[40,0,0],[40,40,20],[0,40,20]]
+_wig = [[0,0],[10,30],[30,-10],[50,20],[70,0]]
+out["rounding"].append({"kw": "circle_radius", "res": jl(b.round_corners(_sq, radius=5))})
+out["rounding"].append({"kw": "circle_cut", "res": jl(b.round_corners(_sq, cut=3))})
+out["rounding"].append({"kw": "circle_joint", "res": jl(b.round_corners(_sq, joint=5))})
+out["rounding"].append({"kw": "smooth_joint", "res": jl(b.round_corners(_sq, method="smooth", joint=8))})
+out["rounding"].append({"kw": "smooth_cut", "res": jl(b.round_corners(_sq, method="smooth", cut=2))})
+out["rounding"].append({"kw": "smooth_k", "res": jl(b.round_corners(_sq, method="smooth", joint=8, k=0.8))})
+out["rounding"].append({"kw": "chamfer_joint", "res": jl(b.round_corners(_sq, method="chamfer", joint=6))})
+out["rounding"].append({"kw": "chamfer_cut", "res": jl(b.round_corners(_sq, method="chamfer", cut=4))})
+out["rounding"].append({"kw": "chamfer_width", "res": jl(b.round_corners(_sq, method="chamfer", width=5))})
+out["rounding"].append({"kw": "open_circle", "res": jl(b.round_corners(_op, radius=5, closed=False))})
+out["rounding"].append({"kw": "d3_smooth", "res": jl(b.round_corners(_p3, method="smooth", joint=6))})
+out["rounding"].append({"kw": "d3_chamfer", "res": jl(b.round_corners(_p3, method="chamfer", joint=6))})
+out["rounding"].append({"kw": "smoothpath_rel", "res": jl(b.smooth_path(_wig, relsize=0.4))})
+out["rounding"].append({"kw": "smoothpath_size", "res": jl(b.smooth_path(_wig, size=5))})
+out["rounding"].append({"kw": "smoothpath_closed", "res": jl(b.smooth_path(_sq, relsize=0.3, closed=True))})
+
+# isosurface metaball field-function values (isosurface.scad not in std; wrap with helper functions)
+_iwrap = os.path.join(_bdir, "_truth_iso_wrapper.scad")
+open(_iwrap, "w").write(
+    "include <%s>\ninclude <%s>\n" % (os.path.join(_bdir, "std.scad"), os.path.join(_bdir, "isosurface.scad"))
+    + "function _t_sphere(pt,r,cut,inf) = mb_sphere(r=r,cutoff=cut,influence=inf)[0](pt);\n"
+    + "function _t_cuboid(pt,sz,sq) = mb_cuboid(sz,squareness=sq)[0](pt);\n"
+    + "function _t_torus(pt,rmaj,rmin) = mb_torus(rmaj,rmin)[0](pt);\n"
+    + "function _t_capsule(pt,h,r) = mb_capsule(h,r)[0](pt);\n"
+    + "function _t_disk(pt,h,r) = mb_disk(h,r)[0](pt);\n"
+    + "function _t_octa(pt,sz,sq) = mb_octahedron(sz,squareness=sq)[0](pt);\n"
+    + "function _t_conn(pt,p1,p2,r) = mb_connector(p1,p2,r)[0](pt);\n")
+bi = osuse(_iwrap)
+_ipts = [[5,0,0],[10,3,2],[0,8,6],[12,4,-5],[3,3,3]]
+out["isosurface"].append({"fn": "sphere", "res": [bi._t_sphere(p, 5, 1e9, 1) for p in _ipts]})
+out["isosurface"].append({"fn": "sphere_cut", "res": [bi._t_sphere(p, 5, 12, 1.5) for p in _ipts]})
+out["isosurface"].append({"fn": "cuboid", "res": [bi._t_cuboid(p, 20, 0.5) for p in _ipts]})
+out["isosurface"].append({"fn": "cuboid_sq", "res": [bi._t_cuboid(p, [16,20,24], 0.8) for p in _ipts]})
+out["isosurface"].append({"fn": "torus", "res": [bi._t_torus(p, 8, 3) for p in _ipts]})
+out["isosurface"].append({"fn": "capsule", "res": [bi._t_capsule(p, 24, 4) for p in _ipts]})
+out["isosurface"].append({"fn": "disk", "res": [bi._t_disk(p, 6, 12) for p in _ipts]})
+out["isosurface"].append({"fn": "octa", "res": [bi._t_octa(p, 20, 0.5) for p in _ipts]})
+out["isosurface"].append({"fn": "connector", "res": [bi._t_conn(p, [-10,0,0], [10,5,3], 4) for p in _ipts]})
 
 open(os.environ["TRUTH_OUT"], "w").write(json.dumps(out, indent=1))
 cube(1).show()

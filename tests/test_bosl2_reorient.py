@@ -284,5 +284,61 @@ class TestNurbsMatchesBosl2(unittest.TestCase):
                 np.testing.assert_allclose(got, exp, atol=1e-6)
 
 
+class TestRoundingMatchesBosl2(unittest.TestCase):
+    def test_every_truth_case(self):
+        from bosl2.rounding import round_corners, smooth_path
+        sq = [[0, 0], [40, 0], [40, 30], [0, 30]]
+        op = [[0, 0], [40, 0], [40, 30], [20, 45], [0, 30]]
+        p3 = [[0, 0, 0], [40, 0, 0], [40, 40, 20], [0, 40, 20]]
+        wig = [[0, 0], [10, 30], [30, -10], [50, 20], [70, 0]]
+        calls = {
+            "circle_radius": lambda: round_corners(sq, radius=5),
+            "circle_cut": lambda: round_corners(sq, cut=3),
+            "circle_joint": lambda: round_corners(sq, joint=5),
+            "smooth_joint": lambda: round_corners(sq, method="smooth", joint=8),
+            "smooth_cut": lambda: round_corners(sq, method="smooth", cut=2),
+            "smooth_k": lambda: round_corners(sq, method="smooth", joint=8, k=0.8),
+            "chamfer_joint": lambda: round_corners(sq, method="chamfer", joint=6),
+            "chamfer_cut": lambda: round_corners(sq, method="chamfer", cut=4),
+            "chamfer_width": lambda: round_corners(sq, method="chamfer", width=5),
+            "open_circle": lambda: round_corners(op, radius=5, closed=False),
+            "d3_smooth": lambda: round_corners(p3, method="smooth", joint=6),
+            "d3_chamfer": lambda: round_corners(p3, method="chamfer", joint=6),
+            "smoothpath_rel": lambda: smooth_path(wig, relsize=0.4),
+            "smoothpath_size": lambda: smooth_path(wig, size=5),
+            "smoothpath_closed": lambda: smooth_path(sq, relsize=0.3, closed=True),
+        }
+        for case in TRUTH["rounding"]:
+            with self.subTest(kw=case["kw"]):
+                got = np.array(calls[case["kw"]](), dtype=float)
+                exp = np.array(case["res"], dtype=float)
+                self.assertEqual(got.shape, exp.shape, "shape must match BOSL2")
+                np.testing.assert_allclose(got, exp, atol=1e-6)
+
+
+class TestIsosurfaceFieldsMatchBosl2(unittest.TestCase):
+    def test_every_truth_case(self):
+        from bosl2.isosurface import (mb_sphere, mb_cuboid, mb_torus, mb_capsule, mb_disk,
+                                      mb_octahedron, mb_connector)
+        pts = [[5, 0, 0], [10, 3, 2], [0, 8, 6], [12, 4, -5], [3, 3, 3]]
+        calls = {
+            "sphere": mb_sphere(5),
+            "sphere_cut": mb_sphere(5, cutoff=12, influence=1.5),
+            "cuboid": mb_cuboid(20, 0.5),
+            "cuboid_sq": mb_cuboid([16, 20, 24], 0.8),
+            "torus": mb_torus(8, 3),
+            "capsule": mb_capsule(24, 4),
+            "disk": mb_disk(6, 12),
+            "octa": mb_octahedron(20, 0.5),
+            "connector": mb_connector([-10, 0, 0], [10, 5, 3], 4),
+        }
+        for case in TRUTH["isosurface"]:
+            with self.subTest(fn=case["fn"]):
+                mb = calls[case["fn"]]
+                got = np.array([mb(p) for p in pts])
+                exp = np.array(case["res"], dtype=float)
+                np.testing.assert_allclose(got, exp, atol=1e-5, rtol=1e-5)
+
+
 if __name__ == "__main__":
     unittest.main()

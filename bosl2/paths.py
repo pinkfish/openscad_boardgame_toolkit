@@ -63,6 +63,7 @@ from bosl2.comparisons import approx
 from bosl2.geometry import line_normal, line_closest_point, pointlist_bounds, _is_point_on_segment, is_collinear, cross, general_line_intersection
 from bosl2.distributors import Distributable, _apply4  # the distributors.scad copiers, as methods
 from bosl2.miscellaneous import Extrudable  # path_extrude / path_extrude2d, as methods
+from bosl2.rounding import Roundable  # round_corners / smooth_path, as methods
 
 
 # ---------------------------------------------------------------------------
@@ -75,7 +76,7 @@ from bosl2.miscellaneous import Extrudable  # path_extrude / path_extrude2d, as 
 # keeps the Region class.
 
 
-class Path(Distributable, Extrudable, list):
+class Path(Distributable, Extrudable, Roundable, list):
     """A 2-D path: a list of [x, y] points, with every path operation as a method.
 
     Subclasses ``list`` deliberately -- the same trick as :class:`base_bgtk.Vec3`. Every place
@@ -222,9 +223,9 @@ class Path(Distributable, Extrudable, list):
         return self._like(Path._offset(self, r=r, delta=delta, chamfer=chamfer,
                                         closed=self.closed, _fn=_fn, _fa=_fa, _fs=_fs))
 
-    def round_corners(self, radius: float | list[float] | None = None, **kwargs: Any) -> "Path":
-        """Round every corner to the given radius, inserting an arc at each vertex (:meth:`_round_corners`)."""
-        return self._like(Path._round_corners(self, radius=radius, closed=self.closed, **kwargs))
+    # round_corners() and smooth_path() come from the Roundable mixin (bosl2/rounding.py), which
+    # supports the circle / smooth / chamfer methods and 2-D/3-D paths. The circle+radius case is
+    # bit-identical to the old _round_corners kernel kept below.
 
     def merge_collinear(self) -> "Path":
         """Drop points that lie on a straight run."""
@@ -1339,7 +1340,7 @@ class Path(Distributable, Extrudable, list):
 # transforms (translate/move, the six directional moves including up/down, scale, mirror, rotate).
 
 
-class Path3D(Distributable, Extrudable, list):
+class Path3D(Distributable, Extrudable, Roundable, list):
     """A 3-D path: a list of ``[x, y, z]`` points, with the path operations that make sense in 3-D.
 
     The 3-D counterpart of :class:`Path`. Like ``Path`` it subclasses ``list`` (so it stays a

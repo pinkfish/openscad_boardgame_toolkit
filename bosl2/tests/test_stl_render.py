@@ -712,6 +712,75 @@ def test_nurbs_surface_patch(tmp_path):
     np.testing.assert_allclose(m.size[:2], [100, 100], atol=1.0)  # spans the control grid
 
 
+def test_rounding_methods_extrude(tmp_path):
+    # circle / smooth / chamfer rounded squares all extrude into valid solids
+    sq = "[[0, 0], [40, 0], [40, 30], [0, 30]]"
+    for method, kw, name in (("circle", "radius=5", "roundcircle"),
+                             ("smooth", "joint=8", "roundsmooth"),
+                             ("chamfer", "joint=6", "roundchamfer")):
+        m = _render(tmp_path, f"round_corners({sq}, method='{method}', {kw}).polygon().linear_extrude(height=4)",
+                    name=name)
+        assert m.volume > 0
+        assert math.isclose(m.size[2], 4.0, abs_tol=1e-2)
+        np.testing.assert_allclose(m.size[:2], [40, 30], atol=0.6)  # stays within the square
+        assert m.watertight
+
+
+def test_smooth_path_stroke(tmp_path):
+    setup = "pts = [[0, 0], [10, 30], [30, -10], [50, 20], [70, 0]]\n"
+    m = _render(tmp_path, "smooth_path(pts, relsize=0.4).stroke(width=2).linear_extrude(height=3)",
+                setup=setup, name="smoothpath")
+    assert m.volume > 0
+    assert m.size[0] > 65  # spans the wiggly control points
+
+
+def test_round_corners_3d_path(tmp_path):
+    # a 3-D path with smooth corners, swept into a tube
+    setup = "route = round_corners([[0,0,0],[40,0,0],[40,40,20],[0,40,20]], method='smooth', joint=8, closed=False)\n"
+    m = _render(tmp_path, "route.stroke(width=3)", setup=setup, name="round3d")
+    assert m.volume > 0
+    assert m.bbmax[2] > 15  # follows the path up in Z
+
+
+def test_metaball_sphere_is_watertight(tmp_path):
+    # a lone mb_sphere(10) at isovalue 1 -> a watertight sphere of radius 10
+    m = _render(tmp_path,
+                "metaballs([([0,0,0], mb_sphere(10))], bounding_box=[[-16,-16,-16],[16,16,16]], voxel_size=1.5).polyhedron()",
+                name="mbsphere")
+    assert m.watertight
+    np.testing.assert_allclose(m.size, [20, 20, 20], atol=1.0)  # diameter ~20
+
+
+def test_metaballs_merge_into_one_blob(tmp_path):
+    # two spheres whose fields overlap fuse into a single watertight peanut
+    setup = "spec = [([-9,0,0], mb_sphere(9)), ([9,0,0], mb_sphere(9))]\n"
+    m = _render(tmp_path,
+                "metaballs(spec, bounding_box=[[-28,-16,-16],[28,16,16]], voxel_size=2).polyhedron()",
+                setup=setup, name="mbpeanut")
+    assert m.watertight
+    assert m.size[0] > 40  # spans both balls plus the inflated bridge
+
+
+def test_metaball_torus_has_a_hole(tmp_path):
+    m = _render(tmp_path,
+                "metaballs([([0,0,0], mb_torus(10, 3))], bounding_box=[[-16,-16,-8],[16,16,8]], voxel_size=1.5).polyhedron()",
+                name="mbtorus")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [26, 26], atol=1.5)  # outer diameter ~ 2*(10+3)
+    assert m.size[2] < 8  # flat torus
+
+
+def test_isosurface_of_a_field_function(tmp_path):
+    setup = (
+        "def sf(pts):\n"
+        "    return 8.0 / (pts[:, 0]**2 + pts[:, 1]**2 + pts[:, 2]**2) ** 0.5\n"
+    )
+    m = _render(tmp_path, "isosurface(sf, 1, bounding_box=24, voxel_size=1.5).polyhedron()",
+                setup=setup, name="isofield")
+    assert m.watertight
+    np.testing.assert_allclose(m.size, [16, 16, 16], atol=1.0)  # sphere of radius 8
+
+
 def test_nurbs_rational_sphere_is_watertight(tmp_path):
     # the classic rational-NURBS unit sphere (weights + repeated v-knots) meshes to a closed solid
     setup = (
