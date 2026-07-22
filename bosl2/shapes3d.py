@@ -158,6 +158,50 @@ class Bosl2Solid(Distributable, Colorable, Partitionable, Miscellaneous):
     def scale(self, v) -> "Bosl2Solid":
         return self._wrap(self.shape.scale(v))
 
+    # ---- native-only mesh operations (no BOSL2 equivalent) ----
+    #
+    # PythonSCAD provides several solid operations that BOSL2 has no counterpart for; they are
+    # exposed here as first-class Bosl2Solid methods (re-wrapping the native result so anchoring
+    # metadata and fluent chaining survive) rather than leaking raw native handles through
+    # __getattr__. These execute only inside the real PythonSCAD app; under the numeric test mock
+    # they degrade to identity/AABB stand-ins (see mock_libfive.py), so the fast suite still runs
+    # and their real geometry is covered by the STL render tests.
+
+    def repair(self) -> "Bosl2Solid":
+        """Force the mesh watertight, healing gaps/non-manifold edges (native ``repair()``)."""
+        return self._wrap(self.shape.repair())
+
+    def wrap(self, r: float, _fn: float | None = None) -> "Bosl2Solid":
+        """Wrap this solid around a cylinder of radius *r*, bending +X into the cylinder's
+        circumference (native ``wrap()``). *_fn* sets the facet count of the bend."""
+        if _fn is not None:
+            return self._wrap(self.shape.wrap(r=float(r), fn=float(_fn)))
+        return self._wrap(self.shape.wrap(r=float(r)))
+
+    def roof(self, method: str = "straight") -> "Bosl2Solid":
+        """Raise a roof over this 2-D-topped solid via the straight-skeleton of its top face
+        (native ``roof()``); *method* selects the skeleton algorithm."""
+        return self._wrap(self.shape.roof(method=method))
+
+    def pull(self, direction: Sequence[float], distance: float) -> "Bosl2Solid":
+        """Pull the part of the solid on the +*direction* side apart by *distance*, stretching the
+        material between (native ``pull()``)."""
+        return self._wrap(self.shape.pull([float(x) for x in direction], float(distance)))
+
+    def oversample(self, n: int) -> "Bosl2Solid":
+        """Subdivide every mesh facet *n*-fold, e.g. before :meth:`wrap` so the bend is smooth
+        (native ``oversample()``)."""
+        return self._wrap(self.shape.oversample(int(n)))
+
+    def separate(self) -> "list[Bosl2Solid]":
+        """Split a solid made of disconnected lumps into a list of its connected components
+        (native ``separate()``)."""
+        return [self._wrap(part) for part in self.shape.separate()]
+
+    def inside(self, point: Sequence[float]) -> bool:
+        """True if *point* lies inside the solid (native ``inside()``)."""
+        return bool(self.shape.inside([float(x) for x in point]))
+
     # ---- colour (bosl2/color.py) ----
     #
     # The color.scad operators (color/recolor/color_this/hsl/hsv/highlight/ghost) come from the

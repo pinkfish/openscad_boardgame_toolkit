@@ -70,6 +70,8 @@ API reference
    drawing
    distributors
    color
+   threading
+   screws
    partitions
    miscellaneous
    rounding

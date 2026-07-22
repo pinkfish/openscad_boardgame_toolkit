@@ -83,6 +83,8 @@ _PREAMBLE = (
     "from bosl2.nurbs import nurbs_curve, nurbs_patch_points, nurbs_vnf, nurbs_elevate_degree, is_nurbs_patch\n"
     "from bosl2.rounding import round_corners, smooth_path\n"
     "from bosl2.isosurface import isosurface, metaballs, mb_sphere, mb_cuboid, mb_torus, mb_capsule, mb_disk, mb_octahedron, mb_connector\n"
+    "from bosl2.threading import Threading\n"
+    "from bosl2.screws import Screws\n"
     "from functools import reduce\n"
     "from bosl2.paths import Path, Path3D\n"
     "from bosl2.regions import Region\n"

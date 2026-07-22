@@ -287,6 +287,17 @@ class _AabbSolid:
         # enough to matter for anchoring tests; keep the box as-is.
         return _AabbSolid(self.mn, self.mx)
 
+    def separate(self):
+        # Native separate() splits disconnected lumps; the mock has a single AABB, so it is one part.
+        return [_AabbSolid(self.mn, self.mx)]
+
+    def inside(self, point):
+        # Model the real native inside() from the tracked AABB so Bosl2Solid.inside() is testable.
+        mn, mx = self.mn, self.mx
+        if mn is None or mx is None:
+            return False
+        return all(mn[i] <= float(point[i]) <= mx[i] for i in range(3))
+
     def __getattr__(self, name):
         # Permissive no-op for everything else (.show()/.mesh()/.linear_extrude()/...).
         return lambda *a, **k: self

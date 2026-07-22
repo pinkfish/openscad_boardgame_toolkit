@@ -742,6 +742,136 @@ def test_round_corners_3d_path(tmp_path):
     assert m.bbmax[2] > 15  # follows the path up in Z
 
 
+def test_threaded_rod_iso(tmp_path):
+    # an ISO M12x1.75 rod: major diameter 12, length 24, minor = 12 - 2*(cos30*5/8)*1.75
+    m = _render(tmp_path, "Threading.threaded_rod(12, 24, 1.75, _fa=6, _fs=1)", name="isorod")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [12, 12], atol=0.1)   # major diameter
+    assert math.isclose(m.size[2], 24.0, abs_tol=0.05)           # length
+    minor = 12 - 2 * math.cos(math.radians(30)) * 5 / 8 * 1.75
+    lo = math.pi * (minor / 2) ** 2 * 24                          # minor-cylinder volume
+    hi = math.pi * 6 ** 2 * 24                                    # major-cylinder volume
+    assert lo < m.volume < hi                                     # threaded, so between the two
+
+
+@pytest.mark.parametrize("expr,name,dia", [
+    ("Threading.trapezoidal_threaded_rod(20, 30, 4, _fa=6, _fs=1)", "traprod", 20),
+    ("Threading.acme_threaded_rod(20, 30, 4, _fa=6, _fs=1)", "acmerod", 20),
+    ("Threading.square_threaded_rod(20, 30, 4, _fa=6, _fs=1)", "sqrod", 20),
+    ("Threading.buttress_threaded_rod(20, 30, 4, _fa=6, _fs=1)", "buttrod", 20),
+])
+def test_threaded_rod_variants_watertight(tmp_path, expr, name, dia):
+    m = _render(tmp_path, expr, name=name)
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [dia, dia], atol=0.2)
+    assert math.isclose(m.size[2], 30.0, abs_tol=0.05)
+
+
+def test_multistart_and_left_handed(tmp_path):
+    a = _render(tmp_path, "Threading.threaded_rod(16, 24, 2, starts=2, _fa=6, _fs=1)", name="ms2")
+    assert a.watertight and math.isclose(a.size[2], 24.0, abs_tol=0.05)
+    b = _render(tmp_path, "Threading.threaded_rod(12, 24, 1.75, left_handed=True, _fa=6, _fs=1)", name="lh")
+    assert b.watertight
+    np.testing.assert_allclose(b.size[:2], [12, 12], atol=0.1)
+
+
+def test_threaded_hex_nut(tmp_path):
+    # a hex nut for an M12 rod: flat-to-flat 18, corner-to-corner ~20.8, height 10, threaded hole
+    m = _render(tmp_path, "Threading.threaded_nut(18, 12, 10, 1.75, slop=0.1, _fa=6, _fs=1)", name="hexnut")
+    assert m.watertight
+    assert math.isclose(min(m.size[:2]), 18.0, abs_tol=0.3)      # flat-to-flat
+    assert math.isclose(m.size[2], 10.0, abs_tol=0.05)           # height
+    assert m.volume < math.pi * 10.4 ** 2 * 10                   # has a hole, so less than solid
+
+
+def test_threaded_square_nut(tmp_path):
+    m = _render(tmp_path, "Threading.trapezoidal_threaded_nut(24, 16, 12, 3, shape='square', slop=0.1, _fa=6, _fs=1)",
+                name="sqnut")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [24, 24], atol=0.3)   # square
+    assert math.isclose(m.size[2], 12.0, abs_tol=0.05)
+
+
+def test_thread_helix_ridge(tmp_path):
+    m = _render(tmp_path, "Threading.thread_helix(20, 4, turns=3, _fa=6, _fs=1)", name="threadhelix")
+    assert m.volume > 0
+    np.testing.assert_allclose(m.size[:2], [20, 20], atol=0.3)   # crest at diameter 20
+
+
+# -- screws, nuts and screw holes ---------------------------------------------------------
+
+def test_screw_socket_head(tmp_path):
+    # M6 socket cap screw, 20 mm shaft: head diameter 10, head height 6 above the shaft, so the
+    # whole solid is 26 tall and 10 wide at the head.
+    m = _render(tmp_path, "Screws.screw('M6', 20, head='socket', drive='hex', _fa=6, _fs=1)", name="scrsocket")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [10, 10], atol=0.3)      # socket head diameter
+    assert math.isclose(m.size[2], 26.0, abs_tol=0.3)              # 20 shaft + 6 head
+
+
+def test_screw_hex_head(tmp_path):
+    # M8 hex head: across-flats 13 (corner-to-corner ~15), head height 5.3 above a 16 mm shaft.
+    m = _render(tmp_path, "Screws.screw('M8', 16, head='hex', _fa=6, _fs=1)", name="scrhex")
+    assert m.watertight
+    assert math.isclose(min(m.size[:2]), 13.0, abs_tol=0.4)        # flat-to-flat of the hex head
+    assert math.isclose(m.size[2], 21.3, abs_tol=0.3)             # 16 shaft + 5.3 head
+
+
+def test_screw_flat_head_countersunk(tmp_path):
+    # M6 countersunk: the head is a 90-degree cone, so it adds only (11.085-6)/2 ~ 2.54 above the shaft.
+    m = _render(tmp_path, "Screws.screw('M6', 16, head='flat', _fa=6, _fs=1)", name="scrflat")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [11.085, 11.085], atol=0.4)   # head diameter at the surface
+    assert math.isclose(m.size[2], 16 + (11.085 - 6) / 2, abs_tol=0.3)
+
+
+@pytest.mark.parametrize("head,name", [("button", "scrbtn"), ("pan", "scrpan"), ("none", "scrset")])
+def test_screw_heads_watertight(tmp_path, head, name):
+    drive = "hex" if head in ("button", "none") else "none"
+    m = _render(tmp_path, f"Screws.screw('M6', 16, head='{head}', drive='{drive}', _fa=6, _fs=1)", name=name)
+    assert m.watertight
+    assert math.isclose(min(m.size[:2]), 6.0, abs_tol=0.4) or min(m.size[:2]) >= 6.0  # at least the shaft
+
+
+def test_screw_recess_removes_volume(tmp_path):
+    # the hex drive recess must actually cut material out of the head.
+    solid = _render(tmp_path, "Screws.screw('M8', 16, head='socket', drive='none', _fa=6, _fs=1)", name="norec")
+    drilled = _render(tmp_path, "Screws.screw('M8', 16, head='socket', drive='hex', _fa=6, _fs=1)", name="rec")
+    assert drilled.watertight
+    assert drilled.volume < solid.volume            # the recess subtracted material
+
+
+def test_nut_matches_thread(tmp_path):
+    # an M6 hex nut: flat-to-flat 10, normal thickness 5.2, threaded hole.
+    m = _render(tmp_path, "Screws.nut('M6', slop=0.1, _fa=6, _fs=1)", name="scrnut")
+    assert m.watertight
+    assert math.isclose(min(m.size[:2]), 10.0, abs_tol=0.3)       # flat-to-flat
+    assert math.isclose(m.size[2], 5.2, abs_tol=0.1)             # normal thickness
+    assert m.volume < math.pi * 5.2 ** 2 * 5.2                    # has a threaded hole
+
+
+def test_square_nut(tmp_path):
+    m = _render(tmp_path, "Screws.nut('M6', shape='square', slop=0.1, _fa=6, _fs=1)", name="sqscrnut")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [10, 10], atol=0.3)
+
+
+def test_screw_hole_clearance(tmp_path):
+    # a normal-fit clearance hole for M6 is a plain cylinder of diameter 6 + 2*0.5 = 7.
+    m = _render(tmp_path, "Screws.screw_hole('M6', 20, _fa=6, _fs=1)", name="clrhole")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [7, 7], atol=0.2)
+    assert math.isclose(m.size[2], 20.0, abs_tol=0.05)
+
+
+def test_screw_hole_countersink(tmp_path):
+    # a flat-head clearance hole flares out to the countersink diameter at the top.
+    m = _render(tmp_path, "Screws.screw_hole('M6', 20, head='flat', _fa=6, _fs=1)", name="cskhole")
+    assert m.watertight
+    assert max(m.size[:2]) >= 11.0                                # opens up to the head diameter
+    assert m.bbmax[2] > 0 and m.bbmin[2] < 0                      # mouth at z=0, shaft below
+
+
 def test_metaball_sphere_is_watertight(tmp_path):
     # a lone mb_sphere(10) at isovalue 1 -> a watertight sphere of radius 10
     m = _render(tmp_path,

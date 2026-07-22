@@ -52,7 +52,7 @@ def _iso_profile():
             [depth / math.sqrt(3) + cw / 2, -depth]]
 
 
-def _trapezoidal_profile(pitch, thread_angle=30, thread_depth=None):
+def _trapezoidal_profile(pitch, thread_angle: float = 30, thread_depth=None):
     depth = thread_depth if thread_depth is not None else pitch / 2
     pa_delta = 0.5 * depth * math.tan(math.radians(thread_angle / 2)) / pitch
     assert pa_delta <= 0.25, "trapezoidal thread geometry is impossible (angle/depth too large)."
@@ -103,21 +103,33 @@ def _thread_grid(profile, pitch, r, l, starts, left_handed, sides):
     return grid
 
 
+def _rot_z(pts, deg):
+    a = math.radians(deg)
+    c, s = math.cos(a), math.sin(a)
+    return [[x * c - y * s, x * s + y * c, z] for x, y, z in pts]
+
+
 def _rod_solid(d, l, pitch, profile, starts=1, left_handed=False, _fn=None, _fa=None, _fs=None):
-    """The external threaded-rod solid, built as a direct manifold polyhedron, trimmed to length."""
+    """The external threaded-rod solid, built as a direct manifold polyhedron, trimmed to length.
+
+    Each of the *starts* thread starts is one angular sector's vertex-array surface; the sectors are
+    merged at the VNF level (not by CSG union, which Manifold cannot do on coaxial helical solids)
+    into one polyhedron, then trimmed to length with an intersection."""
     from bosl2.shapes3d import cyl, Bosl2Solid
     from bosl2.shapes2d import _frag_count
     from bosl2.vnf import VNF
 
     r = d / 2
     sides = _quantup(_frag_count(r, _fn, _fa, _fs), starts)
-    thread = None
+    verts, faces = [], []
     for k in range(starts):
         grid = _thread_grid(profile, pitch, r, l, starts, left_handed, sides)
-        solid = Bosl2Solid(VNF.vertex_array(grid, col_wrap=False, style="convex").polyhedron())
-        if starts > 1:
-            solid = solid.rotate([0, 0, k * 360 / starts])
-        thread = solid if thread is None else (thread | solid)
+        vnf = VNF.vertex_array(grid, col_wrap=False, style="convex")
+        rv = _rot_z(list(vnf.vertices), k * 360 / starts) if starts > 1 else list(vnf.vertices)
+        off = len(verts)
+        verts += [list(v) for v in rv]
+        faces += [[i + off for i in f] for f in vnf.faces]
+    thread = Bosl2Solid(VNF(verts, faces).polyhedron())
     return thread & cyl(h=l, r=r + 1, _fn=_fn, _fa=_fa, _fs=_fs)
 
 
