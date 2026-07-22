@@ -925,3 +925,52 @@ def test_nurbs_rational_sphere_is_watertight(tmp_path):
                 setup=setup, name="nurbssphere")
     assert m.watertight
     np.testing.assert_allclose(m.size, [2, 2, 2], atol=0.1)  # unit sphere, diameter 2
+
+
+# -- native-only mesh operations (repair / wrap / roof / pull / oversample / separate / inside) ----
+
+def test_repair_keeps_watertight(tmp_path):
+    m = _render(tmp_path, "s3.cuboid([20, 20, 10]).repair()", name="repair")
+    assert m.watertight
+    np.testing.assert_allclose(m.size, [20, 20, 10], atol=0.1)
+
+
+def test_oversample_subdivides_facets(tmp_path):
+    base = _render(tmp_path, "s3.cuboid([20, 20, 10])", name="ov_base")
+    over = _render(tmp_path, "s3.cuboid([20, 20, 10]).oversample(3)", name="ov_3")
+    assert over.watertight
+    assert over.ntris > base.ntris * 4          # each facet subdivided many-fold
+    np.testing.assert_allclose(over.size, [20, 20, 10], atol=0.1)   # same shape, just denser
+    assert math.isclose(over.volume, base.volume, rel_tol=0.02)
+
+
+def test_roof_makes_a_pyramid(tmp_path):
+    # a hip roof over a 20x20 square is a pyramid: volume = base_area * height / 3.
+    m = _render(tmp_path, "s3.roof(s2.square([20, 20], center=True))", name="roof")
+    assert m.watertight
+    np.testing.assert_allclose(m.size[:2], [20, 20], atol=0.2)
+    assert m.size[2] > 5                          # it rises to a ridge
+    assert m.volume < 20 * 20 * m.size[2]         # a roof, not a full prism
+
+
+# NOTE: wrap() is intentionally not render-tested. Meshing/exporting a wrapped solid is extremely
+# slow in the Manifold backend (a single small bar exceeds several minutes), so a render test would
+# only ever time out and skip. The method is covered at the mock level in test_native_ops.py; wrap
+# itself is a thin pass-through to the native builtin.
+
+
+def test_pull_stretches_material(tmp_path):
+    solid = _render(tmp_path, "s3.cuboid([20, 20, 10])", name="pull_base")
+    pulled = _render(tmp_path, "s3.cuboid([20, 20, 10]).pull([0, 0, 1], 8)", name="pull_8")
+    assert pulled.watertight
+    assert pulled.volume > solid.volume           # stretched apart, so bigger
+
+
+def test_separate_extracts_one_lump(tmp_path):
+    # two disjoint 8-cubes; separate()[0] is a single 8-cube, not the 38-wide pair.
+    whole = _render(tmp_path, "(s3.cuboid([8, 8, 8]) | s3.cuboid([8, 8, 8]).right(30))", name="sep_whole")
+    part = _render(tmp_path, "(s3.cuboid([8, 8, 8]) | s3.cuboid([8, 8, 8]).right(30)).separate()[0]",
+                   name="sep_part")
+    assert part.watertight
+    np.testing.assert_allclose(part.size, [8, 8, 8], atol=0.1)   # one lump
+    assert whole.size[0] > 30                                    # the pair spanned far

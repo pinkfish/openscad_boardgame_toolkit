@@ -178,12 +178,7 @@ class Bosl2Solid(Distributable, Colorable, Partitionable, Miscellaneous):
             return self._wrap(self.shape.wrap(r=float(r), fn=float(_fn)))
         return self._wrap(self.shape.wrap(r=float(r)))
 
-    def roof(self, method: str = "straight") -> "Bosl2Solid":
-        """Raise a roof over this 2-D-topped solid via the straight-skeleton of its top face
-        (native ``roof()``); *method* selects the skeleton algorithm."""
-        return self._wrap(self.shape.roof(method=method))
-
-    def pull(self, direction: Sequence[float], distance: float) -> "Bosl2Solid":
+    def pull(self, direction: "Sequence[float] | np.ndarray", distance: float) -> "Bosl2Solid":
         """Pull the part of the solid on the +*direction* side apart by *distance*, stretching the
         material between (native ``pull()``)."""
         return self._wrap(self.shape.pull([float(x) for x in direction], float(distance)))
@@ -198,7 +193,7 @@ class Bosl2Solid(Distributable, Colorable, Partitionable, Miscellaneous):
         (native ``separate()``)."""
         return [self._wrap(part) for part in self.shape.separate()]
 
-    def inside(self, point: Sequence[float]) -> bool:
+    def inside(self, point: "Sequence[float] | np.ndarray") -> bool:
         """True if *point* lies inside the solid (native ``inside()``)."""
         return bool(self.shape.inside([float(x) for x in point]))
 
@@ -809,6 +804,23 @@ def _edge_mask_negative(sz: Sequence[float], edge_set: Sequence[Sequence[float]]
     for c in cutters:
         edge_union = edge_union - c
     return _ocube(sz, center=True) | edge_union
+
+
+# ---------------------------------------------------------------------------
+# Section: native-only 2-D -> 3-D constructor (no BOSL2 equivalent)
+# ---------------------------------------------------------------------------
+
+
+def roof(shape, method: str = "straight") -> Bosl2Solid:
+    """Raise a hip roof over a 2-D *shape* via its straight skeleton (native ``roof()``).
+
+    Like :func:`~bosl2.skin.linear_sweep`, this turns a 2-D outline into a 3-D solid, but the top is
+    a peaked roof (each edge slopes inward at 45 degrees to the skeleton) rather than a flat
+    extrusion. *shape* is any 2-D object -- a native ``square``/``circle``/``polygon``, a
+    :meth:`Path.polygon`, or a :class:`Bosl2Solid` wrapping one. *method* selects the skeleton
+    algorithm. PythonSCAD-only (no BOSL2 counterpart); covered by the STL render tests.
+    """
+    return Bosl2Solid(Bosl2Solid._unwrap(shape).roof(method=method))
 
 
 # ---------------------------------------------------------------------------

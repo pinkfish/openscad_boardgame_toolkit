@@ -66,6 +66,7 @@ API reference
    isosurface
    skin
    shapes3d
+   native_ops
    shapes2d
    drawing
    distributors
