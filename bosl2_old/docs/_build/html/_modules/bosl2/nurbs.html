@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bosl2.nurbs &#8212; bosl2 (PythonSCAD port) 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for bosl2.nurbs</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Licensed to the Apache Software Foundation (ASF) under one</span>
+<span class="c1"># or more contributor license agreements.  See the NOTICE file</span>
+<span class="c1"># distributed with this work for additional information</span>
+<span class="c1"># regarding copyright ownership.  The ASF licenses this file</span>
+<span class="c1"># to you under the Apache License, Version 2.0 (the</span>
+<span class="c1"># &quot;License&quot;); you may not use this file except in compliance</span>
+<span class="c1"># with the License.  You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#   http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing,</span>
+<span class="c1"># software distributed under the License is distributed on an</span>
+<span class="c1"># &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY</span>
+<span class="c1"># KIND, either express or implied.  See the License for the</span>
+<span class="c1"># specific language governing permissions and limitations</span>
+<span class="c1"># under the License.</span>
+
+<span class="c1"># LibFile: bosl2/nurbs.py</span>
+<span class="c1">#    Pure-Python port of the NURBS *evaluation* API from BOSL2&#39;s nurbs.scad: evaluate a NURBS</span>
+<span class="c1">#    curve (:func:`nurbs_curve`), sample a NURBS surface patch (:func:`nurbs_patch_points`), and</span>
+<span class="c1">#    mesh a patch into a VNF (:func:`nurbs_vnf`), plus the :func:`is_nurbs_patch` /</span>
+<span class="c1">#    :func:`nurbs_elevate_degree` helpers. All three flavours -- clamped, open and closed -- with</span>
+<span class="c1">#    weights (rational NURBS), knot multiplicities, and explicit knot vectors are supported.</span>
+<span class="c1">#</span>
+<span class="c1">#    The evaluation kernel is the standard de Boor algorithm on a knot vector built exactly as</span>
+<span class="c1">#    BOSL2 builds it; every case here is pinned point-for-point to the real BOSL2 output in</span>
+<span class="c1">#    tests/test_bosl2_reorient.py. :func:`nurbs_curve` returns a :class:`~bosl2.paths.Path` (2-D</span>
+<span class="c1">#    control points) or :class:`~bosl2.paths.Path3D` (3-D), and :func:`nurbs_vnf` returns a</span>
+<span class="c1">#    :class:`~bosl2.vnf.VNF`.</span>
+<span class="c1">#</span>
+<span class="c1">#    NOT ported (a large follow-up): the interpolation solvers ``nurbs_interp`` /</span>
+<span class="c1">#    ``nurbs_interp_surface`` (constrained least-squares fitting) and the ``debug_nurbs`` display</span>
+<span class="c1">#    modules.</span>
+<span class="c1">#</span>
+<span class="c1"># FileSummary: NURBS curve/surface evaluation and meshing (de Boor).</span>
+<span class="c1"># FileGroup: BOSL2</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">bosl2.math</span><span class="w"> </span><span class="kn">import</span> <span class="n">lerpn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bosl2.comparisons</span><span class="w"> </span><span class="kn">import</span> <span class="n">approx</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;nurbs_curve&quot;</span><span class="p">,</span> <span class="s2">&quot;nurbs_patch_points&quot;</span><span class="p">,</span> <span class="s2">&quot;nurbs_vnf&quot;</span><span class="p">,</span> <span class="s2">&quot;nurbs_elevate_degree&quot;</span><span class="p">,</span> <span class="s2">&quot;is_nurbs_patch&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Section: knot-vector helpers</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_num</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_param_list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;clamped&quot;</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_calc_mult</span><span class="p">(</span><span class="n">knots</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run-length multiplicities of the distinct values in *knots* (BOSL2 _calc_mult()).&quot;&quot;&quot;</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">knots</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">approx</span><span class="p">(</span><span class="n">knots</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">knots</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]):</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">knots</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">ind</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ind</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extend_knot_mult</span><span class="p">(</span><span class="n">mult</span><span class="p">,</span> <span class="n">nxt</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extend the multiplicity vector periodically to sum to *length* (BOSL2 _extend_knot_mult()).&quot;&quot;&quot;</span>
+    <span class="n">mult</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+        <span class="n">mult</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mult</span><span class="p">[</span><span class="n">nxt</span><span class="p">])</span>
+        <span class="n">nxt</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="n">length</span><span class="p">:</span>
+        <span class="n">mult</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="p">(</span><span class="n">total</span> <span class="o">-</span> <span class="n">length</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mult</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extend_knot_vector</span><span class="p">(</span><span class="n">knots</span><span class="p">,</span> <span class="n">nxt</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extend the knot vector periodically to *length* entries (BOSL2 _extend_knot_vector()).&quot;&quot;&quot;</span>
+    <span class="n">knots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">:</span>
+        <span class="n">knots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">knots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">knots</span><span class="p">[</span><span class="n">nxt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">knots</span><span class="p">[</span><span class="n">nxt</span><span class="p">])</span>
+        <span class="n">nxt</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">knots</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_knots</span><span class="p">(</span><span class="n">knots</span><span class="p">,</span> <span class="n">mult</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mult</span><span class="p">)):</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">knots</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_findspan</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">knot</span><span class="p">,</span> <span class="n">nctrl</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The knot span index k with ``knot[k] &lt;= u &lt; knot[k+1]`` (clamped at the domain ends).&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&gt;=</span> <span class="n">knot</span><span class="p">[</span><span class="n">nctrl</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">nctrl</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">knot</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">p</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">p</span><span class="p">,</span> <span class="n">nctrl</span>
+    <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">while</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">knot</span><span class="p">[</span><span class="n">mid</span><span class="p">]</span> <span class="ow">or</span> <span class="n">u</span> <span class="o">&gt;=</span> <span class="n">knot</span><span class="p">[</span><span class="n">mid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">knot</span><span class="p">[</span><span class="n">mid</span><span class="p">]:</span>
+            <span class="n">hi</span> <span class="o">=</span> <span class="n">mid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lo</span> <span class="o">=</span> <span class="n">mid</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">mid</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_deboor</span><span class="p">(</span><span class="n">knot</span><span class="p">,</span> <span class="n">ctrl</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The de Boor evaluation of the spline at parameter *u* in span *k* (== BOSL2 _nurbs_pt()).&quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ctrl</span><span class="p">[</span><span class="n">k</span> <span class="o">-</span> <span class="n">p</span> <span class="o">+</span> <span class="n">j</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">k</span> <span class="o">-</span> <span class="n">p</span> <span class="o">+</span> <span class="n">j</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="n">knot</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span> <span class="o">-</span> <span class="n">r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">knot</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">denom</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-15</span> <span class="k">else</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">knot</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">denom</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">d</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Section: curve evaluation</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nurbs_curve_pts</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The list of raw points on a NURBS curve (numpy arrays); wrapped by :func:`nurbs_curve`.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_is_param_list</span><span class="p">(</span><span class="n">control</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;Invalid NURBS parameter list.&quot;</span>
+        <span class="k">return</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">splinesteps</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                                <span class="n">weights</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">splinesteps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Must define exactly one of u and splinesteps.&quot;</span>
+    <span class="k">if</span> <span class="n">splinesteps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">splinesteps</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="k">if</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="p">[</span><span class="n">u</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">),</span> <span class="s2">&quot;weights must match the number of control points.&quot;</span>
+        <span class="n">homo</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">))]</span>
+        <span class="n">curve</span> <span class="o">=</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">homo</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">pt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">curve</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;clamped&quot;</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Unknown NURBS type: </span><span class="si">{</span><span class="nb">type</span><span class="si">!r}</span><span class="s2">&quot;</span>
+    <span class="k">assert</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> \
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> NURBS needs at least degree+1 control points.&quot;</span>
+    <span class="n">uniform</span> <span class="o">=</span> <span class="n">knots</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="n">mult_orig</span> <span class="o">=</span> <span class="n">mult</span>
+    <span class="n">ctrl</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">control</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span><span class="p">:</span>
+        <span class="n">ctrl</span> <span class="o">=</span> <span class="n">ctrl</span> <span class="o">+</span> <span class="n">ctrl</span><span class="p">[:</span><span class="n">degree</span><span class="p">]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctrl</span><span class="p">)</span>  <span class="c1"># control count (extended, for closed)</span>
+
+    <span class="c1"># -- multiplicity vector ---------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">uniform</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span><span class="p">:</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="k">if</span> <span class="n">mult</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mult</span> <span class="o">=</span> <span class="p">[</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">base</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">mult</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mult</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># closed with explicit mult</span>
+        <span class="n">lastmult</span> <span class="o">=</span> <span class="n">mult</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">mult</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">mult</span> <span class="o">=</span> <span class="n">_extend_knot_mult</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="n">lastmult</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># -- knot vector -----------------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="n">uniform</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+        <span class="n">knot</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">knot</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xknots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span> <span class="k">if</span> <span class="n">mult_orig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_expand_knots</span><span class="p">(</span><span class="n">knots</span><span class="p">,</span> <span class="n">mult</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span><span class="p">:</span>
+            <span class="n">knot</span> <span class="o">=</span> <span class="n">xknots</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span><span class="p">:</span>
+            <span class="n">knot</span> <span class="o">=</span> <span class="p">[</span><span class="n">xknots</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">degree</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">xknots</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">xknots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">degree</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># closed</span>
+            <span class="n">knot</span> <span class="o">=</span> <span class="n">_extend_knot_vector</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">xknots</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">bound</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span> <span class="k">else</span> <span class="p">[</span><span class="n">knot</span><span class="p">[</span><span class="n">degree</span><span class="p">],</span> <span class="n">knot</span><span class="p">[</span><span class="n">n</span><span class="p">]]</span>
+
+    <span class="c1"># -- parameter samples -----------------------------------------------------------------</span>
+    <span class="k">if</span> <span class="n">splinesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">splinesteps</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">splinesteps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;splinesteps must be a positive integer.&quot;</span>
+        <span class="n">adjusted_u</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">degree</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">approx</span><span class="p">(</span><span class="n">knot</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">knot</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]):</span>
+                <span class="n">adjusted_u</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lerpn</span><span class="p">(</span><span class="n">knot</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">knot</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">splinesteps</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">!=</span> <span class="s2">&quot;closed&quot;</span><span class="p">:</span>
+            <span class="n">adjusted_u</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">knot</span><span class="p">[</span><span class="n">n</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">uu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="o">-</span><span class="mf">1e-12</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">1e-12</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">uu</span><span class="p">),</span> <span class="s2">&quot;u must lie in [0, 1].&quot;</span>
+        <span class="n">adjusted_u</span> <span class="o">=</span> <span class="n">uu</span> <span class="k">if</span> <span class="n">bound</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[(</span><span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">uu</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">_deboor</span><span class="p">(</span><span class="n">knot</span><span class="p">,</span> <span class="n">ctrl</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">_findspan</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">knot</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">adjusted_u</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="nurbs_curve">
+<a class="viewcode-back" href="../../nurbs.html#bosl2.nurbs.nurbs_curve">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nurbs_curve</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate a NURBS curve, returning its points (BOSL2 nurbs_curve()).</span>
+
+<span class="sd">    Give either *splinesteps* (uniform samples between knots, with a sample at every knot) or *u*</span>
+<span class="sd">    (parameter values in ``[0, 1]``). *weights* makes it a rational NURBS; *mult* / *knots* give</span>
+<span class="sd">    knot multiplicities / an explicit knot vector; *type* is ``&quot;clamped&quot;`` (default), ``&quot;open&quot;`` or</span>
+<span class="sd">    ``&quot;closed&quot;``. The first argument may instead be a NURBS parameter list</span>
+<span class="sd">    ``[type, degree, control, knots, mult, weights]``.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A :class:`~bosl2.paths.Path` (2-D control points) or :class:`~bosl2.paths.Path3D` (3-D). A</span>
+<span class="sd">        single scalar *u* returns just that point as a plain list.</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        A cubic clamped NURBS curve through five control points, swept into a tube:</span>
+
+<span class="sd">        .. pythonscad-example::</span>
+
+<span class="sd">            ctrl = [[0, 0, 0], [10, 20, 5], [30, -10, 10], [50, 20, 0], [60, 0, 15]]</span>
+<span class="sd">            nurbs_curve(ctrl, 3, splinesteps=12).stroke(width=3).show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">bosl2.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span><span class="p">,</span> <span class="n">Path3D</span>
+
+    <span class="n">scalar</span> <span class="o">=</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">,</span>
+                           <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scalar</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">closed</span> <span class="o">=</span> <span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">_is_param_list</span><span class="p">(</span><span class="n">control</span><span class="p">)</span> <span class="k">else</span> <span class="nb">type</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span>
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">],</span> <span class="n">closed</span><span class="o">=</span><span class="n">closed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path3D</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">],</span> <span class="n">closed</span><span class="o">=</span><span class="n">closed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[[</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Section: surfaces</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="is_nurbs_patch">
+<a class="viewcode-back" href="../../nurbs.html#bosl2.nurbs.is_nurbs_patch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_nurbs_patch</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;True if *x* looks like a NURBS patch: a rectangular 2-D array of points (BOSL2 is_nurbs_patch()).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_valid_surface_type</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">_valid_surface_type</span><span class="p">(</span><span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="n">_valid_surface_type</span><span class="p">(</span><span class="nb">type</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_force_list2</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A per-direction 2-list: an existing length-2 list is kept, anything else is duplicated</span>
+<span class="sd">    (BOSL2 force_list(x, 2)). Used for degree/type/splinesteps, which are scalars or [u, v] pairs.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_column</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">grid</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="nurbs_patch_points">
+<a class="viewcode-back" href="../../nurbs.html#bosl2.nurbs.nurbs_patch_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nurbs_patch_points</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="nb">type</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="s2">&quot;clamped&quot;</span><span class="p">),</span> <span class="n">mult</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">knots</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample a NURBS surface *patch* on a grid of points (BOSL2 nurbs_patch_points()).</span>
+
+<span class="sd">    *patch* is a rectangular array of control points (or a NURBS parameter list). *degree*,</span>
+<span class="sd">    *splinesteps*, *type*, *mult* and *knots* are scalars applied to both directions or 2-lists</span>
+<span class="sd">    ``[u_dir, v_dir]``. Give *splinesteps*, or *u* and *v* parameter lists. *weights* is a matrix</span>
+<span class="sd">    the size of *patch*.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A grid (list of rows) of ``[x, y, z]`` points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_valid_surface_type</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;NURBS parameter list is invalid.&quot;</span>
+        <span class="k">return</span> <span class="n">nurbs_patch_points</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">patch</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">splinesteps</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">patch</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                  <span class="n">knots</span><span class="o">=</span><span class="n">patch</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">patch</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="k">assert</span> <span class="n">splinesteps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Cannot combine splinesteps with u and v.&quot;</span>
+
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wpatch</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])]</span>
+                   <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">))]</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">nurbs_patch_points</span><span class="p">(</span><span class="n">wpatch</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+                                 <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">pt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">row</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">]</span>
+
+    <span class="n">degree</span> <span class="o">=</span> <span class="n">_force_list2</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">_force_list2</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
+    <span class="n">splinesteps</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="k">if</span> <span class="n">splinesteps</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_force_list2</span><span class="p">(</span><span class="n">splinesteps</span><span class="p">)</span>
+    <span class="n">mult</span> <span class="o">=</span> <span class="p">[</span><span class="n">mult</span><span class="p">,</span> <span class="n">mult</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">mult</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">mult</span> <span class="ow">and</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">mult</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+    <span class="n">knots</span> <span class="o">=</span> <span class="p">[</span><span class="n">knots</span><span class="p">,</span> <span class="n">knots</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">knots</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">knots</span> <span class="ow">and</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">knots</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="p">[</span><span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="n">degree</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                 <span class="k">for</span> <span class="n">ctrl</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">degree</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># sweep each control-column as a u-curve, then each resulting row as a v-curve</span>
+    <span class="n">vsplines</span> <span class="o">=</span> <span class="p">[</span><span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">_column</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">degree</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span>
+                                 <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">]))]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vsplines</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">_nurbs_curve_pts</span><span class="p">(</span><span class="n">_column</span><span class="p">(</span><span class="n">vsplines</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">degree</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">u</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+                               <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">([[</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">row</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="nurbs_vnf">
+<a class="viewcode-back" href="../../nurbs.html#bosl2.nurbs.nurbs_vnf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nurbs_vnf</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">knots</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">caps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cap1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cap2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mesh a NURBS surface *patch* into a :class:`~bosl2.vnf.VNF` (BOSL2 nurbs_vnf()).</span>
+
+<span class="sd">    Samples the patch with :func:`nurbs_patch_points` and builds the mesh with</span>
+<span class="sd">    :meth:`~bosl2.vnf.VNF.vertex_array`, wrapping the rows/columns for ``&quot;closed&quot;`` directions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        patch:       control-point grid or a NURBS parameter list</span>
+<span class="sd">        degree:      scalar or ``[u, v]`` degree</span>
+<span class="sd">        splinesteps: scalar or ``[u, v]`` samples per knot span (default 16)</span>
+<span class="sd">        weights/type/mult/knots: as for :func:`nurbs_patch_points`</span>
+<span class="sd">        style:       :meth:`~bosl2.vnf.VNF.vertex_array` triangulation style</span>
+<span class="sd">        reverse:     flip every face normal</span>
+<span class="sd">        caps/cap1/cap2: cap a ``[&quot;clamped&quot;,&quot;closed&quot;]`` / ``[&quot;closed&quot;,&quot;clamped&quot;]`` surface</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        A cubic B-spline surface patch meshed into a solid:</span>
+
+<span class="sd">        .. pythonscad-example::</span>
+
+<span class="sd">            patch = [</span>
+<span class="sd">                [[-50, 50, 0], [-16, 50, 20], [16, 50, 20], [50, 50, 0]],</span>
+<span class="sd">                [[-50, 16, 20], [-16, 16, 40], [16, 16, 40], [50, 16, 20]],</span>
+<span class="sd">                [[-50, -16, 20], [-16, -16, 40], [16, -16, 40], [50, -16, 20]],</span>
+<span class="sd">                [[-50, -50, 0], [-16, -50, 20], [16, -50, 20], [50, -50, 0]],</span>
+<span class="sd">            ]</span>
+<span class="sd">            nurbs_vnf(patch, 3).polyhedron().show()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">bosl2.vnf</span><span class="w"> </span><span class="kn">import</span> <span class="n">VNF</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_valid_surface_type</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;NURBS parameter list is invalid.&quot;</span>
+        <span class="k">return</span> <span class="n">nurbs_vnf</span><span class="p">(</span><span class="n">patch</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">patch</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">splinesteps</span><span class="p">,</span> <span class="n">patch</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">patch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">knots</span><span class="o">=</span><span class="n">patch</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                         <span class="n">mult</span><span class="o">=</span><span class="n">patch</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">,</span> <span class="n">caps</span><span class="o">=</span><span class="n">caps</span><span class="p">,</span> <span class="n">cap1</span><span class="o">=</span><span class="n">cap1</span><span class="p">,</span> <span class="n">cap2</span><span class="o">=</span><span class="n">cap2</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">is_nurbs_patch</span><span class="p">(</span><span class="n">patch</span><span class="p">),</span> <span class="s2">&quot;patch must be a rectangular array of points.&quot;</span>
+    <span class="k">assert</span> <span class="n">_valid_surface_type</span><span class="p">(</span><span class="nb">type</span><span class="p">),</span> <span class="s1">&#39;type must be &quot;closed&quot;, &quot;clamped&quot;, &quot;open&quot;, or a pair of those.&#39;</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="n">_force_list2</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
+    <span class="n">havecaps</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">caps</span><span class="p">,</span> <span class="n">cap1</span><span class="p">,</span> <span class="n">cap2</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">havecaps</span> <span class="ow">or</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">([</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="s2">&quot;closed&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;clamped&quot;</span><span class="p">]),</span> \
+        <span class="s1">&#39;caps require type [&quot;clamped&quot;,&quot;closed&quot;] or [&quot;closed&quot;,&quot;clamped&quot;].&#39;</span>
+    <span class="n">flip</span> <span class="o">=</span> <span class="n">havecaps</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">nurbs_patch_points</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="n">degree</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="n">splinesteps</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span>
+                             <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">pts</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">VNF</span><span class="o">.</span><span class="n">vertex_array</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+                            <span class="n">row_wrap</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">1</span> <span class="k">if</span> <span class="n">flip</span> <span class="k">else</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span><span class="p">,</span>
+                            <span class="n">col_wrap</span><span class="o">=</span><span class="nb">type</span><span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">flip</span> <span class="k">else</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span><span class="p">,</span>
+                            <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">,</span> <span class="n">caps</span><span class="o">=</span><span class="n">caps</span><span class="p">,</span> <span class="n">cap1</span><span class="o">=</span><span class="n">cap1</span><span class="p">,</span> <span class="n">cap2</span><span class="o">=</span><span class="n">cap2</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># Section: degree elevation</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_nip</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The i-th B-spline basis function of degree *p* at *u* on knot vector *U* (BOSL2 _nip()).&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">u</span> <span class="o">&lt;=</span> <span class="n">U</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="n">m</span> <span class="o">-</span> <span class="n">p</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">u</span> <span class="o">&gt;=</span> <span class="n">U</span><span class="p">[</span><span class="n">m</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">or</span> <span class="n">u</span> <span class="o">&gt;=</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">N</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="p">(</span><span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">u</span> <span class="o">&lt;</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">saved</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">((</span><span class="n">u</span> <span class="o">-</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p</span> <span class="o">-</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">Uleft</span> <span class="o">=</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">Uright</span> <span class="o">=</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">N</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">N</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span>
+                <span class="n">saved</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">N</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">Uright</span> <span class="o">-</span> <span class="n">Uleft</span><span class="p">)</span>
+                <span class="n">N</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved</span> <span class="o">+</span> <span class="p">(</span><span class="n">Uright</span> <span class="o">-</span> <span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">temp</span>
+                <span class="n">saved</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">Uleft</span><span class="p">)</span> <span class="o">*</span> <span class="n">temp</span>
+    <span class="k">return</span> <span class="n">N</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_greville</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="o">-</span> <span class="n">p</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">U</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">p</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_increment_knot_mults</span><span class="p">(</span><span class="n">U</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">):</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">while</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">U</span><span class="p">)</span> <span class="ow">and</span> <span class="n">approx</span><span class="p">(</span><span class="n">U</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">U</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[</span><span class="n">U</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">*</span> <span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">j</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_elevate_once</span><span class="p">(</span><span class="n">ctrl</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span>
+    <span class="n">ctrl</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ctrl</span><span class="p">]</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctrl</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">p_new</span> <span class="o">=</span> <span class="n">p</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">U_new</span> <span class="o">=</span> <span class="n">_increment_knot_mults</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
+    <span class="n">n_new</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">U_new</span><span class="p">)</span> <span class="o">-</span> <span class="n">p_new</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="n">n_old</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ctrl</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">grev</span> <span class="o">=</span> <span class="n">_greville</span><span class="p">(</span><span class="n">U_new</span><span class="p">,</span> <span class="n">p_new</span><span class="p">)</span>
+    <span class="n">C_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="nb">sum</span><span class="p">(</span><span class="n">_nip</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">uu</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span> <span class="o">*</span> <span class="n">ctrl</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_old</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span> <span class="k">for</span> <span class="n">uu</span> <span class="ow">in</span> <span class="n">grev</span><span class="p">])</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">_nip</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">p_new</span><span class="p">,</span> <span class="n">grev</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">U_new</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_new</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_new</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">C_vals</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">Q</span><span class="p">],</span> <span class="n">U_new</span><span class="p">,</span> <span class="n">p_new</span>
+
+
+<div class="viewcode-block" id="nurbs_elevate_degree">
+<a class="viewcode-back" href="../../nurbs.html#bosl2.nurbs.nurbs_elevate_degree">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">nurbs_elevate_degree</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">mult</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raise a NURBS/B-spline curve&#39;s degree by *times*, returning a parameter list (BOSL2 nurbs_elevate_degree()).</span>
+
+<span class="sd">    Returns ``[type, new_degree, new_control, new_knots, None, new_weights]``. Only ``&quot;clamped&quot;``</span>
+<span class="sd">    and ``&quot;open&quot;`` splines are supported (as in BOSL2). Rational curves are elevated in homogeneous</span>
+<span class="sd">    space and de-homogenised.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_is_param_list</span><span class="p">(</span><span class="n">control</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">&quot;Invalid NURBS parameter list.&quot;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">control</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nurbs_elevate_degree</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">control</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">control</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                    <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">mult</span><span class="o">=</span><span class="n">control</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">times</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">knots</span><span class="p">,</span> <span class="n">mult</span><span class="p">,</span> <span class="n">weights</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">weights</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">),</span> <span class="s2">&quot;weights must match the number of control points.&quot;</span>
+        <span class="n">homo</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">control</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">))]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">nurbs_elevate_degree</span><span class="p">(</span><span class="n">homo</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">knots</span><span class="o">=</span><span class="n">knots</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">mult</span><span class="o">=</span><span class="n">mult</span><span class="p">)</span>
+        <span class="n">new_w</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">new_ctrl</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pt</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="n">pt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">new_ctrl</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_w</span><span class="p">]</span>
+
+    <span class="k">assert</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;clamped&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">),</span> <span class="s1">&#39;nurbs_elevate_degree: type must be &quot;clamped&quot; or &quot;open&quot;.&#39;</span>
+    <span class="k">assert</span> <span class="n">_is_num</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="ow">and</span> <span class="n">times</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;times must be a positive integer.&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">control</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">knots</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">mult</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xknots</span> <span class="o">=</span> <span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lerpn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span> <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span>
+                  <span class="k">else</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lerpn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
+    <span class="k">elif</span> <span class="n">mult</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xknots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+        <span class="n">adj</span> <span class="o">=</span> <span class="p">([</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span> <span class="ow">and</span> <span class="n">m</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">mult</span><span class="p">)</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knots</span><span class="p">)</span> <span class="k">if</span> <span class="n">knots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">i</span> <span class="o">/</span> <span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+        <span class="n">exp</span> <span class="o">=</span> <span class="n">_expand_knots</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">adj</span><span class="p">)</span>
+        <span class="n">xknots</span> <span class="o">=</span> <span class="n">exp</span><span class="p">[</span><span class="n">degree</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">exp</span><span class="p">)</span> <span class="o">-</span> <span class="n">degree</span><span class="p">]</span> <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span> <span class="k">else</span> <span class="n">exp</span>
+
+    <span class="n">u_full</span> <span class="o">=</span> <span class="p">([</span><span class="n">xknots</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">degree</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">xknots</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">xknots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="n">degree</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">xknots</span><span class="p">)</span>
+    <span class="n">q</span><span class="p">,</span> <span class="n">u_new</span><span class="p">,</span> <span class="n">p_new</span> <span class="o">=</span> <span class="n">_elevate_once</span><span class="p">(</span><span class="n">control</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">u_full</span><span class="p">)</span>
+    <span class="n">new_knots</span> <span class="o">=</span> <span class="n">u_new</span><span class="p">[</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="nb">len</span><span class="p">(</span><span class="n">u_new</span><span class="p">)</span> <span class="o">-</span> <span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;clamped&quot;</span> <span class="k">else</span> <span class="n">u_new</span>
+    <span class="k">if</span> <span class="n">times</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="n">p_new</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">new_knots</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">nurbs_elevate_degree</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">p_new</span><span class="p">,</span> <span class="n">new_knots</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="n">times</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">bosl2 (PythonSCAD port)</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../paths.html">Paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../regions.html">Regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../beziers.html">Bezier curves, paths and surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../nurbs.html">NURBS: curves &amp; surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vnf.html">VNF meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../isosurface.html">Isosurface: marching cubes &amp; metaballs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../skin.html">Sweeps (skin)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shapes3d.html">3-D shapes and Bosl2Solid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../shapes2d.html">2-D shapes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../drawing.html">Drawing: path generators &amp; renderers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributors.html">Distributors: copiers &amp; reflected copies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../color.html">Colour: colorspace conversion &amp; colour operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../threading.html">Threading: screw threads, rods &amp; nuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../partitions.html">Partitions: planar cuts &amp; interlocking splits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../miscellaneous.html">Miscellaneous: extrusions, bbox, hull &amp; minkowski</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rounding.html">Rounding: round_corners &amp; smooth_path</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../masking.html">Edge/corner masking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transforms.html">Transforms (affine / reorient)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geometry.html">Geometry helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../math.html">Numeric helpers (math)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vectors.html">Vector helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../comparisons.html">Approximate comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../constants.html">Direction constants</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;Apache License 2.0.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

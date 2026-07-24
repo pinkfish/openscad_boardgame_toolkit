@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Sweeps (skin) &#8212; bosl2 (PythonSCAD port) 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3-D shapes and Bosl2Solid" href="shapes3d.html" />
+    <link rel="prev" title="Isosurface: marching cubes &amp; metaballs" href="isosurface.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sweeps-skin">
+<h1>Sweeps (skin)<a class="headerlink" href="#sweeps-skin" title="Link to this heading">¶</a></h1>
+<p>Pure-Python port of the surface generators from BOSL2’s <code class="docutils literal notranslate"><span class="pre">skin.scad</span></code> — every one builds a
+<a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><code class="xref py py-class docutils literal notranslate"><span class="pre">VNF</span></code></a> you render with <code class="docutils literal notranslate"><span class="pre">.polyhedron()</span></code>.</p>
+<section id="coverage-of-bosl2-skin-scad">
+<h2>Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">skin.scad</span></code><a class="headerlink" href="#coverage-of-bosl2-skin-scad" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 55.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>BOSL2 function</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sweep(shape,</span> <span class="pre">transforms)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.sweep" title="bosl2.skin.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">path_sweep(shape,</span> <span class="pre">path)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.path_sweep" title="bosl2.skin.path_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">path_sweep()</span></code></a> — methods <code class="docutils literal notranslate"><span class="pre">incremental</span></code> / <code class="docutils literal notranslate"><span class="pre">manual</span></code> / <code class="docutils literal notranslate"><span class="pre">natural</span></code>, twist,
+scale (scalar / <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">y]</span></code> / per-point / <code class="docutils literal notranslate"><span class="pre">Nx2</span></code>), open &amp; closed paths, flat caps, user
+tangents, and the <code class="docutils literal notranslate"><span class="pre">transforms=True</span></code> mode</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">skin(profiles,</span> <span class="pre">slices)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.skin" title="bosl2.skin.skin"><code class="xref py py-func docutils literal notranslate"><span class="pre">skin()</span></code></a> — <code class="docutils literal notranslate"><span class="pre">direct</span></code> and <code class="docutils literal notranslate"><span class="pre">reindex</span></code> methods</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">linear_sweep(region,</span> <span class="pre">h)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.linear_sweep" title="bosl2.skin.linear_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">linear_sweep()</span></code></a> — single outline, with twist / scale / shift / caps</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rotate_sweep(shape,</span> <span class="pre">angle)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.rotate_sweep" title="bosl2.skin.rotate_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">rotate_sweep()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">spiral_sweep(poly,</span> <span class="pre">h,</span> <span class="pre">r)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.spiral_sweep" title="bosl2.skin.spiral_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">spiral_sweep()</span></code></a> — without the lead-in taper options</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">path_sweep2d(shape,</span> <span class="pre">path)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.path_sweep2d" title="bosl2.skin.path_sweep2d"><code class="xref py py-func docutils literal notranslate"><span class="pre">path_sweep2d()</span></code></a> — 2-D shape along a 2-D path (mitre offset; local creases
+handled up to the path’s tightest radius)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rot_resample(rotlist,</span> <span class="pre">n)</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.rot_resample" title="bosl2.skin.rot_resample"><code class="xref py py-func docutils literal notranslate"><span class="pre">rot_resample()</span></code></a> — resample a transform list along its screw motion, with
+<code class="docutils literal notranslate"><span class="pre">rot_decode</span></code> / <code class="docutils literal notranslate"><span class="pre">rot_inverse</span></code> in <a class="reference internal" href="transforms.html#module-bosl2.transforms" title="bosl2.transforms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">bosl2.transforms</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">subdivide_and_slice</span></code> / <code class="docutils literal notranslate"><span class="pre">slice_profiles</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.skin.subdivide_and_slice" title="bosl2.skin.subdivide_and_slice"><code class="xref py py-func docutils literal notranslate"><span class="pre">subdivide_and_slice()</span></code></a>, <a class="reference internal" href="#bosl2.skin.slice_profiles" title="bosl2.skin.slice_profiles"><code class="xref py py-func docutils literal notranslate"><span class="pre">slice_profiles()</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">skin()</span></code> <code class="docutils literal notranslate"><span class="pre">distance</span></code> / <code class="docutils literal notranslate"><span class="pre">tangent</span></code> methods</p></td>
+<td><p>not ported</p></td>
+<td><p>use <code class="docutils literal notranslate"><span class="pre">direct</span></code> / <code class="docutils literal notranslate"><span class="pre">reindex</span></code> (they need the dynamic-programming vertex matcher)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sweep_attach()</span></code>, anchors</p></td>
+<td><p>not ported</p></td>
+<td><p>need the BOSL2 attachment/anchor system</p></td>
+</tr>
+<tr class="row-odd"><td><p>textures (<code class="docutils literal notranslate"><span class="pre">texture()</span></code>, <code class="docutils literal notranslate"><span class="pre">tex_*</span></code>)</p></td>
+<td><p>not ported</p></td>
+<td><p>the whole texturing engine</p></td>
+</tr>
+<tr class="row-even"><td><p>rounded / chamfered “fancy” caps</p></td>
+<td><p>not ported</p></td>
+<td><p>use flat caps, or a native end treatment</p></td>
+</tr>
+<tr class="row-odd"><td><p>region shapes with holes</p></td>
+<td><p>not ported</p></td>
+<td><p>use a native <code class="docutils literal notranslate"><span class="pre">linear_extrude</span></code> / CSG for holed extrusions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rot_resample()</span></code> / <code class="docutils literal notranslate"><span class="pre">associate_vertices()</span></code> helpers</p></td>
+<td><p>not ported</p></td>
+<td><p>only needed by the un-ported matching methods</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-bosl2.skin">
+<span id="api-reference"></span><h2>API reference<a class="headerlink" href="#module-bosl2.skin" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.path3d">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">path3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#path3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.path3d" title="Link to this definition">¶</a></dt>
+<dd><p>Pad a 2-D (or 3-D) point list to 3-D with z=0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.clockwise_polygon">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">clockwise_polygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#clockwise_polygon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.clockwise_polygon" title="Link to this definition">¶</a></dt>
+<dd><p><em>poly</em> wound clockwise (reversed if its signed area is positive/CCW).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.frame_map">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">frame_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#frame_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.frame_map" title="Link to this definition">¶</a></dt>
+<dd><p>The 4x4 rotation whose columns are the given orthonormal axes (BOSL2 frame_map()).</p>
+<p>Give any two of x/y/z (as 3-vectors); the third is filled in by the cross product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.sweep">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Apply each 4x4 transform to the 2-D <em>shape</em> and skin the resulting profiles into a VNF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> – a 2-D polygon (list of [x, y] points)</p></li>
+<li><p><strong>transforms</strong> – list of 4x4 matrices, one per cross section along the path</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>) – the sweep loops back on itself (no caps)</p></li>
+<li><p><strong>caps</strong> – cap the open ends (default: True/True open, none closed); bool or [bool, bool]</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.path_sweep">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">path_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'incremental'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twist_by_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_by_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetry</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_normal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tangent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relaxed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#path_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.path_sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep the 2-D <em>shape</em> along the 2-D/3-D <em>path</em>, returning a VNF (or the transform list).</p>
+<p><em>method</em> orients the cross section: “incremental” (rotation-minimizing frame), “manual”
+(using <em>normal</em> as a per-point normal list), or “natural” (the path’s own normal). <em>twist</em>
+(degrees) and <em>scale</em> (scalar, 2-vector, per-point vector, or Nx2) are interpolated along the
+path. See BOSL2 path_sweep() for the full semantics.</p>
+<p class="rubric">Examples</p>
+<p>Sweeping a small square profile along a helical path into a solid:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">square</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span>
+<span class="n">helix</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">10</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">40</span><span class="p">)]</span>
+<span class="n">path_sweep</span><span class="p">(</span><span class="n">square</span><span class="p">,</span> <span class="n">helix</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-5583f940fba24b52ad9fc8f756a50370" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-5583f940fba24b52ad9fc8f756a50370");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/6da372608acd7051.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/6da372608acd7051.stl">⬇ Download STL mesh</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>)</p></li>
+<li><p><strong>twist</strong> (<em>float</em>)</p></li>
+<li><p><strong>twist_by_length</strong> (<em>bool</em>)</p></li>
+<li><p><strong>scale_by_length</strong> (<em>bool</em>)</p></li>
+<li><p><strong>symmetry</strong> (<em>int</em>)</p></li>
+<li><p><strong>uniform</strong> (<em>bool</em>)</p></li>
+<li><p><strong>relaxed</strong> (<em>bool</em>)</p></li>
+<li><p><strong>style</strong> (<em>str</em>)</p></li>
+<li><p><strong>transforms</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.slice_profiles">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">slice_profiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#slice_profiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.slice_profiles" title="Link to this definition">¶</a></dt>
+<dd><p>Interpolate <em>slices</em> extra profiles between each consecutive pair (BOSL2 slice_profiles()).</p>
+<p><em>slices</em> is a count (or a per-segment list). The profiles must all be equal-length point
+lists; the interpolation is vertex-by-vertex.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>closed</strong> (<em>bool</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.skin">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'direct'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.skin" title="Link to this definition">¶</a></dt>
+<dd><p>Blend a stack of 2-D/3-D profiles into a skinned surface, returning a VNF (BOSL2 skin()).</p>
+<p>Consecutive profiles are connected vertex-to-vertex; <em>slices</em> extra interpolated profiles are
+inserted between each pair to smooth the transition. Profiles of differing point counts are
+resampled up to the largest (via <code class="xref py py-meth docutils literal notranslate"><span class="pre">Path._subdivide_path()</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>profiles</strong> – list of &gt;= 2 closed profiles (each a list of points). If 2-D, give matching <em>z</em>.</p></li>
+<li><p><strong>slices</strong> – number of interpolated profiles inserted between each pair (int or per-gap list)</p></li>
+<li><p><strong>refine</strong> – subdivide every profile by this factor before skinning (default 1)</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – “direct” (connect vertex i to vertex i) or “reindex” (rotate each profile to
+best-align with the previous). The “distance”/”tangent” vertex-matching methods
+are not ported.</p></li>
+<li><p><strong>sampling</strong> – “length” or “segment” resampling (default “length”)</p></li>
+<li><p><strong>caps</strong> – cap the ends (default: True for open, False for closed); bool or [bool, bool]</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>) – the stack loops back to the first profile (default False)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+<li><p><strong>z</strong> – per-profile Z heights, required when the profiles are 2-D</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Skinning a round profile up to a square one (a lofted transition):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">circle</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">6</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+<span class="n">square</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="o">-</span><span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">]]</span>
+<span class="n">skin</span><span class="p">([</span><span class="n">circle</span><span class="p">,</span> <span class="n">square</span><span class="p">],</span> <span class="n">slices</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;reindex&quot;</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">])</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-fc601856a53c4888b1bd361b1bb1a3ad" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-fc601856a53c4888b1bd361b1bb1a3ad");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/a712691fca1bfe54.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/a712691fca1bfe54.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.linear_sweep">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">linear_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#linear_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.linear_sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Extrude a 2-D outline to <em>height</em> with optional twist / scale / shift (BOSL2 linear_sweep()).</p>
+<p>A single closed outline (a Path or point list) is supported – for a region with holes use a
+native <code class="docutils literal notranslate"><span class="pre">linear_extrude</span></code> instead. The bottom sits on Z=0 unless <em>center</em> is True.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region</strong> – the 2-D outline to extrude (a closed path)</p></li>
+<li><p><strong>height</strong> – extrusion height (aliases: <em>h</em>; default 1)</p></li>
+<li><p><strong>twist</strong> (<em>float</em>) – total twist over the height, in degrees (default 0)</p></li>
+<li><p><strong>scale</strong> – scale of the top relative to the bottom (scalar or [x, y]; default 1)</p></li>
+<li><p><strong>shift</strong> – [x, y] offset of the top relative to the bottom (default [0, 0])</p></li>
+<li><p><strong>slices</strong> – number of intermediate layers (default: enough for ~5 deg of twist each)</p></li>
+<li><p><strong>caps</strong> – cap the ends (default True); bool or [bool, bool]</p></li>
+<li><p><strong>center</strong> (<em>bool</em><em> | </em><em>None</em>) – center the extrusion on Z (default False -&gt; base on Z=0)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A twisting, tapering square column:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">square</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]]</span>
+<span class="n">linear_sweep</span><span class="p">(</span><span class="n">square</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">twist</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-274304c128354f37b9e0865d6372eaf9" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-274304c128354f37b9e0865d6372eaf9");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/82c7e74684bc674a.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/82c7e74684bc674a.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.rotate_sweep">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">rotate_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">360.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#rotate_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.rotate_sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Revolve a 2-D <em>shape</em> (in the X+ half-plane, x=radius, y=height) around the Z axis (BOSL2 rotate_sweep()).</p>
+<p>A closed <em>shape</em> profile makes a solid of revolution; an open path with <em>caps</em> is first closed
+to the axis. A full 360-degree revolution loops seamlessly; a partial angle end-caps the sweep.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> – the 2-D profile to revolve (x &gt;= 0)</p></li>
+<li><p><strong>angle</strong> (<em>float</em>) – revolution angle in degrees, 0 &lt; angle &lt;= 360 (default 360)</p></li>
+<li><p><strong>caps</strong> – end-cap a partial revolution / close an open profile to the axis (default: angle &lt; 360)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em><em> | </em><em>None</em>) – legacy inverse of <em>caps</em> (give one or the other)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+<li><p><strong>start</strong> (<em>float</em>) – starting angle in degrees (default 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Revolving a rounded profile into a spool:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">profile</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">]]</span>
+<span class="n">rotate_sweep</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="mi">360</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-2d116951976c4b1c8e71e0bc3bada3a8" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-2d116951976c4b1c8e71e0bc3bada3a8");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/f7b925ec1ac01133.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/f7b925ec1ac01133.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.spiral_sweep">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">spiral_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#spiral_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.spiral_sweep" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep a 2-D cross-section <em>poly</em> along a helix (BOSL2 spiral_sweep(), without lead-in tapers).</p>
+<p><em>poly</em>’s X is the radial offset from the helix radius and its Y is the vertical offset, so a
+small wire cross-section becomes a spring/thread. The lead-in taper options are not ported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>poly</strong> – the 2-D wire cross-section (closed path)</p></li>
+<li><p><strong>h</strong> – total height of the spiral</p></li>
+<li><p><strong>r/d</strong> – helix radius/diameter (or per-end r1/r2 / d1/d2 for a conical spiral)</p></li>
+<li><p><strong>turns</strong> (<em>float</em>) – number of turns (default 1)</p></li>
+<li><p><strong>center</strong> (<em>bool</em>) – center the spiral on Z (default True)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A rectangular-section coil spring:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">section</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">]]</span>
+<span class="n">spiral_sweep</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">turns</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-916b081f78d24cf08269406b752a5ccf" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-916b081f78d24cf08269406b752a5ccf");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/d444a3d96839432b.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/d444a3d96839432b.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.subdivide_and_slice">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">subdivide_and_slice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">numpoints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'length'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#subdivide_and_slice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.subdivide_and_slice" title="Link to this definition">¶</a></dt>
+<dd><p>Resample every profile up to <em>numpoints</em> then interpolate <em>slices</em> between them (BOSL2 subdivide_and_slice()).</p>
+<p><em>numpoints</em> defaults to the largest profile’s length; “lcm” uses the least common multiple of
+the profile lengths. Returns the stacked list of (equal-length) profiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em>)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.path_sweep2d">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">path_sweep2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'min_edge'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#path_sweep2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.path_sweep2d" title="Link to this definition">¶</a></dt>
+<dd><p>Sweep a 2-D <em>shape</em> along a 2-D <em>path</em>, mapping the shape’s Y to Z (BOSL2 path_sweep2d()).</p>
+<p>Both <em>shape</em> and <em>path</em> are 2-D <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> objects (coerced from point lists).
+Each shape point offsets the path by its X and lifts it to its Y, so a shape with a wide X
+range becomes a wall of varying width along the path. Unlike <a class="reference internal" href="#bosl2.skin.path_sweep" title="bosl2.skin.path_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">path_sweep()</span></code></a>, moderate local
+concavity is handled by the offset (mitre joins); an offset large enough to collapse a feature
+of the path will still fold, so keep the shape’s X extent below the path’s tightest radius.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> – the 2-D cross-section (a closed path); its X is the offset from the path, its Y the height</p></li>
+<li><p><strong>path</strong> – the 2-D path to sweep along</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>) – the path is a closed loop (default False)</p></li>
+<li><p><strong>caps</strong> – cap the open ends (default: True for open, False for closed)</p></li>
+<li><p><strong>quality</strong> (<em>int</em>) – accepted for signature parity (unused – the mitre offset needs no quality knob)</p></li>
+<li><p><strong>style</strong> (<em>str</em>) – vnf_vertex_array quad-subdivision style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><em>VNF</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A rounded bar swept along a wavy 2-D path:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">shape</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span>
+<span class="n">path</span> <span class="o">=</span> <span class="p">[[</span><span class="n">t</span><span class="p">,</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span> <span class="o">/</span> <span class="mi">12</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">3</span><span class="p">)]</span>
+<span class="n">path_sweep2d</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-c1ef22bc1fac4637afd30ff5ddfa332a" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-c1ef22bc1fac4637afd30ff5ddfa332a");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/56a5d5cc4636301f.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/56a5d5cc4636301f.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.skin.rot_resample">
+<span class="sig-prename descclassname"><span class="pre">bosl2.skin.</span></span><span class="sig-name descname"><span class="pre">rot_resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rotlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothlen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'length'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/skin.html#rot_resample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.skin.rot_resample" title="Link to this definition">¶</a></dt>
+<dd><p>Resample a list of 4x4 transforms to uniform screw-motion spacing (BOSL2 rot_resample()).</p>
+<p>Interpolates between successive transforms along their screw motion (via <code class="xref py py-func docutils literal notranslate"><span class="pre">rot_decode()</span></code>),
+optionally adding <em>twist</em> and <em>scale</em> (smoothed over <em>smoothlen</em>). Handy for regularizing the
+transform list from <code class="docutils literal notranslate"><span class="pre">path_sweep(...,</span> <span class="pre">transforms=True)</span></code> before handing it to <a class="reference internal" href="#bosl2.skin.sweep" title="bosl2.skin.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rotlist</strong> – list of 4x4 transform matrices</p></li>
+<li><p><strong>n</strong> – number of output samples (method=”length”) or samples per gap (method=”count”)</p></li>
+<li><p><strong>twist</strong> – extra twist in degrees (scalar or per-gap list)</p></li>
+<li><p><strong>scale</strong> – extra scale (scalar or per-gap list, multiplied cumulatively)</p></li>
+<li><p><strong>smoothlen</strong> (<em>int</em>) – odd window length for smoothing the twist/scale (default 1 = none)</p></li>
+<li><p><strong>long</strong> – take the &gt;180-degree rotation at a gap (scalar or per-gap list)</p></li>
+<li><p><strong>turns</strong> – extra full turns to add at a gap (scalar or per-gap list)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>) – the transform list forms a loop (default False)</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – “length” (uniform screw-distance) or “count” (fixed samples per gap)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bosl2 (PythonSCAD port)</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="paths.html">Paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">Regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beziers.html">Bezier curves, paths and surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nurbs.html">NURBS: curves &amp; surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vnf.html">VNF meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isosurface.html">Isosurface: marching cubes &amp; metaballs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Sweeps (skin)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coverage-of-bosl2-skin-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">skin.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bosl2.skin">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shapes3d.html">3-D shapes and Bosl2Solid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shapes2d.html">2-D shapes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drawing.html">Drawing: path generators &amp; renderers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distributors.html">Distributors: copiers &amp; reflected copies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="color.html">Colour: colorspace conversion &amp; colour operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading: screw threads, rods &amp; nuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partitions.html">Partitions: planar cuts &amp; interlocking splits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="miscellaneous.html">Miscellaneous: extrusions, bbox, hull &amp; minkowski</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rounding.html">Rounding: round_corners &amp; smooth_path</a></li>
+<li class="toctree-l1"><a class="reference internal" href="masking.html">Edge/corner masking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">Transforms (affine / reorient)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">Numeric helpers (math)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vector helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comparisons.html">Approximate comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">Direction constants</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="isosurface.html" title="previous chapter">Isosurface: marching cubes &amp; metaballs</a></li>
+      <li>Next: <a href="shapes3d.html" title="next chapter">3-D shapes and Bosl2Solid</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;Apache License 2.0.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/skin.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

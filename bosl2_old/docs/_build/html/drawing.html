@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Drawing: path generators &amp; renderers &#8212; bosl2 (PythonSCAD port) 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Distributors: copiers &amp; reflected copies" href="distributors.html" />
+    <link rel="prev" title="2-D shapes" href="shapes2d.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="drawing-path-generators-renderers">
+<h1>Drawing: path generators &amp; renderers<a class="headerlink" href="#drawing-path-generators-renderers" title="Link to this heading">¶</a></h1>
+<p>Pure-Python port of BOSL2’s <code class="docutils literal notranslate"><span class="pre">drawing.scad</span></code>. It splits into path <em>generators</em> that return points
+– <a class="reference internal" href="#bosl2.drawing.arc" title="bosl2.drawing.arc"><code class="xref py py-func docutils literal notranslate"><span class="pre">arc()</span></code></a>, <a class="reference internal" href="#bosl2.drawing.catenary" title="bosl2.drawing.catenary"><code class="xref py py-func docutils literal notranslate"><span class="pre">catenary()</span></code></a>, <a class="reference internal" href="#bosl2.drawing.turtle" title="bosl2.drawing.turtle"><code class="xref py py-func docutils literal notranslate"><span class="pre">turtle()</span></code></a>
+(2-D <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>) and <a class="reference internal" href="#bosl2.drawing.helix" title="bosl2.drawing.helix"><code class="xref py py-func docutils literal notranslate"><span class="pre">helix()</span></code></a> (3-D
+<a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path3D</span></code></a>) – and path <em>renderers</em> that turn points into geometry,
+<a class="reference internal" href="#bosl2.drawing.stroke" title="bosl2.drawing.stroke"><code class="xref py py-func docutils literal notranslate"><span class="pre">stroke()</span></code></a> (a solid line) and <a class="reference internal" href="#bosl2.drawing.dashed_stroke" title="bosl2.drawing.dashed_stroke"><code class="xref py py-func docutils literal notranslate"><span class="pre">dashed_stroke()</span></code></a> (a list of
+dash sub-paths).</p>
+<p>The generators return <strong>all</strong> the computed points, so they compose with every <code class="docutils literal notranslate"><span class="pre">Path</span></code> operation
+and feed straight into <code class="docutils literal notranslate"><span class="pre">path_sweep</span></code> / <code class="docutils literal notranslate"><span class="pre">linear_extrude</span></code> / <code class="docutils literal notranslate"><span class="pre">stroke</span></code>. <code class="docutils literal notranslate"><span class="pre">stroke</span></code> and
+<code class="docutils literal notranslate"><span class="pre">dashed_stroke</span></code> are also methods on <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> and
+<a class="reference internal" href="regions.html#bosl2.regions.Region" title="bosl2.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">Region</span></code></a>, so a built outline can be drawn directly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">arc</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">turtle</span><span class="p">([</span><span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">Region</span><span class="o">.</span><span class="n">with_holes</span><span class="p">(</span><span class="n">outline</span><span class="p">,</span> <span class="n">hole</span><span class="p">)</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Every generator is pinned point-for-point to the real BOSL2 output in
+<code class="docutils literal notranslate"><span class="pre">tests/test_bosl2_reorient.py</span></code>.</p>
+<section id="coverage-of-bosl2-drawing-scad">
+<h2>Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">drawing.scad</span></code><a class="headerlink" href="#coverage-of-bosl2-drawing-scad" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>BOSL2 function</p></th>
+<th class="head"><p>Status</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">arc</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.arc" title="bosl2.drawing.arc"><code class="xref py py-func docutils literal notranslate"><span class="pre">arc()</span></code></a> returns a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>; all 2-D forms
+(radius/angle, <code class="docutils literal notranslate"><span class="pre">angle=[start,</span> <span class="pre">end]</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">thickness</span></code>, two-point with
+<code class="docutils literal notranslate"><span class="pre">long</span></code>/<code class="docutils literal notranslate"><span class="pre">cw</span></code>/<code class="docutils literal notranslate"><span class="pre">ccw</span></code>, three-point, <code class="docutils literal notranslate"><span class="pre">corner=</span></code>, and <code class="docutils literal notranslate"><span class="pre">wedge=</span></code>). 3-D arcs are not ported.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">catenary</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.catenary" title="bosl2.drawing.catenary"><code class="xref py py-func docutils literal notranslate"><span class="pre">catenary()</span></code></a> – by <code class="docutils literal notranslate"><span class="pre">droop=</span></code> or endpoint <code class="docutils literal notranslate"><span class="pre">angle=</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">helix</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.helix" title="bosl2.drawing.helix"><code class="xref py py-func docutils literal notranslate"><span class="pre">helix()</span></code></a> – returns a <a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path3D</span></code></a> (conical/flat spirals
+included).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">turtle</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.turtle" title="bosl2.drawing.turtle"><code class="xref py py-func docutils literal notranslate"><span class="pre">turtle()</span></code></a> – the full command set, including <code class="docutils literal notranslate"><span class="pre">repeat</span></code> and the
+<code class="docutils literal notranslate"><span class="pre">arcleft</span></code>/<code class="docutils literal notranslate"><span class="pre">arcright</span></code>/<code class="docutils literal notranslate"><span class="pre">arcleftto</span></code>/<code class="docutils literal notranslate"><span class="pre">arcrightto</span></code> arcs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stroke</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.stroke" title="bosl2.drawing.stroke"><code class="xref py py-func docutils literal notranslate"><span class="pre">stroke()</span></code></a> – 2-D (segment rects + joints &amp; endcaps) and 3-D (cylinder
+tube + spherical joints + revolved endcaps). <strong>Every</strong> BOSL2 endcap/joint style is generated
+directly: <code class="docutils literal notranslate"><span class="pre">round</span></code>, <code class="docutils literal notranslate"><span class="pre">square</span></code>, <code class="docutils literal notranslate"><span class="pre">butt</span></code>, <code class="docutils literal notranslate"><span class="pre">dot</span></code>, <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">diamond</span></code>, <code class="docutils literal notranslate"><span class="pre">chisel</span></code>,
+<code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">cross</span></code>, <code class="docutils literal notranslate"><span class="pre">arrow</span></code>, <code class="docutils literal notranslate"><span class="pre">arrow2</span></code>, <code class="docutils literal notranslate"><span class="pre">arrow3</span></code>, <code class="docutils literal notranslate"><span class="pre">tail</span></code>, <code class="docutils literal notranslate"><span class="pre">tail2</span></code> (arrow
+caps trim the line back). Per-vertex <code class="docutils literal notranslate"><span class="pre">width</span></code> lists and the <code class="docutils literal notranslate"><span class="pre">*_angle</span></code>/<code class="docutils literal notranslate"><span class="pre">*_color</span></code> knobs
+are not ported.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dashed_stroke</span></code></p></td>
+<td><p>ported</p></td>
+<td><p><a class="reference internal" href="#bosl2.drawing.dashed_stroke" title="bosl2.drawing.dashed_stroke"><code class="xref py py-func docutils literal notranslate"><span class="pre">dashed_stroke()</span></code></a> – the function form: a list of “on” dash
+<a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> s (stroke or extrude them to draw).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">turtle3d</span></code></p></td>
+<td><p>not ported</p></td>
+<td><p>the 3-D turtle (separate <code class="docutils literal notranslate"><span class="pre">turtle3d.scad</span></code> machinery) – port on request.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">debug_polygon</span></code> / <code class="docutils literal notranslate"><span class="pre">debug_region</span></code></p></td>
+<td><p>not ported</p></td>
+<td><p>annotated debugging modules (vertex/edge labels); no geometry payload.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="api-reference">
+<h2>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.shapes2d.arc">
+<span class="sig-prename descclassname"><span class="pre">bosl2.shapes2d.</span></span><span class="sig-name descname"><span class="pre">arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wedge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ccw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes2d.html#arc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.shapes2d.arc" title="Link to this definition">¶</a></dt>
+<dd><p>A 2-D arc, returned as a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> of points (BOSL2’s <code class="docutils literal notranslate"><span class="pre">arc()</span></code>).</p>
+<p>All of BOSL2’s 2-D arc specifications are supported (3-D arcs, which project onto a plane,
+are not):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(r=,</span> <span class="pre">angle=,</span> <span class="pre">[start=],</span> <span class="pre">[cp=])</span></code> – radius <em>r</em> about <em>cp</em>, sweeping <em>angle</em> degrees from
+<em>start</em> (or <code class="docutils literal notranslate"><span class="pre">angle=[start,</span> <span class="pre">end]</span></code> for an explicit range).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(width=,</span> <span class="pre">thickness=)</span></code> – a circular segment starting and ending on the X axis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(cp=,</span> <span class="pre">points=[P0,</span> <span class="pre">P1])</span></code> – around <em>cp</em> from <code class="docutils literal notranslate"><span class="pre">P0</span></code> toward the direction of <code class="docutils literal notranslate"><span class="pre">P1</span></code>; the
+short way by default, or the long/<code class="docutils literal notranslate"><span class="pre">cw</span></code>/<code class="docutils literal notranslate"><span class="pre">ccw</span></code> way.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(points=[P0,</span> <span class="pre">P1,</span> <span class="pre">P2])</span></code> – through three points, from <code class="docutils literal notranslate"><span class="pre">P0</span></code> via <code class="docutils literal notranslate"><span class="pre">P1</span></code> to <code class="docutils literal notranslate"><span class="pre">P2</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(corner=[P0,</span> <span class="pre">P1,</span> <span class="pre">P2],</span> <span class="pre">r=)</span></code> – the fillet arc of radius <em>r</em> tangent to both legs of the
+corner <code class="docutils literal notranslate"><span class="pre">P0-P1-P2</span></code>.</p></li>
+</ul>
+<p>Set <code class="docutils literal notranslate"><span class="pre">wedge=True</span></code> to prepend the centre point, giving a closed pie/sector path. When <em>n</em> is
+omitted the point count follows OpenSCAD’s $fn/$fa/$fs rules, matching BOSL2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em><em> | </em><em>None</em>) – number of points (default: from $fn/$fa/$fs)</p></li>
+<li><p><strong>r/d</strong> – radius / diameter of the arc</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em> | </em><em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – degrees to sweep from <em>start</em>, or <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end]</span></code></p></li>
+<li><p><strong>cp</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – centre point (default <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code>)</p></li>
+<li><p><strong>points</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – two points (with <em>cp</em>) or three points the arc passes through</p></li>
+<li><p><strong>corner</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – three points; the arc is the <em>r</em>-radius fillet tangent to both legs</p></li>
+<li><p><strong>width</strong> (<em>float</em><em> | </em><em>None</em>) – chord width for the width/thickness form</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> | </em><em>None</em>) – height of the circular segment for the width/thickness form</p></li>
+<li><p><strong>start</strong> (<em>float</em><em> | </em><em>None</em>) – starting angle in degrees (default 0)</p></li>
+<li><p><strong>wedge</strong> (<em>bool</em>) – prepend the centre point, producing a closed sector (default False)</p></li>
+<li><p><strong>long/cw/ccw</strong> – for the two-point form, take the long way / a given handedness</p></li>
+<li><p><strong>endpoint</strong> (<em>bool</em>) – include the final point (default True)</p></li>
+<li><p><strong>r</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>d</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>long</strong> (<em>bool</em>)</p></li>
+<li><p><strong>cw</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ccw</strong> (<em>bool</em>)</p></li>
+<li><p><strong>_fn</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>_fa</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>_fs</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> (closed when <em>wedge</em> is set).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><em>Path</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-bosl2.drawing">
+<dt class="sig sig-object py" id="bosl2.drawing.arc">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">arc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wedge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ccw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fa</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/shapes2d.html#arc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.arc" title="Link to this definition">¶</a></dt>
+<dd><p>A 2-D arc, returned as a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> of points (BOSL2’s <code class="docutils literal notranslate"><span class="pre">arc()</span></code>).</p>
+<p>All of BOSL2’s 2-D arc specifications are supported (3-D arcs, which project onto a plane,
+are not):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(r=,</span> <span class="pre">angle=,</span> <span class="pre">[start=],</span> <span class="pre">[cp=])</span></code> – radius <em>r</em> about <em>cp</em>, sweeping <em>angle</em> degrees from
+<em>start</em> (or <code class="docutils literal notranslate"><span class="pre">angle=[start,</span> <span class="pre">end]</span></code> for an explicit range).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(width=,</span> <span class="pre">thickness=)</span></code> – a circular segment starting and ending on the X axis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(cp=,</span> <span class="pre">points=[P0,</span> <span class="pre">P1])</span></code> – around <em>cp</em> from <code class="docutils literal notranslate"><span class="pre">P0</span></code> toward the direction of <code class="docutils literal notranslate"><span class="pre">P1</span></code>; the
+short way by default, or the long/<code class="docutils literal notranslate"><span class="pre">cw</span></code>/<code class="docutils literal notranslate"><span class="pre">ccw</span></code> way.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(points=[P0,</span> <span class="pre">P1,</span> <span class="pre">P2])</span></code> – through three points, from <code class="docutils literal notranslate"><span class="pre">P0</span></code> via <code class="docutils literal notranslate"><span class="pre">P1</span></code> to <code class="docutils literal notranslate"><span class="pre">P2</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">arc(corner=[P0,</span> <span class="pre">P1,</span> <span class="pre">P2],</span> <span class="pre">r=)</span></code> – the fillet arc of radius <em>r</em> tangent to both legs of the
+corner <code class="docutils literal notranslate"><span class="pre">P0-P1-P2</span></code>.</p></li>
+</ul>
+<p>Set <code class="docutils literal notranslate"><span class="pre">wedge=True</span></code> to prepend the centre point, giving a closed pie/sector path. When <em>n</em> is
+omitted the point count follows OpenSCAD’s $fn/$fa/$fs rules, matching BOSL2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em><em> | </em><em>None</em>) – number of points (default: from $fn/$fa/$fs)</p></li>
+<li><p><strong>r/d</strong> – radius / diameter of the arc</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em> | </em><em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – degrees to sweep from <em>start</em>, or <code class="docutils literal notranslate"><span class="pre">[start,</span> <span class="pre">end]</span></code></p></li>
+<li><p><strong>cp</strong> (<em>Sequence</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – centre point (default <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code>)</p></li>
+<li><p><strong>points</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – two points (with <em>cp</em>) or three points the arc passes through</p></li>
+<li><p><strong>corner</strong> (<em>Sequence</em><em>[</em><em>Sequence</em><em>[</em><em>float</em><em>]</em><em>] </em><em>| </em><em>None</em>) – three points; the arc is the <em>r</em>-radius fillet tangent to both legs</p></li>
+<li><p><strong>width</strong> (<em>float</em><em> | </em><em>None</em>) – chord width for the width/thickness form</p></li>
+<li><p><strong>thickness</strong> (<em>float</em><em> | </em><em>None</em>) – height of the circular segment for the width/thickness form</p></li>
+<li><p><strong>start</strong> (<em>float</em><em> | </em><em>None</em>) – starting angle in degrees (default 0)</p></li>
+<li><p><strong>wedge</strong> (<em>bool</em>) – prepend the centre point, producing a closed sector (default False)</p></li>
+<li><p><strong>long/cw/ccw</strong> – for the two-point form, take the long way / a given handedness</p></li>
+<li><p><strong>endpoint</strong> (<em>bool</em>) – include the final point (default True)</p></li>
+<li><p><strong>r</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>d</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>long</strong> (<em>bool</em>)</p></li>
+<li><p><strong>cw</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ccw</strong> (<em>bool</em>)</p></li>
+<li><p><strong>_fn</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>_fa</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>_fs</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> (closed when <em>wedge</em> is set).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><em>Path</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.drawing.catenary">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">catenary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">droop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/drawing.html#catenary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.catenary" title="Link to this definition">¶</a></dt>
+<dd><p>The catenary (hanging-chain) curve of the given <em>width</em>, as a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>.</p>
+<p>Give exactly one of <em>droop</em> (how far the middle hangs below the endpoints) or <em>angle</em> (the
+slope in degrees at the endpoints). The curve passes through <code class="docutils literal notranslate"><span class="pre">[-width/2,</span> <span class="pre">0]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">[width/2,</span> <span class="pre">0]</span></code> and hangs downward (negative <em>droop</em>/<em>angle</em> flips it upward). This is BOSL2’s
+<code class="docutils literal notranslate"><span class="pre">catenary()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>width</strong> (<em>float</em>) – horizontal distance between the endpoints (&gt; 0)</p></li>
+<li><p><strong>droop</strong> (<em>float</em><em> | </em><em>None</em>) – how far the midpoint hangs below the endpoints (give this or <em>angle</em>)</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – number of points along the curve (default 100)</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em> | </em><em>None</em>) – endpoint slope in degrees, <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;</span> <span class="pre">|angle|</span> <span class="pre">&lt;</span> <span class="pre">90</span></code> (give this or <em>droop</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><em>Path</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A hanging arch, stroked into a 2-mm ribbon and extruded into a wall:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">catenary</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">droop</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">linear_extrude</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-7d749149b0714f0189250d7b3815a0bd" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-7d749149b0714f0189250d7b3815a0bd");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/f9a9d96bec84c8e6.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/f9a9d96bec84c8e6.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.drawing.helix">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">helix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">turns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/drawing.html#helix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.helix" title="Link to this definition">¶</a></dt>
+<dd><p>A 3-D helical path on a (possibly conical) surface – BOSL2’s <code class="docutils literal notranslate"><span class="pre">helix()</span></code>.</p>
+<p>Returned as a <a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path3D</span></code></a> (the 3-D path object), so it carries the 3-D
+transforms/measurements and feeds straight into <a class="reference internal" href="#bosl2.drawing.stroke" title="bosl2.drawing.stroke"><code class="xref py py-func docutils literal notranslate"><span class="pre">stroke()</span></code></a> or <code class="docutils literal notranslate"><span class="pre">path_sweep</span></code>. Give
+exactly two of <em>l</em>/<em>h</em> (length), <em>turns</em>, and <em>angle</em>; the third is derived. Positive <em>turns</em>
+is right-handed, negative left-handed. Start/end radii may differ for a conical helix (a flat
+spiral is <code class="docutils literal notranslate"><span class="pre">h=0</span></code> with a turn count).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>l/h</strong> – height of the helix (0 for a flat spiral)</p></li>
+<li><p><strong>turns</strong> (<em>float</em><em> | </em><em>None</em>) – number of turns (positive = right-handed)</p></li>
+<li><p><strong>angle</strong> (<em>float</em><em> | </em><em>None</em>) – helix angle in degrees (measured at the base radius)</p></li>
+<li><p><strong>r/d</strong> – radius / diameter (constant helix)</p></li>
+<li><p><strong>r1/d1</strong> – bottom radius / diameter</p></li>
+<li><p><strong>r2/d2</strong> – top radius / diameter</p></li>
+<li><p><strong>l</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>h</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>r</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>r1</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>r2</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>d</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>d1</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>d2</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><em>Path3D</em></a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A 2.5-turn helix drawn as a tube:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stroke</span><span class="p">(</span><span class="n">helix</span><span class="p">(</span><span class="n">turns</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-6de12dcb5c7b40fa8b813b9bd91b991f" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-6de12dcb5c7b40fa8b813b9bd91b991f");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/1ff095cb0796c5c1.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/1ff095cb0796c5c1.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.drawing.turtle">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">turtle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">commands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/drawing.html#turtle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.turtle" title="Link to this definition">¶</a></dt>
+<dd><p>Build a 2-D path from [turtle-graphics](<a class="reference external" href="https://en.wikipedia.org/wiki/Turtle_graphics">https://en.wikipedia.org/wiki/Turtle_graphics</a>)
+<em>commands</em> – BOSL2’s <code class="docutils literal notranslate"><span class="pre">turtle()</span></code>.</p>
+<p><em>commands</em> is a flat list of command names each optionally followed by a parameter, e.g.
+<code class="docutils literal notranslate"><span class="pre">[&quot;move&quot;,</span> <span class="pre">10,</span> <span class="pre">&quot;left&quot;,</span> <span class="pre">90,</span> <span class="pre">&quot;move&quot;,</span> <span class="pre">10]</span></code>. The turtle starts at the origin pointing along +X
+with a step length of 1. By default the computed path is returned as a
+<a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>; set <em>full_state</em> to get <code class="docutils literal notranslate"><span class="pre">[path,</span> <span class="pre">step_vector,</span> <span class="pre">angle,</span> <span class="pre">arcsteps]</span></code>
+instead. <em>repeat</em> runs the whole command list that many times.</p>
+<p>Supported commands: <code class="docutils literal notranslate"><span class="pre">move</span></code>/<code class="docutils literal notranslate"><span class="pre">xmove</span></code>/<code class="docutils literal notranslate"><span class="pre">ymove</span></code>/<code class="docutils literal notranslate"><span class="pre">xymove</span></code>, <code class="docutils literal notranslate"><span class="pre">jump</span></code>/<code class="docutils literal notranslate"><span class="pre">xjump</span></code>/<code class="docutils literal notranslate"><span class="pre">yjump</span></code>,
+<code class="docutils literal notranslate"><span class="pre">untilx</span></code>/<code class="docutils literal notranslate"><span class="pre">untily</span></code>, <code class="docutils literal notranslate"><span class="pre">left</span></code>/<code class="docutils literal notranslate"><span class="pre">turn</span></code>/<code class="docutils literal notranslate"><span class="pre">right</span></code>, <code class="docutils literal notranslate"><span class="pre">angle</span></code>, <code class="docutils literal notranslate"><span class="pre">setdir</span></code>, <code class="docutils literal notranslate"><span class="pre">length</span></code>/
+<code class="docutils literal notranslate"><span class="pre">scale</span></code>/<code class="docutils literal notranslate"><span class="pre">addlength</span></code>, <code class="docutils literal notranslate"><span class="pre">arcsteps</span></code>, <code class="docutils literal notranslate"><span class="pre">arcleft</span></code>/<code class="docutils literal notranslate"><span class="pre">arcright</span></code>, <code class="docutils literal notranslate"><span class="pre">arcleftto</span></code>/<code class="docutils literal notranslate"><span class="pre">arcrightto</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">repeat</span></code> (<code class="docutils literal notranslate"><span class="pre">[&quot;repeat&quot;,</span> <span class="pre">count,</span> <span class="pre">[subcommands]]</span></code>).</p>
+<p class="rubric">Examples</p>
+<p>A rounded-corner square drawn with arcs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="n">turtle</span><span class="p">([</span><span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
+               <span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;move&quot;</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="s2">&quot;arcleft&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="n">path</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">linear_extrude</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-bc64afee588b4533a264efa72bcfb000" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-bc64afee588b4533a264efa72bcfb000");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/54f0ca36018e10fc.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/54f0ca36018e10fc.stl">⬇ Download STL mesh</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>commands</strong> (<em>Sequence</em>)</p></li>
+<li><p><strong>state</strong> (<em>Sequence</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>full_state</strong> (<em>bool</em>)</p></li>
+<li><p><strong>repeat</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><em>Path</em></a> | list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.drawing.stroke">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">stroke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endcaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endcap1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endcap2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/drawing.html#stroke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.stroke" title="Link to this definition">¶</a></dt>
+<dd><p>Render <em>path</em> as a solid line of the given <em>width</em> – BOSL2’s <code class="docutils literal notranslate"><span class="pre">stroke()</span></code>.</p>
+<p>Works on a 2-D or 3-D point list, a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>, a <a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path3D</span></code></a>,
+or a <a class="reference internal" href="regions.html#bosl2.regions.Region" title="bosl2.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> (each of its paths is stroked closed). A 2-D stroke is a
+union of segment rectangles with joints and endcaps; a 3-D stroke is a tube of cylinders with
+spherical joints and revolved endcaps. Returns native geometry.</p>
+<p>Every BOSL2 endcap/joint style is generated directly: <code class="docutils literal notranslate"><span class="pre">&quot;round&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;square&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;butt&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">False</span></code> (flush), <code class="docutils literal notranslate"><span class="pre">&quot;dot&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;block&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;diamond&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;chisel&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cross&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;arrow&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;arrow2&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;arrow3&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tail&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;tail2&quot;</span></code>.
+Arrow endcaps trim the line back so it doesn’t poke through the tip.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – a point list, <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>/<a class="reference internal" href="paths.html#bosl2.paths.Path3D" title="bosl2.paths.Path3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path3D</span></code></a>, or <a class="reference internal" href="regions.html#bosl2.regions.Region" title="bosl2.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">Region</span></code></a></p></li>
+<li><p><strong>width</strong> (<em>float</em>) – line width (default 1)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em><em> | </em><em>None</em>) – close the path into a loop (default: the path’s own <code class="docutils literal notranslate"><span class="pre">closed</span></code> flag, or True for a Region)</p></li>
+<li><p><strong>endcaps</strong> – style for both ends (<code class="docutils literal notranslate"><span class="pre">endcap1</span></code>/<code class="docutils literal notranslate"><span class="pre">endcap2</span></code> override per end)</p></li>
+<li><p><strong>joints</strong> – style for the interior corners (default <code class="docutils literal notranslate"><span class="pre">&quot;round&quot;</span></code>)</p></li>
+<li><p><strong>dots</strong> – mark every vertex with a round dot</p></li>
+<li><p><strong>color</strong> – optional colour applied to the whole stroke</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>An arc drawn as a 3-mm ribbon with round ends, extruded into a curved wall:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">arc</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">linear_extrude</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-a2e17017f8a14dc5ac381025033c87d1" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-a2e17017f8a14dc5ac381025033c87d1");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/48a2e744a16a5465.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/48a2e744a16a5465.stl">⬇ Download STL mesh</a></p>
+<p>A line with a fancy endcap on each end (arrow one way, tail the other):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stroke</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">endcap1</span><span class="o">=</span><span class="s1">&#39;tail&#39;</span><span class="p">,</span> <span class="n">endcap2</span><span class="o">=</span><span class="s1">&#39;arrow&#39;</span><span class="p">)</span>                 <span class="o">.</span><span class="n">linear_extrude</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-2962effe15fe48ee86cc8c2d13cdc7e7" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-2962effe15fe48ee86cc8c2d13cdc7e7");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/44499084e85e6746.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/44499084e85e6746.stl">⬇ Download STL mesh</a></p>
+<p>A 3-D arrow: the endcap is a revolved cone on the tube:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stroke</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">40</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="n">width</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">endcaps</span><span class="o">=</span><span class="s1">&#39;arrow&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-bb4cf4bfb4044cc1b50d37db03f647f1" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-bb4cf4bfb4044cc1b50d37db03f647f1");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/f48891d565647fa6.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/f48891d565647fa6.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bosl2.drawing.dashed_stroke">
+<span class="sig-prename descclassname"><span class="pre">bosl2.drawing.</span></span><span class="sig-name descname"><span class="pre">dashed_stroke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dashpat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,</span> <span class="pre">3)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">closed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mindash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bosl2/drawing.html#dashed_stroke"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bosl2.drawing.dashed_stroke" title="Link to this definition">¶</a></dt>
+<dd><p>Break <em>path</em> into dashes – BOSL2’s <code class="docutils literal notranslate"><span class="pre">dashed_stroke()</span></code> function form.</p>
+<p>Returns the list of “on” dash sub-paths (each a <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>); stroke or extrude
+them to draw a dashed line. <em>dashpat</em> alternates dash/gap lengths. With <em>fit</em> (the default) the
+pattern is scaled slightly so a whole number of repeats fills the path exactly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – a point list, <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>, or <a class="reference internal" href="regions.html#bosl2.regions.Region" title="bosl2.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">Region</span></code></a></p></li>
+<li><p><strong>dashpat</strong> (<em>Sequence</em><em>[</em><em>float</em><em>]</em>) – alternating [dash, gap, …] lengths (default <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">3)</span></code>)</p></li>
+<li><p><strong>closed</strong> (<em>bool</em>) – treat the path as a closed loop</p></li>
+<li><p><strong>fit</strong> (<em>bool</em>) – scale the pattern to fit a whole number of repeats (default True)</p></li>
+<li><p><strong>mindash</strong> (<em>float</em>) – drop a trailing dash shorter than this (default 0.5)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[<a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><em>Path</em></a>]</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>A dashed circle outline, the dashes unioned and extruded into little tiles:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dashes</span> <span class="o">=</span> <span class="n">dashed_stroke</span><span class="p">(</span><span class="n">arc</span><span class="p">(</span><span class="n">r</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">360</span><span class="p">),</span> <span class="n">dashpat</span><span class="o">=</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">closed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ring</span> <span class="o">=</span> <span class="n">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">stroke</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dashes</span><span class="p">))</span>
+<span class="n">ring</span><span class="o">.</span><span class="n">linear_extrude</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-9570d37433554c23b4d4044139d9305c" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-9570d37433554c23b4d4044139d9305c");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/fe1f26493f59c812.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/fe1f26493f59c812.stl">⬇ Download STL mesh</a></p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bosl2 (PythonSCAD port)</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="paths.html">Paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">Regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beziers.html">Bezier curves, paths and surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nurbs.html">NURBS: curves &amp; surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vnf.html">VNF meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isosurface.html">Isosurface: marching cubes &amp; metaballs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skin.html">Sweeps (skin)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shapes3d.html">3-D shapes and Bosl2Solid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shapes2d.html">2-D shapes</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Drawing: path generators &amp; renderers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coverage-of-bosl2-drawing-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">drawing.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="distributors.html">Distributors: copiers &amp; reflected copies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="color.html">Colour: colorspace conversion &amp; colour operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading: screw threads, rods &amp; nuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partitions.html">Partitions: planar cuts &amp; interlocking splits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="miscellaneous.html">Miscellaneous: extrusions, bbox, hull &amp; minkowski</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rounding.html">Rounding: round_corners &amp; smooth_path</a></li>
+<li class="toctree-l1"><a class="reference internal" href="masking.html">Edge/corner masking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">Transforms (affine / reorient)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">Numeric helpers (math)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vector helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comparisons.html">Approximate comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">Direction constants</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="shapes2d.html" title="previous chapter">2-D shapes</a></li>
+      <li>Next: <a href="distributors.html" title="next chapter">Distributors: copiers &amp; reflected copies</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;Apache License 2.0.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/drawing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

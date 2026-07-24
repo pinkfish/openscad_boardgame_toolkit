@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>bosl2 — a pure-Python PythonSCAD port of BOSL2 &#8212; bosl2 (PythonSCAD port) 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Paths" href="paths.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="bosl2-a-pure-python-pythonscad-port-of-bosl2">
+<h1>bosl2 — a pure-Python PythonSCAD port of BOSL2<a class="headerlink" href="#bosl2-a-pure-python-pythonscad-port-of-bosl2" title="Link to this heading">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">bosl2</span></code> is a pure-Python / numpy port of the pieces of <a class="reference external" href="https://github.com/BelfrySCAD/BOSL2">BOSL2</a>
+that this toolkit uses, with <strong>no</strong> <code class="docutils literal notranslate"><span class="pre">osuse()</span></code>/BOSL2 runtime dependency. Every operation hangs off
+an object — <a class="reference internal" href="paths.html#bosl2.paths.Path" title="bosl2.paths.Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a> for 2-D outlines, <a class="reference internal" href="regions.html#bosl2.regions.Region" title="bosl2.regions.Region"><code class="xref py py-class docutils literal notranslate"><span class="pre">Region</span></code></a> for
+outlines-with-holes, <a class="reference internal" href="beziers.html#bosl2.beziers.Bezier" title="bosl2.beziers.Bezier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bezier</span></code></a> / <a class="reference internal" href="beziers.html#bosl2.beziers.BezierPatch" title="bosl2.beziers.BezierPatch"><code class="xref py py-class docutils literal notranslate"><span class="pre">BezierPatch</span></code></a> for bezier
+curves and surfaces, <a class="reference internal" href="vnf.html#bosl2.vnf.VNF" title="bosl2.vnf.VNF"><code class="xref py py-class docutils literal notranslate"><span class="pre">VNF</span></code></a> for vertex-face meshes, and the
+<a class="reference internal" href="shapes3d.html#bosl2.shapes3d.Bosl2Solid" title="bosl2.shapes3d.Bosl2Solid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bosl2Solid</span></code></a> primitives — so new code reads as fluent chains:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Path</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">80</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">80</span><span class="p">,</span> <span class="mi">60</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">60</span><span class="p">]])</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="n">r</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">round_corners</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">polygon</span><span class="p">()</span>
+</pre></div>
+</div>
+<section id="rendered-examples">
+<h2>Rendered examples<a class="headerlink" href="#rendered-examples" title="Link to this heading">¶</a></h2>
+<p>Every documented function with a rendered example shows both the exact PythonSCAD code and what the
+real PythonSCAD binary builds for it, via the <code class="docutils literal notranslate"><span class="pre">pythonscad-example</span></code> directive (in
+<code class="docutils literal notranslate"><span class="pre">docs/_ext/bosl2_example.py</span></code>): an <strong>interactive 3-D viewer</strong> for the exported STL mesh (rotate,
+pan and zoom — served by the <code class="docutils literal notranslate"><span class="pre">stl_viewer</span></code> extension’s three.js viewer, a working drop-in for the
+<code class="docutils literal notranslate"><span class="pre">sphinxstl</span></code> <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">stl::</span></code> directive), plus a <strong>download link</strong> to the mesh. Two-dimensional or
+open-surface examples that have no solid mesh fall back to a static preview image.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The interactive viewers fetch each <code class="docutils literal notranslate"><span class="pre">.stl</span></code> over HTTP, so view the built docs through a web
+server (for example <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">http.server</span></code> from <code class="docutils literal notranslate"><span class="pre">bosl2/wiki</span></code>) rather than opening the
+HTML files directly with a <code class="docutils literal notranslate"><span class="pre">file://</span></code> URL, where browsers block the local mesh fetch. You can
+also embed a viewer for any STL yourself with <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">stl::</span> <span class="pre">path/to/mesh.stl</span></code>.</p>
+</div>
+<p>A cuboid primitive:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">s3</span><span class="o">.</span><span class="n">cuboid</span><span class="p">([</span><span class="mi">40</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">rounding</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-6d3698ef591c456a95b8227dc8fe951f" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-6d3698ef591c456a95b8227dc8fe951f");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/341e0d175eaf4dfc.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/341e0d175eaf4dfc.stl">⬇ Download STL mesh</a></p>
+<p>A bezier surface patch, meshed to a VNF and rendered as a polyhedron:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">patch</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[[</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+    <span class="p">[[</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">]],</span>
+    <span class="p">[[</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">20</span><span class="p">]],</span>
+    <span class="p">[[</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">16</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">16</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+<span class="p">]</span>
+<span class="n">BezierPatch</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span><span class="o">.</span><span class="n">sheet</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">6</span><span class="p">],</span> <span class="n">splinesteps</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-da68e34849ff447a92912d4d011bde90" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-da68e34849ff447a92912d4d011bde90");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/f5c6047924b3c34d.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/f5c6047924b3c34d.stl">⬇ Download STL mesh</a></p>
+<p>Sweeping a profile along a bezier curve:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">circle</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">t</span><span class="p">),</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+<span class="n">Bezier</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="p">[</span><span class="mi">25</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">15</span><span class="p">],</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span><span class="o">.</span><span class="n">sweep</span><span class="p">(</span><span class="n">circle</span><span class="p">,</span> <span class="n">splinesteps</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span><span class="o">.</span><span class="n">polyhedron</span><span class="p">()</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+
+<div class="stl-viewer" id="stlviewer-5fc69f5fd48740beb1a4b355d070b271" style="width:100%;height:360px;border:1px solid #ddd;border-radius:4px;background:#f7f7f9;touch-action:none"></div>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.160.0";
+import { STLLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+const el = document.getElementById("stlviewer-5fc69f5fd48740beb1a4b355d070b271");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#f7f7f9");
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1e6);
+camera.up.set(0, 0, 1);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+el.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const key = new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(1, 0.6, 1); scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff, 0.4); fill.position.set(-1, -0.8, 0.5); scene.add(fill);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+function resize() {
+  const w = el.clientWidth, h = el.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+
+new STLLoader().load("_stl/d2ba118ca2a25ada.stl", function (geo) {
+  geo.computeVertexNormals();
+  geo.computeBoundingBox();
+  const center = new THREE.Vector3(); geo.boundingBox.getCenter(center);
+  const size = new THREE.Vector3(); geo.boundingBox.getSize(size);
+  geo.translate(-center.x, -center.y, -center.z);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({
+    color: "#4a90d9", specular: 0x222222, shininess: 25, flatShading: false,
+  }));
+  scene.add(mesh);
+  const r = Math.max(size.x, size.y, size.z) || 1;
+  camera.position.set(r * 1.3, -r * 1.7, r * 1.1);
+  controls.target.set(0, 0, 0);
+  resize();
+  (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+}, undefined, function (err) {
+  el.innerHTML = '<p style="padding:1em;color:#a00">Could not load STL (serve the docs over HTTP to view).</p>';
+});
+window.addEventListener("resize", resize);
+</script>
+<p><a class="reference external" href="_stl/d2ba118ca2a25ada.stl">⬇ Download STL mesh</a></p>
+</section>
+<section id="api-reference">
+<h2>API reference<a class="headerlink" href="#api-reference" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="paths.html">Paths</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="paths.html#bosl2.paths.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="paths.html#bosl2.paths.Path3D"><code class="docutils literal notranslate"><span class="pre">Path3D</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">Regions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="regions.html#bosl2.regions.Path"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="regions.html#bosl2.regions.Path3D"><code class="docutils literal notranslate"><span class="pre">Path3D</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="regions.html#bosl2.regions.Region"><code class="docutils literal notranslate"><span class="pre">Region</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="beziers.html">Bezier curves, paths and surfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="beziers.html#bosl2.beziers.Bezier"><code class="docutils literal notranslate"><span class="pre">Bezier</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="beziers.html#bosl2.beziers.BezierPatch"><code class="docutils literal notranslate"><span class="pre">BezierPatch</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="beziers.html#bosl2.beziers.debug_bezier_patches"><code class="docutils literal notranslate"><span class="pre">debug_bezier_patches()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nurbs.html">NURBS: curves &amp; surfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nurbs.html#coverage-of-bosl2-nurbs-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">nurbs.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nurbs.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nurbs.html#module-bosl2.nurbs">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vnf.html">VNF meshes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vnf.html#bosl2.vnf.VNF"><code class="docutils literal notranslate"><span class="pre">VNF</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="isosurface.html">Isosurface: marching cubes &amp; metaballs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="isosurface.html#coverage-of-bosl2-isosurface-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">isosurface.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="isosurface.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="isosurface.html#module-bosl2.isosurface">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="skin.html">Sweeps (skin)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skin.html#coverage-of-bosl2-skin-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">skin.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="skin.html#module-bosl2.skin">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shapes3d.html">3-D shapes and Bosl2Solid</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shapes3d.html#coverage-of-bosl2-shapes3d-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">shapes3d.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shapes3d.html#bosl2solid-attachment">Bosl2Solid &amp; attachment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shapes3d.html#module-bosl2.shapes3d">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shapes2d.html">2-D shapes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="shapes2d.html#coverage-of-bosl2-shapes2d-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">shapes2d.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="shapes2d.html#module-bosl2.shapes2d">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="drawing.html">Drawing: path generators &amp; renderers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="drawing.html#coverage-of-bosl2-drawing-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">drawing.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="drawing.html#api-reference">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="distributors.html">Distributors: copiers &amp; reflected copies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="distributors.html#coverage-of-bosl2-distributors-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">distributors.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributors.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributors.html#module-bosl2.distributors">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="color.html">Colour: colorspace conversion &amp; colour operators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="color.html#coverage-of-bosl2-color-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">color.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="color.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="color.html#module-bosl2.color">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading: screw threads, rods &amp; nuts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#coverage-of-bosl2-threading-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">threading.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threading.html#api-reference">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="partitions.html">Partitions: planar cuts &amp; interlocking splits</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="partitions.html#planar-half-cuts">Planar half-cuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partitions.html#interlocking-partitions">Interlocking partitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partitions.html#coverage-of-bosl2-partitions-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">partitions.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="partitions.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partitions.html#module-bosl2.partitions">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="miscellaneous.html">Miscellaneous: extrusions, bbox, hull &amp; minkowski</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="miscellaneous.html#coverage-of-bosl2-miscellaneous-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">miscellaneous.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="miscellaneous.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="miscellaneous.html#module-bosl2.miscellaneous">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rounding.html">Rounding: round_corners &amp; smooth_path</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rounding.html#coverage-of-bosl2-rounding-scad">Coverage of BOSL2 <code class="docutils literal notranslate"><span class="pre">rounding.scad</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="rounding.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rounding.html#module-bosl2.rounding">API reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="masking.html">Edge/corner masking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.mask2d_roundover"><code class="docutils literal notranslate"><span class="pre">mask2d_roundover()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.rounding_edge_mask"><code class="docutils literal notranslate"><span class="pre">rounding_edge_mask()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.edge_mask"><code class="docutils literal notranslate"><span class="pre">edge_mask()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.edge_profile"><code class="docutils literal notranslate"><span class="pre">edge_profile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.edge_profile_asym"><code class="docutils literal notranslate"><span class="pre">edge_profile_asym()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.corner_profile"><code class="docutils literal notranslate"><span class="pre">corner_profile()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="masking.html#bosl2.masking.face_profile"><code class="docutils literal notranslate"><span class="pre">face_profile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">Transforms (affine / reorient)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.polar_to_xy"><code class="docutils literal notranslate"><span class="pre">polar_to_xy()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.rot_from_to"><code class="docutils literal notranslate"><span class="pre">rot_from_to()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.axis_angle_matrix"><code class="docutils literal notranslate"><span class="pre">axis_angle_matrix()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.rot_about_axis"><code class="docutils literal notranslate"><span class="pre">rot_about_axis()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.rot_inverse"><code class="docutils literal notranslate"><span class="pre">rot_inverse()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.rot_decode"><code class="docutils literal notranslate"><span class="pre">rot_decode()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.reorient"><code class="docutils literal notranslate"><span class="pre">reorient()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html#bosl2.transforms.apply"><code class="docutils literal notranslate"><span class="pre">apply()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry helpers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.cross"><code class="docutils literal notranslate"><span class="pre">cross()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.is_collinear"><code class="docutils literal notranslate"><span class="pre">is_collinear()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.line_normal"><code class="docutils literal notranslate"><span class="pre">line_normal()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.line_closest_point"><code class="docutils literal notranslate"><span class="pre">line_closest_point()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.pointlist_bounds"><code class="docutils literal notranslate"><span class="pre">pointlist_bounds()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.general_line_intersection"><code class="docutils literal notranslate"><span class="pre">general_line_intersection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="geometry.html#bosl2.geometry.circle_circle_tangents"><code class="docutils literal notranslate"><span class="pre">circle_circle_tangents()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">Numeric helpers (math)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="math.html#bosl2.math.lerp"><code class="docutils literal notranslate"><span class="pre">lerp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math.html#bosl2.math.lerpn"><code class="docutils literal notranslate"><span class="pre">lerpn()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math.html#bosl2.math.deriv"><code class="docutils literal notranslate"><span class="pre">deriv()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math.html#bosl2.math.deriv2"><code class="docutils literal notranslate"><span class="pre">deriv2()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="math.html#bosl2.math.deriv3"><code class="docutils literal notranslate"><span class="pre">deriv3()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vector helpers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vectors.html#bosl2.vectors.is_vector"><code class="docutils literal notranslate"><span class="pre">is_vector()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors.html#bosl2.vectors.add_scalar"><code class="docutils literal notranslate"><span class="pre">add_scalar()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors.html#bosl2.vectors.unit"><code class="docutils literal notranslate"><span class="pre">unit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="comparisons.html">Approximate comparison</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="comparisons.html#bosl2.comparisons.approx"><code class="docutils literal notranslate"><span class="pre">approx()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">Direction constants</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="constants.html#bosl2.constants.Vec3"><code class="docutils literal notranslate"><span class="pre">Vec3</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">bosl2 (PythonSCAD port)</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="paths.html">Paths</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regions.html">Regions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beziers.html">Bezier curves, paths and surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nurbs.html">NURBS: curves &amp; surfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vnf.html">VNF meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="isosurface.html">Isosurface: marching cubes &amp; metaballs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="skin.html">Sweeps (skin)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shapes3d.html">3-D shapes and Bosl2Solid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shapes2d.html">2-D shapes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drawing.html">Drawing: path generators &amp; renderers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distributors.html">Distributors: copiers &amp; reflected copies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="color.html">Colour: colorspace conversion &amp; colour operators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading: screw threads, rods &amp; nuts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="partitions.html">Partitions: planar cuts &amp; interlocking splits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="miscellaneous.html">Miscellaneous: extrusions, bbox, hull &amp; minkowski</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rounding.html">Rounding: round_corners &amp; smooth_path</a></li>
+<li class="toctree-l1"><a class="reference internal" href="masking.html">Edge/corner masking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">Transforms (affine / reorient)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">Numeric helpers (math)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors.html">Vector helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="comparisons.html">Approximate comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">Direction constants</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="paths.html" title="next chapter">Paths</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;Apache License 2.0.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
