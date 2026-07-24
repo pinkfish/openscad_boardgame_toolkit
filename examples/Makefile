@@ -2,6 +2,9 @@
 SCAD=/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD
 DEPS_DIR=output
 
+# Python: use the cached .venv Python when available, fall back to system python3.
+VENV_PYTHON ?= python3
+
 # PythonSCAD (.py example) build config. PYSCAD is the PythonSCAD binary that can run the
 # toolkit (the -dev build -- the plain build's hardened runtime rejects the numpy bosl2 needs);
 # PYSCAD_BOSL2_DIR holds a BOSL2/ whose std.scad version assert is neutralised for PythonSCAD
@@ -19,10 +22,10 @@ include generate.makefile
 #   make py ARGS="--force"  pass extra flags through (e.g. --jobs 4, --mmu-only, --box Name)
 .PHONY: py
 py:
-	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" python3 ../scripts/build_boxes.py --all $(ARGS)
+	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py --all $(ARGS)
 
 py-%:
-	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" python3 ../scripts/build_boxes.py $* $(ARGS)
+	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py $* $(ARGS)
 
 3mfmerge: ../scripts/colorscad/3mfmerge/build
 
@@ -34,4 +37,4 @@ py-%:
 include $(wildcard $(DEPS_DIR)/*.deps)
 
 lib/animal_kingdom_items_layout.scad: animal_kingdom_items.scad
-	python3 ../scripts/binpack.py -i $@ -o lib/animal_kingdom_items_layout.scad
+	$(VENV_PYTHON) ../scripts/binpack.py -i $@ -o lib/animal_kingdom_items_layout.scad
