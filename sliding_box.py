@@ -25,18 +25,20 @@ from __future__ import annotations
 import copy
 import types
 
+import numpy as np
 from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+
 from base_bgtk import *
-import numpy as np
 import bosl2.masking
 import bosl2.shapes3d
 import bosl2.transforms
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
-from labels import MakeLabelOptions, LabelOptions
+from box_base import Box, FingerHoleLocation
+from lids_base import SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
+from labels import LabelOptions, MakeLabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
 
@@ -55,6 +57,483 @@ def MakeSlidingLidOptions(
     )
 
 
+class SlidingBox(Box):
+    """A box with a sliding lid -- the dovetail chamfered lid slides in from the front.
+
+    Usage::
+
+        box = SlidingBox([50, 100, 20])
+        box.show()
+        box.create_lid().show()
+
+        # Finger holes on left and right sides:
+        box = SlidingBox([50, 100, 30],
+            finger_holes=[(FingerHoleLocation.LEFT, 10),
+                          (FingerHoleLocation.RIGHT, -5)])
+    """
+
+    def __init__(
+        self,
+        size: list[float],
+        *,
+        wall_thickness: float | None = None,
+        floor_thickness: float | None = None,
+        lid_thickness: float | None = None,
+        size_spacing: float | None = None,
+        material_colour: str | None = None,
+        positive_colour: str | None = None,
+        children: "list | None" = None,
+        positive_only_children: list[int] | None = None,
+        positive_negative_children: list[int] | None = None,
+        spin: float = 0,
+        anchor: list[int] | None = None,
+        orient: list[float] | None = None,
+        finger_holes: list[tuple[FingerHoleLocation, float]] | None = None,
+        finger_hole_radius: float | None = None,
+        finger_hole_height: float | None = None,
+        finger_hole_depth: float | None = None,
+        finger_hole_rounding_radius: float | None = None,
+        finger_hole_rounding_edge: float = 0,
+        sliding_lid_options: types.SimpleNamespace | None = None,
+    ):
+        self._sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
+        super().__init__(
+            size=size,
+            wall_thickness=wall_thickness,
+            floor_thickness=floor_thickness,
+            lid_thickness=lid_thickness,
+            size_spacing=size_spacing,
+            material_colour=material_colour,
+            positive_colour=positive_colour,
+            children=children,
+            positive_only_children=positive_only_children,
+            positive_negative_children=positive_negative_children,
+            spin=spin, anchor=anchor, orient=orient,
+            finger_holes=finger_holes,
+            finger_hole_radius=finger_hole_radius,
+            finger_hole_height=finger_hole_height,
+            finger_hole_depth=finger_hole_depth,
+            finger_hole_rounding_radius=finger_hole_rounding_radius,
+            finger_hole_rounding_edge=finger_hole_rounding_edge,
+        )
+
+    # ------------------------------------------------------------------
+    # Sliding-lid–specific dimension derived values
+    # ------------------------------------------------------------------
+
+    @property
+    def _top_cover(self) -> float:
+        return self._sliding_lid_options.two_layer_top_lid_ratio * self.lid_thickness
+
+    @property
+    def _lid_cutout(self) -> float:
+        return (self.lid_thickness - self._top_cover) if self._sliding_lid_options.two_layer else self.lid_thickness
+
+    @property
+    def _middle_chamfer(self) -> float:
+        return self._lid_cutout / 2 if self.wall_thickness > self._lid_cutout else self.wall_thickness / 2
+
+    @property
+    def _chamfer(self) -> float:
+        if self._sliding_lid_options.two_layer:
+            return 0
+        w2 = self.wall_thickness / 2
+        gap = self.lid_thickness - self.size_spacing
+        return w2 if w2 > gap else gap
+
+    @property
+    def _two_layer_chamfer(self) -> float:
+        if self._sliding_lid_options.two_layer_vee_shape:
+            return self._middle_chamfer
+        w2 = self.wall_thickness / 2
+        return w2 if w2 < self._lid_cutout else self._lid_cutout
+
+    @property
+    def _lid_width(self) -> float:
+        if self._sliding_lid_options.two_layer:
+            return self.width
+        return self.width - 2 * self.wall_thickness + self._chamfer * 2 + self.size_spacing
+
+    @property
+    def _lid_length(self) -> float:
+        if self._sliding_lid_options.two_layer:
+            return self.length
+        return self.length - self.wall_thickness + self._chamfer - self.size_spacing
+
+    def _effective_height(self) -> float:
+        return (self.height - self._top_cover - self.size_spacing) if self._sliding_lid_options.two_layer else self.height
+
+    @property
+    def inner_height(self) -> float:
+        h = self._effective_height() - self._lid_cutout - self.floor_thickness
+        return max(h, 0)
+
+    # ------------------------------------------------------------------
+    # Box body
+    # ------------------------------------------------------------------
+
+    def _build_box_body(self) -> "PyOpenSCAD":
+        calc_height = self._effective_height()
+        two_layer = self._sliding_lid_options.two_layer
+
+        body = bosl2.shapes3d.cuboid(
+            [self.width, self.length, calc_height],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=self.wall_thickness,
+            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
+        )
+        if not two_layer:
+            body = body.edge_mask(
+                [TOP], children=bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 2, length=max(self.length, self.width))
+            )
+
+        rounding_offset = 0.01
+        mid_cut = bosl2.shapes3d.cuboid(
+            [
+                self.width - self.wall_thickness * 2,
+                self.length - self.wall_thickness + self.size_spacing + rounding_offset,
+                self._lid_cutout + self.size_spacing / 2,
+            ],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).translate([self.wall_thickness, -rounding_offset, calc_height - self._lid_cutout])
+        body = body - mid_cut
+
+        chamfer2 = (
+            self.wall_thickness / 2 if self.wall_thickness / 2 < self._lid_cutout else self._lid_cutout
+        )
+        if two_layer:
+            if self._sliding_lid_options.two_layer_vee_shape:
+                lid_cut = bosl2.shapes3d.cuboid(
+                    [
+                        self.width - self.wall_thickness * 2 + self._middle_chamfer * 2 + self.size_spacing,
+                        self.length - self.wall_thickness,
+                        self._lid_cutout,
+                    ],
+                    anchor=BOTTOM + FRONT + LEFT,
+                    chamfer=self._middle_chamfer,
+                    edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT, BOTTOM + RIGHT],
+                ).translate([self.wall_thickness - self._middle_chamfer - self.size_spacing / 2, 0, calc_height - self._lid_cutout])
+            else:
+                lid_cut = bosl2.shapes3d.cuboid(
+                    [
+                        self.width - self.wall_thickness * 2 + chamfer2 * 2 + self.size_spacing,
+                        self.length - self.wall_thickness,
+                        self._lid_cutout,
+                    ],
+                    anchor=BOTTOM + FRONT + LEFT,
+                    chamfer=chamfer2,
+                    edges=[TOP + LEFT, TOP + RIGHT],
+                ).translate([self.wall_thickness - chamfer2 - self.size_spacing / 2, 0, calc_height - self._lid_cutout])
+        else:
+            lid_cut = bosl2.shapes3d.cuboid(
+                [self.width - self.wall_thickness * 2 + chamfer2 * 2, self.length - self.wall_thickness + chamfer2, self._lid_cutout],
+                anchor=BOTTOM + FRONT + LEFT,
+                chamfer=chamfer2,
+                edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK],
+            ).translate([self.wall_thickness - chamfer2, 0, calc_height - self._lid_cutout])
+        body = body - lid_cut
+
+        edge_round = (
+            bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 4, height=self.length - self.wall_thickness * 2)
+            .rotate([0, 90, 0])
+            .translate([self.width / 2, 0, calc_height - self._lid_cutout])
+        )
+        body = body - edge_round
+
+        return body.color(self.material_colour)
+
+    # ------------------------------------------------------------------
+    # Inside mask
+    # ------------------------------------------------------------------
+
+    def inside_mask(self) -> Bosl2Solid:
+        return bosl2.shapes3d.cuboid(
+            [self.inner_width, self.inner_length, self.inner_height],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+
+    # ------------------------------------------------------------------
+    # Lid creation
+    # ------------------------------------------------------------------
+
+    def _build_lid_body(self, lid_rounding: float | None = None) -> "PyOpenSCAD":
+        """Build the raw sliding-lid solid (chamfered dovetail body, no children/patterns)."""
+        calc_lid_rounding = lid_rounding if lid_rounding is not None else self.wall_thickness / 2
+        two_layer = self._sliding_lid_options.two_layer
+
+        edges = (
+            [LEFT + TOP, RIGHT + TOP, TOP + FRONT, LEFT + BOTTOM, RIGHT + BOTTOM, BOTTOM + FRONT]
+            if two_layer
+            else [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
+        )
+        main = bosl2.shapes3d.cuboid(
+            [self._lid_width, self._lid_length, self.lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+            chamfer=self._chamfer + self.size_spacing,
+            edges=edges,
+        )
+        main = main.edge_mask(
+            [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+            children=bosl2.masking.rounding_edge_mask(
+                radius=self.wall_thickness if two_layer else calc_lid_rounding,
+                length=self.lid_thickness + self.size_spacing,
+            ),
+        )
+        top_edges = [TOP] if two_layer else [TOP + BACK]
+        main = main.edge_mask(
+            top_edges,
+            children=bosl2.masking.rounding_edge_mask(
+                radius=self._top_cover if two_layer else calc_lid_rounding / 2,
+                length=max(self._lid_length, self._lid_width),
+            ),
+        )
+
+        if two_layer:
+            profile = np.asarray(self._mask_2sliding_lid(), dtype=float)
+            mirrored_profile = profile * np.array([-1.0, 1.0])
+            run_length = self._lid_length + 0.1
+            cutter_left = (
+                polygon([[float(u), float(v)] for u, v in mirrored_profile])
+                .linear_extrude(height=run_length, center=True)
+                .rotate(180, [0, 1, 1])
+                .translate([0, self._lid_length / 2, 0])
+            )
+            cutter_right = (
+                polygon([[float(u), float(v)] for u, v in profile])
+                .linear_extrude(height=run_length, center=True)
+                .rotate(180, [0, 1, 1])
+                .translate([self._lid_width, self._lid_length / 2, 0])
+            )
+            main = main - cutter_left - cutter_right
+
+        if two_layer:
+            front_cut = bosl2.shapes3d.cuboid(
+                [self._lid_width, self.wall_thickness, self._lid_cutout + self.size_spacing],
+                anchor=BOTTOM + FRONT + LEFT,
+            ).translate([0, 0, -self.size_spacing])
+            main = main - front_cut
+            round_a = bosl2.masking.rounding_edge_mask(
+                length=self.lid_thickness, radius=calc_lid_rounding,
+            ).translate(
+                [self.wall_thickness - self._two_layer_chamfer, self.wall_thickness,
+                 -self._top_cover + self.lid_thickness / 2]
+            )
+            round_b = (
+                bosl2.masking.rounding_edge_mask(length=self.lid_thickness, radius=calc_lid_rounding)
+                .rotate([0, 180, 0])
+                .translate(
+                    [self._lid_width - self.wall_thickness + self._two_layer_chamfer,
+                     self.wall_thickness, -self._top_cover + self.lid_thickness / 2]
+                )
+            )
+            main = main - round_a - round_b
+        else:
+            tri_h = self.lid_thickness + 10
+            tri_z = -self.lid_thickness / 2 + tri_h / 2
+            tri_a = (
+                polygon([[self.wall_thickness / 2, 0], [0, 0], [0, 15]])
+                .linear_extrude(height=tri_h, center=True)
+                .translate([-self.size_spacing / 20, -self.size_spacing, tri_z])
+            )
+            tri_b = (
+                polygon([[-self.wall_thickness / 2, 0], [0, 0], [0, 15]])
+                .linear_extrude(height=tri_h, center=True)
+                .translate([self._lid_width + self.size_spacing / 20, -self.size_spacing, tri_z])
+            )
+            main = main - tri_a - tri_b
+
+        return main.color(self.material_colour)
+
+    def _mask_2sliding_lid(self) -> list[list[float]]:
+        if self._sliding_lid_options.two_layer_vee_shape:
+            return [
+                [0, 0],
+                [self.wall_thickness / 2 + self.size_spacing, 0],
+                [self.wall_thickness / 2 + self._middle_chamfer + self.size_spacing, self._middle_chamfer],
+                [self.wall_thickness / 2 + self.size_spacing, self._lid_cutout],
+                [0, self._lid_cutout],
+            ]
+        else:
+            return [
+                [0, 0],
+                [self.size_spacing, 0],
+                [self.wall_thickness - self._two_layer_chamfer, 0],
+                [self.wall_thickness, self._lid_cutout],
+                [self.size_spacing, self._lid_cutout],
+                [0, self._lid_cutout],
+            ]
+
+    def create_lid(
+        self,
+        lid_rounding: float | None = None,
+        extra_children: list | None = None,
+    ) -> "PyOpenSCAD":
+        """Create a plain sliding lid (no patterns, no label).
+
+        Args:
+            lid_rounding: rounding on lid edges (default wall_thickness/2)
+            extra_children: extra solids/callables to embed in the lid
+        """
+        main = self._build_lid_body(lid_rounding=lid_rounding)
+        inner_w = self.width - self.wall_thickness
+        inner_l = self.length - self.wall_thickness / 2
+        kids = list(extra_children) if extra_children else []
+        resolved_kids = [(c(inner_w, inner_l) if callable(c) else c) for c in kids]
+
+        from lids_base import internal_build_lid
+        stack = internal_build_lid(
+            lid_thickness=self.lid_thickness,
+            children=[main] + resolved_kids,
+            size_spacing=self.size_spacing,
+        )
+        if self._sliding_lid_options.two_layer:
+            stack = stack.rotate([180, 0, 0]).translate([0, self._lid_length, self.lid_thickness])
+        return stack
+
+    # Lid-specific inner-area dimensions (sliding lid has single-wall offsets on
+    # the width sides and a half-wall offset on the front).
+    @property
+    def _lid_area_width(self) -> float:
+        return self.width - self.wall_thickness
+
+    @property
+    def _lid_area_length(self) -> float:
+        return self.length - self.wall_thickness / 2
+
+    @property
+    def _lid_fingernail_width(self) -> float:
+        return self.width - self.wall_thickness
+
+    @property
+    def _lid_fingernail_length(self) -> float:
+        return self.length - self.wall_thickness
+
+    def create_lid_with_shape(
+        self,
+        shape_child: "PyOpenSCAD | None" = None,
+        shape_options: ShapeObject | None = None,
+        lid_boundary: float = 10,
+        layout_width: float | None = None,
+        aspect_ratio: float | None = None,
+        lid_rounding: float | None = None,
+        lid_pattern_dense: bool = False,
+        lid_dense_shape_edges: int = 6,
+        pattern_inner_control: int = 0,
+        extra_children: list | None = None,
+    ) -> "PyOpenSCAD":
+        """Lid with a repeating shape pattern.
+
+        Provide either *shape_child* directly or *shape_options* to auto-resolve it.
+        """
+        if shape_child is None:
+            if shape_options is None:
+                shape_options = MakeShapeObject()
+            piece = ShapeByType(options=shape_options).color(self.material_colour)
+        else:
+            piece = shape_child
+
+        from lids_base import LidMeshBasic
+        mesh = LidMeshBasic(
+            size=[self._lid_area_width, self._lid_area_length],
+            lid_thickness=self.lid_thickness,
+            boundary=lid_boundary,
+            layout_width=layout_width,
+            aspect_ratio=aspect_ratio if aspect_ratio is not None else default_lid_aspect_ratio,
+            dense=lid_pattern_dense,
+            dense_shape_edges=lid_dense_shape_edges,
+            material_colour=self.material_colour,
+            inner_control=pattern_inner_control,
+            children=piece,
+        )
+
+        fingernail = bosl2.shapes3d.cuboid(
+            [self._lid_fingernail_width, self._lid_fingernail_length, self.lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).color(self.material_colour) & SlidingLidFingernail(
+            self.lid_thickness, material_colour=self.material_colour,
+        ).translate([self.width / 2 - self.wall_thickness / 2, self.length - self.wall_thickness - 3, 0]).shape
+
+        extra = list(extra_children) if extra_children else []
+        return self.create_lid(lid_rounding=lid_rounding, extra_children=[fingernail, mesh] + extra)
+
+    def create_lid_with_label(
+        self,
+        text_str: str,
+        shape_options: ShapeObject | None = None,
+        label_options: LabelOptions | None = None,
+        lid_boundary: float = 10,
+        layout_width: float | None = None,
+        aspect_ratio: float | None = None,
+        lid_rounding: float | None = None,
+        extra_children: list | None = None,
+    ) -> "PyOpenSCAD":
+        """Lid with a label and auto-resolved shape pattern."""
+        calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
+        piece = ShapeByType(options=calc_shape_options)
+        assert piece is not None, "shape_options must not resolve to ShapeType.NONE"
+        shape_child = piece.color(self.material_colour).translate([lid_boundary, lid_boundary, 0])
+
+        return self.create_lid_with_label_and_shape(
+            text_str=text_str,
+            shape_child=shape_child,
+            label_options=label_options,
+            lid_boundary=lid_boundary,
+            layout_width=layout_width,
+            aspect_ratio=aspect_ratio,
+            lid_rounding=lid_rounding,
+            lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+            lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+            pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
+            extra_children=extra_children,
+        )
+
+    def create_lid_with_label_and_shape(
+        self,
+        text_str: str,
+        shape_child: "PyOpenSCAD",
+        label_options: LabelOptions | None = None,
+        lid_boundary: float = 10,
+        layout_width: float | None = None,
+        aspect_ratio: float | None = None,
+        lid_rounding: float | None = None,
+        lid_pattern_dense: bool = False,
+        lid_dense_shape_edges: int = 6,
+        pattern_inner_control: int = 0,
+        extra_children: list | None = None,
+    ) -> "PyOpenSCAD":
+        """Lid with a label and explicit *shape_child* pattern."""
+        calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=self.material_colour)
+        label_opts = copy.copy(calc_label_options)
+        label_opts.full_height = self._sliding_lid_options.two_layer
+
+        from lids_base import MakeLidLabel
+        label_shape_raw = MakeLidLabel(
+            size=[self.inner_width, self.inner_length],
+            lid_thickness=self.lid_thickness,
+            text_str=text_str, options=label_opts,
+        )
+        _base = list(extra_children) if extra_children else []
+        if label_shape_raw is not None:
+            _base = [label_shape_raw.translate([self.wall_thickness / 2, self.wall_thickness / 2, 0])] + _base
+
+        return self.create_lid_with_shape(
+            shape_child=shape_child,
+            lid_boundary=lid_boundary,
+            layout_width=layout_width,
+            aspect_ratio=aspect_ratio,
+            lid_rounding=lid_rounding,
+            lid_pattern_dense=lid_pattern_dense,
+            lid_dense_shape_edges=lid_dense_shape_edges,
+            pattern_inner_control=pattern_inner_control,
+            extra_children=_base,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Backward-compatible module-level functions (delegate to SlidingBox)
+# ---------------------------------------------------------------------------
+
+
 def SlidingLid(
     size: list[float],
     children: "list | None" = None,
@@ -65,185 +544,20 @@ def SlidingLid(
     lid_rounding: float | None = None,
     material_colour: str | None = None,
 ) -> PyOpenSCAD:
-    """Creates a sliding lid for a sliding lid box.
-
-    *children* are inserted into the lid. This does all the right things on
-    the edges, uses some wiggle room to add in a buffer and also does a
-    small amount of angling on the ends to make them easier to insert.
-    Entries may be a callable(inner_width, inner_length).
+    """Creates a sliding lid for a sliding lid box. (Compatibility wrapper.)
 
     Usage::
-
         SlidingLid(size=[10, 30], lid_thickness=3, wall_thickness=2, size_spacing=0.2)
-
-    Args:
-        size: [width, length] the size of the box itself
-        children: list of solids/callables to insert into the lid
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        size_spacing: how much offset to use generating the slide spacing (default m_piece_wiggle_room)
-        lid_rounding: rounding on the edge of the lid (default wall_thickness/2)
-        material_colour: colour (default default_material_colour)
     """
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
-    width, length = size[0], size[1]
-
-    calc_wall_thickness = wall_thickness
-    if calc_wall_thickness is None:
-        calc_wall_thickness = default_wall_thickness
-    calc_lid_thickness = lid_thickness
-    if calc_lid_thickness is None:
-        calc_lid_thickness = default_lid_thickness
-    calc_lid_rounding = lid_rounding
-    if calc_lid_rounding is None:
-        calc_lid_rounding = calc_wall_thickness / 2
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-
-    chamfer = (
-        0
-        if calc_sliding_lid_options.two_layer
-        else (
-            calc_wall_thickness / 2
-            if calc_wall_thickness / 2 > calc_lid_thickness - size_spacing
-            else calc_lid_thickness - size_spacing
-        )
+    box = SlidingBox(
+        [size[0], size[1], lid_thickness or default_lid_thickness],
+        wall_thickness=wall_thickness,
+        lid_thickness=lid_thickness,
+        size_spacing=size_spacing,
+        material_colour=material_colour,
+        sliding_lid_options=sliding_lid_options,
     )
-    lid_width = width if calc_sliding_lid_options.two_layer else width - 2 * calc_wall_thickness + chamfer * 2 + size_spacing
-    lid_length = length if calc_sliding_lid_options.two_layer else length - calc_wall_thickness + chamfer - size_spacing
-    top_cover = calc_sliding_lid_options.two_layer_top_lid_ratio * calc_lid_thickness
-    lid_under_cover = calc_lid_thickness - top_cover
-    middle_chamfer = lid_under_cover / 2 if calc_wall_thickness > lid_under_cover else calc_wall_thickness / 2
-    two_layer_chamfer = (
-        middle_chamfer
-        if calc_sliding_lid_options.two_layer_vee_shape
-        else (calc_wall_thickness / 2 if calc_wall_thickness / 2 < lid_under_cover else lid_under_cover)
-    )
-
-    def mask_2sliding_lid() -> list[list[float]]:
-        if calc_sliding_lid_options.two_layer_vee_shape:
-            path = [
-                [0, 0],
-                [calc_wall_thickness / 2 + size_spacing, 0],
-                [calc_wall_thickness / 2 + middle_chamfer + size_spacing, middle_chamfer],
-                [calc_wall_thickness / 2 + size_spacing, lid_under_cover],
-                [0, lid_under_cover],
-            ]
-        else:
-            path = [
-                [0, 0],
-                [size_spacing, 0],
-                [calc_wall_thickness - two_layer_chamfer, 0],
-                [calc_wall_thickness, lid_under_cover],
-                [size_spacing, lid_under_cover],
-                [0, lid_under_cover],
-            ]
-        return path
-
-    edges = (
-        [LEFT + TOP, RIGHT + TOP, TOP + FRONT, LEFT + BOTTOM, RIGHT + BOTTOM, BOTTOM + FRONT]
-        if calc_sliding_lid_options.two_layer
-        else [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
-    )
-    main = bosl2.shapes3d.cuboid(
-        [lid_width, lid_length, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT, chamfer=chamfer + size_spacing, edges=edges
-    )
-    main = main.edge_mask(
-        [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-        children=bosl2.masking.rounding_edge_mask(
-            r=calc_wall_thickness if calc_sliding_lid_options.two_layer else calc_lid_rounding,
-            l=calc_lid_thickness + size_spacing,
-        ),
-    )
-    top_edges = [TOP] if calc_sliding_lid_options.two_layer else [TOP + BACK]
-    main = main.edge_mask(
-        top_edges,
-        children=bosl2.masking.rounding_edge_mask(
-            r=top_cover if calc_sliding_lid_options.two_layer else calc_lid_rounding / 2,
-            l=max(lid_length, lid_width),
-        ),
-    )
-
-    if calc_sliding_lid_options.two_layer:
-        # A custom (non-round/chamfer) profile cut along the BOTTOM+LEFT/BOTTOM+RIGHT edges --
-        # the profile is swept along each edge's own run axis (Y here) by hand with an explicit
-        # rotate()/translate(), the same per-edge orientation BOSL2's edge_profile_asym()
-        # computes internally: a mirror (BOTTOM+LEFT) or a pure rotation (BOTTOM+RIGHT)
-        # composed with a 180-degree turn around the (Y+Z) diagonal -- verified by rendering
-        # both against the original edge_profile_asym()-based cross-section and comparing
-        # pixel-for-pixel.
-        profile = np.asarray(mask_2sliding_lid(), dtype=float)
-        mirrored_profile = profile * np.array([-1.0, 1.0])
-        run_length = lid_length + 0.1
-        cutter_left = (
-            polygon([[float(u), float(v)] for u, v in mirrored_profile])
-            .linear_extrude(height=run_length, center=True)
-            .rotate(180, [0, 1, 1])
-            .translate([0, lid_length / 2, 0])
-        )
-        cutter_right = (
-            polygon([[float(u), float(v)] for u, v in profile])
-            .linear_extrude(height=run_length, center=True)
-            .rotate(180, [0, 1, 1])
-            .translate([lid_width, lid_length / 2, 0])
-        )
-        main = main - cutter_left - cutter_right
-
-    if calc_sliding_lid_options.two_layer:
-        front_cut = bosl2.shapes3d.cuboid(
-            [lid_width, calc_wall_thickness, lid_under_cover + size_spacing], anchor=BOTTOM + FRONT + LEFT
-        ).translate([0, 0, -size_spacing])
-        main = main - front_cut
-        # rounding_edge_mask() sweeps centered on Z (unlike the manual, non-centered
-        # linear_extrude(calc_lid_thickness) this replaces), so its Z placement is shifted up
-        # by half the swept length to land on the same absolute span.
-        round_a = bosl2.masking.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding).translate(
-            [calc_wall_thickness - two_layer_chamfer, calc_wall_thickness, -top_cover + calc_lid_thickness / 2]
-        )
-        round_b = (
-            bosl2.masking.rounding_edge_mask(l=calc_lid_thickness, r=calc_lid_rounding)
-            .rotate([0, 180, 0])  # mirrors the +X-opening cutter to open toward -X instead
-            .translate([lid_width - calc_wall_thickness + two_layer_chamfer, calc_wall_thickness, -top_cover + calc_lid_thickness / 2])
-        )
-        main = main - round_a - round_b
-    else:
-        # right_triangle([w, l])'s default anchor puts the right-angle corner at the origin,
-        # legs along +X (w) and +Y (l) -- reproduced directly as polygon points rather than
-        # reorienting wedge() (whose own triangular cross-section/extrusion axes don't match
-        # right_triangle()'s convention). The centered linear_extrude matches the SDF-era
-        # polygon_extrude() convention: shift the Z translate by +height/2.
-        tri_h = calc_lid_thickness + 10
-        tri_z = -calc_lid_thickness / 2 + tri_h / 2
-        tri_a = (
-            polygon([[calc_wall_thickness / 2, 0], [0, 0], [0, 15]])
-            .linear_extrude(height=tri_h, center=True)
-            .translate([-size_spacing / 20, -size_spacing, tri_z])
-        )
-        tri_b = (
-            polygon([[-calc_wall_thickness / 2, 0], [0, 0], [0, 15]])
-            .linear_extrude(height=tri_h, center=True)
-            .translate([lid_width + size_spacing / 20, -size_spacing, tri_z])
-        )
-        main = main - tri_a - tri_b
-
-    main = main.color(material_colour)
-
-    inner_width = width - calc_wall_thickness
-    inner_length = length - calc_wall_thickness / 2
-    kids = list(children) if children else []
-    resolved_kids = [(c(inner_width, inner_length) if callable(c) else c) for c in kids]
-
-    lid_stack = internal_build_lid(lid_thickness=calc_lid_thickness, children=[main] + resolved_kids, size_spacing=size_spacing)
-
-    if calc_sliding_lid_options.two_layer:
-        lid_stack = lid_stack.rotate([180, 0, 0]).translate([0, lid_length, calc_lid_thickness])
-
-    return lid_stack
+    return box.create_lid(lid_rounding=lid_rounding, extra_children=children)
 
 
 def SlidingBoxLidWithCustomShape(
@@ -263,86 +577,25 @@ def SlidingBoxLidWithCustomShape(
     material_colour: str | None = None,
     pattern_inner_control: int = False,
 ) -> PyOpenSCAD:
-    """Lid for a sliding lid box.
-
-    Uses *shape_child* as the shape for repeating on the lid and
-    *extra_children* as additional children for the lid.
-
-    Usage::
-
-        SlidingBoxLidWithCustomShape([100, 50],
-            shape_child=ShapeByType(MakeShapeObject(
-                shape_type=ShapeType.SUPERSHAPE, shape_thickness=2,
-                supershape_m1=12, supershape_m2=12, supershape_n1=1,
-                supershape_b=1.5, shape_width=15)))
-
-    Args:
-        size: [width, length] outside size of the lid
-        shape_child: 2-D shape solid to tile on the lid
-        extra_children: additional children (list of solids)
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        aspect_ratio: dy scale factor (default 1.0)
-        lid_rounding: rounding on the edge of the lid (default wall_thickness/2)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        lid_pattern_dense/lid_dense_shape_edges: dense layout options
-        material_colour: colour (default default_material_colour)
-        pattern_inner_control: inner control mode
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
-    width, length = size[0], size[1]
-    calc_lid_thickness = lid_thickness
-    if calc_lid_thickness is None:
-        calc_lid_thickness = default_lid_thickness
-    calc_wall_thickness = wall_thickness
-    if calc_wall_thickness is None:
-        calc_wall_thickness = default_wall_thickness
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        size=[width - calc_wall_thickness, length - calc_wall_thickness / 2],
-        lid_thickness=lid_thickness,
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges,
-        material_colour=material_colour,
-        inner_control=pattern_inner_control,
-        children=pattern_shape,
-    )
-
-    fingernail = bosl2.shapes3d.cuboid(
-        [width - calc_wall_thickness, length - calc_wall_thickness, calc_lid_thickness], anchor=BOTTOM + FRONT + LEFT
-    ).color(material_colour) & SlidingLidFingernail(calc_lid_thickness, material_colour=material_colour).translate(
-        [width / 2 - calc_wall_thickness / 2, length - calc_wall_thickness - 3, 0]
-    ).shape
-
-    extra = list(extra_children) if extra_children else []
-    # fingernail stays FIRST: the ordering dates from the SDF (frep) era, when a second
-    # .projection() on the same frep node crashed the app. All-native geometry no longer
-    # needs it, but internal_build_lid()'s carve-then-union is order-independent, so keeping
-    # the order costs nothing and keeps the diff history readable.
-    lid_children = [fingernail, mesh] + extra
-
-    return SlidingLid(
-        size=size,
-        lid_thickness=lid_thickness,
+    """Lid for a sliding lid box. (Compatibility wrapper.)"""
+    box = SlidingBox(
+        [size[0], size[1], lid_thickness or default_lid_thickness],
         wall_thickness=wall_thickness,
-        lid_rounding=lid_rounding,
+        lid_thickness=lid_thickness,
         size_spacing=size_spacing,
         material_colour=material_colour,
-        sliding_lid_options=calc_sliding_lid_options,
-        children=lid_children,
+        sliding_lid_options=sliding_lid_options,
+    )
+    return box.create_lid_with_shape(
+        shape_child=shape_child,
+        lid_boundary=lid_boundary,
+        layout_width=layout_width,
+        aspect_ratio=aspect_ratio,
+        lid_rounding=lid_rounding,
+        lid_pattern_dense=lid_pattern_dense,
+        lid_dense_shape_edges=lid_dense_shape_edges,
+        pattern_inner_control=pattern_inner_control,
+        extra_children=extra_children,
     )
 
 
@@ -365,89 +618,27 @@ def SlidingBoxLidWithLabelAndCustomShape(
     pattern_inner_control: int = False,
     label_options: LabelOptions | None = None,
 ) -> PyOpenSCAD:
-    """Lid for a sliding lid box, with a repeating pattern and a label.
-
-    Usage::
-
-        SlidingBoxLidWithLabelAndCustomShape(size=[100, 50], text_str="Frog",
-            shape_child=ShapeByType(MakeShapeObject(
-                shape_type=ShapeType.SUPERSHAPE, shape_thickness=2,
-                supershape_m1=12, supershape_m2=12, supershape_n1=1,
-                supershape_b=1.5, shape_width=15)))
-
-    Args:
-        size: [width, length] outside size of the lid
-        text_str: label text
-        shape_child: 2-D shape solid to tile on the lid (required)
-        extra_children: additional children (list of solids)
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        aspect_ratio: dy scale factor (default 1.0)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        lid_rounding: rounding on the edge of the lid (default wall_thickness/2)
-        lid_pattern_dense/lid_dense_shape_edges: dense layout options
-        material_colour: colour (default default_material_colour)
-        pattern_inner_control: inner control mode
-        label_options: :class:`~labels.LabelOptions`
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
-    width, length = size[0], size[1]
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-
-    assert shape_child is not None, "Must specify shape_child for the pattern"
-    assert width > 0 and length > 0, f"Need width,length > 0 width={width} length={length}"
-    assert lid_thickness > 0, f"Need lid thickness > 0, lid_thickness={lid_thickness}"
-    assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
-    assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
-    assert text_str is not None, "Need to specify a label, text_str == None"
-
-    calc_wall_thickness = wall_thickness
-    if calc_wall_thickness is None:
-        calc_wall_thickness = default_wall_thickness
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = calc_sliding_lid_options.two_layer
-    label_shape_raw = MakeLidLabel(
-        size=[width - calc_wall_thickness * 2, length - calc_wall_thickness * 2], lid_thickness=lid_thickness,
-        text_str=text_str, options=label_opts,
-    )
-    # A lid too narrow for the label yields None (labels.py warns "ignoring label"); match the
-    # .scad and just build the lid without a label rather than failing.
-    _base = list(extra_children) if extra_children else []
-    if label_shape_raw is not None:
-        lid_extra = [label_shape_raw.translate([calc_wall_thickness / 2, calc_wall_thickness / 2, 0])] + _base
-    else:
-        lid_extra = _base
-
-    return SlidingBoxLidWithCustomShape(
-        size=size,
-        lid_thickness=lid_thickness,
+    """Lid for a sliding lid box, with a repeating pattern and a label. (Compatibility wrapper.)"""
+    box = SlidingBox(
+        [size[0], size[1], lid_thickness or default_lid_thickness],
         wall_thickness=wall_thickness,
-        lid_rounding=lid_rounding,
+        lid_thickness=lid_thickness,
         size_spacing=size_spacing,
         material_colour=material_colour,
+        sliding_lid_options=sliding_lid_options,
+    )
+    return box.create_lid_with_label_and_shape(
+        text_str=text_str,
+        shape_child=shape_child,
+        label_options=label_options,
         lid_boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        lid_rounding=lid_rounding,
         lid_pattern_dense=lid_pattern_dense,
         lid_dense_shape_edges=lid_dense_shape_edges,
         pattern_inner_control=pattern_inner_control,
-        sliding_lid_options=calc_sliding_lid_options,
-        shape_child=shape_child,
-        extra_children=lid_extra,
+        extra_children=extra_children,
     )
 
 
@@ -467,70 +658,23 @@ def SlidingBoxLidWithLabel(
     label_options: LabelOptions | None = None,
     shape_options: ShapeObject | None = None,
 ) -> PyOpenSCAD:
-    """Composite lid: a sliding lid box with a label and a pattern (e.g. hex grid).
-
-    Usage::
-
-        SlidingBoxLidWithLabel(size=[100, 100], lid_thickness=3, text_str="Trains")
-
-    Args:
-        size: [width, length] outside size of the lid
-        text_str: label text
-        extra_children: additional children (list of solids)
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        aspect_ratio: dy scale factor (default default_lid_aspect_ratio)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_rounding: rounding on the edge of the lid (default wall_thickness/2)
-        material_colour: colour (default default_material_colour)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
-    width, length = size[0], size[1]
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-
-    assert width > 0 and length > 0, f"Need width,length > 0 width={width} length={length}"
-    assert lid_thickness > 0, f"Need lid thickness > 0, lid_thickness={lid_thickness}"
-    assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
-    assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
-    assert text_str is not None, "Need to specify a label, text_str == None"
-
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour).translate([lid_boundary, lid_boundary, 0])
-
-    return SlidingBoxLidWithLabelAndCustomShape(
-        size=size,
+    """Composite lid: a sliding lid box with a label and a pattern. (Compatibility wrapper.)"""
+    box = SlidingBox(
+        [size[0], size[1], lid_thickness or default_lid_thickness],
         wall_thickness=wall_thickness,
         lid_thickness=lid_thickness,
-        text_str=text_str,
-        layout_width=layout_width,
         size_spacing=size_spacing,
+        material_colour=material_colour,
+        sliding_lid_options=sliding_lid_options,
+    )
+    return box.create_lid_with_label(
+        text_str=text_str,
+        shape_options=shape_options,
+        label_options=label_options,
+        lid_boundary=lid_boundary,
+        layout_width=layout_width,
         aspect_ratio=aspect_ratio,
         lid_rounding=lid_rounding,
-        lid_boundary=lid_boundary,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        label_options=calc_label_options,
-        sliding_lid_options=calc_sliding_lid_options,
-        shape_child=shape_piece,
         extra_children=extra_children,
     )
 
@@ -549,64 +693,21 @@ def SlidingBoxLidWithShape(
     shape_options: ShapeObject | None = None,
     sliding_lid_options: types.SimpleNamespace | None = None,
 ) -> PyOpenSCAD:
-    """Composite lid: a sliding lid box with an automatic pattern (e.g. hex grid).
-
-    Usage::
-
-        SlidingBoxLidWithShape(size=[100, 100], lid_thickness=3)
-
-    Args:
-        size: [width, length] outside size of the lid
-        extra_children: additional children (list of solids)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        aspect_ratio: dy scale factor (default default_lid_aspect_ratio)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_rounding: rounding on the edge of the lid (default wall_thickness/2)
-        material_colour: colour (default default_material_colour)
-        shape_options: :class:`~shape_type.ShapeObject`
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
-    width, length = size[0], size[1]
-    assert width > 0 and length > 0, f"Need width,length > 0 width={width} length={length}"
-    assert lid_thickness > 0, f"Need lid thickness > 0, lid_thickness={lid_thickness}"
-    assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
-    assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
-
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour).translate([lid_boundary, lid_boundary, 0])
-
-    return SlidingBoxLidWithCustomShape(
-        size=size,
+    """Composite lid: a sliding lid box with an automatic pattern. (Compatibility wrapper.)"""
+    box = SlidingBox(
+        [size[0], size[1], lid_thickness or default_lid_thickness],
         wall_thickness=wall_thickness,
         lid_thickness=lid_thickness,
-        layout_width=layout_width,
         size_spacing=size_spacing,
+        material_colour=material_colour,
+        sliding_lid_options=sliding_lid_options,
+    )
+    return box.create_lid_with_shape(
+        shape_options=shape_options,
+        lid_boundary=lid_boundary,
+        layout_width=layout_width,
         aspect_ratio=aspect_ratio,
         lid_rounding=lid_rounding,
-        lid_boundary=lid_boundary,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        sliding_lid_options=calc_sliding_lid_options,
-        shape_child=shape_piece,
         extra_children=extra_children,
     )
 
@@ -627,142 +728,23 @@ def MakeBoxWithSlidingLid(
     anchor: list[int] | None = None,
     orient: list[float] | None = None,
 ) -> PyOpenSCAD:
-    """Makes a box with a sliding lid -- the box itself with cutouts for the sliding lid pieces.
-
-    *children* is a list of solids (or callables(inner_width, inner_length,
-    inner_height)) carved into the box interior, starting from the edge
-    inside the wall width and up from the floor.
+    """Makes a box with a sliding lid. (Compatibility wrapper.)
 
     Usage::
-
         MakeBoxWithSlidingLid([50, 100, 20])
-
-    Args:
-        size:    [width, length, height] outside size of the box
-        children: list of solids/callables to carve inside the box
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        floor_thickness: thickness of the floor (default default_floor_thickness)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        material_colour: colour (default default_material_colour)
-        positive_colour: colour of positive pieces (default default_positive_colour)
-        sliding_lid_options: :func:`MakeSlidingLidOptions` result
-        positive_only_children: list of child indices that are positive-only
-        positive_negative_children: list of child indices also rendered positive under MAKE_MMU
-        spin/anchor/orient: BOSL2 positioning
     """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if floor_thickness is None:
-        floor_thickness = default_floor_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if material_colour is None:
-        material_colour = default_material_colour
-    if positive_colour is None:
-        positive_colour = default_positive_colour
-    if positive_only_children is None:
-        positive_only_children = []
-    if positive_negative_children is None:
-        positive_negative_children = []
-    if anchor is None:
-        anchor = BOTTOM + FRONT + LEFT
-    if orient is None:
-        orient = TOP
-
-    assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
-    width, length, height = size
-    calc_sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-    calc_wall_thickness = wall_thickness
-    if calc_wall_thickness is None:
-        calc_wall_thickness = default_wall_thickness
-
-    top_cover = calc_sliding_lid_options.two_layer_top_lid_ratio * lid_thickness
-    lid_cutout = (lid_thickness - top_cover) if calc_sliding_lid_options.two_layer else lid_thickness
-    middle_chamfer = lid_cutout / 2 if wall_thickness > lid_cutout else wall_thickness / 2
-    calc_height = (height - top_cover - size_spacing) if calc_sliding_lid_options.two_layer else height
-
-    tmat = bosl2.transforms.reorient(anchor=anchor, spin=spin, orient=orient, size=[width, length, calc_height])
-
-    body = bosl2.shapes3d.cuboid(
-        [width, length, calc_height],
-        anchor=BOTTOM + FRONT + LEFT,
-        rounding=wall_thickness,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
+    box = SlidingBox(
+        size=size,
+        wall_thickness=wall_thickness,
+        floor_thickness=floor_thickness,
+        lid_thickness=lid_thickness,
+        size_spacing=size_spacing,
+        material_colour=material_colour,
+        positive_colour=positive_colour,
+        children=children,
+        positive_only_children=positive_only_children,
+        positive_negative_children=positive_negative_children,
+        spin=spin, anchor=anchor, orient=orient,
+        sliding_lid_options=sliding_lid_options,
     )
-    if not calc_sliding_lid_options.two_layer:
-        body = body.edge_mask(
-            [TOP], children=bosl2.masking.rounding_edge_mask(r=wall_thickness / 2, l=max(length, width))
-        )
-
-    rounding_offset = 0.01
-    mid_cut = bosl2.shapes3d.cuboid(
-        [width - wall_thickness * 2, length - wall_thickness + size_spacing + rounding_offset, lid_cutout + size_spacing / 2],
-        anchor=BOTTOM + FRONT + LEFT,
-    ).translate([wall_thickness, -rounding_offset, calc_height - lid_cutout])
-    body = body - mid_cut
-
-    if calc_sliding_lid_options.two_layer:
-        if calc_sliding_lid_options.two_layer_vee_shape:
-            lid_cut = bosl2.shapes3d.cuboid(
-                [width - wall_thickness * 2 + middle_chamfer * 2 + size_spacing, length - wall_thickness, lid_cutout],
-                anchor=BOTTOM + FRONT + LEFT,
-                chamfer=middle_chamfer,
-                edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT, BOTTOM + RIGHT],
-            ).translate([wall_thickness - middle_chamfer - size_spacing / 2, 0, calc_height - lid_cutout])
-        else:
-            chamfer2 = wall_thickness / 2 if wall_thickness / 2 < lid_cutout else lid_cutout
-            lid_cut = bosl2.shapes3d.cuboid(
-                [width - wall_thickness * 2 + chamfer2 * 2 + size_spacing, length - wall_thickness, lid_cutout],
-                anchor=BOTTOM + FRONT + LEFT,
-                chamfer=chamfer2,
-                edges=[TOP + LEFT, TOP + RIGHT],
-            ).translate([wall_thickness - chamfer2 - size_spacing / 2, 0, calc_height - lid_cutout])
-    else:
-        chamfer2 = wall_thickness / 2 if wall_thickness / 2 < lid_cutout else lid_cutout
-        lid_cut = bosl2.shapes3d.cuboid(
-            [width - wall_thickness * 2 + chamfer2 * 2, length - wall_thickness + chamfer2, lid_cutout],
-            anchor=BOTTOM + FRONT + LEFT,
-            chamfer=chamfer2,
-            edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK],
-        ).translate([wall_thickness - chamfer2, 0, calc_height - lid_cutout])
-    body = body - lid_cut
-
-    # Note: the original .scad passed `height=` here (a BOSL2 alias); the port's
-    # rounding_edge_mask() takes `l=`/`h=`.
-    edge_round = (
-        bosl2.masking.rounding_edge_mask(r=wall_thickness / 4, h=length - wall_thickness * 2)
-        .rotate([0, 90, 0])
-        .translate([width / 2, 0, calc_height - lid_cutout])
-    )
-    body = body - edge_round
-
-    body = body.color(material_colour)
-
-    inner_width = width - wall_thickness * 2
-    inner_length = length - wall_thickness * 2
-    inner_height = height - lid_thickness - floor_thickness
-    kids = list(children) if children else []
-    for i, c in enumerate(kids):
-        if i not in positive_only_children:
-            piece = ResolveChild(c, inner_width, inner_length, inner_height)
-            body = body - piece.translate([wall_thickness, wall_thickness, floor_thickness])
-
-    result = body.translate([-width / 2, -length / 2, -height / 2]).multmatrix(tmat)
-
-    if len(positive_only_children) > 0 or (len(positive_negative_children) > 0 and MAKE_MMU == 1):
-        extra_indices = list(positive_only_children) + (list(positive_negative_children) if MAKE_MMU == 1 else [])
-        extra = None
-        for i in extra_indices:
-            piece = (
-                ResolveChild(kids[i], inner_width, inner_length, inner_height)
-                .color(positive_colour)
-                .translate([wall_thickness, wall_thickness, floor_thickness])
-            )
-            extra = piece if extra is None else extra | piece
-        if extra is not None:
-            result = result | extra
-
-    return result
+    return box.shape

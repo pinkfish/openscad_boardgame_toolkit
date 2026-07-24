@@ -48,9 +48,11 @@ def render_sliding_box_shape(expr: str, out_png: Path, imgsize: tuple[int, int] 
             "no working BOSL2/std.scad found for PythonSCAD (set BOSL2_SCAD_DIR; see "
             "render_cap_box.py's module docstring for how to create a patched copy)"
         )
+    bosl2_project = PROJECT_ROOT / "bosl2"
     script = (
         "import sys\n"
         f"sys.path.insert(0, {str(PROJECT_ROOT)!r})\n"
+        f"sys.path.insert(0, {str(bosl2_project)!r})\n"
         "from pythonscad import *\n"
         "from base_bgtk import *\n"
         "from sliding_box import *\n"

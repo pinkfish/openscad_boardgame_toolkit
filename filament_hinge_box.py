@@ -173,10 +173,10 @@ def MakeBoxWithFilamentHingeLid(
         edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
     )
     main = main.edge_mask(
-        [TOP + FRONT, TOP + BACK], children=bosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
+        [TOP + FRONT, TOP + BACK], children=bosl2.masking.rounding_edge_mask(length=width, radius=wall_thickness / 4)
     )
     main = main.edge_mask(
-        [TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4)
+        [TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(length=length, radius=wall_thickness / 4)
     )
     main = main.color(material_colour)
 
