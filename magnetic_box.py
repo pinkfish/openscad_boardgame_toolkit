@@ -31,7 +31,14 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import bosl2.shapes3d
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
+from lids_base import (
+    internal_build_lid,
+    MakeLidLabel,
+    LidMeshBasic,
+    SlidingLidFingernail,
+    IsDenseShapeType,
+    DenseShapeEdges,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -172,7 +179,11 @@ def MakeBoxWithMagneticLidInsideSpace(
         if full_height:
             offset = wall_thickness
             piece = bosl2.shapes3d.cyl(h=actual_height, d=box_size, anchor=BOTTOM).translate(
-                [-offset + box_size / 2, -offset + box_size / 2, height - lid_thickness - floor_thickness - actual_height]
+                [
+                    -offset + box_size / 2,
+                    -offset + box_size / 2,
+                    height - lid_thickness - floor_thickness - actual_height,
+                ]
             )
             shape = piece
         else:
@@ -202,22 +213,44 @@ def MakeBoxWithMagneticLidInsideSpace(
         side_radius = box_size / 2 - wall_thickness
         if side_radius > 0 and full_height:
             wedge_a = bosl2.shapes3d.prismoid(
-                size1=[side_radius * 2, side_radius * 2], size2=[side_radius * 2, side_radius * 2], h=actual_height, anchor=BOTTOM
+                size1=[side_radius * 2, side_radius * 2],
+                size2=[side_radius * 2, side_radius * 2],
+                h=actual_height,
+                anchor=BOTTOM,
             ).translate(
-                [-wall_thickness + box_size, -wall_thickness + box_size / 2 - side_radius, height - lid_thickness - floor_thickness - actual_height]
+                [
+                    -wall_thickness + box_size,
+                    -wall_thickness + box_size / 2 - side_radius,
+                    height - lid_thickness - floor_thickness - actual_height,
+                ]
             )
             cut_a = bosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
-                [-wall_thickness + box_size + side_radius, -wall_thickness + box_size / 2, height - lid_thickness - floor_thickness - actual_height]
+                [
+                    -wall_thickness + box_size + side_radius,
+                    -wall_thickness + box_size / 2,
+                    height - lid_thickness - floor_thickness - actual_height,
+                ]
             )
             shape = shape | (wedge_a - cut_a)
 
             wedge_b = bosl2.shapes3d.prismoid(
-                size1=[side_radius * 2, side_radius * 2], size2=[side_radius * 2, side_radius * 2], h=actual_height, anchor=BOTTOM
+                size1=[side_radius * 2, side_radius * 2],
+                size2=[side_radius * 2, side_radius * 2],
+                h=actual_height,
+                anchor=BOTTOM,
             ).translate(
-                [-wall_thickness + box_size / 2 - side_radius, -wall_thickness + box_size, height - lid_thickness - floor_thickness - actual_height]
+                [
+                    -wall_thickness + box_size / 2 - side_radius,
+                    -wall_thickness + box_size,
+                    height - lid_thickness - floor_thickness - actual_height,
+                ]
             )
             cut_b = bosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
-                [-wall_thickness + box_size / 2, -wall_thickness + box_size + side_radius, height - lid_thickness - floor_thickness - actual_height]
+                [
+                    -wall_thickness + box_size / 2,
+                    -wall_thickness + box_size + side_radius,
+                    height - lid_thickness - floor_thickness - actual_height,
+                ]
             )
             shape = shape | (wedge_b - cut_b)
 
@@ -383,8 +416,10 @@ def MagneticBoxLidWithLabelAndCustomShape(
     assert magnet_thickness is not None and magnet_thickness > 0, f"Magnet thickness needs to be set {magnet_thickness}"
     assert text_str is not None, f"Text string needs to be set {text_str}"
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(
-        material_colour=material_colour, full_height=True
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
     )
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
@@ -404,11 +439,15 @@ def MagneticBoxLidWithLabelAndCustomShape(
     label_opts.full_height = True
     label_shape = MakeLidLabel(size=[width, length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
 
-    fingernail = cube(
-        [width - calc_label_options.border, length - calc_label_options.border, lid_thickness]
-    ).color(material_colour) & SlidingLidFingernail(lid_thickness).color(material_colour).translate(
-        [width / 2, length - calc_label_options.border - 3, 0]
-    ).shape
+    fingernail = (
+        cube([width - calc_label_options.border, length - calc_label_options.border, lid_thickness]).color(
+            material_colour
+        )
+        & SlidingLidFingernail(lid_thickness)
+        .color(material_colour)
+        .translate([width / 2, length - calc_label_options.border - 3, 0])
+        .shape
+    )
 
     lid_children = [mesh, label_shape, fingernail] + (list(extra_children) if extra_children else [])
 
@@ -484,8 +523,10 @@ def MagneticBoxLidWithLabel(
     assert magnet_thickness is not None and magnet_thickness > 0, f"Magnet thickness needs to be set {magnet_thickness}"
     assert text_str is not None, f"Text string needs to be set {text_str}"
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(
-        material_colour=material_colour, full_height=True
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
     )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 

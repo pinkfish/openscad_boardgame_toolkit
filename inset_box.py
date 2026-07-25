@@ -32,7 +32,15 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import bosl2.shapes3d
 import pysolidfive
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, MakeLidTab, MakeTabs, IsDenseShapeType, DenseShapeEdges
+from lids_base import (
+    internal_build_lid,
+    MakeLidLabel,
+    LidMeshBasic,
+    MakeLidTab,
+    MakeTabs,
+    IsDenseShapeType,
+    DenseShapeEdges,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -157,9 +165,19 @@ def InsetLidTabbed(
         children=children,
     )
 
-    tab = MakeLidTab(length=tab_length, height=tab_height, lid_thickness=lid_thickness, prism_width=prism_width, wall_thickness=wall_thickness)
+    tab = MakeLidTab(
+        length=tab_length,
+        height=tab_height,
+        lid_thickness=lid_thickness,
+        prism_width=prism_width,
+        wall_thickness=wall_thickness,
+    )
     tabs = MakeTabs(
-        size=[width, length], lid_thickness=lid_thickness, make_tab_width=make_tab_width, make_tab_length=make_tab_length, children=tab
+        size=[width, length],
+        lid_thickness=lid_thickness,
+        make_tab_width=make_tab_width,
+        make_tab_length=make_tab_length,
+        children=tab,
     ).color(material_colour)
 
     return (lid | tabs).rotate([180, 0, 0]).translate([0, length, lid_thickness])
@@ -211,7 +229,11 @@ def InsetLidTabbedWithLabelAndCustomShape(
 
     assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
     width, length = size[0], size[1]
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    )
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
@@ -280,7 +302,11 @@ def InsetLidTabbedWithLabel(
     """
     if material_colour is None:
         material_colour = default_material_colour
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     shape_piece_raw = ShapeByType(options=calc_shape_options)
@@ -395,11 +421,22 @@ def MakeBoxWithInsetLidTabbed(
 
     tab_cutter = minkowski(
         cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
-        MakeLidTab(length=tab_length, height=tab_height, lid_thickness=lid_thickness, prism_width=prism_width, wall_thickness=wall_thickness),
+        MakeLidTab(
+            length=tab_length,
+            height=tab_height,
+            lid_thickness=lid_thickness,
+            prism_width=prism_width,
+            wall_thickness=wall_thickness,
+        ),
     ).color(material_colour)
     tabs_cut = (
         MakeTabs(
-            size=[width, length], lid_thickness=lid_thickness, tab_length=tab_length, make_tab_length=make_tab_length, make_tab_width=make_tab_width, children=tab_cutter
+            size=[width, length],
+            lid_thickness=lid_thickness,
+            tab_length=tab_length,
+            make_tab_length=make_tab_length,
+            make_tab_width=make_tab_width,
+            children=tab_cutter,
         )
         .color(material_colour)
         .translate([0, 0, height - lid_thickness])
@@ -417,15 +454,21 @@ def MakeBoxWithInsetLidTabbed(
 
     if stackable:
         outer = (
-            cube([width + 1, length + 1, wall_thickness + 0.5 - size_spacing]).color(material_colour).translate([-0.5, -0.5, -0.5])
+            cube([width + 1, length + 1, wall_thickness + 0.5 - size_spacing])
+            .color(material_colour)
+            .translate([-0.5, -0.5, -0.5])
         )
-        inner_cut = cube(
-            [
-                width - (wall_thickness - inset + size_spacing) * 2,
-                length - (wall_thickness - inset + size_spacing) * 2,
-                wall_thickness + 2,
-            ]
-        ).color(material_colour).translate([wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1])
+        inner_cut = (
+            cube(
+                [
+                    width - (wall_thickness - inset + size_spacing) * 2,
+                    length - (wall_thickness - inset + size_spacing) * 2,
+                    wall_thickness + 2,
+                ]
+            )
+            .color(material_colour)
+            .translate([wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1])
+        )
         body = body - (outer - inner_cut)
 
     result = body
@@ -512,14 +555,25 @@ def InsetLidRabbitClip(
         [(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, -lid_thickness / 2]
     )
     clip = pysolidfive.rabbit_clip(
-        type="pin", length=rabbit_length, width=rabbit_width, snap=rabbit_snap, thickness=rabbit_thickness, depth=rabbit_depth, compression=rabbit_compression, lock=rabbit_lock
+        type="pin",
+        length=rabbit_length,
+        width=rabbit_width,
+        snap=rabbit_snap,
+        thickness=rabbit_thickness,
+        depth=rabbit_depth,
+        compression=rabbit_compression,
+        lock=rabbit_lock,
     ).translate([(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, lid_thickness / 2])
     # A factory, not a pre-meshed solid: PythonSCAD segfaults when one frep()-meshed handle
     # is transformed in more than one CSG branch, and MakeTabs places the tab several times.
     tab = lambda: (base | clip).mesh()  # noqa: E731
 
     tabs = MakeTabs(
-        size=[width, length], lid_thickness=lid_thickness, make_tab_width=make_rabbit_width, make_tab_length=make_rabbit_length, children=tab
+        size=[width, length],
+        lid_thickness=lid_thickness,
+        make_tab_width=make_rabbit_width,
+        make_tab_length=make_rabbit_length,
+        children=tab,
     ).color(material_colour)
 
     return (lid | tabs).rotate([180, 0, 0]).translate([0, length, lid_thickness])
@@ -576,7 +630,11 @@ def InsetLidRabbitClipWithLabelAndCustomShape(
 
     assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
     width, length = size[0], size[1]
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    )
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
@@ -654,7 +712,11 @@ def InsetLidRabbitClipWithLabel(
     """
     if material_colour is None:
         material_colour = default_material_colour
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     shape_piece_raw = ShapeByType(options=calc_shape_options)
@@ -777,14 +839,26 @@ def MakeBoxWithInsetLidRabbitClip(
         [rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01]
     ).translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness / 2])
     socket_clip = pysolidfive.rabbit_clip(
-        type="socket", length=rabbit_length, width=rabbit_width, snap=rabbit_snap, thickness=rabbit_thickness, depth=rabbit_depth + 0.01, compression=rabbit_compression, lock=rabbit_lock
+        type="socket",
+        length=rabbit_length,
+        width=rabbit_width,
+        snap=rabbit_snap,
+        thickness=rabbit_thickness,
+        depth=rabbit_depth + 0.01,
+        compression=rabbit_compression,
+        lock=rabbit_lock,
     ).translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness])
     # A factory for the same frep-handle-reuse reason as the pin tab above.
     socket = lambda: (socket_box | socket_clip).color(material_colour)  # noqa: E731
 
     tabs_cut = (
         MakeTabs(
-            size=[width, length], lid_thickness=lid_thickness, tab_length=rabbit_length + rabbit_offset, make_tab_length=make_rabbit_length, make_tab_width=make_rabbit_width, children=socket
+            size=[width, length],
+            lid_thickness=lid_thickness,
+            tab_length=rabbit_length + rabbit_offset,
+            make_tab_length=make_rabbit_length,
+            make_tab_width=make_rabbit_width,
+            children=socket,
         )
         .color(material_colour)
         .translate([0, 0, height - lid_thickness])

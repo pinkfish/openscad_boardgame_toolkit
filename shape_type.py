@@ -249,7 +249,9 @@ def ShapeByType(
         return circle(r=w / 2 + th / 4) - circle(r=(w - th / 2) / 2)
 
     if t in (ShapeType.TRIANGLE, ShapeType.HEX, ShapeType.OCTOGON, ShapeType.SQUARE):
-        shape_edges = 3 if t == ShapeType.TRIANGLE else (6 if t == ShapeType.HEX else (4 if t == ShapeType.SQUARE else 8))
+        shape_edges = (
+            3 if t == ShapeType.TRIANGLE else (6 if t == ShapeType.HEX else (4 if t == ShapeType.SQUARE else 8))
+        )
         outer_r = w / 2 + (th * 1.5 if t == ShapeType.TRIANGLE else th / 4)
         inner_r = (w - (th * 0.5 if t == ShapeType.TRIANGLE else th / 2)) / 2
         return shapes2d.regular_ngon(r=outer_r, n=shape_edges, rounding=rounding) - shapes2d.regular_ngon(
@@ -335,7 +337,9 @@ def ShapeByType(
     if t == ShapeType.PENTAGON_R2:
         from pentagon_tilings import PentagonTesselationArea
 
-        assert polygon_width is not None and polygon_length is not None, "PENTAGON_R2 needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "PENTAGON_R2 needs polygon_width/length layout context"
+        )
 
         return PentagonTesselationArea(
             pentagon_type="R2",
@@ -362,7 +366,9 @@ def ShapeByType(
         from kite_tesselation import TesselationHexKiteArea
         from chicken import TesselationChickenHex
 
-        assert polygon_width is not None and polygon_length is not None, "CHICKEN needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "CHICKEN needs polygon_width/length layout context"
+        )
 
         return TesselationHexKiteArea(
             size=w,
@@ -374,47 +380,57 @@ def ShapeByType(
     if t == ShapeType.VORONOI:
         from voronoi import Voronoi
 
-        assert polygon_width is not None and polygon_length is not None, "VORONOI needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "VORONOI needs polygon_width/length layout context"
+        )
 
         return Voronoi(width=polygon_width, length=polygon_length, cellsize=w, thickness=th)
 
     if t == ShapeType.GOOSE:
         from goose import TesselationGooseArea
 
-        assert polygon_width is not None and polygon_length is not None, "GOOSE needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "GOOSE needs polygon_width/length layout context"
+        )
 
         return TesselationGooseArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
 
     if t == ShapeType.BIRD:
         from quad_tesselation import TesselationBirdArea
 
-        assert polygon_width is not None and polygon_length is not None, "BIRD needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "BIRD needs polygon_width/length layout context"
+        )
 
         return TesselationBirdArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
 
     if t == ShapeType.FLYING_BIRD:
         from hex_tesselation import TesselationFlyingBirdArea
 
-        assert polygon_width is not None and polygon_length is not None, "FLYING_BIRD needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "FLYING_BIRD needs polygon_width/length layout context"
+        )
 
         return TesselationFlyingBirdArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
 
     if t == ShapeType.SHEEP:
         from pentagons import SheepTesselationArea
 
-        assert polygon_width is not None and polygon_length is not None, "SHEEP needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "SHEEP needs polygon_width/length layout context"
+        )
 
         return SheepTesselationArea(size=w, thickness=th / 2, width=polygon_width, length=polygon_length)
 
     if t in (ShapeType.PENROSE_TILING_5, ShapeType.PENROSE_TILING_7):
         from penrose_tiling import PenroseTiling
 
-        assert polygon_width is not None and polygon_length is not None, "PENROSE_TILING needs polygon_width/length layout context"
+        assert polygon_width is not None and polygon_length is not None, (
+            "PENROSE_TILING needs polygon_width/length layout context"
+        )
         max_width = max(polygon_width, polygon_length)
         base = 5 if t == ShapeType.PENROSE_TILING_5 else 7
-        return PenroseTiling(
-            max_width * 1.5, divisions=math.ceil((max_width * 2 / w) / 3), base=base, thickness=th
-        )
+        return PenroseTiling(max_width * 1.5, divisions=math.ceil((max_width * 2 / w) / 3), base=base, thickness=th)
 
     if t == ShapeType.DROP:
         from tesselations import TesselationDrop
@@ -451,9 +467,7 @@ def ShapeByType(
 
         assert polygon_x is not None and polygon_y is not None, "RHOMBI_TRI_HEXAGONAL needs polygon_x/y layout context"
 
-        return HexagonTesselationRepeatAtLocation(
-            size=w / 2, x=polygon_x, y=polygon_y, children=RhombiTriHexagonal(w)
-        )
+        return HexagonTesselationRepeatAtLocation(size=w / 2, x=polygon_x, y=polygon_y, children=RhombiTriHexagonal(w))
 
     if t in (ShapeType.LEAF, ShapeType.LEAF_VEINS):
         from tesselations import TesselationLeafOutlineThree

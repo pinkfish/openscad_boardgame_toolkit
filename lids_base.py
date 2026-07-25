@@ -281,9 +281,9 @@ def LidMeshBasic(
         material_colour = default_material_colour
 
     assert size is not None or path is not None, "Must provide either size or path to LidMeshBasic"
-    assert path is not None or (
-        isinstance(size, (list, tuple)) and len(size) in (2, 3)
-    ), f"Invalid size in LidMeshBasic, size={size}"
+    assert path is not None or (isinstance(size, (list, tuple)) and len(size) in (2, 3)), (
+        f"Invalid size in LidMeshBasic, size={size}"
+    )
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
     calc_layout_width = layout_width
@@ -326,12 +326,9 @@ def LidMeshBasic(
 
     # offset() is a 2-D op: it must run on the flat polygon before linear_extrude() lifts it to
     # 3-D, not after (calling offset() on an already-extruded solid silently yields nothing).
-    border = (
-        color(polygon(calc_path).offset(-boundary).linear_extrude(lid_thickness), material_colour)
-        - color(polygon(calc_path).offset(-boundary - 0.02).linear_extrude(lid_thickness + 1), material_colour).translate(
-            [0, 0, -0.5]
-        )
-    )
+    border = color(polygon(calc_path).offset(-boundary).linear_extrude(lid_thickness), material_colour) - color(
+        polygon(calc_path).offset(-boundary - 0.02).linear_extrude(lid_thickness + 1), material_colour
+    ).translate([0, 0, -0.5])
 
     bound = color(polygon(calc_path).offset(-boundary).linear_extrude(lid_thickness), material_colour)
     return (mesh | border) & bound
@@ -417,8 +414,10 @@ def SlidingLidFingernail(
     # SCAD module signature), so the builtin is looked up explicitly here to
     # avoid the local-variable shadow.
     _sphere_primitive = globals()["sphere"]
-    cut_box = cube([finger_length, finger_length, finger_gap]).color(material_colour).translate(
-        [-finger_length / 2, -finger_length, -finger_length]
+    cut_box = (
+        cube([finger_length, finger_length, finger_gap])
+        .color(material_colour)
+        .translate([-finger_length / 2, -finger_length, -finger_length])
     )
     cut_sphere = _sphere_primitive(r=finger_length).color(material_colour)
     cutter = (cut_box & cut_sphere).translate([0, 0, finger_length + lid_thickness - finger_gap + 0.1])
@@ -427,7 +426,11 @@ def SlidingLidFingernail(
 
 
 def MakeLidTab(
-    length: float, height: float, lid_thickness: float | None = None, prism_width: float = 0.75, wall_thickness: float = 2
+    length: float,
+    height: float,
+    lid_thickness: float | None = None,
+    prism_width: float = 0.75,
+    wall_thickness: float = 2,
 ) -> PyOpenSCAD:
     """Makes a single lid tab (for tabbed boxes).
 
@@ -451,7 +454,9 @@ def MakeLidTab(
 
     stalk = cube([length, wall_thickness / 2, height - wall_thickness + 0.1])
     wedge = hull(
-        shapes3d.xcyl(h=length, r=0.1).translate([length / 2, wall_thickness * prism_width - 0.1, height - wall_thickness + 0.1]).shape,
+        shapes3d.xcyl(h=length, r=0.1)
+        .translate([length / 2, wall_thickness * prism_width - 0.1, height - wall_thickness + 0.1])
+        .shape,
         cube([length, 0.1, 0.1]).translate([0, 0, height - wall_thickness]),
         shapes3d.xcyl(h=length, r=0.1).translate([length / 2, 0.1, height - 0.1]).shape,
     )

@@ -33,9 +33,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-# mock_libfive.py/render_pysolidfive.py now live inside pysolidfive/tests/ (moved there so
-# pysolidfive's own test suite is bundled with the package); add that directory too.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pysolidfive" / "tests"))
+# mock_libfive.py/render_pysolidfive.py live inside the installed pysolidfive
+# package in the venv.
+_venv_tests = (
+    Path(__file__).resolve().parent.parent / ".venv" / "lib"
+    / f"python{sys.version_info.major}.{sys.version_info.minor}"
+    / "site-packages" / "pysolidfive" / "tests"
+)
+if _venv_tests.is_dir():
+    sys.path.insert(0, str(_venv_tests))
 
 import mock_libfive  # noqa: E402  (must be imported, and installed, before sliding_box)
 

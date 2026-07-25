@@ -37,10 +37,22 @@ from base_bgtk import *
 import numpy as np
 import bosl2.shapes3d
 from bosl2.paths import Path
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, default_lid_catch_type
+from lids_base import (
+    internal_build_lid,
+    MakeLidLabel,
+    LidMeshBasic,
+    IsDenseShapeType,
+    DenseShapeEdges,
+    default_lid_catch_type,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from cap_box import CapBoxDefaultCapHeight, CapBoxDefaultFingerHoldHeight, CapBoxDefaultLidFingerHoldRounding, CapBoxDefaultLidWallThickness
+from cap_box import (
+    CapBoxDefaultCapHeight,
+    CapBoxDefaultFingerHoldHeight,
+    CapBoxDefaultLidFingerHoldRounding,
+    CapBoxDefaultLidWallThickness,
+)
 
 
 def _segment_angle(normal: "np.ndarray | list[list[float]]") -> float:
@@ -81,22 +93,41 @@ def FingerHoleSegmentCutout(
 
     if calc_len + radius > calc_len * 4 - radius:
         pts = seg.cut_points([split_length / 2])
-        return bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate(
-            [float(pts[0][0][0]), float(pts[0][0][1]), 0.0]
-        ).shape
+        return (
+            bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+            .rotate([0, 0, angle])
+            .translate([float(pts[0][0][0]), float(pts[0][0][1]), 0.0])
+            .shape
+        )
 
     pts = seg.cut_points(
         [calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
     )
     # .shape unwraps each Bosl2Solid: native hull() only takes raw solids.
-    c1 = bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius]).shape
-    c2 = bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius).rotate([0, 0, angle]).translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius]).shape
-    c3 = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
-        [float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height]
-    ).shape
-    c4 = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2]).rotate([0, 0, angle]).translate(
-        [float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height]
-    ).shape
+    c1 = (
+        bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        .rotate([0, 0, angle])
+        .translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius])
+        .shape
+    )
+    c2 = (
+        bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        .rotate([0, 0, angle])
+        .translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius])
+        .shape
+    )
+    c3 = (
+        bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
+        .rotate([0, 0, angle])
+        .translate([float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height])
+        .shape
+    )
+    c4 = (
+        bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
+        .rotate([0, 0, angle])
+        .translate([float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height])
+        .shape
+    )
     return hull(c1, c2, c3, c4)
 
 
@@ -141,9 +172,7 @@ def PolygonBoxLidCatch(
     if not qualifies:
         return None
 
-    pts = seg.cut_points(
-        [calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta]
-    )
+    pts = seg.cut_points([calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta])
     p1 = [pts[0][0][0], pts[0][0][1]]
     p2 = [pts[1][0][0], pts[1][0][1]]
     # The old _bosl2.path_sweep of the triangle profile along the 2-point segment is a
@@ -223,10 +252,14 @@ def MakePathBoxWithCapLid(
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
-    calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else CapBoxDefaultLidWallThickness(wall_thickness)
+    calc_lid_wall_thickness = (
+        lid_wall_thickness if lid_wall_thickness is not None else CapBoxDefaultLidWallThickness(wall_thickness)
+    )
     calc_floor_thickness = floor_thickness if floor_thickness is not None else wall_thickness
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
-    calc_finger_hold_height = finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
+    calc_finger_hold_height = (
+        finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
+    )
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
     calc_path = np.asarray(Path(path).round_corners(radius=wall_thickness))
     # Plain lists for the native polygon() calls below: raw ndarrays across the native
@@ -242,26 +275,37 @@ def MakePathBoxWithCapLid(
     body = polygon(calc_path_native).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
 
     lid_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
-    lid_inner = polygon(calc_path_native).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height + 1).color(
-        material_colour
-    ).translate([0, 0, -0.5])
+    lid_inner = (
+        polygon(calc_path_native)
+        .offset(-calc_lid_wall_thickness - size_spacing)
+        .linear_extrude(height + 1)
+        .color(material_colour)
+        .translate([0, 0, -0.5])
+    )
     body = body - (lid_outer - lid_inner).translate([0, 0, height - calc_cap_height])
 
     finger_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
-    finger_inner = polygon(calc_path_native).offset(-calc_lid_wall_thickness - size_spacing).linear_extrude(height=height).color(
-        material_colour
+    finger_inner = (
+        polygon(calc_path_native)
+        .offset(-calc_lid_wall_thickness - size_spacing)
+        .linear_extrude(height=height)
+        .color(material_colour)
     )
     finger_cut = finger_outer - finger_inner
     n = len(calc_path)
     for i in range(n - 1):
         seg = FingerHoleSegmentCutout(
-            path=[calc_path[i], calc_path[i + 1]], height=calc_finger_hold_height, radius=calc_finger_hole_rounding,
+            path=[calc_path[i], calc_path[i + 1]],
+            height=calc_finger_hold_height,
+            radius=calc_finger_hole_rounding,
             wall_thickness=wall_thickness,
         )
         if seg is not None:
             finger_cut = finger_cut - seg
     seg = FingerHoleSegmentCutout(
-        path=[calc_path[n - 1], calc_path[0]], height=calc_finger_hold_height, radius=calc_finger_hole_rounding,
+        path=[calc_path[n - 1], calc_path[0]],
+        height=calc_finger_hold_height,
+        radius=calc_finger_hole_rounding,
         wall_thickness=wall_thickness,
     )
     if seg is not None:
@@ -271,14 +315,20 @@ def MakePathBoxWithCapLid(
     catches = None
     for i in range(n - 1):
         c = PolygonBoxLidCatch(
-            path=[calc_path[i], calc_path[i + 1]], offset=calc_finger_hole_rounding, wall_thickness=wall_thickness,
-            delta=size_spacing, lid_catch=lid_catch,
+            path=[calc_path[i], calc_path[i + 1]],
+            offset=calc_finger_hole_rounding,
+            wall_thickness=wall_thickness,
+            delta=size_spacing,
+            lid_catch=lid_catch,
         )
         if c is not None:
             catches = c if catches is None else catches | c
     c = PolygonBoxLidCatch(
-        path=[calc_path[n - 1], calc_path[0]], offset=calc_finger_hole_rounding, wall_thickness=wall_thickness,
-        delta=size_spacing, lid_catch=lid_catch,
+        path=[calc_path[n - 1], calc_path[0]],
+        offset=calc_finger_hole_rounding,
+        wall_thickness=wall_thickness,
+        delta=size_spacing,
+        lid_catch=lid_catch,
     )
     if c is not None:
         catches = c if catches is None else catches | c
@@ -302,9 +352,7 @@ def MakePathBoxWithCapLid(
             # Path-box children take (path, width, length, height) -- ResolveChild() is the
             # 3-argument box form and this call passed 5 arguments (a latent TypeError in the
             # never-exercised positive-children branch); resolve inline like the branch above.
-            resolved: Any = (
-                kids[i](calc_path, calc_width, calc_length, inner_height) if callable(kids[i]) else kids[i]
-            )
+            resolved: Any = kids[i](calc_path, calc_width, calc_length, inner_height) if callable(kids[i]) else kids[i]
             piece = resolved.translate([wall_thickness, wall_thickness, floor_thickness])
             extra = piece if extra is None else extra | piece
         if extra is not None:
@@ -378,32 +426,44 @@ def CapPathBoxLid(
     # The old offset_sweep with an os_smooth(joint=wall/2) top is a straight extrusion of
     # the rounded outline with an eased top rim -- polygon_prism's circular roundover of the
     # same joint size is a near-identical profile.
-    top = PolygonPrism(
-        calc_path, h=lid_thickness, rounding_top=min(wall_thickness / 2, lid_thickness * 0.49)
-    ).color(material_colour)
+    top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=min(wall_thickness / 2, lid_thickness * 0.49)).color(
+        material_colour
+    )
 
     kids = list(children) if children else []
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
     lid_stack = lid_stack.translate([0, 0, calc_cap_height - lid_thickness])
 
-    base_outer = polygon(calc_path_native).linear_extrude(height=calc_cap_height - lid_thickness / 2).color(material_colour)
-    base_inner = polygon(calc_path_native).offset(-wall_thickness + size_spacing).linear_extrude(
-        height=calc_cap_height - lid_thickness / 2 + 1
-    ).color(material_colour).translate([0, 0, -0.5])
+    base_outer = (
+        polygon(calc_path_native).linear_extrude(height=calc_cap_height - lid_thickness / 2).color(material_colour)
+    )
+    base_inner = (
+        polygon(calc_path_native)
+        .offset(-wall_thickness + size_spacing)
+        .linear_extrude(height=calc_cap_height - lid_thickness / 2 + 1)
+        .color(material_colour)
+        .translate([0, 0, -0.5])
+    )
     base = base_outer - base_inner
 
     catches = None
     n = len(calc_path)
     for i in range(n - 1):
         c = PolygonBoxLidCatch(
-            path=[calc_path[i], calc_path[i + 1]], offset=calc_finger_hole_rounding, wall_thickness=wall_thickness,
-            delta=0, lid_catch=lid_catch,
+            path=[calc_path[i], calc_path[i + 1]],
+            offset=calc_finger_hole_rounding,
+            wall_thickness=wall_thickness,
+            delta=0,
+            lid_catch=lid_catch,
         )
         if c is not None:
             catches = c if catches is None else catches | c
     c = PolygonBoxLidCatch(
-        path=[calc_path[n - 1], calc_path[0]], offset=calc_finger_hole_rounding, wall_thickness=wall_thickness,
-        delta=0, lid_catch=lid_catch,
+        path=[calc_path[n - 1], calc_path[0]],
+        offset=calc_finger_hole_rounding,
+        wall_thickness=wall_thickness,
+        delta=0,
+        lid_catch=lid_catch,
     )
     if c is not None:
         catches = c if catches is None else catches | c
@@ -479,7 +539,9 @@ def CapPathBoxLidWithLabelAndCustomShape(
     if material_colour is None:
         material_colour = default_material_colour
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
 
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
@@ -506,7 +568,9 @@ def CapPathBoxLidWithLabelAndCustomShape(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_shape = MakeLidLabel(size=[calc_width, calc_length], text_str=text_str, lid_thickness=lid_thickness, options=label_opts)
+    label_shape = MakeLidLabel(
+        size=[calc_width, calc_length], text_str=text_str, lid_thickness=lid_thickness, options=label_opts
+    )
 
     lid_children = [mesh, label_shape] + (list(extra_children) if extra_children else [])
 
@@ -570,7 +634,9 @@ def CapPathBoxLidWithLabel(
     if material_colour is None:
         material_colour = default_material_colour
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
 
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"

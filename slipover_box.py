@@ -33,7 +33,14 @@ from base_bgtk import *
 import bosl2.masking
 import bosl2.shapes3d
 from components import CornerCatch
-from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+from lids_base import (
+    default_lid_catch_type,
+    internal_build_lid,
+    MakeLidLabel,
+    LidMeshBasic,
+    IsDenseShapeType,
+    DenseShapeEdges,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -112,7 +119,11 @@ def MakeBoxWithSlipoverLid(
 
     # Direct bosl2/Manifold CSG throughout -- the same construction as the .scad original.
     inner = bosl2.shapes3d.cuboid(
-        [width - wall_thickness * 2 - size_spacing * 2, length - wall_thickness * 2 - size_spacing * 2, wall_height_calc],
+        [
+            width - wall_thickness * 2 - size_spacing * 2,
+            length - wall_thickness * 2 - size_spacing * 2,
+            wall_height_calc,
+        ],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
@@ -131,23 +142,33 @@ def MakeBoxWithSlipoverLid(
         )
         body = body | foot_piece
 
-    if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and width < length)
+        or (lid_catch == CatchType.LONG and width > length)
+        or lid_catch == CatchType.ALL
+    ):
         catch_width = width - wall_thickness * 2
         body = body - bosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).translate(
             [(catch_width * 2 / 8) + wall_thickness, wall_thickness, foot]
         )
-        body = body - bosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 180]).translate(
-            [(catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot]
-        )
-    if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
+        body = body - bosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate(
+            [0, 0, 180]
+        ).translate([(catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot])
+    if (
+        (lid_catch == CatchType.SHORT and length < width)
+        or (lid_catch == CatchType.LONG and length < width)
+        or lid_catch == CatchType.ALL
+    ):
         catch_length = length - wall_thickness * 2
-        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 90]).translate(
-            [width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot]
-        )
-        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate([0, 0, 270]).translate(
-            [wall_thickness, catch_length * 6 / 8 + wall_thickness, foot]
-        )
-    if (lid_catch == CatchType.BUMPS_SHORT and width < length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
+        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
+            [0, 0, 90]
+        ).translate([width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot])
+        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
+            [0, 0, 270]
+        ).translate([wall_thickness, catch_length * 6 / 8 + wall_thickness, foot])
+    if (lid_catch == CatchType.BUMPS_SHORT and width < length) or (
+        lid_catch == CatchType.BUMPS_LONG and width > length
+    ):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
@@ -156,7 +177,9 @@ def MakeBoxWithSlipoverLid(
                 [0, length - wall_thickness * 2, 0]
             )
             body = body - (bump_a | bump_b).translate([x, wall_thickness, wall_thickness + foot])
-    if (lid_catch == CatchType.BUMPS_SHORT and length <= width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
+    if (lid_catch == CatchType.BUMPS_SHORT and length <= width) or (
+        lid_catch == CatchType.BUMPS_LONG and length > width
+    ):
         catch_offset = length - wall_thickness * 2
         y1 = (catch_offset * 6 / 8) + wall_thickness
         bump_a1 = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, LEFT)
@@ -255,7 +278,8 @@ def SlipoverBoxLid(
 
     top = (
         bosl2.shapes3d.cuboid(
-            [width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness], anchor=BOTTOM + FRONT + LEFT
+            [width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
         )
         .color(material_colour)
         .translate([wall_thickness * 5 / 6, wall_thickness * 5 / 6, 0])
@@ -315,15 +339,25 @@ def SlipoverBoxLid(
     # The extra depth is harmless: it hangs outside the shell on one side and into the already
     # hollowed interior on the other.
     corner1 = CornerCatch(
-        radius=radius, height=finger_height, depth_of_hole=wall_thickness * 3, rounding_edge=wall_thickness / 4,
+        radius=radius,
+        height=finger_height,
+        depth_of_hole=wall_thickness * 3,
+        rounding_edge=wall_thickness / 4,
         round_back=False,
     ).translate([wall_thickness / 2, wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
     shell = shell - corner1
 
     corner2 = CornerCatch(
-        radius=radius, height=finger_height, depth_of_hole=wall_thickness * 3, rounding_edge=wall_thickness / 4,
-        round_back=False, round_corner_back=False, spin=180,
-    ).translate([width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness - foot_offset])
+        radius=radius,
+        height=finger_height,
+        depth_of_hole=wall_thickness * 3,
+        rounding_edge=wall_thickness / 4,
+        round_back=False,
+        round_corner_back=False,
+        spin=180,
+    ).translate(
+        [width - wall_thickness / 2, length - wall_thickness / 2, height - finger_height - lid_thickness - foot_offset]
+    )
     shell = shell - corner2
 
     catches = None
@@ -332,38 +366,56 @@ def SlipoverBoxLid(
         nonlocal catches
         catches = piece if catches is None else catches | piece
 
-    if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and width < length)
+        or (lid_catch == CatchType.LONG and width > length)
+        or lid_catch == CatchType.ALL
+    ):
         catch_width = width - wall_thickness * 2
         add_catch(
-            bosl2.shapes3d.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            bosl2.shapes3d.wedge(
+                [catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
+            )
             .translate([(catch_width * 2 / 8) + size_spacing + wall_thickness, wall_thickness, 0])
             .color(material_colour)
             .shape
         )
         add_catch(
-            bosl2.shapes3d.wedge([catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            bosl2.shapes3d.wedge(
+                [catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
+            )
             .rotate([0, 0, 180])
             .translate([(catch_width * 6 / 8) + size_spacing + wall_thickness, length - wall_thickness, 0])
             .color(material_colour)
             .shape
         )
-    if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and length < width)
+        or (lid_catch == CatchType.LONG and length < width)
+        or lid_catch == CatchType.ALL
+    ):
         catch_length = length - wall_thickness * 2
         add_catch(
-            bosl2.shapes3d.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            bosl2.shapes3d.wedge(
+                [catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
+            )
             .rotate([0, 0, 90])
             .translate([width - wall_thickness, catch_length * 2 / 8 + size_spacing + wall_thickness, 0])
             .color(material_colour)
             .shape
         )
         add_catch(
-            bosl2.shapes3d.wedge([catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing])
+            bosl2.shapes3d.wedge(
+                [catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
+            )
             .rotate([0, 0, 270])
             .translate([wall_thickness, catch_length * 6 / 8 + size_spacing + wall_thickness, 0])
             .color(material_colour)
             .shape
         )
-    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
+    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (
+        lid_catch == CatchType.BUMPS_LONG and width > length
+    ):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
@@ -372,9 +424,13 @@ def SlipoverBoxLid(
                 [0, length - wall_thickness * 10 / 8, 0]
             )
             add_catch(
-                (bump_a | bump_b).translate([x, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8]).color(material_colour)
+                (bump_a | bump_b)
+                .translate([x, wall_thickness * 5 / 8, wall_thickness + wall_thickness / 8])
+                .color(material_colour)
             )
-    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
+    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (
+        lid_catch == CatchType.BUMPS_LONG and length > width
+    ):
         catch_offset = length - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             y = (catch_offset * frac) + wall_thickness
@@ -383,7 +439,9 @@ def SlipoverBoxLid(
                 [width - wall_thickness * 10 / 8, 0, 0]
             )
             add_catch(
-                (bump_a | bump_b).translate([wall_thickness * 5 / 8, y, wall_thickness + wall_thickness / 8]).color(material_colour)
+                (bump_a | bump_b)
+                .translate([wall_thickness * 5 / 8, y, wall_thickness + wall_thickness / 8])
+                .color(material_colour)
             )
 
     body = lid_stack | shell
@@ -462,7 +520,9 @@ def SlipoverBoxLidWithLabelAndCustomShape(
         lid_catch = default_lid_catch_type
 
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     assert size[0] > 0 and size[1] > 0 and size[2] > 0, f"Need width, length, height > 0 size={size}"
     assert text_str is not None, "text_str must not be None"
 
@@ -481,7 +541,9 @@ def SlipoverBoxLidWithLabelAndCustomShape(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_shape = MakeLidLabel(size=[size[0], size[1]], lid_thickness=lid_thickness, options=label_opts, text_str=text_str)
+    label_shape = MakeLidLabel(
+        size=[size[0], size[1]], lid_thickness=lid_thickness, options=label_opts, text_str=text_str
+    )
 
     lid_children = [mesh, label_shape] + (list(extra_children) if extra_children else [])
 
@@ -557,7 +619,9 @@ def SlipoverBoxLidWithLabel(
 
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     assert width > 0 and length > 0 and height > 0, (

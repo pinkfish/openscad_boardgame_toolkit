@@ -525,14 +525,18 @@ def RegularPolygonGrid(
         offset_x = abs(2 * apothem * math.sin(math.radians(((shape_edges - 1) / (shape_edges * 2)) * 360)))
 
     if inner_control == 2:
-        assert callable(children), "children must be callable(space_width, space_length, cols, rows) when inner_control == 2"
+        assert callable(children), (
+            "children must be callable(space_width, space_length, cols, rows) when inner_control == 2"
+        )
         return children(space_width, space_length, cols, rows)
 
     shape = None
     for i in range(int(rows)):
         for j in range(int(cols)):
             if inner_control == 1:
-                assert callable(children), "children must be callable(polygon_x, polygon_y, cols, rows) when inner_control == 1"
+                assert callable(children), (
+                    "children must be callable(polygon_x, polygon_y, cols, rows) when inner_control == 1"
+                )
                 piece = children(i, j, cols, rows)
             else:
                 piece = children(i, j) if callable(children) else children
@@ -581,7 +585,9 @@ def RegularPolygonGridDense(
         for i in range(int(rows)):
             for j in range(int(cols)):
                 if inner_control:
-                    assert callable(children), "children must be callable(polygon_x, polygon_y) when inner_control is True"
+                    assert callable(children), (
+                        "children must be callable(polygon_x, polygon_y) when inner_control is True"
+                    )
                     piece = children(i, j)
                 else:
                     piece = children() if callable(children) else children
@@ -597,7 +603,9 @@ def RegularPolygonGridDense(
         for i in range(int(rows)):
             for j in range(int(cols)):
                 if inner_control:
-                    assert callable(children), "children must be callable(polygon_x, polygon_y) when inner_control is True"
+                    assert callable(children), (
+                        "children must be callable(polygon_x, polygon_y) when inner_control is True"
+                    )
                     piece = children(i, j)
                 else:
                     piece = children() if callable(children) else children
@@ -643,9 +651,7 @@ def HexGridWithCutouts(
     apothem = width / 2
     radius = apothem / math.cos(math.radians(180 / 6))
 
-    bound = cube([rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20]).translate(
-        [0, 0, -10]
-    )
+    bound = cube([rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20]).translate([0, 0, -10])
 
     cell = RegularPolygon(width=width, height=10 + height, shape_edges=6)
     if push_block_height > 0:
@@ -750,6 +756,7 @@ def FingerHoleWall(
             [tangents[3][0][0] + 0.1, 0],
             [tangents[3][1][0], 0],
         ]
+
         # Native 2-D booleans in place of the interpreted-BOSL2 region math (see the `if`
         # branch above). Point-list pieces (the tangent quads) become native polygon()s;
         # hull_region becomes a native 2-D hull(); mirrors across the Y axis are native
@@ -760,7 +767,9 @@ def FingerHoleWall(
         top_shape = hull(_poly(top_polygon), _poly(Path(top_polygon).mirror([1, 0])))
         side_shape = (
             (
-                square([rounding_radius, rounding_radius], center=True).translate([-rounding_radius / 2, rounding_radius / 2])
+                square([rounding_radius, rounding_radius], center=True).translate(
+                    [-rounding_radius / 2, rounding_radius / 2]
+                )
                 - circle(r=rounding_radius, fn=64)
             ).translate([radius + rounding_radius, -rounding_radius])
         ) - _poly(
@@ -860,10 +869,14 @@ def CornerCatch(
 
     base = shapes3d.cuboid([depth_of_hole, depth_of_hole, height], anchor=BOTTOM)
     if round_corner_back and rounding_edge > 0:
-        base = base.edge_profile([BOTTOM + FRONT, BOTTOM + LEFT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip())
+        base = base.edge_profile(
+            [BOTTOM + FRONT, BOTTOM + LEFT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip()
+        )
         base = base.corner_profile([BOTTOM + FRONT + LEFT], r=depth_of_hole / 2)
     elif rounding_edge > 0:
-        base = base.edge_profile([BOTTOM + BACK, BOTTOM + RIGHT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip())
+        base = base.edge_profile(
+            [BOTTOM + BACK, BOTTOM + RIGHT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip()
+        )
         base = base.corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2)
     base = base.color(material_colour).mirror([0, 0, 1])
 
@@ -1010,7 +1023,11 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
 
 
 def MagnetSlot(
-    size: list[float], magnet_type: int, spin: float = 0, orient: list[float] | None = None, anchor: list[int] | None = None
+    size: list[float],
+    magnet_type: int,
+    spin: float = 0,
+    orient: list[float] | None = None,
+    anchor: list[int] | None = None,
 ) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
     """Creates a slot for a magnet of a given size and type.
 
@@ -1030,17 +1047,17 @@ def MagnetSlot(
     if anchor is None:
         anchor = CENTER
 
-    assert magnet_type in (MAGNET_SLOT_TYPE_ROUND, MAGNET_SLOT_TYPE_RECT), f"Invalid magnet type, magnet_type={magnet_type}"
-    assert (
-        isinstance(size, (list, tuple)) and len(size) == 3 and size[0] > 0 and size[1] > 0 and size[2] > 0
-    ), f"Invalid magnet size, size={size}"
+    assert magnet_type in (MAGNET_SLOT_TYPE_ROUND, MAGNET_SLOT_TYPE_RECT), (
+        f"Invalid magnet type, magnet_type={magnet_type}"
+    )
+    assert isinstance(size, (list, tuple)) and len(size) == 3 and size[0] > 0 and size[1] > 0 and size[2] > 0, (
+        f"Invalid magnet size, size={size}"
+    )
 
     if magnet_type == MAGNET_SLOT_TYPE_ROUND:
         shape = (
             shapes3d.cyl(d=size[1], h=size[2])
-            | shapes3d.cuboid([size[0] - size[1] / 2, size[1], size[2]]).translate(
-                [-(size[0] / 2 - size[1] / 4), 0, 0]
-            )
+            | shapes3d.cuboid([size[0] - size[1] / 2, size[1], size[2]]).translate([-(size[0] / 2 - size[1] / 4), 0, 0])
         ).translate([size[0] / 2 - size[1] / 2, 0, 0])
     else:
         shape = shapes3d.cuboid(size)

@@ -146,7 +146,10 @@ def MakeBoxWithNoLid(
         for x in (calc_finger_hole_wall_width / 2 - 0.01, width - calc_finger_hole_wall_width / 2 + 0.01):
             cut = (
                 FingerHoleWall(
-                    radius=calc_finger_hole_size, height=fh, spin=90, depth_of_hole=calc_finger_hole_wall_width + 0.03,
+                    radius=calc_finger_hole_size,
+                    height=fh,
+                    spin=90,
+                    depth_of_hole=calc_finger_hole_wall_width + 0.03,
                     rounding_edge=wall_thickness / 2,
                 )
                 .color(material_colour)
@@ -158,7 +161,9 @@ def MakeBoxWithNoLid(
         for y in (wall_thickness / 2 - 0.01, length - wall_thickness / 2 + 0.01):
             cut = (
                 FingerHoleWall(
-                    radius=calc_finger_hole_size, height=fh, depth_of_hole=wall_thickness + 0.03,
+                    radius=calc_finger_hole_size,
+                    height=fh,
+                    depth_of_hole=wall_thickness + 0.03,
                     rounding_edge=wall_thickness / 2,
                 )
                 .color(material_colour)
@@ -229,7 +234,10 @@ def FingerHoleWallSegment(
     pts = seg.cut_points([split_length / 2])
     return (
         FingerHoleWall(
-            radius=finger_hole_size, height=finger_hole_height, spin=90, depth_of_hole=wall_thickness + 0.03,
+            radius=finger_hole_size,
+            height=finger_hole_height,
+            spin=90,
+            depth_of_hole=wall_thickness + 0.03,
             rounding_edge=wall_thickness / 2,
         )
         .rotate([0, 0, angle])
@@ -289,14 +297,20 @@ class PathBoxWithNoLid:
         self.floor_thickness = default_floor_thickness if floor_thickness is None else floor_thickness
         self.stackable_thickness = default_stackable_thickness if stackable_thickness is None else stackable_thickness
         self.stackable_fit_offset = stackable_fit_offset
-        self.hollow_radius = hollow_radius if hollow_radius is not None else types.SimpleNamespace(
-            top=self.wall_thickness / 4, bottom=self.wall_thickness / 4, radius=self.wall_thickness / 2
+        self.hollow_radius = (
+            hollow_radius
+            if hollow_radius is not None
+            else types.SimpleNamespace(
+                top=self.wall_thickness / 4, bottom=self.wall_thickness / 4, radius=self.wall_thickness / 2
+            )
         )
         self.material_colour = material_colour
         self.hollow = hollow
         self.stackable = stackable
-        self.magnet = magnet if magnet is not None else types.SimpleNamespace(
-            type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0
+        self.magnet = (
+            magnet
+            if magnet is not None
+            else types.SimpleNamespace(type=MAGNET_SLOT_TYPE_NONE, size=[0, 0, 0], height=0)
         )
         self.extra_floors = extra_floors if extra_floors is not None else []
         # offset_sweep_options/mesh_res are vestigial (the solids are OffsetSweep() now); kept
@@ -322,10 +336,8 @@ class PathBoxWithNoLid:
 
         self.finger_hole_size = finger_hole_size
         if self.finger_hole_size is None:
-            self.finger_hole_size = min(20, min(self.length, self.width) / 4,
-                                        self.height - self.floor_thickness + 1)
-        self.finger_hole_height = min(self.finger_hole_size,
-                                      self.height - default_floor_thickness * 2 + 1)
+            self.finger_hole_size = min(20, min(self.length, self.width) / 4, self.height - self.floor_thickness + 1)
+        self.finger_hole_height = min(self.finger_hole_size, self.height - default_floor_thickness * 2 + 1)
         auto = make_finger_x is None and make_finger_y is None
         self.make_finger_x = (self.width > self.length) if auto else False
         self.make_finger_y = (self.length > self.width) if auto else False
@@ -376,8 +388,11 @@ class PathBoxWithNoLid:
             return polygon([[float(x), float(y)] for x, y in outer_path]).offset(r=-(wall + float(inset)))
 
         return InnerPath(
-            width=self.width, length=self.length, height=self.height - self.floor_thickness,
-            path=outer_path, profile=profile,
+            width=self.width,
+            length=self.length,
+            height=self.height - self.floor_thickness,
+            path=outer_path,
+            profile=profile,
         )
 
     def stackable_ring(self, bottom: bool = False) -> "PyOpenSCAD | None":
@@ -387,15 +402,15 @@ class PathBoxWithNoLid:
         if self.stackable == STACKABLE_TYPE_INSIDE:
             outer_src = self.inner_path_stackable_bottom_outside if bottom else self.inner_path_stackable
             inner_src = self.inner_path_stackable_bottom_inside if bottom else self.inner_path
-            outer = PolygonPrism(Path(outer_src).round_corners(radius=stack / 2),
-                                 h=stack + grow, rounding_top=wall / 4)
+            outer = PolygonPrism(Path(outer_src).round_corners(radius=stack / 2), h=stack + grow, rounding_top=wall / 4)
         elif self.stackable == STACKABLE_TYPE_OUTSIDE:
             inner_src = self.inner_path_stackable_bottom_inside_inside if bottom else self.inner_path_stackable
             outer = PolygonPrism(self.calc_path, h=stack + grow, rounding_top=wall / 4)
         else:
             return None
-        inner = PolygonPrism(Path(inner_src).round_corners(radius=stack / 4),
-                             h=stack + 0.02 + grow, rounding_top=-wall / 4).translate([0, 0, -0.01])
+        inner = PolygonPrism(
+            Path(inner_src).round_corners(radius=stack / 4), h=stack + 0.02 + grow, rounding_top=-wall / 4
+        ).translate([0, 0, -0.01])
         return outer - inner
 
     def outer_body(self) -> "PyOpenSCAD":
@@ -458,8 +473,7 @@ class PathBoxWithNoLid:
         wall = self.wall_thickness
         joined_outer = Path(_bosl2.union([f.path, self.path])).offset(r=-wall).round_corners(radius=wall)
         inner_union = [Path(f.path).offset(delta=wall), self.inner_path] + [
-            Path(other.path).offset(delta=wall)
-            for other in self.sorted_floors if other.floor_height > f.floor_height
+            Path(other.path).offset(delta=wall) for other in self.sorted_floors if other.floor_height > f.floor_height
         ]
         region = _bosl2.intersection(joined_outer, _bosl2.union(inner_union))
         return PolygonPrism(
@@ -577,13 +591,24 @@ def MakePathBoxWithNoLid(
                         very small box look faceted)
     """
     return PathBoxWithNoLid(
-        path=path, height=height, children=children, wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness, stackable_thickness=stackable_thickness,
-        stackable_fit_offset=stackable_fit_offset, hollow_radius=hollow_radius,
-        make_finger_x=make_finger_x, make_finger_y=make_finger_y,
-        material_colour=material_colour, finger_hole_size=finger_hole_size,
-        offset_sweep_options=offset_sweep_options, hollow=hollow, stackable=stackable,
-        magnet=magnet, extra_floors=extra_floors, mesh_res=mesh_res,
+        path=path,
+        height=height,
+        children=children,
+        wall_thickness=wall_thickness,
+        floor_thickness=floor_thickness,
+        stackable_thickness=stackable_thickness,
+        stackable_fit_offset=stackable_fit_offset,
+        hollow_radius=hollow_radius,
+        make_finger_x=make_finger_x,
+        make_finger_y=make_finger_y,
+        material_colour=material_colour,
+        finger_hole_size=finger_hole_size,
+        offset_sweep_options=offset_sweep_options,
+        hollow=hollow,
+        stackable=stackable,
+        magnet=magnet,
+        extra_floors=extra_floors,
+        mesh_res=mesh_res,
     ).build()
 
 

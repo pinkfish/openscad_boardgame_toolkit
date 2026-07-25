@@ -33,7 +33,14 @@ from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import transforms
 from bosl2 import masking
-from lids_base import default_lid_catch_type, internal_build_lid, IsDenseShapeType, DenseShapeEdges, MakeLidLabel, LidMeshBasic
+from lids_base import (
+    default_lid_catch_type,
+    internal_build_lid,
+    IsDenseShapeType,
+    DenseShapeEdges,
+    MakeLidLabel,
+    LidMeshBasic,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -204,7 +211,9 @@ def MakeBoxWithCapLid(
 
     # Cut out the lid recess at the top of the box.
     lid_cut_outer = (
-        shapes3d.cuboid([width + size_spacing * 2, length + size_spacing * 2, calc_cap_height], anchor=BOTTOM + FRONT + LEFT)
+        shapes3d.cuboid(
+            [width + size_spacing * 2, length + size_spacing * 2, calc_cap_height], anchor=BOTTOM + FRONT + LEFT
+        )
         .color(material_colour)
         .translate([-size_spacing, -size_spacing, 0])
     )
@@ -246,7 +255,11 @@ def MakeBoxWithCapLid(
         nonlocal catches
         catches = piece if catches is None else catches | piece
 
-    if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and width < length)
+        or (lid_catch == CatchType.LONG and width > length)
+        or lid_catch == CatchType.ALL
+    ):
         catch_width = width - wall_thickness * 2
         add_catch(
             shapes3d.wedge([catch_width * 2 / 4, wall_thickness, wall_thickness])
@@ -259,7 +272,11 @@ def MakeBoxWithCapLid(
             .color(material_colour)
             .translate([(catch_width * 6 / 8) + wall_thickness, length, 0])
         )
-    if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and length < width)
+        or (lid_catch == CatchType.LONG and length < width)
+        or lid_catch == CatchType.ALL
+    ):
         catch_length = length - wall_thickness * 2
         add_catch(
             shapes3d.wedge([catch_length * 2 / 4, wall_thickness, wall_thickness])
@@ -273,18 +290,24 @@ def MakeBoxWithCapLid(
             .color(material_colour)
             .translate([0, catch_length * 6 / 8 + wall_thickness, 0])
         )
-    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
+    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (
+        lid_catch == CatchType.BUMPS_LONG and width > length
+    ):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
-            bump_front = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, FRONT).color(material_colour)
+            bump_front = _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, FRONT).color(
+                material_colour
+            )
             bump_back = (
                 _catch_bump(wall_thickness, wall_thickness * 5 / 6 + size_spacing, BACK)
                 .color(material_colour)
                 .translate([0, length, 0])
             )
             add_catch((bump_front | bump_back).translate([x, 0, wall_thickness]))
-    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
+    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (
+        lid_catch == CatchType.BUMPS_LONG and length > width
+    ):
         catch_offset = length - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             y = (catch_offset * frac) + wall_thickness
@@ -300,52 +323,95 @@ def MakeBoxWithCapLid(
         body = body - catches.translate([0, 0, height - calc_cap_height])
 
     # Finger cutouts.
-    finger_outer = shapes3d.cuboid(
-        [width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1], anchor=BOTTOM + FRONT + LEFT
-    ).color(material_colour).translate([-size_spacing, -size_spacing, 0])
-    finger_inner = shapes3d.cuboid(
-        [
-            width - calc_lid_wall_thickness * 2 - size_spacing * 2,
-            length - calc_lid_wall_thickness * 2 - size_spacing * 2,
-            calc_finger_hold_height + 2,
-        ],
-        anchor=BOTTOM + FRONT + LEFT,
-        rounding=calc_corner_rounding,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-    ).color(material_colour).translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
+    finger_outer = (
+        shapes3d.cuboid(
+            [width + size_spacing * 2, length + size_spacing * 2, calc_finger_hold_height + 1],
+            anchor=BOTTOM + FRONT + LEFT,
+        )
+        .color(material_colour)
+        .translate([-size_spacing, -size_spacing, 0])
+    )
+    finger_inner = (
+        shapes3d.cuboid(
+            [
+                width - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                length - calc_lid_wall_thickness * 2 - size_spacing * 2,
+                calc_finger_hold_height + 2,
+            ],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=calc_corner_rounding,
+            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        )
+        .color(material_colour)
+        .translate([calc_lid_wall_thickness + size_spacing, calc_lid_wall_thickness + size_spacing, 0])
+    )
     finger_cut = finger_outer - finger_inner
 
-    hole_a = shapes3d.cuboid(
-        [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
-        rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + LEFT + FRONT, _fn=32,
-    ).color(material_colour).translate([calc_lid_finger_hold_len, 0, -0.2])
-    hole_b = shapes3d.cuboid(
-        [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
-        rounding=calc_finger_hole_rounding, edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + LEFT + FRONT, _fn=32,
-    ).color(material_colour).translate(
-        [calc_lid_finger_hold_len, length - calc_lid_wall_thickness - size_spacing, -0.2]
+    hole_a = (
+        shapes3d.cuboid(
+            [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
+            rounding=calc_finger_hole_rounding,
+            edges=[TOP + LEFT, TOP + RIGHT],
+            anchor=BOTTOM + LEFT + FRONT,
+            _fn=32,
+        )
+        .color(material_colour)
+        .translate([calc_lid_finger_hold_len, 0, -0.2])
     )
-    hole_c = shapes3d.cuboid(
-        [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
-        rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK], anchor=BOTTOM + LEFT + FRONT, _fn=32,
-    ).color(material_colour).translate([0, calc_lid_finger_hold_len, -0.2])
-    hole_d = shapes3d.cuboid(
-        [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
-        rounding=calc_finger_hole_rounding, edges=[TOP + FRONT, TOP + BACK], anchor=BOTTOM + LEFT + FRONT, _fn=32,
-    ).color(material_colour).translate([width - calc_lid_wall_thickness - size_spacing, calc_lid_finger_hold_len, -0.2])
+    hole_b = (
+        shapes3d.cuboid(
+            [width - calc_lid_finger_hold_len * 2 + 0.1, wall_thickness + 1, calc_finger_hold_height + 0.2],
+            rounding=calc_finger_hole_rounding,
+            edges=[TOP + LEFT, TOP + RIGHT],
+            anchor=BOTTOM + LEFT + FRONT,
+            _fn=32,
+        )
+        .color(material_colour)
+        .translate([calc_lid_finger_hold_len, length - calc_lid_wall_thickness - size_spacing, -0.2])
+    )
+    hole_c = (
+        shapes3d.cuboid(
+            [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+            rounding=calc_finger_hole_rounding,
+            edges=[TOP + FRONT, TOP + BACK],
+            anchor=BOTTOM + LEFT + FRONT,
+            _fn=32,
+        )
+        .color(material_colour)
+        .translate([0, calc_lid_finger_hold_len, -0.2])
+    )
+    hole_d = (
+        shapes3d.cuboid(
+            [wall_thickness + 1, length - calc_lid_finger_hold_len * 2 + 0.1, calc_finger_hold_height + 0.2],
+            rounding=calc_finger_hole_rounding,
+            edges=[TOP + FRONT, TOP + BACK],
+            anchor=BOTTOM + LEFT + FRONT,
+            _fn=32,
+        )
+        .color(material_colour)
+        .translate([width - calc_lid_wall_thickness - size_spacing, calc_lid_finger_hold_len, -0.2])
+    )
 
     finger_cut = finger_cut - hole_a - hole_b - hole_c - hole_d
     body = body - finger_cut.translate([0, 0, height - calc_cap_height - calc_finger_hold_height])
 
     # Put the children in the box (subtract everything except positive_only_children).
-    inner_size = InnerSize(width=width - wall_thickness * 2, length=length - wall_thickness * 2, height=height - lid_thickness - floor_thickness)
+    inner_size = InnerSize(
+        width=width - wall_thickness * 2,
+        length=length - wall_thickness * 2,
+        height=height - lid_thickness - floor_thickness,
+    )
 
-    all_children:list[InnerObject] = []
-    if children != None:         
+    all_children: list[InnerObject] = []
+    if children != None:
         all_children = children(inner_size)
 
-    positive_children = [i for i in all_children if (i.type == ObjectType.POSTIVE or i.type == ObjectType.POSTIVE_NEGATIVE)]
-    negative_children = [i.value for i in all_children if (i.type == ObjectType.NEGATIVE or i.type == ObjectType.POSTIVE_NEGATIVE)]
+    positive_children = [
+        i for i in all_children if (i.type == ObjectType.POSTIVE or i.type == ObjectType.POSTIVE_NEGATIVE)
+    ]
+    negative_children = [
+        i.value for i in all_children if (i.type == ObjectType.NEGATIVE or i.type == ObjectType.POSTIVE_NEGATIVE)
+    ]
 
     for i in negative_children:
         body = body - i.translate([wall_thickness, wall_thickness, calc_floor_thickness])
@@ -437,14 +503,32 @@ def CapBoxLid(
         [width, length, calc_cap_height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=calc_lid_wall_thickness / 2,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + FRONT, TOP + BACK, TOP + LEFT, TOP + RIGHT],
+        edges=[
+            LEFT + FRONT,
+            RIGHT + FRONT,
+            LEFT + BACK,
+            RIGHT + BACK,
+            TOP + FRONT,
+            TOP + BACK,
+            TOP + LEFT,
+            TOP + RIGHT,
+        ],
     ).color(material_colour)
     base_inner = (
         shapes3d.cuboid(
             [width - calc_lid_wall_thickness * 2, length - calc_lid_wall_thickness * 2, calc_cap_height + 1],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=calc_lid_wall_thickness / 4,
-            edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + FRONT, TOP + BACK, TOP + LEFT, TOP + RIGHT],
+            edges=[
+                LEFT + FRONT,
+                RIGHT + FRONT,
+                LEFT + BACK,
+                RIGHT + BACK,
+                TOP + FRONT,
+                TOP + BACK,
+                TOP + LEFT,
+                TOP + RIGHT,
+            ],
         )
         .color(material_colour)
         .translate([calc_lid_wall_thickness, calc_lid_wall_thickness, -0.5])
@@ -463,10 +547,16 @@ def CapBoxLid(
         nonlocal catches
         catches = piece if catches is None else catches | piece
 
-    if (lid_catch == CatchType.SHORT and width < length) or (lid_catch == CatchType.LONG and width > length) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and width < length)
+        or (lid_catch == CatchType.LONG and width > length)
+        or lid_catch == CatchType.ALL
+    ):
         catch_width = width - wall_thickness * 2
         add_catch(
-            shapes3d.wedge([catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, calc_lid_wall_thickness * 5 / 8])
+            shapes3d.wedge(
+                [catch_width * 2 / 4 - size_spacing * 2, wall_thickness * 5 / 8, calc_lid_wall_thickness * 5 / 8]
+            )
             .rotate([0, 180, 0])
             .color(material_colour)
             .translate([(catch_width * 6 / 8) + wall_thickness, 0, 0])
@@ -478,7 +568,11 @@ def CapBoxLid(
             .color(material_colour)
             .translate([(catch_width * 2 / 8) + wall_thickness, length, 0])
         )
-    if (lid_catch == CatchType.SHORT and length < width) or (lid_catch == CatchType.LONG and length < width) or lid_catch == CatchType.ALL:
+    if (
+        (lid_catch == CatchType.SHORT and length < width)
+        or (lid_catch == CatchType.LONG and length < width)
+        or lid_catch == CatchType.ALL
+    ):
         catch_length = length - wall_thickness * 2
         # Unlike the width-direction wedges above (a plain Y-180 flip), these need a Z rotation
         # to run along the length-direction wall instead -- adding a *second* Y-180 on top (as
@@ -500,19 +594,31 @@ def CapBoxLid(
             .color(material_colour)
             .translate([0, catch_length * 6 / 8 + wall_thickness + size_spacing, -wall_thickness * 5 / 8])
         )
-    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (lid_catch == CatchType.BUMPS_LONG and width > length):
+    if (lid_catch == CatchType.BUMPS_SHORT and width <= length) or (
+        lid_catch == CatchType.BUMPS_LONG and width > length
+    ):
         catch_offset = width - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             x = (catch_offset * frac) + wall_thickness
             bump_front = _catch_bump(wall_thickness, wall_thickness * 9 / 12, FRONT).color(material_colour)
-            bump_back = _catch_bump(wall_thickness, wall_thickness * 9 / 12, BACK).color(material_colour).translate([0, length, 0])
+            bump_back = (
+                _catch_bump(wall_thickness, wall_thickness * 9 / 12, BACK)
+                .color(material_colour)
+                .translate([0, length, 0])
+            )
             add_catch((bump_front | bump_back).translate([x, 0, -wall_thickness]))
-    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (lid_catch == CatchType.BUMPS_LONG and length > width):
+    if (lid_catch == CatchType.BUMPS_SHORT and length < width) or (
+        lid_catch == CatchType.BUMPS_LONG and length > width
+    ):
         catch_offset = length - wall_thickness * 2
         for frac in (6 / 8, 2 / 8):
             y = (catch_offset * frac) + wall_thickness
             bump_left = _catch_bump(wall_thickness, wall_thickness * 9 / 12, LEFT).color(material_colour)
-            bump_right = _catch_bump(wall_thickness, wall_thickness * 9 / 12, RIGHT).color(material_colour).translate([width, 0, 0])
+            bump_right = (
+                _catch_bump(wall_thickness, wall_thickness * 9 / 12, RIGHT)
+                .color(material_colour)
+                .translate([width, 0, 0])
+            )
             add_catch((bump_left | bump_right).translate([0, y, -wall_thickness]))
 
     if catches is not None:
@@ -681,7 +787,9 @@ def CapBoxLidWithLabelAndCustomShape(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
 
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
@@ -787,7 +895,9 @@ def CapBoxLidWithLabel(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"

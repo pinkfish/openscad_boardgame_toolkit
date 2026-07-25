@@ -102,7 +102,9 @@ def SplitBox(
     right = obj_centered & bound_box()
     for yval in yy:
         y_pt = transforms.apply(tmat, [[0, yval, minZ]])[0]
-        cutter = minkowski(join_shape.linear_extrude(height=maxZ - minZ), sphere(r=play)).multmatrix(tmat).translate(y_pt)
+        cutter = (
+            minkowski(join_shape.linear_extrude(height=maxZ - minZ), sphere(r=play)).multmatrix(tmat).translate(y_pt)
+        )
         right = right - cutter
     right = right.translate(new_pts[0])
 

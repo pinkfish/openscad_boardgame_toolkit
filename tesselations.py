@@ -57,9 +57,7 @@ TESSELATION_LINE_FLIPPED_REVERSE = 4
 # ---------------------------------------------------------------------------
 
 
-def HexagonTesselationRepeatAtLocation(
-    x: int, y: int, size: float, children: PyOpenSCAD | None = None
-) -> PyOpenSCAD:
+def HexagonTesselationRepeatAtLocation(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Places *children* at a specific spot in a hexagonal-tesselation grid.
 
     Usage::
@@ -84,9 +82,7 @@ def HexagonTesselationRepeatAtLocation(
     return children.translate([x / 2 * dy, y * dx + ((x + 1) % 2) * (dx / 2), 0])
 
 
-def HexagonTesselationRepeat(
-    rows: int, cols: int, size: float, children: PyOpenSCAD | None = None
-) -> PyOpenSCAD:
+def HexagonTesselationRepeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Tiles *children* across a hexagonal-tesselation grid.
 
     Usage::
@@ -118,9 +114,7 @@ def HexagonTesselationRepeat(
     return shape
 
 
-def TriangleTesselationRepeatAtLocation(
-    x: int, y: int, size: float, children: PyOpenSCAD | None = None
-) -> PyOpenSCAD:
+def TriangleTesselationRepeatAtLocation(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Places *children* at a specific spot in a triangle-tesselation grid.
 
     Usage::
@@ -139,12 +133,12 @@ def TriangleTesselationRepeatAtLocation(
     side_length = size * math.sin(math.radians(60))
     height = side_length * (math.sqrt(3) / 2)
     assert children is not None, "children must be given"
-    return children.rotate([0, 0, 60 * (x % 2)]).translate([side_length / 2 * x, height * y + (size - height) * (x % 2), 0])
+    return children.rotate([0, 0, 60 * (x % 2)]).translate(
+        [side_length / 2 * x, height * y + (size - height) * (x % 2), 0]
+    )
 
 
-def TriangleTesselationRepeat(
-    rows: int, cols: int, size: float, children: PyOpenSCAD | None = None
-) -> PyOpenSCAD:
+def TriangleTesselationRepeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Tiles *children* across a triangle-tesselation grid.
 
     Usage::
@@ -294,7 +288,9 @@ def TesselationSideLine(
         flip: one of the TESSELATION_LINE_* constants (default TESSELATION_LINE_NORMAL)
     """
     assert len(path) == 2, f"Input path must be of size 2 path={path}"
-    assert len(path[0]) == 2 and len(path[1]) == 2, f"Input path[0],[1] must be of size 2 path[0]={path[0]} path[1]={path[1]}"
+    assert len(path[0]) == 2 and len(path[1]) == 2, (
+        f"Input path[0],[1] must be of size 2 path[0]={path[0]} path[1]={path[1]}"
+    )
     assert len(side) >= 2, f"Input side must at least than size 2 side={side}"
 
     x = path[1][0] - path[0][0]
@@ -308,7 +304,8 @@ def TesselationSideLine(
         cur_side = side
 
     side_flipped = [
-        [i[0], -i[1] if flip in (TESSELATION_LINE_FLIPPED, TESSELATION_LINE_FLIPPED_REVERSE) else i[1]] for i in cur_side
+        [i[0], -i[1] if flip in (TESSELATION_LINE_FLIPPED, TESSELATION_LINE_FLIPPED_REVERSE) else i[1]]
+        for i in cur_side
     ]
 
     if flip == TESSELATION_LINE_SYMETRIC:
@@ -321,9 +318,7 @@ def TesselationSideLine(
     return Path(result_path).move(path[0])
 
 
-def TesselationPolygon(
-    path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]"
-) -> list[list[float]]:
+def TesselationPolygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]") -> list[list[float]]:
     """Distorts every side of a polygon using profile lines and indexes.
 
     Args:
@@ -437,42 +432,58 @@ def TesselationLeafOutlineMakeVeins(
         little_veins.append(stroke_region([x0, 0], [x1, 15]))
         little_veins.append(stroke_region([x0, 0], [x1, -15]))
 
-        a1 = Path(
-            _bosl2.offset_stroke(
-                [
-                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                    [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
-                ],
-                width=calc_vein_thickness,
+        a1 = (
+            Path(
+                _bosl2.offset_stroke(
+                    [
+                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
+                    ],
+                    width=calc_vein_thickness,
+                )
             )
-        ).rot(90 - line_angle).move([vein_base_x, 0])
-        a2 = Path(
-            _bosl2.offset_stroke(
-                [
-                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                    [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
-                ],
-                width=calc_vein_thickness,
+            .rot(90 - line_angle)
+            .move([vein_base_x, 0])
+        )
+        a2 = (
+            Path(
+                _bosl2.offset_stroke(
+                    [
+                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
+                    ],
+                    width=calc_vein_thickness,
+                )
             )
-        ).rot(90 - line_angle).move([vein_base_x, 0])
-        a3 = Path(
-            _bosl2.offset_stroke(
-                [
-                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                    [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
-                ],
-                width=calc_vein_thickness,
+            .rot(90 - line_angle)
+            .move([vein_base_x, 0])
+        )
+        a3 = (
+            Path(
+                _bosl2.offset_stroke(
+                    [
+                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
+                    ],
+                    width=calc_vein_thickness,
+                )
             )
-        ).rot(-(90 - line_angle)).move([vein_base_x, 0])
-        a4 = Path(
-            _bosl2.offset_stroke(
-                [
-                    [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                    [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
-                ],
-                width=calc_vein_thickness,
+            .rot(-(90 - line_angle))
+            .move([vein_base_x, 0])
+        )
+        a4 = (
+            Path(
+                _bosl2.offset_stroke(
+                    [
+                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
+                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
+                    ],
+                    width=calc_vein_thickness,
+                )
             )
-        ).rot(-(90 - line_angle)).move([vein_base_x, 0])
+            .rot(-(90 - line_angle))
+            .move([vein_base_x, 0])
+        )
         little_veins.append(_bosl2.union([a1, a2, a3, a4]))
 
     region_union = _bosl2.union([main_stem, _bosl2.union([side_a, side_b, _bosl2.union(little_veins)])])
@@ -505,7 +516,10 @@ def TesselationLeafOutline(
 
     if with_veins:
         veins = TesselationLeafOutlineMakeVeins(
-            calc_thickness=calc_thickness, section_height=section_height, section=section, calc_vein_thickness=calc_vein_thickness
+            calc_thickness=calc_thickness,
+            section_height=section_height,
+            section=section,
+            calc_vein_thickness=calc_vein_thickness,
         )
     else:
         veins = _bosl2.make_region([[-100, -100], [-101, -100], [-101, -101]])
@@ -563,9 +577,7 @@ def DeltoidTrihexagonalTilingGetPoints(pts: list[list[float]], i: int, kite: boo
     return [pts[i], pts[(i + 1) % 6], [0, 0]]
 
 
-def DeltoidTrihexagonalTilingInnerParts(
-    pts: list[list[float]], thickness: float, kite: bool = False
-) -> "PyOpenSCAD":
+def DeltoidTrihexagonalTilingInnerParts(pts: list[list[float]], thickness: float, kite: bool = False) -> "PyOpenSCAD":
     """Internal: native 2-D geometry for the deltoid tiling's inner wedges."""
     # Each wedge is a concentric ring (outer offset minus inner offset -- no clipping, see
     # Region.with_holes); the wedges overlap, so their union is real 2-D CSG done natively.
@@ -605,7 +617,9 @@ def DeltoidTrihexagonalTiling(
         [width * -0.5, height / 2],
     ]
     outer_ring = Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=-thickness)).geometry()
-    inner = DeltoidTrihexagonalTilingInnerParts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
+    inner = (
+        DeltoidTrihexagonalTilingInnerParts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
+    )
     return outer_ring | inner
 
 
@@ -667,7 +681,9 @@ def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 
     apothem = math.cos(math.radians(30)) * radius
     inner_side_length = apothem * math.sqrt(3) / 2
 
-    ring = circle(d=inner_side_length * 2, fn=6).offset(outer_offset) - circle(d=inner_side_length * 2, fn=6).offset(-thickness)
+    ring = circle(d=inner_side_length * 2, fn=6).offset(outer_offset) - circle(d=inner_side_length * 2, fn=6).offset(
+        -thickness
+    )
 
     petals = ring
     for i in range(6):
@@ -709,27 +725,75 @@ def TesselationPegasus(size: list[float], thickness: float = 0, outer_offset: fl
     pts_a = [
         [i[0], -i[1]]
         for i in [
-            [-0.5, -0], [-0.131497, 0.189891], [-0.111942, 0.23038], [-0.101048, 0.273655], [-0.0887842, 0.316685],
-            [-0.0365644, 0.30475], [0.0156516, 0.292797], [0.0678689, 0.280851], [0.0172526, 0.161771],
-            [-0.036603, 0.0942535], [-0.104924, 0.0332333], [-0.166696, -0.0188206], [-0.172123, -0.107408],
-            [-0.118787, -0.210899], [-0.121088, -0.235661], [-0.123389, -0.260423], [-0.12569, -0.285184],
-            [-0.0345562, -0.301811], [0.0625798, -0.319535], [0.141772, -0.333985], [0.172519, -0.4],
-            [0.193835, -0.333349], [0.493345, -0.21837], [0.491797, -0.170607], [0.469955, -0.158724],
-            [0.465464, -0.119576], [0.443623, -0.107693], [0.46217, -0.0703219], [0.480717, -0.0329511],
-            [0.499265, 0.00441975], [0.499512, 0.00494432], [0.5, 0],
+            [-0.5, -0],
+            [-0.131497, 0.189891],
+            [-0.111942, 0.23038],
+            [-0.101048, 0.273655],
+            [-0.0887842, 0.316685],
+            [-0.0365644, 0.30475],
+            [0.0156516, 0.292797],
+            [0.0678689, 0.280851],
+            [0.0172526, 0.161771],
+            [-0.036603, 0.0942535],
+            [-0.104924, 0.0332333],
+            [-0.166696, -0.0188206],
+            [-0.172123, -0.107408],
+            [-0.118787, -0.210899],
+            [-0.121088, -0.235661],
+            [-0.123389, -0.260423],
+            [-0.12569, -0.285184],
+            [-0.0345562, -0.301811],
+            [0.0625798, -0.319535],
+            [0.141772, -0.333985],
+            [0.172519, -0.4],
+            [0.193835, -0.333349],
+            [0.493345, -0.21837],
+            [0.491797, -0.170607],
+            [0.469955, -0.158724],
+            [0.465464, -0.119576],
+            [0.443623, -0.107693],
+            [0.46217, -0.0703219],
+            [0.480717, -0.0329511],
+            [0.499265, 0.00441975],
+            [0.499512, 0.00494432],
+            [0.5, 0],
         ]
     ]
     pts_b = [
         [-i[0], i[1]]
         for i in [
-            [0.5, -0.0], [0.456143, -0.0789084], [0.406509, -0.123072], [0.365506, -0.158244], [0.29841, -0.12978],
-            [0.27285, -0.0853574], [0.205624, -0.0572037], [0.165011, 0.0314834], [0.06979, 0.117951],
-            [-0.0974454, 0.0612218], [-0.093908, -0.0578449], [-0.0255355, -0.0900762], [-0.00708426, -0.0756784],
-            [0.0252447, -0.0474022], [0.0436957, -0.0330041], [0.110764, -0.115447], [0.0767458, -0.148258],
-            [0.0311628, -0.16719], [-0.00285616, -0.2], [-0.0599237, -0.179476], [-0.116194, -0.156928],
-            [-0.172503, -0.134443], [-0.178267, 0.0363945], [-0.178267, 0.0363945], [-0.325784, 0.11531],
-            [-0.394859, 0.166938], [-0.498287, 0.220646], [-0.5, 0.221534], [-0.498991, 0.13894],
-            [-0.497203, 0.131818], [-0.458524, -0.0222559], [-0.456539, -0.0],
+            [0.5, -0.0],
+            [0.456143, -0.0789084],
+            [0.406509, -0.123072],
+            [0.365506, -0.158244],
+            [0.29841, -0.12978],
+            [0.27285, -0.0853574],
+            [0.205624, -0.0572037],
+            [0.165011, 0.0314834],
+            [0.06979, 0.117951],
+            [-0.0974454, 0.0612218],
+            [-0.093908, -0.0578449],
+            [-0.0255355, -0.0900762],
+            [-0.00708426, -0.0756784],
+            [0.0252447, -0.0474022],
+            [0.0436957, -0.0330041],
+            [0.110764, -0.115447],
+            [0.0767458, -0.148258],
+            [0.0311628, -0.16719],
+            [-0.00285616, -0.2],
+            [-0.0599237, -0.179476],
+            [-0.116194, -0.156928],
+            [-0.172503, -0.134443],
+            [-0.178267, 0.0363945],
+            [-0.178267, 0.0363945],
+            [-0.325784, 0.11531],
+            [-0.394859, 0.166938],
+            [-0.498287, 0.220646],
+            [-0.5, 0.221534],
+            [-0.498991, 0.13894],
+            [-0.497203, 0.131818],
+            [-0.458524, -0.0222559],
+            [-0.456539, -0.0],
         ]
     ]
 

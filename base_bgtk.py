@@ -123,26 +123,28 @@ def document_box(fn):
     pdf entry) -- the .py analogue of the .scad `// `document` me` marker."""
     fn._bgtk_document = True
     return fn
-m_piece_wiggle_room       = 0.2   # Gap in mm used between joining pieces
-default_lid_thickness     = 2     # Default lid thickness
-default_wall_thickness    = 2     # Default wall thickness
-default_floor_thickness   = 2     # Default floor thickness
-default_stackable_thickness = 1   # Thickness of the stackable section
+
+
+m_piece_wiggle_room = 0.2  # Gap in mm used between joining pieces
+default_lid_thickness = 2  # Default lid thickness
+default_wall_thickness = 2  # Default wall thickness
+default_floor_thickness = 2  # Default floor thickness
+default_stackable_thickness = 1  # Thickness of the stackable section
 default_print_in_place_offset = 0.25  # Offset when printing in place
-default_slicing_layer_height  = 0.2   # Layer height for slicing
-default_hinge_hole_diameter   = 1.75  # Hinge hole diameter
-default_hinge_pin_slop        = 0.2   # Extra diameter for hinge holes
-default_hinge_thickness       = 5     # Hinge thickness
-default_voronoi_seed          = 10000 # Seed for reproducible Voronoi
+default_slicing_layer_height = 0.2  # Layer height for slicing
+default_hinge_hole_diameter = 1.75  # Hinge hole diameter
+default_hinge_pin_slop = 0.2  # Extra diameter for hinge holes
+default_hinge_thickness = 5  # Hinge thickness
+default_voronoi_seed = 10000  # Seed for reproducible Voronoi
 
 # ---------------------------------------------------------------------------
 # Colours
 # ---------------------------------------------------------------------------
 
-default_material_colour          = "yellow"
-default_label_colour             = "black"
-default_label_background_colour  = "lime"
-default_positive_colour          = "black"
+default_material_colour = "yellow"
+default_label_colour = "black"
+default_label_background_colour = "lime"
+default_positive_colour = "black"
 
 # ---------------------------------------------------------------------------
 # BOSL2-style anchor / direction vectors
@@ -182,16 +184,16 @@ class Vec3(list):
     __rmul__ = __mul__  # type: ignore[assignment]
 
 
-BOTTOM  = Vec3([0,  0, -1])
-TOP     = Vec3([0,  0,  1])
-FRONT   = Vec3([0, -1,  0])
-BACK    = Vec3([0,  1,  0])
-LEFT    = Vec3([-1, 0,  0])
-RIGHT   = Vec3([1,  0,  0])
-CENTER  = Vec3([0,  0,  0])
-BOT     = BOTTOM     # alias
-UP      = TOP        # alias
-DOWN    = BOTTOM     # alias
+BOTTOM = Vec3([0, 0, -1])
+TOP = Vec3([0, 0, 1])
+FRONT = Vec3([0, -1, 0])
+BACK = Vec3([0, 1, 0])
+LEFT = Vec3([-1, 0, 0])
+RIGHT = Vec3([1, 0, 0])
+CENTER = Vec3([0, 0, 0])
+BOT = BOTTOM  # alias
+UP = TOP  # alias
+DOWN = BOTTOM  # alias
 
 # ---------------------------------------------------------------------------
 # Shape-type constants
@@ -257,9 +259,11 @@ class CatchType(IntEnum):
     BUMPS_SHORT = 4
     BUMPS_LONG = 5
 
+
 # ---------------------------------------------------------------------------
 # Label-type constants
 # ---------------------------------------------------------------------------
+
 
 class LabelType(IntEnum):
     FRAMED = 0
@@ -270,20 +274,23 @@ class LabelType(IntEnum):
     FRAMELESS = 5
     FRAMELESS_SHORT = 6
 
+
 # Label defaults
-default_label_font             = "Stencil Std:style=Bold"
+default_label_font = "Stencil Std:style=Bold"
 default_label_solid_background = False
-default_label_type             = LabelType.FRAMED
+default_label_type = LabelType.FRAMED
 
 # ---------------------------------------------------------------------------
 # Helper classes
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class InnerSize:
     width: float
     length: float
     height: float
+
 
 @dataclass
 class InnerPath:
@@ -316,16 +323,19 @@ class InnerPath:
         path:    the box's own outline points (the OUTER path -- no offset needed to know it)
         profile: function pointer, ``profile(inset=0) -> native 2-D geometry`` of the inside
     """
+
     width: float
     length: float
     height: float
     path: Any
     profile: Any  # Callable[[float], PyOpenSCAD]; kept loose so the test mock can stand in
 
+
 class ObjectType(IntEnum):
     NEGATIVE = 0
     POSTIVE = 1
     POSTIVE_NEGATIVE = 2
+
 
 @dataclass
 class InnerObject:
@@ -333,6 +343,7 @@ class InnerObject:
     value: Any
     type: ObjectType = ObjectType.NEGATIVE
     color: str | None = None
+
 
 # ---------------------------------------------------------------------------
 # Helper functions
@@ -396,8 +407,7 @@ def DifferenceWithOffset(
             # which is exactly how a BOSL2 region is represented. Verified against the real
             # BOSL2: difference(outer, inner) is literally [outer, inner], same winding
             # (tests/test_difference_with_offset.py).
-            return Region.with_holes(Path(pts).offset(delta=outer_offset),
-                                     Path(pts).offset(delta=offset))
+            return Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=offset))
         return Path(pts).offset(delta=outer_offset)
 
     assert children is not None, "DifferenceWithOffset: provide pts or children"
@@ -416,8 +426,7 @@ def DifferenceWithOffsetRounded(
     if pts is not None:
         if offset != 0:
             # Concentric, so no clipping -- see the note in DifferenceWithOffset().
-            return Region.with_holes(Path(pts).offset(r=outer_offset),
-                                     Path(pts).offset(r=offset))
+            return Region.with_holes(Path(pts).offset(r=outer_offset), Path(pts).offset(r=offset))
         return Path(pts).offset(r=outer_offset)
 
     assert children is not None, "DifferenceWithOffsetRounded: provide pts or children"
@@ -459,9 +468,7 @@ def OffsetSweep(
     """
     rb, rt = float(rounding_bottom), float(rounding_top)
     assert height > 0, f"OffsetSweep: height must be > 0, height={height}"
-    assert abs(rb) + abs(rt) <= height + 1e-9, (
-        f"OffsetSweep: end treatments ({rb}, {rt}) don't fit in height {height}"
-    )
+    assert abs(rb) + abs(rt) <= height + 1e-9, f"OffsetSweep: end treatments ({rb}, {rt}) don't fit in height {height}"
     z0 = rb if rb > 0 else 0.0
     z1 = height - (rt if rt > 0 else 0.0)
     pieces = [profile.linear_extrude(height=float(z1 - z0)).translate([0.0, 0.0, float(z0)])]
@@ -518,4 +525,6 @@ def PolygonPrism(
         poly = polygon([[float(x), float(y)] for x, y in np.asarray(p, dtype=float)])
         shape2d = poly if shape2d is None else shape2d | poly
     assert shape2d is not None, "PolygonPrism: paths must not be empty"
-    return OffsetSweep(shape2d, height=float(h), rounding_bottom=float(rounding_bottom), rounding_top=float(rounding_top))
+    return OffsetSweep(
+        shape2d, height=float(h), rounding_bottom=float(rounding_bottom), rounding_top=float(rounding_top)
+    )

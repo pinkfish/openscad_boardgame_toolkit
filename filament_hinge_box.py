@@ -90,7 +90,9 @@ def HingeOptions(
         hole_diameter = default_hinge_hole_diameter
     if pin_slop is None:
         pin_slop = default_hinge_pin_slop
-    return types.SimpleNamespace(thickness=thickness, hole_diameter=hole_diameter, num_segments=num_segments, pin_slop=pin_slop)
+    return types.SimpleNamespace(
+        thickness=thickness, hole_diameter=hole_diameter, num_segments=num_segments, pin_slop=pin_slop
+    )
 
 
 def MakeBoxWithFilamentHingeLid(
@@ -161,7 +163,9 @@ def MakeBoxWithFilamentHingeLid(
 
     calc_hinge_options = hinge_options if hinge_options is not None else HingeOptions()
     hinge_seg = (
-        calc_hinge_options.num_segments if calc_hinge_options.num_segments is not None else max(math.floor(length / 20), 5)
+        calc_hinge_options.num_segments
+        if calc_hinge_options.num_segments is not None
+        else max(math.floor(length / 20), 5)
     )
     lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness)
     lip_length = max(length / 4, 15)
@@ -175,14 +179,16 @@ def MakeBoxWithFilamentHingeLid(
     main = main.edge_mask(
         [TOP + FRONT, TOP + BACK], children=bosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
     )
-    main = main.edge_mask(
-        [TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4)
-    )
+    main = main.edge_mask([TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4))
     main = main.color(material_colour)
 
     ramp = (
         bosl2.shapes3d.cuboid(
-            [calc_hinge_options.thickness * 1.25 + print_in_place_offset, length, wall_thickness + print_in_place_offset],
+            [
+                calc_hinge_options.thickness * 1.25 + print_in_place_offset,
+                length,
+                wall_thickness + print_in_place_offset,
+            ],
             anchor=BOTTOM + LEFT + FRONT,
             rounding=-wall_thickness,
             edges=TOP + RIGHT,
@@ -206,11 +212,18 @@ def MakeBoxWithFilamentHingeLid(
         rounding=wall_thickness / 4,
         edges=[BOTTOM + LEFT],
     )
-    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
-    catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
-        [width, length / 2, height - lid_thickness - lip_height - print_in_place_offset]
-    ).shape
+    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+        [0, lip_length / 4, lip_height / 2]
+    )
+    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+        [0, -lip_length / 4, lip_height / 2]
+    )
+    catch = (
+        (catch_box | catch_sphere_a | catch_sphere_b)
+        .color(material_colour)
+        .translate([width, length / 2, height - lid_thickness - lip_height - print_in_place_offset])
+        .shape
+    )
     main = main - catch
 
     knuckle = (
@@ -319,9 +332,9 @@ def FilamentBoxInsideMask(
     ).translate([-0.5, -0.5, height - lid_thickness - support_height - floor_thickness])
     body = body - cut1
 
-    cut2 = bosl2.shapes3d.ycyl(d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP).translate(
-        [0, 0.5, height]
-    )
+    cut2 = bosl2.shapes3d.ycyl(
+        d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP
+    ).translate([0, 0.5, height])
     body = body - cut2
 
     # Unwrapped: the native intersection at the call sites needs a raw solid.
@@ -376,14 +389,19 @@ def MakeLidForFilamentBox(
     width, length, height = size
     calc_hinge_options = hinge_options if hinge_options is not None else HingeOptions()
     hinge_seg = (
-        calc_hinge_options.num_segments if calc_hinge_options.num_segments is not None else max(math.floor(length / 20), 5)
+        calc_hinge_options.num_segments
+        if calc_hinge_options.num_segments is not None
+        else max(math.floor(length / 20), 5)
     )
     lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness)
     lip_length = max(length / 4, 15)
 
     top = (
         bosl2.shapes3d.cuboid(
-            [width - wall_thickness * 2.5, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=lid_thickness / 2, edges=BOTTOM
+            [width - wall_thickness * 2.5, length, lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=lid_thickness / 2,
+            edges=BOTTOM,
         )
         .color(material_colour)
         .translate([wall_thickness * 2.5, 0, 0])
@@ -416,19 +434,32 @@ def MakeLidForFilamentBox(
     knuckle = knuckle.color(material_colour)
 
     catch_box = bosl2.shapes3d.cuboid(
-        [wall_thickness / 2, lip_length, lip_height + print_in_place_offset], anchor=BOTTOM + RIGHT, rounding=wall_thickness / 4, edges=[TOP + LEFT]
+        [wall_thickness / 2, lip_length, lip_height + print_in_place_offset],
+        anchor=BOTTOM + RIGHT,
+        rounding=wall_thickness / 4,
+        edges=[TOP + LEFT],
     )
-    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, lip_length / 4, lip_height / 2])
-    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate([0, -lip_length / 4, lip_height / 2])
-    catch = (catch_box | catch_sphere_a | catch_sphere_b).color(material_colour).translate(
-        [width, length / 2, lid_thickness - print_in_place_offset]
-    ).shape
+    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+        [0, lip_length / 4, lip_height / 2]
+    )
+    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+        [0, -lip_length / 4, lip_height / 2]
+    )
+    catch = (
+        (catch_box | catch_sphere_a | catch_sphere_b)
+        .color(material_colour)
+        .translate([width, length / 2, lid_thickness - print_in_place_offset])
+        .shape
+    )
 
     body = lid_stack | knuckle | catch
 
-    hole = bosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT).color(
-        material_colour
-    ).translate([wall_thickness, 0.5, wall_thickness]).shape
+    hole = (
+        bosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
+        .color(material_colour)
+        .translate([wall_thickness, 0.5, wall_thickness])
+        .shape
+    )
     body = body - hole
 
     return body
@@ -612,24 +643,23 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     width, length = size[0], size[1]
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
     _label_raw = MakeLidLabel(
-            size=[width - wall_thickness - lid_boundary * 2, length - lid_boundary * 2],
-            options=label_opts,
-            lid_thickness=lid_thickness,
-            text_str=text_str,
-        )
+        size=[width - wall_thickness - lid_boundary * 2, length - lid_boundary * 2],
+        options=label_opts,
+        lid_thickness=lid_thickness,
+        text_str=text_str,
+    )
     assert _label_raw is not None, "label did not generate"
     label_shape = (
-        _label_raw
-        .mirror([1, 0, 0])
-        .mirror([0, 0, 1])
-        .translate([width - lid_boundary, lid_boundary, lid_thickness])
+        _label_raw.mirror([1, 0, 0]).mirror([0, 0, 1]).translate([width - lid_boundary, lid_boundary, lid_thickness])
     )
 
     lid_children = [label_shape] + (list(extra_children) if extra_children else [])
@@ -690,7 +720,9 @@ def FilamentHingeBoxLidWithLabel(
     if material_colour is None:
         material_colour = default_material_colour
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     shape_piece_raw = ShapeByType(options=calc_shape_options)

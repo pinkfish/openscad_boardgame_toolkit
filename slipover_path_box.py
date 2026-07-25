@@ -32,7 +32,14 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from components import FingerHoleWall
-from lids_base import default_lid_catch_type, internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+from lids_base import (
+    default_lid_catch_type,
+    internal_build_lid,
+    MakeLidLabel,
+    LidMeshBasic,
+    IsDenseShapeType,
+    DenseShapeEdges,
+)
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
@@ -157,14 +164,20 @@ def MakePathBoxWithSlipoverLid(
     n = len(calc_inner_path)
     for i in range(n - 1):
         c = PolygonBoxLidCatch(
-            path=[calc_inner_path[i], calc_inner_path[i + 1]], wall_thickness=wall_thickness, delta=size_spacing,
-            offset=0, lid_catch=lid_catch,
+            path=[calc_inner_path[i], calc_inner_path[i + 1]],
+            wall_thickness=wall_thickness,
+            delta=size_spacing,
+            offset=0,
+            lid_catch=lid_catch,
         )
         if c is not None:
             catches = c if catches is None else catches | c
     c = PolygonBoxLidCatch(
-        path=[calc_inner_path[n - 1], calc_inner_path[0]], wall_thickness=wall_thickness, delta=size_spacing,
-        offset=0, lid_catch=lid_catch,
+        path=[calc_inner_path[n - 1], calc_inner_path[0]],
+        wall_thickness=wall_thickness,
+        delta=size_spacing,
+        offset=0,
+        lid_catch=lid_catch,
     )
     if c is not None:
         catches = c if catches is None else catches | c
@@ -281,13 +294,19 @@ def SlipoverPathBoxLid(
     n = len(calc_inner_path)
     for i in range(n - 1):
         c = PolygonBoxLidCatch(
-            path=[calc_inner_path[i], calc_inner_path[i + 1]], wall_thickness=wall_thickness, delta=0, offset=0,
+            path=[calc_inner_path[i], calc_inner_path[i + 1]],
+            wall_thickness=wall_thickness,
+            delta=0,
+            offset=0,
             lid_catch=lid_catch,
         )
         if c is not None:
             catches = c if catches is None else catches | c
     c = PolygonBoxLidCatch(
-        path=[calc_inner_path[n - 1], calc_inner_path[0]], wall_thickness=wall_thickness, delta=0, offset=0,
+        path=[calc_inner_path[n - 1], calc_inner_path[0]],
+        wall_thickness=wall_thickness,
+        delta=0,
+        offset=0,
         lid_catch=lid_catch,
     )
     if c is not None:
@@ -297,14 +316,20 @@ def SlipoverPathBoxLid(
 
     for i in range(n - 1):
         seg = FingerHoleWallSegmentCutout(
-            path=[calc_inner_path[i], calc_inner_path[i + 1]], depth=wall_thickness * 5, height=finger_height,
-            radius=max(finger_height, 7), finger_catch=finger_catch,
+            path=[calc_inner_path[i], calc_inner_path[i + 1]],
+            depth=wall_thickness * 5,
+            height=finger_height,
+            radius=max(finger_height, 7),
+            finger_catch=finger_catch,
         )
         if seg is not None:
             wall = wall - seg.color(material_colour)
     seg = FingerHoleWallSegmentCutout(
-        path=[calc_inner_path[n - 1], calc_inner_path[0]], depth=wall_thickness * 5, height=finger_height,
-        radius=max(finger_height, 7), finger_catch=finger_catch,
+        path=[calc_inner_path[n - 1], calc_inner_path[0]],
+        depth=wall_thickness * 5,
+        height=finger_height,
+        radius=max(finger_height, 7),
+        finger_catch=finger_catch,
     )
     if seg is not None:
         wall = wall - seg.color(material_colour)
@@ -380,7 +405,9 @@ def SlipoverPathBoxLidWithLabelAndCustomShape(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
 
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
@@ -406,7 +433,9 @@ def SlipoverPathBoxLidWithLabelAndCustomShape(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_shape = MakeLidLabel(size=[calc_width, calc_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
+    label_shape = MakeLidLabel(
+        size=[calc_width, calc_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts
+    )
 
     lid_children = [mesh, label_shape] + (list(extra_children) if extra_children else [])
 
@@ -478,7 +507,9 @@ def SlipoverPathBoxLidWithLabel(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"

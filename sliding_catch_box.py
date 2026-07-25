@@ -109,18 +109,14 @@ def MakeBoxWithSlidingCatchLid(
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
-    ).translate(
-        [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness]
-    )
+    ).translate([-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness])
 
     body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
         edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK],
-    ).translate(
-        [-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing]
-    )
+    ).translate([-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing])
 
     body = body - bosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
@@ -128,7 +124,11 @@ def MakeBoxWithSlidingCatchLid(
         anchor=FRONT + LEFT + BOTTOM,
         edges=[BACK + TOP],
     ).translate(
-        [-0.5, wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2, height - lid_thickness - top_thickness]
+        [
+            -0.5,
+            wall_thickness + length - calc_sliding_len * 2 - size_spacing * 2,
+            height - lid_thickness - top_thickness,
+        ]
     )
 
     body = body - bosl2.shapes3d.cuboid(
@@ -231,9 +231,11 @@ def SlidingCatchBoxLid(
 
     def _cut(size_y: float, tx: float, ty: float) -> "PyOpenSCAD":
         cut_w = wall_thickness + size_spacing + 1
-        return bosl2.shapes3d.cuboid(
-            [cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
-        ).translate([tx, ty, -0.5]).shape
+        return (
+            bosl2.shapes3d.cuboid([cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT)
+            .translate([tx, ty, -0.5])
+            .shape
+        )
 
     front_a = _cut(wall_thickness + calc_sliding_len + 1, -1, -1)
     front_b = _cut(wall_thickness + calc_sliding_len + 1, width - wall_thickness - size_spacing, -1)
@@ -312,7 +314,9 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
     assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be set to [x,y], size={size}"
     width, length = size[0], size[1]
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
@@ -329,11 +333,15 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
     label_opts.full_height = False
     label_shape = MakeLidLabel(size=[width, length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
 
-    fingernail = cube(
-        [width - calc_label_options.border, length - calc_label_options.border, lid_thickness]
-    ).color(material_colour) & SlidingLidFingernail(lid_thickness).color(material_colour).translate(
-        [width / 2, length - calc_label_options.border - 3, 0]
-    ).shape
+    fingernail = (
+        cube([width - calc_label_options.border, length - calc_label_options.border, lid_thickness]).color(
+            material_colour
+        )
+        & SlidingLidFingernail(lid_thickness)
+        .color(material_colour)
+        .translate([width / 2, length - calc_label_options.border - 3, 0])
+        .shape
+    )
 
     lid_children = [mesh, label_shape, fingernail] + (list(extra_children) if extra_children else [])
 
@@ -399,7 +407,9 @@ def SlidingCatchBoxLidWithLabel(
     if material_colour is None:
         material_colour = default_material_colour
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
     calc_lid_thickness = lid_thickness + top_thickness if fill_middle else lid_thickness
 

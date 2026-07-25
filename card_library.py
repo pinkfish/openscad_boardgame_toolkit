@@ -59,7 +59,12 @@ def MakeCardSize(
     """
     if sleeve_wall_thickness is None:
         sleeve_wall_thickness = default_wall_thickness * 0.75
-    return types.SimpleNamespace(length=length, width=width, single_card_thickness=single_card_thickness, sleeve_wall_thickness=sleeve_wall_thickness)
+    return types.SimpleNamespace(
+        length=length,
+        width=width,
+        single_card_thickness=single_card_thickness,
+        sleeve_wall_thickness=sleeve_wall_thickness,
+    )
 
 
 def sumVec(vec: list[float]) -> float:
@@ -82,14 +87,20 @@ def InternalBarriers(num_cards: int | list[int]) -> int:
     return len(num_cards) - 1 if isinstance(num_cards, (list, tuple)) and len(num_cards) > 0 else 0
 
 
-def SleeveSizeWidth(num_cards: int | list[int], card_size: types.SimpleNamespace, wall_thickness: float | None = None) -> float:
+def SleeveSizeWidth(
+    num_cards: int | list[int], card_size: types.SimpleNamespace, wall_thickness: float | None = None
+) -> float:
     """Calculates the width of a card sleeve."""
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
-    return card_size.single_card_thickness * TotalCards(num_cards) + card_size.sleeve_wall_thickness * (2 + InternalBarriers(num_cards))
+    return card_size.single_card_thickness * TotalCards(num_cards) + card_size.sleeve_wall_thickness * (
+        2 + InternalBarriers(num_cards)
+    )
 
 
-def SleeveSize(num_cards: int | list[int], card_size: types.SimpleNamespace, wall_thickness: float | None = None) -> list[float]:
+def SleeveSize(
+    num_cards: int | list[int], card_size: types.SimpleNamespace, wall_thickness: float | None = None
+) -> list[float]:
     """Calculates the [length, width, height] size of a card sleeve."""
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
@@ -176,7 +187,9 @@ def MakeCardLibraryBox(
         print_in_place_offset = default_print_in_place_offset
 
     width, length, height = size
-    assert width > 0 and length > 0 and height > 0, f"Need width,length,height > 0 width={width} length={length} height={height}"
+    assert width > 0 and length > 0 and height > 0, (
+        f"Need width,length,height > 0 width={width} length={length} height={height}"
+    )
     assert floor_thickness > 0, f"Need floor thickness > 0, floor_thickness={floor_thickness}"
     assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
     assert lid_thickness > 0, f"Need lid thickness > 0, lid_thickness={lid_thickness}"
@@ -188,33 +201,55 @@ def MakeCardLibraryBox(
 
     main = (
         bosl2.shapes3d.cuboid(
-            [width, length, height_without_hinge], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness,
+            [width, length, height_without_hinge],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
         )
-        .edge_profile([TOP + FRONT, TOP + BACK, TOP + RIGHT], children=bosl2.masking.mask2d_roundover(wall_thickness / 4))
+        .edge_profile(
+            [TOP + FRONT, TOP + BACK, TOP + RIGHT], children=bosl2.masking.mask2d_roundover(wall_thickness / 4)
+        )
         .face_profile([BOTTOM], r=wall_thickness / 2)
         .corner_profile("ALL", r=wall_thickness / 2)
         .color(material_colour)
     )
 
     inside_cut = (
-        bosl2.shapes3d.cuboid([width, length - wall_thickness * 2, height_without_hinge], rounding=wall_thickness / 4, anchor=BOTTOM + LEFT + FRONT)
+        bosl2.shapes3d.cuboid(
+            [width, length - wall_thickness * 2, height_without_hinge],
+            rounding=wall_thickness / 4,
+            anchor=BOTTOM + LEFT + FRONT,
+        )
         .color(material_colour)
         .translate([wall_thickness, wall_thickness, floor_thickness])
     )
     main = main - inside_cut
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        main = main - bosl2.shapes3d.cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + FRONT + LEFT).translate(
-            [width * 3 / 4 - wall_thickness + wall_thickness / 4, -0.01, height_without_hinge + lid_thickness - wall_thickness]
+        main = main - bosl2.shapes3d.cuboid(
+            [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + FRONT + LEFT
+        ).translate(
+            [
+                width * 3 / 4 - wall_thickness + wall_thickness / 4,
+                -0.01,
+                height_without_hinge + lid_thickness - wall_thickness,
+            ]
         )
-        main = main - bosl2.shapes3d.cuboid([wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + BACK + LEFT).translate(
-            [width * 3 / 4 - wall_thickness + wall_thickness / 4, length + 0.01, height_without_hinge + lid_thickness - wall_thickness]
+        main = main - bosl2.shapes3d.cuboid(
+            [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + BACK + LEFT
+        ).translate(
+            [
+                width * 3 / 4 - wall_thickness + wall_thickness / 4,
+                length + 0.01,
+                height_without_hinge + lid_thickness - wall_thickness,
+            ]
         )
 
     hinge_space_cut = bosl2.shapes3d.cuboid(
-        [wall_thickness * 2 + 0.02, length - wall_thickness * 2, wall_thickness + 0.01], anchor=BOTTOM + LEFT + FRONT,
-        rounding=-wall_thickness, edges=[TOP + RIGHT],
+        [wall_thickness * 2 + 0.02, length - wall_thickness * 2, wall_thickness + 0.01],
+        anchor=BOTTOM + LEFT + FRONT,
+        rounding=-wall_thickness,
+        edges=[TOP + RIGHT],
     ).translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness])
     main = main - hinge_space_cut
 
@@ -224,12 +259,22 @@ def MakeCardLibraryBox(
     main = main - filament_hole
 
     hinge_support = (
-        bosl2.shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6], anchor=TOP + FRONT + LEFT, chamfer=wall_thickness, edges=[BOTTOM + RIGHT])
+        bosl2.shapes3d.cuboid(
+            [wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6],
+            anchor=TOP + FRONT + LEFT,
+            chamfer=wall_thickness,
+            edges=[BOTTOM + RIGHT],
+        )
         .color(material_colour)
         .translate([0, wall_thickness - 0.01, height_without_hinge - wall_thickness])
     )
     back_support = (
-        bosl2.shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness, edges=[TOP + RIGHT])
+        bosl2.shapes3d.cuboid(
+            [wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3],
+            anchor=BOTTOM + FRONT + LEFT,
+            chamfer=wall_thickness,
+            edges=[TOP + RIGHT],
+        )
         .color(material_colour)
         .translate([0, wall_thickness - 0.01, default_floor_thickness - 0.01])
     )
@@ -237,52 +282,107 @@ def MakeCardLibraryBox(
     body = main | hinge_support | back_support
 
     if latch == CARD_LIBRARY_LATCH_CLIP:
-        clip_a = bosl2.shapes3d.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
-        clip_a_cut = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + FRONT + LEFT, edges=[BOTTOM + FRONT]).translate(
-            [wall_thickness / 2, wall_thickness / 2 + 0.01, -wall_thickness / 2]
+        clip_a = bosl2.shapes3d.cuboid(
+            [wall_thickness * 3, wall_thickness, lid_thickness * 2],
+            rounding=wall_thickness / 4,
+            anchor=TOP + FRONT + LEFT,
+            edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT],
         )
-        body = body | (clip_a - clip_a_cut).color(material_colour).translate([width * 3 / 4, 0, height_without_hinge + lid_thickness])
+        clip_a_cut = bosl2.shapes3d.cuboid(
+            [wall_thickness * 2, wall_thickness / 2, wall_thickness / 2],
+            chamfer=wall_thickness / 2,
+            anchor=TOP + FRONT + LEFT,
+            edges=[BOTTOM + FRONT],
+        ).translate([wall_thickness / 2, wall_thickness / 2 + 0.01, -wall_thickness / 2])
+        body = body | (clip_a - clip_a_cut).color(material_colour).translate(
+            [width * 3 / 4, 0, height_without_hinge + lid_thickness]
+        )
 
-        clip_b = bosl2.shapes3d.cuboid([wall_thickness * 3, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
-        clip_b_cut = bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness / 2, wall_thickness / 2], chamfer=wall_thickness / 2, anchor=TOP + BACK + LEFT, edges=[BOTTOM + BACK]).translate(
-            [wall_thickness / 2, -wall_thickness / 2 - 0.01, -wall_thickness / 2]
+        clip_b = bosl2.shapes3d.cuboid(
+            [wall_thickness * 3, wall_thickness, lid_thickness * 2],
+            rounding=wall_thickness / 4,
+            anchor=TOP + BACK + LEFT,
+            edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK],
         )
-        body = body | (clip_b - clip_b_cut).color(material_colour).translate([width * 3 / 4, length, height_without_hinge + lid_thickness])
+        clip_b_cut = bosl2.shapes3d.cuboid(
+            [wall_thickness * 2, wall_thickness / 2, wall_thickness / 2],
+            chamfer=wall_thickness / 2,
+            anchor=TOP + BACK + LEFT,
+            edges=[BOTTOM + BACK],
+        ).translate([wall_thickness / 2, -wall_thickness / 2 - 0.01, -wall_thickness / 2])
+        body = body | (clip_b - clip_b_cut).color(material_colour).translate(
+            [width * 3 / 4, length, height_without_hinge + lid_thickness]
+        )
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        latch_a = bosl2.shapes3d.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + FRONT + LEFT, edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT])
+        latch_a = bosl2.shapes3d.cuboid(
+            [wall_thickness * 5, wall_thickness, lid_thickness * 2],
+            rounding=wall_thickness / 4,
+            anchor=TOP + FRONT + LEFT,
+            edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT],
+        )
         latch_a_cut = bosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
-            h=wall_thickness + 0.02, shift=[0, 0], anchor=TOP + FRONT,
+            h=wall_thickness + 0.02,
+            shift=[0, 0],
+            anchor=TOP + FRONT,
         ).translate([wall_thickness * 2.5, -0.01, -wall_thickness])
         body = body | (latch_a - latch_a_cut).color(material_colour).translate(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, 0, height_without_hinge + lid_thickness]
         )
 
-        latch_b = bosl2.shapes3d.cuboid([wall_thickness * 5, wall_thickness, lid_thickness * 2], rounding=wall_thickness / 4, anchor=TOP + BACK + LEFT, edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK])
+        latch_b = bosl2.shapes3d.cuboid(
+            [wall_thickness * 5, wall_thickness, lid_thickness * 2],
+            rounding=wall_thickness / 4,
+            anchor=TOP + BACK + LEFT,
+            edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK],
+        )
         latch_b_cut = bosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
-            h=wall_thickness + 0.02, shift=[0, 0], anchor=TOP + BACK,
+            h=wall_thickness + 0.02,
+            shift=[0, 0],
+            anchor=TOP + BACK,
         ).translate([wall_thickness * 2.5, 0.01, -wall_thickness])
         body = body | (latch_b - latch_b_cut).color(material_colour).translate(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, length, height_without_hinge + lid_thickness]
         )
 
-    front_lip = bosl2.shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + RIGHT]).color(material_colour)
+    front_lip = bosl2.shapes3d.cuboid(
+        [wall_thickness, length - wall_thickness * 2 + 0.02, lip_size],
+        anchor=BOTTOM + FRONT + LEFT,
+        rounding=wall_thickness / 2,
+        edges=[TOP + RIGHT],
+    ).color(material_colour)
     front_lip_chamfer = (
-        bosl2.shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness], anchor=BOTTOM + FRONT + LEFT, chamfer=wall_thickness / 3, edges=[BOTTOM + LEFT, TOP + LEFT, TOP + RIGHT])
+        bosl2.shapes3d.cuboid(
+            [wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+            chamfer=wall_thickness / 3,
+            edges=[BOTTOM + LEFT, TOP + LEFT, TOP + RIGHT],
+        )
         .color(material_colour)
         .translate([-wall_thickness / 2, 0, lip_size - wall_thickness])
     )
-    body = body | (front_lip | front_lip_chamfer).translate([width - wall_thickness, wall_thickness + 0.01, floor_thickness - 0.01])
+    body = body | (front_lip | front_lip_chamfer).translate(
+        [width - wall_thickness, wall_thickness + 0.01, floor_thickness - 0.01]
+    )
 
     back_hinge = (
         pysolidfive.knuckle_hinge(
-            length=length - wall_thickness * 2 - print_in_place_offset * 2, segs=hinge_seg, offset=wall_thickness + lid_thickness,
-            knuckle_diam=wall_thickness + lid_thickness, arm_height=0, arm_angle=90, clear_top=False, inner=True, spin=90,
-            pin_diam=hinge_hole_diameter, orient=list(TOP), anchor=BOTTOM + BACK + LEFT,
+            length=length - wall_thickness * 2 - print_in_place_offset * 2,
+            segs=hinge_seg,
+            offset=wall_thickness + lid_thickness,
+            knuckle_diam=wall_thickness + lid_thickness,
+            arm_height=0,
+            arm_angle=90,
+            clear_top=False,
+            inner=True,
+            spin=90,
+            pin_diam=hinge_hole_diameter,
+            orient=list(TOP),
+            anchor=BOTTOM + BACK + LEFT,
         )
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, height_without_hinge - wall_thickness - lid_thickness])
@@ -319,12 +419,16 @@ def SlidingChannel(size: list[float], wall_thickness: float) -> "PyOpenSCAD":
     a = a.edge_profile([TOP + LEFT], children=bosl2.masking.mask2d_roundover(height / 2)).translate([-height, 0, -0.1])
 
     b = bosl2.shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + LEFT])
-    b = b.edge_profile([TOP + RIGHT], children=bosl2.masking.mask2d_roundover(height / 2)).translate([width - height, 0, -0.1])
+    b = b.edge_profile([TOP + RIGHT], children=bosl2.masking.mask2d_roundover(height / 2)).translate(
+        [width - height, 0, -0.1]
+    )
 
     return (a | b).shape
 
 
-def SlidingLatch(size: list[float], print_in_place_offset: float, lid_thickness: float, wall_thickness: float) -> "PyOpenSCAD":
+def SlidingLatch(
+    size: list[float], print_in_place_offset: float, lid_thickness: float, wall_thickness: float
+) -> "PyOpenSCAD":
     """Creates a sliding latch for the card library box lid.
 
     Args:
@@ -338,16 +442,19 @@ def SlidingLatch(size: list[float], print_in_place_offset: float, lid_thickness:
     a = bosl2.shapes3d.prismoid(
         size1=[width - print_in_place_offset * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         size2=[width - wall_thickness * 2, length - wall_thickness * 1.3 + print_in_place_offset],
-        h=wall_thickness - print_in_place_offset * 1.5, anchor=BOTTOM + FRONT + LEFT,
+        h=wall_thickness - print_in_place_offset * 1.5,
+        anchor=BOTTOM + FRONT + LEFT,
     ).translate([0, 0, lid_thickness + print_in_place_offset * 1.5])
 
-    b = bosl2.shapes3d.cuboid([width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset * 2], anchor=BOTTOM + BACK + LEFT).translate(
-        [print_in_place_offset * 0.25, length - wall_thickness * 1.75 - print_in_place_offset, 0]
-    )
+    b = bosl2.shapes3d.cuboid(
+        [width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset * 2],
+        anchor=BOTTOM + BACK + LEFT,
+    ).translate([print_in_place_offset * 0.25, length - wall_thickness * 1.75 - print_in_place_offset, 0])
 
-    c = bosl2.shapes3d.cuboid([width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness], anchor=BOTTOM + BACK + LEFT).translate(
-        [print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0]
-    )
+    c = bosl2.shapes3d.cuboid(
+        [width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness],
+        anchor=BOTTOM + BACK + LEFT,
+    ).translate([print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0])
 
     return (a | b | c).shape
 
@@ -398,7 +505,9 @@ def CardLibraryBoxLid(
         size_spacing = m_piece_wiggle_room
 
     width, length, height = size
-    assert width > 0 and length > 0 and height > 0, f"Need width,length,height > 0 width={width} length={length} height={height}"
+    assert width > 0 and length > 0 and height > 0, (
+        f"Need width,length,height > 0 width={width} length={length} height={height}"
+    )
     assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
     assert lid_thickness > 0, f"Need lid thickness > 0, lid_thickness={lid_thickness}"
     assert lip_size > 0, f"Need lip size > 0, lip_size={lip_size}"
@@ -409,29 +518,54 @@ def CardLibraryBoxLid(
     hinge_seg = max(math.floor(length / 20), 5)
 
     base_plate = (
-        bosl2.shapes3d.cuboid([width - wall_thickness * 2, length, lid_thickness], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[BOTTOM])
+        bosl2.shapes3d.cuboid(
+            [width - wall_thickness * 2, length, lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness / 2,
+            edges=[BOTTOM],
+        )
         .color(material_colour)
         .translate([wall_thickness * 2, 0, 0])
     )
 
     back_hinge = (
         pysolidfive.knuckle_hinge(
-            length=length - wall_thickness * 2 - print_in_place_offset * 2, segs=hinge_seg, offset=wall_thickness + lid_thickness,
-            knuckle_diam=wall_thickness + lid_thickness, pin_diam=hinge_hole_diameter, arm_height=0, arm_angle=90,
-            clear_top=False, spin=90, orient=list(LEFT), anchor=TOP + BACK + LEFT,
+            length=length - wall_thickness * 2 - print_in_place_offset * 2,
+            segs=hinge_seg,
+            offset=wall_thickness + lid_thickness,
+            knuckle_diam=wall_thickness + lid_thickness,
+            pin_diam=hinge_hole_diameter,
+            arm_height=0,
+            arm_angle=90,
+            clear_top=False,
+            spin=90,
+            orient=list(LEFT),
+            anchor=TOP + BACK + LEFT,
         )
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, 0])
     )
 
     back_holder = (
-        bosl2.shapes3d.cuboid([wall_thickness * 2, length - wall_thickness * 2 - print_in_place_offset * 2, wall_thickness + lid_thickness], anchor=BOTTOM + FRONT + LEFT)
+        bosl2.shapes3d.cuboid(
+            [
+                wall_thickness * 2,
+                length - wall_thickness * 2 - print_in_place_offset * 2,
+                wall_thickness + lid_thickness,
+            ],
+            anchor=BOTTOM + FRONT + LEFT,
+        )
         .color(material_colour)
         .translate([wall_thickness * 1.5, wall_thickness + print_in_place_offset, 0])
     )
 
     front_lip = (
-        bosl2.shapes3d.cuboid([wall_thickness, length - wall_thickness * 2 - 1, lid_thickness + lip_size], anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 2, edges=[TOP + LEFT, TOP + RIGHT])
+        bosl2.shapes3d.cuboid(
+            [wall_thickness, length - wall_thickness * 2 - 1, lid_thickness + lip_size],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=wall_thickness / 2,
+            edges=[TOP + LEFT, TOP + RIGHT],
+        )
         .color(material_colour)
         .translate([width - wall_thickness, wall_thickness + 0.5, 0])
     )
@@ -439,22 +573,28 @@ def CardLibraryBoxLid(
     base = base_plate | back_hinge | back_holder | front_lip
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        base = base - bosl2.shapes3d.cuboid([wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + FRONT + LEFT).translate(
-            [width * 3 / 4 - print_in_place_offset - wall_thickness, -0.01, -0.01]
-        )
-        base = base - bosl2.shapes3d.cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2], anchor=BOTTOM + BACK + LEFT).translate(
-            [width * 3 / 4 - print_in_place_offset, length + 0.01, -0.01]
-        )
+        base = base - bosl2.shapes3d.cuboid(
+            [wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).translate([width * 3 / 4 - print_in_place_offset - wall_thickness, -0.01, -0.01])
+        base = base - bosl2.shapes3d.cuboid(
+            [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
+            anchor=BOTTOM + BACK + LEFT,
+        ).translate([width * 3 / 4 - print_in_place_offset, length + 0.01, -0.01])
 
     kids = list(children) if children else []
     extra = kids[0:2]
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        slide_support_a = cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness]).color(material_colour).translate(
-            [width * 3 / 4 - print_in_place_offset - wall_thickness, wall_thickness, 0]
+        slide_support_a = (
+            cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness])
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset - wall_thickness, wall_thickness, 0])
         )
-        slide_support_b = cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness]).color(material_colour).translate(
-            [width * 3 / 4 - print_in_place_offset - wall_thickness, length - edge_size - wall_thickness, 0]
+        slide_support_b = (
+            cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness])
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset - wall_thickness, length - edge_size - wall_thickness, 0])
         )
         slide_supports = slide_support_a | slide_support_b
         # Plain unrounded boxes as native cubes (translated to match the old TOP+BACK+LEFT /
@@ -462,11 +602,27 @@ def CardLibraryBoxLid(
         # internal_build_lid(), and PythonSCAD segfaults when frep()-meshed nodes appear in
         # a tree that is referenced from more than one CSG branch.
         _hc_size = [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1]
-        handle_cut_a = cube(_hc_size).translate([0, -_hc_size[1], -_hc_size[2]]).translate(
-            [width * 3 / 4 - print_in_place_offset * 0.5, sliding_latch_size[1] - wall_thickness * 0.75, lid_thickness + 0.01]
+        handle_cut_a = (
+            cube(_hc_size)
+            .translate([0, -_hc_size[1], -_hc_size[2]])
+            .translate(
+                [
+                    width * 3 / 4 - print_in_place_offset * 0.5,
+                    sliding_latch_size[1] - wall_thickness * 0.75,
+                    lid_thickness + 0.01,
+                ]
+            )
         )
-        handle_cut_b = cube(_hc_size).translate([0, 0, -_hc_size[2]]).translate(
-            [width * 3 / 4 - print_in_place_offset * 0.5, length - sliding_latch_size[1] + wall_thickness * 0.75, lid_thickness + 0.01]
+        handle_cut_b = (
+            cube(_hc_size)
+            .translate([0, 0, -_hc_size[2]])
+            .translate(
+                [
+                    width * 3 / 4 - print_in_place_offset * 0.5,
+                    length - sliding_latch_size[1] + wall_thickness * 0.75,
+                    lid_thickness + 0.01,
+                ]
+            )
         )
         slide_supports = slide_supports - handle_cut_a - handle_cut_b
         extra = extra + [slide_supports]
@@ -482,26 +638,39 @@ def CardLibraryBoxLid(
             wall_thickness=wall_thickness,
         ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
 
-        body = body | bosl2.shapes3d.cuboid([wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT).color(
-            material_colour
-        ).translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
+        body = body | bosl2.shapes3d.cuboid(
+            [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT
+        ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
 
-        body = body | SlidingLatch(size=sliding_latch_size, print_in_place_offset=print_in_place_offset, lid_thickness=lid_thickness, wall_thickness=wall_thickness).color(
-            material_colour
-        ).translate([width * 3 / 4, wall_thickness, 0])
+        body = body | SlidingLatch(
+            size=sliding_latch_size,
+            print_in_place_offset=print_in_place_offset,
+            lid_thickness=lid_thickness,
+            wall_thickness=wall_thickness,
+        ).color(material_colour).translate([width * 3 / 4, wall_thickness, 0])
 
         body = body | SlidingChannel(
             [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
             wall_thickness=wall_thickness,
-        ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
+        ).color(material_colour).translate(
+            [width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness]
+        )
 
-        body = body | bosl2.shapes3d.cuboid([wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT).color(
-            material_colour
-        ).translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1])
+        body = body | bosl2.shapes3d.cuboid(
+            [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).color(material_colour).translate(
+            [width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1]
+        )
 
-        body = body | SlidingLatch(size=sliding_latch_size, print_in_place_offset=print_in_place_offset, lid_thickness=lid_thickness, wall_thickness=wall_thickness).rotate(
-            [0, 0, 180]
-        ).color(material_colour).translate([width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0])
+        body = body | SlidingLatch(
+            size=sliding_latch_size,
+            print_in_place_offset=print_in_place_offset,
+            lid_thickness=lid_thickness,
+            wall_thickness=wall_thickness,
+        ).rotate([0, 0, 180]).color(material_colour).translate(
+            [width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0]
+        )
 
     return body
 
@@ -540,17 +709,32 @@ def CardLibraryBoxLidWithCustomShape(
 
     pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
-        size=[size[0] - wall_thickness, size[1] - wall_thickness], lid_thickness=lid_thickness, boundary=lid_boundary,
-        layout_width=layout_width, aspect_ratio=aspect_ratio, dense=lid_pattern_dense, dense_shape_edges=lid_dense_shape_edges,
-        material_colour=material_colour, inner_control=pattern_inner_control, children=pattern_shape,
+        size=[size[0] - wall_thickness, size[1] - wall_thickness],
+        lid_thickness=lid_thickness,
+        boundary=lid_boundary,
+        layout_width=layout_width,
+        aspect_ratio=aspect_ratio,
+        dense=lid_pattern_dense,
+        dense_shape_edges=lid_dense_shape_edges,
+        material_colour=material_colour,
+        inner_control=pattern_inner_control,
+        children=pattern_shape,
     )
 
     lid_children = [mesh] + (list(extra_children) if extra_children else [])
 
     return CardLibraryBoxLid(
-        size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness, lip_size=lip_size, latch=latch,
-        material_colour=material_colour, hinge_hole_diameter=hinge_hole_diameter, print_in_place_offset=print_in_place_offset,
-        lid_boundary=lid_boundary, size_spacing=size_spacing, children=lid_children,
+        size=size,
+        wall_thickness=wall_thickness,
+        lid_thickness=lid_thickness,
+        lip_size=lip_size,
+        latch=latch,
+        material_colour=material_colour,
+        hinge_hole_diameter=hinge_hole_diameter,
+        print_in_place_offset=print_in_place_offset,
+        lid_boundary=lid_boundary,
+        size_spacing=size_spacing,
+        children=lid_children,
     )
 
 
@@ -587,11 +771,22 @@ def CardLibraryBoxLidWithShape(
     shape_piece = shape_piece_raw.color(material_colour)
 
     return CardLibraryBoxLidWithCustomShape(
-        size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness, lip_size=lip_size, latch=latch,
-        hinge_hole_diameter=hinge_hole_diameter, print_in_place_offset=print_in_place_offset, size_spacing=size_spacing,
-        lid_boundary=lid_boundary, aspect_ratio=aspect_ratio, lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type), material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type), shape_child=shape_piece, extra_children=extra_children,
+        size=size,
+        wall_thickness=wall_thickness,
+        lid_thickness=lid_thickness,
+        lip_size=lip_size,
+        latch=latch,
+        hinge_hole_diameter=hinge_hole_diameter,
+        print_in_place_offset=print_in_place_offset,
+        size_spacing=size_spacing,
+        lid_boundary=lid_boundary,
+        aspect_ratio=aspect_ratio,
+        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+        material_colour=material_colour,
+        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
+        shape_child=shape_piece,
+        extra_children=extra_children,
     )
 
 
@@ -633,7 +828,9 @@ def CardLibraryBoxLidWithLabel(
         lid_thickness = default_lid_thickness
     if material_colour is None:
         material_colour = "magenta"
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    calc_label_options = (
+        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
+    )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
     width, length = size[0], size[1]
 
@@ -649,12 +846,14 @@ def CardLibraryBoxLidWithLabel(
     half_w = (width - lid_boundary * 2) / 2
     half_l = (length - lid_boundary * 2) / 2
     label_shape_raw = MakeLidLabel(
-        size=[width - lid_boundary * 2, length - lid_boundary * 2], options=label_opts, lid_thickness=lid_thickness, text_str=label
+        size=[width - lid_boundary * 2, length - lid_boundary * 2],
+        options=label_opts,
+        lid_thickness=lid_thickness,
+        text_str=label,
     )
     assert label_shape_raw is not None, "label did not generate"
     label_shape = (
-        label_shape_raw
-        .translate([-half_w, -half_l, 0])
+        label_shape_raw.translate([-half_w, -half_l, 0])
         .rotate([0, 180, 0])
         .translate([half_w, half_l, lid_thickness])
         .translate([lid_boundary, lid_boundary, 0])
@@ -663,12 +862,23 @@ def CardLibraryBoxLidWithLabel(
     lid_children = [label_shape] + (list(extra_children) if extra_children else [])
 
     return CardLibraryBoxLidWithCustomShape(
-        size=size, wall_thickness=wall_thickness, lid_thickness=lid_thickness, lip_size=lip_size, latch=latch,
-        hinge_hole_diameter=hinge_hole_diameter, print_in_place_offset=print_in_place_offset, size_spacing=size_spacing,
-        lid_boundary=lid_boundary, aspect_ratio=aspect_ratio, layout_width=layout_width,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type), lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour, pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        shape_child=pattern_shape, extra_children=lid_children,
+        size=size,
+        wall_thickness=wall_thickness,
+        lid_thickness=lid_thickness,
+        lip_size=lip_size,
+        latch=latch,
+        hinge_hole_diameter=hinge_hole_diameter,
+        print_in_place_offset=print_in_place_offset,
+        size_spacing=size_spacing,
+        lid_boundary=lid_boundary,
+        aspect_ratio=aspect_ratio,
+        layout_width=layout_width,
+        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
+        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
+        material_colour=material_colour,
+        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
+        shape_child=pattern_shape,
+        extra_children=lid_children,
     )
 
 
@@ -751,15 +961,22 @@ def CardSleeveForLibrary(
     for i in range(num_compartments):
         comp_y_size = cards_array[i] * card_size.single_card_thickness
         comp_y_offset = (
-            card_size.sleeve_wall_thickness + sumCardsTo(cards_array, i) * card_size.single_card_thickness + i * card_size.sleeve_wall_thickness
+            card_size.sleeve_wall_thickness
+            + sumCardsTo(cards_array, i) * card_size.single_card_thickness
+            + i * card_size.sleeve_wall_thickness
         )
         body = body - bosl2.shapes3d.cuboid(
-            [width - wall_thickness - card_size.sleeve_wall_thickness, comp_y_size, height], anchor=BOTTOM + FRONT + LEFT,
-            rounding=min(wall_thickness / 4, comp_y_size / 2, (width - wall_thickness - card_size.sleeve_wall_thickness) / 2),
+            [width - wall_thickness - card_size.sleeve_wall_thickness, comp_y_size, height],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=min(
+                wall_thickness / 4, comp_y_size / 2, (width - wall_thickness - card_size.sleeve_wall_thickness) / 2
+            ),
         ).color(material_colour).translate([wall_thickness, comp_y_offset, wall_thickness])
 
         body = body - bosl2.shapes3d.cuboid(
-            [width, comp_y_size, height], anchor=BOTTOM + FRONT + LEFT, rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2),
+            [width, comp_y_size, height],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2),
         ).color(material_colour).translate([wall_thickness, comp_y_offset, wall_thickness * 3])
 
     rounding = -min(wall_thickness, length / 2, width / 2)
@@ -777,10 +994,17 @@ def CardSleeveForLibrary(
     body = body - side_round
 
     radius = wall_thickness * math.sqrt(3) / 2
-    catch_cut = bosl2.shapes3d.cuboid(
-        [wall_thickness, length + 0.02, wall_thickness + print_in_place_offset], anchor=FRONT, chamfer=wall_thickness / 3,
-        edges=[FRONT + TOP, FRONT + BOTTOM],
-    ).color(material_colour).rotate([0, 45, 0]).translate([-radius / 2, -0.01, lip_size + print_in_place_offset / 2 - wall_thickness / 2])
+    catch_cut = (
+        bosl2.shapes3d.cuboid(
+            [wall_thickness, length + 0.02, wall_thickness + print_in_place_offset],
+            anchor=FRONT,
+            chamfer=wall_thickness / 3,
+            edges=[FRONT + TOP, FRONT + BOTTOM],
+        )
+        .color(material_colour)
+        .rotate([0, 45, 0])
+        .translate([-radius / 2, -0.01, lip_size + print_in_place_offset / 2 - wall_thickness / 2])
+    )
     body = body - catch_cut
 
     has_text = text_new_width > min_text_height
@@ -860,8 +1084,13 @@ def MakeAllSleeves(
         y_offset = sum(sleeve_sizes[x][1] + spacing for x in range(i))
         child = children(i, card_array[i]) if callable(children) else None
         sleeve = CardSleeveForLibrary(
-            num_cards=card_array[i][1], card_size=card_size, label=card_array[i][0], add_positive=True,
-            text_length_offset=18, emboss_text=0.3, children=child,
+            num_cards=card_array[i][1],
+            card_size=card_size,
+            label=card_array[i][0],
+            add_positive=True,
+            text_length_offset=18,
+            emboss_text=0.3,
+            children=child,
         ).translate([0, y_offset, 0])
         shape = sleeve if shape is None else shape | sleeve
     assert shape is not None, "MakeAllSleeves(): card_array is empty"

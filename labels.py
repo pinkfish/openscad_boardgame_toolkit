@@ -36,7 +36,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class LabelOptions:    
+class LabelOptions:
     """Container for all label-styling options.
 
     Create one with :func:`MakeLabelOptions` and pass it to any
@@ -59,6 +59,7 @@ class LabelOptions:
         material_colour:         material colour (default default_material_colour)
         label_type:              one of the :class:`LabelType` enum values (default default_label_type)
     """
+
     text_scale: float = 1.0
     text_length: float | None = None
     angle: float | None = 0
@@ -111,7 +112,7 @@ def MakeStripedGrid(size: list[float], bar_width: float = 1) -> PyOpenSCAD:
     dx = bar_width * 2
     x_count = (width + length) / (bar_width + dx)
 
-    pieces:list[PyOpenSCAD] = []
+    pieces: list[PyOpenSCAD] = []
     for j in range(math.floor(x_count) + 1):
         bar = square([bar_width, length * 2]).rotate([0, 0, 45]).translate([j * (bar_width + dx), -bar_width])
         piece = square([width, length]) & bar
@@ -150,7 +151,7 @@ def Make3dStripedGrid(
     dx = bar_width * 2 + spacing
     x_count = (width + length) / (bar_width + dx)
 
-    pieces:list[PyOpenSCAD] = []
+    pieces: list[PyOpenSCAD] = []
     for j in range(math.floor(x_count) + 1):
         piece = (
             shapes3d.prismoid(
@@ -211,9 +212,9 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
             scale = min(avail_l / raw_w, avail_w / raw_l)
         else:
             scale = min(avail_w / raw_w, avail_l / raw_l)
-        text_shape = text(
-            text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom"
-        ).resize([raw_w * scale, raw_l * scale, 0])
+        text_shape = text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
+            [raw_w * scale, raw_l * scale, 0]
+        )
         if rotate_text:
             shape = (
                 text_shape.rotate([0, 0, 90])
@@ -225,7 +226,9 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
         return shape.linear_extrude(text_height)
 
     full_h = options.full_height
-    h_half = (lid_thickness - default_slicing_layer_height) if full_h else (lid_thickness / 2 - default_slicing_layer_height)
+    h_half = (
+        (lid_thickness - default_slicing_layer_height) if full_h else (lid_thickness / 2 - default_slicing_layer_height)
+    )
     calc_font = options.font
     if calc_font is None:
         calc_font = default_label_font
@@ -240,9 +243,12 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     )
 
     rounding = options.radius if options.radius * 2 <= min(width, length) else min(width, length) / 2
-    result = result | shapes3d.cuboid(
-        [width, length, h_half], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
-    ).color(options.material_colour).shape
+    result = (
+        result
+        | shapes3d.cuboid([width, length, h_half], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+        .color(options.material_colour)
+        .shape
+    )
 
     calc_background_colour = options.label_background_colour
     if calc_background_colour is None:
@@ -261,7 +267,9 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     l_cut = length - options.border * 2
     cut_rounding = options.radius if options.radius * 2 <= min(w_cut, l_cut) else min(w_cut, l_cut) / 2
     cut_box = (
-        shapes3d.cuboid([w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+        shapes3d.cuboid(
+            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+        )
         .color(options.material_colour)
         .translate([options.border, options.border, cut_z])
     )
@@ -272,7 +280,10 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     inner_rounding = options.radius if options.radius * 2 < min(inner_w, inner_l) else min(inner_w, inner_l) / 2
     inner_box = (
         shapes3d.cuboid(
-            [inner_w, inner_l, default_slicing_layer_height], rounding=inner_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            [inner_w, inner_l, default_slicing_layer_height],
+            rounding=inner_rounding,
+            edges="Z",
+            anchor=FRONT + LEFT + BOTTOM,
         )
         .color(calc_background_colour)
         .translate([options.border + 0.01, options.border + 0.01, 0])
@@ -313,7 +324,9 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     assert options is not None, "Must speify label options"
 
     full_h = options.full_height
-    h_half = (lid_thickness - default_slicing_layer_height) if full_h else (lid_thickness / 2 - default_slicing_layer_height)
+    h_half = (
+        (lid_thickness - default_slicing_layer_height) if full_h else (lid_thickness / 2 - default_slicing_layer_height)
+    )
 
     def TextShape(calc_font: str, text_thickness: float = lid_thickness, edge_offset: float = 0) -> PyOpenSCAD:
         # See MakeMainLidLabelSolid's TextShape: resize() has no aspect-preserving `auto=`
@@ -329,9 +342,9 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             scale = min(avail_l / raw_w, avail_w / raw_l)
         else:
             scale = min(avail_w / raw_w, avail_l / raw_l)
-        text_shape = text(
-            text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom"
-        ).resize([raw_w * scale, raw_l * scale, 0])
+        text_shape = text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
+            [raw_w * scale, raw_l * scale, 0]
+        )
         if rotate_text:
             shape = (
                 text_shape.rotate([0, 0, 90])
@@ -351,7 +364,9 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
         # here covers the whole footprint solidly, hiding the differently-colored striped
         # `bottom` layer beneath it entirely (this was rendering as a plain flat background).
         top = (
-            shapes3d.cuboid([w, l, default_slicing_layer_height], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+            shapes3d.cuboid(
+                [w, l, default_slicing_layer_height], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            )
             .color(calc_background_color)
             .translate([options.border + 0.01, options.border + 0.01, 0])
             & MakeStripedGrid(size=[width, length])
@@ -365,7 +380,9 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             .color(options.material_colour)
             .translate([options.border, options.border, 0])
         )
-        stripes_part = MakeStripedGrid([width, length]).linear_extrude(height=lid_thickness).color(options.material_colour)
+        stripes_part = (
+            MakeStripedGrid([width, length]).linear_extrude(height=lid_thickness).color(options.material_colour)
+        )
         bottom = box_part & stripes_part
 
         return top | bottom
@@ -386,7 +403,9 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     l_cut = length - options.border * 2
     cut_rounding = options.radius if options.radius * 2 <= min(w_cut, l_cut) else min(w_cut, l_cut) / 2
     cutter = (
-        shapes3d.cuboid([w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+        shapes3d.cuboid(
+            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+        )
         .color(options.material_colour)
         .translate([options.border, options.border, -0.5])
     )
@@ -429,9 +448,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     return result.translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0]).shape
 
 
-def MakeFramedLidLabel(
-    size: list[float], lid_thickness: float, label: str, options: LabelOptions
-) -> PyOpenSCAD | None:
+def MakeFramedLidLabel(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> PyOpenSCAD | None:
     """Makes a framed (solid or striped) label for a lid.
 
     Usage::
@@ -468,7 +485,11 @@ def MakeFramedLidLabel(
     )
     calc_finger_hole_size = options.finger_hole_size
     if calc_finger_hole_size is None:
-        calc_finger_hole_size = 10 if (min(length, width) if options.short_length else max(length, width)) - calc_text_length - 10 > 0 else 0
+        calc_finger_hole_size = (
+            10
+            if (min(length, width) if options.short_length else max(length, width)) - calc_text_length - 10 > 0
+            else 0
+        )
     calc_radius = options.radius
     if calc_radius is None:
         calc_radius = min(5, calc_text_width / 4)

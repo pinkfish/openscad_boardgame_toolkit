@@ -109,7 +109,9 @@ def HingeLineWithSpacingAndNum(
                 )
             ).rotate([0, 0, spin])
 
-            arm_outer = bosl2.shapes3d.cuboid([1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT])
+            arm_outer = bosl2.shapes3d.cuboid(
+                [1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT]
+            )
             cut_a = bosl2.shapes3d.cylinder(r=diameter / 2 + offset, h=length, center=False).translate(
                 [diameter / 4 + offset, 0, -(spacing / 4 + diameter / 2)]
             )
@@ -248,8 +250,10 @@ def HingeBoxLidLabel(
     if size_spacing is None:
         size_spacing = default_slicing_layer_height
 
-    calc_label_options = label_options if label_options is not None else MakeLabelOptions(
-        material_colour=material_colour, full_height=True
+    calc_label_options = (
+        label_options
+        if label_options is not None
+        else MakeLabelOptions(material_colour=material_colour, full_height=True)
     )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
@@ -276,7 +280,9 @@ def HingeBoxLidLabel(
 
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
-    label_raw = MakeLidLabel(size=[inner_width, inner_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
+    label_raw = MakeLidLabel(
+        size=[inner_width, inner_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts
+    )
     # A lid too narrow for the label yields None (labels.py warns "ignoring label"); build the
     # lid without a label rather than failing, matching the .scad.
     children = [top, mesh]
@@ -369,7 +375,13 @@ def MakeBoxAndLidWithInsetHinge(
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     ).color(material_colour)
     latch = (
-        MakeLidTab(length=tab_length, height=tab_height, lid_thickness=lid_thickness, prism_width=prism_width, wall_thickness=wall_thickness)
+        MakeLidTab(
+            length=tab_length,
+            height=tab_height,
+            lid_thickness=lid_thickness,
+            prism_width=prism_width,
+            wall_thickness=wall_thickness,
+        )
         .color(material_colour)
         .mirror([0, 0, 1])
         .rotate([0, 0, 270])
@@ -392,7 +404,13 @@ def MakeBoxAndLidWithInsetHinge(
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-    ).translate([wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness / 2])
+    ).translate(
+        [
+            wall_thickness + print_in_place_offset,
+            wall_thickness + print_in_place_offset,
+            height / 2 - wall_thickness / 2,
+        ]
+    )
     base_body = base_body - (rim_outer - rim_inner).color(material_colour)
 
     base_inner_width = width - wall_thickness - hinge_width
@@ -418,7 +436,16 @@ def MakeBoxAndLidWithInsetHinge(
         [width - wall_thickness, length - wall_thickness, wall_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
-        edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP + BACK, TOP + FRONT, TOP + LEFT, TOP + RIGHT],
+        edges=[
+            LEFT + FRONT,
+            RIGHT + FRONT,
+            LEFT + BACK,
+            RIGHT + BACK,
+            TOP + BACK,
+            TOP + FRONT,
+            TOP + LEFT,
+            TOP + RIGHT,
+        ],
     ).translate([wall_thickness / 2, wall_thickness / 2, height / 2])
     lid_rim_inner = bosl2.shapes3d.cuboid(
         [
@@ -429,13 +456,21 @@ def MakeBoxAndLidWithInsetHinge(
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-    ).translate([wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness])
+    ).translate(
+        [wall_thickness + print_in_place_offset, wall_thickness + print_in_place_offset, height / 2 - wall_thickness]
+    )
     lid_body = lid_body | (lid_rim_outer - lid_rim_inner).color(material_colour)
 
     catch_cutter = (
         minkowski(
             cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
-            MakeLidTab(length=tab_length, height=tab_height, lid_thickness=lid_thickness, prism_width=prism_width, wall_thickness=wall_thickness),
+            MakeLidTab(
+                length=tab_length,
+                height=tab_height,
+                lid_thickness=lid_thickness,
+                prism_width=prism_width,
+                wall_thickness=wall_thickness,
+            ),
         )
         .mirror([0, 1, 0])
         .rotate([0, 0, 270])
@@ -452,9 +487,14 @@ def MakeBoxAndLidWithInsetHinge(
         lid_body = lid_body - c1.translate([hinge_width, wall_thickness, lid_thickness])
 
     if len(kids) > 3 and kids[3] is not None:
-        hole = bosl2.shapes3d.cuboid(
-            [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
-        ).translate([wall_thickness, wall_thickness, -1]).color(material_colour)
+        hole = (
+            bosl2.shapes3d.cuboid(
+                [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1],
+                anchor=BOTTOM + FRONT + LEFT,
+            )
+            .translate([wall_thickness, wall_thickness, -1])
+            .color(material_colour)
+        )
         lid_body = lid_body - hole
 
         c3 = ResolveChild(kids[3], width - wall_thickness * 2, length - wall_thickness * 2, lid_inner_height)
@@ -465,7 +505,13 @@ def MakeBoxAndLidWithInsetHinge(
     combined = base_body | lid_assembly
 
     hinge_pocket = (
-        cube([hinge_width + print_in_place_offset * 2 + 0.02, hinge_length + print_in_place_offset * 2, hinge_diameter + 5 + hinge_offset + 1])
+        cube(
+            [
+                hinge_width + print_in_place_offset * 2 + 0.02,
+                hinge_length + print_in_place_offset * 2,
+                hinge_diameter + 5 + hinge_offset + 1,
+            ]
+        )
         .color(material_colour)
         .translate(
             [
