@@ -37,7 +37,7 @@ import bosl2.masking
 import bosl2.shapes3d
 import bosl2.transforms
 from box_base import Box, FingerHoleLocation
-from lids_base import SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
+from lids_base import SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges, default_lid_layout_width, default_lid_aspect_ratio
 from labels import LabelOptions, MakeLabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
@@ -184,7 +184,7 @@ class SlidingBox(Box):
         )
         if not two_layer:
             body = body.edge_mask(
-                [TOP], children=bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 2, length=max(self.length, self.width))
+                [TOP], children=bosl2.masking.rounding_edge_mask(r=self.wall_thickness / 2, l=max(self.length, self.width))
             )
 
         rounding_offset = 0.01
@@ -234,7 +234,7 @@ class SlidingBox(Box):
         body = body - lid_cut
 
         edge_round = (
-            bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 4, height=self.length - self.wall_thickness * 2)
+            bosl2.masking.rounding_edge_mask(r=self.wall_thickness / 4, h=self.length - self.wall_thickness * 2)
             .rotate([0, 90, 0])
             .translate([self.width / 2, 0, calc_height - self._lid_cutout])
         )
@@ -275,16 +275,16 @@ class SlidingBox(Box):
         main = main.edge_mask(
             [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
             children=bosl2.masking.rounding_edge_mask(
-                radius=self.wall_thickness if two_layer else calc_lid_rounding,
-                length=self.lid_thickness + self.size_spacing,
+                r=self.wall_thickness if two_layer else calc_lid_rounding,
+                l=self.lid_thickness + self.size_spacing,
             ),
         )
         top_edges = [TOP] if two_layer else [TOP + BACK]
         main = main.edge_mask(
             top_edges,
             children=bosl2.masking.rounding_edge_mask(
-                radius=self._top_cover if two_layer else calc_lid_rounding / 2,
-                length=max(self._lid_length, self._lid_width),
+                r=self._top_cover if two_layer else calc_lid_rounding / 2,
+                l=max(self._lid_length, self._lid_width),
             ),
         )
 
@@ -313,13 +313,13 @@ class SlidingBox(Box):
             ).translate([0, 0, -self.size_spacing])
             main = main - front_cut
             round_a = bosl2.masking.rounding_edge_mask(
-                length=self.lid_thickness, radius=calc_lid_rounding,
+                l=self.lid_thickness, r=calc_lid_rounding,
             ).translate(
                 [self.wall_thickness - self._two_layer_chamfer, self.wall_thickness,
                  -self._top_cover + self.lid_thickness / 2]
             )
             round_b = (
-                bosl2.masking.rounding_edge_mask(length=self.lid_thickness, radius=calc_lid_rounding)
+                bosl2.masking.rounding_edge_mask(l=self.lid_thickness, r=calc_lid_rounding)
                 .rotate([0, 180, 0])
                 .translate(
                     [self._lid_width - self.wall_thickness + self._two_layer_chamfer,

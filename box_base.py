@@ -37,7 +37,7 @@ import bosl2.shapes3d
 import bosl2.transforms
 from bosl2.shapes3d import Bosl2Solid
 from components import FingerHoleWall
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges
+from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail, IsDenseShapeType, DenseShapeEdges, default_lid_layout_width, default_lid_aspect_ratio
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 

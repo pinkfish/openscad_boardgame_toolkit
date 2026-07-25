@@ -226,16 +226,16 @@ def MakeBoxWithCapLid(
 
     # Round over the top edge.
     top_z = height - lid_thickness - size_spacing
-    body = body - masking.rounding_edge_mask(radius=calc_top_rounding, length=width).rotate([0, 90, 0]).translate(
+    body = body - masking.rounding_edge_mask(r=calc_top_rounding, l=width).rotate([0, 90, 0]).translate(
         [width / 2, calc_lid_wall_thickness + size_spacing, top_z]
     )
-    body = body - masking.rounding_edge_mask(radius=calc_top_rounding, length=width).rotate([0, 90, 180]).translate(
+    body = body - masking.rounding_edge_mask(r=calc_top_rounding, l=width).rotate([0, 90, 180]).translate(
         [width / 2, length - calc_lid_wall_thickness - size_spacing / 2, top_z]
     )
-    body = body - masking.rounding_edge_mask(radius=calc_top_rounding, length=length).rotate([90, 90, 0]).translate(
+    body = body - masking.rounding_edge_mask(r=calc_top_rounding, l=length).rotate([90, 90, 0]).translate(
         [calc_lid_wall_thickness + size_spacing, length / 2, top_z]
     )
-    body = body - masking.rounding_edge_mask(radius=calc_top_rounding, length=length).rotate([270, 90, 0]).translate(
+    body = body - masking.rounding_edge_mask(r=calc_top_rounding, l=length).rotate([270, 90, 0]).translate(
         [width - calc_lid_wall_thickness - size_spacing / 2, length / 2, top_z]
     )
 

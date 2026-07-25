@@ -355,8 +355,9 @@ def internal_build_lid(lid_thickness: float, children: list, size_spacing: float
     assert isinstance(children, (list, tuple)) and len(children) >= 1, "children must be a non-empty list"
 
     def mask(piece: PyOpenSCAD) -> PyOpenSCAD:
+        native = piece.shape if isinstance(piece, shapes3d.Bosl2Solid) else piece
         return (
-            fill(piece.projection(cut=False))
+            fill(native.projection(cut=False))
             .offset(r=-size_spacing)
             .linear_extrude(height=lid_thickness + 1)
             .color("darkslategrey")

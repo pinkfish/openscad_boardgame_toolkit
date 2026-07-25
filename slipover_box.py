@@ -118,7 +118,7 @@ def MakeBoxWithSlipoverLid(
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     )
     inner = inner.edge_mask(
-        [TOP], children=bosl2.masking.rounding_edge_mask(radius=wall_thickness / 4, length=max(length, width))
+        [TOP], children=bosl2.masking.rounding_edge_mask(r=wall_thickness / 4, l=max(length, width))
     )
     body = inner.translate([wall_thickness + size_spacing, wall_thickness + size_spacing, 0])
 
@@ -274,7 +274,7 @@ def SlipoverBoxLid(
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP],
     )
     shell = shell.edge_mask(
-        [BOT], children=bosl2.masking.rounding_edge_mask(radius=max(calc_lid_rounding / 4, 0.5), length=max(width, length))
+        [BOT], children=bosl2.masking.rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length))
     )
 
     cut1 = bosl2.shapes3d.cuboid(

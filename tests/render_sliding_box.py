@@ -25,12 +25,14 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from render_cap_box import find_bosl2_scad_dir
 from render_pysolidfive import RenderResult, render_script
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+VENV_SITE_PACKAGES = PROJECT_ROOT / ".venv" / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
 
 
 def render_sliding_box_shape(expr: str, out_png: Path, imgsize: tuple[int, int] = (320, 240)) -> RenderResult:
@@ -48,11 +50,10 @@ def render_sliding_box_shape(expr: str, out_png: Path, imgsize: tuple[int, int] 
             "no working BOSL2/std.scad found for PythonSCAD (set BOSL2_SCAD_DIR; see "
             "render_cap_box.py's module docstring for how to create a patched copy)"
         )
-    bosl2_project = PROJECT_ROOT / "bosl2"
     script = (
         "import sys\n"
+        f"sys.path.insert(0, {str(VENV_SITE_PACKAGES)!r})\n"
         f"sys.path.insert(0, {str(PROJECT_ROOT)!r})\n"
-        f"sys.path.insert(0, {str(bosl2_project)!r})\n"
         "from pythonscad import *\n"
         "from base_bgtk import *\n"
         "from sliding_box import *\n"
