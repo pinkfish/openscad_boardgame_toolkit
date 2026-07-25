@@ -377,6 +377,130 @@ def internal_build_lid(lid_thickness: float, children: list, size_spacing: float
 
 
 # ---------------------------------------------------------------------------
+# Lid class — self-contained mesh builder
+# ---------------------------------------------------------------------------
+
+
+class Lid:
+    """Lid mesh configuration and builder.
+
+    Holds all lid pattern, label and shape parameters.  Call :meth:`build`
+    to resolve the shape piece (via :func:`~shape_type.ShapeByType`) and
+    create the actual lid mesh solid.
+
+    Usage::
+
+        lid = Lid(lid_thickness=2, size=[100, 50], boundary=10,
+                  layout_width=10, dense=True,
+                  shape_options=MakeShapeObject(shape_type=ShapeType.DENSE_HEX),
+                  label=Label("Trains"))
+        mesh = lid.build()
+    """
+
+    def __init__(
+        self,
+        *,
+        lid_thickness: float,
+        size: list[float] | None = None,
+        path: list[list[float]] | None = None,
+        boundary: float = 10,
+        layout_width: float | None = None,
+        aspect_ratio: float | None = None,
+        dense: bool = False,
+        dense_shape_edges: int = 6,
+        material_colour: str | None = None,
+        inner_control: int | bool = False,
+        children: PyOpenSCAD | None = None,
+        label: "Label | None" = None,
+        shape_child: PyOpenSCAD | None = None,
+        shape_options: "ShapeObject | None" = None,
+        lid_rounding: float | None = None,
+        extra_children: list | None = None,
+        fingernail: bool = False,
+    ) -> None:
+        if material_colour is None:
+            material_colour = default_material_colour
+        self.lid_thickness = lid_thickness
+        self.size = size
+        self.path = path
+        self.boundary = boundary
+        self.layout_width = layout_width if layout_width is not None else default_lid_layout_width
+        self.aspect_ratio = aspect_ratio if aspect_ratio is not None else default_lid_aspect_ratio
+        self.dense = dense
+        self.dense_shape_edges = dense_shape_edges
+        self.material_colour = material_colour
+        self.inner_control = inner_control
+        self.children = children
+        self.label = label
+        self.shape_child = shape_child
+        self.shape_options = shape_options
+        self.lid_rounding = lid_rounding
+        self.extra_children = extra_children
+        self.fingernail = fingernail
+
+    def apply_shape_defaults(self, shape_type: "ShapeType") -> None:
+        """Set pattern-related fields from *shape_type* when shape_options is a user object."""
+        from lids_base import IsDenseShapeType, DenseShapeEdges
+        from shape_type import ShapeNeedsInnerControl
+        self.dense = IsDenseShapeType(shape_type)
+        self.dense_shape_edges = DenseShapeEdges(shape_type)
+        self.inner_control = ShapeNeedsInnerControl(shape_type)
+
+    def build(self) -> PyOpenSCAD | None:
+        """Resolve the shape piece and create the lid mesh solid.
+
+        If :attr:`shape_child` or :attr:`shape_options` is set, the shape is
+        resolved via :func:`~shape_type.ShapeByType` and tiled in the grid.
+        Returns None if no shape could be resolved and neither is set.
+        """
+        piece = self.shape_child
+        if piece is None and self.shape_options is not None:
+            from shape_type import ShapeByType
+            piece = ShapeByType(options=self.shape_options)
+        if piece is None and self.children is None:
+            return None
+        if piece is not None:
+            piece = piece.color(self.material_colour)
+
+        if self.size is not None:
+            calc_path = [[0, 0], [self.size[0], 0], [self.size[0], self.size[1]], [0, self.size[1]]]
+        else:
+            assert self.path is not None, "Lid: must provide either size or path"
+            calc_path = self.path
+
+        if self.dense:
+            mesh = LidMeshDense(
+                path=calc_path,
+                lid_thickness=self.lid_thickness,
+                boundary=self.boundary,
+                radius=self.layout_width / 2,
+                shape_edges=self.dense_shape_edges,
+                material_colour=self.material_colour,
+                inner_control=self.inner_control,
+                children=piece if piece is not None else self.children,
+            )
+        else:
+            mesh = LidMeshRepeating(
+                path=calc_path,
+                lid_thickness=self.lid_thickness,
+                boundary=self.boundary,
+                layout_width=self.layout_width,
+                shape_edges=4,
+                aspect_ratio=self.aspect_ratio,
+                material_colour=self.material_colour,
+                inner_control=self.inner_control,
+                children=piece if piece is not None else self.children,
+            )
+
+        border = color(polygon(calc_path).offset(-self.boundary).linear_extrude(self.lid_thickness), self.material_colour) - color(
+            polygon(calc_path).offset(-self.boundary - 0.02).linear_extrude(self.lid_thickness + 1), self.material_colour
+        ).translate([0, 0, -0.5])
+
+        bound = color(polygon(calc_path).offset(-self.boundary).linear_extrude(self.lid_thickness), self.material_colour)
+        return (mesh | border) & bound
+
+
+# ---------------------------------------------------------------------------
 # Lid construction helpers
 # ---------------------------------------------------------------------------
 

@@ -23,7 +23,7 @@
 
 from __future__ import annotations
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 
 import numpy as np
@@ -40,13 +40,10 @@ from bosl2.shapes3d import Bosl2Solid
 from components import FingerHoleWall, FingerHoleBase
 from lids_base import (
     internal_build_lid,
-    MakeLidLabel,
+    Lid,
     SlidingLidFingernail,
-    IsDenseShapeType,
-    DenseShapeEdges,
 )
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from labels import MakeLabelOptions
 
 
 class FingerHoleLocation(IntEnum):
@@ -87,39 +84,103 @@ class FingerHole:
     orient: list[float] | None = None
 
 
-@dataclass
-class LidConfig:
-    """All lid pattern, label and shape parameters in one data object.
+class Label:
+    """A label to be placed on a lid, created by :meth:`Box.make_label`.
 
-    Pass this to :meth:`Box.create_lid`. Every field has a sensible default;
-    set only the ones that differ from the base lid defaults.
+    All styling fields (:attr:`font`, :attr:`border`, :attr:`radius`, etc.)
+    are class variables with sensible defaults — set them on the instance to
+    customise.  :meth:`build` creates the actual label solid using dimensions
+    provided by the Box at creation time.
 
     Usage::
 
-        config = LidConfig(text="Trains", shape_type=ShapeType.DENSE_HEX,
-                           lid_pattern_dense=True)
-        lid = box.create_lid(config)
+        label = Label("Frogs")
+        label = Label("Snakes", font="Stencil Std:style=Bold", label_type=LabelType.FRAMELESS)
+
+        lid = box.create_lid(Lid(lid_thickness=2, label=Label("Trains"), shape_options=MakeShapeObject()))
     """
 
-    text: str | None = None
-    shape_child: "Bosl2Solid | None" = None
-    shape_options: ShapeObject | None = None
-    label_options: LabelOptions | None = None
-    layout_width: float | None = None
-    aspect_ratio: float | None = None
-    lid_boundary: float = 10
-    lid_rounding: float | None = None
-    lid_pattern_dense: bool = False
-    lid_dense_shape_edges: int = 6
-    pattern_inner_control: int = 0
-    extra_children: list | None = None
-    fingernail: bool = False
+    text: str
+    position: list[float] | None = None
+    size: list[float] | None = None
 
-    def apply_shape_defaults(self, shape_type: ShapeType) -> None:
-        """Set pattern-related fields from *shape_type* when shape_options is a user object."""
-        self.lid_pattern_dense = IsDenseShapeType(shape_type)
-        self.lid_dense_shape_edges = DenseShapeEdges(shape_type)
-        self.pattern_inner_control = ShapeNeedsInnerControl(shape_type)
+    text_scale: float = 1.0
+    text_length: float | None = None
+    angle: float | None = 0
+    label_colour: str = default_label_colour
+    label_background_colour: str = default_label_background_colour
+    short_length: bool = False
+    label_diff: list[float] = None  # type: ignore[assignment] -- initialised in __init__
+    border: float = 2
+    offset: float = 4
+    radius: float = 5
+    font: str = default_label_font
+    full_height: bool = False
+    finger_hole_size: float | None = 10
+    material_colour: str = default_material_colour
+    label_type: LabelType = default_label_type
+    solid_background: bool = default_label_solid_background
+
+    def __init__(self, text: str, **kwargs: object) -> None:
+        self.text = text
+        self.label_diff = [0, 0]
+        for k, v in kwargs.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            else:
+                raise TypeError(f"Label() got an unexpected keyword argument '{k}'")
+
+    def build(
+        self,
+        *,
+        lid_thickness: float,
+        material_colour: str,
+        inner_width: float,
+        inner_length: float,
+        wall_thickness: float,
+    ) -> Bosl2Solid | None:
+        """Create the label solid using the provided box dimensions.
+
+        Args:
+            lid_thickness: thickness of the lid
+            material_colour: box material colour (used if the label doesn't set its own)
+            inner_width: clear interior width of the box
+            inner_length: clear interior length of the box
+            wall_thickness: box wall thickness (for default positioning)
+        """
+        from lids_base import MakeLidLabel
+
+        options = MakeLabelOptions(
+            text_scale=self.text_scale,
+            text_length=self.text_length,
+            angle=self.angle,
+            label_colour=self.label_colour,
+            label_background_colour=self.label_background_colour,
+            short_length=self.short_length,
+            label_diff=list(self.label_diff),
+            border=self.border,
+            offset=self.offset,
+            radius=self.radius,
+            font=self.font,
+            full_height=self.full_height,
+            finger_hole_size=self.finger_hole_size,
+            material_colour=material_colour if self.material_colour == default_material_colour else self.material_colour,
+            label_type=self.label_type,
+            solid_background=self.solid_background,
+        )
+
+        calc_size = list(self.size) if self.size else [inner_width, inner_length]
+        calc_pos = list(self.position) if self.position else [wall_thickness / 2, wall_thickness / 2, 0]
+
+        piece = MakeLidLabel(
+            size=calc_size,
+            lid_thickness=lid_thickness,
+            text_str=self.text,
+            options=options,
+        )
+        if piece is not None:
+            return piece.translate(calc_pos)
+        return None
 
 
 class Box:
@@ -140,7 +201,7 @@ class Box:
                           FingerHole(type=FingerHoleType.FLOOR)])
         solid.show()
 
-        lid = box.create_lid(LidConfig(text="Trains"))
+        lid = box.create_lid(Lid(lid_thickness=2, label=Label("Trains"), shape_options=MakeShapeObject()))
         lid.show()
     """
 
@@ -210,7 +271,7 @@ class Box:
         )
         return body.color(self.material_colour)
 
-    def create_lid(self, config: LidConfig | None = None) -> Bosl2Solid:
+    def create_lid(self, lid: Lid | None = None) -> Bosl2Solid:
         """Create the lid for this box. Subclasses MUST override."""
         raise NotImplementedError(f"{self.label}.create_lid()")
 
@@ -405,83 +466,18 @@ class Box:
     # Label creation
     # ------------------------------------------------------------------
 
-    def label_on_lid(
-        self,
-        lid: Bosl2Solid,
-        text_str: str,
-        label_options: LabelOptions | None = None,
-        label_size: list[float] | None = None,
-        position: list[float] | None = None,
-    ) -> Bosl2Solid:
-        opts = label_options if label_options is not None else MakeLabelOptions(material_colour=self.material_colour)
-        label_opts = copy.copy(opts)
-        label_opts.full_height = True
+    def make_label(self, label: Label) -> Bosl2Solid | None:
+        """Create a label solid from *label*, using the Box's dimensions and colour.
 
-        if label_size is None:
-            label_size = [self.inner_width, self.inner_length]
-
-        label_shape = MakeLidLabel(
-            size=label_size,
-            lid_thickness=self.lid_thickness,
-            text_str=text_str,
-            options=label_opts,
-        )
-        if label_shape is not None:
-            pos = position if position is not None else [self.wall_thickness / 2, self.wall_thickness / 2, 0]
-            return lid | label_shape.translate(pos)
-        return lid
-
-    # ------------------------------------------------------------------
-    # Shape fill -- delegates to LidMeshBasic for consistent grid layout
-    # ------------------------------------------------------------------
-
-    def _shape_fill(
-        self,
-        *,
-        shape_child: PyOpenSCAD | None = None,
-        shape_options: ShapeObject | None = None,
-        width: float,
-        length: float,
-        lid_thickness: float,
-        boundary: float = 10,
-    ) -> Bosl2Solid | None:
-        """Fill a width×length rectangle with *shape_child* or *shape_options*.
-
-        Uses :func:`~lids_base.LidMeshBasic` for consistent grid layout
-        matching the golden test images.
+        Delegates to :meth:`Label.build`, passing the Box's lid thickness,
+        material colour, interior dimensions, and wall thickness.
         """
-        piece = shape_child
-        if piece is None:
-            if shape_options is None:
-                shape_options = MakeShapeObject()
-            piece = ShapeByType(options=shape_options)
-        if piece is None:
-            return None
-        piece = piece.color(self.material_colour)
-
-        from lids_base import LidMeshBasic
-
-        dense = False
-        dense_edges = 6
-        inner_ctrl: int = 0
-        layout_w = None
-        if shape_options:
-            dense = IsDenseShapeType(shape_options.shape_type)
-            dense_edges = DenseShapeEdges(shape_options.shape_type)
-            inner_ctrl = ShapeNeedsInnerControl(shape_options.shape_type)
-            if shape_options.shape_width:
-                layout_w = shape_options.shape_width
-
-        return LidMeshBasic(
-            size=[width, length],
-            lid_thickness=lid_thickness,
-            boundary=boundary,
-            layout_width=layout_w,
-            dense=dense,
-            dense_shape_edges=dense_edges,
+        return label.build(
+            lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
-            inner_control=inner_ctrl,
-            children=piece,
+            inner_width=self.inner_width,
+            inner_length=self.inner_length,
+            wall_thickness=self.wall_thickness,
         )
 
     # ------------------------------------------------------------------
@@ -492,19 +488,20 @@ class Box:
         self,
         lid_body: Bosl2Solid,
         *,
-        text_str: str | None = None,
-        label_options: LabelOptions | None = None,
-        shape_child: "PyOpenSCAD | None" = None,
-        shape_options: ShapeObject | None = None,
-        lid_boundary: float = 10,
-        layout_width: float | None = None,
-        aspect_ratio: float | None = None,
-        lid_pattern_dense: bool = False,
-        lid_dense_shape_edges: int = 6,
-        pattern_inner_control: int = 0,
+        lid: "Lid | None" = None,
+        label: Label | None = None,
         extra_children: list | None = None,
         fingernail: bool = False,
     ) -> Bosl2Solid:
+        """Assemble a complete lid from *lid_body* plus optional mesh, label, fingernail.
+
+        Args:
+            lid_body: the raw lid solid (from e.g. _build_lid_body)
+            lid: :class:`~lids_base.Lid` with shape mesh configuration
+            label: optional :class:`Label` to overlay
+            extra_children: additional solids to embed
+            fingernail: if True, add a fingernail cutout
+        """
         children = []
 
         if fingernail:
@@ -520,32 +517,19 @@ class Box:
             )
             children.append(fn)
 
-        if shape_child is not None or shape_options is not None:
-            so = shape_options if shape_options is not None else MakeShapeObject()
-            mesh = self._shape_fill(
-                shape_child=shape_child,
-                shape_options=so,
-                width=self.inner_width,
-                length=self.inner_length,
-                lid_thickness=self.lid_thickness,
-                boundary=lid_boundary,
-            )
+        if lid is not None:
+            lid.material_colour = self.material_colour
+            lid.lid_thickness = self.lid_thickness
+            if lid.size is None:
+                lid.size = [self.inner_width, self.inner_length]
+            mesh = lid.build()
             if mesh is not None:
                 children.append(mesh)
 
-        if text_str is not None:
-            opts = (
-                label_options if label_options is not None else MakeLabelOptions(material_colour=self.material_colour)
-            )
-            label_opts = copy.copy(opts)
-            label_shape = MakeLidLabel(
-                size=[self.inner_width, self.inner_length],
-                lid_thickness=self.lid_thickness,
-                text_str=text_str,
-                options=label_opts,
-            )
+        if label is not None:
+            label_shape = self.make_label(label)
             if label_shape is not None:
-                children.append(label_shape.translate([self.wall_thickness / 2, self.wall_thickness / 2, 0]))
+                children.append(label_shape)
 
         if extra_children:
             children.extend(extra_children)

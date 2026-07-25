@@ -36,8 +36,9 @@ from base_bgtk import *
 import bosl2.masking
 import bosl2.shapes3d
 import bosl2.transforms
-from box_base import Box, FingerHoleLocation, LidConfig
+from box_base import Box, FingerHoleLocation, Label
 from lids_base import (
+    Lid,
     SlidingLidFingernail,
     IsDenseShapeType,
     DenseShapeEdges,
@@ -74,7 +75,7 @@ class SlidingBox(Box):
                           FingerHole(location=FingerHoleLocation.RIGHT, offset=-5)])
         box.show()
 
-        lid = box.create_lid(LidConfig(text="Trains"))
+        lid = box.create_lid(Lid(lid_thickness=2, label=Label("Trains")))
         lid.show()
     """
 
@@ -394,20 +395,15 @@ class SlidingBox(Box):
             ]
 
     def create_lid(
-        self, config: LidConfig | None = None, *, lid_rounding: float | None = None, extra_children: list | None = None
+        self, lid: "Lid | None" = None, *, lid_rounding: float | None = None, extra_children: list | None = None
     ) -> Bosl2Solid:
         """Create a sliding lid.
 
-        Can be called with a :class:`~box_base.LidConfig` for full control, or with
+        Can be called with a :class:`~lids_base.Lid` for full control, or with
         *lid_rounding* + *extra_children* for backward compatibility.
-
-        Args:
-            config: :class:`~box_base.LidConfig`
-            lid_rounding: rounding on lid edges (default wall_thickness/2). Backward-compat.
-            extra_children: extra solids/callables to embed in the lid. Backward-compat.
         """
-        if config is not None:
-            return self._create_lid_from_config(config)
+        if lid is not None:
+            return self._create_lid_from_config(lid)
 
         # Backward-compatible path: match old create_lid(lid_rounding, extra_children) exactly
         main = self._build_lid_body(lid_rounding=lid_rounding)
@@ -427,14 +423,12 @@ class SlidingBox(Box):
             stack = stack.rotate([180, 0, 0]).translate([0, self._lid_length, self.lid_thickness])
         return stack
 
-    def _create_lid_from_config(self, cfg: LidConfig) -> Bosl2Solid:
-        # -- build lid body --------------------------------------------------
-        main = self._build_lid_body(lid_rounding=cfg.lid_rounding)
+    def _create_lid_from_config(self, lid: "Lid") -> Bosl2Solid:
+        main = self._build_lid_body(lid_rounding=lid.lid_rounding)
 
-        # -- collect overlay children ----------------------------------------
-        overlay = []
+        overlay: list = []
 
-        if cfg.fingernail:
+        if lid.fingernail:
             fn = (
                 bosl2.shapes3d.cuboid(
                     [self._lid_fingernail_width, self._lid_fingernail_length, self.lid_thickness],
@@ -448,45 +442,22 @@ class SlidingBox(Box):
             )
             overlay.append(fn)
 
-        if cfg.shape_child is not None or cfg.shape_options is not None:
-            piece = cfg.shape_child
-            so = cfg.shape_options if cfg.shape_options is not None else MakeShapeObject()
-            if piece is None:
-                piece = ShapeByType(options=so).color(self.material_colour)
+        if lid.shape_child is not None or lid.shape_options is not None:
+            lid.material_colour = self.material_colour
+            lid.lid_thickness = self.lid_thickness
+            lid.size = [self._lid_area_width, self._lid_area_length]
+            mesh = lid.build()
+            if mesh is not None:
+                overlay.append(mesh)
 
-            mesh = self._shape_fill(
-                shape_child=piece,
-                shape_options=so,
-                width=self._lid_area_width,
-                length=self._lid_area_length,
-                lid_thickness=self.lid_thickness,
-                boundary=cfg.lid_boundary,
-            )
-            overlay.append(mesh)
-
-        if cfg.text is not None:
-            label_opts_copy = (
-                copy.copy(cfg.label_options)
-                if cfg.label_options
-                else MakeLabelOptions(material_colour=self.material_colour)
-            )
-            label_opts_copy.full_height = self._sliding_lid_options.two_layer
-
-            from lids_base import MakeLidLabel
-
-            label_shape = MakeLidLabel(
-                size=[self.inner_width, self.inner_length],
-                lid_thickness=self.lid_thickness,
-                text_str=cfg.text,
-                options=label_opts_copy,
-            )
+        if lid.label is not None:
+            label_shape = self.make_label(lid.label)
             if label_shape is not None:
-                overlay.append(label_shape.translate([self.wall_thickness / 2, self.wall_thickness / 2, 0]))
+                overlay.append(label_shape)
 
-        if cfg.extra_children:
-            overlay.extend(cfg.extra_children)
+        if lid.extra_children:
+            overlay.extend(lid.extra_children)
 
-        # -- assemble --------------------------------------------------------
         inner_w = self.width - self.wall_thickness
         inner_l = self.length - self.wall_thickness / 2
         resolved = [(c(inner_w, inner_l) if callable(c) else c) for c in overlay]
@@ -496,6 +467,7 @@ class SlidingBox(Box):
         stack = internal_build_lid(
             lid_thickness=self.lid_thickness,
             children=[main] + resolved,
+            size_spacing=self.size_spacing,
         )
         if self._sliding_lid_options.two_layer:
             stack = stack.rotate([180, 0, 0]).translate([0, self._lid_length, self.lid_thickness])
@@ -530,9 +502,9 @@ class SlidingBox(Box):
         calc_dense_edges = DenseShapeEdges(so.shape_type) if not lid_pattern_dense else lid_dense_shape_edges
         calc_inner_ctrl = ShapeNeedsInnerControl(so.shape_type) if not lid_pattern_dense else pattern_inner_control
 
-        from lids_base import LidMeshBasic
+        from lids_base import Lid
 
-        mesh = LidMeshBasic(
+        mesh = Lid(
             size=[self._lid_area_width, self._lid_area_length],
             lid_thickness=self.lid_thickness,
             boundary=lid_boundary,
@@ -543,7 +515,7 @@ class SlidingBox(Box):
             material_colour=self.material_colour,
             inner_control=calc_inner_ctrl,
             children=piece,
-        )
+        ).build()
 
         fingernail = (
             bosl2.shapes3d.cuboid(
@@ -605,23 +577,22 @@ class SlidingBox(Box):
         pattern_inner_control: int = 0,
         extra_children: list | None = None,
     ) -> Bosl2Solid:
-        calc_label_options = (
-            label_options if label_options is not None else MakeLabelOptions(material_colour=self.material_colour)
-        )
-        label_opts = copy.copy(calc_label_options)
-        label_opts.full_height = self._sliding_lid_options.two_layer
-
-        from lids_base import MakeLidLabel
-
-        label_shape_raw = MakeLidLabel(
-            size=[self.inner_width, self.inner_length],
-            lid_thickness=self.lid_thickness,
-            text_str=text_str,
-            options=label_opts,
-        )
+        label_kwargs: dict[str, object] = dict(material_colour=self.material_colour)
+        if label_options is not None:
+            for fld in ("text_scale", "text_length", "angle", "label_colour",
+                        "label_background_colour", "short_length", "label_diff",
+                        "border", "offset", "radius", "font", "full_height",
+                        "finger_hole_size", "label_type", "solid_background"):
+                v = getattr(label_options, fld)
+                if v is not None:
+                    label_kwargs[fld] = v
+        if self._sliding_lid_options.two_layer:
+            label_kwargs["full_height"] = True
+        lbl = Label(text_str, **label_kwargs)
+        label_shape_raw = self.make_label(lbl)
         _base = list(extra_children) if extra_children else []
         if label_shape_raw is not None:
-            _base = [label_shape_raw.translate([self.wall_thickness / 2, self.wall_thickness / 2, 0])] + _base
+            _base = [label_shape_raw] + _base
 
         return self.create_lid_with_shape(
             shape_child=shape_child,
@@ -658,8 +629,11 @@ def SlidingLid(
         lid_thickness=lid_thickness,
         sliding_lid_options=sliding_lid_options,
     )
-    cfg = LidConfig(lid_rounding=lid_rounding, extra_children=children)
-    return box.create_lid(cfg)
+    lid = Lid(
+        lid_thickness=lid_thickness or default_lid_thickness,
+        lid_rounding=lid_rounding, extra_children=children,
+    )
+    return box.create_lid(lid)
 
 
 def SlidingBoxLidWithCustomShape(
