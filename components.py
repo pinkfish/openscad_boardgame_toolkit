@@ -132,7 +132,7 @@ def HexBoxDivisions(
 
     shape = None
     for i in range(divisions):
-        wedge_path = [[0, 0]] + shapes2d.arc(r=width * 2, start=i * ang, angle=ang)
+        wedge_path = [[0, 0]] + shapes2d.arc(radius=width * 2, start=i * ang, angle=ang)
         thinned_wedge = Path(wedge_path).offset(r=-w_div / 2)
         sub_region = _bosl2.intersection([hex_path], [thinned_wedge])
         piece = _bosl2.vnf_polyhedron(
@@ -171,12 +171,12 @@ def RoundedBoxOnLength(size: list[float], radius: float) -> PyOpenSCAD:
 
     half = (length - radius * 2) / 2
     rounded = hull(
-        shapes3d.xcyl(l=width, r=radius).translate([0, -half, 0]).shape,
-        shapes3d.xcyl(l=width, r=radius).translate([0, half, 0]).shape,
+        shapes3d.xcyl(length=width, radius=radius).translate([0, -half, 0]).shape,
+        shapes3d.xcyl(length=width, radius=radius).translate([0, half, 0]).shape,
     ).translate([width / 2, length / 2, radius])
-    cut = cube([width + 1, length + 1, radius + 1]).translate([-0.5, -0.5, radius])
-    top = cube([width, length, 1]).translate([0, 0, height - 1])
-    return hull(rounded - cut, top)
+    cut = shapes3d.cuboid([width + 1, length + 1, radius + 1], anchor=FRONT + LEFT + BOTTOM).translate([-0.5, -0.5, radius])
+    top = shapes3d.cuboid([width, length, 1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height - 1])
+    return hull((rounded - cut).shape, top.shape)
 
 
 def RoundedBoxAllSides(size: list[float], radius: float) -> PyOpenSCAD:
@@ -197,14 +197,14 @@ def RoundedBoxAllSides(size: list[float], radius: float) -> PyOpenSCAD:
     assert radius > 0, f"Need radius > 0 radius={radius}"
 
     corners = hull(
-        sphere(radius).translate([radius, radius, radius]),
-        sphere(radius).translate([width_i - radius, radius, radius]),
-        sphere(radius).translate([radius, length_i - radius, radius]),
-        sphere(radius).translate([width_i - radius, length_i - radius, radius]),
+        shapes3d.sphere(radius).translate([radius, radius, radius]).shape,
+        shapes3d.sphere(radius).translate([width_i - radius, radius, radius]).shape,
+        shapes3d.sphere(radius).translate([radius, length_i - radius, radius]).shape,
+        shapes3d.sphere(radius).translate([width_i - radius, length_i - radius, radius]).shape,
     )
-    cut = cube([width_i + 1, length_i + 1, radius + 1]).translate([-0.5, -0.5, radius])
-    top = cube([width_i, length_i, 1]).translate([0, 0, height_i - 1])
-    return hull(corners - cut, top)
+    cut = shapes3d.cuboid([width_i + 1, length_i + 1, radius + 1], anchor=FRONT + LEFT + BOTTOM).translate([-0.5, -0.5, radius])
+    top = shapes3d.cuboid([width_i, length_i, 1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height_i - 1])
+    return hull((corners - cut).shape, top.shape)
 
 
 def RoundedBoxGrid(
@@ -292,7 +292,7 @@ def RegularPolygon(
     if calc_finger_hole_radius is None:
         calc_finger_hole_radius = side_length * 9 / 10
 
-    poly2d = shapes2d.regular_ngon(n=shape_edges, outer_r=calc_radius, rounding=rounding)
+    poly2d = shapes2d.regular_ngon(sides=shape_edges, outer_radius=calc_radius, rounding=rounding)
     shape = poly2d.linear_extrude(height=height).rotate([0, 0, rotate_deg])
 
     degree = 360 / shape_edges
@@ -300,8 +300,8 @@ def RegularPolygon(
         x = calc_width / 2 * math.cos(math.radians(degree * fh + rotate_deg + degree / 2))
         y = calc_width / 2 * math.sin(math.radians(degree * fh + rotate_deg + degree / 2))
         hole = shapes3d.cyl(
-            r=calc_finger_hole_radius,
-            h=max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
+            radius=calc_finger_hole_radius,
+            height=max(height + calc_finger_hole_radius, calc_finger_hole_radius * 2),
             rounding=calc_finger_hole_radius,
             anchor=BOTTOM,
         ).translate([x, y, finger_hole_height])
@@ -358,9 +358,9 @@ def CylinderWithIndents(
     assert calc_height is not None and calc_radius is not None  # enforced by the asserts above
 
     if cyl_fn is not None:
-        shape = shapes3d.cyl(r=calc_radius, h=calc_height, anchor=anchor, _fn=cyl_fn)
+        shape = shapes3d.cyl(radius=calc_radius, height=calc_height, anchor=anchor, fn=cyl_fn)
     else:
-        shape = shapes3d.cyl(r=calc_radius, h=calc_height, anchor=anchor)
+        shape = shapes3d.cyl(radius=calc_radius, height=calc_height, anchor=anchor)
 
     if children is not None:
         shape = shape | children
@@ -372,8 +372,8 @@ def CylinderWithIndents(
         x = calc_radius * math.cos(math.radians(fh))
         y = calc_radius * math.sin(math.radians(fh))
         hole = shapes3d.cyl(
-            r=calc_finger_hole_radius,
-            h=calc_height + calc_finger_hole_radius * 2,
+            radius=calc_finger_hole_radius,
+            height=calc_height + calc_finger_hole_radius * 2,
             anchor=BOTTOM,
             rounding=calc_finger_hole_radius,
         ).translate([x, y, finger_hole_height])
@@ -446,8 +446,8 @@ def CuboidWithIndentsBottom(
     for pos in poses:
         anchor_point = [(pos[i] - anchor[i]) * size[i] / 2 for i in range(3)]
         bump = shapes3d.cyl(
-            r=calc_finger_hole_radius,
-            h=size[2] + calc_finger_hole_radius * 2,
+            radius=calc_finger_hole_radius,
+            height=size[2] + calc_finger_hole_radius * 2,
             anchor=BOTTOM,
             rounding=calc_finger_hole_radius,
         ).translate(
@@ -651,7 +651,9 @@ def HexGridWithCutouts(
     apothem = width / 2
     radius = apothem / math.cos(math.radians(180 / 6))
 
-    bound = cube([rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20]).translate([0, 0, -10])
+    bound = shapes3d.cuboid(
+        [rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20], anchor=FRONT + LEFT + BOTTOM
+    ).translate([0, 0, -10])
 
     cell = RegularPolygon(width=width, height=10 + height, shape_edges=6)
     if push_block_height > 0:
@@ -726,13 +728,15 @@ def FingerHoleWall(
         # CSG) in place of the interpreted offset_sweep() -- same geometry, seconds faster
         # per call. Anchor math is inlined: square(center=True) centers both axes, so
         # anchor=TOP becomes a -h/2 shift, circle anchors become a -+r shift.
-        slot = square([radius * 2, middle_height], center=True).translate([0, height / 2 - middle_height / 2])
+        slot = shapes2d.square([radius * 2, middle_height], center=True).translate([0, height / 2 - middle_height / 2])
         shoulders = (
-            square([radius * 2 + rounding_radius * 2, rounding_radius], center=True).translate([0, rounding_radius / 2])
-            - circle(r=rounding_radius, fn=32).translate([radius + rounding_radius, rounding_radius])
-            - circle(r=rounding_radius, fn=32).translate([-radius - rounding_radius, rounding_radius])
+            shapes2d.square([radius * 2 + rounding_radius * 2, rounding_radius], center=True).translate(
+                [0, rounding_radius / 2]
+            )
+            - shapes2d.circle(radius=rounding_radius, fn=32).translate([radius + rounding_radius, rounding_radius])
+            - shapes2d.circle(radius=rounding_radius, fn=32).translate([-radius - rounding_radius, rounding_radius])
         )
-        profile = slot | shoulders | circle(r=radius, fn=64).translate([0, radius])
+        profile = slot | shoulders | shapes2d.circle(radius=radius, fn=64).translate([0, radius])
         shape = (
             OffsetSweep(
                 profile,
@@ -767,10 +771,10 @@ def FingerHoleWall(
         top_shape = hull(_poly(top_polygon), _poly(Path(top_polygon).mirror([1, 0])))
         side_shape = (
             (
-                square([rounding_radius, rounding_radius], center=True).translate(
+                shapes2d.square([rounding_radius, rounding_radius], center=True).translate(
                     [-rounding_radius / 2, rounding_radius / 2]
                 )
-                - circle(r=rounding_radius, fn=64)
+                - shapes2d.circle(radius=rounding_radius, fn=64)
             ).translate([radius + rounding_radius, -rounding_radius])
         ) - _poly(
             [
@@ -780,8 +784,8 @@ def FingerHoleWall(
                 [tangents[3][1][0], height - radius * 2],
             ]
         )
-        middle_shape = circle(r=radius, fn=32).translate([0, -height + radius])
-        profile = square([radius * 2 + rounding_radius * 2, height], center=True).translate([0, -height / 2]) & (
+        middle_shape = shapes2d.circle(radius=radius, fn=32).translate([0, -height + radius])
+        profile = shapes2d.square([radius * 2 + rounding_radius * 2, height], center=True).translate([0, -height / 2]) & (
             top_shape | middle_shape | side_shape | side_shape.mirror([1, 0, 0])
         )
         shape = (
@@ -915,7 +919,7 @@ def FingerHoleBase(
 
     tmat = transforms.reorient(anchor=CENTER, spin=spin, orient=orient, size=[1, 1, 1])
 
-    cyl_part = shapes3d.cyl(r=radius, h=height, anchor=TOP + LEFT, _fn=64).translate([0, wall_thickness / 2, 0])
+    cyl_part = shapes3d.cyl(radius=radius, height=height, anchor=TOP + LEFT, fn=64).translate([0, wall_thickness / 2, 0])
 
     path = shapes2d.rect_path(
         [radius * 2, wall_thickness + 1],
@@ -933,7 +937,7 @@ def FingerHoleBase(
             [height, radius * 2, wall_thickness],
             rounding=-wall_thickness / 2,
             anchor=TOP + LEFT,
-            _fn=32,
+            fn=32,
             edges=[FRONT + TOP, TOP + BACK],
         )
         .rotate([90, 90, 0])
@@ -968,24 +972,24 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
         if n > 0:
             return topline(n - 1).scale([0.5, 0.5])
         return hull(
-            circle(d=line_thickness).translate([-size / 2, size / 2]),
-            circle(d=line_thickness).translate([size / 2, size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
         )
 
     def leftline(n: int) -> PyOpenSCAD:
         if n > 0:
             return leftline(n - 1).translate([-size, 0]).scale([0.5, 0.5])
         return hull(
-            circle(d=line_thickness).translate([-size / 2, size / 2]),
-            circle(d=line_thickness).translate([-size / 2, -size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2]),
         )
 
     def rightline(n: int) -> PyOpenSCAD:
         if n > 0:
             return rightline(n - 1).translate([size, 0]).scale([0.5, 0.5])
         return hull(
-            circle(d=line_thickness).translate([size / 2, size / 2]),
-            circle(d=line_thickness).translate([size / 2, -size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2]),
         )
 
     def hilbert(n: int) -> PyOpenSCAD:
@@ -1001,16 +1005,16 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
             )
         return (
             hull(
-                circle(d=line_thickness).translate([size / 2, size / 2]),
-                circle(d=line_thickness).translate([size / 2, -size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2]),
             )
             | hull(
-                circle(d=line_thickness).translate([-size / 2, size / 2]),
-                circle(d=line_thickness).translate([-size / 2, -size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2]),
             )
             | hull(
-                circle(d=line_thickness).translate([-size / 2, size / 2]),
-                circle(d=line_thickness).translate([size / 2, size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
+                shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
             )
         )
 
@@ -1056,7 +1060,7 @@ def MagnetSlot(
 
     if magnet_type == MAGNET_SLOT_TYPE_ROUND:
         shape = (
-            shapes3d.cyl(d=size[1], h=size[2])
+            shapes3d.cyl(diameter=size[1], height=size[2])
             | shapes3d.cuboid([size[0] - size[1] / 2, size[1], size[2]]).translate([-(size[0] / 2 - size[1] / 4), 0, 0])
         ).translate([size[0] / 2 - size[1] / 2, 0, 0])
     else:

@@ -23,15 +23,18 @@
 
 from __future__ import annotations
 import copy
-from dataclasses import dataclass
+import types as _types
+from dataclasses import dataclass, field
 from enum import IntEnum
 
 import numpy as np
 from pythonscad import *
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable, Union
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+    from labels import LabelOptions
+    from shape_type import ShapeObject
 
 from base_bgtk import *
 import bosl2.shapes3d
@@ -43,6 +46,19 @@ from lids_base import (
     Lid,
 )
 from labels import MakeLabelOptions
+
+# Box contents are self-describing InnerObject entries (see base_bgtk.InnerObject /
+# ObjectType). They may be given directly as a list, or as a callable(InnerSize) for
+# content that needs to know the box interior size.
+Contents = Union[list[InnerObject], Callable[[InnerSize], list[InnerObject]]]
+
+# Fields that can be copied from a LabelOptions object into a Label keyword-arg dict.
+_LABEL_OPTION_FIELDS = (
+    "text_scale", "text_length", "angle", "label_colour",
+    "label_background_colour", "short_length", "label_diff",
+    "border", "offset", "radius", "font", "full_height",
+    "finger_hole_size", "label_type", "solid_background",
+)
 
 
 class FingerHoleLocation(IntEnum):
@@ -83,13 +99,9 @@ class FingerHole:
     orient: list[float] | None = None
 
 
+@dataclass
 class Label:
     """A label to be placed on a lid, created by :meth:`Box.make_label`.
-
-    All styling fields (:attr:`font`, :attr:`border`, :attr:`radius`, etc.)
-    are class variables with sensible defaults — set them on the instance to
-    customise.  :meth:`build` creates the actual label solid using dimensions
-    provided by the Box at creation time.
 
     Usage::
 
@@ -102,32 +114,22 @@ class Label:
     text: str
     position: list[float] | None = None
     size: list[float] | None = None
-
     text_scale: float = 1.0
     text_length: float | None = None
     angle: float | None = 0
-    label_colour: str = default_label_colour
-    label_background_colour: str = default_label_background_colour
+    label_colour: str = field(default_factory=lambda: default_label_colour)
+    label_background_colour: str = field(default_factory=lambda: default_label_background_colour)
     short_length: bool = False
-    label_diff: list[float] = None  # type: ignore[assignment] -- initialised in __init__
+    label_diff: list[float] = field(default_factory=lambda: [0, 0])
     border: float = 2
     offset: float = 4
     radius: float = 5
-    font: str = default_label_font
+    font: str = field(default_factory=lambda: default_label_font)
     full_height: bool = False
     finger_hole_size: float | None = 10
-    material_colour: str = default_material_colour
-    label_type: LabelType = default_label_type
-    solid_background: bool = default_label_solid_background
-
-    def __init__(self, text: str, **kwargs: object) -> None:
-        self.text = text
-        self.label_diff = [0, 0]
-        for k, v in kwargs.items():
-            if hasattr(self, k):
-                setattr(self, k, v)
-            else:
-                raise TypeError(f"Label() got an unexpected keyword argument '{k}'")
+    material_colour: str = field(default_factory=lambda: default_material_colour)
+    label_type: LabelType = field(default_factory=lambda: default_label_type)
+    solid_background: bool = field(default_factory=lambda: default_label_solid_background)
 
     def build(
         self,
@@ -182,52 +184,141 @@ class Label:
         return None
 
 
+@dataclass
+class BoxSpec:
+    """Complete, immutable specification for a box: dimensions, materials, contents, and lid.
+
+    Pass a single ``BoxSpec`` to any :class:`Box` subclass constructor
+    (e.g. ``SlidingBox(spec)``).  Call :meth:`~Box.make_box` and
+    :meth:`~Box.make_lid` with **no arguments** to generate both parts from
+    this single shared object — the box and lid are therefore guaranteed to
+    have matching dimensions and thicknesses.
+
+    Usage::
+
+        from box_base import BoxSpec, FingerHole, FingerHoleLocation
+        from sliding_box import SlidingBox
+
+        spec = BoxSpec(
+            size=[100, 60, 30],
+            label="EarthCardBox",
+            wall_thickness=3,
+            lid_thickness=2,
+            contents=lambda inner: [
+                InnerObject(cube([inner.width, inner.length, inner.height]))
+            ],
+            finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
+            lid_label="Earth",
+        )
+
+        box = SlidingBox(spec)
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    # ---- Required: identity + outer geometry ---------------------------------
+    size: list[float]   # [width, length, height] outer dimensions
+    label: str          # print-file / debug name for this box
+
+    # ---- Material / thickness (all fall back to the base_bgtk global defaults) ----
+    wall_thickness: float = field(default_factory=lambda: default_wall_thickness)
+    floor_thickness: float = field(default_factory=lambda: default_floor_thickness)
+    lid_thickness: float = field(default_factory=lambda: default_lid_thickness)
+    material_colour: str = field(default_factory=lambda: default_material_colour)
+
+    # ---- Positioning (forwarded to _apply_positioning) -----------------------
+    spin: float = 0
+    anchor: list[float] | None = None   # None → BOTTOM + FRONT + LEFT
+    orient: list[float] | None = None   # None → TOP
+
+    # ---- Box-type-specific options -------------------------------------------
+    # SlidingBox reads ``sliding_lid_options``; other box types ignore it.
+    # Construct with ``MakeSlidingLidOptions()`` from sliding_box.py.
+    sliding_lid_options: Any = None
+
+    # ---- Contents (inner compartments / inserts) -----------------------------
+    contents: Contents | None = None
+    finger_holes: list[FingerHole] | None = None
+
+    # ---- Lid configuration ---------------------------------------------------
+    # Use ``lid_label`` for the common case (text + default shape pattern).
+    # Use ``lid`` for full control (pass a pre-built :class:`~lids_base.Lid`).
+    # ``lid`` takes precedence over ``lid_label`` when both are set.
+    lid_label: str | None = None              # shorthand label text for the lid
+    lid: Lid | None = None                    # full Lid object (overrides lid_label)
+    label_options: LabelOptions | None = None # styling for lid_label
+    shape_options: ShapeObject | None = None  # lid pattern shape
+
+    def _resolve_lid(self, lid_thickness: float, material_colour: str) -> Lid | None:
+        """Build a :class:`~lids_base.Lid` from the spec's lid fields.
+
+        Returns ``None`` when neither :attr:`lid` nor :attr:`lid_label` is set
+        (the caller will fall back to a bare lid body).
+        """
+        if self.lid is not None:
+            return self.lid
+        if self.lid_label is not None:
+            label_kwargs: dict[str, Any] = {"material_colour": material_colour}
+            if self.label_options is not None:
+                for fld in _LABEL_OPTION_FIELDS:
+                    v = getattr(self.label_options, fld, None)
+                    if v is not None:
+                        label_kwargs[fld] = v
+            lbl = Label(self.lid_label, **label_kwargs)
+            return Lid(
+                lid_thickness=lid_thickness,
+                label=lbl,
+                shape_options=self.shape_options,
+                material_colour=material_colour,
+            )
+        return None
+
+
 class Box:
     """Base class for all board game toolkit box types.
 
-    The constructor stores parameters only -- no geometry is built.
-    Call :meth:`create_box` to build the box body with children,
-    finger holes, MMU and final positioning.
+    The constructor takes a single :class:`BoxSpec` that carries all
+    configuration for the box.  No geometry is built at construction time;
+    call :meth:`make_box` / :meth:`make_lid` (both with **no arguments**
+    when a spec is provided) to produce the two printable parts.
 
     Subclasses override :meth:`_build_box_body`, :meth:`create_lid`, and
     :meth:`inside_mask` to provide their specific geometry.
 
     Usage::
 
-        box = SlidingBox([50, 100, 30], "mybox")
-        solid = box.create_box(children=[divider, cavity],
-            finger_holes=[FingerHole(location=FingerHoleLocation.LEFT, offset=10),
-                          FingerHole(type=FingerHoleType.FLOOR)])
-        solid.show()
-
-        lid = box.create_lid(Lid(lid_thickness=2, label=Label("Trains"), shape_options=MakeShapeObject()))
-        lid.show()
+        spec = BoxSpec(
+            size=[50, 100, 30], label="mybox",
+            wall_thickness=3,
+            contents=lambda inner: [InnerObject(cavity)],
+            finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
+            lid_label="Trains",
+        )
+        box = SlidingBox(spec)
+        box.make_box().show()
+        box.make_lid().show()
     """
 
-    def __init__(
-        self,
-        size: list[float],
-        label: str,
-        *,
-        wall_thickness: float | None = None,
-        floor_thickness: float | None = None,
-        lid_thickness: float | None = None,
-        material_colour: str | None = None,
-    ):
-        assert label is not None, f"Need to specify a label $label"
-        self.label = label
-        assert isinstance(size, (list, tuple)) and len(size) == 3, f"{self.label}: size must be [x,y,z], size={size}"
-
-        self._size = list(size)
-        self.wall_thickness = wall_thickness if wall_thickness is not None else default_wall_thickness
-        self.floor_thickness = floor_thickness if floor_thickness is not None else default_floor_thickness
-        self.lid_thickness = lid_thickness if lid_thickness is not None else default_lid_thickness
-        self.material_colour = material_colour if material_colour is not None else default_material_colour
+    def __init__(self, spec: BoxSpec) -> None:
+        assert isinstance(spec, BoxSpec), (
+            f"Box expects a BoxSpec instance, got {type(spec).__name__}. "
+            "Construct with BoxSpec(size=[w, l, h], label='name', ...)."
+        )
+        assert isinstance(spec.size, (list, tuple)) and len(spec.size) == 3, (
+            f"{spec.label}: size must be [w, l, h], got {spec.size}"
+        )
+        self._spec = spec
+        self.label = spec.label
+        self._size = list(spec.size)
+        self.wall_thickness = spec.wall_thickness
+        self.floor_thickness = spec.floor_thickness
+        self.lid_thickness = spec.lid_thickness
+        self.material_colour = spec.material_colour
         self.positive_colour = default_positive_colour
         self.size_spacing = m_piece_wiggle_room
-        self.anchor = BOTTOM + FRONT + LEFT
-        self.orient = TOP
-        self.spin = 0
+        self.anchor = spec.anchor if spec.anchor is not None else BOTTOM + FRONT + LEFT
+        self.orient = spec.orient if spec.orient is not None else TOP
+        self.spin = spec.spin
 
     # ------------------------------------------------------------------
     # Dimensions (derived and virtual)
@@ -269,6 +360,18 @@ class Box:
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
         )
         return body.color(self.material_colour)
+
+    def make_lid(self, lid: Lid | None = None) -> Bosl2Solid:
+        """Make the lid for this box -- the second of the two top-level methods.
+
+        When called with no arguments and a :class:`BoxSpec` was provided at
+        construction time, the lid is built from :attr:`BoxSpec.lid` or
+        :attr:`BoxSpec.lid_label` / :attr:`BoxSpec.shape_options`.
+        Pass an explicit :class:`~lids_base.Lid` to override the spec.
+        """
+        if lid is None:
+            lid = self._spec._resolve_lid(self.lid_thickness, self.material_colour)
+        return self.create_lid(lid)
 
     def create_lid(self, lid: Lid | None = None) -> Bosl2Solid:
         """Create the lid for this box.
@@ -321,38 +424,74 @@ class Box:
         ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
 
     # ------------------------------------------------------------------
-    # create_box -- finalises the box body with children / finger holes / MMU / positioning
+    # make_box -- finalises the box body with contents / finger holes / MMU / positioning
     # ------------------------------------------------------------------
+
+    def make_box(
+        self,
+        *,
+        contents: "Contents | None" = None,
+        finger_holes: list[FingerHole] | None = None,
+    ) -> Bosl2Solid:
+        """Build and finalise the box body. Subclasses MUST override."""
+        raise NotImplementedError(f"{self.label}.make_box()")
 
     def create_box(
         self,
         *,
-        children: list[Bosl2Solid],
-        positive_only_children: list[int] | None = None,
-        positive_negative_children: list[int] | None = None,
+        contents: "Contents | None" = None,
         finger_holes: list[FingerHole] | None = None,
     ) -> Bosl2Solid:
-        """Build and finalise the box body. Subclasses MUST override."""
-        raise NotImplementedError(f"{self.label}.create_box()")
+        """Backward-compatible alias for :meth:`make_box`."""
+        return self.make_box(contents=contents, finger_holes=finger_holes)
 
     # ------------------------------------------------------------------
-    # _finish_box -- shared body-assembly pipeline (called from subclass create_box)
+    # Contents (compartments / inserts)
+    # ------------------------------------------------------------------
+
+    def _resolve_contents(self, contents: "Contents | None") -> list[InnerObject]:
+        """Normalise *contents* into a flat ``list[InnerObject]``.
+
+        *contents* may be ``None``, a plain ``list[InnerObject]``, or a
+        ``callable(InnerSize) -> list[InnerObject]`` for content that needs to
+        know the box interior size (the Pythonic replacement for the SCAD
+        ``$inner_*`` special variables).
+        """
+        if contents is None:
+            return []
+        if callable(contents):
+            inner = InnerSize(width=self.inner_width, length=self.inner_length, height=self.inner_height)
+            resolved = contents(inner)
+        else:
+            resolved = contents
+        return list(resolved) if resolved else []
+
+    # ------------------------------------------------------------------
+    # _finish_box -- shared body-assembly pipeline (called from subclass make_box)
     # ------------------------------------------------------------------
 
     def _finish_box(
         self,
         body: Bosl2Solid,
-        children: "list | None" = None,
-        positive_only_children: list[int] | None = None,
-        positive_negative_children: list[int] | None = None,
+        contents: "Contents | None" = None,
         finger_holes: list[FingerHole] | None = None,
     ) -> Bosl2Solid:
-        """Apply children, finger holes, MMU and positioning to *body*, return completed solid."""
-        self._children = list(children) if children else []
-        self._positive_only_children = list(positive_only_children) if positive_only_children else []
-        self._positive_negative_children = list(positive_negative_children) if positive_negative_children else []
+        """Apply the inside mask, contents, finger holes, MMU and positioning to *body*.
 
-        body = self._carve_children(body)
+        When *contents* or *finger_holes* are ``None``, the corresponding
+        fields from the :class:`BoxSpec` (set at construction) are used.
+        """
+        if contents is None and self._spec.contents is not None:
+            contents = self._spec.contents
+        if finger_holes is None and self._spec.finger_holes is not None:
+            finger_holes = self._spec.finger_holes
+        self._contents = self._resolve_contents(contents)
+
+        # Hollow the interior with the inside mask so an empty box is a usable
+        # open box rather than a solid block.
+        body = body - self.inside_mask()
+
+        body = self._carve_contents(body)
         if finger_holes:
             body = self._apply_finger_holes(body, finger_holes)
         body = self._apply_mmu(body)
@@ -360,21 +499,21 @@ class Box:
         self._body = body
         return body
 
-    # ------------------------------------------------------------------
-    # Children
-    # ------------------------------------------------------------------
+    def _placed_content(self, io: InnerObject) -> Bosl2Solid:
+        """Resolve *io*'s value and translate it into the box interior frame."""
+        piece = ResolveChild(io.value, self.inner_width, self.inner_length, self.inner_height)
+        return piece.translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
 
-    def _resolve_child(
-        self, child: "PyOpenSCAD | Callable", inner_w: float, inner_l: float, inner_h: float
-    ) -> Bosl2Solid:
-        return child(inner_w, inner_l, inner_h) if callable(child) else child
-
-    def _carve_children(self, body: Bosl2Solid) -> Bosl2Solid:
+    def _carve_contents(self, body: Bosl2Solid) -> Bosl2Solid:
+        """Subtract every negative content, clipped to the inside mask so it
+        cannot punch through the walls or floor."""
         result = body
-        for i, c in enumerate(self._children):
-            if i not in self._positive_only_children:
-                piece = self._resolve_child(c, self.inner_width, self.inner_length, self.inner_height)
-                result = result - piece.translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+        for io in self._contents:
+            if io.type in (ObjectType.NEGATIVE, ObjectType.POSTIVE_NEGATIVE):
+                # inside_mask() (a Bosl2Solid) must be the left operand: its __and__
+                # unwraps the right side, whereas a raw native handle on the left
+                # raises "invalid argument left to operator" for a Bosl2Solid RHS.
+                result = result - (self.inside_mask() & self._placed_content(io))
         return result
 
     # ------------------------------------------------------------------
@@ -468,21 +607,22 @@ class Box:
     # ------------------------------------------------------------------
 
     def _apply_mmu(self, body: Bosl2Solid) -> Bosl2Solid:
+        """Union coloured copies of positive contents back onto the body.
+
+        ``POSTIVE`` contents are always emitted as solid (non-carved) copies;
+        ``POSTIVE_NEGATIVE`` contents are additionally emitted only when building
+        for multi-material (``MAKE_MMU == 1``).
+        """
         result = body
-        if len(self._positive_only_children) > 0 or (len(self._positive_negative_children) > 0 and MAKE_MMU == 1):
-            extra_indices = list(self._positive_only_children) + (
-                list(self._positive_negative_children) if MAKE_MMU == 1 else []
-            )
-            extra = None
-            for i in extra_indices:
-                piece = (
-                    self._resolve_child(self._children[i], self.inner_width, self.inner_length, self.inner_height)
-                    .color(self.positive_colour)
-                    .translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
-                )
-                extra = piece if extra is None else extra | piece
-            if extra is not None:
-                result = result | extra
+        extra = None
+        for io in self._contents:
+            emit = io.type == ObjectType.POSTIVE or (io.type == ObjectType.POSTIVE_NEGATIVE and MAKE_MMU == 1)
+            if not emit:
+                continue
+            piece = self._placed_content(io).color(io.color if io.color is not None else self.positive_colour)
+            extra = piece if extra is None else extra | piece
+        if extra is not None:
+            result = result | extra
         return result
 
     # ------------------------------------------------------------------

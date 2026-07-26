@@ -15,10 +15,12 @@ authors = [{ name = "pinkfish" }]
 
 [project.optional-dependencies]
 scripts = [
+    "pybosl2",
     "pymeshlab",
     "lark",
     "hyperpack",
     "inkex",
+    "numpy",
     "svgelements",
     "simplepath",
 ]

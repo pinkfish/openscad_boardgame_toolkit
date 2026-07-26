@@ -36,7 +36,7 @@ from base_bgtk import *
 import bosl2.masking
 import bosl2.shapes3d
 import bosl2.transforms
-from box_base import Box, FingerHoleLocation, Label
+from box_base import Box, BoxSpec, Contents, FingerHoleLocation, Label
 from lids_base import (
     Lid,
     SlidingLidFingernail,
@@ -69,58 +69,39 @@ class SlidingBox(Box):
 
     Usage::
 
-        box = SlidingBox([50, 100, 20])
-        box.create_box(children=[divider, cavity],
+        box = SlidingBox([50, 100, 20], "mybox")
+        solid = box.make_box(
+            contents=[InnerObject(divider), InnerObject(cavity)],
             finger_holes=[FingerHole(location=FingerHoleLocation.LEFT, offset=10),
                           FingerHole(location=FingerHoleLocation.RIGHT, offset=-5)])
-        box.show()
+        solid.show()
 
-        lid = box.create_lid(Lid(lid_thickness=2, label=Label("Trains")))
+        lid = box.make_lid(Lid(lid_thickness=2, label=Label("Trains")))
         lid.show()
     """
 
-    def __init__(
-        self,
-        size: list[float],
-        label: str,
-        *,
-        wall_thickness: float | None = None,
-        floor_thickness: float | None = None,
-        lid_thickness: float | None = None,
-        material_colour: str | None = None,
-        sliding_lid_options: types.SimpleNamespace | None = None,
-    ):
-        self._sliding_lid_options = sliding_lid_options if sliding_lid_options is not None else MakeSlidingLidOptions()
-        super().__init__(
-            size=size,
-            label=label,
-            wall_thickness=wall_thickness,
-            floor_thickness=floor_thickness,
-            lid_thickness=lid_thickness,
-            material_colour=material_colour,
+    def __init__(self, spec: BoxSpec):
+        # SlidingBox reads sliding_lid_options from the spec; fall back to plain defaults.
+        self._sliding_lid_options = (
+            spec.sliding_lid_options
+            if spec.sliding_lid_options is not None
+            else MakeSlidingLidOptions()
         )
+        super().__init__(spec)
 
     # ------------------------------------------------------------------
-    # create_box -- build the sliding-lid body then apply children/fingerholes/MMU/positioning
+    # make_box -- build the sliding-lid body then apply contents/fingerholes/MMU/positioning
     # ------------------------------------------------------------------
 
-    def create_box(
+    def make_box(
         self,
         *,
-        children: "list | None" = None,
-        positive_only_children: list[int] | None = None,
-        positive_negative_children: list[int] | None = None,
+        contents: "Contents | None" = None,
         finger_holes: "list | None" = None,
     ) -> Bosl2Solid:
-        """Build the sliding-lid box body and apply children, finger holes, MMU, positioning."""
+        """Build the sliding-lid box body and apply contents, finger holes, MMU, positioning."""
         body = self._build_box_body()
-        return self._finish_box(
-            body,
-            children=children,
-            positive_only_children=positive_only_children,
-            positive_negative_children=positive_negative_children,
-            finger_holes=finger_holes,
-        )
+        return self._finish_box(body, contents=contents, finger_holes=finger_holes)
 
     # ------------------------------------------------------------------
     # Sliding-lid-specific dimension derived values
@@ -208,7 +189,9 @@ class SlidingBox(Box):
         if not two_layer:
             body = body.edge_mask(
                 [TOP],
-                children=bosl2.masking.rounding_edge_mask(r=self.wall_thickness / 2, l=max(self.length, self.width)),
+                children=bosl2.masking.rounding_edge_mask(
+                    radius=self.wall_thickness / 2, length=max(self.length, self.width)
+                ),
             )
 
         rounding_offset = 0.01
@@ -262,7 +245,7 @@ class SlidingBox(Box):
         body = body - lid_cut
 
         edge_round = (
-            bosl2.masking.rounding_edge_mask(r=self.wall_thickness / 4, h=self.length - self.wall_thickness * 2)
+            bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 4, height=self.length - self.wall_thickness * 2)
             .rotate([0, 90, 0])
             .translate([self.width / 2, 0, calc_height - self._lid_cutout])
         )
@@ -300,16 +283,16 @@ class SlidingBox(Box):
         main = main.edge_mask(
             [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
             children=bosl2.masking.rounding_edge_mask(
-                r=self.wall_thickness if two_layer else calc_lid_rounding,
-                l=self.lid_thickness + self.size_spacing,
+                radius=self.wall_thickness if two_layer else calc_lid_rounding,
+                length=self.lid_thickness + self.size_spacing,
             ),
         )
         top_edges = [TOP] if two_layer else [TOP + BACK]
         main = main.edge_mask(
             top_edges,
             children=bosl2.masking.rounding_edge_mask(
-                r=self._top_cover if two_layer else calc_lid_rounding / 2,
-                l=max(self._lid_length, self._lid_width),
+                radius=self._top_cover if two_layer else calc_lid_rounding / 2,
+                length=max(self._lid_length, self._lid_width),
             ),
         )
 
@@ -337,8 +320,8 @@ class SlidingBox(Box):
             ).translate([0, 0, -self.size_spacing])
             main = main - front_cut
             round_a = bosl2.masking.rounding_edge_mask(
-                l=self.lid_thickness,
-                r=calc_lid_rounding,
+                length=self.lid_thickness,
+                radius=calc_lid_rounding,
             ).translate(
                 [
                     self.wall_thickness - self._two_layer_chamfer,
@@ -347,7 +330,7 @@ class SlidingBox(Box):
                 ]
             )
             round_b = (
-                bosl2.masking.rounding_edge_mask(l=self.lid_thickness, r=calc_lid_rounding)
+                bosl2.masking.rounding_edge_mask(length=self.lid_thickness, radius=calc_lid_rounding)
                 .rotate([0, 180, 0])
                 .translate(
                     [
@@ -551,16 +534,20 @@ def SlidingLid(
     lid_rounding: float | None = None,
     material_colour: str | None = None,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
-        [size[0], size[1], lid_thickness or default_lid_thickness],
-        f"SlidingLid({size[0]},{size[1]})",
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
+    calc_lid_thickness = lid_thickness or default_lid_thickness
+    spec = BoxSpec(
+        size=[size[0], size[1], calc_lid_thickness],
+        label=f"SlidingLid({size[0]},{size[1]})",
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        lid_thickness=calc_lid_thickness,
+        material_colour=material_colour if material_colour is not None else default_material_colour,
         sliding_lid_options=sliding_lid_options,
     )
+    box = SlidingBox(spec)
     lid = Lid(
-        lid_thickness=lid_thickness or default_lid_thickness,
-        lid_rounding=lid_rounding, extra_children=children,
+        lid_thickness=calc_lid_thickness,
+        lid_rounding=lid_rounding,
+        extra_children=children,
     )
     return box.create_lid(lid)
 
@@ -582,13 +569,15 @@ def SlidingBoxLidWithCustomShape(
     material_colour: str | None = None,
     pattern_inner_control: int = False,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
-        [size[0], size[1], lid_thickness or default_lid_thickness],
-        f"SlidingLid({size[0]},{size[1]})",
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
+    calc_lid_thickness = lid_thickness or default_lid_thickness
+    spec = BoxSpec(
+        size=[size[0], size[1], calc_lid_thickness],
+        label=f"SlidingLid({size[0]},{size[1]})",
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        lid_thickness=calc_lid_thickness,
         sliding_lid_options=sliding_lid_options,
     )
+    box = SlidingBox(spec)
     return box.create_lid_with_shape(
         shape_child=shape_child,
         lid_boundary=lid_boundary,
@@ -621,13 +610,15 @@ def SlidingBoxLidWithLabelAndCustomShape(
     pattern_inner_control: int = False,
     label_options: LabelOptions | None = None,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
-        [size[0], size[1], lid_thickness or default_lid_thickness],
-        f"SlidingLid({size[0]},{size[1]})",
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
+    calc_lid_thickness = lid_thickness or default_lid_thickness
+    spec = BoxSpec(
+        size=[size[0], size[1], calc_lid_thickness],
+        label=f"SlidingLid({size[0]},{size[1]})",
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        lid_thickness=calc_lid_thickness,
         sliding_lid_options=sliding_lid_options,
     )
+    box = SlidingBox(spec)
     return box.create_lid_with_label_and_shape(
         text_str=text_str,
         shape_child=shape_child,
@@ -659,13 +650,16 @@ def SlidingBoxLidWithLabel(
     label_options: LabelOptions | None = None,
     shape_options: ShapeObject | None = None,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
-        [size[0], size[1], lid_thickness or default_lid_thickness],
-        f"SlidingLid({size[0]},{size[1]})",
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
+    calc_lid_thickness = lid_thickness or default_lid_thickness
+    spec = BoxSpec(
+        size=[size[0], size[1], calc_lid_thickness],
+        label=f"SlidingLid({size[0]},{size[1]})",
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        lid_thickness=calc_lid_thickness,
+        material_colour=material_colour if material_colour is not None else default_material_colour,
         sliding_lid_options=sliding_lid_options,
     )
+    box = SlidingBox(spec)
     return box.create_lid_with_label(
         text_str=text_str,
         shape_options=shape_options,
@@ -692,13 +686,15 @@ def SlidingBoxLidWithShape(
     shape_options: ShapeObject | None = None,
     sliding_lid_options: types.SimpleNamespace | None = None,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
-        [size[0], size[1], lid_thickness or default_lid_thickness],
-        f"SlidingLid({size[0]},{size[1]})",
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
+    calc_lid_thickness = lid_thickness or default_lid_thickness
+    spec = BoxSpec(
+        size=[size[0], size[1], calc_lid_thickness],
+        label=f"SlidingLid({size[0]},{size[1]})",
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        lid_thickness=calc_lid_thickness,
         sliding_lid_options=sliding_lid_options,
     )
+    box = SlidingBox(spec)
     return box.create_lid_with_shape(
         shape_options=shape_options,
         lid_boundary=lid_boundary,
@@ -725,16 +721,34 @@ def MakeBoxWithSlidingLid(
     anchor: list[int] | None = None,
     orient: list[float] | None = None,
 ) -> PyOpenSCAD:
-    box = SlidingBox(
+    # Translate the legacy children + parallel index-list contract into the
+    # self-describing InnerObject model that make_box() now consumes.
+    pos_only = set(positive_only_children or [])
+    pos_neg = set(positive_negative_children or [])
+    contents: list[InnerObject] = []
+    for i, c in enumerate(children or []):
+        if i in pos_only:
+            obj_type = ObjectType.POSTIVE
+        elif i in pos_neg:
+            obj_type = ObjectType.POSTIVE_NEGATIVE
+        else:
+            obj_type = ObjectType.NEGATIVE
+        contents.append(InnerObject(value=c, type=obj_type))
+
+    spec = BoxSpec(
         size=size,
         label=f"SlidingBox({size[0]},{size[1]},{size[2]})",
-        wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness,
-        lid_thickness=lid_thickness,
+        wall_thickness=wall_thickness if wall_thickness is not None else default_wall_thickness,
+        floor_thickness=floor_thickness if floor_thickness is not None else default_floor_thickness,
+        lid_thickness=lid_thickness if lid_thickness is not None else default_lid_thickness,
+        material_colour=material_colour if material_colour is not None else default_material_colour,
+        spin=spin,
+        anchor=anchor,
+        orient=orient,
         sliding_lid_options=sliding_lid_options,
+        contents=contents if contents else None,
     )
-    return box.create_box(
-        children=children,
-        positive_only_children=positive_only_children,
-        positive_negative_children=positive_negative_children,
-    )
+    box = SlidingBox(spec)
+    if positive_colour is not None:
+        box.positive_colour = positive_colour
+    return box.make_box()

@@ -236,17 +236,17 @@ def ShapeByType(
         return None
 
     if t == ShapeType.DENSE_HEX:
-        return shapes2d.regular_ngon(outer_r=w / 2 + th / 2, n=6, rounding=rounding) - shapes2d.regular_ngon(
-            outer_r=w / 2 - th / 2, n=6, rounding=rounding
+        return shapes2d.regular_ngon(outer_radius=w / 2 + th / 2, sides=6, rounding=rounding) - shapes2d.regular_ngon(
+            outer_radius=w / 2 - th / 2, sides=6, rounding=rounding
         )
 
     if t == ShapeType.DENSE_TRIANGLE:
-        return shapes2d.regular_ngon(outer_r=w / 2 + th / 2, n=3, rounding=rounding) - shapes2d.regular_ngon(
-            outer_r=w / 2 - th / 2, n=3, rounding=rounding
+        return shapes2d.regular_ngon(outer_radius=w / 2 + th / 2, sides=3, rounding=rounding) - shapes2d.regular_ngon(
+            outer_radius=w / 2 - th / 2, sides=3, rounding=rounding
         )
 
     if t == ShapeType.CIRCLE:
-        return circle(r=w / 2 + th / 4) - circle(r=(w - th / 2) / 2)
+        return shapes2d.circle(radius=w / 2 + th / 4) - shapes2d.circle(radius=(w - th / 2) / 2)
 
     if t in (ShapeType.TRIANGLE, ShapeType.HEX, ShapeType.OCTOGON, ShapeType.SQUARE):
         shape_edges = (
@@ -254,8 +254,8 @@ def ShapeByType(
         )
         outer_r = w / 2 + (th * 1.5 if t == ShapeType.TRIANGLE else th / 4)
         inner_r = (w - (th * 0.5 if t == ShapeType.TRIANGLE else th / 2)) / 2
-        return shapes2d.regular_ngon(r=outer_r, n=shape_edges, rounding=rounding) - shapes2d.regular_ngon(
-            r=inner_r, n=shape_edges, rounding=rounding
+        return shapes2d.regular_ngon(radius=outer_r, sides=shape_edges, rounding=rounding) - shapes2d.regular_ngon(
+            radius=inner_r, sides=shape_edges, rounding=rounding
         )
 
     if t == ShapeType.SUPERSHAPE:

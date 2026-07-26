@@ -24,6 +24,7 @@
 from openscad import *
 from base_bgtk import *
 from bosl2 import shapes3d
+from bosl2 import shapes2d
 from bosl2.shapes3d import Bosl2Solid
 
 import math
@@ -114,8 +115,10 @@ def MakeStripedGrid(size: list[float], bar_width: float = 1) -> PyOpenSCAD:
 
     pieces: list[PyOpenSCAD] = []
     for j in range(math.floor(x_count) + 1):
-        bar = square([bar_width, length * 2]).rotate([0, 0, 45]).translate([j * (bar_width + dx), -bar_width])
-        piece = square([width, length]) & bar
+        bar = shapes2d.square([bar_width, length * 2], anchor=FRONT + LEFT).rotate([0, 0, 45]).translate(
+            [j * (bar_width + dx), -bar_width]
+        )
+        piece = shapes2d.square([width, length], anchor=FRONT + LEFT) & bar
         pieces.append(piece)
     return union(pieces)
 
@@ -157,7 +160,7 @@ def Make3dStripedGrid(
             shapes3d.prismoid(
                 size1=[calc_bar_width_bottom, length * 2],
                 size2=[bar_width_top, length * 2],
-                h=height,
+                height=height,
                 anchor=BOTTOM + LEFT,
             )
             .rotate([0, 0, 45])
@@ -212,7 +215,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
             scale = min(avail_l / raw_w, avail_w / raw_l)
         else:
             scale = min(avail_w / raw_w, avail_l / raw_l)
-        text_shape = text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
+        text_shape = shapes2d.text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
             [raw_w * scale, raw_l * scale, 0]
         )
         if rotate_text:
@@ -342,7 +345,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             scale = min(avail_l / raw_w, avail_w / raw_l)
         else:
             scale = min(avail_w / raw_w, avail_l / raw_l)
-        text_shape = text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
+        text_shape = shapes2d.text(text=str(label), font=calc_font, size=10, spacing=1, halign="left", valign="bottom").resize(
             [raw_w * scale, raw_l * scale, 0]
         )
         if rotate_text:
@@ -513,14 +516,14 @@ def MakeFramedLidLabel(size: list[float], lid_thickness: float, label: str, opti
         and calc_text_width + calc_finger_hole_size * 2 < length
     ):
         hole_a = (
-            shapes3d.cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM)
-            - shapes3d.cyl(r=calc_finger_hole_size - options.border, h=lid_thickness + 1, anchor=BOTTOM).translate(
+            shapes3d.cyl(radius=calc_finger_hole_size, height=lid_thickness, anchor=BOTTOM)
+            - shapes3d.cyl(radius=calc_finger_hole_size - options.border, height=lid_thickness + 1, anchor=BOTTOM).translate(
                 [0, 0, -0.5]
             )
         ).translate([options.label_diff[0], -calc_text_width / 2 + options.label_diff[1], 0])
         hole_b = (
-            shapes3d.cyl(r=calc_finger_hole_size, h=lid_thickness, anchor=BOTTOM)
-            - shapes3d.cyl(r=calc_finger_hole_size - options.border, h=lid_thickness + 1, anchor=BOTTOM).translate(
+            shapes3d.cyl(radius=calc_finger_hole_size, height=lid_thickness, anchor=BOTTOM)
+            - shapes3d.cyl(radius=calc_finger_hole_size - options.border, height=lid_thickness + 1, anchor=BOTTOM).translate(
                 [0, 0, -0.5]
             )
         ).translate([options.label_diff[0], calc_text_width / 2 + options.label_diff[1], 0])
@@ -614,7 +617,7 @@ def MakeFramelessLidLabel(size: list[float], lid_thickness: float, label: str, o
         calc_label_colour = default_label_colour
 
     bg_text = (
-        text(label, font=options.font, halign="center", valign="center")
+        shapes2d.text(label, font=options.font, halign="center", valign="center")
         .resize([calc_text_length, text_size, 0])
         .rotate([0, 0, angle])
         .linear_extrude(lid_thickness - default_slicing_layer_height)
@@ -623,7 +626,7 @@ def MakeFramelessLidLabel(size: list[float], lid_thickness: float, label: str, o
     )
 
     fg_text = (
-        text(label, font=options.font, halign="center", valign="center")
+        shapes2d.text(label, font=options.font, halign="center", valign="center")
         .resize([calc_text_length, text_size, 0])
         .rotate([0, 0, angle])
         .linear_extrude(default_slicing_layer_height + 0.01)

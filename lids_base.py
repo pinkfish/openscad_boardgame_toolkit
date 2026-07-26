@@ -169,7 +169,7 @@ def LidMeshHex(
     children = (lambda i, j: shape_for(radius * 2)) if inner_control else shape_for(radius * 2)
 
     return LidMeshDense(
-        path=square([width, length]),
+        path=[[0, 0], [width, 0], [width, length], [0, length]],
         lid_thickness=lid_thickness,
         boundary=boundary,
         radius=radius,
@@ -592,18 +592,14 @@ def SlidingLidFingernail(
 
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
-    cyl_part = shapes3d.cyl(h=lid_thickness, r=radius).color(material_colour).translate([0, 0, lid_thickness / 2])
+    cyl_part = shapes3d.cyl(height=lid_thickness, radius=radius).color(material_colour).translate([0, 0, lid_thickness / 2])
 
-    # "sphere" is also this function's parameter name (matching the original
-    # SCAD module signature), so the builtin is looked up explicitly here to
-    # avoid the local-variable shadow.
-    _sphere_primitive = globals()["sphere"]
     cut_box = (
-        cube([finger_length, finger_length, finger_gap])
+        shapes3d.cuboid([finger_length, finger_length, finger_gap], anchor=FRONT + LEFT + BOTTOM)
         .color(material_colour)
         .translate([-finger_length / 2, -finger_length, -finger_length])
     )
-    cut_sphere = _sphere_primitive(r=finger_length).color(material_colour)
+    cut_sphere = shapes3d.sphere(radius=finger_length).color(material_colour)
     cutter = (cut_box & cut_sphere).translate([0, 0, finger_length + lid_thickness - finger_gap + 0.1])
 
     return cyl_part - cutter
@@ -634,15 +630,15 @@ def MakeLidTab(
 
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
-    base = cube([length, wall_thickness, lid_thickness])
+    base = shapes3d.cuboid([length, wall_thickness, lid_thickness], anchor=FRONT + LEFT + BOTTOM)
 
-    stalk = cube([length, wall_thickness / 2, height - wall_thickness + 0.1])
+    stalk = shapes3d.cuboid([length, wall_thickness / 2, height - wall_thickness + 0.1], anchor=FRONT + LEFT + BOTTOM)
     wedge = hull(
-        shapes3d.xcyl(h=length, r=0.1)
+        shapes3d.xcyl(height=length, radius=0.1)
         .translate([length / 2, wall_thickness * prism_width - 0.1, height - wall_thickness + 0.1])
         .shape,
-        cube([length, 0.1, 0.1]).translate([0, 0, height - wall_thickness]),
-        shapes3d.xcyl(h=length, r=0.1).translate([length / 2, 0.1, height - 0.1]).shape,
+        shapes3d.cuboid([length, 0.1, 0.1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height - wall_thickness]).shape,
+        shapes3d.xcyl(height=length, radius=0.1).translate([length / 2, 0.1, height - 0.1]).shape,
     )
 
     return (base | stalk | wedge).mirror([0, 0, 1])
