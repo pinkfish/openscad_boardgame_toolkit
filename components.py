@@ -29,9 +29,6 @@ from __future__ import annotations
 from pythonscad import *
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from openscad import PyOpenSCAD  # noqa: F401
-    from pysolidfive import PyShape2D  # noqa: F401
 from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import shapes2d
@@ -170,13 +167,12 @@ def RoundedBoxOnLength(size: list[float], radius: float) -> PyOpenSCAD:
     assert radius > 0, f"Need radius > 0 radius={radius}"
 
     half = (length - radius * 2) / 2
-    rounded = hull(
-        shapes3d.xcyl(length=width, radius=radius).translate([0, -half, 0]).shape,
-        shapes3d.xcyl(length=width, radius=radius).translate([0, half, 0]).shape,
+    rounded = shapes3d.xcyl(length=width, radius=radius).translate([0, -half, 0]).hull(
+        shapes3d.xcyl(length=width, radius=radius).translate([0, half, 0])
     ).translate([width / 2, length / 2, radius])
     cut = shapes3d.cuboid([width + 1, length + 1, radius + 1], anchor=FRONT + LEFT + BOTTOM).translate([-0.5, -0.5, radius])
     top = shapes3d.cuboid([width, length, 1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height - 1])
-    return hull((rounded - cut).shape, top.shape)
+    return (rounded - cut).hull( top)
 
 
 def RoundedBoxAllSides(size: list[float], radius: float) -> PyOpenSCAD:
@@ -196,15 +192,15 @@ def RoundedBoxAllSides(size: list[float], radius: float) -> PyOpenSCAD:
     assert height_i > 0, f"Need height > 0 height={height_i}"
     assert radius > 0, f"Need radius > 0 radius={radius}"
 
-    corners = hull(
-        shapes3d.sphere(radius).translate([radius, radius, radius]).shape,
-        shapes3d.sphere(radius).translate([width_i - radius, radius, radius]).shape,
-        shapes3d.sphere(radius).translate([radius, length_i - radius, radius]).shape,
-        shapes3d.sphere(radius).translate([width_i - radius, length_i - radius, radius]).shape,
+    corners = shapes3d.sphere(radius).translate([radius, radius, radius]).hull(
+        shapes3d.sphere(radius).translate([width_i - radius, radius, radius]),
+        shapes3d.sphere(radius).translate([radius, length_i - radius, radius]),
+        shapes3d.sphere(radius).translate([width_i - radius, length_i - radius, radius])
     )
+    
     cut = shapes3d.cuboid([width_i + 1, length_i + 1, radius + 1], anchor=FRONT + LEFT + BOTTOM).translate([-0.5, -0.5, radius])
     top = shapes3d.cuboid([width_i, length_i, 1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height_i - 1])
-    return hull((corners - cut).shape, top.shape)
+    return (corners - cut).hull(top)
 
 
 def RoundedBoxGrid(
@@ -232,8 +228,8 @@ def RoundedBoxGrid(
     col_length = (length - spacing * (cols - 1)) / cols
 
     shape = None
-    for x in range(int(rows)):
-        for y in range(int(cols)):
+    for x in range(rows):
+        for y in range(cols):
             if all_sides:
                 piece = RoundedBoxAllSides([row_length, col_length, height], radius=radius)
             else:
@@ -765,10 +761,10 @@ def FingerHoleWall(
         # branch above). Point-list pieces (the tangent quads) become native polygon()s;
         # hull_region becomes a native 2-D hull(); mirrors across the Y axis are native
         # mirror([1, 0, 0]) on the built 2-D geometry.
-        def _poly(pts) -> "PyOpenSCAD":
+        def _poly(pts) -> B:
             return polygon([[float(u), float(v)] for u, v in pts])
 
-        top_shape = hull(_poly(top_polygon), _poly(Path(top_polygon).mirror([1, 0])))
+        top_shape = _poly(top_polygon).hull(_poly(Path(top_polygon).mirror([1, 0])))
         side_shape = (
             (
                 shapes2d.square([rounding_radius, rounding_radius], center=True).translate(

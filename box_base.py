@@ -31,10 +31,8 @@ import numpy as np
 from pythonscad import *
 from typing import TYPE_CHECKING, Any, Callable, Union
 
-if TYPE_CHECKING:
-    from openscad import PyOpenSCAD  # noqa: F401
-    from labels import LabelOptions
-    from shape_type import ShapeObject
+from labels import LabelOptions
+from shape_type import ShapeObject
 
 from base_bgtk import *
 import bosl2.shapes3d
@@ -120,7 +118,7 @@ class Label:
     label_colour: str = field(default_factory=lambda: default_label_colour)
     label_background_colour: str = field(default_factory=lambda: default_label_background_colour)
     short_length: bool = False
-    label_diff: list[float] = field(default_factory=lambda: [0, 0])
+    label_diff: list[float] = field(default_factory=lambda: [0.0, 0.0])
     border: float = 2
     offset: float = 4
     radius: float = 5
