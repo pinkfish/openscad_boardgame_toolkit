@@ -417,6 +417,10 @@ class Lid:
         lid_rounding: float | None = None,
         extra_children: list | None = None,
         fingernail: bool = False,
+        fingernail_width: float | None = None,
+        fingernail_length: float | None = None,
+        fingernail_x_offset: float | None = None,
+        fingernail_y_offset: float | None = None,
     ) -> None:
         if material_colour is None:
             material_colour = default_material_colour
@@ -437,6 +441,10 @@ class Lid:
         self.lid_rounding = lid_rounding
         self.extra_children = extra_children
         self.fingernail = fingernail
+        self.fingernail_width = fingernail_width
+        self.fingernail_length = fingernail_length
+        self.fingernail_x_offset = fingernail_x_offset
+        self.fingernail_y_offset = fingernail_y_offset
 
     def apply_shape_defaults(self, shape_type: "ShapeType") -> None:
         """Set pattern-related fields from *shape_type* when shape_options is a user object."""
@@ -498,6 +506,58 @@ class Lid:
 
         bound = color(polygon(calc_path).offset(-self.boundary).linear_extrude(self.lid_thickness), self.material_colour)
         return (mesh | border) & bound
+
+    def fingernail_cutout(self) -> PyOpenSCAD | None:
+        """Return a fingernail cutout solid, or None if :attr:`fingernail` is False."""
+        if not self.fingernail:
+            return None
+        fn_w = self.fingernail_width or 10
+        fn_l = self.fingernail_length or 10
+        x_off = self.fingernail_x_offset if self.fingernail_x_offset is not None else fn_w / 2
+        y_off = self.fingernail_y_offset if self.fingernail_y_offset is not None else fn_l - 3
+        return (
+            shapes3d.cuboid(
+                [fn_w, fn_l, self.lid_thickness],
+            ).color(self.material_colour)
+            & SlidingLidFingernail(
+                self.lid_thickness,
+                material_colour=self.material_colour,
+            )
+            .translate([x_off, y_off, 0])
+            .shape
+        )
+
+    def overlay(
+        self,
+        *,
+        label_builder: "Callable[[Label], PyOpenSCAD | None] | None" = None,
+    ) -> list:
+        """Return the list of overlay children for this lid.
+
+        Args:
+            label_builder: optional callable that takes a :class:`~box_base.Label` and
+                returns its geometry (e.g. :meth:`Box.make_label`)
+        """
+        overlay_children: list = []
+
+        fn = self.fingernail_cutout()
+        if fn is not None:
+            overlay_children.append(fn)
+
+        if self.shape_child is not None or self.shape_options is not None:
+            mesh = self.build()
+            if mesh is not None:
+                overlay_children.append(mesh)
+
+        if self.label is not None and label_builder is not None:
+            label_shape = label_builder(self.label)
+            if label_shape is not None:
+                overlay_children.append(label_shape)
+
+        if self.extra_children:
+            overlay_children.extend(self.extra_children)
+
+        return overlay_children
 
 
 # ---------------------------------------------------------------------------

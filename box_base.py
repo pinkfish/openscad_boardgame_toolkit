@@ -41,7 +41,6 @@ from components import FingerHoleWall, FingerHoleBase
 from lids_base import (
     internal_build_lid,
     Lid,
-    SlidingLidFingernail,
 )
 from labels import MakeLabelOptions
 
@@ -272,8 +271,48 @@ class Box:
         return body.color(self.material_colour)
 
     def create_lid(self, lid: Lid | None = None) -> Bosl2Solid:
-        """Create the lid for this box. Subclasses MUST override."""
-        raise NotImplementedError(f"{self.label}.create_lid()")
+        """Create the lid for this box.
+
+        Builds the base lid body via :meth:`_make_base_lid`, then applies
+        shape pattern, label, and fingernail from *lid*, and stacks with
+        :func:`~lids_base.internal_build_lid`.
+
+        Subclasses override :meth:`_make_base_lid` and :meth:`_lid_adjustment`
+        to provide their specific lid geometry.
+        """
+        l = lid if lid is not None else Lid(lid_thickness=self.lid_thickness)
+        l.lid_thickness = l.lid_thickness or self.lid_thickness
+        l.material_colour = l.material_colour or self.material_colour
+        if l.size is None:
+            l.size = [self.inner_width, self.inner_length]
+        if l.fingernail and l.fingernail_width is None:
+            l.fingernail_width = self.inner_width
+            l.fingernail_length = self.inner_length
+
+        base_body = self._make_base_lid(l.lid_rounding)
+        overlay = self._lid_overlay(l)
+        children = [base_body] + overlay
+        stack = internal_build_lid(
+            lid_thickness=l.lid_thickness,
+            children=children,
+            size_spacing=self.size_spacing,
+        )
+        return self._lid_adjustment(stack)
+
+    def _make_base_lid(self, lid_rounding: float | None = None) -> Bosl2Solid:
+        """Build the raw lid body. Subclasses MUST override for box-specific geometry."""
+        return bosl2.shapes3d.cuboid(
+            [self.inner_width, self.inner_length, self.lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+        ).color(self.material_colour)
+
+    def _lid_overlay(self, lid: Lid) -> list:
+        """Build the list of overlay children by delegating to :meth:`Lid.overlay`."""
+        return lid.overlay(label_builder=self.make_label)
+
+    def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
+        """Post-process the assembled lid stack. Subclasses MAY override."""
+        return stack
 
     def inside_mask(self) -> Bosl2Solid:
         return bosl2.shapes3d.cuboid(
