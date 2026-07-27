@@ -26,9 +26,11 @@
 # FileGroup: Basics
 
 from __future__ import annotations
-from pythonscad import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
+from pythonscad import *
+from bosl2.shapes3d import Bosl2Solid
+from bosl2.shapes2d import Bosl2Shape2D
 from base_bgtk import *
 from bosl2 import shapes3d
 from bosl2 import shapes2d
@@ -38,11 +40,10 @@ from bosl2 import geometry
 from bosl2 import masking
 
 import math
-from typing import Callable
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
+# TODO: _bosl2 osuse handle is no longer used once HexBoxDivisions is fully migrated.
+# It can be removed once confirmed no other callers remain in the codebase.
 _bosl2 = osuse(BOSL2_STD_PATH)
 
 # Magnet-slot-type constants
@@ -120,28 +121,36 @@ def HexBoxDivisions(
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
 
+    # NOTE: shapes2d._regular_ngon_path is a private helper; if it disappears
+    # replace with: shapes2d.regular_ngon(n=num_sides, r=width/2) path call.
     hex_path = shapes2d._regular_ngon_path(num_sides, width / 2)
+    hex_shape = shapes2d.polygon([[float(x), float(y)] for x, y in hex_path])
+
     w_div = wall_thickness / 2
     ang = 360 / divisions
     calc_bottom_radius = (
-        bottom_radius if bottom_radius is not None else min(height * 3 / 4, (width - wall_thickness) / (divisions * 2))
+        bottom_radius
+        if bottom_radius is not None
+        else min(height * 3 / 4, (width - wall_thickness) / (divisions * 2))
     )
 
     shape = None
     for i in range(divisions):
-        wedge_path = [[0, 0]] + shapes2d.arc(radius=width * 2, start=i * ang, angle=ang)
-        thinned_wedge = Path(wedge_path).offset(r=-w_div / 2)
-        sub_region = _bosl2.intersection([hex_path], [thinned_wedge])
-        piece = _bosl2.vnf_polyhedron(
-            _bosl2.offset_sweep(
-                Path(sub_region[0]).round_corners(radius=2),
-                height=height,
-                bottom=_bosl2.os_circle(calc_bottom_radius),
-                offset="delta",
-                check_valid=True,
-                quality=1,
-                steps=16,
-            )
+        # Build the wedge as a native 2-D shape and shrink it by half wall-thickness.
+        # Was: wedge_path / thinned_wedge point-lists fed into _bosl2.intersection().
+        wedge_pts = [[0.0, 0.0]] + list(shapes2d.arc(radius=width * 2, start=i * ang, angle=ang))
+        wedge_shape = shapes2d.polygon([[float(x), float(y)] for x, y in wedge_pts])
+        thinned_wedge_shape = wedge_shape.offset(delta=-w_div / 2)
+
+        # Native 2-D boolean intersection replaces _bosl2.intersection([hex_path], [thinned_wedge]).
+        clipped = hex_shape & thinned_wedge_shape
+
+        # OffsetSweep() replaces _bosl2.vnf_polyhedron(_bosl2.offset_sweep(..., bottom=_bosl2.os_circle(r))).
+        # _bosl2.os_circle(r) -> rounding_bottom=r in OffsetSweep.
+        piece = OffsetSweep(
+            clipped,
+            height=height,
+            rounding_bottom=calc_bottom_radius,
         )
         shape = piece if shape is None else shape | piece
 
@@ -469,8 +478,8 @@ def RegularPolygonGrid(
     inner_control: int = 0,
     space_width: float | None = None,
     space_length: float | None = None,
-    children: PyOpenSCAD | Callable | None = None,
-) -> PyOpenSCAD:
+    children: Bosl2Shape2D | Callable | None = None,
+) -> Bosl2Shape2D:
     """Lays out a grid of polygons, handling spacing.  Children supply the actual shape.
 
     Usage:
@@ -548,8 +557,8 @@ def RegularPolygonGridDense(
     cols: float,
     shape_edges: int = 6,
     inner_control: int | bool = False,
-    children: "PyOpenSCAD | PyShape2D | Callable | None" = None,
-) -> "PyOpenSCAD | PyShape2D":
+    children: Bosl2Shape2D| Callable | None = None,
+) ->  Bosl2Shape2D:
     """Lays out a dense (space-filling) grid for triangles and hexagons.
 
     Usage:
@@ -620,7 +629,7 @@ def HexGridWithCutouts(
     push_block_height: float = 0,
     wall_thickness: float = 2,
     inner_control: bool = False,
-) -> PyOpenSCAD:
+) -> Bosl2Shape2D:
     """Creates a hex grid with cutouts for fitting hex tiles inside a box.
 
     Usage:
@@ -647,9 +656,9 @@ def HexGridWithCutouts(
     apothem = width / 2
     radius = apothem / math.cos(math.radians(180 / 6))
 
-    bound = shapes3d.cuboid(
-        [rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing), height + 20], anchor=FRONT + LEFT + BOTTOM
-    ).translate([0, 0, -10])
+    bound = shapes2d.rect(
+        [rows * (radius * 2 + spacing), cols * (apothem * 2 + spacing)], anchor=FRONT + LEFT
+    ).translate([0, 0])
 
     cell = RegularPolygon(width=width, height=10 + height, shape_edges=6)
     if push_block_height > 0:
@@ -685,7 +694,7 @@ def FingerHoleWall(
     rounding_edge: float = 0,
     round_front: bool = True,
     round_back: bool = True,
-) -> PyOpenSCAD:
+) -> Bosl2Solid:
     """Creates a finger-hole cutout with rounded edges for a wall.
 
     Usage:
@@ -761,8 +770,8 @@ def FingerHoleWall(
         # branch above). Point-list pieces (the tangent quads) become native polygon()s;
         # hull_region becomes a native 2-D hull(); mirrors across the Y axis are native
         # mirror([1, 0, 0]) on the built 2-D geometry.
-        def _poly(pts) -> B:
-            return polygon([[float(u), float(v)] for u, v in pts])
+        def _poly(pts) -> Bosl2Shape2D:
+            return shapes2d.polygon([[float(u), float(v)] for u, v in pts])
 
         top_shape = _poly(top_polygon).hull(_poly(Path(top_polygon).mirror([1, 0])))
         side_shape = (
@@ -795,7 +804,7 @@ def FingerHoleWall(
             .translate([0, depth_of_hole / 2, height])
         )
 
-    return shape.multmatrix(tmat)
+    return Bosl2Solid(shape.multmatrix(tmat))
 
 
 def CornerCatch(
@@ -810,7 +819,7 @@ def CornerCatch(
     round_front: bool = True,
     round_back: bool = True,
     round_corner_back: bool = True,
-) -> PyOpenSCAD:
+) -> Bosl2Solid:
     """Round-over on the corner for a catch, making it smooth.
 
     Usage:
@@ -890,7 +899,7 @@ def FingerHoleBase(
     wall_thickness: float | None = None,
     orient: list[float] | None = None,
     spin: float = 0,
-) -> PyOpenSCAD:
+) -> Bosl2Solid:
     """Creates a hole in the floor of a box with rounding for picking up cards/pieces.
 
     Usage:

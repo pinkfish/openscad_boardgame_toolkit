@@ -129,57 +129,6 @@ class Label:
     label_type: LabelType = field(default_factory=lambda: default_label_type)
     solid_background: bool = field(default_factory=lambda: default_label_solid_background)
 
-    def build(
-        self,
-        *,
-        lid_thickness: float,
-        material_colour: str,
-        inner_width: float,
-        inner_length: float,
-        wall_thickness: float,
-    ) -> Bosl2Solid | None:
-        """Create the label solid using the provided box dimensions.
-
-        Args:
-            lid_thickness: thickness of the lid
-            material_colour: box material colour (used if the label doesn't set its own)
-            inner_width: clear interior width of the box
-            inner_length: clear interior length of the box
-            wall_thickness: box wall thickness (for default positioning)
-        """
-        from lids_base import MakeLidLabel
-
-        options = MakeLabelOptions(
-            text_scale=self.text_scale,
-            text_length=self.text_length,
-            angle=self.angle,
-            label_colour=self.label_colour,
-            label_background_colour=self.label_background_colour,
-            short_length=self.short_length,
-            label_diff=list(self.label_diff),
-            border=self.border,
-            offset=self.offset,
-            radius=self.radius,
-            font=self.font,
-            full_height=self.full_height,
-            finger_hole_size=self.finger_hole_size,
-            material_colour=material_colour if self.material_colour == default_material_colour else self.material_colour,
-            label_type=self.label_type,
-            solid_background=self.solid_background,
-        )
-
-        calc_size = list(self.size) if self.size else [inner_width, inner_length]
-        calc_pos = list(self.position) if self.position else [wall_thickness / 2, wall_thickness / 2, 0]
-
-        piece = MakeLidLabel(
-            size=calc_size,
-            lid_thickness=lid_thickness,
-            text_str=self.text,
-            options=options,
-        )
-        if piece is not None:
-            return piece.translate(calc_pos)
-        return None
 
 
 @dataclass
@@ -247,29 +196,6 @@ class BoxSpec:
     label_options: LabelOptions | None = None # styling for lid_label
     shape_options: ShapeObject | None = None  # lid pattern shape
 
-    def _resolve_lid(self, lid_thickness: float, material_colour: str) -> Lid | None:
-        """Build a :class:`~lids_base.Lid` from the spec's lid fields.
-
-        Returns ``None`` when neither :attr:`lid` nor :attr:`lid_label` is set
-        (the caller will fall back to a bare lid body).
-        """
-        if self.lid is not None:
-            return self.lid
-        if self.lid_label is not None:
-            label_kwargs: dict[str, Any] = {"material_colour": material_colour}
-            if self.label_options is not None:
-                for fld in _LABEL_OPTION_FIELDS:
-                    v = getattr(self.label_options, fld, None)
-                    if v is not None:
-                        label_kwargs[fld] = v
-            lbl = Label(self.lid_label, **label_kwargs)
-            return Lid(
-                lid_thickness=lid_thickness,
-                label=lbl,
-                shape_options=self.shape_options,
-                material_colour=material_colour,
-            )
-        return None
 
 
 class Box:
@@ -368,8 +294,33 @@ class Box:
         Pass an explicit :class:`~lids_base.Lid` to override the spec.
         """
         if lid is None:
-            lid = self._spec._resolve_lid(self.lid_thickness, self.material_colour)
+            lid = self._resolve_lid_from_spec()
         return self.create_lid(lid)
+
+    def _resolve_lid_from_spec(self) -> Lid | None:
+        """Build a :class:`~lids_base.Lid` from the :class:`BoxSpec` set at construction.
+
+        Returns ``None`` when neither :attr:`BoxSpec.lid` nor :attr:`BoxSpec.lid_label`
+        is set (the caller will fall back to a bare lid body).
+        """
+        spec = self._spec
+        if spec.lid is not None:
+            return spec.lid
+        if spec.lid_label is not None:
+            label_kwargs: dict[str, Any] = {"material_colour": self.material_colour}
+            if spec.label_options is not None:
+                for fld in _LABEL_OPTION_FIELDS:
+                    v = getattr(spec.label_options, fld, None)
+                    if v is not None:
+                        label_kwargs[fld] = v
+            lbl = Label(spec.lid_label, **label_kwargs)
+            return Lid(
+                lid_thickness=self.lid_thickness,
+                label=lbl,
+                shape_options=spec.shape_options,
+                material_colour=self.material_colour,
+            )
+        return None
 
     def create_lid(self, lid: Lid | None = None) -> Bosl2Solid:
         """Create the lid for this box.
@@ -644,18 +595,53 @@ class Box:
     # ------------------------------------------------------------------
 
     def make_label(self, label: Label) -> Bosl2Solid | None:
-        """Create a label solid from *label*, using the Box's dimensions and colour.
+        """Create a label solid from *label* using this Box's dimensions and colour.
 
-        Delegates to :meth:`Label.build`, passing the Box's lid thickness,
-        material colour, interior dimensions, and wall thickness.
+        Converts the :class:`Label` data object into rendering options and calls
+        :func:`~lids_base.MakeLidLabel`, positioning the result inside the box.
         """
-        return label.build(
-            lid_thickness=self.lid_thickness,
-            material_colour=self.material_colour,
-            inner_width=self.inner_width,
-            inner_length=self.inner_length,
-            wall_thickness=self.wall_thickness,
+        from lids_base import MakeLidLabel
+
+        effective_colour = (
+            self.material_colour
+            if label.material_colour == default_material_colour
+            else label.material_colour
         )
+        options = MakeLabelOptions(
+            text_scale=label.text_scale,
+            text_length=label.text_length,
+            angle=label.angle,
+            label_colour=label.label_colour,
+            label_background_colour=label.label_background_colour,
+            short_length=label.short_length,
+            label_diff=list(label.label_diff),
+            border=label.border,
+            offset=label.offset,
+            radius=label.radius,
+            font=label.font,
+            full_height=label.full_height,
+            finger_hole_size=label.finger_hole_size,
+            material_colour=effective_colour,
+            label_type=label.label_type,
+            solid_background=label.solid_background,
+        )
+
+        calc_size = list(label.size) if label.size else [self.inner_width, self.inner_length]
+        calc_pos = (
+            list(label.position)
+            if label.position
+            else [self.wall_thickness / 2, self.wall_thickness / 2, 0]
+        )
+
+        piece = MakeLidLabel(
+            size=calc_size,
+            lid_thickness=self.lid_thickness,
+            text_str=label.text,
+            options=options,
+        )
+        if piece is not None:
+            return piece.translate(calc_pos)
+        return None
 
     # ------------------------------------------------------------------
     # Lid composition helper
