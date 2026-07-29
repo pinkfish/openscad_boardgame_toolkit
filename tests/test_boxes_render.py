@@ -20,7 +20,7 @@
 #    hinge_box.py, magnetic_box.py, dividers.py, inset_box.py, filament_hinge_box.py,
 #    card_library.py, cap_box_polygon.py) with the *real* PythonSCAD binary and compares
 #    them against committed golden images -- the regression baseline for the pysolidfive
-#    migration of those files (goldens captured from the pre-migration bosl2
+#    migration of those files (goldens captured from the pre-migration pybosl2
 #    implementations; the migrated code must match within tolerance).
 #
 #    Every test here skips gracefully -- via self.skipTest(), not a failure -- when the real

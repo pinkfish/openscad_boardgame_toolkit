@@ -20,7 +20,7 @@
 #    Card boxes are factored through card_box(); DialBox has a hand-built disk cavity.
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid
+from pybosl2.shapes3d import cuboid
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from sliding_box import MakeBoxWithSlidingLid, SlidingBoxLidWithLabel
 from no_lid import MakeBoxWithNoLid

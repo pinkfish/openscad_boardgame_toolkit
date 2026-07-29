@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Pin bosl2.transforms.reorient/apply and bosl2.shapes2d.arc to the real BOSL2's output.
+"""Pin pybosl2.transforms.reorient/apply and pybosl2.shapes2d.arc to the real BOSL2's output.
 
 tests/bosl2_truth.json holds ground truth captured from the actual BOSL2 scad library through
 osuse() (every anchor/orient/spin/size combination the toolkit uses). These functions replaced
@@ -36,8 +36,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", 
 import mock_libfive  # noqa: F401,E402  (installs numeric stand-ins; must precede toolkit imports)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from bosl2.shapes2d import arc  # noqa: E402
-from bosl2.transforms import apply, reorient  # noqa: E402
+from pybosl2.shapes2d import arc  # noqa: E402
+from pybosl2.transforms import apply, reorient  # noqa: E402
 
 TRUTH = json.load(open(os.path.join(os.path.dirname(__file__), "bosl2_truth.json")))
 
@@ -150,7 +150,7 @@ class TestArcMatchesBosl2(unittest.TestCase):
 
 class TestCatenaryMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.drawing import catenary
+        from pybosl2.drawing import catenary
         for kwargs, case in zip(CATENARY_CASES, TRUTH["catenary"]):
             with self.subTest(kw=case["kw"]):
                 got = catenary(**kwargs)
@@ -160,7 +160,7 @@ class TestCatenaryMatchesBosl2(unittest.TestCase):
 
 class TestHelixMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.drawing import helix
+        from pybosl2.drawing import helix
         for kwargs, case in zip(HELIX_CASES, TRUTH["helix"]):
             with self.subTest(kw=case["kw"]):
                 got = helix(**kwargs)
@@ -170,7 +170,7 @@ class TestHelixMatchesBosl2(unittest.TestCase):
 
 class TestTurtleMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.drawing import turtle
+        from pybosl2.drawing import turtle
         for cmds, case in zip(TURTLE_CASES, TRUTH["turtle"]):
             with self.subTest(kw=case["kw"]):
                 got = turtle(cmds)
@@ -180,7 +180,7 @@ class TestTurtleMatchesBosl2(unittest.TestCase):
 
 class TestDistributorsMatchBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2 import distributors as D
+        from pybosl2 import distributors as D
         dpath = [[0, 0], [20, 0], [20, 20], [40, 20]]
         calls = {
             "move_copies": lambda: D.move_copies([[0, 0, 0], [5, 5, 5], [10, 0, -3]]),
@@ -212,7 +212,7 @@ class TestDistributorsMatchBosl2(unittest.TestCase):
 
 class TestColorMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.color import hsl, hsv
+        from pybosl2.color import hsl, hsv
         for case in TRUTH["color"]:
             with self.subTest(fn=case["fn"], args=case["args"]):
                 fn = hsl if case["fn"] == "hsl" else hsv
@@ -224,7 +224,7 @@ class TestColorMatchesBosl2(unittest.TestCase):
 
 class TestPartitionPathMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.partitions import partition_path
+        from pybosl2.partitions import partition_path
         calls = {
             "flat": lambda: partition_path(["flat"]),
             "sawtooth": lambda: partition_path(["sawtooth"]),
@@ -253,7 +253,7 @@ class TestPartitionPathMatchesBosl2(unittest.TestCase):
 
 class TestNurbsMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.nurbs import nurbs_curve, nurbs_patch_points, nurbs_elevate_degree
+        from pybosl2.nurbs import nurbs_curve, nurbs_patch_points, nurbs_elevate_degree
         c3 = [[0, 0, 0], [10, 20, 5], [30, -10, 10], [50, 20, 0], [60, 0, 15]]
         c2 = [[0, 0], [10, 20], [30, -10], [50, 20], [60, 0]]
         patch = [[[-50, 50, 0], [-16, 50, 20], [16, 50, 20], [50, 50, 0]],
@@ -286,7 +286,7 @@ class TestNurbsMatchesBosl2(unittest.TestCase):
 
 class TestRoundingMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.rounding import round_corners, smooth_path
+        from pybosl2.rounding import round_corners, smooth_path
         sq = [[0, 0], [40, 0], [40, 30], [0, 30]]
         op = [[0, 0], [40, 0], [40, 30], [20, 45], [0, 30]]
         p3 = [[0, 0, 0], [40, 0, 0], [40, 40, 20], [0, 40, 20]]
@@ -318,7 +318,7 @@ class TestRoundingMatchesBosl2(unittest.TestCase):
 
 class TestIsosurfaceFieldsMatchBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from bosl2.isosurface import (mb_sphere, mb_cuboid, mb_torus, mb_capsule, mb_disk,
+        from pybosl2.isosurface import (mb_sphere, mb_cuboid, mb_torus, mb_capsule, mb_disk,
                                       mb_octahedron, mb_connector)
         pts = [[5, 0, 0], [10, 3, 2], [0, 8, 6], [12, 4, -5], [3, 3, 3]]
         calls = {

@@ -18,7 +18,7 @@
 # LibFile: tests/test_shapes.py
 #    Numeric/mock tests for shapes.py's plain-Python pieces: MakeShapeObject()'s options
 #    factory and the *Width() aspect-ratio calculators. Every actual 2-D shape function builds
-#    real geometry (native circle/polygon/hull, real-BOSL2 stroke, the bosl2/ port's rect/
+#    real geometry (native circle/polygon/hull, real-BOSL2 stroke, the pybosl2/ port's rect/
 #    supershape), which the numeric mock can't stand in for -- that side is covered
 #    exhaustively by tests/test_shapes_render.py's golden-image renders.
 #

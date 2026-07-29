@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from kite_tesselation import MakeTesselationKiteHexagon
-from bosl2.paths import Path
+from pybosl2.paths import Path
 
 
 def TesselationChickenHex(size: float, thickness: float = 2, outer_offset: float = 0.1) -> PyOpenSCAD:

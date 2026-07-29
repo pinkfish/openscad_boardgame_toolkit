@@ -16,7 +16,7 @@
 # under the License.
 
 # LibFile: tests/test_bosl2_anchor.py
-#    Pure-Python tests for bosl2.shapes3d's bbox-backed anchoring/attachment system --
+#    Pure-Python tests for pybosl2.shapes3d's bbox-backed anchoring/attachment system --
 #    Bosl2Solid.bounds()/anchor_point()/reanchor()/position()/attach()/align(), the
 #    _rot_from_to() helper, bbox-backed masking on an object with no tracked size metadata,
 #    and regular_prism(). These run against mock_libfive's _AabbSolid stand-in (which tracks a
@@ -36,12 +36,12 @@ sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "pysolidfive", "tests"))
 
-import mock_libfive  # noqa: E402  (must install its native stand-ins before importing bosl2)
+import mock_libfive  # noqa: E402  (must install its native stand-ins before importing pybosl2)
 
-import bosl2.shapes3d as b3  # noqa: E402
-import bosl2.masking as bm  # noqa: E402
-from bosl2.constants import TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK, CENTER  # noqa: E402
-from bosl2.shapes3d import Bosl2Solid, _rot_from_to  # noqa: E402
+import pybosl2.shapes3d as b3  # noqa: E402
+import pybosl2.masking as bm  # noqa: E402
+from pybosl2.constants import TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK, CENTER  # noqa: E402
+from pybosl2.shapes3d import Bosl2Solid, _rot_from_to  # noqa: E402
 
 
 def approx(a, b, tol=1e-6):

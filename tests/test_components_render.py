@@ -19,7 +19,7 @@
 #    Renders a representative sample of components.py shapes with the *real* PythonSCAD binary
 #    and compares them against committed golden images. Complements tests/test_components.py
 #    (pure-Python math helpers only). components.py mixes three different shape-building
-#    styles -- native primitives, the bosl2/ pure-Python port (returns Bosl2Solid, not a real
+#    styles -- native primitives, the pybosl2/ pure-Python port (returns Bosl2Solid, not a real
 #    PyOpenSCAD -- mixing the two in a boolean op without unwrapping `.shape` crashes), and real
 #    BOSL2 via osuse() (whose region functions, e.g. union()/difference()/offset_sweep(), return
 #    plain point-list data when called as an expression, not geometry -- needs vnf_polyhedron()
@@ -62,9 +62,9 @@ _TOLERANCE = 12.0
 # (test-name-suffix, components.py expression) -- one per distinct shape-building technique
 # rather than one per public function:
 #   - rounded_box_on_length: hull() of two native xcyl()s (Bosl2Solid unwrapped via `.shape`)
-#   - rounded_box_all_sides: hull() of native sphere()s only (no bosl2/ port involved)
+#   - rounded_box_all_sides: hull() of native sphere()s only (no pybosl2/ port involved)
 #   - regular_polygon: 2-D polygon linear_extrude() + Bosl2Solid finger-hole union
-#   - cuboid_with_indents: bosl2/ cuboid() with per-corner finger bumps
+#   - cuboid_with_indents: pybosl2/ cuboid() with per-corner finger bumps
 #   - magnet_slot_round: real BOSL2 reorient() (osuse()) + multmatrix()
 #   - finger_hole_base: real BOSL2 rect()/offset_sweep() region pipeline -> vnf_polyhedron()
 #   - finger_hole_wall: real BOSL2 square()/circle()/union()/difference() region-boolean

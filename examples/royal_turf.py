@@ -21,7 +21,7 @@
 #    solid. default_wall_thickness = 3 is passed explicitly (3.5 for the cap boxes).
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid, ycyl
+from pybosl2.shapes3d import cuboid, ycyl
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from sliding_box import MakeBoxWithSlidingLid, SlidingBoxLidWithLabel
 from no_lid import MakeBoxWithNoLid

@@ -20,7 +20,7 @@
 #    position-index mapping). Complements tests/test_components_render.py (which renders the
 #    actual solid-producing functions with the real PythonSCAD binary): everything else in
 #    components.py builds real geometry via native primitives, real BOSL2 (osuse()), or the
-#    bosl2/ port, none of which the numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand
+#    pybosl2/ port, none of which the numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand
 #    in for (its native cube()/cylinder()/sphere() stubs return None, so any real geometry chain
 #    crashes under it) -- real-render testing is what tests/test_components_render.py is for.
 #

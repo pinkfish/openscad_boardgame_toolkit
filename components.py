@@ -29,15 +29,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 
 from pythonscad import *
-from bosl2.shapes3d import Bosl2Solid
-from bosl2.shapes2d import Bosl2Shape2D
+from pybosl2.shapes3d import Bosl2Solid
+from pybosl2.shapes2d import Bosl2Shape2D
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import shapes2d
-from bosl2 import transforms
-from bosl2.paths import Path
-from bosl2 import geometry
-from bosl2 import masking
+from pybosl2 import shapes3d
+from pybosl2 import shapes2d
+from pybosl2 import transforms
+from pybosl2.paths import Path
+from pybosl2 import geometry
+from pybosl2 import masking
 
 import math
 
@@ -804,7 +804,10 @@ def FingerHoleWall(
             .translate([0, depth_of_hole / 2, height])
         )
 
-    return Bosl2Solid(shape.multmatrix(tmat))
+    # shape is already a Bosl2Solid (OffsetSweep -> linear_extrude returns one under pybosl2
+    # 0.6.5); multmatrix keeps it a Bosl2Solid, so return it directly rather than re-wrapping
+    # (a second Bosl2Solid(...) would nest a Bosl2Solid inside .shape and break native booleans).
+    return shape.multmatrix(tmat)
 
 
 def CornerCatch(

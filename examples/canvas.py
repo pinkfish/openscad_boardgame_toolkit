@@ -17,11 +17,11 @@
 
 # LibFile: examples/canvas.py
 #    PythonSCAD port of canvas.scad. The shared MakeLid() helper (not a `make` section) returns
-#    a labelled cap lid with a circle pattern; DividerPiece is hand-built from bosl2 cuboids
+#    a labelled cap lid with a circle pattern; DividerPiece is hand-built from pybosl2 cuboids
 #    (a difference for the cut-outs, unioned with the uprights).
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid
+from pybosl2.shapes3d import cuboid
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from components import RoundedBoxAllSides
 from shape_type import MakeShapeObject, ShapeType

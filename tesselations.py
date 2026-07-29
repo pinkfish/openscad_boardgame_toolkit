@@ -33,8 +33,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes2d
-from bosl2.regions import Path, Region
+from pybosl2 import shapes2d
+from pybosl2.regions import Path, Region
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this

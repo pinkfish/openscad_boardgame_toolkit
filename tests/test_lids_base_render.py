@@ -20,7 +20,7 @@
 #    and compares them against committed golden images. Complements tests/test_lids_base.py
 #    (pure-Python dense-shape-type helpers only). Every one of the shapes below turned up a real
 #    bug the first time it was actually rendered (see git history for specifics):
-#      - Bosl2Solid (bosl2/ port) mixed directly into a native hull()/boolean without unwrapping
+#      - Bosl2Solid (pybosl2/ port) mixed directly into a native hull()/boolean without unwrapping
 #        `.shape` first (MakeLidTab's wedge hull())
 #      - color(obj, colorspec) argument order backwards (LidMeshBasic's border/bound)
 #      - offset() (a 2-D op) called *after* linear_extrude() instead of before, silently

@@ -22,7 +22,7 @@
 #    document-only BoxLayout module is not ported.
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid, cyl, Bosl2Solid
+from pybosl2.shapes3d import cuboid, cyl, Bosl2Solid
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from sliding_box import MakeBoxWithSlidingLid, SlidingBoxLidWithLabel
 from components import CuboidWithIndentsBottom, FingerHoleWall, FingerHoleBase, RoundedBoxAllSides

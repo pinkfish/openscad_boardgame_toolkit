@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2.paths import Path
+from pybosl2.paths import Path
 
 
 def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[float]]) -> list[list[float]]:

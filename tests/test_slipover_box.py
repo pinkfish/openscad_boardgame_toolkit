@@ -19,7 +19,7 @@
 #    Numeric/mock tests for slipover_box.py's plain-Python pieces -- which is just its argument
 #    validation (the size/positivity asserts fire before any geometry gets built, so they're
 #    checkable under the mock). Everything else in slipover_box.py builds real geometry via
-#    native primitives, real BOSL2 (osuse()), pysolidfive, or the bosl2/ port, none of which the
+#    native primitives, real BOSL2 (osuse()), pysolidfive, or the pybosl2/ port, none of which the
 #    numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand in for; that side
 #    is covered by tests/test_slipover_box_render.py's golden-image renders instead.
 #

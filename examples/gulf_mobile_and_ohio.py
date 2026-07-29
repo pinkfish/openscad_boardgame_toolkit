@@ -24,7 +24,7 @@
 import math
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid, cyl
+from pybosl2.shapes3d import cuboid, cyl
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from sliding_box import MakeBoxWithSlidingLid, SlidingBoxLidWithLabel
 from no_lid import MakeBoxWithNoLid, MakePathBoxWithNoLid

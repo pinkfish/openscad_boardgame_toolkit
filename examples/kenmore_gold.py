@@ -21,7 +21,7 @@
 #    = 3 is passed explicitly.
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid
+from pybosl2.shapes3d import cuboid
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from components import FingerHoleBase, RoundedBoxAllSides
 from labels import MakeLabelOptions

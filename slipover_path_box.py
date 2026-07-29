@@ -43,7 +43,7 @@ from lids_base import (
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
-from bosl2.paths import Path
+from pybosl2.paths import Path
 
 
 def FingerHoleWallSegmentCutout(

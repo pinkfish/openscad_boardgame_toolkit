@@ -25,9 +25,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes2d
-from bosl2 import shapes3d
-from bosl2.beziers import Bezier
+from pybosl2 import shapes2d
+from pybosl2 import shapes3d
+from pybosl2.beziers import Bezier
 from labels import Make3dStripedGrid
 
 

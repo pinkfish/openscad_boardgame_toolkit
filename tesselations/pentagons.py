@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2.beziers import Bezier
+from pybosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this

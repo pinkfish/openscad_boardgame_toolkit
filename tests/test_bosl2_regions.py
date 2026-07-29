@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""bosl2.regions.Path / Region -- the object API over the 2-D point maths.
+"""pybosl2.regions.Path / Region -- the object API over the 2-D point maths.
 
 The load-bearing property is that both subclass list (the same trick as base_bgtk.Vec3): the
 toolkit passes raw point lists to native polygon()/region()/union() everywhere, so these must
@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", 
 import mock_libfive  # noqa: F401,E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from bosl2.regions import Path, Region  # noqa: E402
+from pybosl2.regions import Path, Region  # noqa: E402
 
 # offset() now lives on Path as the private static engine behind Path.offset().
 offset = Path._offset

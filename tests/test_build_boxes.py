@@ -39,10 +39,10 @@ class TestDependencyFiles(unittest.TestCase):
         return {os.path.relpath(p, REPO) for p in paths}
 
     def test_traces_transitive_toolkit_imports(self):
-        # splendor -> sliding_box -> base_bgtk/lids_base/labels/... -> bosl2/*
+        # splendor -> sliding_box -> base_bgtk/lids_base/labels/... -> pybosl2/*
         deps = self.rel(bb.dependency_files(os.path.join(bb.EXAMPLES, "splendor.py")))
         for expected in ("examples/splendor.py", "base_bgtk.py", "sliding_box.py", "components.py",
-                         "bosl2/shapes3d.py", "bosl2/__init__.py", "labels.py"):
+                         "pybosl2/shapes3d.py", "pybosl2/__init__.py", "labels.py"):
             self.assertIn(expected, deps, f"{expected} missing from splendor deps")
 
     def test_excludes_external_modules(self):
@@ -51,10 +51,10 @@ class TestDependencyFiles(unittest.TestCase):
         self.assertFalse(any("pythonscad" in d or "openscad" in d for d in deps))
 
     def test_relative_imports_resolve_within_package(self):
-        # bosl2/shapes3d.py does `from .constants import *` etc.
-        deps = self.rel(bb.dependency_files(os.path.join(REPO, "bosl2", "shapes3d.py")))
-        self.assertIn("bosl2/constants.py", deps)
-        self.assertIn("bosl2/shapes3d.py", deps)
+        # pybosl2/shapes3d.py does `from .constants import *` etc.
+        deps = self.rel(bb.dependency_files(os.path.join(REPO, "pybosl2", "shapes3d.py")))
+        self.assertIn("pybosl2/constants.py", deps)
+        self.assertIn("pybosl2/shapes3d.py", deps)
 
     def test_self_included(self):
         p = os.path.join(bb.EXAMPLES, "demo_py.py")

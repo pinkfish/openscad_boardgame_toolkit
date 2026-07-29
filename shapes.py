@@ -28,8 +28,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes2d
-from bosl2.beziers import Bezier
+from pybosl2 import shapes2d
+from pybosl2.beziers import Bezier
 
 # Safe despite shape_type.py's import of this module: lids_base doesn't import shapes (only
 # shape_type does, lazily, inside a function body), so there's no cycle at import time.
@@ -59,7 +59,7 @@ def _stroke(path, width: float = 1, closed: bool = False) -> PyOpenSCAD:
     stroke() module gives, built as a union of hull()ed circle pairs per segment. Needed
     because BOSL2's stroke() has NO function form (calling _stroke() as an expression
     aborts the render with "available only as a module"), so every stroke here has to be
-    constructed natively. Coordinates are forced to plain floats: paths from the bosl2/ port's
+    constructed natively. Coordinates are forced to plain floats: paths from the pybosl2/ port's
     numpy-based helpers (bezier curves, egg paths) otherwise hit the FFI as numpy.float64.
     """
     pts = [[float(q[0]), float(q[1])] for q in path]

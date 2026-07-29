@@ -32,8 +32,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.masking
-import bosl2.shapes3d
+import pybosl2.masking
+import pybosl2.shapes3d
 import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
@@ -170,20 +170,20 @@ def MakeBoxWithFilamentHingeLid(
     lip_height = min(wall_thickness * 2 + print_in_place_offset * 2, height - lid_thickness - floor_thickness)
     lip_length = max(length / 4, 15)
 
-    main = bosl2.shapes3d.cuboid(
+    main = pybosl2.shapes3d.cuboid(
         [width, length, height - lid_thickness - print_in_place_offset],
         rounding=wall_thickness / 2,
         anchor=BOTTOM + FRONT + LEFT,
         edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
     )
     main = main.edge_mask(
-        [TOP + FRONT, TOP + BACK], children=bosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
+        [TOP + FRONT, TOP + BACK], children=pybosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
     )
-    main = main.edge_mask([TOP + RIGHT], children=bosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4))
+    main = main.edge_mask([TOP + RIGHT], children=pybosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4))
     main = main.color(material_colour)
 
     ramp = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [
                 calc_hinge_options.thickness * 1.25 + print_in_place_offset,
                 length,
@@ -198,7 +198,7 @@ def MakeBoxWithFilamentHingeLid(
     )
     main = main - ramp
 
-    hinge_cut = bosl2.shapes3d.cuboid(
+    hinge_cut = pybosl2.shapes3d.cuboid(
         [calc_hinge_options.thickness + print_in_place_offset * 4, length, lid_thickness + wall_thickness],
         anchor=TOP + FRONT,
         rounding=calc_hinge_options.thickness / 2,
@@ -206,16 +206,16 @@ def MakeBoxWithFilamentHingeLid(
     ).translate([calc_hinge_options.thickness / 2 + print_in_place_offset * 2, 0, height - lid_thickness])
     main = main - hinge_cut
 
-    catch_box = bosl2.shapes3d.cuboid(
+    catch_box = pybosl2.shapes3d.cuboid(
         [wall_thickness / 2, lip_length + print_in_place_offset * 2, lip_height],
         anchor=BOTTOM + RIGHT,
         rounding=wall_thickness / 4,
         edges=[BOTTOM + LEFT],
     )
-    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+    catch_sphere_a = pybosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
         [0, lip_length / 4, lip_height / 2]
     )
-    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+    catch_sphere_b = pybosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
         [0, -lip_length / 4, lip_height / 2]
     )
     catch = (
@@ -317,14 +317,14 @@ def FilamentBoxInsideMask(
     support_width = calc_hinge_options.thickness * 1.25 - wall_thickness
     support_height = support_width + calc_hinge_options.thickness
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height - floor_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=rounding,
         edges=[BOTTOM, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     )
 
-    cut1 = bosl2.shapes3d.cuboid(
+    cut1 = pybosl2.shapes3d.cuboid(
         [support_width + print_in_place_offset + 0.5, length + 1, support_height + 1],
         anchor=BOTTOM + FRONT + LEFT,
         chamfer=support_width,
@@ -332,7 +332,7 @@ def FilamentBoxInsideMask(
     ).translate([-0.5, -0.5, height - lid_thickness - support_height - floor_thickness])
     body = body - cut1
 
-    cut2 = bosl2.shapes3d.ycyl(
+    cut2 = pybosl2.shapes3d.ycyl(
         d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP
     ).translate([0, 0.5, height])
     body = body - cut2
@@ -397,7 +397,7 @@ def MakeLidForFilamentBox(
     lip_length = max(length / 4, 15)
 
     top = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [width - wall_thickness * 2.5, length, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=lid_thickness / 2,
@@ -433,16 +433,16 @@ def MakeLidForFilamentBox(
     knuckle = knuckle - edge_round.rotate([0, 0, 90]).translate([kd * 1.5, 0, kd / 2])
     knuckle = knuckle.color(material_colour)
 
-    catch_box = bosl2.shapes3d.cuboid(
+    catch_box = pybosl2.shapes3d.cuboid(
         [wall_thickness / 2, lip_length, lip_height + print_in_place_offset],
         anchor=BOTTOM + RIGHT,
         rounding=wall_thickness / 4,
         edges=[TOP + LEFT],
     )
-    catch_sphere_a = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+    catch_sphere_a = pybosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
         [0, lip_length / 4, lip_height / 2]
     )
-    catch_sphere_b = bosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+    catch_sphere_b = pybosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
         [0, -lip_length / 4, lip_height / 2]
     )
     catch = (
@@ -455,7 +455,7 @@ def MakeLidForFilamentBox(
     body = lid_stack | knuckle | catch
 
     hole = (
-        bosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
+        pybosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
         .color(material_colour)
         .translate([wall_thickness, 0.5, wall_thickness])
         .shape

@@ -30,8 +30,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.masking
-import bosl2.shapes3d
+import pybosl2.masking
+import pybosl2.shapes3d
 from components import CornerCatch
 from lids_base import (
     default_lid_catch_type,
@@ -47,7 +47,7 @@ from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInne
 
 def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> "PyOpenSCAD":
     box = wall_thickness * 6 / 4
-    return (bosl2.shapes3d.cuboid([box, box, box], anchor=anchor_dir) & bosl2.shapes3d.sphere(r=radius)).shape
+    return (pybosl2.shapes3d.cuboid([box, box, box], anchor=anchor_dir) & pybosl2.shapes3d.sphere(r=radius)).shape
 
 
 def MakeBoxWithSlipoverLid(
@@ -117,8 +117,8 @@ def MakeBoxWithSlipoverLid(
 
     wall_height_calc = wall_height if wall_height is not None else height - lid_thickness - size_spacing
 
-    # Direct bosl2/Manifold CSG throughout -- the same construction as the .scad original.
-    inner = bosl2.shapes3d.cuboid(
+    # Direct pybosl2/Manifold CSG throughout -- the same construction as the .scad original.
+    inner = pybosl2.shapes3d.cuboid(
         [
             width - wall_thickness * 2 - size_spacing * 2,
             length - wall_thickness * 2 - size_spacing * 2,
@@ -129,12 +129,12 @@ def MakeBoxWithSlipoverLid(
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     )
     inner = inner.edge_mask(
-        [TOP], children=bosl2.masking.rounding_edge_mask(r=wall_thickness / 4, l=max(length, width))
+        [TOP], children=pybosl2.masking.rounding_edge_mask(r=wall_thickness / 4, l=max(length, width))
     )
     body = inner.translate([wall_thickness + size_spacing, wall_thickness + size_spacing, 0])
 
     if foot > 0:
-        foot_piece = bosl2.shapes3d.cuboid(
+        foot_piece = pybosl2.shapes3d.cuboid(
             [width, length, foot],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=min(wall_thickness / 2, foot / 2),
@@ -148,10 +148,10 @@ def MakeBoxWithSlipoverLid(
         or lid_catch == CatchType.ALL
     ):
         catch_width = width - wall_thickness * 2
-        body = body - bosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).translate(
+        body = body - pybosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).translate(
             [(catch_width * 2 / 8) + wall_thickness, wall_thickness, foot]
         )
-        body = body - bosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate(
+        body = body - pybosl2.shapes3d.wedge([catch_width * 2 / 4, lid_thickness, lid_thickness]).rotate(
             [0, 0, 180]
         ).translate([(catch_width * 6 / 8) + wall_thickness, length - wall_thickness, foot])
     if (
@@ -160,10 +160,10 @@ def MakeBoxWithSlipoverLid(
         or lid_catch == CatchType.ALL
     ):
         catch_length = length - wall_thickness * 2
-        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
+        body = body - pybosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
             [0, 0, 90]
         ).translate([width - wall_thickness, catch_length * 2 / 8 + wall_thickness, foot])
-        body = body - bosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
+        body = body - pybosl2.shapes3d.wedge([catch_length * 2 / 4, lid_thickness, lid_thickness]).rotate(
             [0, 0, 270]
         ).translate([wall_thickness, catch_length * 6 / 8 + wall_thickness, foot])
     if (lid_catch == CatchType.BUMPS_SHORT and width < length) or (
@@ -277,7 +277,7 @@ def SlipoverBoxLid(
         calc_lid_rounding = wall_thickness / 2
 
     top = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [width - wall_thickness * 10 / 6, length - wall_thickness * 10 / 6, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
         )
@@ -291,22 +291,22 @@ def SlipoverBoxLid(
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 
-    shell = bosl2.shapes3d.cuboid(
+    shell = pybosl2.shapes3d.cuboid(
         [width, length, height - foot_offset],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=calc_lid_rounding,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, TOP],
     )
     shell = shell.edge_mask(
-        [BOT], children=bosl2.masking.rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length))
+        [BOT], children=pybosl2.masking.rounding_edge_mask(r=max(calc_lid_rounding / 4, 0.5), l=max(width, length))
     )
 
-    cut1 = bosl2.shapes3d.cuboid(
+    cut1 = pybosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT
     ).translate([wall_thickness, wall_thickness, height - foot_offset - lid_thickness - 0.01])
     shell = shell - cut1
 
-    cut2 = bosl2.shapes3d.cuboid(
+    cut2 = pybosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height - foot_offset + 1],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=calc_lid_rounding / 2,
@@ -314,11 +314,11 @@ def SlipoverBoxLid(
     ).translate([wall_thickness, wall_thickness, -1 - lid_thickness])
     shell = shell - cut2
 
-    cube1 = bosl2.shapes3d.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
+    cube1 = pybosl2.shapes3d.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
         [wall_thickness * 3 / 2, wall_thickness * 3 / 2, height - finger_height - lid_thickness - foot_offset]
     )
     shell = shell - cube1
-    cube2 = bosl2.shapes3d.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
+    cube2 = pybosl2.shapes3d.cuboid([wall_thickness, wall_thickness, height], anchor=TOP).translate(
         [
             width - wall_thickness * 3 / 2,
             length - wall_thickness * 3 / 2,
@@ -373,7 +373,7 @@ def SlipoverBoxLid(
     ):
         catch_width = width - wall_thickness * 2
         add_catch(
-            bosl2.shapes3d.wedge(
+            pybosl2.shapes3d.wedge(
                 [catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
             )
             .translate([(catch_width * 2 / 8) + size_spacing + wall_thickness, wall_thickness, 0])
@@ -381,7 +381,7 @@ def SlipoverBoxLid(
             .shape
         )
         add_catch(
-            bosl2.shapes3d.wedge(
+            pybosl2.shapes3d.wedge(
                 [catch_width * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
             )
             .rotate([0, 0, 180])
@@ -396,7 +396,7 @@ def SlipoverBoxLid(
     ):
         catch_length = length - wall_thickness * 2
         add_catch(
-            bosl2.shapes3d.wedge(
+            pybosl2.shapes3d.wedge(
                 [catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
             )
             .rotate([0, 0, 90])
@@ -405,7 +405,7 @@ def SlipoverBoxLid(
             .shape
         )
         add_catch(
-            bosl2.shapes3d.wedge(
+            pybosl2.shapes3d.wedge(
                 [catch_length * 2 / 4 - size_spacing * 2, lid_thickness - size_spacing, lid_thickness - size_spacing]
             )
             .rotate([0, 0, 270])

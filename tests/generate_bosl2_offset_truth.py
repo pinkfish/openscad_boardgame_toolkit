@@ -17,7 +17,7 @@
 
 """Regenerate tests/bosl2_offset_truth.json -- ground truth from the REAL BOSL2 via osuse().
 
-The fixture tests/test_bosl2_offset.py checks bosl2.paths.offset() against. Needs the real app
+The fixture tests/test_bosl2_offset.py checks pybosl2.paths.offset() against. Needs the real app
 plus the patched BOSL2 (see CLAUDE.md), and must run through the PythonSCAD binary because
 osuse() only exists there:
 

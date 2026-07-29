@@ -19,7 +19,7 @@
 #    Numeric/mock tests for lids_base.py's plain-Python helper functions (dense-shape-type
 #    classification). Complements tests/test_lids_base_render.py (which renders the actual
 #    solid-producing functions with the real PythonSCAD binary): everything else in lids_base.py
-#    builds real geometry via native primitives, real BOSL2 (osuse()), or the bosl2/ port, none
+#    builds real geometry via native primitives, real BOSL2 (osuse()), or the pybosl2/ port, none
 #    of which the numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand in for (its native
 #    cube()/cylinder()/sphere() stubs return None, so any real geometry chain crashes under it).
 #

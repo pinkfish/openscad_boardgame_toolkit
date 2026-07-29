@@ -20,7 +20,7 @@
 #    FingerHoleWallSegmentCutout()'s doesn't-qualify (returns None) logic and the
 #    argument-validation asserts (both fire before any geometry gets built, so they're checkable
 #    under the mock). Everything else builds real geometry via native primitives, real BOSL2
-#    (osuse()), pysolidfive, or the bosl2/ port; that side is covered by
+#    (osuse()), pysolidfive, or the pybosl2/ port; that side is covered by
 #    tests/test_slipover_path_box_render.py's golden-image renders instead.
 #
 # FileGroup: slipover_path_box

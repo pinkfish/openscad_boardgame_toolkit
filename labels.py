@@ -23,9 +23,9 @@
 
 from openscad import *
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import shapes2d
-from bosl2.shapes3d import Bosl2Solid
+from pybosl2 import shapes3d
+from pybosl2 import shapes2d
+from pybosl2.shapes3d import Bosl2Solid
 
 import math
 from dataclasses import dataclass, field
@@ -120,7 +120,11 @@ def MakeStripedGrid(size: list[float], bar_width: float = 1) -> PyOpenSCAD:
         )
         piece = shapes2d.square([width, length], anchor=FRONT + LEFT) & bar
         pieces.append(piece)
-    return union(pieces)
+    # pybosl2 2-D shapes union via the | operator (native union() can't consume Bosl2Shape2D).
+    result = pieces[0]
+    for p in pieces[1:]:
+        result = result | p
+    return result
 
 
 def Make3dStripedGrid(
@@ -222,10 +226,10 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
             shape = (
                 text_shape.rotate([0, 0, 90])
                 .translate([options.offset + raw_l * scale, options.offset, 0])
-                .offset(r=edge_offset)
+                .offset(radius=edge_offset)
             )
         else:
-            shape = text_shape.translate([options.offset, options.offset, 0]).offset(r=edge_offset)
+            shape = text_shape.translate([options.offset, options.offset, 0]).offset(radius=edge_offset)
         return shape.linear_extrude(text_height)
 
     full_h = options.full_height
@@ -352,10 +356,10 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             shape = (
                 text_shape.rotate([0, 0, 90])
                 .translate([options.offset + raw_l * scale, options.offset, 0])
-                .offset(r=edge_offset)
+                .offset(radius=edge_offset)
             )
         else:
-            shape = text_shape.translate([options.offset, options.offset, 0]).offset(r=edge_offset)
+            shape = text_shape.translate([options.offset, options.offset, 0]).offset(radius=edge_offset)
         return shape.linear_extrude(text_thickness)
 
     def StripedBackground(calc_background_color: str) -> PyOpenSCAD:

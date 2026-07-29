@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.shapes3d
+import pybosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, MakeLidTab
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -54,8 +54,8 @@ def HingeCone(r: float, offset: float) -> "PyOpenSCAD":
         r:      radius of the cone
         offset: how far inside the cone to leave space
     """
-    outer = bosl2.shapes3d.cylinder(h=r, r1=r, r2=0, center=False)
-    inner = bosl2.shapes3d.cylinder(h=r - offset, r1=r - offset, r2=0, center=False).translate([0, 0, -0.01])
+    outer = pybosl2.shapes3d.cylinder(h=r, r1=r, r2=0, center=False)
+    inner = pybosl2.shapes3d.cylinder(h=r - offset, r1=r - offset, r2=0, center=False).translate([0, 0, -0.01])
     return (outer - inner).shape
 
 
@@ -78,17 +78,17 @@ def HingeLineWithSpacingAndNum(
     num = int(num)
     length = num * diameter
 
-    cyl = bosl2.shapes3d.cylinder(r=diameter / 2, h=length, center=False)
+    cyl = pybosl2.shapes3d.cylinder(r=diameter / 2, h=length, center=False)
     for i in range(1, num + 1):
         cone = HingeCone(diameter / 2 - 0.01, offset)
         if i % 2 == 1:
             cone = cone.mirror([0, 0, 1])
         cyl = cyl - cone.translate([0, 0, spacing * i])
         if i % 2 == 1:
-            ring_outer = bosl2.shapes3d.cylinder(r=diameter, h=diameter + 0.04, center=False).translate(
+            ring_outer = pybosl2.shapes3d.cylinder(r=diameter, h=diameter + 0.04, center=False).translate(
                 [0, 0, spacing * i - 0.02]
             )
-            ring_inner = bosl2.shapes3d.cylinder(r=diameter / 2 - offset, h=diameter + 0.06, center=False).translate(
+            ring_inner = pybosl2.shapes3d.cylinder(r=diameter / 2 - offset, h=diameter + 0.06, center=False).translate(
                 [0, 0, spacing * i - 0.03]
             )
             cyl = cyl - (ring_outer - ring_inner)
@@ -97,39 +97,39 @@ def HingeLineWithSpacingAndNum(
     for i in range(0, num + 1):
         if i % 2 == 1:
             knuckle = (
-                bosl2.shapes3d.prismoid(
+                pybosl2.shapes3d.prismoid(
                     size1=[diameter - offset, diameter],
                     size2=[diameter - offset, diameter],
                     h=diameter / 2 + offset * 2 + 0.01,
                 )
                 .rotate([0, 90, 0])
                 .translate([0, 0, spacing * i + diameter / 2])
-                | bosl2.shapes3d.cylinder(r=diameter / 2, h=diameter - offset, center=False).translate(
+                | pybosl2.shapes3d.cylinder(r=diameter / 2, h=diameter - offset, center=False).translate(
                     [0, 0, spacing * i + offset / 2]
                 )
             ).rotate([0, 0, spin])
 
-            arm_outer = bosl2.shapes3d.cuboid(
+            arm_outer = pybosl2.shapes3d.cuboid(
                 [1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT]
             )
-            cut_a = bosl2.shapes3d.cylinder(r=diameter / 2 + offset, h=length, center=False).translate(
+            cut_a = pybosl2.shapes3d.cylinder(r=diameter / 2 + offset, h=length, center=False).translate(
                 [diameter / 4 + offset, 0, -(spacing / 4 + diameter / 2)]
             )
-            cut_b = bosl2.shapes3d.cuboid(
+            cut_b = pybosl2.shapes3d.cuboid(
                 [1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT]
             ).translate([offset * 3 / 2, diameter / 2, 0])
             arm = (arm_outer - cut_a - cut_b).translate([-diameter / 4 - offset * 3 / 2, 0, spacing * i + diameter / 2])
 
             piece = knuckle | arm
         else:
-            block_a = bosl2.shapes3d.cuboid(
+            block_a = pybosl2.shapes3d.cuboid(
                 [1, diameter, diameter + offset * 3], chamfer=offset * 2, edges=[TOP + RIGHT, BOTTOM + RIGHT]
             ).translate([-diameter / 2 - offset * 3 / 2, 0, spacing * i + diameter / 2])
 
-            box_outer = bosl2.shapes3d.cuboid(
+            box_outer = pybosl2.shapes3d.cuboid(
                 [diameter / 2 + offset, diameter, diameter], anchor=BOTTOM + FRONT + LEFT
             ).translate([-diameter / 2 - offset, -diameter / 2, spacing * i])
-            hole = bosl2.shapes3d.cylinder(d=diameter - 0.02, h=diameter * 4, center=False).translate(
+            hole = pybosl2.shapes3d.cylinder(d=diameter - 0.02, h=diameter * 4, center=False).translate(
                 [0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2]
             )
             block_b = box_outer - hole
@@ -140,7 +140,7 @@ def HingeLineWithSpacingAndNum(
     combined = (legs | cyl) if legs is not None else cyl
     combined = combined.translate([0, 0, -length / 2])
 
-    bound = bosl2.shapes3d.cuboid([diameter * 2, diameter * 2, length])
+    bound = pybosl2.shapes3d.cuboid([diameter * 2, diameter * 2, length])
     return (bound & combined).rotate([0, 270, 0]).shape
 
 
@@ -185,7 +185,7 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
     num = length / diameter
     spacing = length / num
 
-    middle = bosl2.shapes3d.cuboid([length, width - diameter * 2 - offset / 2, diameter]).translate([0, width / 2, 0])
+    middle = pybosl2.shapes3d.cuboid([length, width - diameter * 2 - offset / 2, diameter]).translate([0, width / 2, 0])
     line1 = HingeLineWithSpacingAndNum(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing).translate(
         [0, diameter / 2, 0]
     )
@@ -257,7 +257,7 @@ def HingeBoxLidLabel(
     )
     calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
 
-    top = bosl2.shapes3d.cuboid(
+    top = pybosl2.shapes3d.cuboid(
         [inner_width, inner_length, lid_thickness],
         anchor=BOTTOM + FRONT + LEFT,
     ).color(material_colour)
@@ -368,7 +368,7 @@ def MakeBoxAndLidWithInsetHinge(
     kids = list(children) if children else []
 
     # --- Base half ---
-    base_body = bosl2.shapes3d.cuboid(
+    base_body = pybosl2.shapes3d.cuboid(
         [width, length, height / 2],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -389,13 +389,13 @@ def MakeBoxAndLidWithInsetHinge(
     )
     base_body = base_body | latch
 
-    rim_outer = bosl2.shapes3d.cuboid(
+    rim_outer = pybosl2.shapes3d.cuboid(
         [width - wall_thickness, length - wall_thickness, wall_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
     ).translate([wall_thickness / 2, wall_thickness / 2, height / 2 - wall_thickness / 2])
-    rim_inner = bosl2.shapes3d.cuboid(
+    rim_inner = pybosl2.shapes3d.cuboid(
         [
             width - wall_thickness * 2 - print_in_place_offset * 2,
             length - wall_thickness * 2 - print_in_place_offset * 2,
@@ -425,14 +425,14 @@ def MakeBoxAndLidWithInsetHinge(
         base_body = base_body | c2.translate([wall_thickness, wall_thickness, -0.01])
 
     # --- Lid half ---
-    lid_body = bosl2.shapes3d.cuboid(
+    lid_body = pybosl2.shapes3d.cuboid(
         [width, length, height / 2],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     ).color(material_colour)
 
-    lid_rim_outer = bosl2.shapes3d.cuboid(
+    lid_rim_outer = pybosl2.shapes3d.cuboid(
         [width - wall_thickness, length - wall_thickness, wall_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
@@ -447,7 +447,7 @@ def MakeBoxAndLidWithInsetHinge(
             TOP + RIGHT,
         ],
     ).translate([wall_thickness / 2, wall_thickness / 2, height / 2])
-    lid_rim_inner = bosl2.shapes3d.cuboid(
+    lid_rim_inner = pybosl2.shapes3d.cuboid(
         [
             width - wall_thickness * 2 - print_in_place_offset * 2,
             length - wall_thickness * 2 - print_in_place_offset * 2,
@@ -488,7 +488,7 @@ def MakeBoxAndLidWithInsetHinge(
 
     if len(kids) > 3 and kids[3] is not None:
         hole = (
-            bosl2.shapes3d.cuboid(
+            pybosl2.shapes3d.cuboid(
                 [width - wall_thickness * 2, length - wall_thickness * 2, lid_thickness + 1],
                 anchor=BOTTOM + FRONT + LEFT,
             )

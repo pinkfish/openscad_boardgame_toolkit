@@ -24,12 +24,12 @@
 #        the .scad->.py port -- the same NameError class of bug already fixed once in
 #        cap_box.py/labels.py, but present in three more call sites here)
 #      - a bare BOSL2 module call, mask2d_roundover(...), used the way real BOSL2 dispatches it
-#        as a *module* (producing geometry directly inside linear_extrude()) -- the bosl2/ port
+#        as a *module* (producing geometry directly inside linear_extrude()) -- the pybosl2/ port
 #        only implements its *function* form (returning raw path data), so it needs an explicit
 #        polygon(...) wrapper before extruding
 #      - lids_base.py's internal_build_lid() calling .fill() as a method -- fill() only exists
 #        as a free function, fill(obj), not a bound method
-#      - Bosl2Solid (bosl2/ port) mixed directly into a native boolean op without unwrapping
+#      - Bosl2Solid (pybosl2/ port) mixed directly into a native boolean op without unwrapping
 #        `.shape` first, and labels.py's label functions leaking a Bosl2Solid return value
 #        instead of the native type every sibling function returns -- both break
 #        internal_build_lid()'s union of a lid's several children as soon as one of them

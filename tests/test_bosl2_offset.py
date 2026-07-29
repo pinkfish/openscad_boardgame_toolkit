@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""Pin bosl2.paths.offset() to the real BOSL2's offset().
+"""Pin pybosl2.paths.offset() to the real BOSL2's offset().
 
 tests/bosl2_offset_truth.json is ground truth captured from the actual BOSL2 through osuse():
 5 path shapes (square, concave, hexagon, a 6-point box outline, triangle) x 9 variants
@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", 
 import mock_libfive  # noqa: F401,E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from bosl2.paths import Path  # noqa: E402
+from pybosl2.paths import Path  # noqa: E402
 
 # offset() now lives on Path as the private static engine behind Path.offset().
 offset = Path._offset

@@ -22,7 +22,7 @@
 import math
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid, cyl
+from pybosl2.shapes3d import cuboid, cyl
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from components import RegularPolygon, CuboidWithIndentsBottom, FingerHoleBase, FingerHoleWall
 from labels import MakeLabelOptions

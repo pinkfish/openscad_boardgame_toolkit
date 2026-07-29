@@ -30,9 +30,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import transforms
-from bosl2 import masking
+from pybosl2 import shapes3d
+from pybosl2 import transforms
+from pybosl2 import masking
 from lids_base import (
     default_lid_catch_type,
     internal_build_lid,

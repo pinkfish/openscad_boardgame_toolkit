@@ -19,7 +19,7 @@
 #    Renders a representative sample of cap_box.py shapes with the *real* PythonSCAD binary
 #    (real BOSL2, real Manifold/CGAL booleans) and compares them against committed golden
 #    images. cap_box.py is plain CSG (cuboid/wedge/sphere unions, differences, roundovers) via
-#    the bosl2/ pure-Python port plus a couple of real-BOSL2 calls (reorient(), offset()) --
+#    the pybosl2/ pure-Python port plus a couple of real-BOSL2 calls (reorient(), offset()) --
 #    unlike pysolidfive's SDF/frep() path, so this exercises a different failure mode: real
 #    boolean-CSG correctness (a wrong translate/rotate before a union, a mismatched anchor, a
 #    stray NameError from an incomplete .scad->.py port) rather than SDF meshing edge cases.

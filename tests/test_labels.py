@@ -19,7 +19,7 @@
 #    Numeric/mock tests for labels.py's plain-Python pieces (LabelOptions/MakeLabelOptions
 #    defaults and overrides). Complements tests/test_labels_render.py (which renders the actual
 #    solid-producing functions with the real PythonSCAD binary): everything else in labels.py
-#    builds real geometry via native primitives, real BOSL2 (osuse()), or the bosl2/ port, none
+#    builds real geometry via native primitives, real BOSL2 (osuse()), or the pybosl2/ port, none
 #    of which the numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand in for.
 #
 # FileGroup: labels

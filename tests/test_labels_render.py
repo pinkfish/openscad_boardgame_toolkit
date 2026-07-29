@@ -20,7 +20,7 @@
 #    compares them against committed golden images. Complements tests/test_labels.py
 #    (LabelOptions/MakeLabelOptions only). Every one of the shapes below turned up a real bug the
 #    first time it was actually rendered (see git history for specifics):
-#      - Bosl2Solid (bosl2/ port, e.g. shapes3d.cuboid()/prismoid()) mixed directly into a native
+#      - Bosl2Solid (pybosl2/ port, e.g. shapes3d.cuboid()/prismoid()) mixed directly into a native
 #        boolean op (`|`/`-`) without unwrapping `.shape` first
 #      - shapes3d.prismoid()'s height kwarg is `h`, not `height`
 #      - textmetrics() returns a plain dict (keys "size"/"descent"/...), not an object with

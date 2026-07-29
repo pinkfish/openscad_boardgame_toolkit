@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.shapes3d
+import pybosl2.shapes3d
 from lids_base import (
     internal_build_lid,
     MakeLidLabel,
@@ -91,7 +91,7 @@ def MakeBoxWithMagneticLid(
     assert length > 0, f"Length needs to be set {length}"
     assert height > 0, f"Height needs to be set {height}"
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width, length, height - lid_thickness],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -105,7 +105,7 @@ def MakeBoxWithMagneticLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = bosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, z])
+        hole = pybosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, z])
         body = body - hole
 
     body = body.color(material_colour)
@@ -178,7 +178,7 @@ def MakeBoxWithMagneticLidInsideSpace(
 
         if full_height:
             offset = wall_thickness
-            piece = bosl2.shapes3d.cyl(h=actual_height, d=box_size, anchor=BOTTOM).translate(
+            piece = pybosl2.shapes3d.cyl(h=actual_height, d=box_size, anchor=BOTTOM).translate(
                 [
                     -offset + box_size / 2,
                     -offset + box_size / 2,
@@ -187,7 +187,7 @@ def MakeBoxWithMagneticLidInsideSpace(
             )
             shape = piece
         else:
-            piece1 = bosl2.shapes3d.cyl(h=magnet_thickness * 1.5, d=box_size, anchor=BOTTOM).translate(
+            piece1 = pybosl2.shapes3d.cyl(h=magnet_thickness * 1.5, d=box_size, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size / 2,
                     -wall_thickness + box_size / 2,
@@ -195,7 +195,7 @@ def MakeBoxWithMagneticLidInsideSpace(
                 ]
             )
             offset = wall_thickness + box_size / 2 - wall_thickness
-            piece2 = bosl2.shapes3d.cyl(
+            piece2 = pybosl2.shapes3d.cyl(
                 h=actual_height + 0.01,
                 d2=box_size,
                 d1=0,
@@ -212,7 +212,7 @@ def MakeBoxWithMagneticLidInsideSpace(
 
         side_radius = box_size / 2 - wall_thickness
         if side_radius > 0 and full_height:
-            wedge_a = bosl2.shapes3d.prismoid(
+            wedge_a = pybosl2.shapes3d.prismoid(
                 size1=[side_radius * 2, side_radius * 2],
                 size2=[side_radius * 2, side_radius * 2],
                 h=actual_height,
@@ -224,7 +224,7 @@ def MakeBoxWithMagneticLidInsideSpace(
                     height - lid_thickness - floor_thickness - actual_height,
                 ]
             )
-            cut_a = bosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
+            cut_a = pybosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size + side_radius,
                     -wall_thickness + box_size / 2,
@@ -233,7 +233,7 @@ def MakeBoxWithMagneticLidInsideSpace(
             )
             shape = shape | (wedge_a - cut_a)
 
-            wedge_b = bosl2.shapes3d.prismoid(
+            wedge_b = pybosl2.shapes3d.prismoid(
                 size1=[side_radius * 2, side_radius * 2],
                 size2=[side_radius * 2, side_radius * 2],
                 h=actual_height,
@@ -245,7 +245,7 @@ def MakeBoxWithMagneticLidInsideSpace(
                     height - lid_thickness - floor_thickness - actual_height,
                 ]
             )
-            cut_b = bosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
+            cut_b = pybosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size / 2,
                     -wall_thickness + box_size + side_radius,
@@ -258,7 +258,7 @@ def MakeBoxWithMagneticLidInsideSpace(
         return shape.shape
 
     box_size = magnet_diameter + magnet_border * 2
-    base = bosl2.shapes3d.cuboid(
+    base = pybosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height - lid_thickness - floor_thickness + 0.1],
         anchor=BOTTOM + FRONT + LEFT,
     )
@@ -324,7 +324,7 @@ def MagneticBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness
 
-    top = bosl2.shapes3d.cuboid(
+    top = pybosl2.shapes3d.cuboid(
         [width, length, lid_thickness],
         rounding=calc_lid_rounding,
         anchor=BOTTOM + FRONT + LEFT,
@@ -337,7 +337,7 @@ def MagneticBoxLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = bosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, -1])
+        hole = pybosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, -1])
         top = top - hole
 
     # Meshed once here so internal_build_lid()'s native union gets a plain solid.

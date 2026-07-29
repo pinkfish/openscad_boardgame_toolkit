@@ -35,8 +35,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import numpy as np
-import bosl2.shapes3d
-from bosl2.paths import Path
+import pybosl2.shapes3d
+from pybosl2.paths import Path
 from lids_base import (
     internal_build_lid,
     MakeLidLabel,
@@ -94,7 +94,7 @@ def FingerHoleSegmentCutout(
     if calc_len + radius > calc_len * 4 - radius:
         pts = seg.cut_points([split_length / 2])
         return (
-            bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+            pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
             .rotate([0, 0, angle])
             .translate([float(pts[0][0][0]), float(pts[0][0][1]), 0.0])
             .shape
@@ -105,25 +105,25 @@ def FingerHoleSegmentCutout(
     )
     # .shape unwraps each Bosl2Solid: native hull() only takes raw solids.
     c1 = (
-        bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
         .rotate([0, 0, angle])
         .translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius])
         .shape
     )
     c2 = (
-        bosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
         .rotate([0, 0, angle])
         .translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius])
         .shape
     )
     c3 = (
-        bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
+        pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
         .translate([float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height])
         .shape
     )
     c4 = (
-        bosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
+        pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
         .translate([float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height])
         .shape

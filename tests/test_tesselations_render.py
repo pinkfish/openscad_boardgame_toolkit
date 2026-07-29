@@ -18,7 +18,7 @@
 # LibFile: tests/test_tesselations_render.py
 #    Renders a representative sample of tesselations.py's 2-D lid patterns (extruded, so the
 #    camera has a solid to frame) with the *real* PythonSCAD binary and compares them against
-#    committed golden images. The goldens were generated from the original bosl2-region-op
+#    committed golden images. The goldens were generated from the original pybosl2-region-op
 #    implementation, so they double as the regression baseline for the pysolidfive migration.
 #
 #    Every test here skips gracefully -- via self.skipTest(), not a failure -- when the real

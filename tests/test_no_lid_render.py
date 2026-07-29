@@ -18,7 +18,7 @@
 # LibFile: tests/test_no_lid_render.py
 #    Renders a representative sample of no_lid.py shapes with the *real* PythonSCAD binary and
 #    compares them against committed golden images. Complements tests/test_no_lid.py (plain-
-#    Python pieces only). The golden images were generated from the original bosl2/offset_sweep-
+#    Python pieces only). The golden images were generated from the original pybosl2/offset_sweep-
 #    based implementation, so they double as the regression baseline for the pysolidfive
 #    migration of no_lid.py's solids.
 #

@@ -2269,7 +2269,7 @@ def PentagonTesselationData(
 
 def _clean_path(pts: list[list[float]]) -> list[list[float]]:
     """Drops consecutive duplicate points and collinear middle points (the same clean-up the
-    bosl2 port's deduplicate()/path_merge_collinear() did before the region offsets), so the
+    pybosl2 port's deduplicate()/path_merge_collinear() did before the region offsets), so the
     polygon SDF machinery never sees zero-length or degenerate edges."""
     out: list[list[float]] = []
     for q in pts:

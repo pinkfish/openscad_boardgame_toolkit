@@ -24,7 +24,7 @@
 from __future__ import annotations
 from pythonscad import *
 from base_bgtk import *
-import bosl2.shapes3d
+import pybosl2.shapes3d
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -53,15 +53,15 @@ def MakeDividerTab(
         tab_radius:  corner curve radius (default 2)
         children:    optional solid to subtract from the tab
     """
-    top = bosl2.shapes3d.cuboid(
+    top = pybosl2.shapes3d.cuboid(
         [tab_length, tab_height, thickness],
         rounding=tab_radius,
         edges=[FRONT + LEFT, FRONT + RIGHT],
         anchor=BACK + LEFT + BOTTOM,
     )
-    base = bosl2.shapes3d.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
-    cut_a = bosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
-    cut_b = bosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
+    base = pybosl2.shapes3d.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
+    cut_a = pybosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
+    cut_b = pybosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
     base_shape = (base - cut_a - cut_b).translate([-tab_radius, 0, 0])
 
     tab = (top | base_shape).translate([0, tab_height, 0]).shape
@@ -123,12 +123,12 @@ def MakeDivider(
         children=kids[0] if len(kids) >= 1 else None,
     ).translate([spacing * tab_position, 0, 0])
 
-    body = bosl2.shapes3d.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT) - bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT) - pybosl2.shapes3d.cuboid(
         [width + 1, tab_height + 1, thickness + 1], anchor=BOTTOM + FRONT + LEFT
     ).translate([-0.5, -1, -0.5])
 
     for i in range(num_holes):
-        hole = bosl2.shapes3d.cuboid(
+        hole = pybosl2.shapes3d.cuboid(
             [hole_width, hole_height, thickness + 1],
             rounding=tab_radius,
             edges=[FRONT + LEFT, FRONT + RIGHT],
@@ -195,7 +195,7 @@ def MakeDividerWithText(
     text_depth_calc = text_depth if text_depth is not None else thickness + 1
 
     calc_font = font if font is not None else default_label_font
-    # Native text() has no spin= (that was a bosl2-ism in the port) -- rotate the shape
+    # Native text() has no spin= (that was a pybosl2-ism in the port) -- rotate the shape
     # instead, which is what the working labels.py call sites do.
     text_cut = (
         text(text=str(text_str), font=calc_font, size=10, spacing=1, halign="right", valign="bottom")

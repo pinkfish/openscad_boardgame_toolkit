@@ -20,13 +20,13 @@
 #      * `MakeBoxWithSlipoverLid(...) { child; child; }` becomes children=[fn], where fn is a
 #        callable(inner_width, inner_length, inner_height); the .scad `$inner_width`/`$inner_length`
 #        special variables become that callable's parameters.
-#      * `cuboid(...)` is bosl2.shapes3d.cuboid; `translate([v]) shape` becomes shape.translate([v]).
+#      * `cuboid(...)` is pybosl2.shapes3d.cuboid; `translate([v]) shape` becomes shape.translate([v]).
 #      * the .scad global-default overrides (default_wall_thickness = 4, ...) don't propagate
 #        through Python imports, so they are passed explicitly to each box call instead.
 #      * `@make_box` marks the sections make_files.py builds (mmu + single 3mf).
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid
+from pybosl2.shapes3d import cuboid
 from slipover_box import MakeBoxWithSlipoverLid, SlipoverBoxLidWithLabel
 
 wall_thickness = 4

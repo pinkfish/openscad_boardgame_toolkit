@@ -38,7 +38,7 @@ from base_bgtk import *
 import base_bgtk
 from pythonscad import osuse
 
-# The pure-Python bosl2/ port no longer osuse()s BOSL2, so load the real library directly here
+# The pure-Python pybosl2/ port no longer osuse()s BOSL2, so load the real library directly here
 # (this generator is the sole remaining osuse() user, kept to re-derive the fixture).
 b = osuse(base_bgtk.BOSL2_STD_PATH)
 out = {"reorient": [], "apply": [], "arc": [], "catenary": [], "helix": [], "turtle": [],

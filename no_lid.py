@@ -32,10 +32,10 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import numpy as np
-import bosl2.masking
-import bosl2.shapes3d
-from bosl2 import shapes2d
-from bosl2.paths import Path
+import pybosl2.masking
+import pybosl2.shapes3d
+from pybosl2 import shapes2d
+from pybosl2.paths import Path
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 
 from typing import Callable
@@ -119,7 +119,7 @@ def MakeBoxWithNoLid(
     calc_make_finger_x = (width > length) if (make_finger_x is None and make_finger_y is None) else False
     calc_make_finger_y = (length > width) if (make_finger_y is None and make_finger_x is None) else False
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -132,7 +132,7 @@ def MakeBoxWithNoLid(
     body = body.corner_profile("ALL", r=wall_thickness / 2)
 
     if hollow:
-        hole = bosl2.shapes3d.cuboid(
+        hole = pybosl2.shapes3d.cuboid(
             [width - wall_thickness * 2, length - wall_thickness * 2, height],
             rounding=wall_thickness / 4,
             anchor=BOTTOM + LEFT + FRONT,
@@ -492,7 +492,7 @@ class PathBoxWithNoLid:
             return body
         # A child may be a Bosl2Solid wrapper (e.g. MagnetSlot()); body is native here, and
         # native `-` doesn't accept the wrapper, so unwrap to the native solid first.
-        if isinstance(child, bosl2.shapes3d.Bosl2Solid):
+        if isinstance(child, pybosl2.shapes3d.Bosl2Solid):
             child = child.shape
         return body - child
 

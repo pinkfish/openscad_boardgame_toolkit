@@ -39,9 +39,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
 
 # base_bgtk itself no longer calls into BOSL2 -- the path maths it used to need is now
-# bosl2/ (pure Python + numpy). BOSL2_STD_PATH is still exported for the modules that do
+# pybosl2/ (pure Python + numpy). BOSL2_STD_PATH is still exported for the modules that do
 # still osuse() it. osuse() resolves a bare relative path against the process CWD
 # (not the script dir), so when BOSL2_SCAD_DIR is set (the make build and the render tests both
 # set it) load BOSL2 by absolute path -- that works from any CWD, including running an
@@ -50,8 +51,9 @@ if TYPE_CHECKING:
 _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
-# The numpy path maths (DifferenceWithOffset's pts= form); bosl2/ never imports back here.
-from bosl2.regions import Path, Path3D, Region
+# The numpy path maths (DifferenceWithOffset's pts= form); pybosl2/ never imports back here.
+from pybosl2.regions import Path, Path3D, Region
+from pybosl2 import shapes2d
 
 
 # ---------------------------------------------------------------------------
@@ -356,7 +358,7 @@ def region(paths: list) -> PyOpenSCAD:
     has no region() builtin of its own, but several tesselations.py/shapes.py constructions
     return raw region data from the real-BOSL2 region functions (union/difference/
     make_region/offset_stroke) and need rendering. Coordinates are forced to plain floats:
-    region data that flowed through the bosl2/ port's numpy-based path math otherwise reaches
+    region data that flowed through the pybosl2/ port's numpy-based path math otherwise reaches
     the FFI as numpy.float64, which the native side rejects.
     """
     # A single bare path is fine too.
@@ -426,13 +428,13 @@ def DifferenceWithOffsetRounded(
     if pts is not None:
         if offset != 0:
             # Concentric, so no clipping -- see the note in DifferenceWithOffset().
-            return Region.with_holes(Path(pts).offset(r=outer_offset), Path(pts).offset(r=offset))
-        return Path(pts).offset(r=outer_offset)
+            return Region.with_holes(Path(pts).offset(radius=outer_offset), Path(pts).offset(radius=offset))
+        return Path(pts).offset(radius=outer_offset)
 
     assert children is not None, "DifferenceWithOffsetRounded: provide pts or children"
     if offset != 0:
-        return children.offset(r=outer_offset) - children.offset(r=offset)
-    return children.offset(r=outer_offset)
+        return children.offset(radius=outer_offset) - children.offset(radius=offset)
+    return children.offset(radius=outer_offset)
 
 
 def OffsetSweep(
@@ -441,7 +443,7 @@ def OffsetSweep(
     rounding_bottom: float = 0.0,
     rounding_top: float = 0.0,
     steps: int = 8,
-) -> PyOpenSCAD:
+) -> Bosl2Solid:  # Path/Region.linear_extrude() returns a Bosl2Solid under pybosl2 0.6.5.
     """Direct-CSG (Manifold) stand-in for BOSL2's `offset_sweep(path, height=h,
     bottom=os_circle(rb), top=os_circle(rt))`: extrude a native 2-D `profile` from z=0 up to
     `height`, with each end rim optionally rounded over (positive radius, convex -- the rim
@@ -487,7 +489,7 @@ def OffsetSweep(
             offs = np.sqrt(np.maximum(0.0, a * a - mids**2))
         for i in range(steps):
             off = float(offs[i])
-            slab = profile.offset(r=off) if abs(off) > 1e-12 else profile
+            slab = profile.offset(radius=off) if abs(off) > 1e-12 else profile
             thickness = float(zs[i + 1] - zs[i]) + 1e-6
             z = float(zs[i]) if at_bottom else float(height - zs[i + 1])
             pieces.append(slab.linear_extrude(height=thickness).translate([0.0, 0.0, z]))
@@ -522,7 +524,10 @@ def PolygonPrism(
     path_list = [paths] if first.ndim == 1 else list(paths)
     shape2d = None
     for p in path_list:
-        poly = polygon([[float(x), float(y)] for x, y in np.asarray(p, dtype=float)])
+        # pybosl2 shapes2d.polygon (a Bosl2Shape2D) so OffsetSweep's .offset(radius=)/
+        # .linear_extrude(height=) resolve to the pybosl2 methods, matching every other
+        # OffsetSweep caller (a native polygon() would need .offset(r=) instead and break).
+        poly = shapes2d.polygon([[float(x), float(y)] for x, y in np.asarray(p, dtype=float)])
         shape2d = poly if shape2d is None else shape2d | poly
     assert shape2d is not None, "PolygonPrism: paths must not be empty"
     return OffsetSweep(

@@ -33,9 +33,9 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 
 from base_bgtk import *
-import bosl2.masking
-import bosl2.shapes3d
-import bosl2.transforms
+import pybosl2.masking
+import pybosl2.shapes3d
+import pybosl2.transforms
 from box_base import Box, BoxSpec, Contents, FingerHoleLocation, Label
 from lids_base import (
     Lid,
@@ -181,7 +181,7 @@ class SlidingBox(Box):
         calc_height = self._effective_height()
         two_layer = self._sliding_lid_options.two_layer
 
-        body = bosl2.shapes3d.cuboid(
+        body = pybosl2.shapes3d.cuboid(
             [self.width, self.length, calc_height],
             rounding=self.wall_thickness,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
@@ -189,13 +189,13 @@ class SlidingBox(Box):
         if not two_layer:
             body = body.edge_mask(
                 [TOP],
-                children=bosl2.masking.rounding_edge_mask(
+                children=pybosl2.masking.rounding_edge_mask(
                     radius=self.wall_thickness / 2, length=max(self.length, self.width)
                 ),
             )
 
         rounding_offset = 0.01
-        mid_cut = bosl2.shapes3d.cuboid(
+        mid_cut = pybosl2.shapes3d.cuboid(
             [
                 self.width - self.wall_thickness * 2,
                 self.length - self.wall_thickness + self.size_spacing + rounding_offset,
@@ -207,7 +207,7 @@ class SlidingBox(Box):
         chamfer2 = self.wall_thickness / 2 if self.wall_thickness / 2 < self._lid_cutout else self._lid_cutout
         if two_layer:
             if self._sliding_lid_options.two_layer_vee_shape:
-                lid_cut = bosl2.shapes3d.cuboid(
+                lid_cut = pybosl2.shapes3d.cuboid(
                     [
                         self.width - self.wall_thickness * 2 + self._middle_chamfer * 2 + self.size_spacing,
                         self.length - self.wall_thickness,
@@ -223,7 +223,7 @@ class SlidingBox(Box):
                     ]
                 )
             else:
-                lid_cut = bosl2.shapes3d.cuboid(
+                lid_cut = pybosl2.shapes3d.cuboid(
                     [
                         self.width - self.wall_thickness * 2 + chamfer2 * 2 + self.size_spacing,
                         self.length - self.wall_thickness,
@@ -233,7 +233,7 @@ class SlidingBox(Box):
                     edges=[TOP + LEFT, TOP + RIGHT],
                 ).translate([self.wall_thickness - chamfer2 - self.size_spacing / 2, 0, calc_height - self._lid_cutout])
         else:
-            lid_cut = bosl2.shapes3d.cuboid(
+            lid_cut = pybosl2.shapes3d.cuboid(
                 [
                     self.width - self.wall_thickness * 2 + chamfer2 * 2,
                     self.length - self.wall_thickness + chamfer2,
@@ -245,7 +245,7 @@ class SlidingBox(Box):
         body = body - lid_cut
 
         edge_round = (
-            bosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 4, height=self.length - self.wall_thickness * 2)
+            pybosl2.masking.rounding_edge_mask(radius=self.wall_thickness / 4, height=self.length - self.wall_thickness * 2)
             .rotate([0, 90, 0])
             .translate([self.width / 2, 0, calc_height - self._lid_cutout])
         )
@@ -258,7 +258,7 @@ class SlidingBox(Box):
     # ------------------------------------------------------------------
 
     def inside_mask(self) -> Bosl2Solid:
-        return bosl2.shapes3d.cuboid(
+        return pybosl2.shapes3d.cuboid(
             [self.inner_width, self.inner_length, self.inner_height],
         ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
 
@@ -275,14 +275,14 @@ class SlidingBox(Box):
             if two_layer
             else [LEFT + TOP, RIGHT + TOP, TOP + FRONT]
         )
-        main = bosl2.shapes3d.cuboid(
+        main = pybosl2.shapes3d.cuboid(
             [self._lid_width, self._lid_length, self.lid_thickness],
             chamfer=self._chamfer + self.size_spacing,
             edges=edges,
         )
         main = main.edge_mask(
             [LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-            children=bosl2.masking.rounding_edge_mask(
+            children=pybosl2.masking.rounding_edge_mask(
                 radius=self.wall_thickness if two_layer else calc_lid_rounding,
                 length=self.lid_thickness + self.size_spacing,
             ),
@@ -290,7 +290,7 @@ class SlidingBox(Box):
         top_edges = [TOP] if two_layer else [TOP + BACK]
         main = main.edge_mask(
             top_edges,
-            children=bosl2.masking.rounding_edge_mask(
+            children=pybosl2.masking.rounding_edge_mask(
                 radius=self._top_cover if two_layer else calc_lid_rounding / 2,
                 length=max(self._lid_length, self._lid_width),
             ),
@@ -315,11 +315,11 @@ class SlidingBox(Box):
             main = main - cutter_left - cutter_right
 
         if two_layer:
-            front_cut = bosl2.shapes3d.cuboid(
+            front_cut = pybosl2.shapes3d.cuboid(
                 [self._lid_width, self.wall_thickness, self._lid_cutout + self.size_spacing],
             ).translate([0, 0, -self.size_spacing])
             main = main - front_cut
-            round_a = bosl2.masking.rounding_edge_mask(
+            round_a = pybosl2.masking.rounding_edge_mask(
                 length=self.lid_thickness,
                 radius=calc_lid_rounding,
             ).translate(
@@ -330,7 +330,7 @@ class SlidingBox(Box):
                 ]
             )
             round_b = (
-                bosl2.masking.rounding_edge_mask(length=self.lid_thickness, radius=calc_lid_rounding)
+                pybosl2.masking.rounding_edge_mask(length=self.lid_thickness, radius=calc_lid_rounding)
                 .rotate([0, 180, 0])
                 .translate(
                     [

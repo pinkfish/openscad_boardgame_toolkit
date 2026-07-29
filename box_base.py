@@ -35,9 +35,9 @@ from labels import LabelOptions
 from shape_type import ShapeObject
 
 from base_bgtk import *
-import bosl2.shapes3d
-import bosl2.transforms
-from bosl2.shapes3d import Bosl2Solid
+import pybosl2.shapes3d
+import pybosl2.transforms
+from pybosl2.shapes3d import Bosl2Solid
 from components import FingerHoleWall, FingerHoleBase
 from lids_base import (
     internal_build_lid,
@@ -277,7 +277,7 @@ class Box:
     # ------------------------------------------------------------------
 
     def _build_box_body(self) -> Bosl2Solid:
-        body = bosl2.shapes3d.cuboid(
+        body = pybosl2.shapes3d.cuboid(
             [self.width, self.length, self.height],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=self.wall_thickness,
@@ -353,7 +353,7 @@ class Box:
 
     def _make_base_lid(self, lid_rounding: float | None = None) -> Bosl2Solid:
         """Build the raw lid body. Subclasses MUST override for box-specific geometry."""
-        return bosl2.shapes3d.cuboid(
+        return pybosl2.shapes3d.cuboid(
             [self.inner_width, self.inner_length, self.lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
         ).color(self.material_colour)
@@ -367,7 +367,7 @@ class Box:
         return stack
 
     def inside_mask(self) -> Bosl2Solid:
-        return bosl2.shapes3d.cuboid(
+        return pybosl2.shapes3d.cuboid(
             [self.inner_width, self.inner_length, self.inner_height],
             anchor=BOTTOM + FRONT + LEFT,
         ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
@@ -582,7 +582,7 @@ class Box:
         return self.height
 
     def _apply_positioning(self, body: Bosl2Solid) -> Bosl2Solid:
-        tmat = bosl2.transforms.reorient(
+        tmat = pybosl2.transforms.reorient(
             anchor=self.anchor,
             spin=self.spin,
             orient=self.orient,
@@ -669,7 +669,7 @@ class Box:
 
         if fingernail:
             fn = (
-                bosl2.shapes3d.cuboid(
+                pybosl2.shapes3d.cuboid(
                     [self.inner_width, self.inner_length, self.lid_thickness],
                     anchor=BOTTOM + FRONT + LEFT,
                 ).color(self.material_colour)

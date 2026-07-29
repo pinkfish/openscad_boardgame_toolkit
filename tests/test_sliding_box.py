@@ -19,7 +19,7 @@
 #    Numeric/mock tests for sliding_box.py's plain-Python helper: MakeSlidingLidOptions().
 #    Complements tests/test_sliding_box_render.py (which renders the actual solid-producing
 #    functions with the real PythonSCAD binary): everything else in sliding_box.py builds real
-#    geometry via native primitives, real BOSL2 (osuse()), or the bosl2/ port, none of which the
+#    geometry via native primitives, real BOSL2 (osuse()), or the pybosl2/ port, none of which the
 #    numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand in for (its native
 #    cube()/cylinder()/sphere() stubs return None, so any real geometry chain crashes under it).
 #

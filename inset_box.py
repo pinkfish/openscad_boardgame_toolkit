@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.shapes3d
+import pybosl2.shapes3d
 import pysolidfive
 from lids_base import (
     internal_build_lid,
@@ -93,7 +93,7 @@ def InsetLid(
     inner_length = length - (wall_thickness - inset) * 2 - m_piece_wiggle_room * 2
 
     top = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [inner_width, inner_length, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=calc_lid_rounding,
@@ -405,7 +405,7 @@ def MakeBoxWithInsetLidTabbed(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
@@ -821,7 +821,7 @@ def MakeBoxWithInsetLidRabbitClip(
     assert isinstance(size, (list, tuple)) and len(size) == 3, f"size must be set to [x,y,z], size={size}"
     width, length, height = size
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width, length, height - lid_thickness - size_spacing],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,

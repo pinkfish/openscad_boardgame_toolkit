@@ -13,7 +13,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-#from bosl2 import cuboid
+#from pybosl2 import cuboid
 from pythonscad import union, cube, text
 from cap_box import MakeBoxWithCapLid
 from base_bgtk import InnerObject, InnerSize, ObjectType

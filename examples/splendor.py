@@ -17,12 +17,12 @@
 
 # LibFile: examples/splendor.py
 #    PythonSCAD port of splendor.scad. SplendorBoxInside is a stand-alone token-holder insert
-#    hand-built from bosl2 cyl/cuboid. wall=4, lid=3 passed explicitly.
+#    hand-built from pybosl2 cyl/cuboid. wall=4, lid=3 passed explicitly.
 
 import math
 
 from base_bgtk import *
-from bosl2.shapes3d import cuboid, cyl
+from pybosl2.shapes3d import cuboid, cyl
 from sliding_box import MakeBoxWithSlidingLid, SlidingBoxLidWithLabel
 from components import FingerHoleBase
 

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
     from pysolidfive import PyShape2D  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes2d
+from pybosl2 import shapes2d
 
 import math
 
@@ -260,7 +260,7 @@ def ShapeByType(
 
     if t == ShapeType.SUPERSHAPE:
         outer = shapes2d.supershape(
-            d=w,
+            diameter=w,  # pybosl2 0.6.5 renamed supershape's d= to diameter=
             m1=options.supershape_m1,
             m2=options.supershape_m2,
             n1=options.supershape_n1,

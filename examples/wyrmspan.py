@@ -19,7 +19,7 @@
 #    PythonSCAD port of wyrmspan.scad (default_wall_thickness = 3, passed explicitly).
 
 from base_bgtk import *
-from bosl2.shapes3d import cyl, sphere
+from pybosl2.shapes3d import cyl, sphere
 from cap_box import MakeBoxWithCapLid, CapBoxLidWithLabel
 from components import RoundedBoxAllSides, RoundedBoxGrid, FingerHoleBase
 

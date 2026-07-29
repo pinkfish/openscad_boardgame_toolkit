@@ -18,7 +18,7 @@
 # LibFile: tests/test_shapes_render.py
 #    Renders EVERY 2-D lid-pattern shape in shapes.py (extruded, so the camera has a solid to
 #    frame) with the *real* PythonSCAD binary and compares them against committed golden
-#    images. The goldens were generated from the original native/bosl2 implementation, so they
+#    images. The goldens were generated from the original native/pybosl2 implementation, so they
 #    double as the regression baseline for the pysolidfive migration. Only the non-geometry
 #    helpers (MakeShapeObject(), the *Width() calculators) are left to tests/test_shapes.py's
 #    mock tests.

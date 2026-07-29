@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.shapes3d
+import pybosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -85,40 +85,40 @@ def MakeBoxWithSlidingCatchLid(
 
     calc_sliding_len = (length - wall_thickness) / 6
 
-    body = bosl2.shapes3d.cuboid(
+    body = pybosl2.shapes3d.cuboid(
         [width, length, height],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness,
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     )
 
-    middle = bosl2.shapes3d.cuboid(
+    middle = pybosl2.shapes3d.cuboid(
         [width - wall_thickness * 2, length - wall_thickness * 2, height], anchor=BOTTOM + FRONT + LEFT
     ).translate([wall_thickness, wall_thickness, floor_thickness])
     body = body - middle
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
     ).translate([-0.5, wall_thickness + calc_sliding_len, height - lid_thickness - top_thickness])
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
     ).translate([-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - lid_thickness - top_thickness])
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
         edges=[FRONT + BOTTOM, FRONT + TOP, TOP + BACK],
     ).translate([-0.5, wall_thickness + calc_sliding_len * 2 - size_spacing, height - top_thickness + size_spacing])
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + 1, lid_thickness + size_spacing],
         rounding=lid_thickness,
         anchor=FRONT + LEFT + BOTTOM,
@@ -131,14 +131,14 @@ def MakeBoxWithSlidingCatchLid(
         ]
     )
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, calc_sliding_len + size_spacing * 2 + 1, lid_thickness + top_thickness + size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=lid_thickness / 2,
         edges=[BACK + BOTTOM],
     ).translate([-0.5, length - calc_sliding_len - size_spacing * 2, height - lid_thickness - top_thickness])
 
-    body = body - bosl2.shapes3d.cuboid(
+    body = body - pybosl2.shapes3d.cuboid(
         [width + 1, wall_thickness + calc_sliding_len + size_spacing * 2, top_thickness - size_spacing],
         anchor=FRONT + LEFT + BOTTOM,
         rounding=-top_thickness / 2,
@@ -217,11 +217,11 @@ def SlidingCatchBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = top_thickness / 2
 
-    base = bosl2.shapes3d.cuboid(
+    base = pybosl2.shapes3d.cuboid(
         [width, length - wall_thickness, lid_thickness - size_spacing], anchor=BOTTOM + FRONT + LEFT
     )
     if fill_middle:
-        fill = bosl2.shapes3d.cuboid(
+        fill = pybosl2.shapes3d.cuboid(
             [width - wall_thickness * 2 - size_spacing * 2, length, top_thickness + 0.1],
             anchor=FRONT + LEFT + BOTTOM,
             rounding=calc_lid_rounding,
@@ -232,7 +232,7 @@ def SlidingCatchBoxLid(
     def _cut(size_y: float, tx: float, ty: float) -> "PyOpenSCAD":
         cut_w = wall_thickness + size_spacing + 1
         return (
-            bosl2.shapes3d.cuboid([cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT)
+            pybosl2.shapes3d.cuboid([cut_w, size_y, lid_thickness + 1], anchor=BOTTOM + FRONT + LEFT)
             .translate([tx, ty, -0.5])
             .shape
         )

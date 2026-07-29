@@ -20,7 +20,7 @@
 #    render_pysolidfive.py's render_script() (shared subprocess/skip-gracefully plumbing) with the one
 #    extra thing cap_box.py needs that pysolidfive doesn't: a real `osuse("BOSL2/std.scad")` import
 #    (cap_box.py -> base_bgtk.py loads real BOSL2 for a handful of functions -- reorient(),
-#    offset() -- that aren't part of the bosl2/ pure-Python port pysolidfive's tests rely on).
+#    offset() -- that aren't part of the pybosl2/ pure-Python port pysolidfive's tests rely on).
 #
 #    osuse() resolves its path relative to the process's current working directory, not the
 #    script file's location (confirmed empirically; PythonSCAD logs a "DEPRECATED: Imported file

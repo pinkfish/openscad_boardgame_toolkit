@@ -19,7 +19,7 @@
 #    Renders a representative sample of slipover_box.py shapes with the *real* PythonSCAD
 #    binary and compares them against committed golden images. Complements
 #    tests/test_slipover_box.py (argument-validation only). The golden images were generated
-#    from the original bosl2-based implementation, so they double as the regression baseline
+#    from the original pybosl2-based implementation, so they double as the regression baseline
 #    for the pysolidfive migration of slipover_box.py's solids.
 #
 #    Every test here skips gracefully -- via self.skipTest(), not a failure -- when the real

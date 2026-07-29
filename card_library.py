@@ -32,8 +32,8 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import bosl2.masking
-import bosl2.shapes3d
+import pybosl2.masking
+import pybosl2.shapes3d
 import pysolidfive
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
@@ -200,14 +200,14 @@ def MakeCardLibraryBox(
     hinge_seg = max(math.floor(length / 20), 5)
 
     main = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [width, length, height_without_hinge],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=wall_thickness,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
         )
         .edge_profile(
-            [TOP + FRONT, TOP + BACK, TOP + RIGHT], children=bosl2.masking.mask2d_roundover(wall_thickness / 4)
+            [TOP + FRONT, TOP + BACK, TOP + RIGHT], children=pybosl2.masking.mask2d_roundover(wall_thickness / 4)
         )
         .face_profile([BOTTOM], r=wall_thickness / 2)
         .corner_profile("ALL", r=wall_thickness / 2)
@@ -215,7 +215,7 @@ def MakeCardLibraryBox(
     )
 
     inside_cut = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [width, length - wall_thickness * 2, height_without_hinge],
             rounding=wall_thickness / 4,
             anchor=BOTTOM + LEFT + FRONT,
@@ -226,7 +226,7 @@ def MakeCardLibraryBox(
     main = main - inside_cut
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        main = main - bosl2.shapes3d.cuboid(
+        main = main - pybosl2.shapes3d.cuboid(
             [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + FRONT + LEFT
         ).translate(
             [
@@ -235,7 +235,7 @@ def MakeCardLibraryBox(
                 height_without_hinge + lid_thickness - wall_thickness,
             ]
         )
-        main = main - bosl2.shapes3d.cuboid(
+        main = main - pybosl2.shapes3d.cuboid(
             [wall_thickness * 4.5, wall_thickness + 0.02, wall_thickness], anchor=TOP + BACK + LEFT
         ).translate(
             [
@@ -245,7 +245,7 @@ def MakeCardLibraryBox(
             ]
         )
 
-    hinge_space_cut = bosl2.shapes3d.cuboid(
+    hinge_space_cut = pybosl2.shapes3d.cuboid(
         [wall_thickness * 2 + 0.02, length - wall_thickness * 2, wall_thickness + 0.01],
         anchor=BOTTOM + LEFT + FRONT,
         rounding=-wall_thickness,
@@ -253,13 +253,13 @@ def MakeCardLibraryBox(
     ).translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness])
     main = main - hinge_space_cut
 
-    filament_hole = bosl2.shapes3d.ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT).translate(
+    filament_hole = pybosl2.shapes3d.ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT).translate(
         [wall_thickness, 1, height - wall_thickness]
     )
     main = main - filament_hole
 
     hinge_support = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [wall_thickness * 2, length - wall_thickness * 2 + 0.02, height_without_hinge / 6],
             anchor=TOP + FRONT + LEFT,
             chamfer=wall_thickness,
@@ -269,7 +269,7 @@ def MakeCardLibraryBox(
         .translate([0, wall_thickness - 0.01, height_without_hinge - wall_thickness])
     )
     back_support = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [wall_thickness * 2, length - wall_thickness * 2 + 0.02, wall_thickness * 3],
             anchor=BOTTOM + FRONT + LEFT,
             chamfer=wall_thickness,
@@ -282,13 +282,13 @@ def MakeCardLibraryBox(
     body = main | hinge_support | back_support
 
     if latch == CARD_LIBRARY_LATCH_CLIP:
-        clip_a = bosl2.shapes3d.cuboid(
+        clip_a = pybosl2.shapes3d.cuboid(
             [wall_thickness * 3, wall_thickness, lid_thickness * 2],
             rounding=wall_thickness / 4,
             anchor=TOP + FRONT + LEFT,
             edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT],
         )
-        clip_a_cut = bosl2.shapes3d.cuboid(
+        clip_a_cut = pybosl2.shapes3d.cuboid(
             [wall_thickness * 2, wall_thickness / 2, wall_thickness / 2],
             chamfer=wall_thickness / 2,
             anchor=TOP + FRONT + LEFT,
@@ -298,13 +298,13 @@ def MakeCardLibraryBox(
             [width * 3 / 4, 0, height_without_hinge + lid_thickness]
         )
 
-        clip_b = bosl2.shapes3d.cuboid(
+        clip_b = pybosl2.shapes3d.cuboid(
             [wall_thickness * 3, wall_thickness, lid_thickness * 2],
             rounding=wall_thickness / 4,
             anchor=TOP + BACK + LEFT,
             edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK],
         )
-        clip_b_cut = bosl2.shapes3d.cuboid(
+        clip_b_cut = pybosl2.shapes3d.cuboid(
             [wall_thickness * 2, wall_thickness / 2, wall_thickness / 2],
             chamfer=wall_thickness / 2,
             anchor=TOP + BACK + LEFT,
@@ -315,13 +315,13 @@ def MakeCardLibraryBox(
         )
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        latch_a = bosl2.shapes3d.cuboid(
+        latch_a = pybosl2.shapes3d.cuboid(
             [wall_thickness * 5, wall_thickness, lid_thickness * 2],
             rounding=wall_thickness / 4,
             anchor=TOP + FRONT + LEFT,
             edges=[LEFT + FRONT, RIGHT + FRONT, TOP + FRONT],
         )
-        latch_a_cut = bosl2.shapes3d.prismoid(
+        latch_a_cut = pybosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
             h=wall_thickness + 0.02,
@@ -332,13 +332,13 @@ def MakeCardLibraryBox(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, 0, height_without_hinge + lid_thickness]
         )
 
-        latch_b = bosl2.shapes3d.cuboid(
+        latch_b = pybosl2.shapes3d.cuboid(
             [wall_thickness * 5, wall_thickness, lid_thickness * 2],
             rounding=wall_thickness / 4,
             anchor=TOP + BACK + LEFT,
             edges=[RIGHT + BACK, LEFT + BACK, TOP + BACK],
         )
-        latch_b_cut = bosl2.shapes3d.prismoid(
+        latch_b_cut = pybosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
             h=wall_thickness + 0.02,
@@ -349,14 +349,14 @@ def MakeCardLibraryBox(
             [width * 3 / 4 - wall_thickness - print_in_place_offset, length, height_without_hinge + lid_thickness]
         )
 
-    front_lip = bosl2.shapes3d.cuboid(
+    front_lip = pybosl2.shapes3d.cuboid(
         [wall_thickness, length - wall_thickness * 2 + 0.02, lip_size],
         anchor=BOTTOM + FRONT + LEFT,
         rounding=wall_thickness / 2,
         edges=[TOP + RIGHT],
     ).color(material_colour)
     front_lip_chamfer = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [wall_thickness, length - wall_thickness * 2 + 0.02, wall_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             chamfer=wall_thickness / 3,
@@ -415,11 +415,11 @@ def SlidingChannel(size: list[float], wall_thickness: float) -> "PyOpenSCAD":
     ab_size = [height * 2, length, height + 0.1]
     ab_anchor = BOTTOM + FRONT + LEFT
 
-    a = bosl2.shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + RIGHT])
-    a = a.edge_profile([TOP + LEFT], children=bosl2.masking.mask2d_roundover(height / 2)).translate([-height, 0, -0.1])
+    a = pybosl2.shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + RIGHT])
+    a = a.edge_profile([TOP + LEFT], children=pybosl2.masking.mask2d_roundover(height / 2)).translate([-height, 0, -0.1])
 
-    b = bosl2.shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + LEFT])
-    b = b.edge_profile([TOP + RIGHT], children=bosl2.masking.mask2d_roundover(height / 2)).translate(
+    b = pybosl2.shapes3d.cuboid(ab_size, anchor=ab_anchor, chamfer=height, edges=[BOTTOM + LEFT])
+    b = b.edge_profile([TOP + RIGHT], children=pybosl2.masking.mask2d_roundover(height / 2)).translate(
         [width - height, 0, -0.1]
     )
 
@@ -439,19 +439,19 @@ def SlidingLatch(
     """
     width, length, height = size
 
-    a = bosl2.shapes3d.prismoid(
+    a = pybosl2.shapes3d.prismoid(
         size1=[width - print_in_place_offset * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         size2=[width - wall_thickness * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         h=wall_thickness - print_in_place_offset * 1.5,
         anchor=BOTTOM + FRONT + LEFT,
     ).translate([0, 0, lid_thickness + print_in_place_offset * 1.5])
 
-    b = bosl2.shapes3d.cuboid(
+    b = pybosl2.shapes3d.cuboid(
         [width - print_in_place_offset * 2, wall_thickness, lid_thickness + print_in_place_offset * 2],
         anchor=BOTTOM + BACK + LEFT,
     ).translate([print_in_place_offset * 0.25, length - wall_thickness * 1.75 - print_in_place_offset, 0])
 
-    c = bosl2.shapes3d.cuboid(
+    c = pybosl2.shapes3d.cuboid(
         [width - print_in_place_offset * 2, wall_thickness * 2.5 - print_in_place_offset * 3, lid_thickness],
         anchor=BOTTOM + BACK + LEFT,
     ).translate([print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0])
@@ -518,7 +518,7 @@ def CardLibraryBoxLid(
     hinge_seg = max(math.floor(length / 20), 5)
 
     base_plate = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [width - wall_thickness * 2, length, lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=wall_thickness / 2,
@@ -547,7 +547,7 @@ def CardLibraryBoxLid(
     )
 
     back_holder = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [
                 wall_thickness * 2,
                 length - wall_thickness * 2 - print_in_place_offset * 2,
@@ -560,7 +560,7 @@ def CardLibraryBoxLid(
     )
 
     front_lip = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [wall_thickness, length - wall_thickness * 2 - 1, lid_thickness + lip_size],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=wall_thickness / 2,
@@ -573,11 +573,11 @@ def CardLibraryBoxLid(
     base = base_plate | back_hinge | back_holder | front_lip
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        base = base - bosl2.shapes3d.cuboid(
+        base = base - pybosl2.shapes3d.cuboid(
             [wall_thickness * 5 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
             anchor=BOTTOM + FRONT + LEFT,
         ).translate([width * 3 / 4 - print_in_place_offset - wall_thickness, -0.01, -0.01])
-        base = base - bosl2.shapes3d.cuboid(
+        base = base - pybosl2.shapes3d.cuboid(
             [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness + 0.02, lid_thickness * 2],
             anchor=BOTTOM + BACK + LEFT,
         ).translate([width * 3 / 4 - print_in_place_offset, length + 0.01, -0.01])
@@ -638,7 +638,7 @@ def CardLibraryBoxLid(
             wall_thickness=wall_thickness,
         ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
 
-        body = body | bosl2.shapes3d.cuboid(
+        body = body | pybosl2.shapes3d.cuboid(
             [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT
         ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
 
@@ -656,7 +656,7 @@ def CardLibraryBoxLid(
             [width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness]
         )
 
-        body = body | bosl2.shapes3d.cuboid(
+        body = body | pybosl2.shapes3d.cuboid(
             [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1],
             anchor=BOTTOM + FRONT + LEFT,
         ).color(material_colour).translate(
@@ -954,7 +954,7 @@ def CardSleeveForLibrary(
     text_new_width = text_length * text_aspect if text_use_length else text_width
     text_new_length = text_length if text_use_length else text_width / text_aspect
 
-    body = bosl2.shapes3d.cuboid(size, anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 4).color(material_colour)
+    body = pybosl2.shapes3d.cuboid(size, anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 4).color(material_colour)
 
     cards_array = list(num_cards) if isinstance(num_cards, (list, tuple)) else [num_cards]
     num_compartments = len(cards_array) if isinstance(num_cards, (list, tuple)) else 1
@@ -965,7 +965,7 @@ def CardSleeveForLibrary(
             + sumCardsTo(cards_array, i) * card_size.single_card_thickness
             + i * card_size.sleeve_wall_thickness
         )
-        body = body - bosl2.shapes3d.cuboid(
+        body = body - pybosl2.shapes3d.cuboid(
             [width - wall_thickness - card_size.sleeve_wall_thickness, comp_y_size, height],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=min(
@@ -973,7 +973,7 @@ def CardSleeveForLibrary(
             ),
         ).color(material_colour).translate([wall_thickness, comp_y_offset, wall_thickness])
 
-        body = body - bosl2.shapes3d.cuboid(
+        body = body - pybosl2.shapes3d.cuboid(
             [width, comp_y_size, height],
             anchor=BOTTOM + FRONT + LEFT,
             rounding=min(wall_thickness / 4, width / 2, comp_y_size / 2),
@@ -995,7 +995,7 @@ def CardSleeveForLibrary(
 
     radius = wall_thickness * math.sqrt(3) / 2
     catch_cut = (
-        bosl2.shapes3d.cuboid(
+        pybosl2.shapes3d.cuboid(
             [wall_thickness, length + 0.02, wall_thickness + print_in_place_offset],
             anchor=FRONT,
             chamfer=wall_thickness / 3,

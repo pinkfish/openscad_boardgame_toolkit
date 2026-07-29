@@ -29,8 +29,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
     from pysolidfive import PyShape, PyShape2D  # noqa: F401
 from base_bgtk import *
-from bosl2 import shapes3d
-from bosl2 import shapes2d
+from pybosl2 import shapes3d
+from pybosl2 import shapes2d
 from labels import LabelOptions, MakeLabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
 from components import RegularPolygonGridDense, RegularPolygonGrid
 
@@ -353,6 +353,8 @@ def internal_build_lid(lid_thickness: float, children: list, size_spacing: float
 
     def mask(piece: PyOpenSCAD) -> PyOpenSCAD:
         native = piece.shape if isinstance(piece, shapes3d.Bosl2Solid) else piece
+        # NATIVE chain: fill()/projection() are native builtins (no pybosl2 equivalent wired
+        # here), so .offset() is the native method -- it takes r=, not pybosl2's radius=.
         return (
             fill(native.projection(cut=False))
             .offset(r=-size_spacing)

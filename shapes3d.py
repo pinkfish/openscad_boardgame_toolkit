@@ -16,7 +16,7 @@
 # under the License.
 
 # LibFile: shapes3d.py
-#    3-D shapes (dice, polyhedra) for board games. Built entirely on pysolidfive -- no bosl2
+#    3-D shapes (dice, polyhedra) for board games. Built entirely on pysolidfive -- no pybosl2
 #    port and no BOSL2 polyhedra.scad, which could never load through osuse() anyway (it
 #    depends on its include chain for PHI and friends, so the old Octahedron/Trapezohedron
 #    never actually worked in the Python port). Every solid here is a convex polyhedron, which

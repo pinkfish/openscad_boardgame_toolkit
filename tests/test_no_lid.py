@@ -20,7 +20,7 @@
 #    FingerHoleWallSegment()'s doesn't-qualify (returns None) logic, and the STACKABLE_TYPE_*
 #    constants. Complements tests/test_no_lid_render.py (which renders the actual
 #    solid-producing functions with the real PythonSCAD binary): everything else in no_lid.py
-#    builds real geometry via native primitives, real BOSL2 (osuse()), or the bosl2/ port, none
+#    builds real geometry via native primitives, real BOSL2 (osuse()), or the pybosl2/ port, none
 #    of which the numeric mock in pysolidfive/tests/mock_libfive.py can meaningfully stand in
 #    for. FingerHoleWallSegment's qualifying branch builds a FingerHoleWall solid, so only its
 #    None-returning disqualification paths are checked here -- the geometry side is covered by
