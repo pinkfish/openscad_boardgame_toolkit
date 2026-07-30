@@ -250,6 +250,35 @@ def _place_one(
     return wells, scoop, other
 
 
+def _point_in_poly(px: float, py: float, poly) -> bool:
+    """Ray-casting point-in-polygon test. *poly* is a list of ``[x, y]`` points."""
+    inside = False
+    n = len(poly)
+    j = n - 1
+    for i in range(n):
+        xi, yi = float(poly[i][0]), float(poly[i][1])
+        xj, yj = float(poly[j][0]), float(poly[j][1])
+        if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def _cell_in_region(x: float, y: float, cw: float, cl: float, region) -> bool:
+    """Whether a ``cw`` x ``cl`` cell at (x, y) sits fully inside *region* (a polygon in
+    the layout's local frame). ``region=None`` -> always True (rectangular interior).
+    Samples the corners, edge mid-points and centre -- enough to reject a cell that
+    pokes out past a polygon edge without a full polygon-clip test."""
+    if region is None:
+        return True
+    samples = (
+        (x, y), (x + cw, y), (x, y + cl), (x + cw, y + cl),
+        (x + cw / 2, y), (x + cw / 2, y + cl), (x, y + cl / 2), (x + cw, y + cl / 2),
+        (x + cw / 2, y + cl / 2),
+    )
+    return all(_point_in_poly(px, py, region) for px, py in samples)
+
+
 def _merge_scoops(scoops: list) -> list[InnerObject]:
     """Merge a line of adjacent scoop solids into ONE contiguous cut (convex hull), so
     scoops sitting next to each other don't leave ridges between them."""
@@ -307,6 +336,7 @@ def layout_compartments(
     min_gap: float = 2.0,
     margin: float | None = None,
     justify: Justify = Justify.SPACE_EVENLY,
+    region: list | None = None,
 ) -> Callable[[InnerSize], list[InnerObject]]:
     """Return a ``contents`` callable that lays *groups* out in the box interior.
 
@@ -316,10 +346,19 @@ def layout_compartments(
     ``min_gap`` and grow to fill slack (see ``justify``), rather than being crammed at
     one end. ``fill`` compartments/groups still expand to absorb leftover space first.
 
+    **Polygon outlines:** packing happens in the interior's bounding rectangle, but if a
+    boundary polygon is known -- passed explicitly as ``region`` or carried on
+    ``InnerSize.region`` (a path box supplies its inset outline automatically) -- any
+    compartment whose cell would poke outside the polygon is DROPPED, so a box with a
+    non-rectangular outline still bin-packs cleanly. The explicit ``region`` argument
+    wins over ``InnerSize.region``.
+
     Args:
         min_gap:  the minimum gap between compartments and at the edges (mm).
         margin:   edge margin; defaults to ``min_gap`` when not given.
         justify:  how slack is distributed -- see :func:`_positions`.
+        region:   optional boundary polygon (``[[x, y], ...]`` in the interior-local
+                  frame) that compartments must stay inside; ``None`` = full rectangle.
 
     Usage::
 
@@ -336,6 +375,7 @@ def layout_compartments(
         AW = inner.width - 2 * edge
         AL = inner.length - 2 * edge
         IH = inner.height
+        region_use = region if region is not None else getattr(inner, "region", None)
 
         # A compartment can't be deeper than the interior, or its well would cut
         # through the floor and the piece would fall out the bottom.
@@ -367,7 +407,8 @@ def layout_compartments(
         pieces: list[InnerObject] = []
         for g, band, y in zip(groups, bands, ypos):
             pieces.extend(_place_group(g, y=edge + y, band=band, AW=AW, x_off=edge, IH=IH,
-                                       min_gap=min_gap, justify=justify, interior_width=inner.width))
+                                       min_gap=min_gap, justify=justify, interior_width=inner.width,
+                                       region=region_use))
         return pieces
 
     return build
@@ -413,7 +454,8 @@ def _check_row_fits(g: Group, row_items: list[Compartment], widths: list[float],
 
 
 def _place_group(g: Group, *, y: float, band: float, AW: float, x_off: float, IH: float,
-                 min_gap: float, justify: Justify, interior_width: float) -> list[InnerObject]:
+                 min_gap: float, justify: Justify, interior_width: float,
+                 region: list | None = None) -> list[InnerObject]:
     items = _expand(g.items)
     pieces: list[InnerObject] = []
 
@@ -428,6 +470,8 @@ def _place_group(g: Group, *, y: float, band: float, AW: float, x_off: float, IH
             xpos = _positions(AW, widths, min_gap, justify)
             row_scoops: list = []
             for it, cw, x in zip(row, widths, xpos):
+                if not _cell_in_region(x_off + x, cy, cw, row_h, region):
+                    continue   # cell falls outside the polygon outline -- skip it
                 wells, scoop, other = _place_one(it, x_off + x, cy, cw, row_h, IH)
                 pieces.extend(wells)
                 if other is not None:
@@ -445,6 +489,8 @@ def _place_group(g: Group, *, y: float, band: float, AW: float, x_off: float, IH
     scoops: list = []
     for it, cw, x in zip(items, widths, xpos):
         cl = band if it.fill else it.cell()[1]
+        if not _cell_in_region(x_off + x, y, cw, cl, region):
+            continue   # cell falls outside the polygon outline -- skip it
         wells, scoop, other = _place_one(it, x_off + x, y, cw, cl, IH)
         pieces.extend(wells)
         if other is not None:

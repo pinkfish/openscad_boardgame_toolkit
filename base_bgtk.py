@@ -292,6 +292,12 @@ class InnerSize:
     width: float
     length: float
     height: float
+    # Optional polygon boundary of the usable interior, in the SAME local frame the
+    # compartment layout packs into (0..width x 0..length). ``None`` means the interior
+    # is the full width x length rectangle (the ordinary box). A path box passes its
+    # inset outline here so :func:`compartments.layout_compartments` can drop cells that
+    # fall outside the polygon -- binpacking that respects a non-rectangular outline.
+    region: Any = None
 
 
 @dataclass

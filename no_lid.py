@@ -24,6 +24,7 @@
 from __future__ import annotations
 import math
 import types
+from dataclasses import dataclass, field, replace
 
 from pythonscad import *
 from typing import TYPE_CHECKING
@@ -406,12 +407,12 @@ class PathBoxWithNoLid:
 
         self.calc_path = Path(self.outside_path).round_corners(radius=wall)
         fit = self.stackable_fit_offset
-        self.inner_path = Path(self.main_path).offset(r=-wall)
-        self.inner_path_stackable = Path(self.main_path).offset(r=-wall / 2)
-        self.inner_path_stackable_bottom_outside = Path(self.main_path).offset(r=-wall / 2 + fit)
-        self.inner_path_stackable_bottom_inside = Path(self.main_path).offset(r=-wall - fit)
-        self.inner_path_stackable_bottom_inside_inside = Path(self.main_path).offset(r=-wall / 2 - fit)
-        self.middle_path = Path(self.path).offset(r=-wall / 2)
+        self.inner_path = Path(self.main_path).offset(radius=-wall)
+        self.inner_path_stackable = Path(self.main_path).offset(radius=-wall / 2)
+        self.inner_path_stackable_bottom_outside = Path(self.main_path).offset(radius=-wall / 2 + fit)
+        self.inner_path_stackable_bottom_inside = Path(self.main_path).offset(radius=-wall - fit)
+        self.inner_path_stackable_bottom_inside_inside = Path(self.main_path).offset(radius=-wall / 2 - fit)
+        self.middle_path = Path(self.path).offset(radius=-wall / 2)
 
     # -- pieces ----------------------------------------------------------------------------
 
@@ -513,7 +514,7 @@ class PathBoxWithNoLid:
         if f.floor_height <= 0:
             return None
         wall = self.wall_thickness
-        joined_outer = Path(_bosl2.union([f.path, self.path])).offset(r=-wall).round_corners(radius=wall)
+        joined_outer = Path(_bosl2.union([f.path, self.path])).offset(radius=-wall).round_corners(radius=wall)
         inner_union = [Path(f.path).offset(delta=wall), self.inner_path] + [
             Path(other.path).offset(delta=wall) for other in self.sorted_floors if other.floor_height > f.floor_height
         ]
@@ -761,3 +762,290 @@ def MakePolygonBoxWithNoLid(
         children=inner_children,
         mesh_res=mesh_res,
     )
+
+
+@dataclass
+class PathBoxOptions:
+    """Options for :class:`PathBox` -- a no-lid box whose outline is a polygon.
+
+    Pass an explicit ``path`` (a closed ``[[x, y], ...]`` outline), or build one
+    from a regular polygon with :meth:`PathBox.regular_polygon`. Everything that is
+    outline-specific (the stackable rings, per-edge magnets, edge finger dips, raised
+    extra floors) lives here rather than on :class:`BoxSpec`, so the same rectangular
+    ``BoxSpec`` machinery (positioning, height, thicknesses) is reused unchanged.
+
+    Attributes:
+        path:            closed polygon outline the box is built from
+        children:        a solid, or a ``callable(inner: InnerPath)`` -- the
+                         polygon-native content contract (carries ``.path``/``.profile``)
+        stackable:       ``STACKABLE_TYPE_*`` interlocking-ring style (default none)
+        magnet:          ``namespace(type=, size=)`` placed on the mid-point of EVERY
+                         outline edge (generalises the regular-polygon magnet placement
+                         to any path); ``None``/``MAGNET_SLOT_TYPE_NONE`` for no magnets
+        hollow_radius:   ``namespace(top=, bottom=, radius=)`` cavity roundovers
+        make_finger_x/y: force/suppress the edge finger dips (default auto)
+        extra_floors:    list of ``namespace(path=, floor_height=, top_height=)`` raised floors
+    """
+
+    path: list[list[float]]
+    children: "PyOpenSCAD | Callable | None" = None
+    stackable: int = STACKABLE_TYPE_NONE
+    stackable_thickness: float | None = None
+    stackable_fit_offset: float = 0.1
+    hollow_radius: types.SimpleNamespace | None = None
+    make_finger_x: bool | None = None
+    make_finger_y: bool | None = None
+    finger_hole_size: float | None = None
+    magnet: types.SimpleNamespace | None = None
+    extra_floors: list[types.SimpleNamespace] | None = None
+    mesh_res: int = 10
+
+
+def MakePathBoxOptions(**kwargs) -> PathBoxOptions:
+    return PathBoxOptions(**kwargs)
+
+
+class PathBox(BoxBaseType):
+    """A no-lid box whose OUTLINE is a polygon, on the new box system.
+
+    The rectangular ``BoxSpec`` still supplies the height, wall/floor thickness,
+    colour and positioning; the polygon and its outline-specific features come from
+    a :class:`PathBoxOptions` in ``BoxSpec.type_options``. ``BoxSpec.size`` is
+    given as ``[width, length, height]`` but the x/y extent is re-derived from the
+    outline's bounding box in :meth:`__init__`, so ``self.width``/``self.length``
+    (and hence positioning) always match the real polygon.
+
+    Like :class:`NoLidBox`, a PathBox is a **solid spacer by default**; pass
+    ``BoxSpec(hollow=True)`` (or a hollowing ``children``) to open the interior.
+    There is no lid (:meth:`make_lid` raises). The heavy polygon geometry -- the
+    outline extrusion, the inset-outline cavity, the interlocking stackable rings
+    and the finger dips that walk each edge -- is delegated to the underlying
+    :class:`PathBoxWithNoLid`; ``PathBox`` is the thin new-system wrapper over it,
+    matching the facade pattern used by :class:`~hinge_box.HingeBox` et al.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from no_lid import PathBox, PathBoxOptions
+
+        # explicit outline
+        PathBox(BoxSpec(size=[60, 40, 20], label="wedge", hollow=True,
+                        type_options=PathBoxOptions(path=[[0, 0], [60, 0], [30, 40]]))
+                ).make_box().show()
+
+        # regular hexagon spacer
+        PathBox.regular_polygon(BoxSpec(size=[100, 100, 24], label="hex"),
+                                sides=6, hollow=True).make_box().show()
+
+    Compartment auto-layout works too: pass ``BoxSpec.contents`` (e.g. from
+    :func:`compartments.layout_compartments`) and the wells are bin-packed in the
+    outline's bounding box, clipped to the polygon cavity, and any cell that falls
+    outside the outline is dropped -- the box supplies its inset outline to the layout
+    automatically via ``InnerSize.region``::
+
+        contents = layout_compartments([Group([Compartment(shape="circle", d=20,
+                                                            depth=12, count=8)])])
+        PathBox.regular_polygon(BoxSpec(size=[120, 120, 20], label="hex", contents=contents),
+                                sides=6).make_box().show()
+    """
+
+    def __init__(self, spec: BoxSpec) -> None:
+        opts = spec.type_options
+        if not isinstance(opts, PathBoxOptions):
+            raise TypeError(
+                "PathBox requires BoxSpec(type_options=PathBoxOptions(path=...)); "
+                f"got type_options={opts!r}"
+            )
+        # Lock the declared x/y extent to the outline's real bounding box so the base
+        # class's size-derived machinery (positioning, inner_width/length) lines up
+        # with the polygon rather than whatever nominal size the caller passed.
+        pts = np.asarray(opts.path, dtype=float)
+        w = float(pts[:, 0].max() - pts[:, 0].min())
+        l = float(pts[:, 1].max() - pts[:, 1].min())
+        super().__init__(replace(spec, size=[w, l, spec.size[2]]))
+        self._opts = opts
+
+        # Measurement instance: PathBoxWithNoLid.__init__ resolves the inset outlines in
+        # numpy (no solids built), so we can read the INSIDE outline and its bounding box
+        # cheaply, and reuse the same class for the cavity mask (hollow_cut) later.
+        self._pbox = self._new_pathbox()
+        inner_pts = np.asarray([[float(p[0]), float(p[1])] for p in self._pbox.inner_path], dtype=float)
+        self._ox = float(inner_pts[:, 0].min())
+        self._oy = float(inner_pts[:, 1].min())
+        self._iw = float(inner_pts[:, 0].max() - self._ox)
+        self._il = float(inner_pts[:, 1].max() - self._oy)
+        # The inside outline in the compartment layout's LOCAL frame (bbox corner at the
+        # origin) -- the polygon the layout drops out-of-bounds cells against.
+        self._region = [[float(px - self._ox), float(py - self._oy)] for px, py in inner_pts]
+
+    def _new_pathbox(self, *, children=None, hollow: bool = False) -> "PathBoxWithNoLid":
+        """A :class:`PathBoxWithNoLid` for this spec (the shell + cavity workhorse)."""
+        opts = self._opts
+        return PathBoxWithNoLid(
+            path=opts.path,
+            height=self.height,
+            children=children,
+            wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness,
+            stackable_thickness=opts.stackable_thickness,
+            stackable_fit_offset=opts.stackable_fit_offset,
+            hollow_radius=opts.hollow_radius,
+            make_finger_x=opts.make_finger_x,
+            make_finger_y=opts.make_finger_y,
+            material_colour=self.material_colour,
+            finger_hole_size=opts.finger_hole_size,
+            hollow=hollow,
+            stackable=opts.stackable,
+            extra_floors=opts.extra_floors,
+            mesh_res=opts.mesh_res,
+        )
+
+    @classmethod
+    def regular_polygon(cls, spec: BoxSpec, sides: int, **opt_kwargs) -> "PathBox":
+        """Build a PathBox from a regular *sides*-gon whose circumdiameter is
+        ``spec.size[0]`` (the replacement for :func:`MakePolygonBoxWithNoLid`)."""
+        if sides < 3:
+            raise ValueError(f"sides must be >= 3, got {sides}")
+        path = shapes2d._regular_ngon_path(sides, spec.size[0] / 2)
+        return cls(replace(spec, type_options=PathBoxOptions(path=path, **opt_kwargs)))
+
+    @property
+    def inner_width(self) -> float:
+        # The bounding width of the INSET outline -- the frame a compartment layout packs
+        # into (the polygon itself trims placements via inside_mask / the region filter).
+        return self._iw
+
+    @property
+    def inner_length(self) -> float:
+        return self._il
+
+    @property
+    def inner_height(self) -> float:
+        # No lid to subtract -- the interior runs from the floor to the open top.
+        return self.height - self.floor_thickness
+
+    def _hollow_when_empty(self) -> bool:
+        return False
+
+    def inside_mask(self) -> "Bosl2Solid":
+        """The clip volume for compartment contents: a STRAIGHT prism of the inset
+        outline, floor to top.
+
+        Deliberately NOT the box's decorative cavity (``PathBoxWithNoLid.hollow_cut``,
+        which rounds the corners and flares the top rim) -- clipping wells against that
+        would round/flare the well edges. Compartments should clip to the true vertical
+        inner wall, so this is a plain ``rounding=0`` extrusion of the inset outline.
+        (The open-tray finish for a ``hollow=True`` PathBox is still the rounded
+        hollow_cut; it is built inside the shell, independently of this mask.)"""
+        prism = PolygonPrism(self._pbox.inner_path, h=self.inner_height).translate(
+            [0, 0, self.floor_thickness]
+        )
+        return pybosl2.shapes3d.Bosl2Solid(prism)
+
+    def _placed_content(self, io) -> "Bosl2Solid":
+        """Translate a compartment from the layout's local frame into the box interior.
+
+        The layout packs in ``0..inner_width x 0..inner_length``; the inset outline's
+        bounding-box corner sits at ``(self._ox, self._oy)`` in the box frame, so shift
+        there (not the rectangular ``[wall, wall]``) and lift onto the floor."""
+        piece = ResolveChild(io.value, self.inner_width, self.inner_length, self.inner_height)
+        return piece.translate([self._ox, self._oy, self.floor_thickness])
+
+    def _resolve_contents(self, contents):
+        """Like the base, but hand the layout the inset outline via ``InnerSize.region``
+        so it drops compartments that fall outside the polygon."""
+        if contents is None:
+            return []
+        if callable(contents):
+            inner = InnerSize(
+                width=self.inner_width,
+                length=self.inner_length,
+                height=self.inner_height,
+                region=self._region,
+            )
+            resolved = contents(inner)
+        else:
+            resolved = contents
+        return list(resolved) if resolved else []
+
+    def _edge_magnets(self) -> "Callable":
+        """Compose the caller's ``children`` with a magnet slot on every outline edge.
+
+        Generalises :func:`MakePolygonBoxWithNoLid`'s regular-polygon magnet loop to
+        an arbitrary path: it walks the outline inset by a quarter wall and drops a
+        :class:`~components.MagnetSlot` at each edge mid-point, oriented to the edge.
+        """
+        opts = self._opts
+        magnet = opts.magnet
+        user = opts.children
+
+        def inner_children(inner):
+            pieces = []
+            if magnet is not None and magnet.type != MAGNET_SLOT_TYPE_NONE:
+                edge_path = Path(opts.path).offset(radius=-self.wall_thickness / 4)
+                n = len(edge_path)
+                for i in range(n):
+                    p1 = edge_path[i]
+                    p2 = edge_path[(i + 1) % n]
+                    mid = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
+                    angle = math.degrees(math.atan2(p2[1] - p1[1], p2[0] - p1[0])) - 90
+                    slot = (
+                        MagnetSlot(size=magnet.size, magnet_type=magnet.type, anchor=LEFT + BOTTOM, spin=180)
+                        .rotate([0, 90, 0])
+                        .rotate([0, 0, angle])
+                        .translate([float(mid[0]), float(mid[1]), 0])
+                    )
+                    pieces.append(slot)
+            if user is not None:
+                c = user(inner) if callable(user) else user
+                if c is not None:
+                    pieces.append(c)
+            if not pieces:
+                return None
+            result = pieces[0]
+            for p in pieces[1:]:
+                result = result | p
+            return result
+
+        return inner_children
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        """Build the polygon box.
+
+        Two content channels compose: :attr:`PathBoxOptions.children` (the polygon-native
+        ``InnerPath`` callable -- hex dividers, stackable rings, edge magnets) is built
+        into the shell, and ``contents`` / :attr:`BoxSpec.contents` (the ``InnerObject``
+        compartment-layout model) is bin-packed on top, carved and clipped to the polygon
+        cavity. ``finger_holes`` is accepted for signature parity but unused (a PathBox's
+        finger dips walk the outline edges automatically)."""
+        opts = self._opts
+        if contents is None:
+            contents = self._spec.contents
+        resolved = self._resolve_contents(contents)
+        has_cavities = any(
+            io.type in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE) for io in resolved
+        )
+
+        # Build the shell. When compartments carve their own wells, leave the interior
+        # SOLID (dividers/floors survive); otherwise honour the hollow policy.
+        shell = self._new_pathbox(
+            children=self._edge_magnets(),
+            hollow=self._should_hollow(has_cavities),
+        ).build()
+
+        if not resolved:
+            return shell
+
+        # Carve + MMU the compartment layout through the shared base-class pipeline,
+        # clipping every well to the polygon cavity (self.inside_mask()).
+        body = pybosl2.shapes3d.Bosl2Solid(shell)
+        mask = self.inside_mask()
+        body = self._carve_contents(body, resolved, mask)
+        body = self._apply_mmu(body, resolved, MAKE_MMU)
+        return body
+
+    def _build_box_body(self):
+        raise NotImplementedError("PathBox builds the whole polygon body in make_box()")
+
+    def make_lid(self, lid=None):
+        raise NotImplementedError(f"{self.label}: a PathBox has no lid")

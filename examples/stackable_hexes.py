@@ -16,14 +16,17 @@
 # under the License.
 
 # LibFile: examples/stackable_hexes.py
-#    PythonSCAD port of stackable_hexes.scad. The .scad `object(...)` literals become
-#    types.SimpleNamespace(...); the MakePolygonBoxWithNoLid children block becomes a
-#    callable(inner) taking an InnerPath. default_wall_thickness = 4 is passed explicitly.
+#    PythonSCAD port of stackable_hexes.scad, on the new box system: the polygon box is
+#    built through no_lid.PathBox (a BoxBaseType) instead of the MakePolygonBoxWithNoLid
+#    function. The .scad `object(...)` literals become types.SimpleNamespace(...); the
+#    children block is a callable(inner) taking an InnerPath. wall_thickness = 4 is passed
+#    on the BoxSpec.
 
 import types
 
 from base_bgtk import *
-from no_lid import MakePolygonBoxWithNoLid, STACKABLE_TYPE_INSIDE
+from box_base import BoxSpec
+from no_lid import PathBox, PathBoxOptions, STACKABLE_TYPE_INSIDE
 from components import HexBoxDivisions, MAGNET_SLOT_TYPE_ROUND, MAGNET_SLOT_TYPE_RECT
 
 stackable_width = 100
@@ -46,18 +49,22 @@ def StackableHexBox(divisions=1, magnet_type=MAGNET_SLOT_TYPE_ROUND, magnet_size
             )
         return None
 
-    return MakePolygonBoxWithNoLid(
-        size=[stackable_width, stackable_height],
-        sides=6,
+    spec = BoxSpec(
+        size=[stackable_width, stackable_width, stackable_height],
+        label="StackableHex",
         wall_thickness=wall_thickness,
+        hollow=(divisions <= 1),
+    )
+    return PathBox.regular_polygon(
+        spec,
+        sides=6,
         make_finger_x=False,
         make_finger_y=False,
-        hollow=(divisions <= 1),
         hollow_radius=types.SimpleNamespace(top=2, bottom=stackable_height * 3 / 4, radius=2),
         stackable=STACKABLE_TYPE_INSIDE,
         magnet=types.SimpleNamespace(type=magnet_type, size=calc_magnet_size),
         children=kids,
-    )
+    ).make_box()
 
 
 @make_box
