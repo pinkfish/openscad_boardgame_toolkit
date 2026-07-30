@@ -337,6 +337,10 @@ class ObjectType(IntEnum):
     NEGATIVE = 0
     POSTIVE = 1
     POSTIVE_NEGATIVE = 2
+    # Correctly-spelled aliases (same values). Prefer these in new code; the
+    # misspelled originals are kept so existing callers keep working.
+    POSITIVE = 1
+    POSITIVE_NEGATIVE = 2
 
 
 @dataclass
@@ -345,6 +349,10 @@ class InnerObject:
     value: Any
     type: ObjectType = ObjectType.NEGATIVE
     color: str | None = None
+    # When True (default) a NEGATIVE piece is clipped to the box interior so it can't
+    # punch through the walls/floor. Set False for a deliberate breaching cut -- e.g. a
+    # card finger hole that goes through the floor and up through the cards.
+    clip: bool = True
 
 
 # ---------------------------------------------------------------------------

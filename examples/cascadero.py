@@ -16,13 +16,17 @@
 # under the License.
 
 # LibFile: examples/cascadero.py
-#    Cascadero organiser.  Box/lid pairs are defined with a single BoxSpec so
-#    dimensions and thicknesses are guaranteed to match.  Swap SlidingBox for
-#    CapBox (once available) by changing one name.
+#    Cascadero organiser.  Every box is built from one shared BoxKit, so the basic
+#    parts (wall/lid thickness, label style, box type) are configured in a single
+#    place and each box only specifies what is unique to it (size, label, contents).
+#
+#    Switch the WHOLE organiser between box types by changing the one class name in
+#    the BoxKit(...) call below -- e.g. BoxKit(CapBox, ...) once CapBox is available.
+#    Nothing else in this file mentions the box type.
 
 from base_bgtk import *
-from box_base import BoxSpec, FingerHole
-from sliding_box import SlidingBox, MakeSlidingLidOptions
+from box_base import BoxKit
+from sliding_box import SlidingBox
 from components import RoundedBoxAllSides, RoundedBoxGrid
 from labels import MakeLabelOptions
 
@@ -52,34 +56,42 @@ BLUE = MakeLabelOptions(label_colour="blue")
 BLUE_R5 = MakeLabelOptions(label_colour="blue", radius=5)
 
 # ---------------------------------------------------------------------------
-# Helper: build a BoxSpec for a rounded-compartment section box
+# One kit configures the basic parts shared by every box in this organiser --
+# the box TYPE and the common thicknesses/label style.  Change SlidingBox here
+# to rebuild the entire organiser as a different box type; nothing below needs
+# to be touched.
 # ---------------------------------------------------------------------------
 
+KIT = BoxKit(
+    SlidingBox,
+    wall_thickness=2,
+    lid_thickness=3,
+    label_options=BLUE,
+)
 
-def _section_spec(size, label, label_opts):
-    """Return a BoxSpec for a single-compartment rounded section.
 
-    Both make_box() and make_lid() are driven from this one spec, so the
-    box and lid are always guaranteed to match.
-    """
-    return BoxSpec(
+# A tiny helper for the single-compartment rounded sections (Seals/Farmer/Herald):
+# custom interior geometry is supplied through contents= as InnerObject components.
+def _section(size, label, label_options=None):
+    return KIT.box(
         size=size,
         label=label,
-        wall_thickness=2,
-        lid_thickness=3,
         contents=lambda inner: [
             InnerObject(RoundedBoxAllSides([inner.width, inner.length, section_height], radius=15))
         ],
         lid_label=label,
-        label_options=label_opts,
+        # per-box override of the kit's default label style, when given:
+        **({"label_options": label_options} if label_options is not None else {}),
     )
 
 
 # ---------------------------------------------------------------------------
-# Seals box
+# Seals / Farmer / Herald -- single rounded compartment each
 # ---------------------------------------------------------------------------
 
-_seals = SlidingBox(_section_spec([top_width, top_length, section_height], "Seals", BLUE_R5))
+_seals = _section([top_width, top_length, section_height], "Seals", BLUE_R5)
+_farmer = _section([top_width, top_length, section_height], "Farmer")
+_herald = _section([herald_width, top_length, section_height], "Herald")
 
 
 @make_box
@@ -92,13 +104,6 @@ def SealsBoxLid():
     return _seals.make_lid()
 
 
-# ---------------------------------------------------------------------------
-# Farmer box
-# ---------------------------------------------------------------------------
-
-_farmer = SlidingBox(_section_spec([top_width, top_length, section_height], "Farmer", BLUE))
-
-
 @make_box
 def FarmerBox():
     return _farmer.make_box()
@@ -107,13 +112,6 @@ def FarmerBox():
 @make_box
 def FarmerBoxLid():
     return _farmer.make_lid()
-
-
-# ---------------------------------------------------------------------------
-# Herald box
-# ---------------------------------------------------------------------------
-
-_herald = SlidingBox(_section_spec([herald_width, top_length, section_height], "Herald", BLUE))
 
 
 @make_box
@@ -127,14 +125,12 @@ def HeraldBoxLid():
 
 
 # ---------------------------------------------------------------------------
-# Player box  (two-section interior: grid + open area)
+# Player box -- two-section interior (grid + open area), still one kit box
 # ---------------------------------------------------------------------------
 
-_player_spec = BoxSpec(
+_player = KIT.box(
     size=[player_width, player_length, section_height],
     label="Player",
-    wall_thickness=2,
-    lid_thickness=3,
     contents=lambda inner: [
         InnerObject(
             RoundedBoxGrid([inner.width, first_width, section_height],
@@ -149,8 +145,6 @@ _player_spec = BoxSpec(
     lid_label="Player",
     label_options=BLUE_R5,
 )
-
-_player = SlidingBox(_player_spec)
 
 
 @make_box

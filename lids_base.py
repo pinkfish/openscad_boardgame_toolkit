@@ -538,7 +538,7 @@ class Lid:
 
         Args:
             label_builder: optional callable that takes a :class:`~box_base.Label` and
-                returns its geometry (e.g. :meth:`Box.make_label`)
+                returns its geometry (e.g. :meth:`BoxBaseType.make_label`)
         """
         overlay_children: list = []
 

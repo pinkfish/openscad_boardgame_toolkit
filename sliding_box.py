@@ -24,6 +24,7 @@
 from __future__ import annotations
 import copy
 import types
+from dataclasses import replace
 
 import numpy as np
 from pythonscad import *
@@ -36,7 +37,7 @@ from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.transforms
-from box_base import Box, BoxSpec, Contents, FingerHoleLocation, Label
+from box_base import BoxBaseType, BoxSpec, Contents, FingerHoleLocation, Label
 from lids_base import (
     Lid,
     SlidingLidFingernail,
@@ -45,7 +46,7 @@ from lids_base import (
     default_lid_layout_width,
     default_lid_aspect_ratio,
 )
-from labels import LabelOptions, MakeLabelOptions
+from labels import LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 
 
@@ -64,7 +65,7 @@ def MakeSlidingLidOptions(
     )
 
 
-class SlidingBox(Box):
+class SlidingBox(BoxBaseType):
     """A box with a sliding lid -- the dovetail chamfered lid slides in from the front.
 
     Usage::
@@ -81,27 +82,18 @@ class SlidingBox(Box):
     """
 
     def __init__(self, spec: BoxSpec):
-        # SlidingBox reads sliding_lid_options from the spec; fall back to plain defaults.
+        # Read the generic type_options slot first (so any box type can build this
+        # spec), falling back to the deprecated sliding_lid_options alias, then to
+        # plain sliding defaults.
         self._sliding_lid_options = (
-            spec.sliding_lid_options
-            if spec.sliding_lid_options is not None
-            else MakeSlidingLidOptions()
+            spec.type_options
+            if spec.type_options is not None
+            else (spec.sliding_lid_options if spec.sliding_lid_options is not None else MakeSlidingLidOptions())
         )
         super().__init__(spec)
 
-    # ------------------------------------------------------------------
-    # make_box -- build the sliding-lid body then apply contents/fingerholes/MMU/positioning
-    # ------------------------------------------------------------------
-
-    def make_box(
-        self,
-        *,
-        contents: "Contents | None" = None,
-        finger_holes: "list | None" = None,
-    ) -> Bosl2Solid:
-        """Build the sliding-lid box body and apply contents, finger holes, MMU, positioning."""
-        body = self._build_box_body()
-        return self._finish_box(body, contents=contents, finger_holes=finger_holes)
+    # make_box() is inherited from BoxBaseType (build _build_box_body(), then the
+    # shared _finish_box pipeline) -- SlidingBox only customises _build_box_body().
 
     # ------------------------------------------------------------------
     # Sliding-lid-specific dimension derived values
@@ -383,13 +375,14 @@ class SlidingBox(Box):
 
     def create_lid(self, lid: "Lid | None" = None) -> Bosl2Solid:
         """Override to set sliding-lid–specific fingernail dimensions and offsets."""
-        l = lid if lid is not None else Lid(lid_thickness=self.lid_thickness)
+        # Copy so the caller's Lid isn't mutated (it may be shared across boxes).
+        l = copy.copy(lid) if lid is not None else Lid(lid_thickness=self.lid_thickness)
         if l.fingernail:
             l.fingernail_width = l.fingernail_width or self._lid_fingernail_width
             l.fingernail_length = l.fingernail_length or self._lid_fingernail_length
             l.fingernail_x_offset = l.fingernail_x_offset or self.width / 2 - self.wall_thickness / 2
             l.fingernail_y_offset = l.fingernail_y_offset or self.length - self.wall_thickness - 3
-        return Box.create_lid(self, l)
+        return BoxBaseType.create_lid(self, l)
 
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
         """Apply two-layer rotation/translation if needed."""
@@ -489,18 +482,11 @@ class SlidingBox(Box):
         pattern_inner_control: int = 0,
         extra_children: list | None = None,
     ) -> Bosl2Solid:
-        label_kwargs: dict[str, object] = dict(material_colour=self.material_colour)
-        if label_options is not None:
-            for fld in ("text_scale", "text_length", "angle", "label_colour",
-                        "label_background_colour", "short_length", "label_diff",
-                        "border", "offset", "radius", "font", "full_height",
-                        "finger_hole_size", "label_type", "solid_background"):
-                v = getattr(label_options, fld)
-                if v is not None:
-                    label_kwargs[fld] = v
+        options = label_options if label_options is not None else LabelOptions()
         if self._sliding_lid_options.two_layer:
-            label_kwargs["full_height"] = True
-        lbl = Label(text_str, **label_kwargs)
+            # A two-layer lid label runs the full lid thickness.
+            options = replace(options, full_height=True)
+        lbl = Label(text_str, options=options)
         label_shape_raw = self.make_label(lbl)
         _base = list(extra_children) if extra_children else []
         if label_shape_raw is not None:
