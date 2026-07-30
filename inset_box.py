@@ -31,7 +31,10 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-import pysolidfive
+from pybosl2._sdf import shapes3d as _sdf_shapes3d
+from pybosl2._sdf import joiners as _sdf_joiners
+from box_base import BoxBaseType, BoxSpec
+from dataclasses import dataclass
 from lids_base import (
     internal_build_lid,
     MakeLidLabel,
@@ -421,13 +424,14 @@ def MakeBoxWithInsetLidTabbed(
 
     tab_cutter = minkowski(
         cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
+        # native minkowski needs a native handle -> unwrap the Bosl2Solid tab.
         MakeLidTab(
             length=tab_length,
             height=tab_height,
             lid_thickness=lid_thickness,
             prism_width=prism_width,
             wall_thickness=wall_thickness,
-        ),
+        ).shape,
     ).color(material_colour)
     tabs_cut = (
         MakeTabs(
@@ -551,10 +555,10 @@ def InsetLidRabbitClip(
         children=children,
     )
 
-    base = pysolidfive.cuboid([rabbit_length + rabbit_offset, wall_thickness, lid_thickness]).translate(
+    base = _sdf_shapes3d.cuboid([rabbit_length + rabbit_offset, wall_thickness, lid_thickness]).translate(
         [(rabbit_length + rabbit_offset) / 2, wall_thickness / 2, -lid_thickness / 2]
     )
-    clip = pysolidfive.rabbit_clip(
+    clip = _sdf_joiners.rabbit_clip(
         type="pin",
         length=rabbit_length,
         width=rabbit_width,
@@ -835,10 +839,10 @@ def MakeBoxWithInsetLidRabbitClip(
     )
     body = body - lid_cut
 
-    socket_box = pysolidfive.cuboid(
+    socket_box = _sdf_shapes3d.cuboid(
         [rabbit_length + rabbit_offset + size_spacing * 2, wall_thickness + 0.01, lid_thickness + 0.01]
     ).translate([(rabbit_length + rabbit_offset + size_spacing * 2) / 2, wall_thickness / 2 - 0.01, -lid_thickness / 2])
-    socket_clip = pysolidfive.rabbit_clip(
+    socket_clip = _sdf_joiners.rabbit_clip(
         type="socket",
         length=rabbit_length,
         width=rabbit_width,
@@ -889,3 +893,75 @@ def MakeBoxWithInsetLidRabbitClip(
             result = result | extra
 
     return result
+
+
+@dataclass
+class InsetBoxOptions:
+    """Inset-box options; pass via ``BoxSpec(type_options=MakeInsetBoxOptions(...))``."""
+
+    style: str = "tabbed"        # "tabbed" (finger-tab lid) or "rabbit" (rabbit-clip lid)
+    inset: float = 1
+    tab_height: float = 8
+
+
+def MakeInsetBoxOptions(**kwargs) -> InsetBoxOptions:
+    return InsetBoxOptions(**kwargs)
+
+
+class InsetBox(BoxBaseType):
+    """A box with an inset lid that sits down INSIDE the top rim, on the new box system.
+
+    The lid is held by either finger tabs (``style="tabbed"``, the default) or
+    rabbit clips (``style="rabbit"``), chosen via
+    ``BoxSpec(type_options=MakeInsetBoxOptions(style="rabbit"))``. Box and lid are
+    separate prints; ``contents`` are carved into the box.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from inset_box import InsetBox
+
+        box = InsetBox(BoxSpec(size=[100, 50, 20], label="inset"))
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    def _opts(self) -> InsetBoxOptions:
+        o = self._spec.type_options
+        return o if isinstance(o, InsetBoxOptions) else InsetBoxOptions()
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        return [io.value for io in self._resolve_contents(contents)] or None
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        o = self._opts()
+        size = [self.width, self.length, self.height]
+        if o.style == "rabbit":
+            return MakeBoxWithInsetLidRabbitClip(
+                size=size, children=self._children(contents), wall_thickness=self.wall_thickness,
+                lid_thickness=self.lid_thickness, floor_thickness=self.floor_thickness,
+                tab_height=o.tab_height, inset=o.inset, material_colour=self.material_colour,
+            )
+        return MakeBoxWithInsetLidTabbed(
+            size=size, children=self._children(contents), wall_thickness=self.wall_thickness,
+            lid_thickness=self.lid_thickness, floor_thickness=self.floor_thickness,
+            tab_height=o.tab_height, inset=o.inset, material_colour=self.material_colour,
+        )
+
+    def make_lid(self, lid=None):
+        o = self._opts()
+        size = [self.width, self.length, self.height]
+        if o.style == "rabbit":
+            return InsetLidRabbitClip(
+                size=size, wall_thickness=self.wall_thickness, lid_thickness=self.lid_thickness,
+                inset=o.inset, material_colour=self.material_colour,
+            )
+        return InsetLidTabbed(
+            size=size, wall_thickness=self.wall_thickness, lid_thickness=self.lid_thickness,
+            inset=o.inset, tab_height=o.tab_height, material_colour=self.material_colour,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("InsetBox builds its body in make_box()")

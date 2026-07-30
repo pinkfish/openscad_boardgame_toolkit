@@ -41,6 +41,8 @@ from lids_base import (
 )
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
+from dataclasses import dataclass
 
 
 def MakeBoxWithMagneticLid(
@@ -105,7 +107,7 @@ def MakeBoxWithMagneticLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = pybosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, z])
+        hole = pybosl2.shapes3d.cyl(diameter=magnet_diameter, height=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, z])
         body = body - hole
 
     body = body.color(material_colour)
@@ -178,7 +180,7 @@ def MakeBoxWithMagneticLidInsideSpace(
 
         if full_height:
             offset = wall_thickness
-            piece = pybosl2.shapes3d.cyl(h=actual_height, d=box_size, anchor=BOTTOM).translate(
+            piece = pybosl2.shapes3d.cyl(height=actual_height, diameter=box_size, anchor=BOTTOM).translate(
                 [
                     -offset + box_size / 2,
                     -offset + box_size / 2,
@@ -187,7 +189,7 @@ def MakeBoxWithMagneticLidInsideSpace(
             )
             shape = piece
         else:
-            piece1 = pybosl2.shapes3d.cyl(h=magnet_thickness * 1.5, d=box_size, anchor=BOTTOM).translate(
+            piece1 = pybosl2.shapes3d.cyl(height=magnet_thickness * 1.5, diameter=box_size, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size / 2,
                     -wall_thickness + box_size / 2,
@@ -196,9 +198,9 @@ def MakeBoxWithMagneticLidInsideSpace(
             )
             offset = wall_thickness + box_size / 2 - wall_thickness
             piece2 = pybosl2.shapes3d.cyl(
-                h=actual_height + 0.01,
-                d2=box_size,
-                d1=0,
+                height=actual_height + 0.01,
+                diameter2=box_size,
+                diameter1=0,
                 anchor=BOTTOM,
                 shift=[box_size / 2 - wall_thickness, box_size / 2 - wall_thickness],
             ).translate(
@@ -215,7 +217,7 @@ def MakeBoxWithMagneticLidInsideSpace(
             wedge_a = pybosl2.shapes3d.prismoid(
                 size1=[side_radius * 2, side_radius * 2],
                 size2=[side_radius * 2, side_radius * 2],
-                h=actual_height,
+                height=actual_height,
                 anchor=BOTTOM,
             ).translate(
                 [
@@ -224,7 +226,7 @@ def MakeBoxWithMagneticLidInsideSpace(
                     height - lid_thickness - floor_thickness - actual_height,
                 ]
             )
-            cut_a = pybosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
+            cut_a = pybosl2.shapes3d.cyl(radius=side_radius, height=actual_height + 1, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size + side_radius,
                     -wall_thickness + box_size / 2,
@@ -236,7 +238,7 @@ def MakeBoxWithMagneticLidInsideSpace(
             wedge_b = pybosl2.shapes3d.prismoid(
                 size1=[side_radius * 2, side_radius * 2],
                 size2=[side_radius * 2, side_radius * 2],
-                h=actual_height,
+                height=actual_height,
                 anchor=BOTTOM,
             ).translate(
                 [
@@ -245,7 +247,7 @@ def MakeBoxWithMagneticLidInsideSpace(
                     height - lid_thickness - floor_thickness - actual_height,
                 ]
             )
-            cut_b = pybosl2.shapes3d.cyl(r=side_radius, h=actual_height + 1, anchor=BOTTOM).translate(
+            cut_b = pybosl2.shapes3d.cyl(radius=side_radius, height=actual_height + 1, anchor=BOTTOM).translate(
                 [
                     -wall_thickness + box_size / 2,
                     -wall_thickness + box_size + side_radius,
@@ -337,7 +339,7 @@ def MagneticBoxLid(
         (width - magnet_diameter / 2 - magnet_border, length - magnet_diameter / 2 - magnet_border),
         (magnet_diameter / 2 + magnet_border, length - magnet_diameter / 2 - magnet_border),
     ):
-        hole = pybosl2.shapes3d.cyl(d=magnet_diameter, h=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, -1])
+        hole = pybosl2.shapes3d.cyl(diameter=magnet_diameter, height=magnet_thickness + 1, anchor=BOTTOM).translate([cx, cy, -1])
         top = top - hole
 
     # Meshed once here so internal_build_lid()'s native union gets a plain solid.
@@ -554,3 +556,73 @@ def MagneticBoxLidWithLabel(
         shape_child=shape_piece,
         extra_children=extra_children,
     )
+
+
+@dataclass
+class MagneticBoxOptions:
+    """Magnetic-box options; pass via ``BoxSpec(type_options=MakeMagneticBoxOptions(...))``."""
+
+    magnet_diameter: float = 5
+    magnet_thickness: float = 2
+    magnet_border: float = 1.5
+
+
+def MakeMagneticBoxOptions(**kwargs) -> MagneticBoxOptions:
+    return MagneticBoxOptions(**kwargs)
+
+
+class MagneticBox(BoxBaseType):
+    """A box whose lid is held on by magnets set into the corners, on the new box
+    system. Box and lid are separate prints; magnets are glued into both.
+
+    Magnet size comes from ``BoxSpec(type_options=MakeMagneticBoxOptions(
+    magnet_diameter=5, magnet_thickness=2))``. ``contents`` are carved into the box.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from magnetic_box import MagneticBox, MakeMagneticBoxOptions
+
+        box = MagneticBox(BoxSpec(size=[100, 50, 20], label="mag",
+                                  type_options=MakeMagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    def _opts(self) -> MagneticBoxOptions:
+        o = self._spec.type_options
+        return o if isinstance(o, MagneticBoxOptions) else MagneticBoxOptions()
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        return [io.value for io in self._resolve_contents(contents)] or None
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        o = self._opts()
+        return MakeBoxWithMagneticLid(
+            size=[self.width, self.length, self.height],
+            magnet_diameter=o.magnet_diameter,
+            magnet_thickness=o.magnet_thickness,
+            children=self._children(contents),
+            lid_thickness=self.lid_thickness,
+            magnet_border=o.magnet_border,
+            wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness,
+            material_colour=self.material_colour,
+        )
+
+    def make_lid(self, lid=None):
+        o = self._opts()
+        return MagneticBoxLid(
+            size=[self.width, self.length, self.height],
+            magnet_diameter=o.magnet_diameter,
+            magnet_thickness=o.magnet_thickness,
+            lid_thickness=self.lid_thickness,
+            magnet_border=o.magnet_border,
+            wall_thickness=self.wall_thickness,
+            material_colour=self.material_colour,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("MagneticBox builds its body in make_box()")

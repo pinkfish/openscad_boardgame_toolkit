@@ -34,6 +34,8 @@ import pybosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, MakeLidTab
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
+from dataclasses import dataclass
 
 # ---------------------------------------------------------------------------
 # Section: Hinges
@@ -54,8 +56,8 @@ def HingeCone(r: float, offset: float) -> "PyOpenSCAD":
         r:      radius of the cone
         offset: how far inside the cone to leave space
     """
-    outer = pybosl2.shapes3d.cylinder(h=r, r1=r, r2=0, center=False)
-    inner = pybosl2.shapes3d.cylinder(h=r - offset, r1=r - offset, r2=0, center=False).translate([0, 0, -0.01])
+    outer = pybosl2.shapes3d.cylinder(height=r, radius1=r, radius2=0, center=False)
+    inner = pybosl2.shapes3d.cylinder(height=r - offset, radius1=r - offset, radius2=0, center=False).translate([0, 0, -0.01])
     return (outer - inner).shape
 
 
@@ -78,17 +80,17 @@ def HingeLineWithSpacingAndNum(
     num = int(num)
     length = num * diameter
 
-    cyl = pybosl2.shapes3d.cylinder(r=diameter / 2, h=length, center=False)
+    cyl = pybosl2.shapes3d.cylinder(radius=diameter / 2, height=length, center=False)
     for i in range(1, num + 1):
         cone = HingeCone(diameter / 2 - 0.01, offset)
         if i % 2 == 1:
             cone = cone.mirror([0, 0, 1])
         cyl = cyl - cone.translate([0, 0, spacing * i])
         if i % 2 == 1:
-            ring_outer = pybosl2.shapes3d.cylinder(r=diameter, h=diameter + 0.04, center=False).translate(
+            ring_outer = pybosl2.shapes3d.cylinder(radius=diameter, height=diameter + 0.04, center=False).translate(
                 [0, 0, spacing * i - 0.02]
             )
-            ring_inner = pybosl2.shapes3d.cylinder(r=diameter / 2 - offset, h=diameter + 0.06, center=False).translate(
+            ring_inner = pybosl2.shapes3d.cylinder(radius=diameter / 2 - offset, height=diameter + 0.06, center=False).translate(
                 [0, 0, spacing * i - 0.03]
             )
             cyl = cyl - (ring_outer - ring_inner)
@@ -100,11 +102,11 @@ def HingeLineWithSpacingAndNum(
                 pybosl2.shapes3d.prismoid(
                     size1=[diameter - offset, diameter],
                     size2=[diameter - offset, diameter],
-                    h=diameter / 2 + offset * 2 + 0.01,
+                    height=diameter / 2 + offset * 2 + 0.01,
                 )
                 .rotate([0, 90, 0])
                 .translate([0, 0, spacing * i + diameter / 2])
-                | pybosl2.shapes3d.cylinder(r=diameter / 2, h=diameter - offset, center=False).translate(
+                | pybosl2.shapes3d.cylinder(radius=diameter / 2, height=diameter - offset, center=False).translate(
                     [0, 0, spacing * i + offset / 2]
                 )
             ).rotate([0, 0, spin])
@@ -112,7 +114,7 @@ def HingeLineWithSpacingAndNum(
             arm_outer = pybosl2.shapes3d.cuboid(
                 [1 + diameter / 2, diameter, diameter + offset * 3], edges=[TOP + RIGHT, BOTTOM + RIGHT]
             )
-            cut_a = pybosl2.shapes3d.cylinder(r=diameter / 2 + offset, h=length, center=False).translate(
+            cut_a = pybosl2.shapes3d.cylinder(radius=diameter / 2 + offset, height=length, center=False).translate(
                 [diameter / 4 + offset, 0, -(spacing / 4 + diameter / 2)]
             )
             cut_b = pybosl2.shapes3d.cuboid(
@@ -129,7 +131,7 @@ def HingeLineWithSpacingAndNum(
             box_outer = pybosl2.shapes3d.cuboid(
                 [diameter / 2 + offset, diameter, diameter], anchor=BOTTOM + FRONT + LEFT
             ).translate([-diameter / 2 - offset, -diameter / 2, spacing * i])
-            hole = pybosl2.shapes3d.cylinder(d=diameter - 0.02, h=diameter * 4, center=False).translate(
+            hole = pybosl2.shapes3d.cylinder(diameter=diameter - 0.02, height=diameter * 4, center=False).translate(
                 [0, 0, spacing * i + (i % 2) * (diameter / 2) - offset * 2]
             )
             block_b = box_outer - hole
@@ -464,13 +466,14 @@ def MakeBoxAndLidWithInsetHinge(
     catch_cutter = (
         minkowski(
             cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
+            # native minkowski needs a native handle -> unwrap the Bosl2Solid tab.
             MakeLidTab(
                 length=tab_length,
                 height=tab_height,
                 lid_thickness=lid_thickness,
                 prism_width=prism_width,
                 wall_thickness=wall_thickness,
-            ),
+            ).shape,
         )
         .mirror([0, 1, 0])
         .rotate([0, 0, 270])
@@ -531,3 +534,74 @@ def MakeBoxAndLidWithInsetHinge(
     )
 
     return combined | hinge
+
+
+@dataclass
+class HingeBoxOptions:
+    """Hinge-box-specific options; pass via ``BoxSpec(type_options=MakeHingeBoxOptions(...))``."""
+
+    hinge_diameter: float = 6
+    hinge_offset: float = 0.3
+    gap: float = 1
+    side_gap: float = 3
+    tab_length: float = 10
+    tab_height: float = 6
+    tab_offset: float = 0.2
+    prism_width: float = 0.75
+
+
+def MakeHingeBoxOptions(**kwargs) -> HingeBoxOptions:
+    return HingeBoxOptions(**kwargs)
+
+
+class HingeBox(BoxBaseType):
+    """A print-in-place box whose lid is joined to the base by an inset side hinge, on
+    the new box system.
+
+    Because the base + lid + hinge print as ONE piece, :meth:`make_box` returns the
+    whole assembly and there is no separate lid (:meth:`make_lid` raises). ``contents``
+    entries are carved into the hinge box's four slots, in order (base interior, lid
+    interior, on top of the base, on top of the lid); their ``InnerObject`` type is not
+    used (the hinge geometry defines each slot). Hinge parameters come from
+    ``BoxSpec(type_options=MakeHingeBoxOptions(hinge_diameter=6, ...))``.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from hinge_box import HingeBox
+
+        HingeBox(BoxSpec(size=[100, 50, 20], label="hinge")).make_box().show()
+    """
+
+    def _opts(self) -> HingeBoxOptions:
+        o = self._spec.type_options
+        return o if isinstance(o, HingeBoxOptions) else HingeBoxOptions()
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        if contents is None:
+            contents = self._spec.contents
+        resolved = self._resolve_contents(contents)
+        children = [io.value for io in resolved] or None   # raw solids into the hinge box's slots
+        o = self._opts()
+        return MakeBoxAndLidWithInsetHinge(
+            size=[self.width, self.length, self.height],
+            children=children,
+            wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness,
+            lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour,
+            hinge_diameter=o.hinge_diameter,
+            hinge_offset=o.hinge_offset,
+            gap=o.gap,
+            side_gap=o.side_gap,
+            tab_length=o.tab_length,
+            tab_height=o.tab_height,
+            tab_offset=o.tab_offset,
+            prism_width=o.prism_width,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("HingeBox builds the whole hinged assembly in make_box()")
+
+    def make_lid(self, lid=None):
+        raise NotImplementedError("HingeBox is one piece (base + lid hinged together); no separate lid")

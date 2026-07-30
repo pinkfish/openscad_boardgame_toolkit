@@ -44,6 +44,7 @@ from lids_base import (
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from box_base import BoxBaseType, BoxSpec
+from dataclasses import dataclass
 
 from typing import Callable
 
@@ -95,19 +96,34 @@ def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> 
 # ---------------------------------------------------------------------------
 
 
+@dataclass
+class CapBoxOptions:
+    """Cap-box-specific options; pass via ``BoxSpec(type_options=MakeCapBoxOptions(...))``."""
+
+    cap_height: float | None = None                 # None -> min(10, height/2)
+    catch: CatchType = CatchType.BUMPS_SHORT        # snap-fit style (BUMPS_* / SHORT/LONG/ALL / NONE)
+    finger_holds: bool = True                       # grip scoops so you can lift the cap
+
+
+def MakeCapBoxOptions(**kwargs) -> CapBoxOptions:
+    return CapBoxOptions(**kwargs)
+
+
 class CapBox(BoxBaseType):
     """A box with a cap lid on the new box system: the cap slides down over the box's
     top rim. The top ``cap_height`` mm of the box wall is stepped in by the cap wall
-    thickness so the cap sits flush.
+    thickness so the cap sits flush. The cap has finger-hold scoops and a snap-fit
+    catch (bumps or wedges) that clicks into matching recesses in the box rim.
 
-    ``cap_height`` defaults to ``min(10, height/2)``; override it with
-    ``BoxSpec(type_options=<cap_height>)``. Like any lidded box it is hollow when empty
-    (``BoxSpec(hollow=...)`` / ``contents=...`` as usual).
+    Cap-box options go through :func:`MakeCapBoxOptions`
+    (``BoxSpec(type_options=MakeCapBoxOptions(cap_height=3, catch=CatchType.LONG))``);
+    a bare number in ``type_options`` is treated as ``cap_height`` (back-compat). Like
+    any lidded box it is hollow when empty (``BoxSpec(hollow=...)`` / ``contents=...``).
 
     Usage::
 
         from box_base import BoxSpec
-        from cap_box import CapBox
+        from cap_box import CapBox, MakeCapBoxOptions
 
         box = CapBox(BoxSpec(size=[100, 50, 20], label="cap"))
         box.make_box().show()
@@ -119,9 +135,17 @@ class CapBox(BoxBaseType):
         # The cap covers the outside of the top rim; the interior runs floor-to-top.
         return self.height - self.floor_thickness
 
+    def _opts(self) -> CapBoxOptions:
+        o = self._spec.type_options
+        if isinstance(o, CapBoxOptions):
+            return o
+        if isinstance(o, (int, float)) and o:
+            return CapBoxOptions(cap_height=float(o))
+        return CapBoxOptions()
+
     def _cap_height(self) -> float:
-        opt = self._spec.type_options
-        return float(opt) if isinstance(opt, (int, float)) and opt else CapBoxDefaultCapHeight(self.height)
+        h = self._opts().cap_height
+        return float(h) if h else CapBoxDefaultCapHeight(self.height)
 
     def _lid_wall(self) -> float:
         return CapBoxDefaultLidWallThickness(self.wall_thickness)
@@ -171,10 +195,9 @@ class CapBox(BoxBaseType):
         cut = cut - hole_a - hole_b - hole_c - hole_d
         return cut.translate([0, 0, self.height - cap_h - fh_h])
 
-    def _catch_bumps(self, radius: float):
-        """Two rounded catch nubs on each of the box's shorter walls (front/back or
-        left/right), at z = wall_thickness. Subtracted from the box (dents) and added
-        to the cap (bumps) so the cap clicks on. Ported from the BUMPS catch."""
+    def _bump_catches(self, catch: CatchType, radius: float):
+        """Two rounded catch nubs on each of the chosen walls, at z = wall_thickness.
+        BUMPS_SHORT puts them on the shorter walls, BUMPS_LONG on the longer."""
         w, l, wt = self.width, self.length, self.wall_thickness
         catches = None
 
@@ -182,13 +205,15 @@ class CapBox(BoxBaseType):
             nonlocal catches
             catches = p if catches is None else catches | p
 
-        if w <= l:                      # bumps on the front/back walls
+        front_back = (catch == CatchType.BUMPS_SHORT and w <= l) or (catch == CatchType.BUMPS_LONG and w > l)
+        left_right = (catch == CatchType.BUMPS_SHORT and l < w) or (catch == CatchType.BUMPS_LONG and l > w)
+        if front_back:
             off = w - wt * 2
             for frac in (6 / 8, 2 / 8):
                 x = off * frac + wt
                 pair = _catch_bump(wt, radius, FRONT) | _catch_bump(wt, radius, BACK).translate([0, l, 0])
                 add(pair.translate([x, 0, wt]))
-        else:                           # bumps on the left/right walls
+        if left_right:
             off = l - wt * 2
             for frac in (6 / 8, 2 / 8):
                 y = off * frac + wt
@@ -196,9 +221,42 @@ class CapBox(BoxBaseType):
                 add(pair.translate([0, y, wt]))
         return catches
 
+    def _wedge_catches(self, catch: CatchType, depth: float):
+        """A sloped wedge along the middle of each chosen wall, at z=0 (relative to the
+        rim). SHORT = shorter walls, LONG = longer, ALL = every wall. The box subtracts
+        these (recesses); the cap adds slightly-shallower ones (protrusions)."""
+        w, l, wt = self.width, self.length, self.wall_thickness
+        catches = None
+
+        def add(p):
+            nonlocal catches
+            catches = p if catches is None else catches | p
+
+        front_back = catch == CatchType.ALL or (catch == CatchType.SHORT and w < l) or (catch == CatchType.LONG and w > l)
+        left_right = catch == CatchType.ALL or (catch == CatchType.SHORT and l < w) or (catch == CatchType.LONG and l > w)
+        if front_back:
+            cw = w - wt * 2
+            add(shapes3d.wedge([cw / 2, wt, depth]).translate([cw / 4 + wt, 0, 0]))
+            add(shapes3d.wedge([cw / 2, wt, depth]).rotate([0, 0, 180]).translate([cw * 3 / 4 + wt, l, 0]))
+        if left_right:
+            cl = l - wt * 2
+            add(shapes3d.wedge([cl / 2, wt, depth]).rotate([0, 0, 90]).translate([w, cl / 4 + wt, 0]))
+            add(shapes3d.wedge([cl / 2, wt, depth]).rotate([0, 0, 270]).translate([0, cl * 3 / 4 + wt, 0]))
+        return catches
+
+    def _catches(self, is_lid: bool):
+        """The catch solid for the box (is_lid=False -> recesses) or cap (is_lid=True ->
+        matching, slightly smaller protrusions), placed at z=0 relative to the rim."""
+        catch = self._opts().catch
+        wt, sp = self.wall_thickness, self.size_spacing
+        if catch in (CatchType.BUMPS_SHORT, CatchType.BUMPS_LONG):
+            return self._bump_catches(catch, wt * 3 / 4 if is_lid else wt * 5 / 6 + sp)
+        if catch in (CatchType.SHORT, CatchType.LONG, CatchType.ALL):
+            return self._wedge_catches(catch, wt * 5 / 8 if is_lid else wt)
+        return None  # CatchType.NONE
+
     def _build_box_body(self) -> "Bosl2Solid":
         cap_h = self._cap_height()
-        wt, sp = self.wall_thickness, self.size_spacing
         body = shapes3d.cuboid(
             [self.width, self.length, self.height],
             anchor=BOTTOM + FRONT + LEFT,
@@ -207,17 +265,16 @@ class CapBox(BoxBaseType):
         )
         # Step the top cap_height of the outer wall in by the cap wall thickness.
         body = body - self._rim_frame(cap_h + 0.1).translate([0, 0, self.height - cap_h])
-        # Finger holds so you can grip and lift the cap.
-        body = body - self._finger_hold_cut()
-        # Catch DENTS in the rim (the cap's bumps click into these).
-        dents = self._catch_bumps(wt * 5 / 6 + sp)
-        if dents is not None:
-            body = body - dents.translate([0, 0, self.height - cap_h])
+        if self._opts().finger_holds:
+            body = body - self._finger_hold_cut()   # grip scoops
+        recesses = self._catches(is_lid=False)       # catch recesses in the rim
+        if recesses is not None:
+            body = body - recesses.translate([0, 0, self.height - cap_h])
         return body.color(self.material_colour)
 
     def create_lid(self, lid=None) -> "Bosl2Solid":
         """Build the cap: a wall frame that fits over the box's top rim, closed by a
-        top plate."""
+        top plate, with the matching catch protrusions."""
         cap_h = self._cap_height()
         walls = self._rim_frame(cap_h)
         top = shapes3d.cuboid(
@@ -227,11 +284,9 @@ class CapBox(BoxBaseType):
             edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
         ).translate([0, 0, cap_h])
         cap = walls | top
-        # Catch BUMPS (slightly smaller than the box dents, for clearance) that click
-        # into the box rim at the matching z (cap z=wall_thickness <-> box rim dent).
-        bumps = self._catch_bumps(self.wall_thickness * 3 / 4)
-        if bumps is not None:
-            cap = cap | bumps
+        catches = self._catches(is_lid=True)   # protrusions at the cap wall bottom
+        if catches is not None:
+            cap = cap | catches
         return cap.color(self.material_colour)
 
 

@@ -34,10 +34,12 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
-import pysolidfive
+from pybosl2._sdf import joiners as _sdf_joiners
+from pybosl2._sdf import shapes3d as _sdf_shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
 
 
 # The six axis orientations BOSL2 orient= takes at these call sites, as native Euler
@@ -177,9 +179,9 @@ def MakeBoxWithFilamentHingeLid(
         edges=[BOTTOM, FRONT + LEFT, FRONT + RIGHT, BACK + LEFT, BACK + RIGHT],
     )
     main = main.edge_mask(
-        [TOP + FRONT, TOP + BACK], children=pybosl2.masking.rounding_edge_mask(l=width, r=wall_thickness / 4)
+        [TOP + FRONT, TOP + BACK], children=pybosl2.masking.rounding_edge_mask(length=width, radius=wall_thickness / 4)
     )
-    main = main.edge_mask([TOP + RIGHT], children=pybosl2.masking.rounding_edge_mask(l=length, r=wall_thickness / 4))
+    main = main.edge_mask([TOP + RIGHT], children=pybosl2.masking.rounding_edge_mask(length=length, radius=wall_thickness / 4))
     main = main.color(material_colour)
 
     ramp = (
@@ -212,10 +214,10 @@ def MakeBoxWithFilamentHingeLid(
         rounding=wall_thickness / 4,
         edges=[BOTTOM + LEFT],
     )
-    catch_sphere_a = pybosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+    catch_sphere_a = pybosl2.shapes3d.sphere(diameter=wall_thickness, anchor=RIGHT).translate(
         [0, lip_length / 4, lip_height / 2]
     )
-    catch_sphere_b = pybosl2.shapes3d.sphere(d=wall_thickness, anchor=RIGHT).translate(
+    catch_sphere_b = pybosl2.shapes3d.sphere(diameter=wall_thickness, anchor=RIGHT).translate(
         [0, -lip_length / 4, lip_height / 2]
     )
     catch = (
@@ -227,7 +229,7 @@ def MakeBoxWithFilamentHingeLid(
     main = main - catch
 
     knuckle = (
-        pysolidfive.knuckle_hinge(
+        _sdf_joiners.knuckle_hinge(
             length=length,
             segs=hinge_seg,
             offset=calc_hinge_options.thickness,
@@ -241,6 +243,7 @@ def MakeBoxWithFilamentHingeLid(
             orient=list(TOP),
             anchor=TOP + BACK + LEFT,
         )
+        .to_csg()               # SDF knuckle -> CSG so it composes with the CSG box
         .color(material_colour)
         .translate([0, 0, height])
     )
@@ -410,7 +413,7 @@ def MakeLidForFilamentBox(
     kids = list(children) if children else []
     lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
 
-    knuckle = pysolidfive.knuckle_hinge(
+    knuckle = _sdf_joiners.knuckle_hinge(
         length=length,
         segs=hinge_seg,
         offset=calc_hinge_options.thickness,
@@ -428,10 +431,10 @@ def MakeLidForFilamentBox(
     # vertical edges, which is what the original positioned with _bosl2.edge_mask() (that
     # call never worked; knuckle_hinge had no FFI function form).
     kd = calc_hinge_options.thickness
-    edge_round = pysolidfive.rounding_edge_mask(l=width, r=wall_thickness / 2)
+    edge_round = _sdf_shapes3d.rounding_edge_mask(length=width, radius=wall_thickness / 2)
     knuckle = knuckle - edge_round.translate([0, 0, kd / 2])
     knuckle = knuckle - edge_round.rotate([0, 0, 90]).translate([kd * 1.5, 0, kd / 2])
-    knuckle = knuckle.color(material_colour)
+    knuckle = knuckle.to_csg().color(material_colour)   # SDF -> CSG for the CSG lid
 
     catch_box = pybosl2.shapes3d.cuboid(
         [wall_thickness / 2, lip_length, lip_height + print_in_place_offset],
@@ -439,10 +442,10 @@ def MakeLidForFilamentBox(
         rounding=wall_thickness / 4,
         edges=[TOP + LEFT],
     )
-    catch_sphere_a = pybosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+    catch_sphere_a = pybosl2.shapes3d.sphere(diameter=wall_thickness * 5 / 6, anchor=RIGHT).translate(
         [0, lip_length / 4, lip_height / 2]
     )
-    catch_sphere_b = pybosl2.shapes3d.sphere(d=wall_thickness * 5 / 6, anchor=RIGHT).translate(
+    catch_sphere_b = pybosl2.shapes3d.sphere(diameter=wall_thickness * 5 / 6, anchor=RIGHT).translate(
         [0, -lip_length / 4, lip_height / 2]
     )
     catch = (
@@ -455,7 +458,7 @@ def MakeLidForFilamentBox(
     body = lid_stack | knuckle | catch
 
     hole = (
-        pybosl2.shapes3d.ycyl(h=length + 1, d=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
+        pybosl2.shapes3d.ycyl(height=length + 1, diameter=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
         .color(material_colour)
         .translate([wall_thickness, 0.5, wall_thickness])
         .shape
@@ -749,3 +752,57 @@ def FilamentHingeBoxLidWithLabel(
         shape_child=shape_piece,
         extra_children=extra_children,
     )
+
+
+class FilamentHingeBox(BoxBaseType):
+    """A box whose lid is joined by a filament hinge (knuckles on the box and lid, a
+    piece of filament threaded through them), on the new box system.
+
+    Box and lid are SEPARATE prints (joined by filament after printing), so
+    :meth:`make_box` and :meth:`make_lid` both work. ``contents`` entries are carved
+    into the box interior in order. Hinge parameters come from
+    ``BoxSpec(type_options=HingeOptions(thickness=..., hole_diameter=...))``.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from filament_hinge_box import FilamentHingeBox
+
+        box = FilamentHingeBox(BoxSpec(size=[100, 50, 20], label="fil"))
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    def _hinge_options(self):
+        o = self._spec.type_options
+        return o if isinstance(o, types.SimpleNamespace) else None
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        resolved = self._resolve_contents(contents)
+        return [io.value for io in resolved] or None
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        return MakeBoxWithFilamentHingeLid(
+            size=[self.width, self.length, self.height],
+            children=self._children(contents),
+            wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness,
+            lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour,
+            hinge_options=self._hinge_options(),
+        )
+
+    def make_lid(self, lid=None):
+        return MakeLidForFilamentBox(
+            size=[self.width, self.length, self.height],
+            wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness,
+            lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour,
+            hinge_options=self._hinge_options(),
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("FilamentHingeBox builds its body in make_box()")
