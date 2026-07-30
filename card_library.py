@@ -34,10 +34,13 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
-import pysolidfive
+import pybosl2.shapes2d
+from pybosl2._sdf import joiners as _sdf_joiners
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
+from dataclasses import dataclass, field
 
 from typing import Callable
 
@@ -209,8 +212,8 @@ def MakeCardLibraryBox(
         .edge_profile(
             [TOP + FRONT, TOP + BACK, TOP + RIGHT], children=pybosl2.masking.mask2d_roundover(wall_thickness / 4)
         )
-        .face_profile([BOTTOM], r=wall_thickness / 2)
-        .corner_profile("ALL", r=wall_thickness / 2)
+        # (bottom face_profile + corner_profile dropped: corner_profile is broken in
+        # pybosl2 0.6.5 and the cuboid's rounding= already rounds the vertical edges.)
         .color(material_colour)
     )
 
@@ -253,7 +256,7 @@ def MakeCardLibraryBox(
     ).translate([-0.01, wall_thickness, height_without_hinge - default_wall_thickness])
     main = main - hinge_space_cut
 
-    filament_hole = pybosl2.shapes3d.ycyl(d=hinge_hole_diameter, h=length + 5, anchor=FRONT).translate(
+    filament_hole = pybosl2.shapes3d.ycyl(diameter=hinge_hole_diameter, height=length + 5, anchor=FRONT).translate(
         [wall_thickness, 1, height - wall_thickness]
     )
     main = main - filament_hole
@@ -324,7 +327,7 @@ def MakeCardLibraryBox(
         latch_a_cut = pybosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
-            h=wall_thickness + 0.02,
+            height=wall_thickness + 0.02,
             shift=[0, 0],
             anchor=TOP + FRONT,
         ).translate([wall_thickness * 2.5, -0.01, -wall_thickness])
@@ -341,7 +344,7 @@ def MakeCardLibraryBox(
         latch_b_cut = pybosl2.shapes3d.prismoid(
             size1=[wall_thickness + print_in_place_offset * 2, wall_thickness + print_in_place_offset],
             size2=[wall_thickness * 3 + print_in_place_offset * 3, wall_thickness + print_in_place_offset],
-            h=wall_thickness + 0.02,
+            height=wall_thickness + 0.02,
             shift=[0, 0],
             anchor=TOP + BACK,
         ).translate([wall_thickness * 2.5, 0.01, -wall_thickness])
@@ -370,7 +373,7 @@ def MakeCardLibraryBox(
     )
 
     back_hinge = (
-        pysolidfive.knuckle_hinge(
+        _sdf_joiners.knuckle_hinge(
             length=length - wall_thickness * 2 - print_in_place_offset * 2,
             segs=hinge_seg,
             offset=wall_thickness + lid_thickness,
@@ -384,6 +387,7 @@ def MakeCardLibraryBox(
             orient=list(TOP),
             anchor=BOTTOM + BACK + LEFT,
         )
+        .to_csg()
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, height_without_hinge - wall_thickness - lid_thickness])
     )
@@ -442,7 +446,7 @@ def SlidingLatch(
     a = pybosl2.shapes3d.prismoid(
         size1=[width - print_in_place_offset * 2, length - wall_thickness * 1.3 + print_in_place_offset],
         size2=[width - wall_thickness * 2, length - wall_thickness * 1.3 + print_in_place_offset],
-        h=wall_thickness - print_in_place_offset * 1.5,
+        height=wall_thickness - print_in_place_offset * 1.5,
         anchor=BOTTOM + FRONT + LEFT,
     ).translate([0, 0, lid_thickness + print_in_place_offset * 1.5])
 
@@ -529,7 +533,7 @@ def CardLibraryBoxLid(
     )
 
     back_hinge = (
-        pysolidfive.knuckle_hinge(
+        _sdf_joiners.knuckle_hinge(
             length=length - wall_thickness * 2 - print_in_place_offset * 2,
             segs=hinge_seg,
             offset=wall_thickness + lid_thickness,
@@ -542,6 +546,7 @@ def CardLibraryBoxLid(
             orient=list(LEFT),
             anchor=TOP + BACK + LEFT,
         )
+        .to_csg()
         .color(material_colour)
         .translate([0, wall_thickness + print_in_place_offset, 0])
     )
@@ -946,13 +951,18 @@ def CardSleeveForLibrary(
     calc_font = font if font is not None else default_label_font
     # textmetrics() returns a dict, not an object -- metrics["size"], same as the working
     # labels.py call sites (and font must be a real string).
-    metrics = textmetrics(label, font=calc_font)
     text_length = height - text_length_offset - wall_thickness
     text_width = length - wall_thickness
-    text_aspect = metrics["size"][1] / metrics["size"][0]
-    text_use_length = text_width / text_aspect > text_length
-    text_new_width = text_length * text_aspect if text_use_length else text_width
-    text_new_length = text_length if text_use_length else text_width / text_aspect
+    metrics = textmetrics(label, font=calc_font) if label else None
+    if metrics and metrics["size"][0] > 0:
+        text_aspect = metrics["size"][1] / metrics["size"][0]
+        text_use_length = text_width / text_aspect > text_length
+        text_new_width = text_length * text_aspect if text_use_length else text_width
+        text_new_length = text_length if text_use_length else text_width / text_aspect
+    else:
+        # No label -> no text on the sleeve (has_text below becomes False).
+        text_new_width = 0.0
+        text_new_length = 0.0
 
     body = pybosl2.shapes3d.cuboid(size, anchor=BOTTOM + FRONT + LEFT, rounding=wall_thickness / 4).color(material_colour)
 
@@ -984,7 +994,7 @@ def CardSleeveForLibrary(
     # column with flared ends. The rounded rect is a native offset() of a shrunk sharp rect;
     # OffsetSweep() adds the flared rims.
     rr = wall_thickness * 2
-    rect_profile = square([width - rr * 2, height - rr * 2], center=True).offset(r=rr)
+    rect_profile = pybosl2.shapes2d.square([width - rr * 2, height - rr * 2], center=True).offset(radius=rr)
     side_round = (
         OffsetSweep(rect_profile, height=length + 0.02, rounding_top=rounding, rounding_bottom=rounding)
         .color(material_colour)
@@ -1095,3 +1105,119 @@ def MakeAllSleeves(
         shape = sleeve if shape is None else shape | sleeve
     assert shape is not None, "MakeAllSleeves(): card_array is empty"
     return shape
+
+
+# ---------------------------------------------------------------------------
+# Dataclass input model + CardLibraryBox on the new box system
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class CardSize:
+    """The cards this library holds. ``single_card_thickness`` is a sleeved card's
+    thickness; ``sleeve_wall_thickness`` defaults to ``default_wall_thickness * 0.75``."""
+
+    width: float
+    length: float
+    single_card_thickness: float
+    sleeve_wall_thickness: float | None = None
+
+
+@dataclass
+class CardGroup:
+    """One group of cards -- a named stack that gets its own sleeve."""
+
+    name: str
+    count: int
+
+
+@dataclass
+class CardLibrarySpec:
+    """Declarative input for a :class:`CardLibraryBox`. The box SIZE is computed from
+    the cards, so you describe the cards, not the dimensions."""
+
+    card_size: CardSize
+    groups: list[CardGroup]
+    label: str = "CardLibrary"
+    wall_thickness: float | None = None
+    lid_thickness: float | None = None
+    floor_thickness: float | None = None
+    material_colour: str = "magenta"
+    latch: str = CARD_LIBRARY_LATCH_SLIDING
+
+
+def _card_ns(cs: CardSize) -> types.SimpleNamespace:
+    return MakeCardSize(cs.width, cs.length, cs.single_card_thickness, cs.sleeve_wall_thickness)
+
+
+class CardLibraryBox(BoxBaseType):
+    """A card-library box on the new box system: a box + lid sized to hold a set of
+    card groups, each group in its own sleeve.
+
+    Takes a :class:`CardLibrarySpec` (a dataclass); the box dimensions are computed
+    from the cards. Beyond :meth:`make_box` / :meth:`make_lid`, it adds
+    :meth:`make_sleeves` (all sleeves) and :meth:`make_sleeve` (one group's sleeve).
+
+    Usage::
+
+        from card_library import CardLibraryBox, CardLibrarySpec, CardSize, CardGroup
+
+        box = CardLibraryBox(CardLibrarySpec(
+            card_size=CardSize(width=63, length=88, single_card_thickness=0.5),
+            groups=[CardGroup("Reds", 20), CardGroup("Blues", 30)],
+        ))
+        box.make_box().show()
+        box.make_lid().show()
+        box.make_sleeves().show()      # all sleeves; or box.make_sleeve(0)
+    """
+
+    def __init__(self, spec: CardLibrarySpec) -> None:
+        assert isinstance(spec, CardLibrarySpec), (
+            f"CardLibraryBox expects a CardLibrarySpec, got {type(spec).__name__}"
+        )
+        self._card = spec
+        cs = _card_ns(spec.card_size)
+        array = [[g.name, g.count] for g in spec.groups]
+        wt = spec.wall_thickness if spec.wall_thickness is not None else default_wall_thickness
+        lt = spec.lid_thickness if spec.lid_thickness is not None else default_lid_thickness
+        ft = spec.floor_thickness if spec.floor_thickness is not None else default_floor_thickness
+        size = CardLibrarySize(array, cs, wall_thickness=wt, lid_thickness=lt, floor_thickness=ft)
+        super().__init__(BoxSpec(
+            size=[float(x) for x in size], label=spec.label,
+            wall_thickness=wt, lid_thickness=lt, floor_thickness=ft, material_colour=spec.material_colour,
+        ))
+
+    def _box_size(self) -> list[float]:
+        return [self.width, self.length, self.height]
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        if contents is None:
+            contents = self._spec.contents
+        children = [io.value for io in self._resolve_contents(contents)] or None
+        return MakeCardLibraryBox(
+            size=self._box_size(), children=children, wall_thickness=self.wall_thickness,
+            floor_thickness=self.floor_thickness, lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour, latch=self._card.latch,
+        )
+
+    def make_lid(self, lid=None):
+        return CardLibraryBoxLid(
+            size=self._box_size(), wall_thickness=self.wall_thickness, lid_thickness=self.lid_thickness,
+            latch=self._card.latch, material_colour=self.material_colour,
+        )
+
+    def make_sleeves(self):
+        """All the card sleeves (one per group), laid out for printing."""
+        array = [[g.name, g.count] for g in self._card.groups]
+        return MakeAllSleeves(array, card_size=_card_ns(self._card.card_size), wall_thickness=self.wall_thickness)
+
+    def make_sleeve(self, index: int):
+        """The sleeve for group *index* (labelled with the group's name)."""
+        g = self._card.groups[index]
+        return CardSleeveForLibrary(
+            g.count, _card_ns(self._card.card_size), label=g.name,
+            wall_thickness=self.wall_thickness, material_colour=self.material_colour,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("CardLibraryBox builds its body in make_box()")
