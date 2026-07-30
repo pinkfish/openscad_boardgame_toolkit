@@ -252,6 +252,10 @@ class BoxSpec:
     # ---- Contents (inner compartments / inserts) -----------------------------
     contents: Contents | None = None
     finger_holes: list[FingerHole] | None = None
+    # Force the interior hollow (open box) even for a box type that is otherwise solid
+    # when empty -- how a no-lid box usually renders. Ignored when compartments carve
+    # their own cavities.
+    hollow: bool = False
 
     # ---- Lid configuration ---------------------------------------------------
     # Use ``lid_label`` for the common case (text + default shape pattern).
@@ -410,14 +414,14 @@ class BoxBaseType(ABC):
 
         mask = self.inside_mask()          # build once and reuse
         has_cavities = any(io.type in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE) for io in resolved)
+        if self._should_hollow(has_cavities):
+            # Open the whole interior (an empty tray, or an explicit hollow=True box).
+            body = body - mask
         if has_cavities:
             # Compartments define the cavities: carve them (clipped to the interior)
             # out of the SOLID interior, so the material between and under them is
             # left behind as dividers and floors.
             body = self._carve_contents(body, resolved, mask)
-        else:
-            # No compartments -> open the whole interior (an empty box is an open box).
-            body = body - mask
         if finger_holes:
             body = self._apply_finger_holes(body, finger_holes)
         body = self._apply_mmu(body, resolved, MAKE_MMU)
@@ -430,6 +434,23 @@ class BoxBaseType(ABC):
             [self.inner_width, self.inner_length, self.inner_height],
             anchor=BOTTOM + FRONT + LEFT,
         ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+
+    def _hollow_when_empty(self) -> bool:
+        """Whether a box with NO negative contents is hollowed to an open box. True for
+        lidded containers (an empty tray is open); a box type whose empty form is a
+        solid spacer (e.g. NoLidBox) overrides this to False and opts in via
+        ``BoxSpec.hollow``."""
+        return True
+
+    def _should_hollow(self, has_cavities: bool) -> bool:
+        """Decide whether to subtract the full interior. ``BoxSpec.hollow=True`` always
+        hollows; otherwise a box with compartments is left solid (they carve the
+        cavities) and an empty box follows :meth:`_hollow_when_empty`."""
+        if self._spec.hollow:
+            return True
+        if has_cavities:
+            return False
+        return self._hollow_when_empty()
 
     # ------------------------------------------------------------------
     # Contents (compartments / inserts)

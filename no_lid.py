@@ -37,6 +37,7 @@ import pybosl2.shapes3d
 from pybosl2 import shapes2d
 from pybosl2.paths import Path
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
+from box_base import BoxBaseType, BoxSpec, FingerHole, FingerHoleLocation, FingerHoleType
 
 from typing import Callable
 
@@ -183,6 +184,47 @@ def MakeBoxWithNoLid(
             body = body - kids_shape.translate([wall_thickness, wall_thickness, floor_thickness])
 
     return body.shape
+
+
+class NoLidBox(BoxBaseType):
+    """A box with no lid -- a spacer, or an open tray, on the new box system.
+
+    Unlike a lidded box, a no-lid box is **solid by default** (a spacer). Pass
+    ``BoxSpec(hollow=True)`` for the common open-tray form, or give ``contents`` to
+    carve compartments. There is no lid, so :meth:`make_lid` is unavailable.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from no_lid import NoLidBox
+
+        NoLidBox(BoxSpec(size=[100, 50, 20], label="spacer")).make_box()             # solid
+        NoLidBox(BoxSpec(size=[100, 50, 20], label="tray", hollow=True)).make_box()  # open
+    """
+
+    @property
+    def inner_height(self) -> float:
+        # No lid to subtract -- the interior runs from the floor to the open top.
+        return self.height - self.floor_thickness
+
+    def _hollow_when_empty(self) -> bool:
+        # A no-lid box with nothing in it is a solid spacer unless hollow=True.
+        return False
+
+    def _build_box_body(self) -> "Bosl2Solid":
+        # A fully-rounded box (all edges + corners) -- the no-lid look. (The .scad
+        # original layered face_profile/corner_profile roundovers; pybosl2's
+        # corner_profile is currently broken, and a single rounding= is equivalent
+        # at this scale and robust.)
+        body = pybosl2.shapes3d.cuboid(
+            [self.width, self.length, self.height],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=self.wall_thickness / 2,
+        )
+        return body.color(self.material_colour)
+
+    def make_lid(self, lid=None):
+        raise NotImplementedError(f"{self.label}: a NoLidBox has no lid")
 
 
 def FingerHoleWallSegment(

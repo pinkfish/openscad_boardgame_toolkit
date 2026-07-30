@@ -43,6 +43,7 @@ from lids_base import (
 )
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
 
 from typing import Callable
 
@@ -92,6 +93,146 @@ def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> 
 # ---------------------------------------------------------------------------
 # Box and lid modules
 # ---------------------------------------------------------------------------
+
+
+class CapBox(BoxBaseType):
+    """A box with a cap lid on the new box system: the cap slides down over the box's
+    top rim. The top ``cap_height`` mm of the box wall is stepped in by the cap wall
+    thickness so the cap sits flush.
+
+    ``cap_height`` defaults to ``min(10, height/2)``; override it with
+    ``BoxSpec(type_options=<cap_height>)``. Like any lidded box it is hollow when empty
+    (``BoxSpec(hollow=...)`` / ``contents=...`` as usual).
+
+    Usage::
+
+        from box_base import BoxSpec
+        from cap_box import CapBox
+
+        box = CapBox(BoxSpec(size=[100, 50, 20], label="cap"))
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    @property
+    def inner_height(self) -> float:
+        # The cap covers the outside of the top rim; the interior runs floor-to-top.
+        return self.height - self.floor_thickness
+
+    def _cap_height(self) -> float:
+        opt = self._spec.type_options
+        return float(opt) if isinstance(opt, (int, float)) and opt else CapBoxDefaultCapHeight(self.height)
+
+    def _lid_wall(self) -> float:
+        return CapBoxDefaultLidWallThickness(self.wall_thickness)
+
+    def _rim_frame(self, height: float, extra: float = 0.0):
+        """A wall-thick frame (outer minus inner) of the given height -- the cap rim."""
+        w, l, lw = self.width, self.length, self._lid_wall()
+        outer = shapes3d.cuboid([w, l, height], anchor=BOTTOM + FRONT + LEFT)
+        inner = shapes3d.cuboid(
+            [w - lw * 2, l - lw * 2, height + 1], anchor=BOTTOM + FRONT + LEFT
+        ).translate([lw, lw, -0.5])
+        return outer - inner
+
+    def _finger_hold_height(self) -> float:
+        return CapBoxDefaultFingerHoldHeight(self.height)
+
+    def _finger_hold_cut(self):
+        """The cap finger-hold cutter: a wall-band recess below the rim with a rounded
+        scoop in the middle of each wall so you can grip and lift the cap off. Ported
+        from MakeBoxWithCapLid's finger cutouts."""
+        w, l = self.width, self.length
+        lw = self._lid_wall()
+        sp = self.size_spacing
+        cap_h = self._cap_height()
+        fh_h = self._finger_hold_height()
+        fh_len = CapBoxDefaultFingerHoldLen(w, l)
+        fh_round = CapBoxDefaultLidFingerHoldRounding(cap_h)
+        wt = self.wall_thickness
+
+        # Outer wall band minus the inner keep-away -> the reduced-wall band.
+        outer = shapes3d.cuboid([w + sp * 2, l + sp * 2, fh_h + 1], anchor=BOTTOM + FRONT + LEFT).translate([-sp, -sp, 0])
+        inner = shapes3d.cuboid(
+            [w - lw * 2 - sp * 2, l - lw * 2 - sp * 2, fh_h + 2], anchor=BOTTOM + FRONT + LEFT,
+            rounding=wt / 2, edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        ).translate([lw + sp, lw + sp, 0])
+        cut = outer - inner
+
+        # Scoops in the middle of each wall (leave fh_len of wall at each end).
+        hole_a = shapes3d.cuboid([w - fh_len * 2 + 0.1, wt + 1, fh_h + 0.2], rounding=fh_round,
+                                 edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + LEFT + FRONT, fn=32).translate([fh_len, 0, -0.2])
+        hole_b = shapes3d.cuboid([w - fh_len * 2 + 0.1, wt + 1, fh_h + 0.2], rounding=fh_round,
+                                 edges=[TOP + LEFT, TOP + RIGHT], anchor=BOTTOM + LEFT + FRONT, fn=32).translate([fh_len, l - lw - sp, -0.2])
+        hole_c = shapes3d.cuboid([wt + 1, l - fh_len * 2 + 0.1, fh_h + 0.2], rounding=fh_round,
+                                 edges=[TOP + FRONT, TOP + BACK], anchor=BOTTOM + LEFT + FRONT, fn=32).translate([0, fh_len, -0.2])
+        hole_d = shapes3d.cuboid([wt + 1, l - fh_len * 2 + 0.1, fh_h + 0.2], rounding=fh_round,
+                                 edges=[TOP + FRONT, TOP + BACK], anchor=BOTTOM + LEFT + FRONT, fn=32).translate([w - lw - sp, fh_len, -0.2])
+        cut = cut - hole_a - hole_b - hole_c - hole_d
+        return cut.translate([0, 0, self.height - cap_h - fh_h])
+
+    def _catch_bumps(self, radius: float):
+        """Two rounded catch nubs on each of the box's shorter walls (front/back or
+        left/right), at z = wall_thickness. Subtracted from the box (dents) and added
+        to the cap (bumps) so the cap clicks on. Ported from the BUMPS catch."""
+        w, l, wt = self.width, self.length, self.wall_thickness
+        catches = None
+
+        def add(p):
+            nonlocal catches
+            catches = p if catches is None else catches | p
+
+        if w <= l:                      # bumps on the front/back walls
+            off = w - wt * 2
+            for frac in (6 / 8, 2 / 8):
+                x = off * frac + wt
+                pair = _catch_bump(wt, radius, FRONT) | _catch_bump(wt, radius, BACK).translate([0, l, 0])
+                add(pair.translate([x, 0, wt]))
+        else:                           # bumps on the left/right walls
+            off = l - wt * 2
+            for frac in (6 / 8, 2 / 8):
+                y = off * frac + wt
+                pair = _catch_bump(wt, radius, LEFT) | _catch_bump(wt, radius, RIGHT).translate([w, 0, 0])
+                add(pair.translate([0, y, wt]))
+        return catches
+
+    def _build_box_body(self) -> "Bosl2Solid":
+        cap_h = self._cap_height()
+        wt, sp = self.wall_thickness, self.size_spacing
+        body = shapes3d.cuboid(
+            [self.width, self.length, self.height],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=self.wall_thickness / 2,
+            edges=[BOT, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        )
+        # Step the top cap_height of the outer wall in by the cap wall thickness.
+        body = body - self._rim_frame(cap_h + 0.1).translate([0, 0, self.height - cap_h])
+        # Finger holds so you can grip and lift the cap.
+        body = body - self._finger_hold_cut()
+        # Catch DENTS in the rim (the cap's bumps click into these).
+        dents = self._catch_bumps(wt * 5 / 6 + sp)
+        if dents is not None:
+            body = body - dents.translate([0, 0, self.height - cap_h])
+        return body.color(self.material_colour)
+
+    def create_lid(self, lid=None) -> "Bosl2Solid":
+        """Build the cap: a wall frame that fits over the box's top rim, closed by a
+        top plate."""
+        cap_h = self._cap_height()
+        walls = self._rim_frame(cap_h)
+        top = shapes3d.cuboid(
+            [self.width, self.length, self.lid_thickness],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=self.wall_thickness / 2,
+            edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        ).translate([0, 0, cap_h])
+        cap = walls | top
+        # Catch BUMPS (slightly smaller than the box dents, for clearance) that click
+        # into the box rim at the matching z (cap z=wall_thickness <-> box rim dent).
+        bumps = self._catch_bumps(self.wall_thickness * 3 / 4)
+        if bumps is not None:
+            cap = cap | bumps
+        return cap.color(self.material_colour)
 
 
 def MakeBoxWithCapLid(
