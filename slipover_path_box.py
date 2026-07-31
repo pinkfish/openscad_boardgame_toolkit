@@ -24,6 +24,9 @@
 from __future__ import annotations
 import copy
 import types
+from dataclasses import dataclass, replace
+
+import numpy as np
 
 from pythonscad import *
 from typing import Any, TYPE_CHECKING
@@ -44,6 +47,8 @@ from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
 from pybosl2.paths import Path
+from pybosl2 import shapes2d
+from box_base import BoxBaseType, BoxSpec
 
 
 def FingerHoleWallSegmentCutout(
@@ -146,7 +151,7 @@ def MakePathBoxWithSlipoverLid(
     assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
-    inner_path = Path(path).offset(r=-wall_thickness - size_spacing)
+    inner_path = Path(path).offset(radius=-wall_thickness - size_spacing)
     calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
     calc_path = Path(path).round_corners(radius=wall_thickness)
 
@@ -264,7 +269,7 @@ def SlipoverPathBoxLid(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness
 
-    inner_path = Path(path).offset(r=-wall_thickness + size_spacing)
+    inner_path = Path(path).offset(radius=-wall_thickness + size_spacing)
     calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
     calc_path = Path(path).round_corners(radius=calc_lid_rounding)
 
@@ -418,7 +423,7 @@ def SlipoverPathBoxLidWithLabelAndCustomShape(
     calc_width = max(x_arr) - min(x_arr)
     calc_length = max(y_arr) - min(y_arr)
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         path=path,
         lid_thickness=lid_thickness,
@@ -540,3 +545,123 @@ def SlipoverPathBoxLidWithLabel(
         shape_child=shape_piece,
         extra_children=extra_children,
     )
+
+
+@dataclass
+class SlipoverPathBoxOptions:
+    """Options for :class:`SlipoverPathBox` -- a slipover box whose outline is a polygon.
+
+    Give an explicit ``path`` (closed ``[[x, y], ...]`` outline) or use
+    :meth:`SlipoverPathBox.regular_polygon`. The lid is a sleeve that slides over the
+    OUTSIDE of the box."""
+
+    path: list[list[float]]
+    children: "list | None" = None
+    foot: float = 0
+    lid_catch: "CatchType | None" = None
+
+
+def MakeSlipoverPathBoxOptions(**kwargs) -> SlipoverPathBoxOptions:
+    return SlipoverPathBoxOptions(**kwargs)
+
+
+class SlipoverPathBox(BoxBaseType):
+    """A slipover box whose OUTLINE is a polygon, on the new box system -- the polygon
+    counterpart of :class:`~slipover_box.SlipoverBox`. The lid is a sleeve that slides
+    over the outside of the box; box and lid are separate prints. Facade over
+    :func:`MakePathBoxWithSlipoverLid` / :func:`SlipoverPathBoxLid`.
+
+    The polygon goes in ``BoxSpec.type_options`` as a :class:`SlipoverPathBoxOptions`;
+    ``BoxSpec.size`` is ``[width, length, height]`` but the x/y extent is re-derived from
+    the outline. The lid gets an automatic label + shape pattern when ``BoxSpec.lid_label``
+    is set.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from slipover_path_box import SlipoverPathBox, SlipoverPathBoxOptions
+
+        box = SlipoverPathBox(BoxSpec(size=[80, 60, 15], label="slip", lid_label="Coins",
+                                      type_options=SlipoverPathBoxOptions(
+                                          path=[[0,0],[80,0],[80,60],[0,60]])))
+        box.make_box().show()
+        box.make_lid().show()
+
+        # regular hexagon
+        SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label="hex", lid_label="Wood"),
+                                        sides=6).make_box().show()
+    """
+
+    def __init__(self, spec: BoxSpec) -> None:
+        opts = spec.type_options
+        if not isinstance(opts, SlipoverPathBoxOptions):
+            raise TypeError(
+                "SlipoverPathBox requires BoxSpec(type_options=SlipoverPathBoxOptions(path=...)); "
+                f"got type_options={opts!r}"
+            )
+        pts = np.asarray(opts.path, dtype=float)
+        w = float(pts[:, 0].max() - pts[:, 0].min())
+        l = float(pts[:, 1].max() - pts[:, 1].min())
+        super().__init__(replace(spec, size=[w, l, spec.size[2]]))
+        self._opts = opts
+
+    @classmethod
+    def regular_polygon(cls, spec: BoxSpec, sides: int, **opt_kwargs) -> "SlipoverPathBox":
+        """Build from a regular *sides*-gon whose circumdiameter is ``spec.size[0]``."""
+        if sides < 3:
+            raise ValueError(f"sides must be >= 3, got {sides}")
+        path = shapes2d._regular_ngon_path(sides, spec.size[0] / 2)
+        return cls(replace(spec, type_options=SlipoverPathBoxOptions(path=path, **opt_kwargs)))
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        kids = [io.value for io in self._resolve_contents(contents)] or None
+        if self._opts.children:
+            kids = list(self._opts.children) + (kids or [])
+        return kids
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        o = self._opts
+        return MakePathBoxWithSlipoverLid(
+            path=o.path,
+            height=self.height,
+            children=self._children(contents),
+            wall_thickness=self.wall_thickness,
+            foot=o.foot,
+            size_spacing=self.size_spacing,
+            floor_thickness=self.floor_thickness,
+            lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour,
+            lid_catch=o.lid_catch,
+        )
+
+    def make_lid(self, lid=None):
+        o = self._opts
+        if self._spec.lid_label is not None:
+            return SlipoverPathBoxLidWithLabel(
+                path=o.path,
+                height=self.height,
+                text_str=self._spec.lid_label,
+                wall_thickness=self.wall_thickness,
+                foot=o.foot,
+                size_spacing=self.size_spacing,
+                lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour,
+                lid_catch=o.lid_catch,
+                label_options=self._spec.label_options,
+                shape_options=self._spec.shape_options,
+            )
+        return SlipoverPathBoxLid(
+            path=o.path,
+            height=self.height,
+            wall_thickness=self.wall_thickness,
+            foot=o.foot,
+            size_spacing=self.size_spacing,
+            lid_thickness=self.lid_thickness,
+            material_colour=self.material_colour,
+            lid_catch=o.lid_catch,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("SlipoverPathBox builds its polygon body in make_box()")

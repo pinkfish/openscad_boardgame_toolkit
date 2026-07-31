@@ -213,7 +213,7 @@ class BoxSpec:
             wall_thickness=3,
             lid_thickness=2,
             contents=lambda inner: [
-                InnerObject(cube([inner.width, inner.length, inner.height]))
+                InnerObject(pybosl2.shapes3d.cuboid([inner.width, inner.length, inner.height]))
             ],
             finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
             lid_label="Earth",

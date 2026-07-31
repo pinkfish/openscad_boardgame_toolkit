@@ -37,6 +37,7 @@ from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.transforms
+from pybosl2 import shapes2d
 from box_base import BoxBaseType, BoxSpec, Contents, FingerHoleLocation, Label
 from lids_base import (
     Lid,
@@ -293,13 +294,13 @@ class SlidingBox(BoxBaseType):
             mirrored_profile = profile * np.array([-1.0, 1.0])
             run_length = self._lid_length + 0.1
             cutter_left = (
-                polygon([[float(u), float(v)] for u, v in mirrored_profile])
+                shapes2d.polygon([[float(u), float(v)] for u, v in mirrored_profile])
                 .linear_extrude(height=run_length, center=True)
                 .rotate(180, [0, 1, 1])
                 .translate([0, self._lid_length / 2, 0])
             )
             cutter_right = (
-                polygon([[float(u), float(v)] for u, v in profile])
+                shapes2d.polygon([[float(u), float(v)] for u, v in profile])
                 .linear_extrude(height=run_length, center=True)
                 .rotate(180, [0, 1, 1])
                 .translate([self._lid_width, self._lid_length / 2, 0])
@@ -337,12 +338,12 @@ class SlidingBox(BoxBaseType):
             tri_h = self.lid_thickness + 10
             tri_z = -self.lid_thickness / 2 + tri_h / 2
             tri_a = (
-                polygon([[self.wall_thickness / 2, 0], [0, 0], [0, 15]])
+                shapes2d.polygon([[self.wall_thickness / 2, 0], [0, 0], [0, 15]])
                 .linear_extrude(height=tri_h, center=True)
                 .translate([-self.size_spacing / 20, -self.size_spacing, tri_z])
             )
             tri_b = (
-                polygon([[-self.wall_thickness / 2, 0], [0, 0], [0, 15]])
+                shapes2d.polygon([[-self.wall_thickness / 2, 0], [0, 0], [0, 15]])
                 .linear_extrude(height=tri_h, center=True)
                 .translate([self._lid_width + self.size_spacing / 20, -self.size_spacing, tri_z])
             )

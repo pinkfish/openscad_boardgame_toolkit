@@ -492,7 +492,7 @@ def FilamentHingeBoxLidWithCustomShape(
 
     Usage::
 
-        FilamentHingeBoxLidWithCustomShape([100, 20, 6], shape_child=circle(r=5))
+        FilamentHingeBoxLidWithCustomShape([100, 20, 6], shape_child=shapes2d.circle(radius=5))
 
     Args:
         size:    [width, length, height] of the box
@@ -629,7 +629,7 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
 
     Usage::
 
-        FilamentHingeBoxLidWithLabelAndCustomShape([100, 20, 6], "Label", shape_child=circle(r=5))
+        FilamentHingeBoxLidWithLabelAndCustomShape([100, 20, 6], "Label", shape_child=shapes2d.circle(radius=5))
 
     Args:
         size:     [width, length, height] of the box

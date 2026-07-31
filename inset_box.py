@@ -238,7 +238,7 @@ def InsetLidTabbedWithLabelAndCustomShape(
         else MakeLabelOptions(material_colour=material_colour, full_height=True)
     )
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         size=size,
         lid_thickness=lid_thickness,
@@ -416,15 +416,20 @@ def MakeBoxWithInsetLidTabbed(
     ).color(material_colour)
 
     lid_cut = (
-        cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1])
+        pybosl2.shapes3d.cuboid(
+            [width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1],
+            anchor=BOTTOM + FRONT + LEFT,
+        )
         .color(material_colour)
         .translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness])
     )
     body = body - lid_cut
 
+    # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no minkowski(), so this stays on the native
+    # builtin and both operands must be native handles (.shape). FIX IN BOSL2: add a
+    # minkowski op (Bosl2Solid.minkowski / pybosl2.minkowski) so this can be pure pybosl2.
     tab_cutter = minkowski(
-        cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
-        # native minkowski needs a native handle -> unwrap the Bosl2Solid tab.
+        pybosl2.shapes3d.cuboid([tab_offset * 2, tab_offset * 2, tab_offset * 2]).color(material_colour).shape,
         MakeLidTab(
             length=tab_length,
             height=tab_height,
@@ -458,17 +463,20 @@ def MakeBoxWithInsetLidTabbed(
 
     if stackable:
         outer = (
-            cube([width + 1, length + 1, wall_thickness + 0.5 - size_spacing])
+            pybosl2.shapes3d.cuboid(
+                [width + 1, length + 1, wall_thickness + 0.5 - size_spacing], anchor=BOTTOM + FRONT + LEFT
+            )
             .color(material_colour)
             .translate([-0.5, -0.5, -0.5])
         )
         inner_cut = (
-            cube(
+            pybosl2.shapes3d.cuboid(
                 [
                     width - (wall_thickness - inset + size_spacing) * 2,
                     length - (wall_thickness - inset + size_spacing) * 2,
                     wall_thickness + 2,
-                ]
+                ],
+                anchor=BOTTOM + FRONT + LEFT,
             )
             .color(material_colour)
             .translate([wall_thickness - inset + size_spacing, wall_thickness - inset + size_spacing, -1])
@@ -640,7 +648,7 @@ def InsetLidRabbitClipWithLabelAndCustomShape(
         else MakeLabelOptions(material_colour=material_colour, full_height=True)
     )
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         size=size,
         lid_thickness=lid_thickness,
@@ -833,7 +841,10 @@ def MakeBoxWithInsetLidRabbitClip(
     ).color(material_colour)
 
     lid_cut = (
-        cube([width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1])
+        pybosl2.shapes3d.cuboid(
+            [width - (wall_thickness - inset) * 2, length - (wall_thickness - inset) * 2, lid_thickness + 0.1],
+            anchor=BOTTOM + FRONT + LEFT,
+        )
         .color(material_colour)
         .translate([wall_thickness - inset, wall_thickness - inset, height - lid_thickness])
     )

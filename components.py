@@ -310,7 +310,7 @@ def RegularPolygon(
             rounding=calc_finger_hole_radius,
             anchor=BOTTOM,
         ).translate([x, y, finger_hole_height])
-        shape = shape | hole.shape
+        shape = shape | hole
 
     if children is not None:
         shape = shape | children
@@ -766,10 +766,10 @@ def FingerHoleWall(
             [tangents[3][1][0], 0],
         ]
 
-        # Native 2-D booleans in place of the interpreted-BOSL2 region math (see the `if`
-        # branch above). Point-list pieces (the tangent quads) become native polygon()s;
-        # hull_region becomes a native 2-D hull(); mirrors across the Y axis are native
-        # mirror([1, 0, 0]) on the built 2-D geometry.
+        # pybosl2 2-D booleans in place of the interpreted-BOSL2 region math (see the `if`
+        # branch above). Point-list pieces (the tangent quads) become shapes2d.polygon()s;
+        # hull_region becomes a Bosl2Shape2D.hull(); mirrors across the Y axis are
+        # .mirror([1, 0, 0]) on the built 2-D geometry.
         def _poly(pts) -> Bosl2Shape2D:
             return shapes2d.polygon([[float(u), float(v)] for u, v in pts])
 
@@ -876,7 +876,7 @@ def CornerCatch(
         .mirror([0, 0, 1])
         .translate([0, rounding_radius / 2, 0])
     )
-    cutter = shapes3d.cuboid([depth_of_hole, depth_of_hole, height]).color(material_colour).shape
+    cutter = shapes3d.cuboid([depth_of_hole, depth_of_hole, height]).color(material_colour)
     notch = ((wall_a | wall_b) - cutter).multmatrix(tmat)
 
     base = shapes3d.cuboid([depth_of_hole, depth_of_hole, height], anchor=BOTTOM)
@@ -892,7 +892,7 @@ def CornerCatch(
         base = base.corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2)
     base = base.color(material_colour).mirror([0, 0, 1])
 
-    return notch | base.shape
+    return notch | base
 
 
 def FingerHoleBase(
@@ -979,25 +979,22 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
     def topline(n: int) -> PyOpenSCAD:
         if n > 0:
             return topline(n - 1).scale([0.5, 0.5])
-        return hull(
-            shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
-            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
+        return shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2])
         )
 
     def leftline(n: int) -> PyOpenSCAD:
         if n > 0:
             return leftline(n - 1).translate([-size, 0]).scale([0.5, 0.5])
-        return hull(
-            shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
-            shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2]),
+        return shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
+            shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2])
         )
 
     def rightline(n: int) -> PyOpenSCAD:
         if n > 0:
             return rightline(n - 1).translate([size, 0]).scale([0.5, 0.5])
-        return hull(
-            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
-            shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2]),
+        return shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]).hull(
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2])
         )
 
     def hilbert(n: int) -> PyOpenSCAD:
@@ -1012,17 +1009,14 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
                 | rightline(n)
             )
         return (
-            hull(
-                shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
-                shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2]),
+            shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]).hull(
+                shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2])
             )
-            | hull(
-                shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
-                shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2]),
+            | shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
+                shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2])
             )
-            | hull(
-                shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]),
-                shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]),
+            | shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
+                shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2])
             )
         )
 

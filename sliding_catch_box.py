@@ -23,6 +23,7 @@
 
 from __future__ import annotations
 import copy
+from dataclasses import dataclass
 
 from pythonscad import *
 from typing import TYPE_CHECKING
@@ -34,6 +35,7 @@ import pybosl2.shapes3d
 from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec
 
 
 def MakeBoxWithSlidingCatchLid(
@@ -160,7 +162,12 @@ def MakeBoxWithSlidingCatchLid(
     inner_length = length - wall_thickness * 2
     inner_height = height - lid_thickness - floor_thickness
     if children:
-        bound = cube([inner_width, inner_length, height + 2]).color(material_colour)
+        # pybosl2 cuboid (corner-anchored) instead of native cube() -- native `&` rejects a
+        # Bosl2Solid RHS ("invalid argument left to operator"), so a native bound would break
+        # the moment children are passed.
+        bound = pybosl2.shapes3d.cuboid(
+            [inner_width, inner_length, height + 2], anchor=BOTTOM + FRONT + LEFT
+        ).color(material_colour)
         kids_shape = None
         for c in children:
             piece = ResolveChild(c, inner_width, inner_length, inner_height)
@@ -318,7 +325,7 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
         label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
     )
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         size=size,
         lid_thickness=lid_thickness,
@@ -435,3 +442,86 @@ def SlidingCatchBoxLidWithLabel(
         shape_child=shape_piece,
         extra_children=extra_children,
     )
+
+
+@dataclass
+class SlidingCatchBoxOptions:
+    """Sliding-catch-box options; pass via ``BoxSpec(type_options=MakeSlidingCatchBoxOptions(...))``."""
+
+    top_thickness: float = 2      # material above the catch groove (default 2)
+    fill_middle: bool = True      # fill the middle of the lid (default True)
+
+
+def MakeSlidingCatchBoxOptions(**kwargs) -> SlidingCatchBoxOptions:
+    return SlidingCatchBoxOptions(**kwargs)
+
+
+class SlidingCatchBox(BoxBaseType):
+    """A box whose lid slides into a groove on the top AND catches at the front, on the
+    new box system. Sturdier than a plain sliding lid (and a bit thicker). Box and lid
+    are separate prints; ``contents`` are carved into the box.
+
+    Catch/lid parameters come from
+    ``BoxSpec(type_options=MakeSlidingCatchBoxOptions(top_thickness=2))``. The lid gets
+    an automatic label + shape pattern when ``BoxSpec.lid_label`` is set.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from sliding_catch_box import SlidingCatchBox
+
+        box = SlidingCatchBox(BoxSpec(size=[100, 50, 20], label="catch", lid_label="Frog"))
+        box.make_box().show()
+        box.make_lid().show()
+    """
+
+    def _opts(self) -> SlidingCatchBoxOptions:
+        o = self._spec.type_options
+        return o if isinstance(o, SlidingCatchBoxOptions) else SlidingCatchBoxOptions()
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        return [io.value for io in self._resolve_contents(contents)] or None
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        o = self._opts()
+        return MakeBoxWithSlidingCatchLid(
+            size=[self.width, self.length, self.height],
+            children=self._children(contents),
+            lid_thickness=self.lid_thickness,
+            wall_thickness=self.wall_thickness,
+            size_spacing=self.size_spacing,
+            top_thickness=o.top_thickness,
+            floor_thickness=self.floor_thickness,
+            material_colour=self.material_colour,
+        )
+
+    def make_lid(self, lid=None):
+        o = self._opts()
+        size = [self.width, self.length]
+        if self._spec.lid_label is not None:
+            return SlidingCatchBoxLidWithLabel(
+                size=size,
+                text_str=self._spec.lid_label,
+                wall_thickness=self.wall_thickness,
+                size_spacing=self.size_spacing,
+                lid_thickness=self.lid_thickness,
+                top_thickness=o.top_thickness,
+                fill_middle=o.fill_middle,
+                material_colour=self.material_colour,
+                label_options=self._spec.label_options,
+                shape_options=self._spec.shape_options,
+            )
+        return SlidingCatchBoxLid(
+            size=size,
+            wall_thickness=self.wall_thickness,
+            size_spacing=self.size_spacing,
+            lid_thickness=self.lid_thickness,
+            top_thickness=o.top_thickness,
+            fill_middle=o.fill_middle,
+            material_colour=self.material_colour,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("SlidingCatchBox builds its body in make_box()")

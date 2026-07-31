@@ -937,10 +937,10 @@ class PathBox(BoxBaseType):
         inner wall, so this is a plain ``rounding=0`` extrusion of the inset outline.
         (The open-tray finish for a ``hollow=True`` PathBox is still the rounded
         hollow_cut; it is built inside the shell, independently of this mask.)"""
-        prism = PolygonPrism(self._pbox.inner_path, h=self.inner_height).translate(
+        # PolygonPrism -> OffsetSweep already returns a Bosl2Solid, so no native wrap.
+        return PolygonPrism(self._pbox.inner_path, h=self.inner_height).translate(
             [0, 0, self.floor_thickness]
         )
-        return pybosl2.shapes3d.Bosl2Solid(prism)
 
     def _placed_content(self, io) -> "Bosl2Solid":
         """Translate a compartment from the layout's local frame into the box interior.
@@ -1038,6 +1038,10 @@ class PathBox(BoxBaseType):
 
         # Carve + MMU the compartment layout through the shared base-class pipeline,
         # clipping every well to the polygon cavity (self.inside_mask()).
+        # NATIVE-BOUNDARY (bosl2 gap): PathBoxWithNoLid.build() returns a NATIVE solid
+        # (its finger-hole cuts use native ops), so we must re-wrap it as a Bosl2Solid to
+        # continue in bosl2. FIX IN BOSL2: build()/carve_finger_holes should return a
+        # Bosl2Solid so no native wrap is needed here.
         body = pybosl2.shapes3d.Bosl2Solid(shell)
         mask = self.inside_mask()
         body = self._carve_contents(body, resolved, mask)

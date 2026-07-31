@@ -464,9 +464,10 @@ def MakeBoxAndLidWithInsetHinge(
     lid_body = lid_body | (lid_rim_outer - lid_rim_inner).color(material_colour)
 
     catch_cutter = (
+        # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no minkowski(); keep native + native handles
+        # (.shape). FIX IN BOSL2: add a minkowski op so this can be pure pybosl2.
         minkowski(
-            cube(tab_offset * 2).color(material_colour).translate([-tab_offset, -tab_offset, -tab_offset]),
-            # native minkowski needs a native handle -> unwrap the Bosl2Solid tab.
+            pybosl2.shapes3d.cuboid([tab_offset * 2, tab_offset * 2, tab_offset * 2]).color(material_colour).shape,
             MakeLidTab(
                 length=tab_length,
                 height=tab_height,
@@ -508,12 +509,13 @@ def MakeBoxAndLidWithInsetHinge(
     combined = base_body | lid_assembly
 
     hinge_pocket = (
-        cube(
+        pybosl2.shapes3d.cuboid(
             [
                 hinge_width + print_in_place_offset * 2 + 0.02,
                 hinge_length + print_in_place_offset * 2,
                 hinge_diameter + 5 + hinge_offset + 1,
-            ]
+            ],
+            anchor=BOTTOM + FRONT + LEFT,
         )
         .color(material_colour)
         .translate(

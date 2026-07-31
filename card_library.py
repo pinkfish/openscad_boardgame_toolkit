@@ -592,12 +592,18 @@ def CardLibraryBoxLid(
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
         slide_support_a = (
-            cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness])
+            pybosl2.shapes3d.cuboid(
+                [wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness],
+                anchor=BOTTOM + FRONT + LEFT,
+            )
             .color(material_colour)
             .translate([width * 3 / 4 - print_in_place_offset - wall_thickness, wall_thickness, 0])
         )
         slide_support_b = (
-            cube([wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness])
+            pybosl2.shapes3d.cuboid(
+                [wall_thickness * 5 + print_in_place_offset * 2, edge_size, lid_thickness],
+                anchor=BOTTOM + FRONT + LEFT,
+            )
             .color(material_colour)
             .translate([width * 3 / 4 - print_in_place_offset - wall_thickness, length - edge_size - wall_thickness, 0])
         )
@@ -608,7 +614,7 @@ def CardLibraryBoxLid(
         # a tree that is referenced from more than one CSG branch.
         _hc_size = [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1]
         handle_cut_a = (
-            cube(_hc_size)
+            pybosl2.shapes3d.cuboid(_hc_size, anchor=BOTTOM + FRONT + LEFT)
             .translate([0, -_hc_size[1], -_hc_size[2]])
             .translate(
                 [
@@ -619,7 +625,7 @@ def CardLibraryBoxLid(
             )
         )
         handle_cut_b = (
-            cube(_hc_size)
+            pybosl2.shapes3d.cuboid(_hc_size, anchor=BOTTOM + FRONT + LEFT)
             .translate([0, 0, -_hc_size[2]])
             .translate(
                 [
@@ -712,7 +718,7 @@ def CardLibraryBoxLidWithCustomShape(
     if lid_thickness is None:
         lid_thickness = default_lid_thickness
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         size=[size[0] - wall_thickness, size[1] - wall_thickness],
         lid_thickness=lid_thickness,
@@ -1020,6 +1026,9 @@ def CardSleeveForLibrary(
     has_text = text_new_width > min_text_height
     text_piece = None
     if has_text:
+        # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no resize() on Bosl2Shape2D/Bosl2Solid, and the
+        # label is scaled to fit by resize(), so text()+resize() stays on the native builtins.
+        # FIX IN BOSL2: add a resize op (and shapes2d.text stays usable) so this can be pybosl2.
         text_piece = (
             text(label, font=calc_font, valign="center", halign="center")
             .resize([text_new_length, text_new_width, 0])

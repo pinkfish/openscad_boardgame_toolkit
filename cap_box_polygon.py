@@ -24,11 +24,11 @@
 from __future__ import annotations
 import copy
 import math
+from dataclasses import dataclass, replace
 
 import numpy as np
 import types
 
-from openscad import hull, polygon
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -37,6 +37,8 @@ from base_bgtk import *
 import numpy as np
 import pybosl2.shapes3d
 from pybosl2.paths import Path
+from pybosl2 import shapes2d
+from box_base import BoxBaseType, BoxSpec
 from lids_base import (
     internal_build_lid,
     MakeLidLabel,
@@ -94,41 +96,36 @@ def FingerHoleSegmentCutout(
     if calc_len + radius > calc_len * 4 - radius:
         pts = seg.cut_points([split_length / 2])
         return (
-            pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+            pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
             .rotate([0, 0, angle])
             .translate([float(pts[0][0][0]), float(pts[0][0][1]), 0.0])
-            .shape
         )
 
     pts = seg.cut_points(
         [calc_len + wall_thickness, calc_len + calc_radius, calc_len * 4 - calc_radius, calc_len * 4 - wall_thickness],
     )
-    # .shape unwraps each Bosl2Solid: native hull() only takes raw solids.
     c1 = (
-        pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
         .rotate([0, 0, angle])
         .translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius])
-        .shape
     )
     c2 = (
-        pybosl2.shapes3d.xcyl(h=wall_thickness * 2, r=radius)
+        pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
         .rotate([0, 0, angle])
         .translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius])
-        .shape
     )
     c3 = (
         pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
         .translate([float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height])
-        .shape
     )
     c4 = (
         pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
         .translate([float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height])
-        .shape
     )
-    return hull(c1, c2, c3, c4)
+    # pybosl2 Bosl2Solid.hull() (3-D) instead of the native openscad hull().
+    return c1.hull(c2, c3, c4)
 
 
 def PolygonBoxLidCatch(
@@ -181,7 +178,9 @@ def PolygonBoxLidCatch(
     # path_sweep's 2-D frame), and move it onto the segment midpoint.
     seg_angle = math.degrees(math.atan2(p2[1] - p1[1], p2[0] - p1[0]))
     return (
-        polygon([[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]])
+        shapes2d.polygon(
+            [[delta, delta], [-wall_thickness * 3 / 4 - delta, delta], [delta, wall_thickness * 3 / 4 + delta]]
+        )
         .linear_extrude(height=math.dist(p1, p2), center=True)
         .rotate([90, 0, 0])
         .rotate([0, 0, seg_angle + 90])
@@ -272,22 +271,30 @@ def MakePathBoxWithCapLid(
     calc_width = max(x_arr) - min(x_arr) - 2 * wall_thickness
     calc_length = max(y_arr) - min(y_arr) - 2 * wall_thickness
 
-    body = polygon(calc_path_native).linear_extrude(height=height - lid_thickness - size_spacing).color(material_colour)
+    body = (
+        shapes2d.polygon(calc_path_native)
+        .linear_extrude(height=height - lid_thickness - size_spacing)
+        .color(material_colour)
+    )
 
-    lid_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
+    lid_outer = (
+        shapes2d.polygon(calc_path_native).offset(radius=size_spacing).linear_extrude(height=height).color(material_colour)
+    )
     lid_inner = (
-        polygon(calc_path_native)
-        .offset(-calc_lid_wall_thickness - size_spacing)
-        .linear_extrude(height + 1)
+        shapes2d.polygon(calc_path_native)
+        .offset(radius=-calc_lid_wall_thickness - size_spacing)
+        .linear_extrude(height=height + 1)
         .color(material_colour)
         .translate([0, 0, -0.5])
     )
     body = body - (lid_outer - lid_inner).translate([0, 0, height - calc_cap_height])
 
-    finger_outer = polygon(calc_path_native).offset(size_spacing).linear_extrude(height=height).color(material_colour)
+    finger_outer = (
+        shapes2d.polygon(calc_path_native).offset(radius=size_spacing).linear_extrude(height=height).color(material_colour)
+    )
     finger_inner = (
-        polygon(calc_path_native)
-        .offset(-calc_lid_wall_thickness - size_spacing)
+        shapes2d.polygon(calc_path_native)
+        .offset(radius=-calc_lid_wall_thickness - size_spacing)
         .linear_extrude(height=height)
         .color(material_colour)
     )
@@ -435,11 +442,13 @@ def CapPathBoxLid(
     lid_stack = lid_stack.translate([0, 0, calc_cap_height - lid_thickness])
 
     base_outer = (
-        polygon(calc_path_native).linear_extrude(height=calc_cap_height - lid_thickness / 2).color(material_colour)
+        shapes2d.polygon(calc_path_native)
+        .linear_extrude(height=calc_cap_height - lid_thickness / 2)
+        .color(material_colour)
     )
     base_inner = (
-        polygon(calc_path_native)
-        .offset(-wall_thickness + size_spacing)
+        shapes2d.polygon(calc_path_native)
+        .offset(radius=-wall_thickness + size_spacing)
         .linear_extrude(height=calc_cap_height - lid_thickness / 2 + 1)
         .color(material_colour)
         .translate([0, 0, -0.5])
@@ -552,7 +561,7 @@ def CapPathBoxLidWithLabelAndCustomShape(
     calc_width = max(x_arr) - min(x_arr)
     calc_length = max(y_arr) - min(y_arr)
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
+    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
     mesh = LidMeshBasic(
         path=path,
         lid_thickness=lid_thickness,
@@ -665,3 +674,127 @@ def CapPathBoxLidWithLabel(
         shape_child=shape_piece,
         extra_children=extra_children,
     )
+
+
+@dataclass
+class CapPathBoxOptions:
+    """Options for :class:`CapPathBox` -- a cap box whose outline is a polygon.
+
+    Give an explicit ``path`` (closed ``[[x, y], ...]`` outline) or use
+    :meth:`CapPathBox.regular_polygon`. ``children`` is the list of solids/callables
+    carved into the interior (resolved like the rectangular boxes)."""
+
+    path: list[list[float]]
+    children: "list | None" = None
+    cap_height: float | None = None
+    lid_wall_thickness: float | None = None
+    finger_hold_height: float = 5
+    lid_catch: "CatchType | None" = None
+
+
+def MakeCapPathBoxOptions(**kwargs) -> CapPathBoxOptions:
+    return CapPathBoxOptions(**kwargs)
+
+
+class CapPathBox(BoxBaseType):
+    """A cap box whose OUTLINE is a polygon, on the new box system -- the polygon
+    counterpart of :class:`~cap_box.CapBox`. A cap slides over the top rim; box and lid
+    are separate prints. Facade over :func:`MakePathBoxWithCapLid` / :func:`CapPathBoxLid`.
+
+    The polygon and cap parameters go in ``BoxSpec.type_options`` as a
+    :class:`CapPathBoxOptions`; ``BoxSpec.size`` is ``[width, length, height]`` but the
+    x/y extent is re-derived from the outline. The lid gets an automatic label + shape
+    pattern when ``BoxSpec.lid_label`` is set.
+
+    Usage::
+
+        from box_base import BoxSpec
+        from cap_box_polygon import CapPathBox, CapPathBoxOptions
+
+        box = CapPathBox(BoxSpec(size=[80, 80, 25], label="hexcap", lid_label="Ore",
+                                 type_options=CapPathBoxOptions(path=[[0,0],[80,0],[40,80]])))
+        box.make_box().show()
+        box.make_lid().show()
+
+        # regular hexagon
+        CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label="hex", lid_label="Gold"),
+                                   sides=6).make_box().show()
+    """
+
+    def __init__(self, spec: BoxSpec) -> None:
+        opts = spec.type_options
+        if not isinstance(opts, CapPathBoxOptions):
+            raise TypeError(
+                "CapPathBox requires BoxSpec(type_options=CapPathBoxOptions(path=...)); "
+                f"got type_options={opts!r}"
+            )
+        pts = np.asarray(opts.path, dtype=float)
+        w = float(pts[:, 0].max() - pts[:, 0].min())
+        l = float(pts[:, 1].max() - pts[:, 1].min())
+        super().__init__(replace(spec, size=[w, l, spec.size[2]]))
+        self._opts = opts
+
+    @classmethod
+    def regular_polygon(cls, spec: BoxSpec, sides: int, **opt_kwargs) -> "CapPathBox":
+        """Build from a regular *sides*-gon whose circumdiameter is ``spec.size[0]``."""
+        if sides < 3:
+            raise ValueError(f"sides must be >= 3, got {sides}")
+        path = shapes2d._regular_ngon_path(sides, spec.size[0] / 2)
+        return cls(replace(spec, type_options=CapPathBoxOptions(path=path, **opt_kwargs)))
+
+    def _children(self, contents):
+        if contents is None:
+            contents = self._spec.contents
+        kids = [io.value for io in self._resolve_contents(contents)] or None
+        # type_options.children compose in front of BoxSpec.contents.
+        if self._opts.children:
+            kids = list(self._opts.children) + (kids or [])
+        return kids
+
+    def make_box(self, *, contents=None, finger_holes=None):
+        o = self._opts
+        return MakePathBoxWithCapLid(
+            path=o.path,
+            height=self.height,
+            children=self._children(contents),
+            cap_height=o.cap_height,
+            lid_thickness=self.lid_thickness,
+            wall_thickness=self.wall_thickness,
+            size_spacing=self.size_spacing,
+            lid_wall_thickness=o.lid_wall_thickness,
+            finger_hold_height=o.finger_hold_height,
+            floor_thickness=self.floor_thickness,
+            material_colour=self.material_colour,
+            lid_catch=o.lid_catch,
+        )
+
+    def make_lid(self, lid=None):
+        o = self._opts
+        if self._spec.lid_label is not None:
+            return CapPathBoxLidWithLabel(
+                path=o.path,
+                height=self.height,
+                text_str=self._spec.lid_label,
+                wall_thickness=self.wall_thickness,
+                cap_height=o.cap_height,
+                size_spacing=self.size_spacing,
+                lid_thickness=self.lid_thickness,
+                lid_wall_thickness=o.lid_wall_thickness,
+                material_colour=self.material_colour,
+                label_options=self._spec.label_options,
+                shape_options=self._spec.shape_options,
+            )
+        return CapPathBoxLid(
+            path=o.path,
+            height=self.height,
+            cap_height=o.cap_height,
+            lid_thickness=self.lid_thickness,
+            wall_thickness=self.wall_thickness,
+            size_spacing=self.size_spacing,
+            lid_wall_thickness=o.lid_wall_thickness,
+            material_colour=self.material_colour,
+            lid_catch=o.lid_catch,
+        )
+
+    def _build_box_body(self):
+        raise NotImplementedError("CapPathBox builds its polygon body in make_box()")

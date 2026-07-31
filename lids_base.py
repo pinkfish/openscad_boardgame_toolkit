@@ -326,11 +326,13 @@ def LidMeshBasic(
 
     # offset() is a 2-D op: it must run on the flat polygon before linear_extrude() lifts it to
     # 3-D, not after (calling offset() on an already-extruded solid silently yields nothing).
-    border = color(polygon(calc_path).offset(-boundary).linear_extrude(lid_thickness), material_colour) - color(
-        polygon(calc_path).offset(-boundary - 0.02).linear_extrude(lid_thickness + 1), material_colour
+    border = shapes2d.polygon(calc_path).offset(radius=-boundary).linear_extrude(height=lid_thickness).color(
+        material_colour
+    ) - shapes2d.polygon(calc_path).offset(radius=-boundary - 0.02).linear_extrude(height=lid_thickness + 1).color(
+        material_colour
     ).translate([0, 0, -0.5])
 
-    bound = color(polygon(calc_path).offset(-boundary).linear_extrude(lid_thickness), material_colour)
+    bound = shapes2d.polygon(calc_path).offset(radius=-boundary).linear_extrude(height=lid_thickness).color(material_colour)
     return (mesh | border) & bound
 
 
@@ -502,11 +504,15 @@ class Lid:
                 children=piece if piece is not None else self.children,
             )
 
-        border = color(polygon(calc_path).offset(-self.boundary).linear_extrude(self.lid_thickness), self.material_colour) - color(
-            polygon(calc_path).offset(-self.boundary - 0.02).linear_extrude(self.lid_thickness + 1), self.material_colour
-        ).translate([0, 0, -0.5])
+        border = shapes2d.polygon(calc_path).offset(radius=-self.boundary).linear_extrude(
+            height=self.lid_thickness
+        ).color(self.material_colour) - shapes2d.polygon(calc_path).offset(radius=-self.boundary - 0.02).linear_extrude(
+            height=self.lid_thickness + 1
+        ).color(self.material_colour).translate([0, 0, -0.5])
 
-        bound = color(polygon(calc_path).offset(-self.boundary).linear_extrude(self.lid_thickness), self.material_colour)
+        bound = shapes2d.polygon(calc_path).offset(radius=-self.boundary).linear_extrude(
+            height=self.lid_thickness
+        ).color(self.material_colour)
         return (mesh | border) & bound
 
     def fingernail_cutout(self) -> PyOpenSCAD | None:
@@ -526,7 +532,6 @@ class Lid:
                 material_colour=self.material_colour,
             )
             .translate([x_off, y_off, 0])
-            .shape
         )
 
     def overlay(
@@ -635,12 +640,15 @@ def MakeLidTab(
     base = shapes3d.cuboid([length, wall_thickness, lid_thickness], anchor=FRONT + LEFT + BOTTOM)
 
     stalk = shapes3d.cuboid([length, wall_thickness / 2, height - wall_thickness + 0.1], anchor=FRONT + LEFT + BOTTOM)
-    wedge = hull(
+    wedge = (
         shapes3d.xcyl(height=length, radius=0.1)
         .translate([length / 2, wall_thickness * prism_width - 0.1, height - wall_thickness + 0.1])
-        .shape,
-        shapes3d.cuboid([length, 0.1, 0.1], anchor=FRONT + LEFT + BOTTOM).translate([0, 0, height - wall_thickness]).shape,
-        shapes3d.xcyl(height=length, radius=0.1).translate([length / 2, 0.1, height - 0.1]).shape,
+        .hull(
+            shapes3d.cuboid([length, 0.1, 0.1], anchor=FRONT + LEFT + BOTTOM).translate(
+                [0, 0, height - wall_thickness]
+            ),
+            shapes3d.xcyl(height=length, radius=0.1).translate([length / 2, 0.1, height - 0.1]),
+        )
     )
 
     return (base | stalk | wedge).mirror([0, 0, 1])
