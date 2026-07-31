@@ -64,7 +64,7 @@ def _segment_angle(normal: "np.ndarray | list[list[float]]") -> float:
     return math.degrees(math.atan(normal[0][1] / normal[0][0]))
 
 
-def FingerHoleSegmentCutout(
+def _finger_hole_segment_cutout(
     path: list[list[float]], radius: float, height: float, wall_thickness: float
 ) -> PyOpenSCAD | None:
     """Makes a single segment for use in the cap-box wall.
@@ -74,7 +74,7 @@ def FingerHoleSegmentCutout(
 
     Usage::
 
-        FingerHoleSegmentCutout([[0, 0], [50, 50]], radius=5, height=7, wall_thickness=2)
+        _finger_hole_segment_cutout([[0, 0], [50, 50]], radius=5, height=7, wall_thickness=2)
 
     Args:
         path:   the path to generate for (exactly 2 points / one line segment)
@@ -189,7 +189,7 @@ def PolygonBoxLidCatch(
     )
 
 
-def MakePathBoxWithCapLid(
+def _make_path_box_with_cap_lid(
     path: list[list[float]],
     height: float,
     children: "list | None" = None,
@@ -214,7 +214,7 @@ def MakePathBoxWithCapLid(
 
     Usage::
 
-        MakePathBoxWithCapLid(path=[[0,0], [0,100], [100,100]], height=20)
+        _make_path_box_with_cap_lid(path=[[0,0], [0,100], [100,100]], height=20)
 
     Args:
         path:            the polygon outline path of the box (>= 3 points)
@@ -302,7 +302,7 @@ def MakePathBoxWithCapLid(
     finger_cut = finger_outer - finger_inner
     n = len(calc_path)
     for i in range(n - 1):
-        seg = FingerHoleSegmentCutout(
+        seg = _finger_hole_segment_cutout(
             path=[calc_path[i], calc_path[i + 1]],
             height=calc_finger_hold_height,
             radius=calc_finger_hole_rounding,
@@ -310,7 +310,7 @@ def MakePathBoxWithCapLid(
         )
         if seg is not None:
             finger_cut = finger_cut - seg
-    seg = FingerHoleSegmentCutout(
+    seg = _finger_hole_segment_cutout(
         path=[calc_path[n - 1], calc_path[0]],
         height=calc_finger_hold_height,
         radius=calc_finger_hole_rounding,
@@ -369,7 +369,7 @@ def MakePathBoxWithCapLid(
     return result
 
 
-def CapPathBoxLid(
+def _cap_path_box_lid(
     path: list[list[float]],
     height: float,
     children: list[PyOpenSCAD] | None = None,
@@ -388,7 +388,7 @@ def CapPathBoxLid(
 
     Usage::
 
-        CapPathBoxLid(path=[[0,0], [0,100], [100,100]], height=30)
+        _cap_path_box_lid(path=[[0,0], [0,100], [100,100]], height=30)
 
     Args:
         path:    the polygon outline path of the box (>= 3 points)
@@ -485,193 +485,6 @@ def CapPathBoxLid(
     return main.translate([0, calc_length, calc_cap_height]).rotate([180, 0, 0])
 
 
-def CapPathBoxLidWithLabelAndCustomShape(
-    path: list[list[float]],
-    height: float,
-    text_str: str,
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    lid_boundary: float = 10,
-    wall_thickness: float | None = None,
-    cap_height: float | None = None,
-    layout_width: float | None = None,
-    size_spacing: float | None = None,
-    lid_thickness: float | None = None,
-    lid_wall_thickness: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    lid_rounding: float | None = None,
-    lid_inner_rounding: float | None = None,
-    lid_pattern_dense: bool = False,
-    lid_dense_shape_edges: int = 6,
-    material_colour: str | None = None,
-    label_background_colour: str | None = None,
-    pattern_inner_control: int = False,
-    label_options: LabelOptions | None = None,
-) -> PyOpenSCAD:
-    """Lid for a polygon cap box, with a repeating pattern and a label.
-
-    Usage::
-
-        CapPathBoxLidWithLabelAndCustomShape(path=[[0,0], [0,100], [100,100]],
-            height=30, text_str="Frog",
-            shape_child=ShapeByType(MakeShapeObject(
-                shape_type=ShapeType.SUPERSHAPE, shape_thickness=2,
-                supershape_m1=12, supershape_m2=12, supershape_n1=1,
-                supershape_b=1.5, shape_width=15)))
-
-    Args:
-        path:       the polygon outline path of the box (>= 3 points)
-        height:     outside height of the box
-        text_str:   label text
-        shape_child: 2-D shape solid to tile on the lid
-        extra_children: additional children (list of solids)
-        lid_boundary: boundary around the lid edge (default 10)
-        wall_thickness: wall thickness (default default_wall_thickness)
-        cap_height: cap height (default auto)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: lid thickness (default default_lid_thickness)
-        lid_wall_thickness: thickness of the walls in the lid (default wall_thickness/2)
-        aspect_ratio: dy scale factor (default 1.0)
-        lid_rounding/lid_inner_rounding: rounding values
-        lid_pattern_dense/lid_dense_shape_edges: dense layout options
-        material_colour: colour (default default_material_colour)
-        label_background_colour: unused, kept for API compatibility
-        pattern_inner_control: inner control mode
-        label_options: :class:`~labels.LabelOptions`
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
-    assert height > 0, f"Height must be >0 height={height}"
-    assert text_str is not None, "text_str must be set"
-
-    x_arr = [p[0] for p in path]
-    y_arr = [p[1] for p in path]
-    calc_width = max(x_arr) - min(x_arr)
-    calc_length = max(y_arr) - min(y_arr)
-
-    lid_children = build_lid_overlays(
-        lid_thickness=lid_thickness,
-        path=path,
-        label_size=[calc_width, calc_length],
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        shape_child=shape_child,
-        dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges,
-        inner_control=pattern_inner_control,
-        text_str=text_str,
-        label_options=calc_label_options,
-        extra_children=extra_children,
-        material_colour=material_colour,
-    )
-
-    return CapPathBoxLid(
-        path=path,
-        height=height,
-        cap_height=cap_height,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        lid_wall_thickness=lid_wall_thickness,
-        size_spacing=m_piece_wiggle_room,
-        lid_rounding=lid_rounding,
-        lid_inner_rounding=lid_inner_rounding,
-        material_colour=material_colour,
-        children=lid_children,
-    )
-
-
-def CapPathBoxLidWithLabel(
-    path: list[list[float]],
-    height: float,
-    text_str: str,
-    extra_children: "list | None" = None,
-    lid_boundary: float = 10,
-    wall_thickness: float | None = None,
-    cap_height: float | None = None,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    size_spacing: float | None = None,
-    lid_thickness: float | None = None,
-    lid_wall_thickness: float | None = None,
-    lid_inner_rounding: float | None = None,
-    material_colour: str | None = None,
-    label_options: LabelOptions | None = None,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Lid for a polygon cap box with an automatic label and shape pattern.
-
-    Usage::
-
-        CapPathBoxLidWithLabel(path=[[0,0], [0,100], [100,100]], height=30, text_str="Frog")
-
-    Args:
-        path:    the polygon outline path of the box (>= 3 points)
-        height:  outside height of the box
-        text_str: label text
-        extra_children: additional children (list of solids)
-        lid_boundary: boundary around the lid edge (default 10)
-        wall_thickness: wall thickness (default default_wall_thickness)
-        cap_height: cap height (default auto)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        aspect_ratio: dy scale factor (default default_lid_aspect_ratio)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: lid thickness (default default_lid_thickness)
-        lid_wall_thickness: thickness of the walls in the lid
-        lid_inner_rounding: inner rounding
-        material_colour: colour (default default_material_colour)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
-    assert height > 0, f"Height must be >0 height={height}"
-    assert text_str is not None, "text_str must be set"
-
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour)
-
-    return CapPathBoxLidWithLabelAndCustomShape(
-        path=path,
-        height=height,
-        cap_height=cap_height,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        lid_wall_thickness=lid_wall_thickness,
-        text_str=text_str,
-        layout_width=layout_width,
-        size_spacing=size_spacing,
-        aspect_ratio=aspect_ratio,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        label_options=calc_label_options,
-        shape_child=shape_piece,
-        extra_children=extra_children,
-    )
-
-
 @dataclass
 class CapPathBoxOptions:
     """Options for :class:`CapPathBox` -- a cap box whose outline is a polygon.
@@ -695,7 +508,7 @@ def MakeCapPathBoxOptions(**kwargs) -> CapPathBoxOptions:
 class CapPathBox(BoxBaseType):
     """A cap box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~cap_box.CapBox`. A cap slides over the top rim; box and lid
-    are separate prints. Facade over :func:`MakePathBoxWithCapLid` / :func:`CapPathBoxLid`.
+    are separate prints. Facade over :func:`_make_path_box_with_cap_lid` / :func:`_cap_path_box_lid`.
 
     The polygon and cap parameters go in ``BoxSpec.type_options`` as a
     :class:`CapPathBoxOptions`; ``BoxSpec.size`` is ``[width, length, height]`` but the
@@ -749,7 +562,7 @@ class CapPathBox(BoxBaseType):
 
     def make_box(self, *, contents=None, finger_holes=None):
         o = self._opts
-        return MakePathBoxWithCapLid(
+        return _make_path_box_with_cap_lid(
             path=o.path,
             height=self.height,
             children=self._children(contents),
@@ -764,23 +577,43 @@ class CapPathBox(BoxBaseType):
             lid_catch=o.lid_catch,
         )
 
+    def _lid_overlay_children(self):
+        """The label + shape-pattern overlay solids for the polygon lid, or ``None`` when
+        no ``lid_label`` is set. Built with the path-aware :func:`~lids_base.build_lid_overlays`
+        (mirrors what the old ``CapPathBoxLidWithLabel`` did before this was privatised)."""
+        if self._spec.lid_label is None:
+            return None
+        o = self._opts
+        pts = np.asarray(o.path, dtype=float)
+        calc_width = float(pts[:, 0].max() - pts[:, 0].min())
+        calc_length = float(pts[:, 1].max() - pts[:, 1].min())
+        label_options = (
+            self._spec.label_options if self._spec.label_options is not None
+            else MakeLabelOptions(material_colour=self.material_colour)
+        )
+        shape_options = self._spec.shape_options if self._spec.shape_options is not None else MakeShapeObject()
+        shape_piece = ShapeByType(options=shape_options)
+        assert shape_piece is not None, "shape_options must not be ShapeType.NONE here"
+        return build_lid_overlays(
+            lid_thickness=self.lid_thickness,
+            path=o.path,
+            label_size=[calc_width, calc_length],
+            boundary=10,
+            layout_width=None,
+            aspect_ratio=1.0,
+            shape_child=shape_piece.color(self.material_colour),
+            dense=IsDenseShapeType(shape_options.shape_type),
+            dense_shape_edges=DenseShapeEdges(shape_options.shape_type),
+            inner_control=ShapeNeedsInnerControl(shape_options.shape_type),
+            text_str=self._spec.lid_label,
+            label_options=label_options,
+            extra_children=None,
+            material_colour=self.material_colour,
+        )
+
     def make_lid(self, lid=None):
         o = self._opts
-        if self._spec.lid_label is not None:
-            return CapPathBoxLidWithLabel(
-                path=o.path,
-                height=self.height,
-                text_str=self._spec.lid_label,
-                wall_thickness=self.wall_thickness,
-                cap_height=o.cap_height,
-                size_spacing=self.size_spacing,
-                lid_thickness=self.lid_thickness,
-                lid_wall_thickness=o.lid_wall_thickness,
-                material_colour=self.material_colour,
-                label_options=self._spec.label_options,
-                shape_options=self._spec.shape_options,
-            )
-        return CapPathBoxLid(
+        return _cap_path_box_lid(
             path=o.path,
             height=self.height,
             cap_height=o.cap_height,
@@ -790,6 +623,7 @@ class CapPathBox(BoxBaseType):
             lid_wall_thickness=o.lid_wall_thickness,
             material_colour=self.material_colour,
             lid_catch=o.lid_catch,
+            children=self._lid_overlay_children(),
         )
 
     def _build_box_body(self):

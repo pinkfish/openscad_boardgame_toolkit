@@ -579,6 +579,19 @@ class BoxBaseType(ABC):
 
         The passed *lid* is never mutated -- a copy is filled in with this box's
         defaults so the same :class:`~lids_base.Lid` can be reused across boxes."""
+        l = self._prepare_lid(lid)
+        children = [self._make_base_lid(l.lid_rounding)] + self._lid_overlay(l)
+        stack = internal_build_lid(
+            lid_thickness=l.lid_thickness,
+            children=children,
+            size_spacing=self.size_spacing,
+        )
+        return self._lid_adjustment(stack)
+
+    def _prepare_lid(self, lid: Lid | None) -> Lid:
+        """A copy of *lid* (or a default Lid) with this box's lid_thickness / size /
+        fingernail defaults filled in. The passed *lid* is never mutated. Box types whose
+        lid isn't a flat stack (cap, slipover) reuse this then place overlays themselves."""
         l = copy.copy(lid) if lid is not None else Lid(lid_thickness=self.lid_thickness)
         if not l.lid_thickness:
             l.lid_thickness = self.lid_thickness
@@ -589,14 +602,38 @@ class BoxBaseType(ABC):
             if l.fingernail.width is None:
                 l.fingernail.width = self.inner_width
                 l.fingernail.length = self.inner_length
+        return l
 
-        children = [self._make_base_lid(l.lid_rounding)] + self._lid_overlay(l)
-        stack = internal_build_lid(
-            lid_thickness=l.lid_thickness,
-            children=children,
-            size_spacing=self.size_spacing,
+    def _decorated_flat_lid(self, lid: Lid | None, size, rounding: float | None = None) -> tuple[Bosl2Solid, float]:
+        """A flat lid slab of footprint *size* ``(w, l)`` carrying this box's label / pattern /
+        fingernail overlays, assembled at ``z = 0 .. lid_thickness`` via
+        :func:`~lids_base.internal_build_lid`. Cap / slipover lids call this then translate the
+        slab onto their top face (``internal_build_lid`` flattens overlays to z=0, so overlays
+        must be assembled here, at the origin, and the whole slab moved -- not the overlays).
+
+        Returns ``(slab, lid_thickness)``, where *slab* is ``None`` when the lid carries no
+        overlays at all -- letting cap / slipover keep their plain (rounded) top in that case."""
+        lt = lid.lid_thickness if lid is not None and lid.lid_thickness else self.lid_thickness
+        base = pybosl2.shapes3d.cuboid(
+            [size[0], size[1], lt], anchor=BOTTOM + FRONT + LEFT
+        ).color(self.material_colour)
+        decorated = self._apply_lid_overlays(base, lid, size)
+        return (None if decorated is base else decorated), lt
+
+    def _apply_lid_overlays(self, base_plate: Bosl2Solid, lid: Lid | None, size) -> Bosl2Solid:
+        """Combine a caller-built flat lid *base_plate* (footprint *size* ``(w, l)``, occupying
+        ``z = 0 .. lid_thickness``) with this box's label / pattern / fingernail overlays via
+        :func:`~lids_base.internal_build_lid`. Returns *base_plate* unchanged when there are no
+        overlays. Lid types whose plate isn't the default flat cuboid (magnet holes, cap/slipover
+        top) build their own plate then call this to decorate it."""
+        l = self._prepare_lid(lid)
+        l.size = [size[0], size[1]]
+        overlays = self._lid_overlay(l)
+        if not overlays:
+            return base_plate
+        return internal_build_lid(
+            lid_thickness=l.lid_thickness, children=[base_plate] + overlays, size_spacing=self.size_spacing
         )
-        return self._lid_adjustment(stack)
 
     def _make_base_lid(self, lid_rounding: float | None = None) -> Bosl2Solid:
         """Build the raw lid body. Subclasses override for box-specific geometry."""

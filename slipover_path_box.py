@@ -52,14 +52,14 @@ from pybosl2 import shapes2d
 from box_base import BoxBaseType, BoxSpec
 
 
-def FingerHoleWallSegmentCutout(
+def _finger_hole_wall_segment_cutout(
     path: list[list[float]], height: float, radius: float, depth: float, finger_catch: CatchType
 ) -> PyOpenSCAD | None:
     """Makes a single finger-hole segment for use in the slipover box wall.
 
     Usage::
 
-        FingerHoleWallSegmentCutout([[0, 0], [50, 50]], radius=5, height=7, depth=6, finger_catch=CatchType.ALL)
+        _finger_hole_wall_segment_cutout([[0, 0], [50, 50]], radius=5, height=7, depth=6, finger_catch=CatchType.ALL)
 
     Args:
         path:    the path to generate for (exactly 2 points / one line segment)
@@ -92,7 +92,7 @@ def FingerHoleWallSegmentCutout(
     )
 
 
-def MakePathBoxWithSlipoverLid(
+def _make_path_box_with_slipover_lid(
     path: list[list[float]],
     height: float,
     children: "list | None" = None,
@@ -115,7 +115,7 @@ def MakePathBoxWithSlipoverLid(
 
     Usage::
 
-        MakePathBoxWithSlipoverLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
+        _make_path_box_with_slipover_lid(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
 
     Args:
         path:           the path for the bottom of the box (>= 3 points)
@@ -212,7 +212,7 @@ def MakePathBoxWithSlipoverLid(
     return result
 
 
-def SlipoverPathBoxLid(
+def _slipover_path_box_lid(
     path: list[list[float]],
     height: float,
     children: "list | None" = None,
@@ -230,7 +230,7 @@ def SlipoverPathBoxLid(
 
     Usage::
 
-        SlipoverPathBoxLid(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
+        _slipover_path_box_lid(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
 
     Args:
         path:    the path of the box outline (>= 3 points)
@@ -321,7 +321,7 @@ def SlipoverPathBoxLid(
         wall = wall | catches.color(material_colour)
 
     for i in range(n - 1):
-        seg = FingerHoleWallSegmentCutout(
+        seg = _finger_hole_wall_segment_cutout(
             path=[calc_inner_path[i], calc_inner_path[i + 1]],
             depth=wall_thickness * 5,
             height=finger_height,
@@ -330,7 +330,7 @@ def SlipoverPathBoxLid(
         )
         if seg is not None:
             wall = wall - seg.color(material_colour)
-    seg = FingerHoleWallSegmentCutout(
+    seg = _finger_hole_wall_segment_cutout(
         path=[calc_inner_path[n - 1], calc_inner_path[0]],
         depth=wall_thickness * 5,
         height=finger_height,
@@ -342,206 +342,6 @@ def SlipoverPathBoxLid(
 
     body = lid_stack | wall
     return body.translate([0, calc_length, height - foot]).rotate([180, 0, 0])
-
-
-def SlipoverPathBoxLidWithLabelAndCustomShape(
-    path: list[list[float]],
-    height: float,
-    text_str: str,
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    size_spacing: float | None = None,
-    lid_thickness: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    lid_rounding: float | None = None,
-    wall_thickness: float | None = None,
-    foot: float = 0,
-    finger_catch: CatchType | None = None,
-    lid_pattern_dense: bool = False,
-    lid_dense_shape_edges: int = 6,
-    material_colour: str | None = None,
-    lid_catch: CatchType | None = None,
-    pattern_inner_control: int = False,
-    label_options: LabelOptions | None = None,
-) -> PyOpenSCAD:
-    """Lid for a polygon slipover box, with a repeating pattern and a label.
-
-    Usage::
-
-        SlipoverPathBoxLidWithLabelAndCustomShape(
-            path=[[0,0],[0,100],[50,100],[50,0]], height=10, text_str="Frog",
-            shape_child=ShapeByType(MakeShapeObject(
-                shape_type=ShapeType.SUPERSHAPE, shape_thickness=2,
-                supershape_m1=12, supershape_m2=12, supershape_n1=1,
-                supershape_b=1.5, shape_width=15)))
-
-    Args:
-        path:    the path of the box outline (>= 3 points)
-        height:  outside height of the box
-        text_str: label text
-        shape_child: 2-D shape solid to tile on the lid
-        extra_children: additional children (list of solids)
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: lid thickness (default default_lid_thickness)
-        aspect_ratio: dy scale factor (default 1.0)
-        lid_rounding: lid edge rounding (default wall_thickness)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        foot:    size of the foot on the box
-        finger_catch: where to put the catches (default CatchType.SHORT)
-        lid_pattern_dense/lid_dense_shape_edges: dense layout options
-        material_colour: colour (default default_material_colour)
-        lid_catch: catch style (default default_lid_catch_type)
-        pattern_inner_control: inner control mode
-        label_options: :class:`~labels.LabelOptions`
-    """
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if finger_catch is None:
-        finger_catch = CatchType.SHORT
-    if material_colour is None:
-        material_colour = default_material_colour
-    if lid_catch is None:
-        lid_catch = default_lid_catch_type
-
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
-    assert height > 0, f"Height must be >0 height={height}"
-    assert text_str is not None, "text_str must be set"
-
-    x_arr = [p[0] for p in path]
-    y_arr = [p[1] for p in path]
-    calc_width = max(x_arr) - min(x_arr)
-    calc_length = max(y_arr) - min(y_arr)
-
-    lid_children = build_lid_overlays(
-        lid_thickness=lid_thickness,
-        path=path,
-        label_size=[calc_width, calc_length],
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        shape_child=shape_child,
-        dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges,
-        inner_control=pattern_inner_control,
-        text_str=text_str,
-        label_options=calc_label_options,
-        extra_children=extra_children,
-        material_colour=material_colour,
-    )
-
-    return SlipoverPathBoxLid(
-        path=path,
-        height=height,
-        lid_thickness=lid_thickness,
-        wall_thickness=wall_thickness,
-        lid_rounding=lid_rounding,
-        size_spacing=size_spacing,
-        foot=foot,
-        finger_catch=finger_catch,
-        material_colour=material_colour,
-        lid_catch=lid_catch,
-        children=lid_children,
-    )
-
-
-def SlipoverPathBoxLidWithLabel(
-    path: list[list[float]],
-    height: float,
-    text_str: str,
-    extra_children: "list | None" = None,
-    lid_boundary: float = 10,
-    wall_thickness: float | None = None,
-    foot: float = 0,
-    aspect_ratio: float | None = None,
-    layout_width: float | None = None,
-    size_spacing: float | None = None,
-    lid_thickness: float | None = None,
-    lid_rounding: float | None = None,
-    material_colour: str | None = None,
-    lid_catch: CatchType | None = None,
-    label_options: LabelOptions | None = None,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Lid for a polygon slipover box with an automatic label and shape pattern.
-
-    Usage::
-
-        SlipoverPathBoxLidWithLabel(path=[[0,0],[0,100],[50,100],[50,0]], height=10, text_str="Marmoset")
-
-    Args:
-        path:    the path of the box outline (>= 3 points)
-        height:  outside height of the box
-        text_str: label text
-        extra_children: additional children (list of solids)
-        lid_boundary: boundary around the lid edge (default 10)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        foot:    size of the foot on the box
-        aspect_ratio: dy scale factor (default default_lid_aspect_ratio)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        size_spacing: wiggle room (default m_piece_wiggle_room)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        lid_rounding: rounding on the lid (default wall_thickness)
-        material_colour: colour (default default_material_colour)
-        lid_catch: catch style (default default_lid_catch_type)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if size_spacing is None:
-        size_spacing = m_piece_wiggle_room
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-    if lid_catch is None:
-        lid_catch = default_lid_catch_type
-
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
-    assert height > 0, f"Height must be >0 height={height}"
-    assert text_str is not None, "text_str must be set"
-
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour)
-
-    return SlipoverPathBoxLidWithLabelAndCustomShape(
-        path=path,
-        height=height,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        text_str=text_str,
-        layout_width=layout_width,
-        size_spacing=size_spacing,
-        aspect_ratio=aspect_ratio,
-        lid_rounding=lid_rounding,
-        lid_boundary=lid_boundary,
-        foot=foot,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        lid_catch=lid_catch,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        shape_child=shape_piece,
-        extra_children=extra_children,
-    )
 
 
 @dataclass
@@ -566,7 +366,7 @@ class SlipoverPathBox(BoxBaseType):
     """A slipover box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~slipover_box.SlipoverBox`. The lid is a sleeve that slides
     over the outside of the box; box and lid are separate prints. Facade over
-    :func:`MakePathBoxWithSlipoverLid` / :func:`SlipoverPathBoxLid`.
+    :func:`_make_path_box_with_slipover_lid` / :func:`_slipover_path_box_lid`.
 
     The polygon goes in ``BoxSpec.type_options`` as a :class:`SlipoverPathBoxOptions`;
     ``BoxSpec.size`` is ``[width, length, height]`` but the x/y extent is re-derived from
@@ -620,7 +420,7 @@ class SlipoverPathBox(BoxBaseType):
 
     def make_box(self, *, contents=None, finger_holes=None):
         o = self._opts
-        return MakePathBoxWithSlipoverLid(
+        return _make_path_box_with_slipover_lid(
             path=o.path,
             height=self.height,
             children=self._children(contents),
@@ -633,23 +433,42 @@ class SlipoverPathBox(BoxBaseType):
             lid_catch=o.lid_catch,
         )
 
+    def _lid_overlay_children(self):
+        """The label + shape-pattern overlay solids for the polygon sleeve lid, or ``None``
+        when no ``lid_label`` is set (mirrors the old ``SlipoverPathBoxLidWithLabel``)."""
+        if self._spec.lid_label is None:
+            return None
+        o = self._opts
+        pts = np.asarray(o.path, dtype=float)
+        calc_width = float(pts[:, 0].max() - pts[:, 0].min())
+        calc_length = float(pts[:, 1].max() - pts[:, 1].min())
+        label_options = (
+            self._spec.label_options if self._spec.label_options is not None
+            else MakeLabelOptions(material_colour=self.material_colour)
+        )
+        shape_options = self._spec.shape_options if self._spec.shape_options is not None else MakeShapeObject()
+        shape_piece = ShapeByType(options=shape_options)
+        assert shape_piece is not None, "shape_options must not be ShapeType.NONE here"
+        return build_lid_overlays(
+            lid_thickness=self.lid_thickness,
+            path=o.path,
+            label_size=[calc_width, calc_length],
+            boundary=10,
+            layout_width=None,
+            aspect_ratio=1.0,
+            shape_child=shape_piece.color(self.material_colour),
+            dense=IsDenseShapeType(shape_options.shape_type),
+            dense_shape_edges=DenseShapeEdges(shape_options.shape_type),
+            inner_control=ShapeNeedsInnerControl(shape_options.shape_type),
+            text_str=self._spec.lid_label,
+            label_options=label_options,
+            extra_children=None,
+            material_colour=self.material_colour,
+        )
+
     def make_lid(self, lid=None):
         o = self._opts
-        if self._spec.lid_label is not None:
-            return SlipoverPathBoxLidWithLabel(
-                path=o.path,
-                height=self.height,
-                text_str=self._spec.lid_label,
-                wall_thickness=self.wall_thickness,
-                foot=o.foot,
-                size_spacing=self.size_spacing,
-                lid_thickness=self.lid_thickness,
-                material_colour=self.material_colour,
-                lid_catch=o.lid_catch,
-                label_options=self._spec.label_options,
-                shape_options=self._spec.shape_options,
-            )
-        return SlipoverPathBoxLid(
+        return _slipover_path_box_lid(
             path=o.path,
             height=self.height,
             wall_thickness=self.wall_thickness,
@@ -658,6 +477,7 @@ class SlipoverPathBox(BoxBaseType):
             lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
             lid_catch=o.lid_catch,
+            children=self._lid_overlay_children(),
         )
 
     def _build_box_body(self):

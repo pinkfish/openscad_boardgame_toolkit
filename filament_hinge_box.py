@@ -97,7 +97,7 @@ def HingeOptions(
     )
 
 
-def MakeBoxWithFilamentHingeLid(
+def _make_box_with_filament_hinge_lid(
     size: list[float],
     children: "list | None" = None,
     wall_thickness: float | None = None,
@@ -122,7 +122,7 @@ def MakeBoxWithFilamentHingeLid(
 
     Usage::
 
-        MakeBoxWithFilamentHingeLid(size=[100, 50, 20])
+        _make_box_with_filament_hinge_lid(size=[100, 50, 20])
 
     Args:
         size:           outside size of the box [width, length, height]
@@ -279,7 +279,7 @@ def MakeBoxWithFilamentHingeLid(
     return result
 
 
-def FilamentBoxInsideMask(
+def _filament_box_inside_mask(
     size: list[float],
     wall_thickness: float | None = None,
     floor_thickness: float | None = None,
@@ -293,7 +293,7 @@ def FilamentBoxInsideMask(
 
     Usage::
 
-        FilamentBoxInsideMask([100, 20, 10])
+        _filament_box_inside_mask([100, 20, 10])
 
     Args:
         size:           [width, length, height] of the box
@@ -344,7 +344,7 @@ def FilamentBoxInsideMask(
     return body.shape
 
 
-def MakeLidForFilamentBox(
+def _make_lid_for_filament_box(
     size: list[float],
     children: "list | None" = None,
     wall_thickness: float | None = None,
@@ -361,7 +361,7 @@ def MakeLidForFilamentBox(
 
     Usage::
 
-        MakeLidForFilamentBox([100, 20, 6])
+        _make_lid_for_filament_box([100, 20, 6])
 
     Args:
         size:           [width, length, height] of the box
@@ -468,7 +468,7 @@ def MakeLidForFilamentBox(
     return body
 
 
-def FilamentHingeBoxLidWithCustomShape(
+def _filament_hinge_box_lid_with_custom_shape(
     size: list[float],
     shape_child: PyOpenSCAD | None = None,
     extra_children: "list | None" = None,
@@ -492,13 +492,13 @@ def FilamentHingeBoxLidWithCustomShape(
 
     Usage::
 
-        FilamentHingeBoxLidWithCustomShape([100, 20, 6], shape_child=shapes2d.circle(radius=5))
+        _filament_hinge_box_lid_with_custom_shape([100, 20, 6], shape_child=shapes2d.circle(radius=5))
 
     Args:
         size:    [width, length, height] of the box
         shape_child: 2-D shape solid to tile on the lid
         extra_children: additional children (list of solids)
-        wall_thickness/floor_thickness/lid_thickness/material_colour/filament_thickness/rounding/hinge_options/print_in_place_offset/size_spacing: see :func:`MakeLidForFilamentBox`
+        wall_thickness/floor_thickness/lid_thickness/material_colour/filament_thickness/rounding/hinge_options/print_in_place_offset/size_spacing: see :func:`_make_lid_for_filament_box`
         lid_pattern_dense/lid_dense_shape_edges: dense layout options
         aspect_ratio: dy scale factor (default 1.0)
         pattern_inner_control: inner control mode
@@ -524,7 +524,7 @@ def FilamentHingeBoxLidWithCustomShape(
         material_colour=material_colour,
     )
 
-    return MakeLidForFilamentBox(
+    return _make_lid_for_filament_box(
         size=size,
         wall_thickness=wall_thickness,
         floor_thickness=floor_thickness,
@@ -539,7 +539,7 @@ def FilamentHingeBoxLidWithCustomShape(
     )
 
 
-def FilamentHingeBoxLidWithShape(
+def _filament_hinge_box_lid_with_shape(
     size: list[float],
     shape_child: PyOpenSCAD | None = None,
     extra_children: "list | None" = None,
@@ -561,14 +561,14 @@ def FilamentHingeBoxLidWithShape(
 
     Usage::
 
-        FilamentHingeBoxLidWithShape([100, 20, 6], shape_options=MakeShapeObject())
+        _filament_hinge_box_lid_with_shape([100, 20, 6], shape_options=MakeShapeObject())
 
     Args:
         size:    [width, length, height] of the box
         shape_child: optional explicit 2-D shape solid (overrides shape_options if given)
         extra_children: additional children (list of solids)
         shape_options: :class:`~shape_type.ShapeObject` (default MakeShapeObject())
-        (other args, see :func:`FilamentHingeBoxLidWithCustomShape`)
+        (other args, see :func:`_filament_hinge_box_lid_with_custom_shape`)
     """
     if material_colour is None:
         material_colour = default_material_colour
@@ -581,7 +581,7 @@ def FilamentHingeBoxLidWithShape(
         assert _shape_raw is not None, "shape_options must not be ShapeType.NONE here"
         pattern_shape = _shape_raw.color(material_colour)
 
-    return FilamentHingeBoxLidWithCustomShape(
+    return _filament_hinge_box_lid_with_custom_shape(
         size=size,
         wall_thickness=wall_thickness,
         floor_thickness=floor_thickness,
@@ -603,7 +603,7 @@ def FilamentHingeBoxLidWithShape(
     )
 
 
-def FilamentHingeBoxLidWithLabelAndCustomShape(
+def _filament_hinge_box_lid_with_label_and_custom_shape(
     size: list[float],
     text_str: str,
     shape_child: PyOpenSCAD | None = None,
@@ -627,7 +627,7 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
 
     Usage::
 
-        FilamentHingeBoxLidWithLabelAndCustomShape([100, 20, 6], "Label", shape_child=shapes2d.circle(radius=5))
+        _filament_hinge_box_lid_with_label_and_custom_shape([100, 20, 6], "Label", shape_child=shapes2d.circle(radius=5))
 
     Args:
         size:     [width, length, height] of the box
@@ -665,7 +665,7 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
 
     lid_children = [label_shape] + (list(extra_children) if extra_children else [])
 
-    return FilamentHingeBoxLidWithShape(
+    return _filament_hinge_box_lid_with_shape(
         size=size,
         shape_child=shape_child,
         wall_thickness=wall_thickness,
@@ -685,7 +685,7 @@ def FilamentHingeBoxLidWithLabelAndCustomShape(
     )
 
 
-def FilamentHingeBoxLidWithLabel(
+def _filament_hinge_box_lid_with_label(
     size: list[float],
     text_str: str,
     extra_children: "list | None" = None,
@@ -708,7 +708,7 @@ def FilamentHingeBoxLidWithLabel(
 
     Usage::
 
-        FilamentHingeBoxLidWithLabel([100, 20, 6], "Label")
+        _filament_hinge_box_lid_with_label([100, 20, 6], "Label")
 
     Args:
         size:     [width, length, height] of the box
@@ -730,7 +730,7 @@ def FilamentHingeBoxLidWithLabel(
     assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
     shape_piece = shape_piece_raw.color(material_colour)
 
-    return FilamentHingeBoxLidWithLabelAndCustomShape(
+    return _filament_hinge_box_lid_with_label_and_custom_shape(
         size=size,
         text_str=text_str,
         label_options=calc_label_options,
@@ -791,7 +791,7 @@ class FilamentHingeBox(BoxBaseType):
         children = [io.value for io in resolved] or None
         pos_only = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE]
         pos_neg = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE_NEGATIVE]
-        return MakeBoxWithFilamentHingeLid(
+        return _make_box_with_filament_hinge_lid(
             size=[self.width, self.length, self.height],
             children=children,
             wall_thickness=self.wall_thickness,
@@ -805,7 +805,7 @@ class FilamentHingeBox(BoxBaseType):
 
     def make_lid(self, lid=None):
         if self._spec.lid_label is not None:
-            return FilamentHingeBoxLidWithLabel(
+            return _filament_hinge_box_lid_with_label(
                 size=[self.width, self.length, self.height],
                 text_str=self._spec.lid_label,
                 wall_thickness=self.wall_thickness,
@@ -816,7 +816,7 @@ class FilamentHingeBox(BoxBaseType):
                 label_options=self._spec.label_options,
                 shape_options=self._spec.shape_options,
             )
-        return MakeLidForFilamentBox(
+        return _make_lid_for_filament_box(
             size=[self.width, self.length, self.height],
             wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness,

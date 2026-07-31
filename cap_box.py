@@ -275,15 +275,21 @@ class CapBox(BoxBaseType):
 
     def create_lid(self, lid=None) -> "Bosl2Solid":
         """Build the cap: a wall frame that fits over the box's top rim, closed by a
-        top plate, with the matching catch protrusions."""
+        top plate, with the matching catch protrusions. When the lid carries a label /
+        shape pattern / fingernail, the top plate is the decorated flat-lid slab
+        (see :meth:`BoxBaseType._decorated_flat_lid`); otherwise it is a plain rounded plate."""
         cap_h = self._cap_height()
         walls = self._rim_frame(cap_h)
-        top = shapes3d.cuboid(
-            [self.width, self.length, self.lid_thickness],
-            anchor=BOTTOM + FRONT + LEFT,
-            rounding=self.wall_thickness / 2,
-            edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-        ).translate([0, 0, cap_h])
+        slab, slab_lt = self._decorated_flat_lid(lid, [self.width, self.length])
+        if slab is None:
+            top = shapes3d.cuboid(
+                [self.width, self.length, self.lid_thickness],
+                anchor=BOTTOM + FRONT + LEFT,
+                rounding=self.wall_thickness / 2,
+                edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+            ).translate([0, 0, cap_h])
+        else:
+            top = slab.translate([0, 0, cap_h])
         cap = walls | top
         catches = self._catches(is_lid=True)   # protrusions at the cap wall bottom
         if catches is not None:

@@ -125,7 +125,9 @@ class SlipoverBox(BoxBaseType):
 
     def create_lid(self, lid=None):
         """The slipover sleeve: an outer shell hollowed to leave wall-thick walls and a
-        lid-thick top, open at the bottom so it slides over the box body."""
+        lid-thick top, open at the bottom so it slides over the box body. When the lid
+        carries a label / shape pattern / fingernail, its plain top face is replaced by the
+        decorated flat-lid slab (see :meth:`BoxBaseType._decorated_flat_lid`)."""
         w, l, h = self.width, self.length, self.height
         wt, lt = self.wall_thickness, self.lid_thickness
         r = self.wall_thickness / 2
@@ -137,4 +139,14 @@ class SlipoverBox(BoxBaseType):
             [w - wt * 2, l - wt * 2, h - lt + 1], anchor=BOTTOM + FRONT + LEFT, rounding=r / 2,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
         ).translate([wt, wt, -1])
-        return (shell - cavity).color(self.material_colour)
+        sleeve = shell - cavity
+
+        slab, slab_lt = self._decorated_flat_lid(lid, [w, l])
+        if slab is None:
+            return sleeve.color(self.material_colour)
+        # Carve away the plain top face and drop the decorated slab into its place.
+        top_cut = pybosl2.shapes3d.cuboid(
+            [w + 2, l + 2, slab_lt + 2], anchor=BOTTOM + FRONT + LEFT
+        ).translate([-1, -1, h - slab_lt - 1])
+        walls = sleeve - top_cut
+        return (walls | slab.translate([0, 0, h - slab_lt])).color(self.material_colour)

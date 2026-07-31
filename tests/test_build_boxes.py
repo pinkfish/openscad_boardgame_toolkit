@@ -39,37 +39,43 @@ class TestDependencyFiles(unittest.TestCase):
         return {os.path.relpath(p, REPO) for p in paths}
 
     def test_traces_transitive_toolkit_imports(self):
-        # splendor -> sliding_box -> base_bgtk/lids_base/labels/... -> pybosl2/*
-        deps = self.rel(bb.dependency_files(os.path.join(bb.EXAMPLES, "splendor.py")))
-        for expected in ("examples/splendor.py", "base_bgtk.py", "sliding_box.py", "components.py",
-                         "pybosl2/shapes3d.py", "pybosl2/__init__.py", "labels.py"):
-            self.assertIn(expected, deps, f"{expected} missing from splendor deps")
+        # cascadero -> sliding_box -> base_bgtk/lids_base/labels/... (pybosl2 is an external
+        # pip package now, so the tracer excludes it like pythonscad/stdlib).
+        deps = self.rel(bb.dependency_files(os.path.join(bb.EXAMPLES, "cascadero.py")))
+        for expected in ("examples/cascadero.py", "base_bgtk.py", "sliding_box.py", "components.py",
+                         "lids_base.py", "box_base.py", "labels.py"):
+            self.assertIn(expected, deps, f"{expected} missing from cascadero deps")
 
     def test_excludes_external_modules(self):
         # native/app modules (pythonscad, openscad) and stdlib resolve to nothing.
-        deps = self.rel(bb.dependency_files(os.path.join(bb.EXAMPLES, "demo_py.py")))
+        deps = self.rel(bb.dependency_files(os.path.join(bb.EXAMPLES, "cascadero.py")))
         self.assertFalse(any("pythonscad" in d or "openscad" in d for d in deps))
 
-    def test_relative_imports_resolve_within_package(self):
-        # pybosl2/shapes3d.py does `from .constants import *` etc.
-        deps = self.rel(bb.dependency_files(os.path.join(REPO, "pybosl2", "shapes3d.py")))
-        self.assertIn("pybosl2/constants.py", deps)
-        self.assertIn("pybosl2/shapes3d.py", deps)
+    def test_traces_toolkit_module_transitive_deps(self):
+        # A toolkit module (not just an example) traces its own transitive toolkit imports:
+        # box_base -> lids_base / labels / components, all repo-local absolute imports.
+        deps = self.rel(bb.dependency_files(os.path.join(REPO, "box_base.py")))
+        self.assertIn("box_base.py", deps)
+        self.assertIn("lids_base.py", deps)
 
     def test_self_included(self):
-        p = os.path.join(bb.EXAMPLES, "demo_py.py")
+        p = os.path.join(bb.EXAMPLES, "cascadero.py")
         self.assertIn(os.path.abspath(p), bb.dependency_files(p))
 
 
 class TestDiscovery(unittest.TestCase):
     def test_example_games_includes_ported(self):
         games = bb.example_games()
-        for g in ("demo_py", "splendor", "cascadero", "moonrakers"):
+        for g in ("cascadero", "irish_gauge", "stackable_hexes"):
             self.assertIn(g, games)
 
     def test_sections_returns_marked_boxes(self):
-        makes, docs = bb.sections("demo_py")
-        self.assertEqual(makes, ["TokenBox", "TokenBoxLid"])
+        makes, docs = bb.sections("cascadero")
+        self.assertEqual(
+            makes,
+            ["SealsBox", "SealsBoxLid", "FarmerBox", "FarmerBoxLid",
+             "HeraldBox", "HeraldBoxLid", "PlayerBox", "PlayerBoxLid"],
+        )
         self.assertEqual(docs, [])
 
 

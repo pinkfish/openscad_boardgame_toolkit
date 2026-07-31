@@ -42,7 +42,7 @@ from dataclasses import dataclass
 # ---------------------------------------------------------------------------
 
 
-def HingeCone(r: float, offset: float) -> "PyOpenSCAD":
+def _hinge_cone(r: float, offset: float) -> "PyOpenSCAD":
     """Makes the hinge cone for use in hinges.
 
     A 45-degree cone with an inner/outer that can be joined with other
@@ -50,7 +50,7 @@ def HingeCone(r: float, offset: float) -> "PyOpenSCAD":
 
     Usage::
 
-        HingeCone(6, 0.5)
+        _hinge_cone(6, 0.5)
 
     Args:
         r:      radius of the cone
@@ -61,14 +61,14 @@ def HingeCone(r: float, offset: float) -> "PyOpenSCAD":
     return (outer - inner).shape
 
 
-def HingeLineWithSpacingAndNum(
+def _hinge_line_with_spacing_and_num(
     diameter: float, num: float, spacing: float, offset: float, spin: float = 90
 ) -> "PyOpenSCAD":
     """Makes a hinge setup in a straight line, given an explicit spacing and count.
 
     Usage::
 
-        HingeLineWithSpacingAndNum(num=10, spacing=6, diameter=6, offset=0.5)
+        _hinge_line_with_spacing_and_num(num=10, spacing=6, diameter=6, offset=0.5)
 
     Args:
         diameter: diameter of the hinge itself
@@ -82,7 +82,7 @@ def HingeLineWithSpacingAndNum(
 
     cyl = pybosl2.shapes3d.cylinder(radius=diameter / 2, height=length, center=False)
     for i in range(1, num + 1):
-        cone = HingeCone(diameter / 2 - 0.01, offset)
+        cone = _hinge_cone(diameter / 2 - 0.01, offset)
         if i % 2 == 1:
             cone = cone.mirror([0, 0, 1])
         cyl = cyl - cone.translate([0, 0, spacing * i])
@@ -146,7 +146,7 @@ def HingeLineWithSpacingAndNum(
     return (bound & combined).rotate([0, 270, 0]).shape
 
 
-def HingeLine(length: float, diameter: float, offset: float, spin: float = 90) -> "PyOpenSCAD":
+def _hinge_line(length: float, diameter: float, offset: float, spin: float = 90) -> "PyOpenSCAD":
     """Makes a hinge setup in a straight line.
 
     Has pieces that stick out each side wide enough to hook onto edges
@@ -154,7 +154,7 @@ def HingeLine(length: float, diameter: float, offset: float, spin: float = 90) -
 
     Usage::
 
-        HingeLine(length=60, diameter=6, offset=0.5)
+        _hinge_line(length=60, diameter=6, offset=0.5)
 
     Args:
         length:   length of the line to hinge
@@ -164,10 +164,10 @@ def HingeLine(length: float, diameter: float, offset: float, spin: float = 90) -
     """
     num = length / diameter
     spacing = length / num
-    return HingeLineWithSpacingAndNum(diameter=diameter, offset=offset, spin=spin, num=num, spacing=spacing)
+    return _hinge_line_with_spacing_and_num(diameter=diameter, offset=offset, spin=spin, num=num, spacing=spacing)
 
 
-def InsetHinge(length: float, width: float, diameter: float, offset: float) -> PyOpenSCAD:
+def _inset_hinge(length: float, width: float, diameter: float, offset: float) -> PyOpenSCAD:
     """Create a hinge that works and moves in the middle.
 
     Centers the pieces back on the line with the middle being length/2,
@@ -176,7 +176,7 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
 
     Usage::
 
-        InsetHinge(length=100, width=20, diameter=6, offset=0.5)
+        _inset_hinge(length=100, width=20, diameter=6, offset=0.5)
 
     Args:
         length:   length of the hinge (outside)
@@ -188,11 +188,11 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
     spacing = length / num
 
     middle = pybosl2.shapes3d.cuboid([length, width - diameter * 2 - offset / 2, diameter]).translate([0, width / 2, 0])
-    line1 = HingeLineWithSpacingAndNum(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing).translate(
+    line1 = _hinge_line_with_spacing_and_num(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing).translate(
         [0, diameter / 2, 0]
     )
     line2 = (
-        HingeLineWithSpacingAndNum(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing)
+        _hinge_line_with_spacing_and_num(diameter=diameter, offset=offset, spin=90, num=num, spacing=spacing)
         .mirror([0, 1, 0])
         .translate([0, width - diameter / 2, 0])
     )
@@ -200,101 +200,7 @@ def InsetHinge(length: float, width: float, diameter: float, offset: float) -> P
     return (middle | line1 | line2).translate([0, -width / 2, 0]).shape
 
 
-def HingeBoxLidLabel(
-    text_str: str,
-    inner_width: float,
-    inner_length: float,
-    lid_boundary: float = 10,
-    wall_thickness: float | None = None,
-    cap_height: float | None = None,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    lid_thickness: float | None = None,
-    lid_rounding: float | None = None,
-    lid_inner_rounding: float | None = None,
-    material_colour: str | None = None,
-    size_spacing: float | None = None,
-    label_options: LabelOptions | None = None,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Makes a lid for one side of a hinge box with a label and pattern.
-
-    *inner_width*/*inner_length* replace the original SCAD module's
-    $inner_width/$inner_length special variables (normally set by the
-    enclosing MakeBoxAndLidWithInsetHinge call).
-
-    Usage::
-
-        HingeBoxLidLabel(text_str="Cards", inner_width=100, inner_length=50)
-
-    Args:
-        text_str:     the string to use for the label
-        inner_width:  interior width available for the lid
-        inner_length: interior length available for the lid
-        lid_boundary: boundary around the outside for the lid (default 10)
-        wall_thickness: thickness of the walls (default default_wall_thickness)
-        cap_height:   unused, kept for API compatibility
-        layout_width: pattern repeat width (default default_lid_layout_width)
-        aspect_ratio: dy scale factor (default 1.0)
-        lid_thickness: thickness of the lid (default default_lid_thickness)
-        lid_rounding/lid_inner_rounding: unused, kept for API compatibility
-        material_colour: colour (default default_material_colour)
-        size_spacing: spacing between pieces (default default_slicing_layer_height)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = default_material_colour
-    if size_spacing is None:
-        size_spacing = default_slicing_layer_height
-
-    calc_label_options = (
-        label_options
-        if label_options is not None
-        else MakeLabelOptions(material_colour=material_colour, full_height=True)
-    )
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-
-    top = pybosl2.shapes3d.cuboid(
-        [inner_width, inner_length, lid_thickness],
-        anchor=BOTTOM + FRONT + LEFT,
-    ).color(material_colour)
-
-    _hinge_mesh_raw = ShapeByType(options=calc_shape_options)
-    assert _hinge_mesh_raw is not None, "shape_options must not be ShapeType.NONE here"
-    _hinge_mesh_shape = _hinge_mesh_raw.color(material_colour)
-    mesh = LidMeshBasic(
-        size=[inner_width, inner_length],
-        lid_thickness=lid_thickness,
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        dense=IsDenseShapeType(calc_shape_options.shape_type),
-        dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        children=_hinge_mesh_shape,
-    )
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = True
-    label_raw = MakeLidLabel(
-        size=[inner_width, inner_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts
-    )
-    # A lid too narrow for the label yields None (labels.py warns "ignoring label"); build the
-    # lid without a label rather than failing, matching the .scad.
-    children = [top, mesh]
-    if label_raw is not None:
-        children.append(label_raw.translate([-inner_width, 0, -lid_thickness]).rotate([0, 180, 0]))
-
-    return internal_build_lid(lid_thickness=lid_thickness, children=children, size_spacing=size_spacing)
-
-
-def MakeBoxAndLidWithInsetHinge(
+def _make_box_and_lid_with_inset_hinge(
     size: list[float],
     children: "list | None" = None,
     hinge_diameter: float = 6,
@@ -330,7 +236,7 @@ def MakeBoxAndLidWithInsetHinge(
 
     Usage::
 
-        MakeBoxAndLidWithInsetHinge(size=[100, 50, 20])
+        _make_box_and_lid_with_inset_hinge(size=[100, 50, 20])
 
     Args:
         size:           outside size of the box [width, length, height]
@@ -529,7 +435,7 @@ def MakeBoxAndLidWithInsetHinge(
     combined = combined - hinge_pocket
 
     hinge = (
-        InsetHinge(length=hinge_length, width=hinge_width, offset=hinge_offset, diameter=hinge_diameter)
+        _inset_hinge(length=hinge_length, width=hinge_width, offset=hinge_offset, diameter=hinge_diameter)
         .color(material_colour)
         .rotate([0, 0, 90])
         .translate([width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 - hinge_offset])
@@ -585,7 +491,7 @@ class HingeBox(BoxBaseType):
         resolved = self._resolve_contents(contents)
         children = [io.value for io in resolved] or None   # raw solids into the hinge box's slots
         o = self._opts()
-        return MakeBoxAndLidWithInsetHinge(
+        return _make_box_and_lid_with_inset_hinge(
             size=[self.width, self.length, self.height],
             children=children,
             wall_thickness=self.wall_thickness,

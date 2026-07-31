@@ -146,7 +146,7 @@ CARD_LIBRARY_LATCH_CLIP = "clip"
 CARD_LIBRARY_LATCH_NONE = "none"
 
 
-def MakeCardLibraryBox(
+def _make_card_library_box(
     size: list[float],
     children: "list | None" = None,
     floor_thickness: float | None = None,
@@ -162,7 +162,7 @@ def MakeCardLibraryBox(
 
     Usage::
 
-        MakeCardLibraryBox([100, 50, 20])
+        _make_card_library_box([100, 50, 20])
 
     Args:
         size:    [width, length, height]
@@ -463,7 +463,7 @@ def SlidingLatch(
     return (a | b | c).shape
 
 
-def CardLibraryBoxLid(
+def _card_library_box_lid(
     size: list[float],
     children: "list | None" = None,
     wall_thickness: float | None = None,
@@ -480,7 +480,7 @@ def CardLibraryBoxLid(
 
     Usage::
 
-        CardLibraryBoxLid([100, 50, 20])
+        _card_library_box_lid([100, 50, 20])
 
     Args:
         size: [width, length, height]
@@ -686,211 +686,6 @@ def CardLibraryBoxLid(
     return body
 
 
-def CardLibraryBoxLidWithCustomShape(
-    size: list[float],
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    wall_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    lip_size: float | None = None,
-    latch: str = CARD_LIBRARY_LATCH_SLIDING,
-    material_colour: str = "magenta",
-    hinge_hole_diameter: float | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_pattern_dense: bool = False,
-    lid_dense_shape_edges: int = 6,
-    aspect_ratio: float | None = 1.0,
-    pattern_inner_control: int = False,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-) -> PyOpenSCAD:
-    """Creates a lid for the card library box configured for custom shapes.
-
-    Args:
-        size: [width, length, height]
-        shape_child: 2-D shape solid to tile on the lid
-        extra_children: additional children (list of solids)
-        (other args, see :func:`CardLibraryBoxLid` and :func:`~lids_base.LidMeshBasic`)
-    """
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-
-    lid_children = build_lid_overlays(
-        lid_thickness=lid_thickness,
-        size=[size[0] - wall_thickness, size[1] - wall_thickness],
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        shape_child=shape_child,
-        dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges,
-        inner_control=pattern_inner_control,
-        extra_children=extra_children,
-        material_colour=material_colour,
-    )
-
-    return CardLibraryBoxLid(
-        size=size,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        lip_size=lip_size,
-        latch=latch,
-        material_colour=material_colour,
-        hinge_hole_diameter=hinge_hole_diameter,
-        print_in_place_offset=print_in_place_offset,
-        lid_boundary=lid_boundary,
-        size_spacing=size_spacing,
-        children=lid_children,
-    )
-
-
-def CardLibraryBoxLidWithShape(
-    size: list[float],
-    extra_children: "list | None" = None,
-    wall_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    lip_size: float | None = None,
-    latch: str = CARD_LIBRARY_LATCH_SLIDING,
-    material_colour: str = "magenta",
-    hinge_hole_diameter: float | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_pattern_dense: bool = False,
-    lid_dense_shape_edges: int = 6,
-    pattern_inner_control: int = False,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = None,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Creates a lid for the card library box using standard shapes.
-
-    Args:
-        size: [width, length, height]
-        extra_children: additional children (list of solids)
-        shape_options: :class:`~shape_type.ShapeObject`
-        (other args, see :func:`CardLibraryBoxLidWithCustomShape`)
-    """
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour)
-
-    return CardLibraryBoxLidWithCustomShape(
-        size=size,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        lip_size=lip_size,
-        latch=latch,
-        hinge_hole_diameter=hinge_hole_diameter,
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        lid_boundary=lid_boundary,
-        aspect_ratio=aspect_ratio,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        shape_child=shape_piece,
-        extra_children=extra_children,
-    )
-
-
-def CardLibraryBoxLidWithLabel(
-    size: list[float],
-    label: str,
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    label_options: LabelOptions | None = None,
-    wall_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    lip_size: float | None = None,
-    latch: str = CARD_LIBRARY_LATCH_SLIDING,
-    material_colour: str = "magenta",
-    hinge_hole_diameter: float | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = None,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Creates a lid for a card library box with a shape pattern and a label.
-
-    Usage::
-
-        CardLibraryBoxLidWithLabel([100, 50, 20], "Cards")
-
-    Args:
-        size:  [width, length, height]
-        label: the string to use for the label
-        shape_child: optional explicit 2-D pattern shape (overrides shape_options if given)
-        extra_children: additional children (list of solids)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-        (other args, see :func:`CardLibraryBoxLidWithCustomShape`)
-    """
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if material_colour is None:
-        material_colour = "magenta"
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    width, length = size[0], size[1]
-
-    if shape_child is not None:
-        pattern_shape = shape_child
-    else:
-        piece = ShapeByType(options=calc_shape_options)
-        assert piece is not None, "shape_options must not be ShapeType.NONE here"
-        pattern_shape = piece.color(material_colour)
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = True
-    half_w = (width - lid_boundary * 2) / 2
-    half_l = (length - lid_boundary * 2) / 2
-    label_shape_raw = MakeLidLabel(
-        size=[width - lid_boundary * 2, length - lid_boundary * 2],
-        options=label_opts,
-        lid_thickness=lid_thickness,
-        text_str=label,
-    )
-    assert label_shape_raw is not None, "label did not generate"
-    label_shape = (
-        label_shape_raw.translate([-half_w, -half_l, 0])
-        .rotate([0, 180, 0])
-        .translate([half_w, half_l, lid_thickness])
-        .translate([lid_boundary, lid_boundary, 0])
-    )
-
-    lid_children = [label_shape] + (list(extra_children) if extra_children else [])
-
-    return CardLibraryBoxLidWithCustomShape(
-        size=size,
-        wall_thickness=wall_thickness,
-        lid_thickness=lid_thickness,
-        lip_size=lip_size,
-        latch=latch,
-        hinge_hole_diameter=hinge_hole_diameter,
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        lid_boundary=lid_boundary,
-        aspect_ratio=aspect_ratio,
-        layout_width=layout_width,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        material_colour=material_colour,
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        shape_child=pattern_shape,
-        extra_children=lid_children,
-    )
-
-
 def CardSleeveForLibrary(
     num_cards: int,
     card_size: types.SimpleNamespace,
@@ -1061,7 +856,7 @@ def CardSleeveForLibrary(
     return result.translate([width, length, 0]).rotate([0, 0, 180])
 
 
-def MakeAllSleeves(
+def _make_all_sleeves(
     card_array: list,
     children: "Callable | None" = None,
     spacing: float = 2,
@@ -1081,7 +876,7 @@ def MakeAllSleeves(
             ["Agnes Baker", 34, "per_investigator"],
             ["Level 0", 15, "s_level_0"],
         ]
-        MakeAllSleeves(core_player_cards, spacing=2, card_size=MakeCardSize(63.5, 88, 0.3))
+        _make_all_sleeves(core_player_cards, spacing=2, card_size=MakeCardSize(63.5, 88, 0.3))
 
     Args:
         card_array: array of [name, count, svg_filename] entries
@@ -1092,7 +887,7 @@ def MakeAllSleeves(
     """
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
-    assert card_size is not None, "MakeAllSleeves(): card_size must be given"
+    assert card_size is not None, "_make_all_sleeves(): card_size must be given"
 
     sleeve_sizes = [SleeveSize(x[1], card_size, wall_thickness=wall_thickness) for x in card_array]
 
@@ -1110,7 +905,7 @@ def MakeAllSleeves(
             children=child,
         ).translate([0, y_offset, 0])
         shape = sleeve if shape is None else shape | sleeve
-    assert shape is not None, "MakeAllSleeves(): card_array is empty"
+    assert shape is not None, "_make_all_sleeves(): card_array is empty"
     return shape
 
 
@@ -1201,14 +996,14 @@ class CardLibraryBox(BoxBaseType):
         if contents is None:
             contents = self._spec.contents
         children = [io.value for io in self._resolve_contents(contents)] or None
-        return MakeCardLibraryBox(
+        return _make_card_library_box(
             size=self._box_size(), children=children, wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness, lid_thickness=self.lid_thickness,
             material_colour=self.material_colour, latch=self._card.latch,
         )
 
     def make_lid(self, lid=None):
-        return CardLibraryBoxLid(
+        return _card_library_box_lid(
             size=self._box_size(), wall_thickness=self.wall_thickness, lid_thickness=self.lid_thickness,
             latch=self._card.latch, material_colour=self.material_colour,
         )
@@ -1216,7 +1011,7 @@ class CardLibraryBox(BoxBaseType):
     def make_sleeves(self):
         """All the card sleeves (one per group), laid out for printing."""
         array = [[g.name, g.count] for g in self._card.groups]
-        return MakeAllSleeves(array, card_size=_card_ns(self._card.card_size), wall_thickness=self.wall_thickness)
+        return _make_all_sleeves(array, card_size=_card_ns(self._card.card_size), wall_thickness=self.wall_thickness)
 
     def make_sleeve(self, index: int):
         """The sleeve for group *index* (labelled with the group's name)."""
