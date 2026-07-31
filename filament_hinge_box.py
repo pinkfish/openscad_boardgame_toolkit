@@ -336,7 +336,7 @@ def FilamentBoxInsideMask(
     body = body - cut1
 
     cut2 = pybosl2.shapes3d.ycyl(
-        d=calc_hinge_options.thickness + print_in_place_offset, l=length + 1, anchor=FRONT + LEFT + TOP
+        diameter=calc_hinge_options.thickness + print_in_place_offset, length=length + 1, anchor=FRONT + LEFT + TOP
     ).translate([0, 0.5, height])
     body = body - cut2
 
@@ -782,17 +782,40 @@ class FilamentHingeBox(BoxBaseType):
         return [io.value for io in resolved] or None
 
     def make_box(self, *, contents=None, finger_holes=None):
+        if contents is None:
+            contents = self._spec.contents
+        resolved = self._resolve_contents(contents)
+        # Thread the InnerObject types into the underlying function's index lists so the
+        # full content model works here: POSITIVE -> add only, POSITIVE_NEGATIVE -> carve
+        # AND (under MAKE_MMU) re-emit coloured (the Irish-Gauge engraved-label pattern).
+        children = [io.value for io in resolved] or None
+        pos_only = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE]
+        pos_neg = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE_NEGATIVE]
         return MakeBoxWithFilamentHingeLid(
             size=[self.width, self.length, self.height],
-            children=self._children(contents),
+            children=children,
             wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness,
             lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
             hinge_options=self._hinge_options(),
+            positive_only_children=pos_only,
+            positive_negative_children=pos_neg,
         )
 
     def make_lid(self, lid=None):
+        if self._spec.lid_label is not None:
+            return FilamentHingeBoxLidWithLabel(
+                size=[self.width, self.length, self.height],
+                text_str=self._spec.lid_label,
+                wall_thickness=self.wall_thickness,
+                floor_thickness=self.floor_thickness,
+                lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour,
+                hinge_options=self._hinge_options(),
+                label_options=self._spec.label_options,
+                shape_options=self._spec.shape_options,
+            )
         return MakeLidForFilamentBox(
             size=[self.width, self.length, self.height],
             wall_thickness=self.wall_thickness,

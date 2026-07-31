@@ -174,8 +174,13 @@ class SlidingBox(BoxBaseType):
         calc_height = self._effective_height()
         two_layer = self._sliding_lid_options.two_layer
 
+        # Corner-anchored (BOTTOM+FRONT+LEFT) like every other box body -- the whole
+        # pipeline (inside_mask, _placed_content, contents) is corner-framed, and the lid
+        # cuts below are positioned from the corner too. A CENTER-anchored body (the pybosl2
+        # cuboid default) left contents/mask overlapping only one quadrant.
         body = pybosl2.shapes3d.cuboid(
             [self.width, self.length, calc_height],
+            anchor=BOTTOM + FRONT + LEFT,
             rounding=self.wall_thickness,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
         )
@@ -194,6 +199,7 @@ class SlidingBox(BoxBaseType):
                 self.length - self.wall_thickness + self.size_spacing + rounding_offset,
                 self._lid_cutout + self.size_spacing / 2,
             ],
+            anchor=BOTTOM + FRONT + LEFT,
         ).translate([self.wall_thickness, -rounding_offset, calc_height - self._lid_cutout])
         body = body - mid_cut
 
@@ -206,6 +212,7 @@ class SlidingBox(BoxBaseType):
                         self.length - self.wall_thickness,
                         self._lid_cutout,
                     ],
+                    anchor=BOTTOM + FRONT + LEFT,
                     chamfer=self._middle_chamfer,
                     edges=[TOP + LEFT, TOP + RIGHT, BOTTOM + LEFT, BOTTOM + RIGHT],
                 ).translate(
@@ -222,6 +229,7 @@ class SlidingBox(BoxBaseType):
                         self.length - self.wall_thickness,
                         self._lid_cutout,
                     ],
+                    anchor=BOTTOM + FRONT + LEFT,
                     chamfer=chamfer2,
                     edges=[TOP + LEFT, TOP + RIGHT],
                 ).translate([self.wall_thickness - chamfer2 - self.size_spacing / 2, 0, calc_height - self._lid_cutout])
@@ -232,6 +240,7 @@ class SlidingBox(BoxBaseType):
                     self.length - self.wall_thickness + chamfer2,
                     self._lid_cutout,
                 ],
+                anchor=BOTTOM + FRONT + LEFT,
                 chamfer=chamfer2,
                 edges=[TOP + LEFT, TOP + RIGHT, TOP + BACK],
             ).translate([self.wall_thickness - chamfer2, 0, calc_height - self._lid_cutout])
@@ -251,8 +260,12 @@ class SlidingBox(BoxBaseType):
     # ------------------------------------------------------------------
 
     def inside_mask(self) -> Bosl2Solid:
+        # anchor=BOTTOM+FRONT+LEFT so the mask is corner-anchored at the interior origin
+        # (matching the base). Without it the cuboid is CENTER-anchored and clips away the
+        # top half of any deep clipped cavity, so wells never open to the top.
         return pybosl2.shapes3d.cuboid(
             [self.inner_width, self.inner_length, self.inner_height],
+            anchor=BOTTOM + FRONT + LEFT,
         ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
 
     # ------------------------------------------------------------------
