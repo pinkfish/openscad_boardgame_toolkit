@@ -256,11 +256,12 @@ def square_tesselation(
     length_line = square_tesselation_generate_edge(points[0], length)
     width_line = square_tesselation_generate_edge(points[1], width)
 
+    # pybosl2's numpy Path has no `+` concat -- join the point lists (.to_list()) instead.
     poly = (
-        Path(width_line).rot(90).reversed_path().move([-width / 2, 0])
-        + Path(length_line).rot(0).move([0, -length / 2])
-        + Path(width_line).rot(90).move([width / 2, 0])
-        + Path(length_line).rot(0).reversed_path().move([0, length / 2])
+        Path(width_line).rot(90).reverse().move([-width / 2, 0]).to_list()
+        + Path(length_line).rot(0).move([0, -length / 2]).to_list()
+        + Path(width_line).rot(90).move([width / 2, 0]).to_list()
+        + Path(length_line).rot(0).reverse().move([0, length / 2]).to_list()
     )
     poly = Path._deduplicate(poly, closed=True)
 

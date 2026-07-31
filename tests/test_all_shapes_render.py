@@ -61,12 +61,11 @@ TESSELLATIONS = {
 # Pre-existing breakage (NOT the _sdf migration) -- a later shapes.py/tesselations.py bosl2
 # migration must fix these. Excluded from the build assertion; catalogued below.
 KNOWN_BROKEN = {
-    "single_log2d": "native circle() mixed with pybosl2 shapes2d in a boolean (needs bosl2 migration)",
-    "crossbow2d": "native circle()/pybosl2 operator mixing (needs bosl2 migration)",
-    "teapot2d": "native circle()/pybosl2 operator mixing (needs bosl2 migration)",
-    "half_eye2d": "native circle()/pybosl2 operator mixing (needs bosl2 migration)",
-    "tesselation_drop": "old Path API (.reversed_path) not on the pybosl2 numpy Path",
-    "tesselation_pegasus": "old Path API (.rot/.move/reverse) not on the pybosl2 numpy Path",
+    # shapes.py is fully migrated to bosl2 primitives now (native circle/hull/square/polygon
+    # -> shapes2d.* / .hull()); only these tesselations.py entries remain, on a deeper
+    # tesselations Path-API / osuse-region migration (separate from the shape primitives).
+    "tesselation_drop": "tesselations.py old Path API (Path '+' concat / _deduplicate) vs pybosl2 numpy Path",
+    "tesselation_pegasus": "tesselations.py old Path API (Path concat -> 'list not callable') vs pybosl2 numpy Path",
     "tesselation_leaf_outline": "native BOSL2 region difference aborts under osuse",
     "tesselation_leaf_outline_three": "native BOSL2 region difference aborts under osuse",
 }
