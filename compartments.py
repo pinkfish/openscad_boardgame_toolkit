@@ -42,7 +42,7 @@ from typing import Callable
 
 import pybosl2.shapes3d
 from base_bgtk import BACK, BOTTOM, FRONT, LEFT, RIGHT, InnerObject, InnerSize, ObjectType
-from components import FingerHoleWall, EngravedLabel, default_label_layer_depth
+from components import FingerHoleWall, EngravedLabel, EngravedShape, default_label_layer_depth
 
 # A well at least this deep (mm) can be emptied with a floor scoop; shallower wells
 # (and cards) need a finger channel/notch in the wall instead.
@@ -140,12 +140,14 @@ class Compartment:
     fill: bool = False
     radius: float = 2.0
     solid: object = None               # for Shape.CUSTOM: the well solid or callable(depth)
-    # --- label engraving (Irish-Gauge style): 0.2mm second-colour text on the well floor ---
+    # --- label engraving (Irish-Gauge style): 0.2mm second-colour text/image on the floor ---
     label_colour: str | None = None    # MMU fill colour for the label (None -> positive_colour)
     label_size: float | None = None    # font size; None -> auto-fit to the well
     label_depth: float = default_label_layer_depth   # cut depth (default 0.2mm = one layer)
     label_font: str | None = None      # None -> default_label_font
-    label_spin: float = 0              # rotate the text in the floor plane (deg)
+    label_spin: float = 0              # rotate the text/image in the floor plane (deg)
+    label_shape: object = None         # a SHAPE image engraved on the floor instead of/with text
+                                       # (a 2-D shape e.g. shapes.coin2d(14), a callable(depth), or a solid)
 
     def cell(self) -> tuple[float, float]:
         """The (width, length) bounding cell this compartment occupies for packing."""
@@ -264,10 +266,21 @@ def _place_one(
     top = IH
     wells = [InnerObject(_well_solid(c, cw, cl, depth).translate([x, y, z0]), ObjectType.NEGATIVE)]
 
-    # Engrave the compartment's label into its floor (Irish-Gauge style): a 0.2mm
+    # Engrave the compartment's label/image into its floor (Irish-Gauge style): a 0.2mm
     # second-colour impression, centred, revealed when the pieces are lifted out.
     if c.label:
         wells.append(_label_engraving(c, x, y, cw, cl, z0))
+    if c.label_shape is not None:
+        wells.append(
+            EngravedShape(
+                c.label_shape,
+                [x + cw / 2, y + cl / 2, z0],
+                depth=c.label_depth,
+                spin=c.label_spin,
+                colour=c.label_colour,
+                clip=z0 >= c.label_depth,
+            )
+        )
 
     kind = c.resolved_removal(depth)
     scoop = None

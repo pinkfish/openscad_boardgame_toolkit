@@ -184,6 +184,9 @@ class Label:
     options: LabelOptions = field(default_factory=LabelOptions)
     position: list[float] | None = None
     size: list[float] | None = None
+    # An image to place on the lid INSTEAD OF the text: a 2-D shape (e.g. shapes.coin2d(30)),
+    # a callable(depth), or a solid. When set, `text` is ignored.
+    shape: object = None
 
 
 @dataclass(frozen=True)
@@ -262,9 +265,10 @@ class BoxSpec:
     # Use ``lid`` for full control (pass a pre-built :class:`~lids_base.Lid`).
     # ``lid`` takes precedence over ``lid_label`` when both are set.
     lid_label: str | None = None              # shorthand label text for the lid
-    lid: Lid | None = None                    # full Lid object (overrides lid_label)
+    lid_shape: object = None                  # a SHAPE image on the lid instead of a text label
+    lid: Lid | None = None                    # full Lid object (overrides lid_label/lid_shape)
     label_options: LabelOptions | None = None # styling for lid_label
-    shape_options: ShapeObject | None = None  # lid pattern shape
+    shape_options: ShapeObject | None = None  # lid pattern shape (the tiled background)
 
     def __post_init__(self) -> None:
         if not (isinstance(self.size, (list, tuple)) and len(self.size) == 3):
@@ -561,11 +565,11 @@ class BoxBaseType(ABC):
         spec = self._spec
         if spec.lid is not None:
             return spec.lid
-        if spec.lid_label is not None:
+        if spec.lid_label is not None or spec.lid_shape is not None:
             options = spec.label_options if spec.label_options is not None else LabelOptions()
             return Lid(
                 lid_thickness=self.lid_thickness,
-                label=Label(spec.lid_label, options=options),
+                label=Label(spec.lid_label or "", options=options, shape=spec.lid_shape),
                 shape_options=spec.shape_options,
                 material_colour=self.material_colour,
             )
@@ -630,12 +634,21 @@ class BoxBaseType(ABC):
         options = replace(opts, material_colour=effective_colour)
 
         calc_size = list(label.size) if label.size else [self.inner_width, self.inner_length]
+
+        # A SHAPE image instead of text: extrude it to the lid thickness, colour it the LABEL
+        # colour (a contrasting second material, like the text label -- NOT the body colour),
+        # and centre it on the lid (or the caller's position). The caller pre-sizes the shape.
+        if label.shape is not None:
+            from components import _extrude_image
+
+            pos = list(label.position) if label.position else [self.inner_width / 2, self.inner_length / 2, 0]
+            return _extrude_image(label.shape, self.lid_thickness).color(opts.label_colour).translate(pos)
+
         calc_pos = (
             list(label.position)
             if label.position
             else [self.wall_thickness / 2, self.wall_thickness / 2, 0]
         )
-
         piece = MakeLidLabel(
             size=calc_size,
             lid_thickness=self.lid_thickness,

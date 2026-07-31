@@ -111,6 +111,49 @@ class CompartmentBoxRenderTest(unittest.TestCase):
         self.assertTrue(r.ok, f"compartment tray failed: {r.error}")
         self.assertGreater(r.facets or 0, 0)
 
+    def test_compartment_with_shape_image(self):
+        # A compartment whose floor is engraved with a SHAPE image (not text) -- the
+        # Compartment.label_shape / components.EngravedShape path.
+        body = (
+            "import os; os.environ['MAKE_MMU'] = '1'\n"
+            "from base_bgtk import *\n"
+            "from box_base import BoxSpec\n"
+            "from no_lid import NoLidBox\n"
+            "from compartments import layout_compartments, Group, Compartment, Shape, Removal\n"
+            "from shapes import saw_blade2d, coin2d\n"
+            "contents = layout_compartments([Group([\n"
+            "    Compartment(shape=Shape.RECT, w=34, l=34, depth=4, removal=Removal.NONE,\n"
+            "                label_shape=saw_blade2d(24), label_colour='steelblue'),\n"
+            "    Compartment(shape=Shape.RECT, w=34, l=34, depth=4, removal=Removal.NONE,\n"
+            "                label_shape=coin2d(24), label_colour='gold'),\n"
+            "])], min_gap=5)\n"
+            "NoLidBox(BoxSpec(size=[90, 50, 12], label='tray', contents=contents)).make_box().show()\n"
+        )
+        r = render_python(body)
+        self.assertTrue(r.ok, f"compartment shape-image failed: {r.error}")
+        self.assertGreater(r.facets or 0, 0)
+
+
+@unittest.skipUnless(render_available(), "PythonSCAD app / patched BOSL2 not available")
+class LidShapeRenderTest(unittest.TestCase):
+    """A lid decorated with a SHAPE image instead of a text label (BoxSpec.lid_shape /
+    Label.shape / make_label)."""
+
+    def test_sliding_lid_with_shape(self):
+        body = (
+            "import os; os.environ['MAKE_MMU'] = '1'\n"
+            "from base_bgtk import *\n"
+            "from box_base import BoxSpec\n"
+            "from sliding_box import SlidingBox\n"
+            "from labels import MakeLabelOptions\n"
+            "from shapes import saw_blade2d\n"
+            "SlidingBox(BoxSpec(size=[80, 60, 20], label='ls', lid_shape=saw_blade2d(45),\n"
+            "                   label_options=MakeLabelOptions(label_colour='red'))).make_lid().show()\n"
+        )
+        r = render_python(body)
+        self.assertTrue(r.ok, f"lid shape failed: {r.error}")
+        self.assertGreater(r.facets or 0, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
