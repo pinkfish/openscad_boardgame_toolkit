@@ -40,9 +40,9 @@ BOX_CASES = {
               "HingeBox(BoxSpec(size=[100, 50, 20], label='t'))", False),
     "filament_hinge": ("from filament_hinge_box import FilamentHingeBox",
                        "FilamentHingeBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T'))", True),
-    "magnetic": ("from magnetic_box import MagneticBox, MakeMagneticBoxOptions",
+    "magnetic": ("from magnetic_box import MagneticBox, MagneticBoxOptions",
                  "MagneticBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T', "
-                 "type_options=MakeMagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))", True),
+                 "type_options=MagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))", True),
     "inset": ("from inset_box import InsetBox",
               "InsetBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T'))", True),
     "path": ("from no_lid import PathBox",

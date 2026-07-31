@@ -22,9 +22,9 @@
 # FileGroup: Boxes
 
 from __future__ import annotations
-import copy
 import math
 import types
+from dataclasses import dataclass
 
 from pythonscad import *
 from typing import TYPE_CHECKING
@@ -36,10 +36,7 @@ import pybosl2.masking
 import pybosl2.shapes3d
 from pybosl2._sdf import joiners as _sdf_joiners
 from pybosl2._sdf import shapes3d as _sdf_shapes3d
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, build_lid_overlays, IsDenseShapeType, DenseShapeEdges
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 
 
 # The six axis orientations BOSL2 orient= takes at these call sites, as native Euler
@@ -72,29 +69,34 @@ def _apply_reorient(shape, anchor, spin, orient, size):
     return shape
 
 
-def HingeOptions(
-    thickness: float | None = None,
-    hole_diameter: float | None = None,
-    num_segments: int | None = None,
-    pin_slop: float | None = None,
-) -> types.SimpleNamespace:
-    """Returns an object containing the hinge options.
+@dataclass
+class FilamentHingeBoxOptions(BoxTypeOptions):
+    """Filament-hinge options; pass via ``BoxSpec(type_options=FilamentHingeBoxOptions(...))``.
 
-    Args:
+    Attributes:
         thickness:     thickness of the hinge (default default_hinge_thickness)
         hole_diameter: diameter of the hinge hole (default default_hinge_hole_diameter)
-        num_segments:  number of hinge segments (default auto)
+        num_segments:  number of hinge segments (default auto, from the box length)
         pin_slop:      extra diameter slop for the hinge pin (default default_hinge_pin_slop)
     """
-    if thickness is None:
-        thickness = default_hinge_thickness
-    if hole_diameter is None:
-        hole_diameter = default_hinge_hole_diameter
-    if pin_slop is None:
-        pin_slop = default_hinge_pin_slop
-    return types.SimpleNamespace(
-        thickness=thickness, hole_diameter=hole_diameter, num_segments=num_segments, pin_slop=pin_slop
-    )
+
+    thickness: float | None = None
+    hole_diameter: float | None = None
+    num_segments: int | None = None
+    pin_slop: float | None = None
+
+    def __post_init__(self) -> None:
+        if self.thickness is None:
+            self.thickness = default_hinge_thickness
+        if self.hole_diameter is None:
+            self.hole_diameter = default_hinge_hole_diameter
+        if self.pin_slop is None:
+            self.pin_slop = default_hinge_pin_slop
+
+
+def HingeOptions(**kwargs) -> FilamentHingeBoxOptions:
+    """The hinge options the module's internal geometry functions default to."""
+    return FilamentHingeBoxOptions(**kwargs)
 
 
 def _make_box_with_filament_hinge_lid(
@@ -344,9 +346,8 @@ def _filament_box_inside_mask(
     return body.shape
 
 
-def _make_lid_for_filament_box(
+def _filament_lid_parts(
     size: list[float],
-    children: "list | None" = None,
     wall_thickness: float | None = None,
     floor_thickness: float | None = None,
     lid_thickness: float | None = None,
@@ -357,15 +358,18 @@ def _make_lid_for_filament_box(
     print_in_place_offset: float | None = None,
     size_spacing: float | None = None,
 ) -> PyOpenSCAD:
-    """Makes a lid for a box with a filament-based hinge.
+    """The pieces of a filament-hinge lid: ``(top_plate, shell, plate_origin, pin_hole)``.
+
+    Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in
+    :class:`~box_base.BoxBaseType` can decorate the top plate -- see
+    :class:`FilamentHingeBox`.
 
     Usage::
 
-        _make_lid_for_filament_box([100, 20, 6])
+        _filament_lid_parts([100, 20, 6])
 
     Args:
         size:           [width, length, height] of the box
-        children:       list of decoration solids placed on top of the lid
         wall_thickness: wall thickness of the box
         floor_thickness: floor thickness of the box
         lid_thickness:  lid thickness of the box
@@ -410,9 +414,6 @@ def _make_lid_for_filament_box(
         .translate([wall_thickness * 2.5, 0, 0])
     )
 
-    kids = list(children) if children else []
-    lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
-
     knuckle = _sdf_joiners.knuckle_hinge(
         length=length,
         segs=hinge_seg,
@@ -455,301 +456,13 @@ def _make_lid_for_filament_box(
         .shape
     )
 
-    body = lid_stack | knuckle | catch
-
     hole = (
         pybosl2.shapes3d.ycyl(height=length + 1, diameter=calc_hinge_options.hole_diameter + print_in_place_offset, anchor=FRONT)
         .color(material_colour)
         .translate([wall_thickness, 0.5, wall_thickness])
         .shape
     )
-    body = body - hole
-
-    return body
-
-
-def _filament_hinge_box_lid_with_custom_shape(
-    size: list[float],
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    wall_thickness: float | None = None,
-    floor_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    material_colour: str | None = None,
-    filament_thickness: float = 2.2,
-    rounding: float = 0,
-    hinge_options: types.SimpleNamespace | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_pattern_dense: bool = False,
-    lid_dense_shape_edges: int = 6,
-    aspect_ratio: float | None = 1.0,
-    pattern_inner_control: int = False,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-) -> PyOpenSCAD:
-    """Makes a lid for a filament-hinge box with a custom repeating pattern.
-
-    Usage::
-
-        _filament_hinge_box_lid_with_custom_shape([100, 20, 6], shape_child=shapes2d.circle(radius=5))
-
-    Args:
-        size:    [width, length, height] of the box
-        shape_child: 2-D shape solid to tile on the lid
-        extra_children: additional children (list of solids)
-        wall_thickness/floor_thickness/lid_thickness/material_colour/filament_thickness/rounding/hinge_options/print_in_place_offset/size_spacing: see :func:`_make_lid_for_filament_box`
-        lid_pattern_dense/lid_dense_shape_edges: dense layout options
-        aspect_ratio: dy scale factor (default 1.0)
-        pattern_inner_control: inner control mode
-        lid_boundary: boundary around the lid edge (default 10)
-        layout_width: pattern repeat width (default default_lid_layout_width)
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-
-    lid_children = build_lid_overlays(
-        lid_thickness=lid_thickness,
-        size=[size[0], size[1]],
-        boundary=lid_boundary,
-        layout_width=layout_width,
-        aspect_ratio=aspect_ratio,
-        shape_child=shape_child,
-        dense=lid_pattern_dense,
-        dense_shape_edges=lid_dense_shape_edges,
-        inner_control=pattern_inner_control,
-        extra_children=extra_children,
-        material_colour=material_colour,
-    )
-
-    return _make_lid_for_filament_box(
-        size=size,
-        wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness,
-        lid_thickness=lid_thickness,
-        material_colour=material_colour,
-        filament_thickness=filament_thickness,
-        rounding=rounding,
-        hinge_options=hinge_options,
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        children=lid_children,
-    )
-
-
-def _filament_hinge_box_lid_with_shape(
-    size: list[float],
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    wall_thickness: float | None = None,
-    floor_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    material_colour: str | None = None,
-    filament_thickness: float = 2.2,
-    rounding: float = 0,
-    hinge_options: types.SimpleNamespace | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Makes a lid for a filament-hinge box with a pre-defined shape pattern.
-
-    Usage::
-
-        _filament_hinge_box_lid_with_shape([100, 20, 6], shape_options=MakeShapeObject())
-
-    Args:
-        size:    [width, length, height] of the box
-        shape_child: optional explicit 2-D shape solid (overrides shape_options if given)
-        extra_children: additional children (list of solids)
-        shape_options: :class:`~shape_type.ShapeObject` (default MakeShapeObject())
-        (other args, see :func:`_filament_hinge_box_lid_with_custom_shape`)
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-    if shape_child is not None:
-        pattern_shape = shape_child
-    else:
-        _shape_raw = ShapeByType(options=calc_shape_options)
-        assert _shape_raw is not None, "shape_options must not be ShapeType.NONE here"
-        pattern_shape = _shape_raw.color(material_colour)
-
-    return _filament_hinge_box_lid_with_custom_shape(
-        size=size,
-        wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness,
-        lid_thickness=lid_thickness,
-        material_colour=material_colour,
-        filament_thickness=filament_thickness,
-        rounding=rounding,
-        hinge_options=hinge_options,
-        lid_pattern_dense=IsDenseShapeType(calc_shape_options.shape_type),
-        lid_dense_shape_edges=DenseShapeEdges(calc_shape_options.shape_type),
-        pattern_inner_control=ShapeNeedsInnerControl(calc_shape_options.shape_type),
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        lid_boundary=lid_boundary,
-        aspect_ratio=aspect_ratio,
-        layout_width=layout_width,
-        shape_child=pattern_shape,
-        extra_children=extra_children,
-    )
-
-
-def _filament_hinge_box_lid_with_label_and_custom_shape(
-    size: list[float],
-    text_str: str,
-    shape_child: PyOpenSCAD | None = None,
-    extra_children: "list | None" = None,
-    label_options: LabelOptions | None = None,
-    wall_thickness: float | None = None,
-    floor_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    material_colour: str | None = None,
-    filament_thickness: float = 2.2,
-    rounding: float = 0,
-    hinge_options: types.SimpleNamespace | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Makes a lid for a filament-hinge box with a text label and a custom shape.
-
-    Usage::
-
-        _filament_hinge_box_lid_with_label_and_custom_shape([100, 20, 6], "Label", shape_child=shapes2d.circle(radius=5))
-
-    Args:
-        size:     [width, length, height] of the box
-        text_str: the string to use for the label
-        shape_child: optional explicit 2-D shape solid for the pattern
-        extra_children: additional children (list of solids)
-        label_options: :class:`~labels.LabelOptions`
-        (other args, see :func:`FilamentHingeBoxLidWithCustomShape`)
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-    if lid_thickness is None:
-        lid_thickness = default_lid_thickness
-    if wall_thickness is None:
-        wall_thickness = default_wall_thickness
-
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-
-    width, length = size[0], size[1]
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = True
-    _label_raw = MakeLidLabel(
-        size=[width - wall_thickness - lid_boundary * 2, length - lid_boundary * 2],
-        options=label_opts,
-        lid_thickness=lid_thickness,
-        text_str=text_str,
-    )
-    assert _label_raw is not None, "label did not generate"
-    label_shape = (
-        _label_raw.mirror([1, 0, 0]).mirror([0, 0, 1]).translate([width - lid_boundary, lid_boundary, lid_thickness])
-    )
-
-    lid_children = [label_shape] + (list(extra_children) if extra_children else [])
-
-    return _filament_hinge_box_lid_with_shape(
-        size=size,
-        shape_child=shape_child,
-        wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness,
-        lid_thickness=lid_thickness,
-        material_colour=material_colour,
-        filament_thickness=filament_thickness,
-        rounding=rounding,
-        hinge_options=hinge_options,
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        lid_boundary=lid_boundary,
-        aspect_ratio=aspect_ratio,
-        layout_width=layout_width,
-        shape_options=calc_shape_options,
-        extra_children=lid_children,
-    )
-
-
-def _filament_hinge_box_lid_with_label(
-    size: list[float],
-    text_str: str,
-    extra_children: "list | None" = None,
-    label_options: LabelOptions | None = None,
-    wall_thickness: float | None = None,
-    floor_thickness: float | None = None,
-    lid_thickness: float | None = None,
-    material_colour: str | None = None,
-    filament_thickness: float = 2.2,
-    rounding: float = 0,
-    hinge_options: types.SimpleNamespace | None = None,
-    print_in_place_offset: float | None = None,
-    size_spacing: float | None = None,
-    lid_boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = 1.0,
-    shape_options: ShapeObject | None = None,
-) -> PyOpenSCAD:
-    """Makes a lid for a filament-hinge box with a text label and an automatic shape.
-
-    Usage::
-
-        _filament_hinge_box_lid_with_label([100, 20, 6], "Label")
-
-    Args:
-        size:     [width, length, height] of the box
-        text_str: the string to use for the label
-        extra_children: additional children (list of solids)
-        label_options: :class:`~labels.LabelOptions`
-        shape_options: :class:`~shape_type.ShapeObject`
-        (other args, see :func:`FilamentHingeBoxLidWithCustomShape`)
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    calc_label_options = (
-        label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
-    )
-    calc_shape_options = shape_options if shape_options is not None else MakeShapeObject()
-
-    shape_piece_raw = ShapeByType(options=calc_shape_options)
-    assert shape_piece_raw is not None, "shape_options must not be ShapeType.NONE here"
-    shape_piece = shape_piece_raw.color(material_colour)
-
-    return _filament_hinge_box_lid_with_label_and_custom_shape(
-        size=size,
-        text_str=text_str,
-        label_options=calc_label_options,
-        wall_thickness=wall_thickness,
-        floor_thickness=floor_thickness,
-        lid_thickness=lid_thickness,
-        material_colour=material_colour,
-        filament_thickness=filament_thickness,
-        rounding=rounding,
-        hinge_options=hinge_options,
-        print_in_place_offset=print_in_place_offset,
-        size_spacing=size_spacing,
-        lid_boundary=lid_boundary,
-        aspect_ratio=aspect_ratio,
-        layout_width=layout_width,
-        shape_options=calc_shape_options,
-        shape_child=shape_piece,
-        extra_children=extra_children,
-    )
+    return top, knuckle | catch, [wall_thickness * 2.5, 0.0], hole
 
 
 class FilamentHingeBox(BoxBaseType):
@@ -758,8 +471,9 @@ class FilamentHingeBox(BoxBaseType):
 
     Box and lid are SEPARATE prints (joined by filament after printing), so
     :meth:`make_box` and :meth:`make_lid` both work. ``contents`` entries are carved
-    into the box interior in order. Hinge parameters come from
-    ``BoxSpec(type_options=HingeOptions(thickness=..., hole_diameter=...))``.
+    into the box interior in order (the underlying geometry places them itself, hence
+    ``body_carves_contents``). Hinge parameters come from
+    ``BoxSpec(type_options=FilamentHingeBoxOptions(thickness=..., hole_diameter=...))``.
 
     Usage::
 
@@ -771,26 +485,17 @@ class FilamentHingeBox(BoxBaseType):
         box.make_lid().show()
     """
 
-    def _hinge_options(self):
-        o = self._spec.type_options
-        return o if isinstance(o, types.SimpleNamespace) else None
+    options_class = FilamentHingeBoxOptions
+    body_hollows_itself = True
+    body_carves_contents = True
 
-    def _children(self, contents):
-        if contents is None:
-            contents = self._spec.contents
-        resolved = self._resolve_contents(contents)
-        return [io.value for io in resolved] or None
-
-    def make_box(self, *, contents=None, finger_holes=None):
-        if contents is None:
-            contents = self._spec.contents
-        resolved = self._resolve_contents(contents)
+    def _build_box_body(self, contents):
         # Thread the InnerObject types into the underlying function's index lists so the
         # full content model works here: POSITIVE -> add only, POSITIVE_NEGATIVE -> carve
         # AND (under MAKE_MMU) re-emit coloured (the Irish-Gauge engraved-label pattern).
-        children = [io.value for io in resolved] or None
-        pos_only = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE]
-        pos_neg = [i for i, io in enumerate(resolved) if io.type == ObjectType.POSITIVE_NEGATIVE]
+        children = [io.value for io in contents] or None
+        pos_only = [i for i, io in enumerate(contents) if io.type == ObjectType.POSITIVE]
+        pos_neg = [i for i, io in enumerate(contents) if io.type == ObjectType.POSITIVE_NEGATIVE]
         return _make_box_with_filament_hinge_lid(
             size=[self.width, self.length, self.height],
             children=children,
@@ -798,32 +503,27 @@ class FilamentHingeBox(BoxBaseType):
             floor_thickness=self.floor_thickness,
             lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
-            hinge_options=self._hinge_options(),
+            hinge_options=self.options,
             positive_only_children=pos_only,
             positive_negative_children=pos_neg,
         )
 
-    def make_lid(self, lid=None):
-        if self._spec.lid_label is not None:
-            return _filament_hinge_box_lid_with_label(
-                size=[self.width, self.length, self.height],
-                text_str=self._spec.lid_label,
-                wall_thickness=self.wall_thickness,
-                floor_thickness=self.floor_thickness,
-                lid_thickness=self.lid_thickness,
-                material_colour=self.material_colour,
-                hinge_options=self._hinge_options(),
-                label_options=self._spec.label_options,
-                shape_options=self._spec.shape_options,
-            )
-        return _make_lid_for_filament_box(
+    def _lid_plate(self, lid) -> LidPlate:
+        """The lid's flat top (the decorated plate) plus the hinge knuckles and the catch
+        lip (the shell); the filament pin hole is a cutout through the finished lid."""
+        top, shell, origin, pin_hole = _filament_lid_parts(
             size=[self.width, self.length, self.height],
             wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness,
-            lid_thickness=self.lid_thickness,
+            lid_thickness=lid.lid_thickness,
             material_colour=self.material_colour,
-            hinge_options=self._hinge_options(),
+            hinge_options=self.options,
         )
-
-    def _build_box_body(self):
-        raise NotImplementedError("FilamentHingeBox builds its body in make_box()")
+        return LidPlate(
+            plate=top,
+            size=[self.width - origin[0], self.length],
+            thickness=lid.lid_thickness,
+            origin=origin,
+            shell=shell,
+            cutouts=[pin_hole],
+        )

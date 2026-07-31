@@ -135,8 +135,8 @@ class TestDataclasses(unittest.TestCase):
         self.assertIsNone(obj.color)
 
     def test_inner_object_overrides(self) -> None:
-        obj = base_bgtk.InnerObject(value="a solid", type=base_bgtk.ObjectType.POSTIVE, color="red")
-        self.assertEqual(obj.type, base_bgtk.ObjectType.POSTIVE)
+        obj = base_bgtk.InnerObject(value="a solid", type=base_bgtk.ObjectType.POSITIVE, color="red")
+        self.assertEqual(obj.type, base_bgtk.ObjectType.POSITIVE)
         self.assertEqual(obj.color, "red")
 
 

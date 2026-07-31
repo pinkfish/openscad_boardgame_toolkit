@@ -35,21 +35,11 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from components import FingerHoleWall
-from lids_base import (
-    default_lid_catch_type,
-    internal_build_lid,
-    MakeLidLabel,
-    LidMeshBasic,
-    build_lid_overlays,
-    IsDenseShapeType,
-    DenseShapeEdges,
-)
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from lids_base import default_lid_catch_type
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
 from pybosl2.paths import Path
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 
 
 def _finger_hole_wall_segment_cutout(
@@ -212,10 +202,9 @@ def _make_path_box_with_slipover_lid(
     return result
 
 
-def _slipover_path_box_lid(
+def _slipover_path_lid_parts(
     path: list[list[float]],
     height: float,
-    children: "list | None" = None,
     lid_thickness: float | None = None,
     wall_thickness: float | None = None,
     size_spacing: float | None = None,
@@ -226,16 +215,18 @@ def _slipover_path_box_lid(
     offset_sweep_options: types.SimpleNamespace | None = None,
     lid_catch: CatchType | None = None,
 ) -> PyOpenSCAD:
-    """Make a box with a slip lid, a lid that slips over the outside of a box.
+    """The pieces of a polygon slipover sleeve: ``(top_plate, shell, plate_z, rounded_path)``.
+
+    Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in
+    :class:`~box_base.BoxBaseType` can decorate the top plate -- see :class:`SlipoverPathBox`.
 
     Usage::
 
-        _slipover_path_box_lid(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
+        _slipover_path_lid_parts(path=[[0,0], [0,100], [50,100], [50,0]], height=10)
 
     Args:
         path:    the path of the box outline (>= 3 points)
         height:  height of the lid (outside height)
-        children: list of label/decoration solids placed on top of the lid
         lid_thickness: thickness of the lid (default default_lid_thickness)
         wall_thickness: thickness of the walls (default default_wall_thickness)
         size_spacing: wiggle room (default m_piece_wiggle_room)
@@ -274,10 +265,6 @@ def _slipover_path_box_lid(
     calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
     calc_path = Path(path).round_corners(radius=calc_lid_rounding)
 
-    x_arr = [p[0] for p in inner_path]
-    y_arr = [p[1] for p in inner_path]
-    calc_length = max(y_arr) - min(y_arr)
-
     # The original construction intersected the plain extrusion with an os_smooth-topped
     # offset_sweep (a continuous-curvature eased rim); PolygonPrism() approximates that
     # with a plain circular roundover of the same depth (joint = lid_thickness / 2) -- at
@@ -285,10 +272,6 @@ def _slipover_path_box_lid(
     # (offset_sweep_options is therefore unused now; kept in the signature so existing
     # call sites don't break.)
     top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2).color(material_colour)
-
-    kids = list(children) if children else []
-    lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
-    lid_stack = lid_stack.translate([0, 0, height - foot_offset - lid_thickness])
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 
@@ -340,12 +323,11 @@ def _slipover_path_box_lid(
     if seg is not None:
         wall = wall - seg.color(material_colour)
 
-    body = lid_stack | wall
-    return body.translate([0, calc_length, height - foot]).rotate([180, 0, 0])
+    return top, wall, height - foot_offset - lid_thickness, calc_path
 
 
 @dataclass
-class SlipoverPathBoxOptions:
+class SlipoverPathBoxOptions(BoxTypeOptions):
     """Options for :class:`SlipoverPathBox` -- a slipover box whose outline is a polygon.
 
     Give an explicit ``path`` (closed ``[[x, y], ...]`` outline) or use
@@ -358,15 +340,11 @@ class SlipoverPathBoxOptions:
     lid_catch: "CatchType | None" = None
 
 
-def MakeSlipoverPathBoxOptions(**kwargs) -> SlipoverPathBoxOptions:
-    return SlipoverPathBoxOptions(**kwargs)
-
-
 class SlipoverPathBox(BoxBaseType):
     """A slipover box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~slipover_box.SlipoverBox`. The lid is a sleeve that slides
     over the outside of the box; box and lid are separate prints. Facade over
-    :func:`_make_path_box_with_slipover_lid` / :func:`_slipover_path_box_lid`.
+    :func:`_make_path_box_with_slipover_lid` / :func:`_slipover_path_lid_parts`.
 
     The polygon goes in ``BoxSpec.type_options`` as a :class:`SlipoverPathBoxOptions`;
     ``BoxSpec.size`` is ``[width, length, height]`` but the x/y extent is re-derived from
@@ -389,18 +367,19 @@ class SlipoverPathBox(BoxBaseType):
                                         sides=6).make_box().show()
     """
 
+    options_class = SlipoverPathBoxOptions
+    body_hollows_itself = True
+    body_carves_contents = True
+
     def __init__(self, spec: BoxSpec) -> None:
         opts = spec.type_options
-        if not isinstance(opts, SlipoverPathBoxOptions):
-            raise TypeError(
-                "SlipoverPathBox requires BoxSpec(type_options=SlipoverPathBoxOptions(path=...)); "
-                f"got type_options={opts!r}"
-            )
-        pts = np.asarray(opts.path, dtype=float)
-        w = float(pts[:, 0].max() - pts[:, 0].min())
-        l = float(pts[:, 1].max() - pts[:, 1].min())
-        super().__init__(replace(spec, size=[w, l, spec.size[2]]))
-        self._opts = opts
+        if isinstance(opts, SlipoverPathBoxOptions):
+            pts = np.asarray(opts.path, dtype=float)
+            w = float(pts[:, 0].max() - pts[:, 0].min())
+            l = float(pts[:, 1].max() - pts[:, 1].min())
+            spec = replace(spec, size=[w, l, spec.size[2]])
+        super().__init__(spec)   # validates type_options against options_class
+        self._opts = self.options
 
     @classmethod
     def regular_polygon(cls, spec: BoxSpec, sides: int, **opt_kwargs) -> "SlipoverPathBox":
@@ -411,14 +390,12 @@ class SlipoverPathBox(BoxBaseType):
         return cls(replace(spec, type_options=SlipoverPathBoxOptions(path=path, **opt_kwargs)))
 
     def _children(self, contents):
-        if contents is None:
-            contents = self._spec.contents
-        kids = [io.value for io in self._resolve_contents(contents)] or None
+        kids = [io.value for io in contents] or None
         if self._opts.children:
             kids = list(self._opts.children) + (kids or [])
         return kids
 
-    def make_box(self, *, contents=None, finger_holes=None):
+    def _build_box_body(self, contents):
         o = self._opts
         return _make_path_box_with_slipover_lid(
             path=o.path,
@@ -433,52 +410,37 @@ class SlipoverPathBox(BoxBaseType):
             lid_catch=o.lid_catch,
         )
 
-    def _lid_overlay_children(self):
-        """The label + shape-pattern overlay solids for the polygon sleeve lid, or ``None``
-        when no ``lid_label`` is set (mirrors the old ``SlipoverPathBoxLidWithLabel``)."""
-        if self._spec.lid_label is None:
-            return None
+    def _lid_plate(self, lid) -> LidPlate:
+        """The polygon sleeve: the outline-shaped top plate (decorated) closing the sleeve
+        wall (the shell). ``origin`` is the rounded outline's bounding-box corner -- a
+        polygon path is centred on the origin, so without it the label would be laid out
+        half a box away from the lid."""
         o = self._opts
-        pts = np.asarray(o.path, dtype=float)
-        calc_width = float(pts[:, 0].max() - pts[:, 0].min())
-        calc_length = float(pts[:, 1].max() - pts[:, 1].min())
-        label_options = (
-            self._spec.label_options if self._spec.label_options is not None
-            else MakeLabelOptions(material_colour=self.material_colour)
-        )
-        shape_options = self._spec.shape_options if self._spec.shape_options is not None else MakeShapeObject()
-        shape_piece = ShapeByType(options=shape_options)
-        assert shape_piece is not None, "shape_options must not be ShapeType.NONE here"
-        return build_lid_overlays(
-            lid_thickness=self.lid_thickness,
-            path=o.path,
-            label_size=[calc_width, calc_length],
-            boundary=10,
-            layout_width=None,
-            aspect_ratio=1.0,
-            shape_child=shape_piece.color(self.material_colour),
-            dense=IsDenseShapeType(shape_options.shape_type),
-            dense_shape_edges=DenseShapeEdges(shape_options.shape_type),
-            inner_control=ShapeNeedsInnerControl(shape_options.shape_type),
-            text_str=self._spec.lid_label,
-            label_options=label_options,
-            extra_children=None,
-            material_colour=self.material_colour,
-        )
-
-    def make_lid(self, lid=None):
-        o = self._opts
-        return _slipover_path_box_lid(
+        top, shell, plate_z, calc_path = _slipover_path_lid_parts(
             path=o.path,
             height=self.height,
             wall_thickness=self.wall_thickness,
             foot=o.foot,
             size_spacing=self.size_spacing,
-            lid_thickness=self.lid_thickness,
+            lid_thickness=lid.lid_thickness,
             material_colour=self.material_colour,
             lid_catch=o.lid_catch,
-            children=self._lid_overlay_children(),
+        )
+        pts = np.asarray(calc_path, dtype=float)
+        ox, oy = float(pts[:, 0].min()), float(pts[:, 1].min())
+        return LidPlate(
+            plate=top,
+            size=[float(pts[:, 0].max() - ox), float(pts[:, 1].max() - oy)],
+            thickness=lid.lid_thickness,
+            origin=[ox, oy],
+            offset=[0, 0, plate_z],
+            shell=shell,
+            path=[[float(x), float(y)] for x, y in pts],
         )
 
-    def _build_box_body(self):
-        raise NotImplementedError("SlipoverPathBox builds its polygon body in make_box()")
+    def _lid_adjustment(self, stack):
+        """Flip the sleeve over for printing. Rotate FIRST, then lift: the other order
+        left the whole lid at negative z (below the print bed)."""
+        o = self._opts
+        foot_offset = o.foot + self.size_spacing if o.foot > 0 else 0
+        return stack.rotate([180, 0, 0]).translate([0, self.length, self.height - foot_offset])

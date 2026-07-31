@@ -38,18 +38,8 @@ import numpy as np
 import pybosl2.shapes3d
 from pybosl2.paths import Path
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec
-from lids_base import (
-    internal_build_lid,
-    MakeLidLabel,
-    LidMeshBasic,
-    build_lid_overlays,
-    IsDenseShapeType,
-    DenseShapeEdges,
-    default_lid_catch_type,
-)
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from lids_base import default_lid_catch_type
 from cap_box import (
     CapBoxDefaultCapHeight,
     CapBoxDefaultFingerHoldHeight,
@@ -369,10 +359,9 @@ def _make_path_box_with_cap_lid(
     return result
 
 
-def _cap_path_box_lid(
+def _cap_path_lid_parts(
     path: list[list[float]],
     height: float,
-    children: list[PyOpenSCAD] | None = None,
     cap_height: float | None = None,
     lid_thickness: float | None = None,
     wall_thickness: float | None = None,
@@ -383,17 +372,19 @@ def _cap_path_box_lid(
     material_colour: str | None = None,
     offset_sweep_options: types.SimpleNamespace | None = None,
     lid_catch: CatchType | None = None,
-) -> PyOpenSCAD:
-    """Lid for a polygon cap box, with finger cutouts.
+) -> tuple:
+    """The pieces of a polygon cap lid: ``(top_plate, shell, cap_height, rounded_path)``.
+
+    Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in
+    :class:`~box_base.BoxBaseType` can decorate the top plate -- see :class:`CapPathBox`.
 
     Usage::
 
-        _cap_path_box_lid(path=[[0,0], [0,100], [100,100]], height=30)
+        _cap_path_lid_parts(path=[[0,0], [0,100], [100,100]], height=30)
 
     Args:
         path:    the polygon outline path of the box (>= 3 points)
         height:  outside height of the box
-        children: list of label/decoration solids placed on top of the lid
         cap_height: cap height (default auto)
         lid_thickness: lid thickness (default default_lid_thickness)
         wall_thickness: wall thickness (default default_wall_thickness)
@@ -428,19 +419,12 @@ def _cap_path_box_lid(
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
 
-    y_arr = [p[1] for p in path]
-    calc_length = max(y_arr) - min(y_arr)
-
     # The old offset_sweep with an os_smooth(joint=wall/2) top is a straight extrusion of
     # the rounded outline with an eased top rim -- polygon_prism's circular roundover of the
     # same joint size is a near-identical profile.
     top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=min(wall_thickness / 2, lid_thickness * 0.49)).color(
         material_colour
     )
-
-    kids = list(children) if children else []
-    lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[top] + kids, size_spacing=size_spacing)
-    lid_stack = lid_stack.translate([0, 0, calc_cap_height - lid_thickness])
 
     base_outer = (
         shapes2d.polygon(calc_path_native)
@@ -478,15 +462,12 @@ def _cap_path_box_lid(
     if c is not None:
         catches = c if catches is None else catches | c
 
-    main = lid_stack | base
-    if catches is not None:
-        main = main | catches.color(material_colour)
-
-    return main.translate([0, calc_length, calc_cap_height]).rotate([180, 0, 0])
+    shell = base if catches is None else (base | catches.color(material_colour))
+    return top, shell, calc_cap_height, calc_path
 
 
 @dataclass
-class CapPathBoxOptions:
+class CapPathBoxOptions(BoxTypeOptions):
     """Options for :class:`CapPathBox` -- a cap box whose outline is a polygon.
 
     Give an explicit ``path`` (closed ``[[x, y], ...]`` outline) or use
@@ -501,14 +482,10 @@ class CapPathBoxOptions:
     lid_catch: "CatchType | None" = None
 
 
-def MakeCapPathBoxOptions(**kwargs) -> CapPathBoxOptions:
-    return CapPathBoxOptions(**kwargs)
-
-
 class CapPathBox(BoxBaseType):
     """A cap box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~cap_box.CapBox`. A cap slides over the top rim; box and lid
-    are separate prints. Facade over :func:`_make_path_box_with_cap_lid` / :func:`_cap_path_box_lid`.
+    are separate prints. Facade over :func:`_make_path_box_with_cap_lid` / :func:`_cap_path_lid_parts`.
 
     The polygon and cap parameters go in ``BoxSpec.type_options`` as a
     :class:`CapPathBoxOptions`; ``BoxSpec.size`` is ``[width, length, height]`` but the
@@ -530,18 +507,19 @@ class CapPathBox(BoxBaseType):
                                    sides=6).make_box().show()
     """
 
+    options_class = CapPathBoxOptions
+    body_hollows_itself = True
+    body_carves_contents = True
+
     def __init__(self, spec: BoxSpec) -> None:
         opts = spec.type_options
-        if not isinstance(opts, CapPathBoxOptions):
-            raise TypeError(
-                "CapPathBox requires BoxSpec(type_options=CapPathBoxOptions(path=...)); "
-                f"got type_options={opts!r}"
-            )
-        pts = np.asarray(opts.path, dtype=float)
-        w = float(pts[:, 0].max() - pts[:, 0].min())
-        l = float(pts[:, 1].max() - pts[:, 1].min())
-        super().__init__(replace(spec, size=[w, l, spec.size[2]]))
-        self._opts = opts
+        if isinstance(opts, CapPathBoxOptions):
+            pts = np.asarray(opts.path, dtype=float)
+            w = float(pts[:, 0].max() - pts[:, 0].min())
+            l = float(pts[:, 1].max() - pts[:, 1].min())
+            spec = replace(spec, size=[w, l, spec.size[2]])
+        super().__init__(spec)   # validates type_options against options_class
+        self._opts = self.options
 
     @classmethod
     def regular_polygon(cls, spec: BoxSpec, sides: int, **opt_kwargs) -> "CapPathBox":
@@ -552,15 +530,13 @@ class CapPathBox(BoxBaseType):
         return cls(replace(spec, type_options=CapPathBoxOptions(path=path, **opt_kwargs)))
 
     def _children(self, contents):
-        if contents is None:
-            contents = self._spec.contents
-        kids = [io.value for io in self._resolve_contents(contents)] or None
+        kids = [io.value for io in contents] or None
         # type_options.children compose in front of BoxSpec.contents.
         if self._opts.children:
             kids = list(self._opts.children) + (kids or [])
         return kids
 
-    def make_box(self, *, contents=None, finger_holes=None):
+    def _build_box_body(self, contents):
         o = self._opts
         return _make_path_box_with_cap_lid(
             path=o.path,
@@ -577,54 +553,40 @@ class CapPathBox(BoxBaseType):
             lid_catch=o.lid_catch,
         )
 
-    def _lid_overlay_children(self):
-        """The label + shape-pattern overlay solids for the polygon lid, or ``None`` when
-        no ``lid_label`` is set. Built with the path-aware :func:`~lids_base.build_lid_overlays`
-        (mirrors what the old ``CapPathBoxLidWithLabel`` did before this was privatised)."""
-        if self._spec.lid_label is None:
-            return None
+    def _lid_plate(self, lid) -> LidPlate:
+        """The polygon cap: the outline-shaped top plate (decorated) sitting on the cap
+        wall + catches (the shell). The plate's footprint is the ROUNDED OUTLINE, and its
+        origin is that outline's bounding-box corner -- a polygon path is centred on the
+        origin, so without it the label would be laid out half a box away from the lid."""
         o = self._opts
-        pts = np.asarray(o.path, dtype=float)
-        calc_width = float(pts[:, 0].max() - pts[:, 0].min())
-        calc_length = float(pts[:, 1].max() - pts[:, 1].min())
-        label_options = (
-            self._spec.label_options if self._spec.label_options is not None
-            else MakeLabelOptions(material_colour=self.material_colour)
-        )
-        shape_options = self._spec.shape_options if self._spec.shape_options is not None else MakeShapeObject()
-        shape_piece = ShapeByType(options=shape_options)
-        assert shape_piece is not None, "shape_options must not be ShapeType.NONE here"
-        return build_lid_overlays(
-            lid_thickness=self.lid_thickness,
-            path=o.path,
-            label_size=[calc_width, calc_length],
-            boundary=10,
-            layout_width=None,
-            aspect_ratio=1.0,
-            shape_child=shape_piece.color(self.material_colour),
-            dense=IsDenseShapeType(shape_options.shape_type),
-            dense_shape_edges=DenseShapeEdges(shape_options.shape_type),
-            inner_control=ShapeNeedsInnerControl(shape_options.shape_type),
-            text_str=self._spec.lid_label,
-            label_options=label_options,
-            extra_children=None,
-            material_colour=self.material_colour,
-        )
-
-    def make_lid(self, lid=None):
-        o = self._opts
-        return _cap_path_box_lid(
+        top, shell, cap_h, calc_path = _cap_path_lid_parts(
             path=o.path,
             height=self.height,
             cap_height=o.cap_height,
-            lid_thickness=self.lid_thickness,
+            lid_thickness=lid.lid_thickness,
             wall_thickness=self.wall_thickness,
             size_spacing=self.size_spacing,
             lid_wall_thickness=o.lid_wall_thickness,
             material_colour=self.material_colour,
             lid_catch=o.lid_catch,
-            children=self._lid_overlay_children(),
+        )
+        pts = np.asarray(calc_path, dtype=float)
+        ox, oy = float(pts[:, 0].min()), float(pts[:, 1].min())
+        return LidPlate(
+            plate=top,
+            size=[float(pts[:, 0].max() - ox), float(pts[:, 1].max() - oy)],
+            thickness=lid.lid_thickness,
+            origin=[ox, oy],
+            offset=[0, 0, cap_h - lid.lid_thickness],
+            shell=shell,
+            path=[[float(x), float(y)] for x, y in pts],
         )
 
-    def _build_box_body(self):
-        raise NotImplementedError("CapPathBox builds its polygon body in make_box()")
+    def _cap_height(self) -> float:
+        o = self._opts
+        return float(o.cap_height) if o.cap_height else CapBoxDefaultCapHeight(self.height)
+
+    def _lid_adjustment(self, stack):
+        """Flip the cap over for printing. Rotate FIRST, then lift: the other order left
+        the whole lid at negative z (below the print bed)."""
+        return stack.rotate([180, 0, 0]).translate([0, self.length, self._cap_height()])

@@ -36,10 +36,8 @@ import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.shapes2d
 from pybosl2._sdf import joiners as _sdf_joiners
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, build_lid_overlays, IsDenseShapeType, DenseShapeEdges
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from box_base import BoxBaseType, BoxSpec
+from lids_base import internal_build_lid
+from box_base import BoxBaseType, BoxSpec, LidPlate
 from dataclasses import dataclass, field
 
 from typing import Callable
@@ -463,9 +461,8 @@ def SlidingLatch(
     return (a | b | c).shape
 
 
-def _card_library_box_lid(
+def _card_library_lid_parts(
     size: list[float],
-    children: "list | None" = None,
     wall_thickness: float | None = None,
     lid_thickness: float | None = None,
     lip_size: float | None = None,
@@ -476,15 +473,18 @@ def _card_library_box_lid(
     print_in_place_offset: float | None = None,
     size_spacing: float | None = None,
 ) -> PyOpenSCAD:
-    """Creates a basic lid for the card library box.
+    """The pieces of a card-library lid: ``(base, extra_overlays, latch_parts, plate_origin,
+    plate_size)``.
+
+    Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in
+    :class:`~box_base.BoxBaseType` can decorate it -- see :class:`CardLibraryBox`.
 
     Usage::
 
-        _card_library_box_lid([100, 50, 20])
+        _card_library_lid_parts([100, 50, 20])
 
     Args:
         size: [width, length, height]
-        children: list of up to 5 solids placed in/on the lid
         wall_thickness: thickness of the walls (default default_wall_thickness)
         lid_thickness: thickness of the lid (default default_lid_thickness)
         lip_size: size of the lip (default default_lid_thickness*3)
@@ -587,8 +587,7 @@ def _card_library_box_lid(
             anchor=BOTTOM + BACK + LEFT,
         ).translate([width * 3 / 4 - print_in_place_offset, length + 0.01, -0.01])
 
-    kids = list(children) if children else []
-    extra = kids[0:2]
+    extra: list = []
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
         slide_support_a = (
@@ -638,52 +637,73 @@ def _card_library_box_lid(
         slide_supports = slide_supports - handle_cut_a - handle_cut_b
         extra = extra + [slide_supports]
 
-    extra = extra + kids[2:5]
+    # The sliding latch and its channels are joined to the FINISHED lid (they stand proud
+    # of the plate and must not be masked into the decoration stack).
+    latch_parts = None
 
-    lid_stack = internal_build_lid(lid_thickness=lid_thickness, children=[base] + extra, size_spacing=size_spacing)
-    body = lid_stack
+    def add(piece):
+        # SlidingChannel()/SlidingLatch() hand back NATIVE handles; a native on the LEFT of
+        # `|` rejects a Bosl2Solid on the right, so wrap every piece before accumulating.
+        nonlocal latch_parts
+        if not isinstance(piece, pybosl2.shapes3d.Bosl2Solid):
+            piece = pybosl2.shapes3d.Bosl2Solid(piece)
+        latch_parts = piece if latch_parts is None else latch_parts | piece
 
     if latch == CARD_LIBRARY_LATCH_SLIDING:
-        body = body | SlidingChannel(
-            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
-            wall_thickness=wall_thickness,
-        ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
-
-        body = body | pybosl2.shapes3d.cuboid(
-            [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT
-        ).color(material_colour).translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
-
-        body = body | SlidingLatch(
-            size=sliding_latch_size,
-            print_in_place_offset=print_in_place_offset,
-            lid_thickness=lid_thickness,
-            wall_thickness=wall_thickness,
-        ).color(material_colour).translate([width * 3 / 4, wall_thickness, 0])
-
-        body = body | SlidingChannel(
-            [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
-            wall_thickness=wall_thickness,
-        ).color(material_colour).translate(
-            [width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness]
+        add(
+            SlidingChannel(
+                [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
+                wall_thickness=wall_thickness,
+            )
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
+        )
+        add(
+            pybosl2.shapes3d.cuboid(
+                [wall_thickness * 3 + 0.5, wall_thickness, wall_thickness + 0.1], anchor=BOTTOM + FRONT + LEFT
+            )
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset, edge_size, lid_thickness - 0.1])
+        )
+        add(
+            SlidingLatch(
+                size=sliding_latch_size,
+                print_in_place_offset=print_in_place_offset,
+                lid_thickness=lid_thickness,
+                wall_thickness=wall_thickness,
+            )
+            .color(material_colour)
+            .translate([width * 3 / 4, wall_thickness, 0])
+        )
+        add(
+            SlidingChannel(
+                [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
+                wall_thickness=wall_thickness,
+            )
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
+        )
+        add(
+            pybosl2.shapes3d.cuboid(
+                [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1],
+                anchor=BOTTOM + FRONT + LEFT,
+            )
+            .color(material_colour)
+            .translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1])
+        )
+        add(
+            SlidingLatch(
+                size=sliding_latch_size,
+                print_in_place_offset=print_in_place_offset,
+                lid_thickness=lid_thickness,
+                wall_thickness=wall_thickness,
+            )
+            .rotate([0, 0, 180])
+            .color(material_colour)
+            .translate([width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0])
         )
 
-        body = body | pybosl2.shapes3d.cuboid(
-            [wall_thickness * 3 + print_in_place_offset * 2, wall_thickness, wall_thickness + 0.1],
-            anchor=BOTTOM + FRONT + LEFT,
-        ).color(material_colour).translate(
-            [width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness - 0.1]
-        )
-
-        body = body | SlidingLatch(
-            size=sliding_latch_size,
-            print_in_place_offset=print_in_place_offset,
-            lid_thickness=lid_thickness,
-            wall_thickness=wall_thickness,
-        ).rotate([0, 0, 180]).color(material_colour).translate(
-            [width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0]
-        )
-
-    return body
+    return base, extra, latch_parts, [wall_thickness * 2, 0.0], [width - wall_thickness * 2, length]
 
 
 def CardSleeveForLibrary(
@@ -973,6 +993,9 @@ class CardLibraryBox(BoxBaseType):
         box.make_sleeves().show()      # all sleeves; or box.make_sleeve(0)
     """
 
+    body_hollows_itself = True
+    body_carves_contents = True
+
     def __init__(self, spec: CardLibrarySpec) -> None:
         assert isinstance(spec, CardLibrarySpec), (
             f"CardLibraryBox expects a CardLibrarySpec, got {type(spec).__name__}"
@@ -992,20 +1015,30 @@ class CardLibraryBox(BoxBaseType):
     def _box_size(self) -> list[float]:
         return [self.width, self.length, self.height]
 
-    def make_box(self, *, contents=None, finger_holes=None):
-        if contents is None:
-            contents = self._spec.contents
-        children = [io.value for io in self._resolve_contents(contents)] or None
+    def _build_box_body(self, contents):
+        children = [io.value for io in contents] or None
         return _make_card_library_box(
             size=self._box_size(), children=children, wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness, lid_thickness=self.lid_thickness,
             material_colour=self.material_colour, latch=self._card.latch,
         )
 
-    def make_lid(self, lid=None):
-        return _card_library_box_lid(
-            size=self._box_size(), wall_thickness=self.wall_thickness, lid_thickness=self.lid_thickness,
-            latch=self._card.latch, material_colour=self.material_colour,
+    def _lid_plate(self, lid) -> LidPlate:
+        """The card-library lid: the flat plate + hinge + holder + front lip (the decorated
+        base), with the latch supports stacked alongside the decoration and the sliding
+        latch itself joined to the finished lid."""
+        base, extras, latch_parts, origin, size = _card_library_lid_parts(
+            size=self._box_size(), wall_thickness=self.wall_thickness,
+            lid_thickness=lid.lid_thickness, latch=self._card.latch,
+            material_colour=self.material_colour,
+        )
+        return LidPlate(
+            plate=base,
+            size=size,
+            thickness=lid.lid_thickness,
+            origin=origin,
+            shell=latch_parts,
+            extra_overlays=extras,
         )
 
     def make_sleeves(self):
@@ -1020,6 +1053,3 @@ class CardLibraryBox(BoxBaseType):
             g.count, _card_ns(self._card.card_size), label=g.name,
             wall_thickness=self.wall_thickness, material_colour=self.material_colour,
         )
-
-    def _build_box_body(self):
-        raise NotImplementedError("CardLibraryBox builds its body in make_box()")

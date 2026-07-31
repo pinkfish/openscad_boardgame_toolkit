@@ -32,14 +32,14 @@ from base_bgtk import *
 import pybosl2.shapes3d
 from pybosl2._sdf import shapes3d as _sdf_shapes3d
 from pybosl2._sdf import joiners as _sdf_joiners
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 from dataclasses import dataclass
-from lids_base import internal_build_lid, MakeLidTab, MakeTabs
+from lids_base import MakeLidTab, MakeTabs
 
 
 @dataclass
-class InsetBoxOptions:
-    """Inset-box options; pass via ``BoxSpec(type_options=MakeInsetBoxOptions(...))``."""
+class InsetBoxOptions(BoxTypeOptions):
+    """Inset-box options; pass via ``BoxSpec(type_options=InsetBoxOptions(...))``."""
 
     style: str = "tabbed"        # "tabbed" (finger-tab lid) or "rabbit" (rabbit-clip lid)
     inset: float = 1
@@ -59,16 +59,12 @@ class InsetBoxOptions:
     rabbit_depth: float = 1.5
 
 
-def MakeInsetBoxOptions(**kwargs) -> InsetBoxOptions:
-    return InsetBoxOptions(**kwargs)
-
-
 class InsetBox(BoxBaseType):
     """A box with an inset lid that sits down INSIDE the top rim, on the new box system.
 
     The lid is held by either finger tabs (``style="tabbed"``, the default) or rabbit
     clips (``style="rabbit"``), chosen via
-    ``BoxSpec(type_options=MakeInsetBoxOptions(style="rabbit"))``. Box and lid are separate
+    ``BoxSpec(type_options=InsetBoxOptions(style="rabbit"))``. Box and lid are separate
     prints; ``contents`` are carved into the box interior by the shared pipeline. The lid is
     built face-up (with its label / shape pattern overlays), then flipped for printing, so a
     ``BoxSpec.lid_label`` / ``lid_shape`` lands on the outer face.
@@ -83,14 +79,12 @@ class InsetBox(BoxBaseType):
         box.make_lid().show()
     """
 
-    def _opts(self) -> InsetBoxOptions:
-        o = self._spec.type_options
-        return o if isinstance(o, InsetBoxOptions) else InsetBoxOptions()
+    options_class = InsetBoxOptions
 
     def _effective_height(self) -> float:
         # The rabbit-clip body is a lid+wiggle shorter than the outer height; the tabbed
         # body is the full outer height (the lid drops into a recess cut in the top).
-        if self._opts().style == "rabbit":
+        if self.options.style == "rabbit":
             return self.height - self.lid_thickness - self.size_spacing
         return self.height
 
@@ -100,19 +94,18 @@ class InsetBox(BoxBaseType):
 
     def _lid_recess(self):
         """The inset recess carved from the top rim so the lid can drop in."""
-        o = self._opts()
-        inset = o.inset
+        inset = self.options.inset
         return pybosl2.shapes3d.cuboid(
             [self.width - (self.wall_thickness - inset) * 2, self.length - (self.wall_thickness - inset) * 2,
              self.lid_thickness + 0.1],
             anchor=BOTTOM + FRONT + LEFT,
         ).translate([self.wall_thickness - inset, self.wall_thickness - inset, self.height - self.lid_thickness])
 
-    def _build_box_body(self):
-        return self._build_body_rabbit() if self._opts().style == "rabbit" else self._build_body_tabbed()
+    def _build_box_body(self, contents):
+        return self._build_body_rabbit() if self.options.style == "rabbit" else self._build_body_tabbed()
 
     def _build_body_tabbed(self):
-        o = self._opts()
+        o = self.options
         w, l, h = self.width, self.length, self.height
         wt, lt = self.wall_thickness, self.lid_thickness
         body = pybosl2.shapes3d.cuboid(
@@ -135,7 +128,7 @@ class InsetBox(BoxBaseType):
         return body - tabs_cut
 
     def _build_body_rabbit(self):
-        o = self._opts()
+        o = self.options
         w, l, h = self.width, self.length, self.height
         wt, lt, ss = self.wall_thickness, self.lid_thickness, self.size_spacing
         body = pybosl2.shapes3d.cuboid(
@@ -166,49 +159,40 @@ class InsetBox(BoxBaseType):
     # Lid
     # ------------------------------------------------------------------
 
-    def _inset_lid_plate(self, overlays: list):
-        """The flat inset lid plate (sits inside the top rim), stacked with the *overlays*
-        (label / shape pattern) via :func:`~lids_base.internal_build_lid`, before tabs / flip."""
-        o = self._opts()
-        inset = o.inset
-        wt, lt = self.wall_thickness, self.lid_thickness
-        iw = self.width - (wt - inset) * 2 - self.size_spacing * 2
-        il = self.length - (wt - inset) * 2 - self.size_spacing * 2
+    def _lid_plate(self, lid) -> LidPlate:
+        """The flat inset plate that drops inside the top rim (the decorated face), plus
+        the finger tabs / rabbit clips that hold it in (the shell)."""
+        o = self.options
+        w, l, lt = self.width, self.length, lid.lid_thickness
+        wt, inset = self.wall_thickness, o.inset
+        off = wt - inset + self.size_spacing
+        iw = w - (wt - inset) * 2 - self.size_spacing * 2
+        il = l - (wt - inset) * 2 - self.size_spacing * 2
         top = pybosl2.shapes3d.cuboid(
             [iw, il, lt], anchor=BOTTOM + FRONT + LEFT, rounding=wt / 2,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-        ).color(self.material_colour).translate([wt - inset + self.size_spacing, wt - inset + self.size_spacing, 0])
-        return internal_build_lid(lid_thickness=lt, children=[top] + list(overlays), size_spacing=self.size_spacing)
-
-    def create_lid(self, lid=None):
-        o = self._opts()
-        w, l, lt = self.width, self.length, self.lid_thickness
-        prepared = self._prepare_lid(lid)
-        prepared.size = [w, l]
-        overlays = self._lid_overlay(prepared)   # label / pattern, positioned at z=0 (face-up)
-        plate = self._inset_lid_plate(overlays)
+        ).color(self.material_colour).translate([off, off, 0])
 
         if o.style == "rabbit":
             span = o.rabbit_length + o.rabbit_offset
-            base = _sdf_shapes3d.cuboid([span, self.wall_thickness, lt]).translate(
-                [span / 2, self.wall_thickness / 2, -lt / 2]
-            )
+            base = _sdf_shapes3d.cuboid([span, wt, lt]).translate([span / 2, wt / 2, -lt / 2])
             clip = _sdf_joiners.rabbit_clip(
                 type="pin", length=o.rabbit_length, width=o.rabbit_width, snap=o.rabbit_snap,
                 thickness=o.rabbit_thickness, depth=o.rabbit_depth, compression=o.rabbit_compression,
                 lock=o.rabbit_lock,
-            ).translate([span / 2, self.wall_thickness / 2, lt / 2])
+            ).translate([span / 2, wt / 2, lt / 2])
             tab = lambda: (base | clip).mesh()  # noqa: E731  (factory: see frep-handle-reuse note above)
-            tabs = MakeTabs(
-                size=[w, l], lid_thickness=lt, make_tab_width=o.make_tab_width,
-                make_tab_length=o.make_tab_length, children=tab,
-            ).color(self.material_colour)
         else:
             tab = MakeLidTab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
-                             prism_width=o.prism_width, wall_thickness=self.wall_thickness)
-            tabs = MakeTabs(
-                size=[w, l], lid_thickness=lt, make_tab_width=o.make_tab_width,
-                make_tab_length=o.make_tab_length, children=tab,
-            ).color(self.material_colour)
+                             prism_width=o.prism_width, wall_thickness=wt)
+        tabs = MakeTabs(
+            size=[w, l], lid_thickness=lt, make_tab_width=o.make_tab_width,
+            make_tab_length=o.make_tab_length, children=tab,
+        ).color(self.material_colour)
 
-        return (plate | tabs).rotate([180, 0, 0]).translate([0, l, lt])
+        return LidPlate(plate=top, size=[iw, il], thickness=lt, origin=[off, off], shell=tabs)
+
+    def _lid_adjustment(self, stack):
+        """Flip the lid over: it is built face-up (so the decoration lands on the outer
+        face) and printed face-down."""
+        return stack.rotate([180, 0, 0]).translate([0, self.length, self.lid_thickness])

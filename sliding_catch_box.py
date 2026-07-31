@@ -31,19 +31,15 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
 
 
 @dataclass
-class SlidingCatchBoxOptions:
-    """Sliding-catch-box options; pass via ``BoxSpec(type_options=MakeSlidingCatchBoxOptions(...))``."""
+class SlidingCatchBoxOptions(BoxTypeOptions):
+    """Sliding-catch-box options; pass via ``BoxSpec(type_options=SlidingCatchBoxOptions(...))``."""
 
     top_thickness: float = 2      # material above the catch groove (default 2)
     fill_middle: bool = True      # fill the middle of the lid (default True)
-
-
-def MakeSlidingCatchBoxOptions(**kwargs) -> SlidingCatchBoxOptions:
-    return SlidingCatchBoxOptions(**kwargs)
 
 
 class SlidingCatchBox(BoxBaseType):
@@ -52,8 +48,8 @@ class SlidingCatchBox(BoxBaseType):
     are separate prints; ``contents`` are carved into the box.
 
     Catch/lid parameters come from
-    ``BoxSpec(type_options=MakeSlidingCatchBoxOptions(top_thickness=2))``. The lid runs
-    through the shared overlay pipeline, so a label / shape pattern / fingernail lands on
+    ``BoxSpec(type_options=SlidingCatchBoxOptions(top_thickness=2))``. The lid runs
+    through the shared lid pipeline, so a label / shape pattern / fingernail lands on
     its flat (outer) face when ``BoxSpec.lid_label`` / ``lid_shape`` is set.
 
     Usage::
@@ -66,25 +62,25 @@ class SlidingCatchBox(BoxBaseType):
         box.make_lid().show()
     """
 
-    def _opts(self) -> SlidingCatchBoxOptions:
-        o = self._spec.type_options
-        return o if isinstance(o, SlidingCatchBoxOptions) else SlidingCatchBoxOptions()
+    options_class = SlidingCatchBoxOptions
 
     def _sliding_len(self) -> float:
         return (self.length - self.wall_thickness) / 6
 
-    def inside_mask(self):
-        # The interior is open all the way up to the lid groove (unlike the default mask,
-        # which stops a lid-thickness below the top), so the lid can slide in over it.
+    def interior_mask(self):
+        # The usable interior (Interior.height) is the default floor-to-lid, but the CLIP
+        # volume is open all the way past the lid groove so a well may run right up under
+        # the sliding lid rather than being cut off a lid-thickness below it.
+        interior = self.interior()
         return pybosl2.shapes3d.cuboid(
-            [self.inner_width, self.inner_length, self.height], anchor=BOTTOM + FRONT + LEFT
-        ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+            [interior.width, interior.length, self.height], anchor=BOTTOM + FRONT + LEFT
+        ).translate(list(interior.origin))
 
-    def _build_box_body(self):
+    def _build_box_body(self, contents):
         w, l, h = self.width, self.length, self.height
         wt, lt = self.wall_thickness, self.lid_thickness
         ss = self.size_spacing
-        tt = self._opts().top_thickness
+        tt = self.options.top_thickness
         sl = self._sliding_len()
 
         body = pybosl2.shapes3d.cuboid(
@@ -124,14 +120,16 @@ class SlidingCatchBox(BoxBaseType):
 
         return body.color(self.material_colour)
 
-    def _make_base_lid(self, lid_rounding=None):
+    def _lid_plate(self, lid) -> LidPlate:
+        """The sliding catch lid: a grooved, optionally middle-filled plate whose flat
+        outer face carries the decoration."""
         w, l = self.width, self.length
-        wt, lt = self.wall_thickness, self.lid_thickness
+        wt, lt = self.wall_thickness, lid.lid_thickness
         ss = self.size_spacing
-        o = self._opts()
+        o = self.options
         tt = o.top_thickness
         sl = self._sliding_len()
-        r = lid_rounding if lid_rounding is not None else tt / 2
+        r = lid.lid_rounding if lid.lid_rounding is not None else tt / 2
 
         base = pybosl2.shapes3d.cuboid(
             [w, l - wt, lt - ss], anchor=BOTTOM + FRONT + LEFT
@@ -158,11 +156,4 @@ class SlidingCatchBox(BoxBaseType):
             - _cut(wt + sl + 1, -1, sl * 5)
             - _cut(wt + sl + 1, w - wt - ss, sl * 5)
         )
-        return base.color(self.material_colour)
-
-    def create_lid(self, lid=None):
-        """The sliding catch lid: the grooved / optionally middle-filled plate, decorated
-        with this box's label / shape pattern / fingernail overlays on its flat outer face."""
-        l = self._prepare_lid(lid)
-        base = self._make_base_lid(l.lid_rounding)
-        return self._apply_lid_overlays(base, l, [self.width, self.length])
+        return LidPlate(plate=base.color(self.material_colour), size=[w, l], thickness=lt)

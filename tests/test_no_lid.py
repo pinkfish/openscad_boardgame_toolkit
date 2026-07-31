@@ -16,7 +16,7 @@
 # under the License.
 
 # LibFile: tests/test_no_lid.py
-#    Numeric/mock tests for no_lid.py's plain-Python pieces: QuicksortExtraFloors() ordering,
+#    Numeric/mock tests for no_lid.py's plain-Python pieces: SortExtraFloors() ordering,
 #    FingerHoleWallSegment()'s doesn't-qualify (returns None) logic, and the STACKABLE_TYPE_*
 #    constants. Complements tests/test_no_lid_render.py (which renders the actual
 #    solid-producing functions with the real PythonSCAD binary): everything else in no_lid.py
@@ -50,23 +50,23 @@ def _floor(height: float) -> types.SimpleNamespace:
     return types.SimpleNamespace(floor_height=height)
 
 
-class TestQuicksortExtraFloors(unittest.TestCase):
+class TestSortExtraFloors(unittest.TestCase):
     def test_empty_list(self) -> None:
-        self.assertEqual(no_lid.QuicksortExtraFloors([]), [])
+        self.assertEqual(no_lid.SortExtraFloors([]), [])
 
     def test_sorts_by_floor_height(self) -> None:
         floors = [_floor(5.0), _floor(1.0), _floor(3.0), _floor(2.0)]
-        result = no_lid.QuicksortExtraFloors(floors)
+        result = no_lid.SortExtraFloors(floors)
         self.assertEqual([f.floor_height for f in result], [1.0, 2.0, 3.0, 5.0])
 
     def test_preserves_duplicates(self) -> None:
         floors = [_floor(2.0), _floor(1.0), _floor(2.0)]
-        result = no_lid.QuicksortExtraFloors(floors)
+        result = no_lid.SortExtraFloors(floors)
         self.assertEqual([f.floor_height for f in result], [1.0, 2.0, 2.0])
 
     def test_already_sorted_is_stable_length(self) -> None:
         floors = [_floor(h) for h in (1.0, 2.0, 3.0)]
-        result = no_lid.QuicksortExtraFloors(floors)
+        result = no_lid.SortExtraFloors(floors)
         self.assertEqual(len(result), 3)
         self.assertEqual([f.floor_height for f in result], [1.0, 2.0, 3.0])
 

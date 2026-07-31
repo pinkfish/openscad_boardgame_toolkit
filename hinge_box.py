@@ -31,10 +31,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges, MakeLidTab
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from box_base import BoxBaseType, BoxSpec
+from lids_base import MakeLidTab
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions
 from dataclasses import dataclass
 
 # ---------------------------------------------------------------------------
@@ -445,8 +443,8 @@ def _make_box_and_lid_with_inset_hinge(
 
 
 @dataclass
-class HingeBoxOptions:
-    """Hinge-box-specific options; pass via ``BoxSpec(type_options=MakeHingeBoxOptions(...))``."""
+class HingeBoxOptions(BoxTypeOptions):
+    """Hinge-box-specific options; pass via ``BoxSpec(type_options=HingeBoxOptions(...))``."""
 
     hinge_diameter: float = 6
     hinge_offset: float = 0.3
@@ -458,10 +456,6 @@ class HingeBoxOptions:
     prism_width: float = 0.75
 
 
-def MakeHingeBoxOptions(**kwargs) -> HingeBoxOptions:
-    return HingeBoxOptions(**kwargs)
-
-
 class HingeBox(BoxBaseType):
     """A print-in-place box whose lid is joined to the base by an inset side hinge, on
     the new box system.
@@ -470,8 +464,9 @@ class HingeBox(BoxBaseType):
     whole assembly and there is no separate lid (:meth:`make_lid` raises). ``contents``
     entries are carved into the hinge box's four slots, in order (base interior, lid
     interior, on top of the base, on top of the lid); their ``InnerObject`` type is not
-    used (the hinge geometry defines each slot). Hinge parameters come from
-    ``BoxSpec(type_options=MakeHingeBoxOptions(hinge_diameter=6, ...))``.
+    used (the hinge geometry defines each slot), which is why this type declares
+    ``body_carves_contents``. Hinge parameters come from
+    ``BoxSpec(type_options=HingeBoxOptions(hinge_diameter=6, ...))``.
 
     Usage::
 
@@ -481,16 +476,14 @@ class HingeBox(BoxBaseType):
         HingeBox(BoxSpec(size=[100, 50, 20], label="hinge")).make_box().show()
     """
 
-    def _opts(self) -> HingeBoxOptions:
-        o = self._spec.type_options
-        return o if isinstance(o, HingeBoxOptions) else HingeBoxOptions()
+    options_class = HingeBoxOptions
+    has_lid = False
+    body_hollows_itself = True
+    body_carves_contents = True
 
-    def make_box(self, *, contents=None, finger_holes=None):
-        if contents is None:
-            contents = self._spec.contents
-        resolved = self._resolve_contents(contents)
-        children = [io.value for io in resolved] or None   # raw solids into the hinge box's slots
-        o = self._opts()
+    def _build_box_body(self, contents):
+        children = [io.value for io in contents] or None   # raw solids into the hinge box's slots
+        o = self.options
         return _make_box_and_lid_with_inset_hinge(
             size=[self.width, self.length, self.height],
             children=children,
@@ -507,9 +500,3 @@ class HingeBox(BoxBaseType):
             tab_offset=o.tab_offset,
             prism_width=o.prism_width,
         )
-
-    def _build_box_body(self):
-        raise NotImplementedError("HingeBox builds the whole hinged assembly in make_box()")
-
-    def make_lid(self, lid=None):
-        raise NotImplementedError("HingeBox is one piece (base + lid hinged together); no separate lid")

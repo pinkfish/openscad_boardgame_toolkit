@@ -30,21 +30,17 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 from dataclasses import dataclass
 
 
 @dataclass
-class MagneticBoxOptions:
-    """Magnetic-box options; pass via ``BoxSpec(type_options=MakeMagneticBoxOptions(...))``."""
+class MagneticBoxOptions(BoxTypeOptions):
+    """Magnetic-box options; pass via ``BoxSpec(type_options=MagneticBoxOptions(...))``."""
 
     magnet_diameter: float = 5
     magnet_thickness: float = 2
     magnet_border: float = 1.5
-
-
-def MakeMagneticBoxOptions(**kwargs) -> MagneticBoxOptions:
-    return MagneticBoxOptions(**kwargs)
 
 
 class MagneticBox(BoxBaseType):
@@ -56,36 +52,34 @@ class MagneticBox(BoxBaseType):
     The lid runs through the shared overlay pipeline, so a label / shape pattern /
     fingernail lands on it like any other flat lid.
 
-    Magnet size comes from ``BoxSpec(type_options=MakeMagneticBoxOptions(
+    Magnet size comes from ``BoxSpec(type_options=MagneticBoxOptions(
     magnet_diameter=5, magnet_thickness=2))``. ``contents`` are carved into the box.
 
     Usage::
 
         from box_base import BoxSpec
-        from magnetic_box import MagneticBox, MakeMagneticBoxOptions
+        from magnetic_box import MagneticBox, MagneticBoxOptions
 
         box = MagneticBox(BoxSpec(size=[100, 50, 20], label="mag",
-                                  type_options=MakeMagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))
+                                  type_options=MagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))
         box.make_box().show()
         box.make_lid().show()
     """
 
-    def _opts(self) -> MagneticBoxOptions:
-        o = self._spec.type_options
-        return o if isinstance(o, MagneticBoxOptions) else MagneticBoxOptions()
+    options_class = MagneticBoxOptions
 
     def _effective_height(self) -> float:
         # The body is a lid-thickness shorter than the outer height (the lid sits on top).
         return self.height - self.lid_thickness
 
     def _magnet_centres(self) -> list[tuple[float, float]]:
-        o = self._opts()
+        o = self.options
         inset = o.magnet_diameter / 2 + o.magnet_border
         w, l = self.width, self.length
         return [(inset, inset), (w - inset, inset), (w - inset, l - inset), (inset, l - inset)]
 
     def _magnet_holes(self, obj, z: float):
-        o = self._opts()
+        o = self.options
         for cx, cy in self._magnet_centres():
             hole = pybosl2.shapes3d.cyl(
                 diameter=o.magnet_diameter, height=o.magnet_thickness + 1, anchor=BOTTOM
@@ -93,8 +87,8 @@ class MagneticBox(BoxBaseType):
             obj = obj - hole
         return obj
 
-    def _build_box_body(self):
-        o = self._opts()
+    def _build_box_body(self, contents):
+        o = self.options
         body = pybosl2.shapes3d.cuboid(
             [self.width, self.length, self.height - self.lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
@@ -104,20 +98,18 @@ class MagneticBox(BoxBaseType):
         body = self._magnet_holes(body, self.height - self.lid_thickness - o.magnet_thickness)
         return body.color(self.material_colour)
 
-    def _make_base_lid(self, lid_rounding=None):
-        r = lid_rounding if lid_rounding is not None else self.wall_thickness
+    def _lid_plate(self, lid) -> LidPlate:
+        """A flat plate at the OUTER footprint with matching corner magnet pockets."""
+        r = lid.lid_rounding if lid.lid_rounding is not None else self.wall_thickness
         top = pybosl2.shapes3d.cuboid(
-            [self.width, self.length, self.lid_thickness],
+            [self.width, self.length, lid.lid_thickness],
             rounding=r,
             anchor=BOTTOM + FRONT + LEFT,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
         )
         top = self._magnet_holes(top, -1)   # holes open through the underside of the lid
-        return top.color(self.material_colour)
-
-    def create_lid(self, lid=None):
-        """The magnetic lid: a flat plate at the OUTER footprint with matching corner magnet
-        pockets, decorated with this box's label / shape pattern / fingernail overlays."""
-        l = self._prepare_lid(lid)
-        base = self._make_base_lid(l.lid_rounding)
-        return self._apply_lid_overlays(base, l, [self.width, self.length])
+        return LidPlate(
+            plate=top.color(self.material_colour),
+            size=[self.width, self.length],
+            thickness=lid.lid_thickness,
+        )

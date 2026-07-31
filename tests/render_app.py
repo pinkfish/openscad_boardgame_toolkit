@@ -148,3 +148,89 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
     if n <= 0:
         return RenderResult(False, None, "no geometry (Facets/Triangles) reported", stderr)
     return RenderResult(True, n, None, stderr)
+
+
+# ---------------------------------------------------------------------------
+# Measuring geometry (not just "did it render")
+# ---------------------------------------------------------------------------
+
+#: Preamble injected before a measure_python() body. `measure(name, solid)` reports a
+#: solid's real axis-aligned bounding box -- PythonSCAD computes `.position`/`.size` by
+#: meshing, so this is the actual geometry, not what the script THINKS it built.
+_MEASURE_PREAMBLE = '''
+import sys as _sys
+
+
+def measure(name, obj):
+    """Report obj's AABB as `MEASURE <name> x y z w l h` on stderr."""
+    n = obj.shape if hasattr(obj, "shape") else obj
+    p, s = n.position, n.size
+    _sys.stderr.write(
+        "MEASURE %s %.6g %.6g %.6g %.6g %.6g %.6g\\n" % (name, p[0], p[1], p[2], s[0], s[1], s[2])
+    )
+    _sys.stderr.flush()
+
+
+def report(name, value):
+    """Report an arbitrary scalar/string as `REPORT <name> <value>` on stderr."""
+    _sys.stderr.write("REPORT %s %s\\n" % (name, value))
+    _sys.stderr.flush()
+'''
+
+
+@dataclass
+class Box3D:
+    """An axis-aligned bounding box measured from real geometry."""
+
+    x: float
+    y: float
+    z: float
+    width: float
+    length: float
+    height: float
+
+    @property
+    def position(self) -> tuple[float, float, float]:
+        return (self.x, self.y, self.z)
+
+    @property
+    def size(self) -> tuple[float, float, float]:
+        return (self.width, self.length, self.height)
+
+    @property
+    def top(self) -> float:
+        return self.z + self.height
+
+    def __str__(self) -> str:
+        return f"pos=({self.x:g}, {self.y:g}, {self.z:g}) size=({self.width:g} x {self.length:g} x {self.height:g})"
+
+
+@dataclass
+class MeasureResult:
+    ok: bool
+    boxes: dict[str, Box3D]     # name -> measured bounding box
+    reports: dict[str, str]     # name -> reported value
+    error: str | None
+    stderr: str
+
+
+def measure_python(body: str, *, timeout: float = 300.0) -> MeasureResult:
+    """Run *body* through the real app and collect its `measure()` / `report()` calls.
+
+    *body* is prepended with the same sys.path setup as :func:`render_python` plus the
+    `measure()` / `report()` helpers, and must end in a `.show()` (the app needs a
+    top-level object). NOTE: never `measure()` and then `show()` the SAME solid when it
+    contains frep/SDF geometry -- measuring meshes it, and reusing a meshed handle in
+    another branch crashes the app. Show a throwaway primitive instead.
+    """
+    result = render_python(_MEASURE_PREAMBLE + body, timeout=timeout)
+    boxes: dict[str, Box3D] = {}
+    reports: dict[str, str] = {}
+    for line in result.stderr.splitlines():
+        if line.startswith("MEASURE "):
+            _, name, *nums = line.split()
+            boxes[name] = Box3D(*(float(v) for v in nums))
+        elif line.startswith("REPORT "):
+            _, name, value = line.split(None, 2)
+            reports[name] = value.strip()
+    return MeasureResult(result.ok, boxes, reports, result.error, result.stderr)

@@ -32,13 +32,11 @@ if TYPE_CHECKING:
 from base_bgtk import *
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
-from labels import LabelOptions, MakeLabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
+from labels import LabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
 from components import RegularPolygonGridDense, RegularPolygonGrid
 
 from dataclasses import dataclass
-import copy
 import math
-import types
 
 
 # ---------------------------------------------------------------------------
@@ -339,84 +337,6 @@ def LidMeshBasic(
     return (mesh | border) & bound
 
 
-def build_lid_overlays(
-    *,
-    lid_thickness: float,
-    label_size: list[float] | None = None,
-    size: list[float] | None = None,
-    path: list[list[float]] | None = None,
-    boundary: float = 10,
-    layout_width: float | None = None,
-    aspect_ratio: float | None = None,
-    shape_child: PyOpenSCAD | None = None,
-    shape_options: "ShapeObject | None" = None,
-    dense: bool | None = None,
-    dense_shape_edges: int | None = None,
-    inner_control: "int | bool | None" = None,
-    text_str: str | None = None,
-    label_options: "LabelOptions | None" = None,
-    label_full_height: bool | None = True,
-    extra_children: list | None = None,
-    material_colour: str | None = None,
-) -> list:
-    """The shared lid-overlay list: the pattern mesh + the label + any extras, in the
-    order :func:`internal_build_lid` expects. This is the ONE place the pattern-mesh
-    (:func:`LidMeshBasic`) and label (:func:`MakeLidLabel`) are built for a box lid -- every
-    box type's lid pipeline feeds these overlays into ``internal_build_lid`` on top of its
-    own base shell, instead of re-implementing the block in a per-box ``*LidWithLabel``.
-
-    Provide ``size`` OR ``path`` for the mesh area; ``label_size`` is ``[width, length]``
-    the label is fitted to. The dense/edges/inner-control layout is DERIVED from
-    ``shape_options.shape_type`` (single source of truth), matching :meth:`Lid._pattern_layout`.
-    """
-    from shape_type import ShapeByType, ShapeNeedsInnerControl
-
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    piece = shape_child
-    if piece is None and shape_options is not None:
-        piece = ShapeByType(options=shape_options)
-    piece = piece.color(material_colour) if piece is not None else shapes2d.square([10, 10]).color(material_colour)
-
-    # Layout: explicit dense/edges/inner win (the *AndCustomShape call path already has them);
-    # otherwise DERIVE from shape_options.shape_type (single source of truth); otherwise defaults.
-    if dense is None and shape_options is not None:
-        st = shape_options.shape_type
-        dense, dense_shape_edges, inner_control = IsDenseShapeType(st), DenseShapeEdges(st), ShapeNeedsInnerControl(st)
-    dense = bool(dense) if dense is not None else False
-    dense_shape_edges = dense_shape_edges if dense_shape_edges is not None else 6
-    inner_control = inner_control if inner_control is not None else False
-
-    mesh = LidMeshBasic(
-        lid_thickness=lid_thickness,
-        boundary=boundary,
-        layout_width=layout_width,
-        size=size,
-        path=path,
-        aspect_ratio=aspect_ratio,
-        dense=dense,
-        dense_shape_edges=dense_shape_edges,
-        material_colour=material_colour,
-        inner_control=inner_control,
-        children=piece,
-    )
-    overlays: list = [mesh]
-
-    if text_str:
-        assert label_size is not None, "build_lid_overlays: label_size is required when text_str is given"
-        opts = copy.copy(label_options) if label_options is not None else LabelOptions()
-        if label_full_height is not None:
-            opts.full_height = label_full_height
-        label = MakeLidLabel(size=label_size, lid_thickness=lid_thickness, text_str=text_str, options=opts)
-        if label is not None:
-            overlays.append(label)
-
-    if extra_children:
-        overlays.extend(extra_children)
-    return overlays
-
-
 def internal_build_lid(lid_thickness: float, children: list, size_spacing: float | None = None) -> PyOpenSCAD:
     """Builds a lid out of a stack of pieces, carving holes so each merges cleanly.
 
@@ -434,28 +354,37 @@ def internal_build_lid(lid_thickness: float, children: list, size_spacing: float
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
     assert isinstance(children, (list, tuple)) and len(children) >= 1, "children must be a non-empty list"
 
-    def mask(piece: PyOpenSCAD) -> PyOpenSCAD:
-        native = piece.shape if isinstance(piece, shapes3d.Bosl2Solid) else piece
-        # NATIVE chain: fill()/projection() are native builtins (no pybosl2 equivalent wired
-        # here), so .offset() is the native method -- it takes r=, not pybosl2's radius=.
-        return (
-            fill(native.projection(cut=False))
-            .offset(r=-size_spacing)
-            .linear_extrude(height=lid_thickness + 1)
-            .color("darkslategrey")
-            .translate([0, 0, -0.5])
-        )
-
     n = len(children)
+    # Each overlay's mask is used by the base AND by every earlier overlay -- build each
+    # one ONCE (the projection + offset + extrude is the expensive part of a lid stack)
+    # instead of rebuilding it inside the nested loop below.
+    masks: dict[int, PyOpenSCAD] = {}
+
+    def mask(i: int) -> PyOpenSCAD:
+        cached = masks.get(i)
+        if cached is None:
+            piece = children[i]
+            native = piece.shape if isinstance(piece, shapes3d.Bosl2Solid) else piece
+            # NATIVE chain: fill()/projection() are native builtins (no pybosl2 equivalent
+            # wired here), so .offset() is the native method -- it takes r=, not pybosl2's
+            # radius=.
+            cached = masks[i] = (
+                fill(native.projection(cut=False))
+                .offset(r=-size_spacing)
+                .linear_extrude(height=lid_thickness + 1)
+                .translate([0, 0, -0.5])
+            )
+        return cached
+
     base = children[0]
     for i in range(1, n):
-        base = base - mask(children[i])
+        base = base - mask(i)
 
     extras = None
     for i in range(1, n):
         piece = children[i]
         for j in range(i + 1, n):
-            piece = piece - mask(children[j])
+            piece = piece - mask(j)
         extras = piece if extras is None else extras | piece
 
     return base if extras is None else base | extras
@@ -480,72 +409,67 @@ class Fingernail:
     y_offset: float | None = None
 
 
+@dataclass
 class Lid:
-    """Lid mesh configuration and builder.
+    """What decorates a lid: the tiled pattern, the label, the fingernail scoop.
 
-    Holds all lid pattern, label and shape parameters.  Call :meth:`build`
-    to resolve the shape piece (via :func:`~shape_type.ShapeByType`) and
-    create the actual lid mesh solid.
+    A ``Lid`` describes DECORATION only -- never the lid's shape. The box type supplies
+    the shape as a :class:`~box_base.LidPlate`, and the single lid pipeline
+    (:meth:`~box_base.BoxBaseType.make_lid`) fits this decoration to it. ``size`` and
+    ``path`` are therefore filled in from that plate; setting them by hand only matters
+    when calling :meth:`mesh` directly.
+
+    Pass one to a box as ``BoxSpec(lid=...)``, or to ``make_lid(lid)``; the box never
+    mutates the one you pass.
 
     Usage::
 
-        lid = Lid(lid_thickness=2, size=[100, 50], boundary=10,
-                  layout_width=10, dense=True,
+        lid = Lid(lid_thickness=2, boundary=10, layout_width=10,
                   shape_options=MakeShapeObject(shape_type=ShapeType.DENSE_HEX),
-                  label=Label("Trains"))
-        mesh = lid.build()
+                  label=Label("Trains"), fingernail=True)
+        box.make_lid(lid).show()
     """
 
-    def __init__(
-        self,
-        *,
-        lid_thickness: float,
-        size: list[float] | None = None,
-        path: list[list[float]] | None = None,
-        boundary: float = 10,
-        layout_width: float | None = None,
-        aspect_ratio: float | None = None,
-        dense: bool = False,
-        dense_shape_edges: int = 6,
-        material_colour: str | None = None,
-        inner_control: int | bool = False,
-        children: PyOpenSCAD | None = None,
-        label: "Label | None" = None,
-        shape_child: PyOpenSCAD | None = None,
-        shape_options: "ShapeObject | None" = None,
-        lid_rounding: float | None = None,
-        extra_children: list | None = None,
-        fingernail: "Fingernail | bool | None" = None,
-    ) -> None:
-        if material_colour is None:
-            material_colour = default_material_colour
-        self.lid_thickness = lid_thickness
-        self.size = size
-        self.path = path
-        self.boundary = boundary
-        self.layout_width = layout_width if layout_width is not None else default_lid_layout_width
-        self.aspect_ratio = aspect_ratio if aspect_ratio is not None else default_lid_aspect_ratio
-        self.dense = dense
-        self.dense_shape_edges = dense_shape_edges
-        self.material_colour = material_colour
-        self.inner_control = inner_control
-        self.children = children
-        self.label = label
-        self.shape_child = shape_child
-        self.shape_options = shape_options
-        self.lid_rounding = lid_rounding
-        self.extra_children = extra_children
-        # Accept a bool for back-compat (True -> an enabled Fingernail with defaulted sizes).
-        if isinstance(fingernail, bool):
-            fingernail = Fingernail(enabled=fingernail)
-        self.fingernail = fingernail
+    lid_thickness: float
+    #: Footprint the pattern is tiled over -- set from the box's LidPlate.
+    size: list[float] | None = None
+    #: Polygon outline of the footprint (a path lid); ``None`` -> the ``size`` rectangle.
+    path: list[list[float]] | None = None
+    boundary: float = 10
+    layout_width: float | None = None
+    aspect_ratio: float | None = None
+    #: Layout of the tiled pattern. Used ONLY when no ``shape_options`` is given (i.e.
+    #: when tiling raw ``children``); with ``shape_options`` the layout is derived from
+    #: the shape type -- see :meth:`_pattern_layout`.
+    dense: bool = False
+    dense_shape_edges: int = 6
+    inner_control: int | bool = False
+    material_colour: str | None = None
+    children: "PyOpenSCAD | None" = None
+    label: "Label | None" = None
+    shape_child: "PyOpenSCAD | None" = None
+    shape_options: "ShapeObject | None" = None
+    lid_rounding: float | None = None
+    extra_children: list | None = None
+    fingernail: "Fingernail | bool | None" = None
 
-    def build(self) -> PyOpenSCAD | None:
-        """Resolve the shape piece and create the lid mesh solid.
+    def __post_init__(self) -> None:
+        if self.material_colour is None:
+            self.material_colour = default_material_colour
+        if self.layout_width is None:
+            self.layout_width = default_lid_layout_width
+        if self.aspect_ratio is None:
+            self.aspect_ratio = default_lid_aspect_ratio
+        # A bare bool is accepted for the common "just give me a fingernail" case.
+        if isinstance(self.fingernail, bool):
+            self.fingernail = Fingernail(enabled=self.fingernail)
 
-        If :attr:`shape_child` or :attr:`shape_options` is set, the shape is
-        resolved via :func:`~shape_type.ShapeByType` and tiled by :func:`LidMeshBasic`.
-        Returns None if no shape could be resolved and neither is set.
+    def mesh(self) -> PyOpenSCAD | None:
+        """The tiled pattern mesh for this lid, or ``None`` when it has no pattern.
+
+        The shape is resolved via :func:`~shape_type.ShapeByType` (from
+        :attr:`shape_options`) or taken from :attr:`shape_child` / :attr:`children`,
+        then tiled over :attr:`size` / :attr:`path` by :func:`LidMeshBasic`.
         """
         piece = self.shape_child
         if piece is None and self.shape_options is not None:
@@ -578,8 +502,7 @@ class Lid:
 
         DERIVED from the pattern's shape type (the single source of truth) when a
         ``shape_options`` is given; otherwise the explicitly-set fields are used. This is
-        the one place ShapeType -> layout mapping happens (was the drift-prone, never-called
-        ``apply_shape_defaults`` + three parallel copies in the box lid functions)."""
+        the ONE place the ShapeType -> layout mapping happens."""
         if self.shape_options is None:
             return self.dense, self.dense_shape_edges, self.inner_control
         from shape_type import ShapeNeedsInnerControl
@@ -611,11 +534,16 @@ class Lid:
         *,
         label_builder: "Callable[[Label], PyOpenSCAD | None] | None" = None,
     ) -> list:
-        """Return the list of overlay children for this lid.
+        """Every decoration piece for this lid, in the order
+        :func:`internal_build_lid` stacks them: fingernail, pattern mesh, label, extras.
+
+        This is the ONE place a lid's decoration list is built -- the single lid pipeline
+        calls it for every box type, whatever shape that type's plate is.
 
         Args:
-            label_builder: optional callable that takes a :class:`~box_base.Label` and
-                returns its geometry (e.g. :meth:`BoxBaseType.make_label`)
+            label_builder: callable that takes a :class:`~box_base.Label` and returns its
+                geometry (the box's :meth:`~box_base.BoxBaseType.make_label`, which fits
+                the label to the plate)
         """
         overlay_children: list = []
 
@@ -624,7 +552,7 @@ class Lid:
             overlay_children.append(fn)
 
         if self.shape_child is not None or self.shape_options is not None:
-            mesh = self.build()
+            mesh = self.mesh()
             if mesh is not None:
                 overlay_children.append(mesh)
 

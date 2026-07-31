@@ -17,8 +17,10 @@
 
 # LibFile: box_base.py
 #    BoxBaseType -- the abstract base type that all box types inherit from -- plus
-#    BoxSpec (the validated, immutable configuration), the BoxKit factory, and the
-#    small value types (FingerHole, Label) the box pipeline consumes.
+#    BoxSpec (the validated, immutable configuration), Interior (the interior frame),
+#    LidPlate (the one lid contract), BoxTypeOptions (the typed per-type options base),
+#    the BoxKit factory, and the small value types (FingerHole, Label) the box pipeline
+#    consumes.
 #
 # FileSummary: Base box type for building boxes.
 # FileGroup: Basics
@@ -29,7 +31,7 @@ import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, fields, replace
 from enum import IntEnum
-from typing import Any, Callable, Union
+from typing import Any, Callable, ClassVar, Sequence, Union
 
 import pybosl2.shapes3d
 import pybosl2.transforms
@@ -38,7 +40,6 @@ from pybosl2.shapes3d import Bosl2Solid
 # Explicit imports (no `import *`): every name below is traceable to its source.
 from base_bgtk import (
     BACK,
-    BOT,
     BOTTOM,
     FRONT,
     LEFT,
@@ -83,6 +84,14 @@ class FingerHoleType(IntEnum):
     FLOOR = 1
 
 
+# Finger-hole geometry defaults, in mm. Named (rather than inline literals in the cutter)
+# because these are the numbers that decide whether a human finger actually fits.
+default_finger_hole_radius = 14.0        # radius of the scoop / channel
+default_finger_hole_rounding = 3.0       # roundover where the scoop meets the wall
+default_finger_hole_depth = 6.0          # how far a WALL hole cuts into the wall
+default_floor_finger_hole_height = 14.0  # height of a FLOOR hole above the interior floor
+
+
 @dataclass
 class FingerHole:
     """One finger-hole cutout placed on a box side.
@@ -97,12 +106,13 @@ class FingerHole:
     type: FingerHoleType = FingerHoleType.WALL
     location: FingerHoleLocation = FingerHoleLocation.LEFT
     offset: float = 0.0
-    radius: float | None = None
-    height: float | None = None
-    depth: float | None = None
-    rounding_radius: float | None = None
+    radius: float = default_finger_hole_radius
+    rounding_radius: float = default_finger_hole_rounding
+    depth: float = default_finger_hole_depth
     rounding_edge: float = 0.0
-    orient: list[float] | None = None
+    # None -> derived from the box: half the box height (WALL) /
+    # default_floor_finger_hole_height (FLOOR).
+    height: float | None = None
 
 
 def finger_hole_cutter(
@@ -121,12 +131,11 @@ def finger_hole_cutter(
     not touch a box instance, so the placement geometry can be tested on its own.
     *name* is only used for error messages.
     """
-    r = fh.radius if fh.radius is not None else 14
-    rr = fh.rounding_radius if fh.rounding_radius is not None else 3
-
     if fh.type == FingerHoleType.FLOOR:
-        h = fh.height if fh.height is not None else 14
-        hole = FingerHoleBase(radius=r, height=h, rounding_radius=rr, wall_thickness=wall_thickness)
+        h = fh.height if fh.height is not None else default_floor_finger_hole_height
+        hole = FingerHoleBase(
+            radius=fh.radius, height=h, rounding_radius=fh.rounding_radius, wall_thickness=wall_thickness
+        )
         # Floor holes sit at the interior floor, offset from centre along a wall side.
         if fh.location == FingerHoleLocation.LEFT:
             pos = [0 - wall_thickness / 2, length / 2 + fh.offset, floor_thickness]
@@ -141,7 +150,6 @@ def finger_hole_cutter(
         return hole.translate(pos)
 
     # Wall type -- cut through the side wall at half height.
-    d = fh.depth if fh.depth is not None else 6
     h = fh.height if fh.height is not None else height / 2
     if fh.location == FingerHoleLocation.LEFT:
         pos, orient_val = [0, length / 2 + fh.offset, height / 2], RIGHT
@@ -155,10 +163,10 @@ def finger_hole_cutter(
         raise ValueError(f"{name}: unknown finger hole location: {fh.location}")
 
     hole = FingerHoleWall(
-        radius=r,
+        radius=fh.radius,
         height=h,
-        depth_of_hole=d,
-        rounding_radius=rr,
+        depth_of_hole=fh.depth,
+        rounding_radius=fh.rounding_radius,
         rounding_edge=fh.rounding_edge,
         orient=orient_val,
     )
@@ -172,6 +180,10 @@ class Label:
     Styling lives in a single :class:`~labels.LabelOptions` (``options``) rather than
     being duplicated field-by-field here -- so there is one styling type in the
     codebase, not two that must be copied back and forth.
+
+    ``position`` / ``size`` default to the lid plate the label is placed on (see
+    :class:`LidPlate`), so a label is centred on whatever face the box type decorates
+    without every box type having to work the placement out for itself.
 
     Usage::
 
@@ -187,6 +199,99 @@ class Label:
     # An image to place on the lid INSTEAD OF the text: a 2-D shape (e.g. shapes.coin2d(30)),
     # a callable(depth), or a solid. When set, `text` is ignored.
     shape: object = None
+
+
+class BoxTypeOptions:
+    """Marker base for every box type's options object.
+
+    Each box type declares the exact options class it accepts
+    (:attr:`BoxBaseType.options_class`) and :class:`BoxBaseType` validates
+    ``BoxSpec.type_options`` against it at CONSTRUCTION time. Passing a sliding box's
+    options to a cap box is therefore an immediate, named ``TypeError`` -- not (as it
+    once was) either a silent fall-back to defaults or an ``AttributeError`` thrown
+    from deep inside the geometry.
+    """
+
+
+@dataclass(frozen=True)
+class Interior:
+    """The usable interior of a box: where it starts, how big it is, and (for a
+    non-rectangular box) the outline it is bounded by.
+
+    ONE object defines the interior frame, so the three things that must agree --
+    the reported ``inner_width``/``inner_length``/``inner_height``, where contents are
+    placed, and the volume they are clipped to -- cannot drift apart. A box type with
+    an unusual interior overrides :meth:`BoxBaseType._compute_interior` (and, only when
+    the clip volume is not the box of this frame, :meth:`BoxBaseType.interior_mask`).
+
+    Attributes:
+        origin: box-frame coordinates of the interior's BOTTOM+FRONT+LEFT corner
+        size:   ``[width, length, height]`` of the usable interior
+        region: optional polygon outline of the interior in the LOCAL frame
+                (``0..width x 0..length``); ``None`` -> the full rectangle
+    """
+
+    origin: tuple[float, float, float]
+    size: tuple[float, float, float]
+    region: Any = None
+
+    @property
+    def width(self) -> float:
+        return self.size[0]
+
+    @property
+    def length(self) -> float:
+        return self.size[1]
+
+    @property
+    def height(self) -> float:
+        return self.size[2]
+
+
+@dataclass
+class LidPlate:
+    """What a box type hands the lid pipeline: the flat face the decoration goes on,
+    plus whatever else the lid is made of.
+
+    EVERY lid in the toolkit is described by this one contract, so there is a single
+    lid pipeline (:meth:`BoxBaseType.make_lid`) rather than a different one per box
+    type. A box type implements :meth:`BoxBaseType._lid_plate` and nothing else:
+
+    * ``plate`` is a flat slab occupying ``z = 0 .. thickness`` -- overlays (pattern
+      mesh, label, fingernail) are always assembled onto it AT THE ORIGIN, because
+      :func:`~lids_base.internal_build_lid` flattens overlays to ``z = 0``.
+    * ``shell`` is everything else (cap walls, a sleeve, hinge knuckles, tabs), already
+      in its final position.
+    * ``offset`` is where the decorated plate is moved to before being joined to the
+      shell -- e.g. ``[0, 0, cap_height]`` for a cap lid's top face.
+
+    Attributes:
+        plate:          the flat slab, at ``z = 0 .. thickness``
+        size:           ``[width, length]`` footprint the overlays are fitted to
+        thickness:      slab thickness
+        origin:         ``[x, y]`` of the slab footprint's minimum corner, in plate
+                        coordinates (non-zero for a polygon lid centred on the origin,
+                        or a sliding lid overhanging its box) -- the label and
+                        fingernail are placed relative to it
+        offset:         translation applied to the decorated plate
+        shell:          the rest of the lid, or ``None``
+        path:           polygon outline of the plate for the pattern mesh; ``None``
+                        -> the ``size`` rectangle
+        extra_overlays: structural pieces that must go through the overlay stack with
+                        the decoration (e.g. a card box's latch supports)
+        cutouts:        solids subtracted from the finished lid (a hinge pin hole, a
+                        latch slot) -- applied after the plate and shell are joined
+    """
+
+    plate: Bosl2Solid
+    size: Sequence[float]
+    thickness: float
+    origin: Sequence[float] = (0.0, 0.0)
+    offset: Sequence[float] = (0.0, 0.0, 0.0)
+    shell: Bosl2Solid | None = None
+    path: Any = None
+    extra_overlays: Sequence[Any] = ()
+    cutouts: Sequence[Any] = ()
 
 
 @dataclass(frozen=True)
@@ -237,24 +342,26 @@ class BoxSpec:
     lid_thickness: float = field(default_factory=lambda: default_lid_thickness)
     material_colour: str = field(default_factory=lambda: default_material_colour)
 
-    # ---- Positioning (forwarded to _apply_positioning) -----------------------
+    # ---- Positioning (applied to the finished box by _apply_positioning) ------
     spin: float = 0
     anchor: list[float] | None = None   # None -> BOTTOM + FRONT + LEFT
     orient: list[float] | None = None   # None -> TOP
 
     # ---- Box-type-specific options -------------------------------------------
-    # ``type_options`` is the generic, type-agnostic slot: each box type reads
-    # whatever object it needs from it (SlidingBox reads MakeSlidingLidOptions(), a
-    # future CapBox its own options, ...). The SAME spec can therefore be built by
-    # any box type -- switch the type (e.g. via BoxKit) without touching this.
-    type_options: Any = None
+    # The options object for the box type this spec is built with -- a
+    # :class:`BoxTypeOptions` subclass named by that type's ``options_class`` (e.g.
+    # CapBoxOptions for CapBox). It is TYPE-CHECKED when the box is constructed, so a
+    # spec carrying one type's options cannot be quietly built as another type.
+    type_options: BoxTypeOptions | None = None
 
     # ---- Contents (inner compartments / inserts) -----------------------------
     contents: Contents | None = None
     finger_holes: list[FingerHole] | None = None
-    # Force the interior hollow (open box) even for a box type that is otherwise solid
-    # when empty -- how a no-lid box usually renders. Ignored when compartments carve
-    # their own cavities.
+    # Force the interior hollow (an open box). This wins over everything else: a box
+    # with compartments AND hollow=True is hollowed first, which dissolves the material
+    # the compartments would have left as dividers. Leave it False when using
+    # compartments; it exists for box types that are a solid spacer when empty
+    # (NoLidBox / PathBox), which is what a no-lid box usually wants.
     hollow: bool = False
 
     # ---- Lid configuration ---------------------------------------------------
@@ -290,20 +397,21 @@ class BoxSpec:
 class BoxBaseType(ABC):
     """Abstract base type that **every** board game toolkit box type inherits from.
 
-    ``BoxBaseType`` defines the common contract and machinery shared by all box
-    types (SlidingBox, and future CapBox / SlipoverBox / ...): construction from a
-    single :class:`BoxSpec`, the derived-dimension properties, the interior
-    hollowing + content carving + finger-hole + MMU + positioning pipeline
-    (:meth:`_finish_box`), and the lid-composition helpers.
+    ``BoxBaseType`` owns the whole box pipeline; a box type supplies geometry and
+    nothing else. There are exactly THREE things a subclass can implement:
 
-    It is abstract at the right seam: :meth:`make_box` and :meth:`make_lid` are
-    concrete template methods, and the ONE thing each box type must supply is
-    :meth:`_build_box_body` (how its specific body is shaped). A type MAY also
-    override :meth:`inside_mask`, :meth:`create_lid` and :meth:`_make_base_lid`.
+    * :meth:`_build_box_body` -- the raw body (required).
+    * :meth:`_lid_plate` -- the lid's flat decorated face + shell, as a
+      :class:`LidPlate` (only if the lid isn't a plain slab).
+    * :meth:`_compute_interior` / :meth:`interior_mask` -- the interior frame (only if
+      it isn't ``wall_thickness`` in from the outer box).
 
-    No geometry is built at construction time; call :meth:`make_box` /
-    :meth:`make_lid` (both with **no arguments** when a spec is provided) to produce
-    the two printable parts.
+    Everything else -- resolving contents, hollowing, carving, MMU colour copies,
+    finger holes, positioning, and the entire lid decoration stack -- happens once,
+    here, for every type. A box type that builds its body through legacy geometry that
+    already hollows itself or already embeds contents says so with the
+    :attr:`body_hollows_itself` / :attr:`body_carves_contents` class flags, instead of
+    overriding :meth:`make_box` and silently dropping the rest of the pipeline.
 
     Usage::
 
@@ -316,6 +424,23 @@ class BoxBaseType(ABC):
         box.make_lid().show()
     """
 
+    #: The :class:`BoxTypeOptions` subclass this box type accepts in
+    #: ``BoxSpec.type_options``; ``None`` -> the type takes no options.
+    options_class: ClassVar[type[BoxTypeOptions] | None] = None
+
+    #: False for a box that is a single piece or has no lid at all; :meth:`make_lid`
+    #: then raises with a uniform message instead of each type inventing its own.
+    has_lid: ClassVar[bool] = True
+
+    #: True when :meth:`_build_box_body` already opens the interior itself (legacy
+    #: geometry that hollows internally), so the shared stage must not subtract again.
+    body_hollows_itself: ClassVar[bool] = False
+
+    #: True when :meth:`_build_box_body` already consumes ``contents`` itself (geometry
+    #: with its own content slots, e.g. a hinged box's four compartments), so the shared
+    #: carve + MMU stage is skipped. Finger holes and positioning still apply.
+    body_carves_contents: ClassVar[bool] = False
+
     def __init__(self, spec: BoxSpec) -> None:
         if not isinstance(spec, BoxSpec):
             raise TypeError(
@@ -323,17 +448,77 @@ class BoxBaseType(ABC):
                 "Construct with BoxSpec(size=[w, l, h], label='name', ...)."
             )
         self._spec = spec
-        self.label = spec.label
-        self._size = list(spec.size)
-        self.wall_thickness = spec.wall_thickness
-        self.floor_thickness = spec.floor_thickness
-        self.lid_thickness = spec.lid_thickness
-        self.material_colour = spec.material_colour
+        self.options = self._resolve_options(spec.type_options)
         self.positive_colour = default_positive_colour
         self.size_spacing = m_piece_wiggle_room
-        self.anchor = spec.anchor if spec.anchor is not None else BOTTOM + FRONT + LEFT
-        self.orient = spec.orient if spec.orient is not None else TOP
-        self.spin = spec.spin
+
+    @classmethod
+    def _resolve_options(cls, given: Any) -> Any:
+        """Validate ``BoxSpec.type_options`` against this type's :attr:`options_class`.
+
+        Wrong type in, immediate ``TypeError`` naming both classes -- the one place the
+        "which options does this box take?" question is answered."""
+        if cls.options_class is None:
+            if given is not None:
+                raise TypeError(
+                    f"{cls.__name__} takes no type_options, got {type(given).__name__}. "
+                    "Remove BoxSpec(type_options=...)."
+                )
+            return None
+        if given is None:
+            try:
+                return cls.options_class()
+            except TypeError as exc:   # options with required fields (e.g. a path)
+                raise TypeError(
+                    f"{cls.__name__} requires BoxSpec(type_options="
+                    f"{cls.options_class.__name__}(...)): {exc}"
+                ) from exc
+        if not isinstance(given, cls.options_class):
+            raise TypeError(
+                f"{cls.__name__} expects BoxSpec(type_options={cls.options_class.__name__}(...)), "
+                f"got {type(given).__name__}."
+            )
+        return given
+
+    # ------------------------------------------------------------------
+    # Spec-backed values (read-only: the BoxSpec stays the single source of truth)
+    # ------------------------------------------------------------------
+
+    @property
+    def spec(self) -> BoxSpec:
+        return self._spec
+
+    @property
+    def label(self) -> str:
+        return self._spec.label
+
+    @property
+    def wall_thickness(self) -> float:
+        return self._spec.wall_thickness
+
+    @property
+    def floor_thickness(self) -> float:
+        return self._spec.floor_thickness
+
+    @property
+    def lid_thickness(self) -> float:
+        return self._spec.lid_thickness
+
+    @property
+    def material_colour(self) -> str:
+        return self._spec.material_colour
+
+    @property
+    def anchor(self) -> list[float]:
+        return self._spec.anchor if self._spec.anchor is not None else BOTTOM + FRONT + LEFT
+
+    @property
+    def orient(self) -> list[float]:
+        return self._spec.orient if self._spec.orient is not None else TOP
+
+    @property
+    def spin(self) -> float:
+        return self._spec.spin
 
     # ------------------------------------------------------------------
     # Dimensions (derived)
@@ -341,27 +526,48 @@ class BoxBaseType(ABC):
 
     @property
     def width(self) -> float:
-        return self._size[0]
+        return self._spec.size[0]
 
     @property
     def length(self) -> float:
-        return self._size[1]
+        return self._spec.size[1]
 
     @property
     def height(self) -> float:
-        return self._size[2]
+        return self._spec.size[2]
+
+    def interior(self) -> Interior:
+        """This box's :class:`Interior` frame (computed once, then cached)."""
+        cached = self.__dict__.get("_interior")
+        if cached is None:
+            cached = self.__dict__["_interior"] = self._compute_interior()
+        return cached
+
+    def _compute_interior(self) -> Interior:
+        """The interior frame: a wall in from each side, floor to lid.
+
+        The ONE method a box type overrides to describe its interior."""
+        wt = self.wall_thickness
+        return Interior(
+            origin=(wt, wt, self.floor_thickness),
+            size=(
+                self.width - wt * 2,
+                self.length - wt * 2,
+                self.height - self.lid_thickness - self.floor_thickness,
+            ),
+        )
 
     @property
     def inner_width(self) -> float:
-        return self.width - self.wall_thickness * 2
+        return self.interior().width
 
     @property
     def inner_length(self) -> float:
-        return self.length - self.wall_thickness * 2
+        return self.interior().length
 
     @property
     def inner_height(self) -> float:
-        return self.height - self.lid_thickness - self.floor_thickness
+        return self.interior().height
 
     def _effective_height(self) -> float:
         """Height of the actual body geometry. Subclasses whose body isn't the full
@@ -369,7 +575,7 @@ class BoxBaseType(ABC):
         return self.height
 
     # ------------------------------------------------------------------
-    # make_box -- concrete template; subclasses supply _build_box_body
+    # make_box -- the ONE box pipeline
     # ------------------------------------------------------------------
 
     def make_box(
@@ -378,63 +584,49 @@ class BoxBaseType(ABC):
         contents: Contents | None = None,
         finger_holes: list[FingerHole] | None = None,
     ) -> Bosl2Solid:
-        """Build the box: this type's body (:meth:`_build_box_body`) run through the
-        shared finishing pipeline (:meth:`_finish_box`).
+        """Build the box: this type's body (:meth:`_build_box_body`) hollowed, carved,
+        MMU-coloured, finger-holed and positioned.
 
         ``contents`` / ``finger_holes`` default to the values from the :class:`BoxSpec`
-        given at construction when omitted.
+        given at construction when omitted. Every stage runs for every box type, so
+        ``BoxSpec.anchor`` / ``orient`` / ``spin`` / ``finger_holes`` mean the same
+        thing whichever type built the geometry.
         """
-        return self._finish_box(self._build_box_body(), contents=contents, finger_holes=finger_holes)
+        resolved = self._resolve_contents(self._spec.contents if contents is None else contents)
+        holes = self._spec.finger_holes if finger_holes is None else finger_holes
+
+        body = self._build_box_body(resolved)
+        if not self.body_carves_contents:
+            body = self._hollow_and_carve(body, resolved)
+            body = self._apply_mmu(body, resolved, MAKE_MMU)
+        if holes:
+            body = self._apply_finger_holes(body, holes)
+        return self._apply_positioning(body)
 
     @abstractmethod
-    def _build_box_body(self) -> Bosl2Solid:
-        """Build the raw (solid, not yet hollowed) box body for this box type.
+    def _build_box_body(self, contents: list[InnerObject]) -> Bosl2Solid:
+        """Build this box type's body.
 
-        The ONE method every concrete box type must implement -- it is the only part
-        of box construction that actually differs between types. Everything after it
-        (hollowing, contents, finger holes, MMU, positioning) is shared."""
+        *contents* is the resolved content list, passed so a type whose geometry embeds
+        its contents itself (:attr:`body_carves_contents`) or that must decide its own
+        hollowing (:attr:`body_hollows_itself`, via :meth:`should_hollow`) can use it.
+        Types that leave contents to the shared pipeline -- most of them -- ignore it."""
         raise NotImplementedError
 
     # ------------------------------------------------------------------
-    # _finish_box -- shared body-assembly pipeline (pure; no hidden state)
+    # Interior: hollowing and content carving
     # ------------------------------------------------------------------
 
-    def _finish_box(
-        self,
-        body: Bosl2Solid,
-        contents: Contents | None = None,
-        finger_holes: list[FingerHole] | None = None,
-    ) -> Bosl2Solid:
-        """Hollow *body*, carve negative contents, cut finger holes, add MMU positive
-        copies, and position. ``contents`` / ``finger_holes`` fall back to the spec."""
-        if contents is None:
-            contents = self._spec.contents
-        if finger_holes is None:
-            finger_holes = self._spec.finger_holes
-        resolved = self._resolve_contents(contents)
+    def interior_mask(self) -> Bosl2Solid:
+        """The interior volume -- subtracted to hollow the box, and used to clip negative
+        contents so they can't punch through walls or floor.
 
-        mask = self.inside_mask()          # build once and reuse
-        has_cavities = any(io.type in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE) for io in resolved)
-        if self._should_hollow(has_cavities):
-            # Open the whole interior (an empty tray, or an explicit hollow=True box).
-            body = body - mask
-        if has_cavities:
-            # Compartments define the cavities: carve them (clipped to the interior)
-            # out of the SOLID interior, so the material between and under them is
-            # left behind as dividers and floors.
-            body = self._carve_contents(body, resolved, mask)
-        if finger_holes:
-            body = self._apply_finger_holes(body, finger_holes)
-        body = self._apply_mmu(body, resolved, MAKE_MMU)
-        return self._apply_positioning(body)
-
-    def inside_mask(self) -> Bosl2Solid:
-        """The interior volume -- subtracted to hollow the box and used to clip
-        negative contents so they can't punch through walls or floor."""
+        Defaults to the box of the :class:`Interior` frame; override only when the clip
+        volume is a different shape (a polygon box's outline prism)."""
+        interior = self.interior()
         return pybosl2.shapes3d.cuboid(
-            [self.inner_width, self.inner_length, self.inner_height],
-            anchor=BOTTOM + FRONT + LEFT,
-        ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+            list(interior.size), anchor=BOTTOM + FRONT + LEFT
+        ).translate(list(interior.origin))
 
     def _hollow_when_empty(self) -> bool:
         """Whether a box with NO negative contents is hollowed to an open box. True for
@@ -443,15 +635,38 @@ class BoxBaseType(ABC):
         ``BoxSpec.hollow``."""
         return True
 
-    def _should_hollow(self, has_cavities: bool) -> bool:
-        """Decide whether to subtract the full interior. ``BoxSpec.hollow=True`` always
-        hollows; otherwise a box with compartments is left solid (they carve the
-        cavities) and an empty box follows :meth:`_hollow_when_empty`."""
+    def should_hollow(self, contents: list[InnerObject]) -> bool:
+        """Whether the full interior is subtracted. ``BoxSpec.hollow=True`` always
+        hollows (see the field docs -- it dissolves compartment dividers too); otherwise
+        a box with compartments is left solid (they carve their own cavities) and an
+        empty box follows :meth:`_hollow_when_empty`."""
         if self._spec.hollow:
             return True
-        if has_cavities:
+        if self.has_cavities(contents):
             return False
         return self._hollow_when_empty()
+
+    @staticmethod
+    def has_cavities(contents: list[InnerObject]) -> bool:
+        """True when *contents* carve cavities of their own (so the interior is left solid)."""
+        return any(io.type in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE) for io in contents)
+
+    def _hollow_and_carve(self, body: Bosl2Solid, contents: list[InnerObject]) -> Bosl2Solid:
+        """Open the interior and/or carve the negative contents into it."""
+        hollow = (not self.body_hollows_itself) and self.should_hollow(contents)
+        cavities = self.has_cavities(contents)
+        if not hollow and not cavities:
+            return body
+        mask = self.interior_mask()          # build once and reuse
+        if hollow:
+            # Open the whole interior (an empty tray, or an explicit hollow=True box).
+            body = body - mask
+        if cavities:
+            # Compartments define the cavities: carve them (clipped to the interior)
+            # out of the SOLID interior, so the material between and under them is
+            # left behind as dividers and floors.
+            body = self._carve_contents(body, contents, mask)
+        return body
 
     # ------------------------------------------------------------------
     # Contents (compartments / inserts)
@@ -462,20 +677,30 @@ class BoxBaseType(ABC):
 
         *contents* may be ``None``, a plain ``list[InnerObject]``, or a
         ``callable(InnerSize) -> list[InnerObject]`` for content that needs to know the
-        box interior size (the Pythonic replacement for SCAD's ``$inner_*`` vars)."""
+        box interior size (the Pythonic replacement for SCAD's ``$inner_*`` vars). The
+        ``InnerSize`` carries the interior's ``region`` outline, so a compartment layout
+        in a non-rectangular box can drop cells that fall outside it."""
         if contents is None:
             return []
         if callable(contents):
-            inner = InnerSize(width=self.inner_width, length=self.inner_length, height=self.inner_height)
-            resolved = contents(inner)
+            interior = self.interior()
+            resolved = contents(
+                InnerSize(
+                    width=interior.width,
+                    length=interior.length,
+                    height=interior.height,
+                    region=interior.region,
+                )
+            )
         else:
             resolved = contents
         return list(resolved) if resolved else []
 
     def _placed_content(self, io: InnerObject) -> Bosl2Solid:
         """Resolve *io*'s value and translate it into the box interior frame."""
-        piece = ResolveChild(io.value, self.inner_width, self.inner_length, self.inner_height)
-        return piece.translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
+        interior = self.interior()
+        piece = ResolveChild(io.value, interior.width, interior.length, interior.height)
+        return piece.translate(list(interior.origin))
 
     def _carve_contents(self, body: Bosl2Solid, contents: list[InnerObject], mask: Bosl2Solid) -> Bosl2Solid:
         """Subtract every negative content, clipped to *mask* so it cannot punch
@@ -529,10 +754,12 @@ class BoxBaseType(ABC):
     # ------------------------------------------------------------------
 
     def _apply_positioning(self, body: Bosl2Solid) -> Bosl2Solid:
-        # Two different heights on purpose (verified correct for single- AND two-layer):
-        # the pre-translate recentres in the DECLARED outer-height frame (self.height,
-        # the box's nominal size), while reorient sizes the anchor box by the ACTUAL body
-        # height (_effective_height(), which a two-layer sliding lid makes < self.height).
+        # Two different heights on purpose (see tests/test_box_geometry.py, which pins
+        # this for single- AND two-layer boxes): the pre-translate recentres in the
+        # DECLARED outer-height frame (self.height, the box's nominal size), while
+        # reorient sizes the anchor box by the ACTUAL body height (_effective_height(),
+        # which a two-layer sliding lid makes < self.height). With the default
+        # anchor/orient/spin the pair composes to the identity.
         tmat = pybosl2.transforms.reorient(
             anchor=self.anchor,
             spin=self.spin,
@@ -542,123 +769,133 @@ class BoxBaseType(ABC):
         return body.translate([-self.width / 2, -self.length / 2, -self.height / 2]).multmatrix(tmat)
 
     # ------------------------------------------------------------------
-    # make_lid -- concrete template; subclasses supply _make_base_lid / _lid_adjustment
+    # make_lid -- the ONE lid pipeline
     # ------------------------------------------------------------------
 
     def make_lid(self, lid: Lid | None = None) -> Bosl2Solid:
         """Make the lid for this box -- the second of the two top-level methods.
 
-        With no argument (and a :class:`BoxSpec` given at construction) the lid is
-        built from :attr:`BoxSpec.lid` or :attr:`BoxSpec.lid_label` /
-        :attr:`BoxSpec.shape_options`. Pass an explicit :class:`~lids_base.Lid` to
-        override the spec."""
-        if lid is None:
-            lid = self._resolve_lid_from_spec()
-        return self.create_lid(lid)
+        With no argument (and a :class:`BoxSpec` given at construction) the lid is built
+        from :attr:`BoxSpec.lid`, or from :attr:`BoxSpec.lid_label` /
+        :attr:`BoxSpec.lid_shape` / :attr:`BoxSpec.shape_options`. Pass an explicit
+        :class:`~lids_base.Lid` to override the spec.
 
-    def _resolve_lid_from_spec(self) -> Lid | None:
-        """Build a :class:`~lids_base.Lid` from the :class:`BoxSpec`, or ``None`` when
-        neither :attr:`BoxSpec.lid` nor :attr:`BoxSpec.lid_label` is set."""
+        The pipeline is the same for every box type: the type's :class:`LidPlate` says
+        which flat face is decorated and what else the lid is made of; the decoration
+        (pattern mesh, label, fingernail, extras) is stacked onto that face by
+        :func:`~lids_base.internal_build_lid`; the result is placed and joined to the
+        shell, then handed to :meth:`_lid_adjustment` for print orientation."""
+        if not self.has_lid:
+            raise NotImplementedError(
+                f"{self.label}: a {type(self).__name__} has no separate lid "
+                "(it is a single piece, or has no lid at all)"
+            )
+        resolved = self._resolve_lid(lid)
+        plate = self._lid_plate(resolved)
+        return self._lid_adjustment(self._assemble_lid(plate, resolved))
+
+    def _resolve_lid(self, lid: Lid | None) -> Lid:
+        """The :class:`~lids_base.Lid` to build: the caller's, else the spec's, else the
+        spec's label/shape shorthand, else a plain undecorated lid.
+
+        Always returns a COPY with this box's defaults filled in, so a ``Lid`` can be
+        shared between boxes without being mutated."""
         spec = self._spec
-        if spec.lid is not None:
-            return spec.lid
-        if spec.lid_label is not None or spec.lid_shape is not None:
-            options = spec.label_options if spec.label_options is not None else LabelOptions()
-            return Lid(
+        if lid is None:
+            lid = spec.lid
+        if lid is None and (spec.lid_label is not None or spec.lid_shape is not None
+                            or spec.shape_options is not None):
+            lid = Lid(
                 lid_thickness=self.lid_thickness,
-                label=Label(spec.lid_label or "", options=options, shape=spec.lid_shape),
+                label=(
+                    Label(spec.lid_label or "", options=spec.label_options or LabelOptions(),
+                          shape=spec.lid_shape)
+                    if (spec.lid_label is not None or spec.lid_shape is not None)
+                    else None
+                ),
                 shape_options=spec.shape_options,
                 material_colour=self.material_colour,
             )
-        return None
+        if lid is None:
+            return Lid(lid_thickness=self.lid_thickness, material_colour=self.material_colour)
+        resolved = copy.copy(lid)
+        if not resolved.lid_thickness:
+            resolved.lid_thickness = self.lid_thickness
+        return resolved
 
-    def create_lid(self, lid: Lid | None = None) -> Bosl2Solid:
-        """Create the lid: base body (:meth:`_make_base_lid`) plus the lid's shape
-        pattern / label / fingernail overlay, stacked by
-        :func:`~lids_base.internal_build_lid`.
+    def _lid_plate(self, lid: Lid) -> LidPlate:
+        """The lid's decorated face (and any shell around it) -- the ONE lid hook.
 
-        The passed *lid* is never mutated -- a copy is filled in with this box's
-        defaults so the same :class:`~lids_base.Lid` can be reused across boxes."""
-        l = self._prepare_lid(lid)
-        children = [self._make_base_lid(l.lid_rounding)] + self._lid_overlay(l)
-        stack = internal_build_lid(
-            lid_thickness=l.lid_thickness,
-            children=children,
-            size_spacing=self.size_spacing,
-        )
-        return self._lid_adjustment(stack)
-
-    def _prepare_lid(self, lid: Lid | None) -> Lid:
-        """A copy of *lid* (or a default Lid) with this box's lid_thickness / size /
-        fingernail defaults filled in. The passed *lid* is never mutated. Box types whose
-        lid isn't a flat stack (cap, slipover) reuse this then place overlays themselves."""
-        l = copy.copy(lid) if lid is not None else Lid(lid_thickness=self.lid_thickness)
-        if not l.lid_thickness:
-            l.lid_thickness = self.lid_thickness
-        if l.size is None:
-            l.size = [self.inner_width, self.inner_length]
-        if l.fingernail is not None and l.fingernail.enabled:
-            l.fingernail = replace(l.fingernail)   # don't mutate the caller's Fingernail
-            if l.fingernail.width is None:
-                l.fingernail.width = self.inner_width
-                l.fingernail.length = self.inner_length
-        return l
-
-    def _decorated_flat_lid(self, lid: Lid | None, size, rounding: float | None = None) -> tuple[Bosl2Solid, float]:
-        """A flat lid slab of footprint *size* ``(w, l)`` carrying this box's label / pattern /
-        fingernail overlays, assembled at ``z = 0 .. lid_thickness`` via
-        :func:`~lids_base.internal_build_lid`. Cap / slipover lids call this then translate the
-        slab onto their top face (``internal_build_lid`` flattens overlays to z=0, so overlays
-        must be assembled here, at the origin, and the whole slab moved -- not the overlays).
-
-        Returns ``(slab, lid_thickness)``, where *slab* is ``None`` when the lid carries no
-        overlays at all -- letting cap / slipover keep their plain (rounded) top in that case."""
-        lt = lid.lid_thickness if lid is not None and lid.lid_thickness else self.lid_thickness
-        base = pybosl2.shapes3d.cuboid(
-            [size[0], size[1], lt], anchor=BOTTOM + FRONT + LEFT
-        ).color(self.material_colour)
-        decorated = self._apply_lid_overlays(base, lid, size)
-        return (None if decorated is base else decorated), lt
-
-    def _apply_lid_overlays(self, base_plate: Bosl2Solid, lid: Lid | None, size) -> Bosl2Solid:
-        """Combine a caller-built flat lid *base_plate* (footprint *size* ``(w, l)``, occupying
-        ``z = 0 .. lid_thickness``) with this box's label / pattern / fingernail overlays via
-        :func:`~lids_base.internal_build_lid`. Returns *base_plate* unchanged when there are no
-        overlays. Lid types whose plate isn't the default flat cuboid (magnet holes, cap/slipover
-        top) build their own plate then call this to decorate it."""
-        l = self._prepare_lid(lid)
-        l.size = [size[0], size[1]]
-        overlays = self._lid_overlay(l)
-        if not overlays:
-            return base_plate
-        return internal_build_lid(
-            lid_thickness=l.lid_thickness, children=[base_plate] + overlays, size_spacing=self.size_spacing
-        )
-
-    def _make_base_lid(self, lid_rounding: float | None = None) -> Bosl2Solid:
-        """Build the raw lid body. Subclasses override for box-specific geometry."""
-        return pybosl2.shapes3d.cuboid(
-            [self.inner_width, self.inner_length, self.lid_thickness],
+        Defaults to a plain flat slab covering the interior footprint. A box type whose
+        lid is a cap, a sleeve, a grooved slider or a polygon returns a
+        :class:`LidPlate` describing it; it never assembles the decoration itself."""
+        interior = self.interior()
+        plate = pybosl2.shapes3d.cuboid(
+            [interior.width, interior.length, lid.lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
         ).color(self.material_colour)
+        return LidPlate(plate=plate, size=[interior.width, interior.length], thickness=lid.lid_thickness)
 
-    def _lid_overlay(self, lid: Lid) -> list:
-        """The overlay children (shape mesh, label, fingernail, extras) for *lid*."""
-        return lid.overlay(label_builder=self.make_label)
+    def _assemble_lid(self, plate: LidPlate, lid: Lid) -> Bosl2Solid:
+        """Stack the lid's decoration onto *plate* and join it to the shell.
+
+        The decoration is fitted to the PLATE's footprint (its ``size``/``path``/
+        ``origin``), which is what stops a label drifting off a lid whose plate isn't
+        the box's interior rectangle."""
+        lid.size = list(plate.size)
+        lid.path = plate.path
+        self._fill_fingernail_defaults(lid, plate)
+
+        overlays = list(lid.overlay(label_builder=lambda label: self.make_label(label, plate)))
+        overlays.extend(plate.extra_overlays)
+
+        decorated = plate.plate
+        if overlays:
+            decorated = internal_build_lid(
+                lid_thickness=plate.thickness,
+                children=[plate.plate] + overlays,
+                size_spacing=self.size_spacing,
+            )
+        if any(plate.offset):
+            decorated = decorated.translate(list(plate.offset))
+        body = decorated if plate.shell is None else (plate.shell | decorated)
+        for cut in plate.cutouts:
+            body = body - cut
+        return body.color(self.material_colour)
+
+    def _fill_fingernail_defaults(self, lid: Lid, plate: LidPlate) -> None:
+        """Size/position an enabled fingernail scoop from the plate footprint (never
+        mutating the caller's :class:`~lids_base.Fingernail`)."""
+        fn = lid.fingernail
+        if fn is None or not fn.enabled:
+            return
+        lid.fingernail = fn = replace(fn)
+        ox, oy = plate.origin[0], plate.origin[1]
+        pw, pl = plate.size[0], plate.size[1]
+        if fn.width is None:
+            fn.width = pw
+        if fn.length is None:
+            fn.length = pl
+        if fn.x_offset is None:
+            fn.x_offset = ox + pw / 2
+        if fn.y_offset is None:
+            fn.y_offset = oy + pl - 3
 
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
-        """Post-process the assembled lid stack. Subclasses MAY override."""
+        """Post-process the assembled lid -- flip it for printing, cut a hinge pin hole.
+        Subclasses MAY override."""
         return stack
 
     # ------------------------------------------------------------------
     # Label creation
     # ------------------------------------------------------------------
 
-    def make_label(self, label: Label) -> Bosl2Solid | None:
-        """Build a label solid from *label* using this box's dimensions and colour.
+    def make_label(self, label: Label, plate: LidPlate) -> Bosl2Solid | None:
+        """Build a label solid for *label*, fitted to the lid *plate*.
 
         Uses the label's own :class:`~labels.LabelOptions` directly (only the material
-        colour is defaulted to the box's), then positions it inside the box."""
+        colour is defaulted to the box's). Position and size default to the plate's
+        footprint, so the label lands on the face being decorated whatever shape it is."""
         from lids_base import MakeLidLabel
 
         opts = label.options
@@ -667,25 +904,26 @@ class BoxBaseType(ABC):
         )
         options = replace(opts, material_colour=effective_colour)
 
-        calc_size = list(label.size) if label.size else [self.inner_width, self.inner_length]
+        calc_size = list(label.size) if label.size else list(plate.size)
+        origin = [plate.origin[0], plate.origin[1], 0.0]
 
         # A SHAPE image instead of text: extrude it to the lid thickness, colour it the LABEL
         # colour (a contrasting second material, like the text label -- NOT the body colour),
-        # and centre it on the lid (or the caller's position). The caller pre-sizes the shape.
+        # and centre it on the plate (or the caller's position). The caller pre-sizes the shape.
         if label.shape is not None:
             from components import _extrude_image
 
-            pos = list(label.position) if label.position else [self.inner_width / 2, self.inner_length / 2, 0]
-            return _extrude_image(label.shape, self.lid_thickness).color(opts.label_colour).translate(pos)
+            pos = (
+                list(label.position)
+                if label.position
+                else [origin[0] + plate.size[0] / 2, origin[1] + plate.size[1] / 2, 0]
+            )
+            return _extrude_image(label.shape, plate.thickness).color(opts.label_colour).translate(pos)
 
-        calc_pos = (
-            list(label.position)
-            if label.position
-            else [self.wall_thickness / 2, self.wall_thickness / 2, 0]
-        )
+        calc_pos = list(label.position) if label.position else origin
         piece = MakeLidLabel(
             size=calc_size,
-            lid_thickness=self.lid_thickness,
+            lid_thickness=plate.thickness,
             text_str=label.text,
             options=options,
         )
@@ -722,6 +960,13 @@ class BoxKit:
 
         # Switch the ENTIRE project to cap boxes -> change one word:
         #     kit = BoxKit(CapBox, wall_thickness=2, lid_thickness=3, label_options=BLUE)
+
+    Two things do NOT survive a type switch, and both fail loudly rather than quietly:
+    ``type_options`` belongs to one box type (the new type rejects it with a
+    ``TypeError`` naming the class it wanted), and a switch to a type with
+    ``has_lid = False`` (NoLidBox, PathBox, HingeBox) makes every ``make_lid()`` call
+    raise. Keep ``type_options`` on the individual boxes that need it, not in the kit,
+    if you want the one-word switch to stay a one-word switch.
 
     Kit defaults and per-call overrides are merged per box (the call wins). Unknown
     keys are rejected up front (with the offending name) rather than surfacing as a

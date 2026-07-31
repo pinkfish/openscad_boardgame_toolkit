@@ -32,24 +32,7 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
-from components import CornerCatch
-from lids_base import (
-    default_lid_catch_type,
-    internal_build_lid,
-    MakeLidLabel,
-    LidMeshBasic,
-    build_lid_overlays,
-    IsDenseShapeType,
-    DenseShapeEdges,
-)
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from box_base import BoxBaseType, BoxSpec
-
-
-def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> "PyOpenSCAD":
-    box = wall_thickness * 6 / 4
-    return (pybosl2.shapes3d.cuboid([box, box, box], anchor=anchor_dir) & pybosl2.shapes3d.sphere(r=radius)).shape
+from box_base import BoxBaseType, BoxSpec, Interior, LidPlate
 
 
 class SlipoverBox(BoxBaseType):
@@ -83,33 +66,23 @@ class SlipoverBox(BoxBaseType):
         # outer -> interior offset: inset + the body's own wall.
         return self._inset + self.wall_thickness
 
-    @property
-    def inner_width(self) -> float:
-        return self.width - self._content_off * 2
-
-    @property
-    def inner_length(self) -> float:
-        return self.length - self._content_off * 2
-
-    @property
-    def inner_height(self) -> float:
-        return self._wall_height - self.floor_thickness
+    def _compute_interior(self) -> Interior:
+        # The body is inset from the outer (lid) footprint, so the interior starts a
+        # sleeve + a wall in from each side -- not the usual single wall.
+        off = self._content_off
+        return Interior(
+            origin=(off, off, self.floor_thickness),
+            size=(
+                self.width - off * 2,
+                self.length - off * 2,
+                self._wall_height - self.floor_thickness,
+            ),
+        )
 
     def _effective_height(self) -> float:
         return self._wall_height
 
-    def inside_mask(self):
-        off = self._content_off
-        return pybosl2.shapes3d.cuboid(
-            [self.inner_width, self.inner_length, self.inner_height], anchor=BOTTOM + FRONT + LEFT
-        ).translate([off, off, self.floor_thickness])
-
-    def _placed_content(self, io):
-        off = self._content_off
-        piece = ResolveChild(io.value, self.inner_width, self.inner_length, self.inner_height)
-        return piece.translate([off, off, self.floor_thickness])
-
-    def _build_box_body(self):
+    def _build_box_body(self, contents):
         bw = self.width - self._inset * 2
         bl = self.length - self._inset * 2
         body = pybosl2.shapes3d.cuboid(
@@ -123,13 +96,12 @@ class SlipoverBox(BoxBaseType):
         )
         return body.translate([self._inset, self._inset, 0]).color(self.material_colour)
 
-    def create_lid(self, lid=None):
-        """The slipover sleeve: an outer shell hollowed to leave wall-thick walls and a
-        lid-thick top, open at the bottom so it slides over the box body. When the lid
-        carries a label / shape pattern / fingernail, its plain top face is replaced by the
-        decorated flat-lid slab (see :meth:`BoxBaseType._decorated_flat_lid`)."""
+    def _lid_plate(self, lid) -> LidPlate:
+        """The slipover sleeve: an outer shell hollowed to leave wall-thick walls, open at
+        the bottom so it slides over the box body (the shell), closed by a lid-thick top
+        face (the decorated plate)."""
         w, l, h = self.width, self.length, self.height
-        wt, lt = self.wall_thickness, self.lid_thickness
+        wt, lt = self.wall_thickness, lid.lid_thickness
         r = self.wall_thickness / 2
         shell = pybosl2.shapes3d.cuboid(
             [w, l, h], anchor=BOTTOM + FRONT + LEFT, rounding=r,
@@ -139,14 +111,15 @@ class SlipoverBox(BoxBaseType):
             [w - wt * 2, l - wt * 2, h - lt + 1], anchor=BOTTOM + FRONT + LEFT, rounding=r / 2,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
         ).translate([wt, wt, -1])
-        sleeve = shell - cavity
-
-        slab, slab_lt = self._decorated_flat_lid(lid, [w, l])
-        if slab is None:
-            return sleeve.color(self.material_colour)
-        # Carve away the plain top face and drop the decorated slab into its place.
+        # Cut the sleeve's own top face away: the decorated plate takes its place, so the
+        # decoration is part of the top rather than sitting on it.
         top_cut = pybosl2.shapes3d.cuboid(
-            [w + 2, l + 2, slab_lt + 2], anchor=BOTTOM + FRONT + LEFT
-        ).translate([-1, -1, h - slab_lt - 1])
-        walls = sleeve - top_cut
-        return (walls | slab.translate([0, 0, h - slab_lt])).color(self.material_colour)
+            [w + 2, l + 2, lt + 2], anchor=BOTTOM + FRONT + LEFT
+        ).translate([-1, -1, h - lt - 1])
+        walls = (shell - cavity) - top_cut
+
+        top = pybosl2.shapes3d.cuboid(
+            [w, l, lt], anchor=BOTTOM + FRONT + LEFT, rounding=r,
+            edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        ).color(self.material_colour)
+        return LidPlate(plate=top, size=[w, l], thickness=lt, offset=[0, 0, h - lt], shell=walls)

@@ -340,11 +340,9 @@ class InnerPath:
 
 
 class ObjectType(IntEnum):
+    """What an :class:`InnerObject` does to the box: carve a cavity, add material, or both."""
+
     NEGATIVE = 0
-    POSTIVE = 1
-    POSTIVE_NEGATIVE = 2
-    # Correctly-spelled aliases (same values). Prefer these in new code; the
-    # misspelled originals are kept so existing callers keep working.
     POSITIVE = 1
     POSITIVE_NEGATIVE = 2
 

@@ -31,23 +31,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes3d
-from pybosl2 import transforms
-from pybosl2 import masking
-from lids_base import (
-    default_lid_catch_type,
-    internal_build_lid,
-    IsDenseShapeType,
-    DenseShapeEdges,
-    MakeLidLabel,
-    LidMeshBasic,
-    build_lid_overlays,
-)
-from labels import MakeLabelOptions, LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
-from box_base import BoxBaseType, BoxSpec
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
 from dataclasses import dataclass
-
-from typing import Callable
 
 
 # ---------------------------------------------------------------------------
@@ -80,16 +65,29 @@ def CapBoxDefaultLidFingerHoldRounding(cap_height: float) -> float:
     return min(3, cap_height / 2)
 
 
-def _resolve_child(c: PyOpenSCAD, inner_width: float, inner_length: float, inner_height: float) -> PyOpenSCAD:
-    """Resolve a child entry: a plain solid, or a callable(inner_width, inner_length, inner_height)."""
-    return c(inner_width, inner_length, inner_height) if callable(c) else c
+# ---------------------------------------------------------------------------
+# Snap-fit catch geometry. These are the interference numbers that decide whether the
+# cap clicks on or splits, so they are named constants rather than bare fractions
+# buried in the geometry: the BOX gets the larger (recess) size, the CAP the smaller
+# (protrusion) one, and the difference is the snap.
+# ---------------------------------------------------------------------------
+
+CATCH_BUMP_BOX_FACTOR = 6 / 4        # side of the cube a catch sphere is clipped to (x wall)
+CATCH_BUMP_RECESS_FACTOR = 5 / 6     # bump radius cut into the box rim (x wall, + wiggle)
+CATCH_BUMP_LID_FACTOR = 3 / 4        # bump radius added to the cap (x wall)
+CATCH_WEDGE_RECESS_FACTOR = 1.0      # wedge depth cut into the box rim (x wall)
+CATCH_WEDGE_LID_FACTOR = 5 / 8       # wedge depth added to the cap (x wall)
+CATCH_BUMP_POSITIONS = (6 / 8, 2 / 8)  # where along a wall the two bumps sit (fraction)
 
 
-def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> PyOpenSCAD:
-    """A rounded catch nub: a sphere clipped to a small cube on one face."""
-    box = wall_thickness * 6 / 4
+def catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> PyOpenSCAD:
+    """A rounded catch nub: a sphere clipped to a small cube on one face.
+
+    The single copy: :mod:`slipover_box` carried a near-identical one that nothing called
+    (a slipover sleeve has no catches), which has been deleted."""
+    box = wall_thickness * CATCH_BUMP_BOX_FACTOR
     # Bosl2Solid on the left so its __and__ (not sphere()'s native __and__) handles the mixed operand.
-    return shapes3d.cuboid([box, box, box], anchor=anchor_dir) & sphere(r=radius)
+    return shapes3d.cuboid([box, box, box], anchor=anchor_dir) & shapes3d.sphere(radius=radius)
 
 
 # ---------------------------------------------------------------------------
@@ -98,16 +96,12 @@ def _catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> 
 
 
 @dataclass
-class CapBoxOptions:
-    """Cap-box-specific options; pass via ``BoxSpec(type_options=MakeCapBoxOptions(...))``."""
+class CapBoxOptions(BoxTypeOptions):
+    """Cap-box-specific options; pass via ``BoxSpec(type_options=CapBoxOptions(...))``."""
 
     cap_height: float | None = None                 # None -> min(10, height/2)
     catch: CatchType = CatchType.BUMPS_SHORT        # snap-fit style (BUMPS_* / SHORT/LONG/ALL / NONE)
     finger_holds: bool = True                       # grip scoops so you can lift the cap
-
-
-def MakeCapBoxOptions(**kwargs) -> CapBoxOptions:
-    return CapBoxOptions(**kwargs)
 
 
 class CapBox(BoxBaseType):
@@ -116,36 +110,33 @@ class CapBox(BoxBaseType):
     thickness so the cap sits flush. The cap has finger-hold scoops and a snap-fit
     catch (bumps or wedges) that clicks into matching recesses in the box rim.
 
-    Cap-box options go through :func:`MakeCapBoxOptions`
-    (``BoxSpec(type_options=MakeCapBoxOptions(cap_height=3, catch=CatchType.LONG))``);
-    a bare number in ``type_options`` is treated as ``cap_height`` (back-compat). Like
-    any lidded box it is hollow when empty (``BoxSpec(hollow=...)`` / ``contents=...``).
+    Cap-box options go in ``BoxSpec(type_options=CapBoxOptions(cap_height=3,
+    catch=CatchType.LONG))``. Like any lidded box it is hollow when empty
+    (``BoxSpec(hollow=...)`` / ``contents=...``).
 
     Usage::
 
         from box_base import BoxSpec
-        from cap_box import CapBox, MakeCapBoxOptions
+        from cap_box import CapBox, CapBoxOptions
 
         box = CapBox(BoxSpec(size=[100, 50, 20], label="cap"))
         box.make_box().show()
         box.make_lid().show()
     """
 
-    @property
-    def inner_height(self) -> float:
-        # The cap covers the outside of the top rim; the interior runs floor-to-top.
-        return self.height - self.floor_thickness
+    options_class = CapBoxOptions
 
-    def _opts(self) -> CapBoxOptions:
-        o = self._spec.type_options
-        if isinstance(o, CapBoxOptions):
-            return o
-        if isinstance(o, (int, float)) and o:
-            return CapBoxOptions(cap_height=float(o))
-        return CapBoxOptions()
+    def _compute_interior(self) -> Interior:
+        # The cap covers the OUTSIDE of the top rim, so the interior runs floor-to-top
+        # rather than stopping a lid-thickness down.
+        wt = self.wall_thickness
+        return Interior(
+            origin=(wt, wt, self.floor_thickness),
+            size=(self.width - wt * 2, self.length - wt * 2, self.height - self.floor_thickness),
+        )
 
     def _cap_height(self) -> float:
-        h = self._opts().cap_height
+        h = self.options.cap_height
         return float(h) if h else CapBoxDefaultCapHeight(self.height)
 
     def _lid_wall(self) -> float:
@@ -210,15 +201,15 @@ class CapBox(BoxBaseType):
         left_right = (catch == CatchType.BUMPS_SHORT and l < w) or (catch == CatchType.BUMPS_LONG and l > w)
         if front_back:
             off = w - wt * 2
-            for frac in (6 / 8, 2 / 8):
+            for frac in CATCH_BUMP_POSITIONS:
                 x = off * frac + wt
-                pair = _catch_bump(wt, radius, FRONT) | _catch_bump(wt, radius, BACK).translate([0, l, 0])
+                pair = catch_bump(wt, radius, FRONT) | catch_bump(wt, radius, BACK).translate([0, l, 0])
                 add(pair.translate([x, 0, wt]))
         if left_right:
             off = l - wt * 2
-            for frac in (6 / 8, 2 / 8):
+            for frac in CATCH_BUMP_POSITIONS:
                 y = off * frac + wt
-                pair = _catch_bump(wt, radius, LEFT) | _catch_bump(wt, radius, RIGHT).translate([w, 0, 0])
+                pair = catch_bump(wt, radius, LEFT) | catch_bump(wt, radius, RIGHT).translate([w, 0, 0])
                 add(pair.translate([0, y, wt]))
         return catches
 
@@ -248,15 +239,18 @@ class CapBox(BoxBaseType):
     def _catches(self, is_lid: bool):
         """The catch solid for the box (is_lid=False -> recesses) or cap (is_lid=True ->
         matching, slightly smaller protrusions), placed at z=0 relative to the rim."""
-        catch = self._opts().catch
+        catch = self.options.catch
         wt, sp = self.wall_thickness, self.size_spacing
         if catch in (CatchType.BUMPS_SHORT, CatchType.BUMPS_LONG):
-            return self._bump_catches(catch, wt * 3 / 4 if is_lid else wt * 5 / 6 + sp)
+            radius = wt * (CATCH_BUMP_LID_FACTOR if is_lid else CATCH_BUMP_RECESS_FACTOR)
+            return self._bump_catches(catch, radius if is_lid else radius + sp)
         if catch in (CatchType.SHORT, CatchType.LONG, CatchType.ALL):
-            return self._wedge_catches(catch, wt * 5 / 8 if is_lid else wt)
+            return self._wedge_catches(
+                catch, wt * (CATCH_WEDGE_LID_FACTOR if is_lid else CATCH_WEDGE_RECESS_FACTOR)
+            )
         return None  # CatchType.NONE
 
-    def _build_box_body(self) -> "Bosl2Solid":
+    def _build_box_body(self, contents) -> "Bosl2Solid":
         cap_h = self._cap_height()
         body = shapes3d.cuboid(
             [self.width, self.length, self.height],
@@ -266,32 +260,32 @@ class CapBox(BoxBaseType):
         )
         # Step the top cap_height of the outer wall in by the cap wall thickness.
         body = body - self._rim_frame(cap_h + 0.1).translate([0, 0, self.height - cap_h])
-        if self._opts().finger_holds:
+        if self.options.finger_holds:
             body = body - self._finger_hold_cut()   # grip scoops
         recesses = self._catches(is_lid=False)       # catch recesses in the rim
         if recesses is not None:
             body = body - recesses.translate([0, 0, self.height - cap_h])
         return body.color(self.material_colour)
 
-    def create_lid(self, lid=None) -> "Bosl2Solid":
-        """Build the cap: a wall frame that fits over the box's top rim, closed by a
-        top plate, with the matching catch protrusions. When the lid carries a label /
-        shape pattern / fingernail, the top plate is the decorated flat-lid slab
-        (see :meth:`BoxBaseType._decorated_flat_lid`); otherwise it is a plain rounded plate."""
+    def _lid_plate(self, lid) -> LidPlate:
+        """The cap: a wall frame that fits over the box's top rim plus the matching catch
+        protrusions (the shell), closed by a flat top plate (the decorated face)."""
         cap_h = self._cap_height()
-        walls = self._rim_frame(cap_h)
-        slab, slab_lt = self._decorated_flat_lid(lid, [self.width, self.length])
-        if slab is None:
-            top = shapes3d.cuboid(
-                [self.width, self.length, self.lid_thickness],
-                anchor=BOTTOM + FRONT + LEFT,
-                rounding=self.wall_thickness / 2,
-                edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
-            ).translate([0, 0, cap_h])
-        else:
-            top = slab.translate([0, 0, cap_h])
-        cap = walls | top
+        lt = lid.lid_thickness
+        shell = self._rim_frame(cap_h)
         catches = self._catches(is_lid=True)   # protrusions at the cap wall bottom
         if catches is not None:
-            cap = cap | catches
-        return cap.color(self.material_colour)
+            shell = shell | catches
+        top = shapes3d.cuboid(
+            [self.width, self.length, lt],
+            anchor=BOTTOM + FRONT + LEFT,
+            rounding=self.wall_thickness / 2,
+            edges=[TOP, LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK],
+        ).color(self.material_colour)
+        return LidPlate(
+            plate=top,
+            size=[self.width, self.length],
+            thickness=lt,
+            offset=[0, 0, cap_h],
+            shell=shell,
+        )

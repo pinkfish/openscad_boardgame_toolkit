@@ -22,9 +22,7 @@
 # FileGroup: Boxes
 
 from __future__ import annotations
-import copy
-import types
-from dataclasses import replace
+from dataclasses import dataclass
 
 import numpy as np
 from pythonscad import *
@@ -36,34 +34,24 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
-import pybosl2.transforms
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec, Contents, FingerHoleLocation, Label
-from lids_base import (
-    Lid,
-    SlidingLidFingernail,
-    IsDenseShapeType,
-    DenseShapeEdges,
-    default_lid_layout_width,
-    default_lid_aspect_ratio,
-)
-from labels import LabelOptions
-from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
+from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
+from lids_base import Lid
 
 
-def MakeSlidingLidOptions(
-    two_layer: bool = False, two_layer_top_lid_ratio: float = 0.5, two_layer_vee_shape: bool = False
-) -> types.SimpleNamespace:
-    """Make the sliding lid options object.
+@dataclass
+class SlidingBoxOptions(BoxTypeOptions):
+    """Sliding-box options; pass via ``BoxSpec(type_options=SlidingBoxOptions(...))``.
 
-    Args:
-        two_layer: if the lid has a cap layer, a second layer on top (default False)
-        two_layer_top_lid_ratio: ratio of the top bit to the sliding bit (default 0.5)
-        two_layer_vee_shape: if the two-layer lid should use a vee slide (default False)
+    Attributes:
+        two_layer:               the lid has a cap layer, a second layer on top
+        two_layer_top_lid_ratio: ratio of the top bit to the sliding bit
+        two_layer_vee_shape:     the two-layer lid uses a vee slide
     """
-    return types.SimpleNamespace(
-        two_layer=two_layer, two_layer_top_lid_ratio=two_layer_top_lid_ratio, two_layer_vee_shape=two_layer_vee_shape
-    )
+
+    two_layer: bool = False
+    two_layer_top_lid_ratio: float = 0.5
+    two_layer_vee_shape: bool = False
 
 
 class SlidingBox(BoxBaseType):
@@ -71,7 +59,7 @@ class SlidingBox(BoxBaseType):
 
     Usage::
 
-        box = SlidingBox([50, 100, 20], "mybox")
+        box = SlidingBox(BoxSpec(size=[50, 100, 20], label="mybox"))
         solid = box.make_box(
             contents=[InnerObject(divider), InnerObject(cavity)],
             finger_holes=[FingerHole(location=FingerHoleLocation.LEFT, offset=10),
@@ -82,14 +70,10 @@ class SlidingBox(BoxBaseType):
         lid.show()
     """
 
-    def __init__(self, spec: BoxSpec):
-        # Sliding-lid params come from the generic type_options slot (a MakeSlidingLidOptions()),
-        # or plain sliding defaults when unset.
-        self._sliding_lid_options = spec.type_options if spec.type_options is not None else MakeSlidingLidOptions()
-        super().__init__(spec)
+    options_class = SlidingBoxOptions
 
-    # make_box() is inherited from BoxBaseType (build _build_box_body(), then the
-    # shared _finish_box pipeline) -- SlidingBox only customises _build_box_body().
+    # make_box()/make_lid() are inherited: SlidingBox supplies only its body
+    # (_build_box_body), its interior (_compute_interior) and its lid plate (_lid_plate).
 
     # ------------------------------------------------------------------
     # Sliding-lid-specific dimension derived values
@@ -97,11 +81,11 @@ class SlidingBox(BoxBaseType):
 
     @property
     def _top_cover(self) -> float:
-        return self._sliding_lid_options.two_layer_top_lid_ratio * self.lid_thickness
+        return self.options.two_layer_top_lid_ratio * self.lid_thickness
 
     @property
     def _lid_cutout(self) -> float:
-        return (self.lid_thickness - self._top_cover) if self._sliding_lid_options.two_layer else self.lid_thickness
+        return (self.lid_thickness - self._top_cover) if self.options.two_layer else self.lid_thickness
 
     @property
     def _middle_chamfer(self) -> float:
@@ -109,7 +93,7 @@ class SlidingBox(BoxBaseType):
 
     @property
     def _chamfer(self) -> float:
-        if self._sliding_lid_options.two_layer:
+        if self.options.two_layer:
             return 0
         w2 = self.wall_thickness / 2
         gap = self.lid_thickness - self.size_spacing
@@ -117,60 +101,49 @@ class SlidingBox(BoxBaseType):
 
     @property
     def _two_layer_chamfer(self) -> float:
-        if self._sliding_lid_options.two_layer_vee_shape:
+        if self.options.two_layer_vee_shape:
             return self._middle_chamfer
         w2 = self.wall_thickness / 2
         return w2 if w2 < self._lid_cutout else self._lid_cutout
 
     @property
     def _lid_width(self) -> float:
-        if self._sliding_lid_options.two_layer:
+        if self.options.two_layer:
             return self.width
         return self.width - 2 * self.wall_thickness + self._chamfer * 2 + self.size_spacing
 
     @property
     def _lid_length(self) -> float:
-        if self._sliding_lid_options.two_layer:
+        if self.options.two_layer:
             return self.length
         return self.length - self.wall_thickness + self._chamfer - self.size_spacing
 
     def _effective_height(self) -> float:
-        return (
-            (self.height - self._top_cover - self.size_spacing) if self._sliding_lid_options.two_layer else self.height
+        return (self.height - self._top_cover - self.size_spacing) if self.options.two_layer else self.height
+
+    def _compute_interior(self) -> Interior:
+        # The sliding lid runs in a cutout below the top, so the interior stops at the
+        # lid cutout rather than a plain lid-thickness down.
+        wt = self.wall_thickness
+        return Interior(
+            origin=(wt, wt, self.floor_thickness),
+            size=(
+                self.width - wt * 2,
+                self.length - wt * 2,
+                max(self._effective_height() - self._lid_cutout - self.floor_thickness, 0),
+            ),
         )
-
-    @property
-    def inner_height(self) -> float:
-        h = self._effective_height() - self._lid_cutout - self.floor_thickness
-        return max(h, 0)
-
-    # Lid-specific inner-area dimensions
-    @property
-    def _lid_area_width(self) -> float:
-        return self.width - self.wall_thickness
-
-    @property
-    def _lid_area_length(self) -> float:
-        return self.length - self.wall_thickness / 2
-
-    @property
-    def _lid_fingernail_width(self) -> float:
-        return self.width - self.wall_thickness
-
-    @property
-    def _lid_fingernail_length(self) -> float:
-        return self.length - self.wall_thickness
 
     # ------------------------------------------------------------------
     # Box body
     # ------------------------------------------------------------------
 
-    def _build_box_body(self) -> Bosl2Solid:
+    def _build_box_body(self, contents) -> Bosl2Solid:
         calc_height = self._effective_height()
-        two_layer = self._sliding_lid_options.two_layer
+        two_layer = self.options.two_layer
 
         # Corner-anchored (BOTTOM+FRONT+LEFT) like every other box body -- the whole
-        # pipeline (inside_mask, _placed_content, contents) is corner-framed, and the lid
+        # pipeline (interior(), interior_mask(), contents) is corner-framed, and the lid
         # cuts below are positioned from the corner too. A CENTER-anchored body (the pybosl2
         # cuboid default) left contents/mask overlapping only one quadrant.
         body = pybosl2.shapes3d.cuboid(
@@ -200,7 +173,7 @@ class SlidingBox(BoxBaseType):
 
         chamfer2 = self.wall_thickness / 2 if self.wall_thickness / 2 < self._lid_cutout else self._lid_cutout
         if two_layer:
-            if self._sliding_lid_options.two_layer_vee_shape:
+            if self.options.two_layer_vee_shape:
                 lid_cut = pybosl2.shapes3d.cuboid(
                     [
                         self.width - self.wall_thickness * 2 + self._middle_chamfer * 2 + self.size_spacing,
@@ -251,25 +224,12 @@ class SlidingBox(BoxBaseType):
         return body.color(self.material_colour)
 
     # ------------------------------------------------------------------
-    # Inside mask
-    # ------------------------------------------------------------------
-
-    def inside_mask(self) -> Bosl2Solid:
-        # anchor=BOTTOM+FRONT+LEFT so the mask is corner-anchored at the interior origin
-        # (matching the base). Without it the cuboid is CENTER-anchored and clips away the
-        # top half of any deep clipped cavity, so wells never open to the top.
-        return pybosl2.shapes3d.cuboid(
-            [self.inner_width, self.inner_length, self.inner_height],
-            anchor=BOTTOM + FRONT + LEFT,
-        ).translate([self.wall_thickness, self.wall_thickness, self.floor_thickness])
-
-    # ------------------------------------------------------------------
     # Lid creation
     # ------------------------------------------------------------------
 
     def _build_lid_body(self, lid_rounding: float | None = None) -> Bosl2Solid:
         calc_lid_rounding = lid_rounding if lid_rounding is not None else self.wall_thickness / 2
-        two_layer = self._sliding_lid_options.two_layer
+        two_layer = self.options.two_layer
 
         edges = (
             [LEFT + TOP, RIGHT + TOP, TOP + FRONT, LEFT + BOTTOM, RIGHT + BOTTOM, BOTTOM + FRONT]
@@ -357,10 +317,21 @@ class SlidingBox(BoxBaseType):
             )
             main = main - tri_a - tri_b
 
-        return main.color(self.material_colour).right(self.width / 2).back(self.length / 2).up(self.height / 2)
+        # The slab is built CENTER-anchored, so shift it into the lid frame: x/y into the
+        # box's footprint, and z so the slab occupies 0 .. lid_thickness. The z shift used
+        # to be up(height/2) -- the slab then floated at mid-box-height while the label and
+        # pattern overlays (which internal_build_lid always assembles at z=0) stayed on the
+        # bed, so a labelled sliding lid came out as two detached pieces. It is a separate
+        # print: it belongs at z=0 like every other lid plate.
+        return (
+            main.color(self.material_colour)
+            .right(self.width / 2)
+            .back(self.length / 2)
+            .up(self.lid_thickness / 2)
+        )
 
     def _mask_2sliding_lid(self) -> list[list[float]]:
-        if self._sliding_lid_options.two_layer_vee_shape:
+        if self.options.two_layer_vee_shape:
             return [
                 [0, 0],
                 [self.wall_thickness / 2 + self.size_spacing, 0],
@@ -378,25 +349,22 @@ class SlidingBox(BoxBaseType):
                 [0, self._lid_cutout],
             ]
 
-    def _make_base_lid(self, lid_rounding: float | None = None) -> Bosl2Solid:
-        """Build the sliding-lid body."""
-        return self._build_lid_body(lid_rounding=lid_rounding)
+    def _lid_plate(self, lid: Lid) -> LidPlate:
+        """The sliding lid IS its plate: a chamfered dovetail slab at z = 0..lid_thickness.
 
-    def create_lid(self, lid: "Lid | None" = None) -> Bosl2Solid:
-        """Override to set sliding-lid–specific fingernail dimensions and offsets."""
-        # Copy so the caller's Lid isn't mutated (it may be shared across boxes).
-        l = copy.copy(lid) if lid is not None else Lid(lid_thickness=self.lid_thickness)
-        if l.fingernail is not None and l.fingernail.enabled:
-            l.fingernail = replace(l.fingernail)   # don't mutate the caller's Fingernail
-            fn = l.fingernail
-            fn.width = fn.width or self._lid_fingernail_width
-            fn.length = fn.length or self._lid_fingernail_length
-            fn.x_offset = fn.x_offset or self.width / 2 - self.wall_thickness / 2
-            fn.y_offset = fn.y_offset or self.length - self.wall_thickness - 3
-        return BoxBaseType.create_lid(self, l)
+        Its footprint overhangs the box slightly (the chamfers that run in the box's
+        grooves), so ``origin`` puts the decoration on the slab rather than on the box
+        outline."""
+        slab = self._build_lid_body(lid_rounding=lid.lid_rounding)
+        return LidPlate(
+            plate=slab,
+            size=[self._lid_width, self._lid_length],
+            thickness=lid.lid_thickness,
+            origin=[(self.width - self._lid_width) / 2, (self.length - self._lid_length) / 2],
+        )
 
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
-        """Apply two-layer rotation/translation if needed."""
-        if self._sliding_lid_options.two_layer:
+        """Flip the two-layer lid over for printing (its cap layer prints face down)."""
+        if self.options.two_layer:
             return stack.rotate([180, 0, 0]).translate([0, self._lid_length, self.lid_thickness])
         return stack
