@@ -40,6 +40,7 @@ from lids_base import (
     internal_build_lid,
     MakeLidLabel,
     LidMeshBasic,
+    build_lid_overlays,
     IsDenseShapeType,
     DenseShapeEdges,
 )
@@ -423,26 +424,22 @@ def SlipoverPathBoxLidWithLabelAndCustomShape(
     calc_width = max(x_arr) - min(x_arr)
     calc_length = max(y_arr) - min(y_arr)
 
-    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        path=path,
+    lid_children = build_lid_overlays(
         lid_thickness=lid_thickness,
+        path=path,
+        label_size=[calc_width, calc_length],
         boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        shape_child=shape_child,
         dense=lid_pattern_dense,
         dense_shape_edges=lid_dense_shape_edges,
         inner_control=pattern_inner_control,
-        children=pattern_shape,
+        text_str=text_str,
+        label_options=calc_label_options,
+        extra_children=extra_children,
+        material_colour=material_colour,
     )
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = True
-    label_shape = MakeLidLabel(
-        size=[calc_width, calc_length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts
-    )
-
-    lid_children = [mesh, label_shape] + (list(extra_children) if extra_children else [])
 
     return SlipoverPathBoxLid(
         path=path,

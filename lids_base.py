@@ -34,6 +34,8 @@ from pybosl2 import shapes2d
 from labels import LabelOptions, MakeLabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
 from components import RegularPolygonGridDense, RegularPolygonGrid
 
+from dataclasses import dataclass
+import copy
 import math
 import types
 
@@ -336,6 +338,84 @@ def LidMeshBasic(
     return (mesh | border) & bound
 
 
+def build_lid_overlays(
+    *,
+    lid_thickness: float,
+    label_size: list[float] | None = None,
+    size: list[float] | None = None,
+    path: list[list[float]] | None = None,
+    boundary: float = 10,
+    layout_width: float | None = None,
+    aspect_ratio: float | None = None,
+    shape_child: PyOpenSCAD | None = None,
+    shape_options: "ShapeObject | None" = None,
+    dense: bool | None = None,
+    dense_shape_edges: int | None = None,
+    inner_control: "int | bool | None" = None,
+    text_str: str | None = None,
+    label_options: "LabelOptions | None" = None,
+    label_full_height: bool | None = True,
+    extra_children: list | None = None,
+    material_colour: str | None = None,
+) -> list:
+    """The shared lid-overlay list: the pattern mesh + the label + any extras, in the
+    order :func:`internal_build_lid` expects. This is the ONE place the pattern-mesh
+    (:func:`LidMeshBasic`) and label (:func:`MakeLidLabel`) are built for a box lid -- every
+    box type's lid pipeline feeds these overlays into ``internal_build_lid`` on top of its
+    own base shell, instead of re-implementing the block in a per-box ``*LidWithLabel``.
+
+    Provide ``size`` OR ``path`` for the mesh area; ``label_size`` is ``[width, length]``
+    the label is fitted to. The dense/edges/inner-control layout is DERIVED from
+    ``shape_options.shape_type`` (single source of truth), matching :meth:`Lid._pattern_layout`.
+    """
+    from shape_type import ShapeByType, ShapeNeedsInnerControl
+
+    if material_colour is None:
+        material_colour = default_material_colour
+
+    piece = shape_child
+    if piece is None and shape_options is not None:
+        piece = ShapeByType(options=shape_options)
+    piece = piece.color(material_colour) if piece is not None else shapes2d.square([10, 10]).color(material_colour)
+
+    # Layout: explicit dense/edges/inner win (the *AndCustomShape call path already has them);
+    # otherwise DERIVE from shape_options.shape_type (single source of truth); otherwise defaults.
+    if dense is None and shape_options is not None:
+        st = shape_options.shape_type
+        dense, dense_shape_edges, inner_control = IsDenseShapeType(st), DenseShapeEdges(st), ShapeNeedsInnerControl(st)
+    dense = bool(dense) if dense is not None else False
+    dense_shape_edges = dense_shape_edges if dense_shape_edges is not None else 6
+    inner_control = inner_control if inner_control is not None else False
+
+    mesh = LidMeshBasic(
+        lid_thickness=lid_thickness,
+        boundary=boundary,
+        layout_width=layout_width,
+        size=size,
+        path=path,
+        aspect_ratio=aspect_ratio,
+        dense=dense,
+        dense_shape_edges=dense_shape_edges,
+        material_colour=material_colour,
+        inner_control=inner_control,
+        children=piece,
+    )
+    overlays: list = [mesh]
+
+    if text_str:
+        assert label_size is not None, "build_lid_overlays: label_size is required when text_str is given"
+        opts = copy.copy(label_options) if label_options is not None else LabelOptions()
+        if label_full_height is not None:
+            opts.full_height = label_full_height
+        label = MakeLidLabel(size=label_size, lid_thickness=lid_thickness, text_str=text_str, options=opts)
+        if label is not None:
+            overlays.append(label)
+
+    if extra_children:
+        overlays.extend(extra_children)
+    return overlays
+
+
 def internal_build_lid(lid_thickness: float, children: list, size_spacing: float | None = None) -> PyOpenSCAD:
     """Builds a lid out of a stack of pieces, carving holes so each merges cleanly.
 
@@ -385,6 +465,20 @@ def internal_build_lid(lid_thickness: float, children: list, size_spacing: float
 # ---------------------------------------------------------------------------
 
 
+@dataclass
+class Fingernail:
+    """Fingernail-scoop cutout config for a sliding lid (the dip you push to slide it open).
+
+    ``enabled`` turns it on; the size/offsets default from the box dimensions (filled in by
+    the box's lid pipeline) when left ``None``."""
+
+    enabled: bool = False
+    width: float | None = None
+    length: float | None = None
+    x_offset: float | None = None
+    y_offset: float | None = None
+
+
 class Lid:
     """Lid mesh configuration and builder.
 
@@ -420,11 +514,7 @@ class Lid:
         shape_options: "ShapeObject | None" = None,
         lid_rounding: float | None = None,
         extra_children: list | None = None,
-        fingernail: bool = False,
-        fingernail_width: float | None = None,
-        fingernail_length: float | None = None,
-        fingernail_x_offset: float | None = None,
-        fingernail_y_offset: float | None = None,
+        fingernail: "Fingernail | bool | None" = None,
     ) -> None:
         if material_colour is None:
             material_colour = default_material_colour
@@ -444,25 +534,16 @@ class Lid:
         self.shape_options = shape_options
         self.lid_rounding = lid_rounding
         self.extra_children = extra_children
+        # Accept a bool for back-compat (True -> an enabled Fingernail with defaulted sizes).
+        if isinstance(fingernail, bool):
+            fingernail = Fingernail(enabled=fingernail)
         self.fingernail = fingernail
-        self.fingernail_width = fingernail_width
-        self.fingernail_length = fingernail_length
-        self.fingernail_x_offset = fingernail_x_offset
-        self.fingernail_y_offset = fingernail_y_offset
-
-    def apply_shape_defaults(self, shape_type: "ShapeType") -> None:
-        """Set pattern-related fields from *shape_type* when shape_options is a user object."""
-        from lids_base import IsDenseShapeType, DenseShapeEdges
-        from shape_type import ShapeNeedsInnerControl
-        self.dense = IsDenseShapeType(shape_type)
-        self.dense_shape_edges = DenseShapeEdges(shape_type)
-        self.inner_control = ShapeNeedsInnerControl(shape_type)
 
     def build(self) -> PyOpenSCAD | None:
         """Resolve the shape piece and create the lid mesh solid.
 
         If :attr:`shape_child` or :attr:`shape_options` is set, the shape is
-        resolved via :func:`~shape_type.ShapeByType` and tiled in the grid.
+        resolved via :func:`~shape_type.ShapeByType` and tiled by :func:`LidMeshBasic`.
         Returns None if no shape could be resolved and neither is set.
         """
         piece = self.shape_child
@@ -474,55 +555,45 @@ class Lid:
         if piece is not None:
             piece = piece.color(self.material_colour)
 
-        if self.size is not None:
-            calc_path = [[0, 0], [self.size[0], 0], [self.size[0], self.size[1]], [0, self.size[1]]]
-        else:
-            assert self.path is not None, "Lid: must provide either size or path"
-            calc_path = self.path
+        dense, edges, inner = self._pattern_layout()
+        # ONE mesh entry point (LidMeshBasic) -- the dense/repeating dispatch and the
+        # border/bound clipping live there, not duplicated here.
+        return LidMeshBasic(
+            lid_thickness=self.lid_thickness,
+            boundary=self.boundary,
+            layout_width=self.layout_width,
+            size=self.size,
+            path=self.path,
+            aspect_ratio=self.aspect_ratio,
+            dense=dense,
+            dense_shape_edges=edges,
+            material_colour=self.material_colour,
+            inner_control=inner,
+            children=piece if piece is not None else self.children,
+        )
 
-        if self.dense:
-            mesh = LidMeshDense(
-                path=calc_path,
-                lid_thickness=self.lid_thickness,
-                boundary=self.boundary,
-                radius=self.layout_width / 2,
-                shape_edges=self.dense_shape_edges,
-                material_colour=self.material_colour,
-                inner_control=self.inner_control,
-                children=piece if piece is not None else self.children,
-            )
-        else:
-            mesh = LidMeshRepeating(
-                path=calc_path,
-                lid_thickness=self.lid_thickness,
-                boundary=self.boundary,
-                layout_width=self.layout_width,
-                shape_edges=4,
-                aspect_ratio=self.aspect_ratio,
-                material_colour=self.material_colour,
-                inner_control=self.inner_control,
-                children=piece if piece is not None else self.children,
-            )
+    def _pattern_layout(self) -> tuple[bool, int, "int | bool"]:
+        """The (dense, dense_shape_edges, inner_control) layout for the mesh.
 
-        border = shapes2d.polygon(calc_path).offset(radius=-self.boundary).linear_extrude(
-            height=self.lid_thickness
-        ).color(self.material_colour) - shapes2d.polygon(calc_path).offset(radius=-self.boundary - 0.02).linear_extrude(
-            height=self.lid_thickness + 1
-        ).color(self.material_colour).translate([0, 0, -0.5])
-
-        bound = shapes2d.polygon(calc_path).offset(radius=-self.boundary).linear_extrude(
-            height=self.lid_thickness
-        ).color(self.material_colour)
-        return (mesh | border) & bound
+        DERIVED from the pattern's shape type (the single source of truth) when a
+        ``shape_options`` is given; otherwise the explicitly-set fields are used. This is
+        the one place ShapeType -> layout mapping happens (was the drift-prone, never-called
+        ``apply_shape_defaults`` + three parallel copies in the box lid functions)."""
+        if self.shape_options is None:
+            return self.dense, self.dense_shape_edges, self.inner_control
+        from shape_type import ShapeNeedsInnerControl
+        st = self.shape_options.shape_type
+        return IsDenseShapeType(st), DenseShapeEdges(st), ShapeNeedsInnerControl(st)
 
     def fingernail_cutout(self) -> PyOpenSCAD | None:
-        """Return a fingernail cutout solid, or None if :attr:`fingernail` is False."""
-        if not self.fingernail:
+        """Return a fingernail cutout solid, or None if the fingernail is not enabled."""
+        fn = self.fingernail
+        if fn is None or not fn.enabled:
             return None
-        fn_w = self.fingernail_width or 10
-        fn_l = self.fingernail_length or 10
-        x_off = self.fingernail_x_offset if self.fingernail_x_offset is not None else fn_w / 2
-        y_off = self.fingernail_y_offset if self.fingernail_y_offset is not None else fn_l - 3
+        fn_w = fn.width or 10
+        fn_l = fn.length or 10
+        x_off = fn.x_offset if fn.x_offset is not None else fn_w / 2
+        y_off = fn.y_offset if fn.y_offset is not None else fn_l - 3
         return (
             shapes3d.cuboid(
                 [fn_w, fn_l, self.lid_thickness],

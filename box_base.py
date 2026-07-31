@@ -583,9 +583,11 @@ class BoxBaseType(ABC):
             l.lid_thickness = self.lid_thickness
         if l.size is None:
             l.size = [self.inner_width, self.inner_length]
-        if l.fingernail and l.fingernail_width is None:
-            l.fingernail_width = self.inner_width
-            l.fingernail_length = self.inner_length
+        if l.fingernail is not None and l.fingernail.enabled:
+            l.fingernail = replace(l.fingernail)   # don't mutate the caller's Fingernail
+            if l.fingernail.width is None:
+                l.fingernail.width = self.inner_width
+                l.fingernail.length = self.inner_length
 
         children = [self._make_base_lid(l.lid_rounding)] + self._lid_overlay(l)
         stack = internal_build_lid(

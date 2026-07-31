@@ -40,6 +40,7 @@ from lids_base import (
     DenseShapeEdges,
     MakeLidLabel,
     LidMeshBasic,
+    build_lid_overlays,
 )
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
@@ -889,21 +890,19 @@ def CapBoxLidWithCustomShape(
     assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
     assert cap_height is None or cap_height > 0, f"Need cap height None or > 0 {cap_height}"
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        size=size,
+    lid_children = build_lid_overlays(
         lid_thickness=lid_thickness,
+        size=size,
         boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        shape_child=shape_child,
         dense=lid_pattern_dense,
         dense_shape_edges=lid_dense_shape_edges,
-        material_colour=material_colour,
         inner_control=pattern_inner_control,
-        children=pattern_shape,
+        extra_children=extra_children,
+        material_colour=material_colour,
     )
-
-    lid_children = [mesh] + (list(extra_children) if extra_children else [])
 
     return CapBoxLid(
         size=size,
@@ -998,8 +997,6 @@ def CapBoxLidWithLabelAndCustomShape(
     assert size_spacing > 0, f"Need size_spacing > 0, size_spacing={size_spacing}"
     assert cap_height is None or cap_height > 0, f"Need cap height None or > 0 {cap_height}"
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
-
     label_opts = copy.copy(calc_label_options)
     label_opts.full_height = True
     label_shape_raw = MakeLidLabel(
@@ -1030,7 +1027,7 @@ def CapBoxLidWithLabelAndCustomShape(
         material_colour=material_colour,
         lid_pattern_dense=lid_pattern_dense,
         pattern_inner_control=pattern_inner_control,
-        shape_child=pattern_shape,
+        shape_child=shape_child,
         extra_children=all_extra,
     )
 

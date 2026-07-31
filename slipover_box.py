@@ -38,6 +38,7 @@ from lids_base import (
     internal_build_lid,
     MakeLidLabel,
     LidMeshBasic,
+    build_lid_overlays,
     IsDenseShapeType,
     DenseShapeEdges,
 )
@@ -615,26 +616,22 @@ def SlipoverBoxLidWithLabelAndCustomShape(
     assert size[0] > 0 and size[1] > 0 and size[2] > 0, f"Need width, length, height > 0 size={size}"
     assert text_str is not None, "text_str must not be None"
 
-    pattern_shape = shape_child if shape_child is not None else square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        size=[size[0], size[1]],
+    lid_children = build_lid_overlays(
         lid_thickness=lid_thickness,
+        size=[size[0], size[1]],
+        label_size=[size[0], size[1]],
         boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        shape_child=shape_child,
         dense=lid_pattern_dense,
         dense_shape_edges=lid_dense_shape_edges,
         inner_control=pattern_inner_control,
-        children=pattern_shape,
+        text_str=text_str,
+        label_options=calc_label_options,
+        extra_children=extra_children,
+        material_colour=material_colour,
     )
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = True
-    label_shape = MakeLidLabel(
-        size=[size[0], size[1]], lid_thickness=lid_thickness, options=label_opts, text_str=text_str
-    )
-
-    lid_children = [mesh, label_shape] + (list(extra_children) if extra_children else [])
 
     return SlipoverBoxLid(
         size=size,

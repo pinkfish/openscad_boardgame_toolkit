@@ -378,11 +378,13 @@ class SlidingBox(BoxBaseType):
         """Override to set sliding-lid–specific fingernail dimensions and offsets."""
         # Copy so the caller's Lid isn't mutated (it may be shared across boxes).
         l = copy.copy(lid) if lid is not None else Lid(lid_thickness=self.lid_thickness)
-        if l.fingernail:
-            l.fingernail_width = l.fingernail_width or self._lid_fingernail_width
-            l.fingernail_length = l.fingernail_length or self._lid_fingernail_length
-            l.fingernail_x_offset = l.fingernail_x_offset or self.width / 2 - self.wall_thickness / 2
-            l.fingernail_y_offset = l.fingernail_y_offset or self.length - self.wall_thickness - 3
+        if l.fingernail is not None and l.fingernail.enabled:
+            l.fingernail = replace(l.fingernail)   # don't mutate the caller's Fingernail
+            fn = l.fingernail
+            fn.width = fn.width or self._lid_fingernail_width
+            fn.length = fn.length or self._lid_fingernail_length
+            fn.x_offset = fn.x_offset or self.width / 2 - self.wall_thickness / 2
+            fn.y_offset = fn.y_offset or self.length - self.wall_thickness - 3
         return BoxBaseType.create_lid(self, l)
 
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:

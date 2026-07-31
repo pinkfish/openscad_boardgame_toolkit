@@ -36,7 +36,7 @@ import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.shapes2d
 from pybosl2._sdf import joiners as _sdf_joiners
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, IsDenseShapeType, DenseShapeEdges
+from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, build_lid_overlays, IsDenseShapeType, DenseShapeEdges
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from box_base import BoxBaseType, BoxSpec
@@ -718,21 +718,19 @@ def CardLibraryBoxLidWithCustomShape(
     if lid_thickness is None:
         lid_thickness = default_lid_thickness
 
-    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        size=[size[0] - wall_thickness, size[1] - wall_thickness],
+    lid_children = build_lid_overlays(
         lid_thickness=lid_thickness,
+        size=[size[0] - wall_thickness, size[1] - wall_thickness],
         boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        shape_child=shape_child,
         dense=lid_pattern_dense,
         dense_shape_edges=lid_dense_shape_edges,
-        material_colour=material_colour,
         inner_control=pattern_inner_control,
-        children=pattern_shape,
+        extra_children=extra_children,
+        material_colour=material_colour,
     )
-
-    lid_children = [mesh] + (list(extra_children) if extra_children else [])
 
     return CardLibraryBoxLid(
         size=size,

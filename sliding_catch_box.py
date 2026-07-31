@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, SlidingLidFingernail
+from lids_base import internal_build_lid, MakeLidLabel, LidMeshBasic, build_lid_overlays, SlidingLidFingernail
 from labels import MakeLabelOptions, LabelOptions
 from shape_type import MakeShapeObject, ShapeObject, ShapeByType, ShapeNeedsInnerControl
 from box_base import BoxBaseType, BoxSpec
@@ -325,32 +325,28 @@ def SlidingCatchBoxLidWithLabelAndCustomShape(
         label_options if label_options is not None else MakeLabelOptions(material_colour=material_colour)
     )
 
-    pattern_shape = shape_child if shape_child is not None else shapes2d.square([10, 10]).color(material_colour)
-    mesh = LidMeshBasic(
-        size=size,
+    fingernail = pybosl2.shapes3d.cuboid(
+        [width - calc_label_options.border, length - calc_label_options.border, lid_thickness],
+        anchor=BOTTOM + FRONT + LEFT,
+    ).color(material_colour) & SlidingLidFingernail(lid_thickness).color(material_colour).translate(
+        [width / 2, length - calc_label_options.border - 3, 0]
+    )
+
+    lid_children = build_lid_overlays(
         lid_thickness=lid_thickness,
+        size=size,
+        label_size=[width, length],
         boundary=lid_boundary,
         layout_width=layout_width,
         aspect_ratio=aspect_ratio,
+        shape_child=shape_child,
         inner_control=pattern_inner_control,
-        children=pattern_shape,
+        text_str=text_str,
+        label_options=calc_label_options,
+        label_full_height=False,
+        extra_children=[fingernail] + (list(extra_children) if extra_children else []),
+        material_colour=material_colour,
     )
-
-    label_opts = copy.copy(calc_label_options)
-    label_opts.full_height = False
-    label_shape = MakeLidLabel(size=[width, length], lid_thickness=lid_thickness, text_str=text_str, options=label_opts)
-
-    fingernail = (
-        cube([width - calc_label_options.border, length - calc_label_options.border, lid_thickness]).color(
-            material_colour
-        )
-        & SlidingLidFingernail(lid_thickness)
-        .color(material_colour)
-        .translate([width / 2, length - calc_label_options.border - 3, 0])
-        .shape
-    )
-
-    lid_children = [mesh, label_shape, fingernail] + (list(extra_children) if extra_children else [])
 
     return SlidingCatchBoxLid(
         size=size,
