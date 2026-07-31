@@ -27,16 +27,20 @@ from typing import Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-    from pybosl2._sdf.shapes3d import PyShape  # noqa: F401
-    from pybosl2._sdf.shapes2d import PyShape2D  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from labels import LabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
-from components import RegularPolygonGridDense, RegularPolygonGrid
+from patterns import (
+    DenseLattice,
+    GridLattice,
+    Pattern,
+    PatternArea,
+    TiledPattern,
+    pattern_for,
+)
 
 from dataclasses import dataclass
-import math
 
 
 # ---------------------------------------------------------------------------
@@ -59,274 +63,60 @@ default_lid_supershape_b = 1
 default_lid_catch_type = CatchType.BUMPS_SHORT
 
 # ---------------------------------------------------------------------------
-# Helper functions (pure Python equivalents of SCAD functions)
+# Lid pattern layer
 # ---------------------------------------------------------------------------
 
 
-def IsDenseShapeType(shape_type: ShapeType | None = None) -> bool:
-    """Return True if *shape_type* is a 'dense' layout type."""
-    t = shape_type if shape_type is not None else default_lid_shape_type
-    return t in (
-        ShapeType.DENSE_HEX,
-        ShapeType.DENSE_TRIANGLE,
-        ShapeType.DELTOID_TRIHEXAGONAL_KITE,
-        ShapeType.DELTOID_TRIHEXAGONAL,
-    )
-
-
-def DenseShapeEdges(shape_type: ShapeType) -> int:
-    """Return the number of edges on the given dense shape type."""
-    return 3 if shape_type == ShapeType.DENSE_TRIANGLE else 6
-
-
-# ---------------------------------------------------------------------------
-# Lid mesh modules
-# ---------------------------------------------------------------------------
-
-
-def LidMeshDense(
-    path: list[list[float]],
+def lid_pattern_mesh(
+    *,
+    pattern: "Pattern",
+    area: "PatternArea",
     lid_thickness: float,
-    boundary: float,
-    radius: float,
-    shape_edges: int = 6,
+    boundary: float = 10,
     material_colour: str | None = None,
-    inner_control: int | bool = False,
-    children: "PyOpenSCAD | PyShape2D | Callable | None" = None,
-) -> "PyOpenSCAD | PyShape":
-    """Make a dense hex/triangle mesh for a lid.
+) -> "PyOpenSCAD | None":
+    """The lid's pattern layer: *pattern* filling *area*, extruded and trimmed to the lid.
 
-    Usage::
+    The ONE place a lid pattern becomes lid geometry. The pattern only ever produces flat
+    2-D fill (see :mod:`patterns`); everything that makes it a LID -- lifting it to the lid
+    thickness, the border ring around the edge, and clipping both to the boundary inset --
+    happens here, so no pattern has to know what it is decorating.
 
-        LidMeshDense(path=[[0,0],[100,0],[100,50],[0,50]],
-                     lid_thickness=3, boundary=10, radius=5, shape_edges=6)
+    Returns ``None`` when the pattern is empty (``ShapeType.NONE``).
 
     Args:
-        path:           2-D path defining the mesh boundary
+        pattern:        the :class:`~patterns.Pattern` to fill with
+        area:           the :class:`~patterns.PatternArea` to fill (the lid plate's footprint)
         lid_thickness:  height of the lid
-        boundary:       edge boundary width
-        radius:         polygon radius
-        shape_edges:    edges per polygon (default 6)
-        material_colour: colour (default default_material_colour, unused directly
-                         here -- kept for API compatibility with callers)
-        inner_control:  if True, layout is driven by a children callable
-                        (see RegularPolygonGridDense)
-        children:       the shape to tile (e.g. ShapeByType(...)), or a
-                        callable(polygon_x, polygon_y) when inner_control is True
+        boundary:       width of the solid border left around the edge
+        material_colour: colour (default default_material_colour)
     """
     if material_colour is None:
         material_colour = default_material_colour
 
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
-    x_arr = [p[0] for p in path]
-    y_arr = [p[1] for p in path]
-    width = max(x_arr) - min(x_arr)
-    length = max(y_arr) - min(y_arr)
+    # NB: not named `fill` -- that is the native builtin used by internal_build_lid().
+    filled = pattern.fill(area)
+    if filled is None:
+        return None
 
-    cell_width = math.cos(math.radians(180 / shape_edges)) * radius
-    rows = width / cell_width + 2
-    cols = length / cell_width + 2
+    # calc_path follows the classic corner-anchored square() convention -- [0,0] to
+    # [width,length] -- because the lattices lay their cells out from near the origin and
+    # have to line up with it. shapes2d._rect_path() is BOSL2-style (centred on the origin)
+    # and would leave half the boundary untiled.
+    calc_path = area.outline()
 
-    grid = RegularPolygonGridDense(
-        radius=radius, rows=rows, cols=cols, shape_edges=shape_edges, inner_control=inner_control, children=children
-    )
-    return grid.linear_extrude(height=lid_thickness + 1).translate([0, 0, -0.5])
+    mesh = filled.linear_extrude(height=lid_thickness + 1)
+    # The pentagon/Penrose tilings are built as SDF (_sdf) shapes, so extruding one gives an
+    # SDF solid; the rest of the lid is direct CSG. Cross the boundary once, here, rather
+    # than leaving an SDF handle to reach internal_build_lid()'s native projection().
+    if hasattr(mesh, "to_csg"):
+        mesh = mesh.to_csg()
+    mesh = mesh.translate([0, 0, -0.5])
 
-
-def LidMeshHex(
-    size: list[float],
-    lid_thickness: float,
-    boundary: float,
-    radius: float,
-    shape_thickness: float = 2,
-    inner_control: int | bool = False,
-) -> "PyOpenSCAD | PyShape":
-    """Make a hex mesh for a lid.
-
-    Usage::
-
-        LidMeshHex(size=[100, 50], lid_thickness=3, boundary=10, radius=5)
-
-    Args:
-        size:           [width, length] (or [width, length, height]) of the mesh area
-        lid_thickness:  height of the lid
-        boundary:       edge boundary width
-        radius:         hex polygon radius
-        shape_thickness: gap between hexes (default 2)
-        inner_control:  driven by a children callable (default False)
-    """
-    assert isinstance(size, (list, tuple)) and len(size) in (2, 3), f"size must be [width, length], got {size}"
-    width, length = size[0], size[1]
-    assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
-
-    def shape_for(polygon_width: float) -> "PyOpenSCAD | PyShape2D":
-        from shape_type import MakeShapeObject, ShapeByType
-
-        piece = ShapeByType(MakeShapeObject(shape_type=ShapeType.DENSE_HEX, shape_width=polygon_width))
-        assert piece is not None
-        return piece
-
-    children = (lambda i, j: shape_for(radius * 2)) if inner_control else shape_for(radius * 2)
-
-    return LidMeshDense(
-        path=[[0, 0], [width, 0], [width, length], [0, length]],
-        lid_thickness=lid_thickness,
-        boundary=boundary,
-        radius=radius,
-        shape_edges=6,
-        inner_control=inner_control,
-        children=children,
-    )
-
-
-def LidMeshRepeating(
-    path: list[list[float]],
-    lid_thickness: float,
-    boundary: float,
-    layout_width: float,
-    aspect_ratio: float = 1.0,
-    shape_edges: int = 4,
-    material_colour: str | None = None,
-    inner_control: int = 0,
-    children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
-    """Make a repeating-shape mesh for a lid.
-
-    Usage::
-
-        LidMeshRepeating([[0,0],[50,0],[50,20],[0,20]],
-                         lid_thickness=3, boundary=5, layout_width=10)
-
-    Args:
-        path:           2-D path defining the mesh boundary
-        lid_thickness:  height of the lid
-        boundary:       edge boundary width
-        layout_width:   spacing between pattern repeats
-        aspect_ratio:   dy scale factor (default 1.0)
-        shape_edges:    polygon edges for layout (default 4)
-        material_colour: colour (default default_material_colour, unused directly
-                         here -- kept for API compatibility with callers)
-        inner_control:  0=auto, 1=children callable(polygon_x, polygon_y, cols, rows),
-                        2=children callable(polygon_width, polygon_length, cols, rows)
-        children:       shape solid(s) to tile, or a callable per inner_control above
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
-
-    x_arr = [p[0] for p in path]
-    y_arr = [p[1] for p in path]
-    width = max(x_arr) - min(x_arr)
-    length = max(y_arr) - min(y_arr)
-
-    rows = width / layout_width + 2
-    cols = length / layout_width * aspect_ratio + 2
-
-    grid = RegularPolygonGrid(
-        width=layout_width,
-        rows=rows + (11 if inner_control else 1),
-        cols=cols + (11 if inner_control else 1),
-        spacing=0,
-        shape_edges=shape_edges,
-        aspect_ratio=aspect_ratio,
-        inner_control=inner_control,
-        space_width=width,
-        space_length=length,
-        children=children,
-    )
-    return grid.linear_extrude(height=lid_thickness + 1).translate([0, 0, -0.5])
-
-
-def LidMeshBasic(
-    lid_thickness: float,
-    boundary: float,
-    layout_width: float | None,
-    size: list[float] | None = None,
-    path: list[list[float]] | None = None,
-    aspect_ratio: float | None = 1.0,
-    dense: bool = False,
-    dense_shape_edges: int = 6,
-    material_colour: str | None = None,
-    inner_control: int | bool = False,
-    children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
-    """Make a lid mesh using one of the known shape types.
-
-    Provide either *size* or *path* (but not both).
-
-    Usage::
-
-        LidMeshBasic(size=[100, 50], lid_thickness=2, boundary=10,
-                     layout_width=10, dense=True,
-                     children=ShapeByType(MakeShapeObject(
-                         shape_type=ShapeType.DENSE_HEX,
-                         shape_thickness=2,
-                         shape_width=10)))
-
-    Args:
-        lid_thickness:    height of the lid
-        boundary:         edge boundary width
-        layout_width:     spacing between pattern repeats
-        size:             [width, length] or [width, length, height]
-        path:             explicit 2-D path (alternative to size)
-        aspect_ratio:     dy scale factor (default 1.0)
-        dense:            use dense layout (default False)
-        dense_shape_edges: edges per dense polygon (default 6)
-        material_colour:  colour (default default_material_colour)
-        inner_control:    layout control mode (default False/0)
-        children:         tiling shape solid(s), or callable (see LidMeshDense/LidMeshRepeating)
-    """
-    if material_colour is None:
-        material_colour = default_material_colour
-
-    assert size is not None or path is not None, "Must provide either size or path to LidMeshBasic"
-    assert path is not None or (isinstance(size, (list, tuple)) and len(size) in (2, 3)), (
-        f"Invalid size in LidMeshBasic, size={size}"
-    )
-    assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
-
-    calc_layout_width = layout_width
-    if calc_layout_width is None:
-        calc_layout_width = default_lid_layout_width
-    calc_aspect_ratio = aspect_ratio
-    if calc_aspect_ratio is None:
-        calc_aspect_ratio = default_lid_aspect_ratio
-    # calc_path must match the classic (corner-anchored, center=false) square()'s point
-    # convention -- [0,0] to [width,length] -- since the mesh grid below (RegularPolygonGrid/
-    # RegularPolygonGridDense) always lays its tiles out starting near the origin regardless of
-    # calc_path, and needs to line up with it. shapes2d._rect_path() is BOSL2-style (centered on
-    # the origin) and would leave half the boundary untiled if used here instead.
-    calc_path = [[0, 0], [size[0], 0], [size[0], size[1]], [0, size[1]]] if size is not None else path
-    assert calc_path is not None, "must give size or path"
-
-    if dense:
-        mesh = LidMeshDense(
-            path=calc_path,
-            lid_thickness=lid_thickness,
-            boundary=boundary,
-            radius=calc_layout_width / 2,
-            shape_edges=dense_shape_edges,
-            material_colour=material_colour,
-            inner_control=inner_control,
-            children=children,
-        )
-    else:
-        mesh = LidMeshRepeating(
-            path=calc_path,
-            lid_thickness=lid_thickness,
-            boundary=boundary,
-            layout_width=calc_layout_width,
-            shape_edges=4,
-            aspect_ratio=calc_aspect_ratio,
-            material_colour=material_colour,
-            inner_control=inner_control,
-            children=children,
-        )
-
-    # offset() is a 2-D op: it must run on the flat polygon before linear_extrude() lifts it to
-    # 3-D, not after (calling offset() on an already-extruded solid silently yields nothing).
+    # offset() is a 2-D op: it must run on the flat polygon before linear_extrude() lifts it
+    # to 3-D, not after (calling offset() on an already-extruded solid silently yields nothing).
     border = shapes2d.polygon(calc_path).offset(radius=-boundary).linear_extrude(height=lid_thickness).color(
         material_colour
     ) - shapes2d.polygon(calc_path).offset(radius=-boundary - 0.02).linear_extrude(height=lid_thickness + 1).color(
@@ -334,7 +124,10 @@ def LidMeshBasic(
     ).translate([0, 0, -0.5])
 
     bound = shapes2d.polygon(calc_path).offset(radius=-boundary).linear_extrude(height=lid_thickness).color(material_colour)
-    return (mesh | border) & bound
+    # border (always a pybosl2 solid) on the LEFT: a pattern may hand back a raw native
+    # handle (RHOMBI_TRI_HEXAGONAL does), and a native left operand rejects a pybosl2 right
+    # one -- "invalid argument left to operator". Union is commutative; the operands are not.
+    return (border | mesh) & bound
 
 
 def internal_build_lid(lid_thickness: float, children: list, size_spacing: float | None = None) -> PyOpenSCAD:
@@ -431,24 +224,27 @@ class Lid:
     """
 
     lid_thickness: float
-    #: Footprint the pattern is tiled over -- set from the box's LidPlate.
+    #: Footprint the pattern is filled over -- set from the box's LidPlate.
     size: list[float] | None = None
     #: Polygon outline of the footprint (a path lid); ``None`` -> the ``size`` rectangle.
     path: list[list[float]] | None = None
     boundary: float = 10
     layout_width: float | None = None
     aspect_ratio: float | None = None
-    #: Layout of the tiled pattern. Used ONLY when no ``shape_options`` is given (i.e.
-    #: when tiling raw ``children``); with ``shape_options`` the layout is derived from
-    #: the shape type -- see :meth:`_pattern_layout`.
+    material_colour: str | None = None
+    label: "Label | None" = None
+    #: The pattern, declaratively: a :class:`~shape_type.ShapeObject` naming a ShapeType.
+    shape_options: "ShapeObject | None" = None
+    #: A pre-built :class:`~patterns.Pattern`, for full control. Wins over shape_options.
+    pattern: "Pattern | None" = None
+    #: A caller-built 2-D motif to tile instead of the one shape_options would build.
+    shape_child: "PyOpenSCAD | None" = None
+    #: Raw children to tile with no ShapeType at all (motif, or callable per cell).
+    children: "PyOpenSCAD | None" = None
+    #: Lattice for the raw-``children`` case only (with shape_options the lattice comes
+    #: from the shape type -- see :func:`~patterns.lattice_for`).
     dense: bool = False
     dense_shape_edges: int = 6
-    inner_control: int | bool = False
-    material_colour: str | None = None
-    children: "PyOpenSCAD | None" = None
-    label: "Label | None" = None
-    shape_child: "PyOpenSCAD | None" = None
-    shape_options: "ShapeObject | None" = None
     lid_rounding: float | None = None
     extra_children: list | None = None
     fingernail: "Fingernail | bool | None" = None
@@ -464,50 +260,70 @@ class Lid:
         if isinstance(self.fingernail, bool):
             self.fingernail = Fingernail(enabled=self.fingernail)
 
-    def mesh(self) -> PyOpenSCAD | None:
-        """The tiled pattern mesh for this lid, or ``None`` when it has no pattern.
+    def area(self) -> PatternArea:
+        """The region this lid's pattern fills -- its plate footprint."""
+        if self.path is not None:
+            pts = [[float(p[0]), float(p[1])] for p in self.path]
+            xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+            return PatternArea(width=max(xs) - min(xs), length=max(ys) - min(ys), path=pts)
+        assert self.size is not None, "Lid needs a size or a path to fill a pattern over"
+        return PatternArea(width=self.size[0], length=self.size[1])
 
-        The shape is resolved via :func:`~shape_type.ShapeByType` (from
-        :attr:`shape_options`) or taken from :attr:`shape_child` / :attr:`children`,
-        then tiled over :attr:`size` / :attr:`path` by :func:`LidMeshBasic`.
-        """
-        piece = self.shape_child
-        if piece is None and self.shape_options is not None:
-            from shape_type import ShapeByType
-            piece = ShapeByType(options=self.shape_options)
-        if piece is None and self.children is None:
+    def resolved_pattern(self) -> "Pattern | None":
+        """The :class:`~patterns.Pattern` this lid is decorated with, or ``None``.
+
+        An explicit :attr:`pattern` wins; otherwise one is built from :attr:`shape_options`
+        (see :func:`~patterns.pattern_for`); otherwise raw :attr:`children` are tiled on the
+        :attr:`dense` lattice. This is the ONE place a lid decides what its pattern is."""
+        if self.pattern is not None:
+            return self.pattern
+
+        if self.shape_options is not None:
+            motif = self.shape_child.color(self.material_colour) if self.shape_child is not None else None
+            pattern = pattern_for(
+                self.shape_options,
+                layout_width=self.layout_width,
+                aspect_ratio=self.aspect_ratio,
+                motif=motif,
+            )
+            # A tiled motif is coloured once, here, rather than per cell.
+            if (
+                isinstance(pattern, TiledPattern)
+                and motif is None
+                and pattern.motif is not None
+                and not callable(pattern.motif)
+            ):
+                pattern.motif = pattern.motif.color(self.material_colour)
+            return pattern
+
+        raw = self.shape_child if self.shape_child is not None else self.children
+        if raw is None:
             return None
-        if piece is not None:
-            piece = piece.color(self.material_colour)
+        if not callable(raw):
+            raw = raw.color(self.material_colour)
+        lattice = (
+            DenseLattice(width=self.layout_width, edges=self.dense_shape_edges)
+            if self.dense
+            else GridLattice(width=self.layout_width, edges=4, aspect_ratio=self.aspect_ratio)
+        )
+        return TiledPattern(motif=raw, lattice=lattice)
 
-        dense, edges, inner = self._pattern_layout()
-        # ONE mesh entry point (LidMeshBasic) -- the dense/repeating dispatch and the
-        # border/bound clipping live there, not duplicated here.
-        return LidMeshBasic(
+    def mesh(self) -> PyOpenSCAD | None:
+        """This lid's pattern layer, or ``None`` when it has no pattern.
+
+        Resolves the pattern (:meth:`resolved_pattern`) and fills this lid's
+        :meth:`area` with it via :func:`lid_pattern_mesh`.
+        """
+        pattern = self.resolved_pattern()
+        if pattern is None:
+            return None
+        return lid_pattern_mesh(
+            pattern=pattern,
+            area=self.area(),
             lid_thickness=self.lid_thickness,
             boundary=self.boundary,
-            layout_width=self.layout_width,
-            size=self.size,
-            path=self.path,
-            aspect_ratio=self.aspect_ratio,
-            dense=dense,
-            dense_shape_edges=edges,
             material_colour=self.material_colour,
-            inner_control=inner,
-            children=piece if piece is not None else self.children,
         )
-
-    def _pattern_layout(self) -> tuple[bool, int, "int | bool"]:
-        """The (dense, dense_shape_edges, inner_control) layout for the mesh.
-
-        DERIVED from the pattern's shape type (the single source of truth) when a
-        ``shape_options`` is given; otherwise the explicitly-set fields are used. This is
-        the ONE place the ShapeType -> layout mapping happens."""
-        if self.shape_options is None:
-            return self.dense, self.dense_shape_edges, self.inner_control
-        from shape_type import ShapeNeedsInnerControl
-        st = self.shape_options.shape_type
-        return IsDenseShapeType(st), DenseShapeEdges(st), ShapeNeedsInnerControl(st)
 
     def fingernail_cutout(self) -> PyOpenSCAD | None:
         """Return a fingernail cutout solid, or None if the fingernail is not enabled."""

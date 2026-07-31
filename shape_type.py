@@ -44,59 +44,10 @@ import math
 # ShapeObject — mirrors the SCAD 'object()' used by MakeShapeObject
 # ---------------------------------------------------------------------------
 
-_INNER_CONTROL_NONE = 0  # auto layout
-_INNER_CONTROL_POLYGON = 1  # client uses polygon_x / polygon_y
-_INNER_CONTROL_AREA = 2  # client uses polygon_width / polygon_length
-
-# Shapes that require inner_control = 1  (tile-position based)
-_INNER1_TYPES = {
-    ShapeType.PENTAGON_R1,
-    ShapeType.PENTAGON_R3,
-    ShapeType.PENTAGON_R4,
-    ShapeType.PENTAGON_R5,
-    ShapeType.PENTAGON_R6,
-    ShapeType.PENTAGON_R7,
-    ShapeType.PENTAGON_R8,
-    ShapeType.PENTAGON_R9,
-    ShapeType.PENTAGON_R10,
-    ShapeType.PENTAGON_R11,
-    ShapeType.PENTAGON_R12,
-    ShapeType.PENTAGON_R13,
-    ShapeType.PENTAGON_R14,
-    ShapeType.PENTAGON_R15,
-    ShapeType.LIZARD,
-    ShapeType.LEAF,
-    ShapeType.HALF_REGULAR_HEXAGON,
-    ShapeType.RHOMBI_TRI_HEXAGONAL,
-}
-
-# Shapes that require inner_control = 2  (area based)
-_INNER2_TYPES = {
-    ShapeType.VORONOI,
-    ShapeType.PENTAGON_R2,
-    ShapeType.PENROSE_TILING_5,
-    ShapeType.PENROSE_TILING_7,
-    ShapeType.GOOSE,
-    ShapeType.CHICKEN,
-    ShapeType.SHEEP,
-    ShapeType.BIRD,
-    ShapeType.FLYING_BIRD,
-}
-
-
-def ShapeNeedsInnerControl(shape_type: ShapeType) -> int:
-    """Return the ``inner_control`` level required for *shape_type*.
-
-    Returns:
-        0 — no inner control needed
-        1 — caller must supply polygon_x/polygon_y (+ polygon_grid_rows/cols)
-        2 — caller must supply polygon_width/polygon_length
-    """
-    if shape_type in _INNER1_TYPES:
-        return 1
-    if shape_type in _INNER2_TYPES:
-        return 2
-    return 0
+# The layout context some shapes need is supplied by their :mod:`patterns` Pattern -- a
+# tiled motif gets none, a self-placing tiling gets its cell index, an area-filling one gets
+# the region size. patterns.py holds the single registry of which is which; this module just
+# accepts whatever context it is given.
 
 
 class ShapeObject:
@@ -214,12 +165,12 @@ def ShapeByType(
         ShapeByType(MakeShapeObject(shape_type=ShapeType.DENSE_HEX,
                                     shape_thickness=2, shape_width=10))
 
-    Some shape types need layout context that the original SCAD module read
-    from the $polygon_x/$polygon_y/$polygon_width/$polygon_length special
-    variables (see :func:`ShapeNeedsInnerControl`); since Python has no
-    equivalent dynamic scoping, pass that context explicitly via the
-    polygon_x/polygon_y/polygon_grid_rows/polygon_grid_cols/polygon_width/
-    polygon_length keyword arguments instead.
+    Some shape types need layout context that the original SCAD module read from the
+    $polygon_x/$polygon_y/$polygon_width/$polygon_length special variables; since Python
+    has no equivalent dynamic scoping, it is passed explicitly via the polygon_x/polygon_y/
+    polygon_grid_rows/polygon_grid_cols/polygon_width/polygon_length keyword arguments.
+    Callers do not work out which ones a shape needs: build the shape's
+    :class:`~patterns.Pattern` (:func:`~patterns.pattern_for`) and let it supply them.
 
     Args:
         options: :class:`ShapeObject` (from :func:`MakeShapeObject`)
