@@ -42,7 +42,7 @@ from typing import Callable
 
 import pybosl2.shapes3d
 from base_bgtk import BACK, BOTTOM, FRONT, LEFT, RIGHT, InnerObject, InnerSize, ObjectType
-from components import FingerHoleWall
+from components import FingerHoleWall, EngravedLabel, default_label_layer_depth
 
 # A well at least this deep (mm) can be emptied with a floor scoop; shallower wells
 # (and cards) need a finger channel/notch in the wall instead.
@@ -133,13 +133,19 @@ class Compartment:
     sides: int = 6
     depth: float | None = None
     count: int = 1
-    label: str | None = None
+    label: str | None = None           # engraved into this well's floor (also names it in errors)
     is_card: bool = False
     removal: Removal = Removal.AUTO
     scoop_depth: float | None = None   # how far the scoop dips below the well floor; None = auto
     fill: bool = False
     radius: float = 2.0
     solid: object = None               # for Shape.CUSTOM: the well solid or callable(depth)
+    # --- label engraving (Irish-Gauge style): 0.2mm second-colour text on the well floor ---
+    label_colour: str | None = None    # MMU fill colour for the label (None -> positive_colour)
+    label_size: float | None = None    # font size; None -> auto-fit to the well
+    label_depth: float = default_label_layer_depth   # cut depth (default 0.2mm = one layer)
+    label_font: str | None = None      # None -> default_label_font
+    label_spin: float = 0              # rotate the text in the floor plane (deg)
 
     def cell(self) -> tuple[float, float]:
         """The (width, length) bounding cell this compartment occupies for packing."""
@@ -227,6 +233,26 @@ def _finger_solid(cw: float, depth: float, top: float) -> object:
     return pybosl2.shapes3d.cyl(radius=r, height=h, anchor=BOTTOM).translate([cw / 2, 0, top - h + 1])
 
 
+def _label_engraving(c: Compartment, x: float, y: float, cw: float, cl: float, z0: float) -> InnerObject:
+    """A 0.2mm second-colour label engraved into the centre of this well's floor (``z0``).
+
+    Auto-sizes to the well when ``label_size`` is unset. ``clip`` is only enabled when the
+    engraving stays inside the interior (``z0 >= label_depth``); a full-depth well cuts into
+    the box floor itself, which must be an unclipped (breaching) cut -- 0.2mm never
+    perforates the floor. See :func:`~components.EngravedLabel`."""
+    size = c.label_size if c.label_size is not None else max(4.0, min(cw, cl) * 0.5)
+    return EngravedLabel(
+        c.label,
+        [x + cw / 2, y + cl / 2, z0],
+        depth=c.label_depth,
+        size=size,
+        font=c.label_font,
+        spin=c.label_spin,
+        colour=c.label_colour,
+        clip=z0 >= c.label_depth,
+    )
+
+
 def _place_one(
     c: Compartment, x: float, y: float, cw: float, cl: float, IH: float
 ) -> tuple[list[InnerObject], object | None, InnerObject | None]:
@@ -237,6 +263,11 @@ def _place_one(
     z0 = IH - depth                 # well floor: wells open at the interior top
     top = IH
     wells = [InnerObject(_well_solid(c, cw, cl, depth).translate([x, y, z0]), ObjectType.NEGATIVE)]
+
+    # Engrave the compartment's label into its floor (Irish-Gauge style): a 0.2mm
+    # second-colour impression, centred, revealed when the pieces are lifted out.
+    if c.label:
+        wells.append(_label_engraving(c, x, y, cw, cl, z0))
 
     kind = c.resolved_removal(depth)
     scoop = None

@@ -1070,3 +1070,95 @@ def MagnetSlot(
 
     tmat = transforms.reorient(anchor=anchor, spin=spin, orient=orient, size=size)
     return shape.multmatrix(tmat)
+
+
+# ---------------------------------------------------------------------------
+# Section: Text labels — engraved / raised second-colour text for cavity floors
+# ---------------------------------------------------------------------------
+
+# One 3-D-printer layer. Text cut this deep reads cleanly and, printed on a
+# multi-material machine, changes colour on exactly the layer the surface sits on.
+default_label_layer_depth = 0.2
+
+
+def text3d(
+    text: str,
+    height: float = default_label_layer_depth,
+    size: float = 10,
+    font: str | None = None,
+    halign: str = "center",
+    valign: str = "center",
+    spin: float = 0,
+) -> Bosl2Solid:
+    """A flat block of extruded text, centred on the origin in X/Y and running from
+    z=0 up to z=*height* (default 0.2mm -- one print layer).
+
+    The pybosl2 equivalent of the .scad ``text3d(..., h=0.2)`` used all over
+    ``examples/irish_gauge.scad``: build the 2-D glyphs with ``shapes2d.text`` and
+    ``linear_extrude`` them, so the Z extent is predictable (0..height) for placing an
+    engraving or a raised label.
+
+    Usage::
+
+        text3d("£5", size=20, font="Impact")            # 0.2mm tall, centred
+        text3d("Irish", height=0.4, size=10)            # two layers
+    """
+    if font is None:
+        font = default_label_font
+    shape = shapes2d.text(text, size=size, font=font, halign=halign, valign=valign)
+    solid = shape.linear_extrude(height=height)
+    return solid.rotate([0, 0, spin]) if spin else solid
+
+
+def EngravedLabel(
+    text: str,
+    position: list[float],
+    *,
+    depth: float = default_label_layer_depth,
+    size: float = 10,
+    font: str | None = None,
+    spin: float = 0,
+    colour: str | None = None,
+    clip: bool = False,
+) -> InnerObject:
+    """A second-colour text engraving whose TOP face sits at ``position`` and which cuts
+    ``depth`` (default 0.2mm) DOWN into the material below it -- the Irish-Gauge trick.
+
+    Returns an :class:`~base_bgtk.InnerObject` of type ``POSITIVE_NEGATIVE``: it is always
+    subtracted (so the impression exists in a single-colour print), and under
+    ``MAKE_MMU=1`` the same glyphs are also emitted in ``colour`` to fill the recess.
+
+    ``clip`` defaults to ``False`` (a breaching cut): the engraving is only ``depth`` mm
+    deep, far less than any floor, so it never perforates, and staying unclipped lets it
+    bite into the box floor itself when the cavity goes all the way down. Pass ``clip=True``
+    to keep it inside the box interior instead.
+
+    Usage::
+
+        # centred on a well floor at interior-local (x, y, z0):
+        EngravedLabel("£5", [x, y, z0], size=14, colour="gold")
+    """
+    x, y, z = position
+    solid = text3d(text, height=depth, size=size, font=font, spin=spin).translate([x, y, z - depth])
+    return InnerObject(solid, ObjectType.POSITIVE_NEGATIVE, color=colour, clip=clip)
+
+
+def RaisedLabel(
+    text: str,
+    position: list[float],
+    *,
+    height: float = default_label_layer_depth,
+    size: float = 10,
+    font: str | None = None,
+    spin: float = 0,
+    colour: str | None = None,
+) -> InnerObject:
+    """A second-colour text label that sits ON a surface at ``position`` and rises
+    ``height`` (default 0.2mm) -- like Irish-Gauge's money-tray numbers.
+
+    Returns a ``POSITIVE`` :class:`~base_bgtk.InnerObject`: it is added on top of the
+    floor and coloured under ``MAKE_MMU=1`` (a single-material print just gets the raised
+    glyphs in the body colour)."""
+    x, y, z = position
+    solid = text3d(text, height=height, size=size, font=font, spin=spin).translate([x, y, z])
+    return InnerObject(solid, ObjectType.POSITIVE, color=colour)
