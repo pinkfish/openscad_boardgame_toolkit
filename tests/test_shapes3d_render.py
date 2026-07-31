@@ -52,11 +52,11 @@ _TOLERANCE = 12.0
 IMGSIZE = (320, 240)
 
 SHAPES = [
-    ("polyhedron_dodecahedron", "Dodecahedron(20)"),
-    ("polyhedron_tetrahedron", "Tetrahedron(20)"),
-    ("polyhedron_octahedron", "Octahedron(20)"),
-    ("polyhedron_icosahedron", "Icosahedron(20)"),
-    ("polyhedron_trapezohedron", "Trapezohedron(20)"),
+    ("polyhedron_dodecahedron", "dodecahedron(20)"),
+    ("polyhedron_tetrahedron", "tetrahedron(20)"),
+    ("polyhedron_octahedron", "octahedron(20)"),
+    ("polyhedron_icosahedron", "icosahedron(20)"),
+    ("polyhedron_trapezohedron", "trapezohedron(20)"),
 ]
 
 

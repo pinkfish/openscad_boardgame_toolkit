@@ -23,7 +23,7 @@
 
 from __future__ import annotations
 import math
-import pysolidfive
+from pybosl2._sdf import shapes2d as _sdf2
 
 # Golden ratio — used in subdivision
 PHI = (1 + math.sqrt(5)) / 2
@@ -46,7 +46,7 @@ def _vec_scale(a: list[float], s: float) -> list[float]:
     return [a[0] * s, a[1] * s]
 
 
-def PenroseTriangles(triangles: list[list]) -> list[list]:
+def penrose_triangles(triangles: list[list]) -> list[list]:
     """Subdivide a list of Penrose triangles once.
 
     Each triangle is a 4-element list ``[kind, p1, p2, p3]`` where
@@ -73,7 +73,7 @@ def PenroseTriangles(triangles: list[list]) -> list[list]:
     return result
 
 
-def PenroseTrianglesDivision(triangles: list[list], division: int) -> list[list]:
+def penrose_triangles_division(triangles: list[list], division: int) -> list[list]:
     """Recursively subdivide *triangles* by *division* steps.
 
     Args:
@@ -82,16 +82,16 @@ def PenroseTrianglesDivision(triangles: list[list], division: int) -> list[list]
     Returns:
         final list of triangles
     """
-    new_tris = PenroseTriangles(triangles)
+    new_tris = penrose_triangles(triangles)
     if division > 0:
-        return PenroseTrianglesDivision(new_tris, division - 1)
+        return penrose_triangles_division(new_tris, division - 1)
     return new_tris
 
 
-def PenroseTiling(
+def penrose_tiling(
     width: float, divisions: int = 7, thickness: float = 1, base: int = 5, res: int | None = None
-) -> "pysolidfive.PyShape2D":
-    """Generates a 2-D Penrose tiling as a single pysolidfive shape: the "thin" triangles
+) -> "_sdf2.PyShape2D":
+    """Generates a 2-D Penrose tiling as a single pybosl2._sdf shape: the "thin" triangles
     filled solid, the "thicc" triangles drawn as their two open edges stroked `thickness`
     wide. (The original coloured the two families red/green and built the strokes with
     _bosl2.stroke(), which has no BOSL2 function form and always aborted the render -- this
@@ -100,8 +100,8 @@ def PenroseTiling(
 
     Usage::
 
-        PenroseTiling(100, divisions=5, thickness=1, base=5)
-        PenroseTiling(100, divisions=5, thickness=1, base=7)
+        penrose_tiling(100, divisions=5, thickness=1, base=5)
+        penrose_tiling(100, divisions=5, thickness=1, base=7)
 
     Args:
         width:     width of the tiling space
@@ -124,7 +124,7 @@ def PenroseTiling(
         a, b = (p2, p3) if (i % 2 == 0) else (p3, p2)
         triangles.append(["thin", [0, 0], a, b])
 
-    final_triangles = PenroseTrianglesDivision(triangles, divisions)
+    final_triangles = penrose_triangles_division(triangles, divisions)
 
     pieces = []
     for kind, p1, p2, p3 in final_triangles:
@@ -133,9 +133,9 @@ def PenroseTiling(
             # Grown a whisker so triangles sharing an edge overlap rather than merely touch:
             # a min()-union of exactly-abutting SDFs has a zero-level seam along the shared
             # edge, which the mesher can turn into internal membrane artifacts.
-            pieces.append(pysolidfive.polygon2d(pts, res=res).offset(0.001))
+            pieces.append(_sdf2.polygon2d(pts, res=res).offset(0.001))
         else:
-            pieces.append(pysolidfive.stroke2d(pts, width=thickness, res=res))
+            pieces.append(_sdf2.stroke2d(pts, width=thickness, res=res))
     # union2d, not a linear `|` chain: deep subdivisions produce hundreds of triangles, and a
     # chain that long overflows Python's recursion limit when the SDF is evaluated.
-    return pysolidfive.union2d(pieces)
+    return _sdf2.PyShape2D.union2d(pieces)

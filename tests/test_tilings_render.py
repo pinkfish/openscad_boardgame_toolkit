@@ -19,7 +19,7 @@
 #    Renders a representative sample of pentagon_tilings.py and penrose_tiling.py patterns
 #    (extruded, so the camera has a solid to frame) with the *real* PythonSCAD binary and
 #    compares them against committed golden images -- the regression baseline for the
-#    pysolidfive migration of both files. (PenroseTiling's goldens necessarily come from the
+#    pysolidfive migration of both files. (penrose_tiling's goldens necessarily come from the
 #    migrated implementation: the original built its "thicc" triangles with _bosl2.stroke(),
 #    which has no BOSL2 function form and always aborted the render.)
 #
@@ -57,12 +57,12 @@ IMGSIZE = (640, 480)
 
 SHAPES = [
     # one tile, and a filled area, of two representative pentagon classes
-    ("tiling_pentagon_r1_tile", "PentagonTesselation('R1', 20, 0, 0, 2).linear_extrude(height=2)"),
-    ("tiling_pentagon_r1_area", "PentagonTesselationArea('R1', 20, 60, 60, 2).linear_extrude(height=2)"),
-    ("tiling_pentagon_r3_area", "PentagonTesselationArea('R3', 20, 60, 60, 2).linear_extrude(height=2)"),
+    ("tiling_pentagon_r1_tile", "pentagon_tesselation('R1', 20, 0, 0, 2).linear_extrude(height=2)"),
+    ("tiling_pentagon_r1_area", "pentagon_tesselation_area('R1', 20, 60, 60, 2).linear_extrude(height=2)"),
+    ("tiling_pentagon_r3_area", "pentagon_tesselation_area('R3', 20, 60, 60, 2).linear_extrude(height=2)"),
     # penrose at a modest subdivision depth (the default 7 makes sub-pixel tiles at this size)
-    ("tiling_penrose_base5", "PenroseTiling(50, divisions=4, thickness=1, base=5).linear_extrude(height=2)"),
-    ("tiling_penrose_base7", "PenroseTiling(50, divisions=4, thickness=1, base=7).linear_extrude(height=2)"),
+    ("tiling_penrose_base5", "penrose_tiling(50, divisions=4, thickness=1, base=5).linear_extrude(height=2)"),
+    ("tiling_penrose_base7", "penrose_tiling(50, divisions=4, thickness=1, base=7).linear_extrude(height=2)"),
 ]
 
 

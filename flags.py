@@ -31,7 +31,7 @@ from pybosl2.beziers import Bezier
 from labels import Make3dStripedGrid
 
 
-# PortugalCastle is imported lazily below since shapes is a large sibling
+# portugal_castle is imported lazily below since shapes is a large sibling
 # module converted separately.
 
 
@@ -516,7 +516,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         background: put in a green/red background with stripes (default True)
         border: border to put on the flag (this goes outside the length) (default 0)
     """
-    from shapes import PortugalCastle
+    from shapes import portugal_castle
 
     width = length * 2 / 3
 

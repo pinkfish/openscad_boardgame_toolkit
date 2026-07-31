@@ -66,10 +66,7 @@ def _stroke(path, width: float = 1, closed: bool = False) -> PyOpenSCAD:
     pairs = list(zip(pts, pts[1:] + ([pts[0]] if closed else [])))
     shape = None
     for p1, p2 in pairs:
-        seg = hull(
-            circle(d=width, fn=24).translate([p1[0], p1[1], 0]),
-            circle(d=width, fn=24).translate([p2[0], p2[1], 0]),
-        )
+        seg = (shapes2d.circle(diameter=width, fn=24).translate([p1[0], p1[1], 0])).hull(shapes2d.circle(diameter=width, fn=24).translate([p2[0], p2[1], 0]))
         shape = seg if shape is None else shape | seg
     assert shape is not None
     return shape
@@ -147,7 +144,7 @@ def MakeShapeObject(
 calc_sqrt_three = math.sqrt(3)
 
 
-def Sword2d(
+def sword2d(
     length: float,
     width: float,
     blade_width: float | None = None,
@@ -160,7 +157,7 @@ def Sword2d(
 
     Usage::
 
-        Sword2d(100, 20)
+        sword2d(100, 20)
 
     Args:
         length: length of the sword
@@ -200,7 +197,7 @@ def Sword2d(
     return blade | hilt
 
 
-def Sword2dOutline(
+def sword2d_outline(
     length: float,
     width: float,
     blade_width: float | None = None,
@@ -214,7 +211,7 @@ def Sword2dOutline(
 
     Usage::
 
-        Sword2dOutline(100, 20)
+        sword2d_outline(100, 20)
 
     Args:
         length: length of the sword
@@ -241,7 +238,7 @@ def Sword2dOutline(
 
     outline = DifferenceWithOffset(
         offset=-line_width,
-        children=Sword2d(
+        children=sword2d(
             length,
             width,
             blade_width=calc_blade_width,
@@ -266,7 +263,7 @@ def Sword2dOutline(
     return outline | hilt_outline | strap
 
 
-def Crossbow2d(
+def crossbow2d(
     length: float,
     width: float,
     handle_width: float | None = None,
@@ -277,7 +274,7 @@ def Crossbow2d(
 
     Usage::
 
-        Crossbow2d(70, 50)
+        crossbow2d(70, 50)
 
     Args:
         length: length of the cross bow
@@ -297,9 +294,9 @@ def Crossbow2d(
         calc_bow_width = width / 4
 
     bow_ring = (
-        circle(d=calc_outer_circle)
-        - circle(d=calc_outer_circle - calc_bow_width)
-        - square(calc_outer_circle * 2).translate([-calc_outer_circle, 0])
+        shapes2d.circle(diameter=calc_outer_circle)
+        - shapes2d.circle(diameter=calc_outer_circle - calc_bow_width)
+        - shapes2d.square(calc_outer_circle * 2).translate([-calc_outer_circle, 0])
     )
     bow = bow_ring.translate([0, calc_outer_circle / 2 - length / 2])
     handle = shapes2d.rect([calc_handle_width, length])
@@ -307,7 +304,7 @@ def Crossbow2d(
     return bound & (bow | handle)
 
 
-def Crossbow2dOutline(
+def crossbow2d_outline(
     length: float,
     width: float,
     handle_width: float | None = None,
@@ -319,7 +316,7 @@ def Crossbow2dOutline(
 
     Usage::
 
-        Crossbow2dOutline(70, 50)
+        crossbow2d_outline(70, 50)
 
     Args:
         length: length of the cross bow
@@ -334,7 +331,7 @@ def Crossbow2dOutline(
         calc_handle_width = width / 8
     outline = DifferenceWithOffset(
         offset=-line_width,
-        children=Crossbow2d(
+        children=crossbow2d(
             length=length, width=width, handle_width=calc_handle_width, bow_width=bow_width, outer_circle=outer_circle
         ),
     )
@@ -342,7 +339,7 @@ def Crossbow2dOutline(
     return outline | handle_outline
 
 
-def Sledgehammer2d(
+def sledgehammer2d(
     length: float,
     width: float,
     handle_width: float | None = None,
@@ -354,7 +351,7 @@ def Sledgehammer2d(
 
     Usage::
 
-        Sledgehammer2d(70, 50)
+        sledgehammer2d(70, 50)
 
     Args:
         length: length of the sledgehammer
@@ -383,7 +380,7 @@ def Sledgehammer2d(
     return handle | head
 
 
-def Sledgehammer2dOutline(
+def sledgehammer2d_outline(
     length: float,
     width: float,
     handle_width: float | None = None,
@@ -397,7 +394,7 @@ def Sledgehammer2dOutline(
 
     Usage::
 
-        Sledgehammer2dOutline(70, 50)
+        sledgehammer2d_outline(70, 50)
 
     Args:
         length: length of the sledgehammer
@@ -421,7 +418,7 @@ def Sledgehammer2dOutline(
 
     body_outline = DifferenceWithOffset(
         offset=-line_width,
-        children=Sledgehammer2d(
+        children=sledgehammer2d(
             length=length, width=width, handle_width=calc_hammer_handle_width, head_length=calc_hammer_head_length
         ),
     )
@@ -435,20 +432,20 @@ def Sledgehammer2dOutline(
         [-calc_hammer_handle_width / 2, length / 2],
         [-calc_hammer_handle_width / 2 - calc_strap_width, length / 2],
     ]
-    strap1 = DifferenceWithOffset(offset=-line_width, children=polygon(strap_pts))
-    strap2 = DifferenceWithOffset(offset=-line_width, children=polygon(strap_pts).mirror([1, 0]))
+    strap1 = DifferenceWithOffset(offset=-line_width, children=shapes2d.polygon(strap_pts))
+    strap2 = DifferenceWithOffset(offset=-line_width, children=shapes2d.polygon(strap_pts).mirror([1, 0]))
 
     return body_outline | head_outline | strap1 | strap2
 
 
-def Shoe2d(
+def shoe2d(
     size: float, leg_length: float | None = None, base_width: float | None = None, sole_height: float | None = None
 ) -> PyOpenSCAD:
     """An nice 2d shoe shape.
 
     Usage::
 
-        Shoe2d(50)
+        shoe2d(50)
 
     Args:
         size: size of the shoe
@@ -470,16 +467,11 @@ def Shoe2d(
     base = shapes2d.rect([calc_base_width, size], rounding=[0, calc_base_width * 3 / 4, 0, 0]).translate(
         [size / 2 - calc_base_width / 2 - calc_sole_height, 0]
     )
-    sole = hull(
-        circle(r=calc_sole_height).translate([size / 2 - calc_sole_height, (size * 3 / 5) / 2]),
-        circle(r=calc_sole_height).translate([size / 2 - calc_sole_height * 2, -size / 2 + calc_leg_length]),
-        circle(r=calc_sole_height / 2).translate([size / 2 - calc_sole_height / 2, size / 2 - calc_sole_height / 2]),
-        circle(r=calc_sole_height / 2).translate([size / 2 - calc_sole_height * 2, size / 2 - calc_sole_height / 2]),
-    )
+    sole = (shapes2d.circle(radius=calc_sole_height).translate([size / 2 - calc_sole_height, (size * 3 / 5) / 2])).hull(shapes2d.circle(radius=calc_sole_height).translate([size / 2 - calc_sole_height * 2, -size / 2 + calc_leg_length]), shapes2d.circle(radius=calc_sole_height / 2).translate([size / 2 - calc_sole_height / 2, size / 2 - calc_sole_height / 2]), shapes2d.circle(radius=calc_sole_height / 2).translate([size / 2 - calc_sole_height * 2, size / 2 - calc_sole_height / 2]))
     return leg | base | sole
 
 
-def Shoe2dOutline(
+def shoe2d_outline(
     size: float,
     leg_length: float | None = None,
     base_width: float | None = None,
@@ -490,7 +482,7 @@ def Shoe2dOutline(
 
     Usage::
 
-        Shoe2dOutline(50)
+        shoe2d_outline(50)
 
     Args:
         size: size of the shoe
@@ -500,11 +492,11 @@ def Shoe2dOutline(
         line_width: width of the outline line (default 1)
     """
     return DifferenceWithOffset(
-        offset=-line_width, children=Shoe2d(size, leg_length=leg_length, base_width=base_width, sole_height=sole_height)
+        offset=-line_width, children=shoe2d(size, leg_length=leg_length, base_width=base_width, sole_height=sole_height)
     )
 
 
-def Bag2d(
+def bag2d(
     size: float,
     base_round_diameter: float | None = None,
     main_round_diameter: float | None = None,
@@ -515,7 +507,7 @@ def Bag2d(
 
     Usage::
 
-        Bag2d(50)
+        bag2d(50)
 
     Args:
         size: size of the bag
@@ -538,16 +530,9 @@ def Bag2d(
         calc_rope_length = size / 4
 
     # Bag bit
-    bag = hull(
-        circle(d=calc_base_round).translate([size / 2 - calc_base_round / 2, size / 2 - calc_base_round / 2]),
-        circle(d=calc_base_round).translate([size / 2 - calc_base_round / 2, -size / 2 + calc_base_round / 2]),
-        circle(d=calc_base_round).translate([size / 2 - calc_base_round / 2, -size / 2 + calc_base_round / 2]),
-        circle(d=calc_base_round).translate([size / 2 - calc_base_round, -size / 2 + calc_base_round / 2]),
-        circle(d=calc_base_round).translate([-size / 2 + calc_base_round, size / 2 - calc_base_round / 2]),
-        circle(d=calc_main_round).translate([-size / 2 + calc_base_round + calc_main_round / 2, -calc_main_round / 4]),
-    )
+    bag = (shapes2d.circle(diameter=calc_base_round).translate([size / 2 - calc_base_round / 2, size / 2 - calc_base_round / 2])).hull(shapes2d.circle(diameter=calc_base_round).translate([size / 2 - calc_base_round / 2, -size / 2 + calc_base_round / 2]), shapes2d.circle(diameter=calc_base_round).translate([size / 2 - calc_base_round / 2, -size / 2 + calc_base_round / 2]), shapes2d.circle(diameter=calc_base_round).translate([size / 2 - calc_base_round, -size / 2 + calc_base_round / 2]), shapes2d.circle(diameter=calc_base_round).translate([-size / 2 + calc_base_round, size / 2 - calc_base_round / 2]), shapes2d.circle(diameter=calc_main_round).translate([-size / 2 + calc_base_round + calc_main_round / 2, -calc_main_round / 4]))
     # Top bit.
-    top = polygon(
+    top = shapes2d.polygon(
         [
             [-size / 2, size / 2 - calc_neck_width * 5 / 8 - calc_neck_width / 4 - calc_neck_width],
             [-size / 2, size / 2 - calc_neck_width * 5 / 8 - calc_neck_width / 4],
@@ -557,8 +542,8 @@ def Bag2d(
     )
     # Rope
     rope_shape = (
-        polygon(
-            shapes2d._egg_path(calc_rope_length, calc_rope_length / 3, calc_rope_length / 8, calc_rope_length, _fn=180)
+        shapes2d.polygon(
+            shapes2d._egg_path(calc_rope_length, calc_rope_length / 3, calc_rope_length / 8, calc_rope_length, fn=180)
         )
         .rotate([0, 0, 90])
         .translate([-size / 2 + calc_rope_length / 6 * 2, size / 2 - calc_rope_length / 2 - calc_neck_width * 1.8])
@@ -567,7 +552,7 @@ def Bag2d(
     return bag | top | rope
 
 
-def Bag2dOutline(
+def bag2d_outline(
     size: float,
     base_round_diameter: float | None = None,
     main_round_diameter: float | None = None,
@@ -579,7 +564,7 @@ def Bag2dOutline(
 
     Usage::
 
-        Bag2d(50)
+        bag2d(50)
 
     Args:
         size: size of the bag
@@ -591,7 +576,7 @@ def Bag2dOutline(
     """
     return DifferenceWithOffset(
         offset=-line_width,
-        children=Bag2d(
+        children=bag2d(
             size,
             base_round_diameter=base_round_diameter,
             main_round_diameter=main_round_diameter,
@@ -601,14 +586,14 @@ def Bag2dOutline(
     )
 
 
-def Torch2d(
+def torch2d(
     length: float, width: float, handle_width: float | None = None, head_length: float | None = None
 ) -> PyOpenSCAD:
     """An nice 2d torch shape.
 
     Usage::
 
-        Torch2d(100, 20)
+        torch2d(100, 20)
 
     Args:
         length: length of the torch
@@ -623,16 +608,11 @@ def Torch2d(
     if calc_head_length is None:
         calc_head_length = length / 7
     handle = shapes2d.rect([length, calc_handle_width], rounding=width / 6)
-    head = hull(
-        circle(d=width / 2).translate([length / 2 - width / 4, width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4 - calc_head_length, width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4, -width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4 - calc_head_length, -width / 4]),
-    )
+    head = (shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4, width / 4])).hull(shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4 - calc_head_length, width / 4]), shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4, -width / 4]), shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4 - calc_head_length, -width / 4]))
     return handle | head
 
 
-def Torch2dOutline(
+def torch2d_outline(
     length: float,
     width: float,
     handle_width: float | None = None,
@@ -643,7 +623,7 @@ def Torch2dOutline(
 
     Usage::
 
-        Torch2dOutline(100, 20)
+        torch2d_outline(100, 20)
 
     Args:
         length: length of the torch
@@ -660,19 +640,14 @@ def Torch2dOutline(
         calc_head_length = length / 7
     outline = DifferenceWithOffset(
         offset=-line_width,
-        children=Torch2d(length=length, width=width, handle_width=calc_handle_width, head_length=calc_head_length),
+        children=torch2d(length=length, width=width, handle_width=calc_handle_width, head_length=calc_head_length),
     )
-    head_hull = hull(
-        circle(d=width / 2).translate([length / 2 - width / 4, width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4 - calc_head_length, width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4, -width / 4]),
-        circle(d=width / 2).translate([length / 2 - width / 4 - calc_head_length, -width / 4]),
-    )
+    head_hull = (shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4, width / 4])).hull(shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4 - calc_head_length, width / 4]), shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4, -width / 4]), shapes2d.circle(diameter=width / 2).translate([length / 2 - width / 4 - calc_head_length, -width / 4]))
     head_outline = DifferenceWithOffset(offset=-line_width, children=head_hull)
     return outline | head_outline
 
 
-def Teapot2d(
+def teapot2d(
     length: float,
     width: float,
     top_width: float | None = None,
@@ -688,7 +663,7 @@ def Teapot2d(
 
     Usage::
 
-        Teapot2d(100, 70)
+        teapot2d(100, 70)
 
     Args:
         length: length of the teapot
@@ -728,7 +703,7 @@ def Teapot2d(
         calc_side_handle_rounding = width * 4 / 10
 
     # Base
-    body = polygon(
+    body = shapes2d.polygon(
         [
             [length / 2, width / 2],
             [length / 2 - calc_top_length, calc_top_width / 2],
@@ -737,7 +712,7 @@ def Teapot2d(
         ]
     )
     # Spout
-    spout = polygon(
+    spout = shapes2d.polygon(
         [
             [length / 2 - calc_top_length, calc_top_width / 2],
             [length / 2 - calc_top_length, width / 2],
@@ -745,7 +720,7 @@ def Teapot2d(
         ]
     )
     # Top bit
-    top = circle(d=calc_top_circle_diameter).translate([length / 2 - calc_top_length, 0])
+    top = shapes2d.circle(diameter=calc_top_circle_diameter).translate([length / 2 - calc_top_length, 0])
 
     diff_top = length - calc_top_length - calc_top_circle_diameter / 2
     # Handle
@@ -755,44 +730,40 @@ def Teapot2d(
 
     # Back Handle.
     side_diameter = width / 20
-    side_hull = hull(
-        circle(d=side_diameter)
+    side_hull = (shapes2d.circle(diameter=side_diameter)
         .translate([length / 2 - calc_top_length, -calc_top_width / 2])
-        .translate([side_diameter / 2, side_diameter / 2]),
-        circle(d=side_diameter)
+        .translate([side_diameter / 2, side_diameter / 2])).hull(shapes2d.circle(diameter=side_diameter)
         .translate([length / 2 - calc_top_length, -width / 2])
-        .translate([side_diameter / 2, side_diameter / 2]),
-        circle(d=calc_side_handle_rounding)
+        .translate([side_diameter / 2, side_diameter / 2]), shapes2d.circle(diameter=calc_side_handle_rounding)
         .translate([length / 2 - calc_top_length + calc_side_handle_length, -width / 2])
-        .translate([-calc_side_handle_rounding / 2, calc_side_handle_rounding / 2]),
-    )
+        .translate([-calc_side_handle_rounding / 2, calc_side_handle_rounding / 2]))
     side_handle = DifferenceWithOffset(offset=-calc_handle_width, children=side_hull)
 
     return body | spout | top | handle | side_handle
 
 
-def Coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOpenSCAD:
+def coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOpenSCAD:
     """A simple coin icon to use in things.
 
     Usage::
 
-        Coin2d(50)
-        Coin2d(50, text="5")
+        coin2d(50)
+        coin2d(50, text="5")
 
     Args:
         size: the size of the coin
         text: text to put in the coin (default "1")
         text_size: size of the text to use (default size/2)
     """
-    # `text` shadows the openscad text() builtin as a parameter name here.
+    # `text` shadows the openscad shapes2d.text() builtin as a parameter name here.
     _text_primitive = globals()["text"]
     calc_text_size = text_size
     if calc_text_size is None:
         calc_text_size = size / 2
 
-    outer = shapes2d.supershape(m1=20, n1=19, n2=4, n3=5, a=2.7, d=size)
+    outer = shapes2d.supershape(m1=20, n1=19, n2=4, n3=5, a=2.7, diameter=size)
     inner = DifferenceWithOffset(
-        offset=-size / 30, children=shapes2d.supershape(m1=10, n1=19, n2=4, n3=5, a=2.7, d=size * 3 / 4)
+        offset=-size / 30, children=shapes2d.supershape(m1=10, n1=19, n2=4, n3=5, a=2.7, diameter=size * 3 / 4)
     )
     glyph = _text_primitive(
         text=text, font="Stencil Std:style=Bold", size=calc_text_size, halign="center", valign="center"
@@ -800,14 +771,14 @@ def Coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOp
     return outer - inner - glyph
 
 
-def CoinPile2d(size: float, rounding: float | None = None, coin_num: int | None = None) -> PyOpenSCAD:
+def coin_pile2d(size: float, rounding: float | None = None, coin_num: int | None = None) -> PyOpenSCAD:
     """Makes a coin pile to use in other places.
 
     Usage::
 
-        CoinPile2d(50)
-        CoinPile2d(50, coin_num=3)
-        CoinPile2d(50, coin_num=10)
+        coin_pile2d(50)
+        coin_pile2d(50, coin_num=3)
+        coin_pile2d(50, coin_num=10)
 
     Args:
         size: size of the pile
@@ -832,37 +803,37 @@ def CoinPile2d(size: float, rounding: float | None = None, coin_num: int | None 
 
 
 # Constant: australia_map_length - the length of the australian svg map
-australia_map_length = 365.040
+_australia_map_length = 365.040
 # Constant: australia_map_width - the width of the australian svg map
-australia_map_width = 340.160
+_australia_map_width = 340.160
 
 
-def AustraliaMapWidth(length: float) -> float:
+def australia_map_width(length: float) -> float:
     """Works out the width of the map from the length."""
-    return length * (australia_map_width / australia_map_length)
+    return length * (_australia_map_width / _australia_map_length)
 
 
-def AustraliaMap2d(length: float) -> PyOpenSCAD:
+def australia_map2d(length: float) -> PyOpenSCAD:
     """a map of australia.
 
     Usage::
 
-        AustraliaMap2d(100)
+        australia_map2d(100)
 
     Args:
         length: length of the map
     """
     # `import` is a Python keyword; PythonSCAD exposes the core import() module as
     # osimport().
-    return osimport(str(_SVG_DIR / "australia.svg")).resize([length, AustraliaMapWidth(length), 0])
+    return osimport(str(_SVG_DIR / "australia.svg")).resize([length, australia_map_width(length), 0])
 
 
-def Rock2d(length: float, width: float, rounding: float | None = None) -> PyOpenSCAD:
+def rock2d(length: float, width: float, rounding: float | None = None) -> PyOpenSCAD:
     """Makes a rock shape to use in walls and things.
 
     Usage::
 
-        Rock2d(50, 20)
+        rock2d(50, 20)
 
     Args:
         length: length of the rock
@@ -879,33 +850,33 @@ ruins_2d_length = 100
 ruins_2d_width = 62.921
 
 
-def Ruins2dWidth(length: float) -> float:
+def ruins2d_width(length: float) -> float:
     """Works out the width of the map from the length."""
     return length * (ruins_2d_width / ruins_2d_length)
 
 
-def Ruins2d(size: float) -> PyOpenSCAD:
+def ruins2d(size: float) -> PyOpenSCAD:
     """Makes a small ruins image to use in stuff.
 
     Usage::
 
-        Ruins2d(50)
+        ruins2d(50)
     """
     # offset helps fix the shape not closed issue.
     return (
         osimport(str(_SVG_DIR / "ruins.svg"))
         .offset(delta=0.01)
-        .resize([size, Ruins2dWidth(size), 0])
-        .translate([-size / 2, -Ruins2dWidth(size) / 2])
+        .resize([size, ruins2d_width(size), 0])
+        .translate([-size / 2, -ruins2d_width(size) / 2])
     )
 
 
-def RockWall2d(size: float, num_rows: int = 10, num_cols: int = 40, spacing: float | None = None) -> PyOpenSCAD:
+def rock_wall2d(size: float, num_rows: int = 10, num_cols: int = 40, spacing: float | None = None) -> PyOpenSCAD:
     """Makes a nice rock wall.
 
     Usage::
 
-        RockWall2d(50)
+        rock_wall2d(50)
 
     Args:
         size: size of the rock wall
@@ -923,18 +894,18 @@ def RockWall2d(size: float, num_rows: int = 10, num_cols: int = 40, spacing: flo
         for i in range(num_cols):
             x = -size / 2 + (i % 2) * calc_rock_length / 2 + calc_rock_length * j
             y = -size / 2 + calc_rock_width * i + calc_rock_width / 2
-            piece = Rock2d(calc_rock_length - calc_spacing, calc_rock_width - calc_spacing).translate([x, y])
+            piece = rock2d(calc_rock_length - calc_spacing, calc_rock_width - calc_spacing).translate([x, y])
             shape = piece if shape is None else shape | piece
     assert shape is not None
     return shape
 
 
-def D20Outline2d(size: float, offset: float) -> PyOpenSCAD:
+def d20_outline2d(size: float, offset: float) -> PyOpenSCAD:
     """Makes a nice d20 outline for some dice.
 
     Usage::
 
-        D20Outline2d(10, 0.5)
+        d20_outline2d(10, 0.5)
 
     Args:
         size: size of the die image
@@ -956,7 +927,7 @@ def D20Outline2d(size: float, offset: float) -> PyOpenSCAD:
     return shape
 
 
-def SawBlade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenSCAD:
+def saw_blade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenSCAD:
     """Makes a nice 2d saw blade.
 
     Args:
@@ -966,15 +937,15 @@ def SawBlade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenSC
     calc_inner_spindle_size = inner_spindle_size
     if calc_inner_spindle_size is None:
         calc_inner_spindle_size = size / 10
-    return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0]) - circle(r=calc_inner_spindle_size)
+    return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0]) - shapes2d.circle(radius=calc_inner_spindle_size)
 
 
-def SawBlade2dOutline(size: float, inner_spindle_size: float | None = None, outer_width: float = 1) -> PyOpenSCAD:
+def saw_blade2d_outline(size: float, inner_spindle_size: float | None = None, outer_width: float = 1) -> PyOpenSCAD:
     """Makes a nice 2d saw blade outline.
 
     Usage::
 
-        SawBlade2d(50)
+        saw_blade2d(50)
 
     Args:
         size: size of the saw blade
@@ -988,16 +959,16 @@ def SawBlade2dOutline(size: float, inner_spindle_size: float | None = None, oute
     calc_inner_spindle_size = inner_spindle_size
     if calc_inner_spindle_size is None:
         calc_inner_spindle_size = size / 10
-    shape = OuterBlade() - hull(OuterBlade().offset(r=-outer_width))
-    return shape | circle(r=calc_inner_spindle_size)
+    shape = OuterBlade() - (OuterBlade().offset(radius=-outer_width)).hull()
+    return shape | shapes2d.circle(radius=calc_inner_spindle_size)
 
 
-def Handshake2d(size: float) -> PyOpenSCAD:
+def handshake2d(size: float) -> PyOpenSCAD:
     """Creates two hands shaking hands.
 
     Usage::
 
-        Handshake2d(30)
+        handshake2d(30)
 
     Args:
         size: size of the hands.
@@ -1010,12 +981,12 @@ def Handshake2d(size: float) -> PyOpenSCAD:
         return _stroke(shapes2d._egg_path(12, 4, 5, 60), closed=True).rotate([0, 0, 230])
 
     base = (
-        polygon([[0, 0], [0, 30], [40, 5], [40, -25]])
-        | polygon([[0, 0], [0, 30], [40, 5], [40, -25]]).mirror([1, 0]).translate([80, 0])
-        | hull(circle(r=5).translate([34, -17]), circle(r=5).translate([44, -25]))
-        | circle(r=5).translate([50, -20])
-        | circle(r=5).translate([57, -15])
-        | circle(r=5).translate([35, 5])
+        shapes2d.polygon([[0, 0], [0, 30], [40, 5], [40, -25]])
+        | shapes2d.polygon([[0, 0], [0, 30], [40, 5], [40, -25]]).mirror([1, 0]).translate([80, 0])
+        | (shapes2d.circle(radius=5).translate([34, -17])).hull(shapes2d.circle(radius=5).translate([44, -25]))
+        | shapes2d.circle(radius=5).translate([50, -20])
+        | shapes2d.circle(radius=5).translate([57, -15])
+        | shapes2d.circle(radius=5).translate([35, 5])
     )
     bezier_path = Bezier([[44, 5], [48, 6], [64, -15]]).points([0.2 * i for i in range(6)])
     piece1 = (
@@ -1026,28 +997,31 @@ def Handshake2d(size: float) -> PyOpenSCAD:
         - Finger().translate([30, -17])
         - Finger().translate([25, -14])
     )
-    piece2 = hull(Thumb()).offset(r=-1)
-    piece3 = hull(Finger()).offset(r=-1).translate([35, -20])
-    piece4 = hull(Finger()).offset(r=-1).translate([30, -17]) - Finger().translate([35, -20])
-    piece5 = hull(Finger()).offset(r=-1).translate([25, -14]) - Finger().translate([30, -17])
+    piece2 = (Thumb()).hull().offset(radius=-1)
+    piece3 = (Finger()).hull().offset(radius=-1).translate([35, -20])
+    piece4 = (Finger()).hull().offset(radius=-1).translate([30, -17]) - Finger().translate([35, -20])
+    piece5 = (Finger()).hull().offset(radius=-1).translate([25, -14]) - Finger().translate([30, -17])
 
     whole = (piece1 | piece2 | piece3 | piece4 | piece5).translate([-40, 0])
     return whole.resize([size, size * 60 / 80, 0])
 
 
-def Fist2d(size: float) -> PyOpenSCAD:
+def fist2d(size: float) -> PyOpenSCAD:
     """A nice fist for use in stuff.  Fist is from
     [fist printables](https://www.printables.com/model/799571-fist-customizable)
     by [Vendicar Design](https://www.printables.com/@VendicarDecarian)
 
     Usage::
 
-        Fist2d(20)
+        fist2d(20)
 
     Args:
         size: size of the fist
     """
     scale_factor = size / 172
+    # NATIVE-BOUNDARY (bosl2 gap): pybosl2 shapes2d.polygon takes a single path; this fist
+    # traces an SVG with points= + paths= (multi-path even-odd holes), which has no single
+    # pybosl2 call. FIX IN BOSL2: a polygon/region form that accepts points + index paths.
     all_shape = polygon(
         points=[
             [6.75602, 71.5659],
@@ -3593,21 +3567,21 @@ def Fist2d(size: float) -> PyOpenSCAD:
     return all_shape.translate([0, (100 - 72) / 2]).scale([scale_factor, scale_factor])
 
 
-def Fist2dOutline(size: float, line_width: float) -> PyOpenSCAD:
+def fist2d_outline(size: float, line_width: float) -> PyOpenSCAD:
     """Outline of a fist.
 
     Usage::
 
-        Fist2dOutline(20, 1)
+        fist2d_outline(20, 1)
 
     Args:
         size: size of the fist
         line_width: width of the line (default 1)
     """
-    return DifferenceWithOffset(-line_width, children=Fist2d(size))
+    return DifferenceWithOffset(-line_width, children=fist2d(size))
 
 
-def Leaf2d(size: float) -> PyOpenSCAD:
+def leaf2d(size: float) -> PyOpenSCAD:
     """Makes a nice leaf.
 
     Args:
@@ -3615,18 +3589,13 @@ def Leaf2d(size: float) -> PyOpenSCAD:
     """
 
     def LeafHalf() -> PyOpenSCAD:
-        return hull(
-            circle(d=0.25).translate([0, 0.125]),
-            circle(d=8, fn=64).translate([11, 23]),
-            circle(d=8, fn=64).translate([14, 48]),
-            circle(d=0.25).translate([0, 98.125]),
-        )
+        return (shapes2d.circle(diameter=0.25).translate([0, 0.125])).hull(shapes2d.circle(diameter=8, fn=64).translate([11, 23]), shapes2d.circle(diameter=8, fn=64).translate([14, 48]), shapes2d.circle(diameter=0.25).translate([0, 98.125]))
 
     whole = (LeafHalf() | LeafHalf().mirror([1, 0])).translate([0, -50])
     return whole.resize([size / 100 * 18 * 2, size, 0])
 
 
-def LaurelWreath2d(size: float) -> PyOpenSCAD:
+def laurel_wreath2d(size: float) -> PyOpenSCAD:
     """Makes a laurel wreathe for use all over the place.
 
     Args:
@@ -3634,8 +3603,8 @@ def LaurelWreath2d(size: float) -> PyOpenSCAD:
     """
 
     def TwoLeafs() -> PyOpenSCAD:
-        a = Leaf2d(100).mirror([0, 1]).rotate([0, 0, 60]).translate([0, 50])
-        b = Leaf2d(100).rotate([0, 0, -60])
+        a = leaf2d(100).mirror([0, 1]).rotate([0, 0, 60]).translate([0, 50])
+        b = leaf2d(100).rotate([0, 0, -60])
         return (a | b).translate([0, -25]).rotate([0, 0, 270])
 
     def HalfLaurel() -> PyOpenSCAD:
@@ -3659,13 +3628,13 @@ def LaurelWreath2d(size: float) -> PyOpenSCAD:
     return whole.resize([size, scale_factor * basic_height, 0])
 
 
-def Anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
+def anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
     """Makes a nice 2d anvil.
 
     Usage::
 
-        Anvil2d(30)
-        Anvil2d(30, with_hammer=True)
+        anvil2d(30)
+        anvil2d(30, with_hammer=True)
 
     Args:
         size: size of the anvil
@@ -3677,39 +3646,27 @@ def Anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
     shape = shape | shapes2d.rect([8, 1.5]).translate([0, 1.7])
     shape = shape | shapes2d.rect([10, 1]).translate([0, 3.3])
     shape = shape | shapes2d.rect([10, 6]).translate([0, 6.8])
-    shape = shape | (shapes2d.rect([10, 6]) & circle(r=12, fn=64).translate([6, 8])).translate([-8, 6.8])
+    shape = shape | (shapes2d.rect([10, 6]) & shapes2d.circle(radius=12, fn=64).translate([6, 8])).translate([-8, 6.8])
 
     if with_hammer:
         shape = shape | shapes2d.rect([5, 1]).rotate([0, 0, 30]).translate([-10, 12])
         shape = shape | shapes2d.rect([4, 3], rounding=0.5).rotate([0, 0, -60]).translate([-8, 13.3])
-        shape = shape | hull(
-            circle(d=0.5).translate([-4, 11]),
-            circle(d=0.5).translate([-3, 11]),
-            circle(d=1).translate([3, 16.5]),
-        )
-        shape = shape | hull(
-            circle(d=0.5).translate([-2, 11]),
-            circle(d=0.5).translate([-3, 11]),
-            circle(d=1).translate([4, 14.5]),
-        )
-        shape = shape | hull(
-            circle(d=0.5).translate([-1, 11]),
-            circle(d=0.5).translate([-2, 11]),
-            circle(d=1).translate([4, 12]),
-        )
+        shape = shape | (shapes2d.circle(diameter=0.5).translate([-4, 11])).hull(shapes2d.circle(diameter=0.5).translate([-3, 11]), shapes2d.circle(diameter=1).translate([3, 16.5]))
+        shape = shape | (shapes2d.circle(diameter=0.5).translate([-2, 11])).hull(shapes2d.circle(diameter=0.5).translate([-3, 11]), shapes2d.circle(diameter=1).translate([4, 14.5]))
+        shape = shape | (shapes2d.circle(diameter=0.5).translate([-1, 11])).hull(shapes2d.circle(diameter=0.5).translate([-2, 11]), shapes2d.circle(diameter=1).translate([4, 12]))
 
     whole = shape.translate([4, -8.5 if with_hammer else -4.5])
     return whole.resize([size, new_height, 0])
 
 
-def HalfEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
+def half_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
     """Makes a single eye for use in various things where eyes are needed.
     This is a half eye on an angle.
 
     Usage::
 
-        HalfEye2d(30)
-        HalfEye2d(60)
+        half_eye2d(30)
+        half_eye2d(60)
 
     Args:
         angle: angle the eye is on
@@ -3717,7 +3674,7 @@ def HalfEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil
         inner_size: size of the inside circle
         pupil_size: size of the pupil
     """
-    eye = circle(d=outer_size) - circle(d=inner_size) | circle(d=pupil_size)
+    eye = shapes2d.circle(diameter=outer_size) - shapes2d.circle(diameter=inner_size) | shapes2d.circle(diameter=pupil_size)
     cutter = (
         shapes2d.rect([outer_size * 2, outer_size * 2])
         .rotate([0, 0, angle])
@@ -3728,14 +3685,14 @@ def HalfEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil
     return eye | lid
 
 
-def SideEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
+def side_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
     """Makes a single eye for use in various things where eyes are needed.
     This is a half eye on an angle.
 
     Usage::
 
-        SideEye2d(30)
-        SideEye2d(90)
+        side_eye2d(30)
+        side_eye2d(90)
 
     Args:
         angle: angle the pupil is at
@@ -3743,86 +3700,80 @@ def SideEye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil
         inner_size: size of the inside circle
         pupil_size: size of the pupil
     """
-    ring = circle(d=outer_size) - circle(d=inner_size)
-    pupil = circle(d=pupil_size).translate([outer_size / 3 * _cosd(angle), outer_size / 3 * _sind(angle)]) & circle(
+    ring = shapes2d.circle(diameter=outer_size) - shapes2d.circle(diameter=inner_size)
+    pupil = shapes2d.circle(diameter=pupil_size).translate([outer_size / 3 * _cosd(angle), outer_size / 3 * _sind(angle)]) & circle(
         d=outer_size
     )
     return ring | pupil
 
 
-def CloudShape2d(width: float) -> PyOpenSCAD:
+def cloud_shape2d(width: float) -> PyOpenSCAD:
     """Makes a cloud object.  This object was made by Twanne on thingiverse:
     https://www.thingiverse.com/thing:641665/files
 
     Usage::
 
-        CloudShape2d(100)
+        cloud_shape2d(100)
 
     Args:
         width: The width of the cloud. This also determines the height, because the height is half the width.
     """
-    a = circle(r=width * 0.25, fn=16).translate([width * 0.37, width * 0.25, 0])
-    b = circle(r=width * 0.15, fn=16).translate([width * 0.15, width * 0.2, 0])
-    c = circle(r=width * 0.2, fn=16).translate([width * 0.65, width * 0.22, 0])
-    d = circle(r=width * 0.15, fn=16).translate([width * 0.85, width * 0.2, 0])
+    a = shapes2d.circle(radius=width * 0.25, fn=16).translate([width * 0.37, width * 0.25, 0])
+    b = shapes2d.circle(radius=width * 0.15, fn=16).translate([width * 0.15, width * 0.2, 0])
+    c = shapes2d.circle(radius=width * 0.2, fn=16).translate([width * 0.65, width * 0.22, 0])
+    d = shapes2d.circle(radius=width * 0.15, fn=16).translate([width * 0.85, width * 0.2, 0])
     return a | b | c | d
 
 
-def SingleLog2d(size: float, line_width: float = 1) -> PyOpenSCAD:
+def single_log2d(size: float, line_width: float = 1) -> PyOpenSCAD:
     """A single log image.
 
     Usage::
 
-        SingleLog2d(15)
+        single_log2d(15)
 
     Args:
         size: size of the log
         line_width: width of the line
     """
-    a = DifferenceWithOffset(offset=-line_width, children=circle(d=size))
-    b = DifferenceWithOffset(offset=-line_width / 2, children=circle(d=size * 7 / 10))
+    a = DifferenceWithOffset(offset=-line_width, children=shapes2d.circle(diameter=size))
+    b = DifferenceWithOffset(offset=-line_width / 2, children=shapes2d.circle(diameter=size * 7 / 10))
     b = b - shapes2d.rect([size, size]).translate([size * 5 / 7, -size * 4 / 7])
     b = b - shapes2d.rect([size, size]).translate([-size * 3 / 5, -size * 4 / 7])
-    c = DifferenceWithOffset(offset=-line_width / 2, children=circle(d=size * 4 / 10))
+    c = DifferenceWithOffset(offset=-line_width / 2, children=shapes2d.circle(diameter=size * 4 / 10))
     c = c - shapes2d.rect([size, size]).translate([-size / 2, size / 2])
     c = c - shapes2d.rect([size, size]).translate([-size * 4 / 7, -size * 4 / 7])
-    d = DifferenceWithOffset(offset=-line_width, children=hull(circle(d=size), circle(d=size).translate([20, 10])))
-    e = polygon([[8, 0.5], [8, -0.5], [26, 9], [26, 10]])
-    f = polygon([[4, 7.5], [4, 6.5], [22.5, 15.7], [21, 16]])
-    g = polygon([[7, 3], [7, 4], [25, 13], [25, 12]])
+    d = DifferenceWithOffset(offset=-line_width, children=(shapes2d.circle(diameter=size)).hull(shapes2d.circle(diameter=size).translate([20, 10])))
+    e = shapes2d.polygon([[8, 0.5], [8, -0.5], [26, 9], [26, 10]])
+    f = shapes2d.polygon([[4, 7.5], [4, 6.5], [22.5, 15.7], [21, 16]])
+    g = shapes2d.polygon([[7, 3], [7, 4], [25, 13], [25, 12]])
 
     whole = (a | b | c | d | e | f | g).translate([-10, -5])
     return whole.resize([size, size / 35 * 25, 0])
 
 
-def Tower2d(size: float) -> PyOpenSCAD:
+def tower2d(size: float) -> PyOpenSCAD:
     """Make a single keep tower for use in games and stuff.
 
     Usage::
 
-        Tower2d(20)
+        tower2d(20)
 
     Args:
         size: size of the tower
     """
     top_size = size / 8
-    top_bottom = hull(
-        circle(r=top_size / 2).translate([0, size / 2 - top_size / 2]),
-        circle(r=top_size / 2).translate([0, top_size / 2]),
-    ).translate([-size / 2 + top_size * 3 / 2, 0])
+    top_bottom = (shapes2d.circle(radius=top_size / 2).translate([0, size / 2 - top_size / 2])).hull(shapes2d.circle(radius=top_size / 2).translate([0, top_size / 2])).translate([-size / 2 + top_size * 3 / 2, 0])
 
     crown_length = size / 2 / 5
     crown = None
     for i in _scad_range(0, 2, 5):
-        piece = hull(
-            circle(r=top_size / 2).translate([-size / 2 + top_size / 2, size / 2 - top_size / 2 - crown_length * i]),
-            circle(r=top_size / 2).translate(
+        piece = (shapes2d.circle(radius=top_size / 2).translate([-size / 2 + top_size / 2, size / 2 - top_size / 2 - crown_length * i])).hull(shapes2d.circle(radius=top_size / 2).translate(
                 [-size / 2 + top_size / 2 + top_size, size / 2 - top_size / 2 - crown_length * i]
-            ),
-        )
+            ))
         crown = piece if crown is None else crown | piece
 
-    side = polygon(
+    side = shapes2d.polygon(
         [
             [-size / 2 + top_size, top_size / 2],
             [size / 2, top_size / 2],
@@ -3833,12 +3784,12 @@ def Tower2d(size: float) -> PyOpenSCAD:
     return (top_bottom | crown | side).translate([0, -size / 4])
 
 
-def Sign2d(size: float) -> PyOpenSCAD:
+def sign2d(size: float) -> PyOpenSCAD:
     """Makes a sign shape to use for stuff.
 
     Usage::
 
-        Sign2d(50)
+        sign2d(50)
 
     Args:
         size: size of the sign
@@ -3852,12 +3803,12 @@ def Sign2d(size: float) -> PyOpenSCAD:
     return post | board
 
 
-def PortugalCastle(stroke_width: float, width: float) -> PyOpenSCAD:
+def portugal_castle(stroke_width: float, width: float) -> PyOpenSCAD:
     """The castle used on the flag of portugal.
 
     Usage::
 
-        PortugalCastle(0.2, 50)
+        portugal_castle(0.2, 50)
 
     Args:
         stroke_width: width of the stroke to use for the castle outline
@@ -4321,12 +4272,12 @@ def PortugalCastle(stroke_width: float, width: float) -> PyOpenSCAD:
     return whole.resize([width, (max_height - min_height) * mult, 0])
 
 
-def TrainOutline(length: float) -> PyOpenSCAD:
+def train_outline(length: float) -> PyOpenSCAD:
     """Creates a nice train outline to use for stuff.
 
     Usage::
 
-        TrainOutline(50)
+        train_outline(50)
 
     Args:
         length: length of the train
@@ -4512,17 +4463,17 @@ def TrainOutline(length: float) -> PyOpenSCAD:
         [551.91 + 14.63, 152.11],
     ]
 
-    shape = polygon(bez) - polygon(rect1) - polygon(rect2) - polygon(rect3)
+    shape = shapes2d.polygon(bez) - shapes2d.polygon(rect1) - shapes2d.polygon(rect2) - shapes2d.polygon(rect3)
     whole = shape.resize([length, length * train_width / train_length, 0])
     return whole.translate([-length / 2, -length * train_width / train_length / 2])
 
 
-def WagonOutline(length: float) -> PyOpenSCAD:
+def wagon_outline(length: float) -> PyOpenSCAD:
     """Create a wagon outline from the exciting svg.
 
     Usage::
 
-        WagonOutline(50)
+        wagon_outline(50)
 
     Args:
         length: the length of the wagon
@@ -4693,6 +4644,6 @@ def WagonOutline(length: float) -> PyOpenSCAD:
         [93.78, 276.59],
     ]
 
-    shape = polygon(bez) - polygon(line1) - polygon(line2) - polygon(line3) - polygon(line4) - polygon(line5)
+    shape = shapes2d.polygon(bez) - shapes2d.polygon(line1) - shapes2d.polygon(line2) - shapes2d.polygon(line3) - shapes2d.polygon(line4) - shapes2d.polygon(line5)
     whole = shape.resize([length, length * wagon_width / wagon_length, 0])
     return whole.translate([-length / 2, -length * wagon_width / wagon_length / 2])

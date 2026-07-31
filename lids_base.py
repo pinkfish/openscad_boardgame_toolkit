@@ -27,7 +27,8 @@ from typing import Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-    from pysolidfive import PyShape, PyShape2D  # noqa: F401
+    from pybosl2._sdf.shapes3d import PyShape  # noqa: F401
+    from pybosl2._sdf.shapes2d import PyShape2D  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d

@@ -29,7 +29,7 @@
 # LibFile: pentagon_tilings.py
 #    All 15 known classes of convex pentagons that tile the plane.
 
-# PentagonTesselationData's 15 sequential pentagon-type data blocks exceed pyright's
+# pentagon_tesselation_data's 15 sequential pentagon-type data blocks exceed pyright's
 # code-flow complexity budget (the 'too complex to analyze' diagnostic); everything
 # else in this file is still checked.
 # pyright: reportGeneralTypeIssues=false
@@ -43,7 +43,7 @@ import types
 
 from pythonscad import *
 from base_bgtk import *
-import pysolidfive
+from pybosl2._sdf import shapes2d as _sdf2
 
 
 def _cosd(deg: float) -> float:
@@ -68,7 +68,7 @@ def _v(a: list[float], b: list[float]) -> list[float]:
     return [a[0] + b[0], a[1] + b[1]]
 
 
-def PentagonTesselationArea(
+def pentagon_tesselation_area(
     pentagon_type: str,
     pentagon_size: float,
     width: float,
@@ -83,12 +83,12 @@ def PentagonTesselationArea(
     line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     spin: float = 60,
-) -> "pysolidfive.PyShape2D":
+) -> "_sdf2.PyShape2D":
     """Make the pentagon tessellation tiled across a rectangular area.
 
     Usage::
 
-        PentagonTesselationArea(pentagon_type="R1", pentagon_size=30, width=100, length=100, thickness=2)
+        pentagon_tesselation_area(pentagon_type="R1", pentagon_size=30, width=100, length=100, thickness=2)
 
     Args:
         pentagon_type: type of the pentagon, "R1" through "R15"
@@ -97,7 +97,7 @@ def PentagonTesselationArea(
         length: length of the area to fill
         thickness: thickness of the edges of the pattern
         first_angle_modifier/second_angle_modifier/first_length_modifier/second_length_modifier/third_length_modifier:
-            tweak the shape of the pentagon (see :func:`PentagonTesselation`)
+            tweak the shape of the pentagon (see :func:`pentagon_tesselation`)
         line1/line2/line3: profile lines used by the R2 type (default straight lines)
         spin: rotation of the whole lattice (default 60)
     """
@@ -110,7 +110,7 @@ def PentagonTesselationArea(
 
     cols = width / pentagon_size + 4
     rows = (length * 2) / pentagon_size + 4
-    data = PentagonTesselationData(
+    data = pentagon_tesselation_data(
         pentagon_type,
         pentagon_size,
         0,
@@ -126,7 +126,7 @@ def PentagonTesselationArea(
         line3=line3,
     )
 
-    bound = pysolidfive.rect2d([width, length], anchor=[-1, -1]).translate([width / 2, length / 2])
+    bound = _sdf2.rect2d([width, length], anchor=[-1, -1]).translate([width / 2, length / 2])
 
     pieces = []
     for yy in range(math.floor(rows) + 1):
@@ -134,12 +134,12 @@ def PentagonTesselationArea(
             dx = pentagon_size * (cols / 2 - xx) * data.x_offset[0] + pentagon_size * (rows / 2 - yy) * data.y_offset[0]
             dy = pentagon_size * (cols / 2 - xx) * data.x_offset[1] + pentagon_size * (rows / 2 - yy) * data.y_offset[1]
             pieces.append(data.points.translate([dx - pentagon_size * 2, dy - pentagon_size * 2, 0]))
-    shape = pysolidfive.union2d(pieces).rotate([0, 0, spin]).translate([width / 2, length / 2, 0])
+    shape = _sdf2.PyShape2D.union2d(pieces).rotate([0, 0, spin]).translate([width / 2, length / 2, 0])
 
     return bound & shape
 
 
-def PentagonTesselation(
+def pentagon_tesselation(
     pentagon_type: str,
     pentagon_size: float,
     x: float,
@@ -153,13 +153,13 @@ def PentagonTesselation(
     line1: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
-) -> "pysolidfive.PyShape2D":
+) -> "_sdf2.PyShape2D":
     """Renders one tile of one of the 15 known classes of pentagon that tiles the plane,
     positioned at lattice index (x, y).
 
     Usage::
 
-        PentagonTesselation(pentagon_type="R1", pentagon_size=30, x=0, y=0, thickness=2)
+        pentagon_tesselation(pentagon_type="R1", pentagon_size=30, x=0, y=0, thickness=2)
 
     Args:
         pentagon_type: type of the pentagon, "R1" through "R15"
@@ -168,10 +168,10 @@ def PentagonTesselation(
         y: y index for the pattern lattice
         thickness: thickness of the edges of the pattern
         first_angle_modifier/second_angle_modifier/first_length_modifier/second_length_modifier/third_length_modifier:
-            tweak the shape of the pentagon (see :func:`PentagonTesselationData`)
+            tweak the shape of the pentagon (see :func:`pentagon_tesselation_data`)
         line1/line2/line3: profile lines used by the R2 type (default straight lines)
     """
-    data = PentagonTesselationData(
+    data = pentagon_tesselation_data(
         pentagon_type,
         pentagon_size,
         x,
@@ -191,7 +191,7 @@ def PentagonTesselation(
     return data.points.translate([dx, dy, 0])
 
 
-def PentagonTesselationData(
+def pentagon_tesselation_data(
     pentagon_type: str,
     pentagon_size: float,
     x: float,
@@ -210,7 +210,7 @@ def PentagonTesselationData(
 
     Usage::
 
-        PentagonTesselationData(pentagon_type="R1", pentagon_size=30, x=0, y=0, thickness=2)
+        pentagon_tesselation_data(pentagon_type="R1", pentagon_size=30, x=0, y=0, thickness=2)
 
     Args:
         pentagon_type: type of the pentagon, "R1" through "R15" (R1..R15, except R1 has no second
@@ -252,7 +252,7 @@ def PentagonTesselationData(
     )
 
     from tesselations import (
-        TesselationPolygon,
+        tesselation_polygon,
         TESSELATION_LINE_SYMETRIC,
         TESSELATION_LINE_NORMAL,
         TESSELATION_LINE_FLIPPED,
@@ -343,7 +343,7 @@ def PentagonTesselationData(
     # block can't hit the bad values.
     try:
         R2scale = 0.8
-        R2 = TesselationPolygon(
+        R2 = tesselation_polygon(
             _sc(
                 R2scale,
                 [
@@ -364,7 +364,7 @@ def PentagonTesselationData(
                 TESSELATION_LINE_NORMAL,
             ],
         )
-        R2_2 = TesselationPolygon(
+        R2_2 = tesselation_polygon(
             _sc(
                 R2scale,
                 [
@@ -388,7 +388,7 @@ def PentagonTesselationData(
                 TESSELATION_LINE_FLIPPED,
             ],
         )
-        R2_3 = TesselationPolygon(
+        R2_3 = tesselation_polygon(
             _sc(
                 R2scale,
                 [
@@ -409,7 +409,7 @@ def PentagonTesselationData(
                 TESSELATION_LINE_NORMAL,
             ],
         )
-        R2_4 = TesselationPolygon(
+        R2_4 = tesselation_polygon(
             _sc(
                 R2scale,
                 [
@@ -2263,7 +2263,7 @@ def PentagonTesselationData(
     }
     pattern = patterns.get(pentagon_type, [[], [], [0, 0], [0, 0]])
 
-    points = InnerPentagonTesselation(pattern=pattern, pentagon_size=pentagon_size, thickness=thickness)
+    points = inner_pentagon_tesselation(pattern=pattern, pentagon_size=pentagon_size, thickness=thickness)
     return types.SimpleNamespace(y_offset=pattern[2], x_offset=pattern[3], points=points)
 
 
@@ -2287,17 +2287,17 @@ def _clean_path(pts: list[list[float]]) -> list[list[float]]:
     return merged
 
 
-def pentagonBorder(vertices: list[list[float]], size: float, thickness: float) -> "pysolidfive.PyShape2D":
+def pentagon_border(vertices: list[list[float]], size: float, thickness: float) -> "_sdf2.PyShape2D":
     """Internal: the outline ring of one pentagon instance -- the pentagon grown a hair minus
     the pentagon shrunk by the wall thickness, as one exact 2-D SDF (the offsets are single
     subtractions on the SDF, replacing the old region offset/difference dance)."""
     scaled = _clean_path(_sc(size, vertices))
-    pent = pysolidfive.polygon2d(scaled)
+    pent = _sdf2.polygon2d(scaled)
     return pent.offset(0.01) - pent.offset(-thickness)
 
 
-def InnerPentagonTesselation(pattern: list, pentagon_size: float, thickness: float) -> "pysolidfive.PyShape2D":
+def inner_pentagon_tesselation(pattern: list, pentagon_size: float, thickness: float) -> "_sdf2.PyShape2D":
     """Internal: every pentagon ring in the pattern, unioned symbolically."""
-    pieces = [pentagonBorder(vertices=v, size=pentagon_size, thickness=thickness) for v in pattern[1]]
+    pieces = [pentagon_border(vertices=v, size=pentagon_size, thickness=thickness) for v in pattern[1]]
     assert pieces, "pentagon pattern has no pentagons -- unknown pentagon_type?"
-    return pysolidfive.union2d(pieces)
+    return _sdf2.PyShape2D.union2d(pieces)

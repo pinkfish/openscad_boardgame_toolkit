@@ -55,43 +55,43 @@ IMGSIZE = (640, 480)
 
 SHAPES = [
     # the grid-repeat drivers (and their single-cell placement variants), tiling a simple child
-    ("tesselation_hex_repeat", "HexagonTesselationRepeat(3, 3, 15, children=circle(r=6)).linear_extrude(height=2)"),
+    ("tesselation_hex_repeat", "hexagon_tesselation_repeat(3, 3, 15, children=circle(r=6)).linear_extrude(height=2)"),
     (
         "tesselation_hex_at_location",
-        "HexagonTesselationRepeatAtLocation(1, 1, 15, children=circle(r=6)).linear_extrude(height=2)",
+        "hexagon_tesselation_repeat_at_location(1, 1, 15, children=circle(r=6)).linear_extrude(height=2)",
     ),
-    ("tesselation_triangle_repeat", "TriangleTesselationRepeat(3, 3, 15, children=circle(r=5)).linear_extrude(height=2)"),
+    ("tesselation_triangle_repeat", "triangle_tesselation_repeat(3, 3, 15, children=circle(r=5)).linear_extrude(height=2)"),
     (
         "tesselation_triangle_at_location",
-        "TriangleTesselationRepeatAtLocation(1, 1, 15, children=circle(r=5)).linear_extrude(height=2)",
+        "triangle_tesselation_repeat_at_location(1, 1, 15, children=circle(r=5)).linear_extrude(height=2)",
     ),
     # hex/square outline distortion (these return region/path DATA -- render via region()/
     # polygon(), the same way their docstrings direct callers to)
     (
         "tesselation_hexagonal_outline",
-        "polygon(HexagonalTesselation(points=[[[-0.5, 0], [0, 0.2], [0.5, 0]], [[-0.5, 0], [0, -0.2], [0.5, 0]], "
+        "polygon(hexagonal_tesselation(points=[[[-0.5, 0], [0, 0.2], [0.5, 0]], [[-0.5, 0], [0, -0.2], [0.5, 0]], "
         "[[-0.5, 0], [0.3, 0.2], [0.5, 0]]], radius=15)).linear_extrude(height=2)",
     ),
     (
         "tesselation_square_outline",
-        "region(SquareTesselation(points=[[[-0.5, 0], [0, 0.2], [0.5, 0]], [[-0.5, 0], [0, -0.2], [0.5, 0]]], "
+        "region(square_tesselation(points=[[[-0.5, 0], [0, 0.2], [0.5, 0]], [[-0.5, 0], [0, -0.2], [0.5, 0]]], "
         "size=[20, 20], thickness=1)).linear_extrude(height=2)",
     ),
-    ("tesselation_drop", "TesselationDrop(size=[20.0, 20.0], thickness=1).linear_extrude(height=2)"),
+    ("tesselation_drop", "tesselation_drop(size=[20.0, 20.0], thickness=1).linear_extrude(height=2)"),
     # leaf family: solid, the vein-outline region variants, and the grouped-three layout
-    ("tesselation_leaf", "TesselationLeaf(20).linear_extrude(height=2)"),
-    ("tesselation_leaf_outline", "region(TesselationLeafOutline(20)).linear_extrude(height=2)"),
+    ("tesselation_leaf", "tesselation_leaf(20).linear_extrude(height=2)"),
+    ("tesselation_leaf_outline", "region(tesselation_leaf_outline(20)).linear_extrude(height=2)"),
     (
         "tesselation_leaf_outline_veins",
-        "region(TesselationLeafOutline(20, with_veins=True)).linear_extrude(height=2)",
+        "region(tesselation_leaf_outline(20, with_veins=True)).linear_extrude(height=2)",
     ),
-    ("tesselation_leaf_outline_three", "TesselationLeafOutlineThree(20).linear_extrude(height=2)"),
+    ("tesselation_leaf_outline_three", "tesselation_leaf_outline_three(20).linear_extrude(height=2)"),
     # region-boolean tilings
-    ("tesselation_deltoid", "DeltoidTrihexagonalTiling(20).linear_extrude(height=2)"),
-    ("tesselation_deltoid_kite", "DeltoidTrihexagonalTiling(20, kite=True).linear_extrude(height=2)"),
-    ("tesselation_rhombi", "RhombiTriHexagonal(20).linear_extrude(height=2)"),
-    ("tesselation_half_hexagon", "HalfRegularHexagon(20).linear_extrude(height=2)"),
-    ("tesselation_pegasus", "TesselationPegasus([20.0, 20.0]).linear_extrude(height=2)"),
+    ("tesselation_deltoid", "deltoid_trihexagonal_tiling(20).linear_extrude(height=2)"),
+    ("tesselation_deltoid_kite", "deltoid_trihexagonal_tiling(20, kite=True).linear_extrude(height=2)"),
+    ("tesselation_rhombi", "rhombi_tri_hexagonal(20).linear_extrude(height=2)"),
+    ("tesselation_half_hexagon", "half_regular_hexagon(20).linear_extrude(height=2)"),
+    ("tesselation_pegasus", "tesselation_pegasus([20.0, 20.0]).linear_extrude(height=2)"),
 ]
 
 

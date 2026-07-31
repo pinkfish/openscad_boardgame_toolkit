@@ -57,12 +57,12 @@ TESSELATION_LINE_FLIPPED_REVERSE = 4
 # ---------------------------------------------------------------------------
 
 
-def HexagonTesselationRepeatAtLocation(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def hexagon_tesselation_repeat_at_location(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Places *children* at a specific spot in a hexagonal-tesselation grid.
 
     Usage::
 
-        HexagonTesselationRepeatAtLocation(x=0, y=0, size=20, children=LizardTriangle(size=20, thickness=1))
+        hexagon_tesselation_repeat_at_location(x=0, y=0, size=20, children=LizardTriangle(size=20, thickness=1))
 
     Args:
         x: the x location to generate at (int)
@@ -82,12 +82,12 @@ def HexagonTesselationRepeatAtLocation(x: int, y: int, size: float, children: Py
     return children.translate([x / 2 * dy, y * dx + ((x + 1) % 2) * (dx / 2), 0])
 
 
-def HexagonTesselationRepeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def hexagon_tesselation_repeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Tiles *children* across a hexagonal-tesselation grid.
 
     Usage::
 
-        HexagonTesselationRepeat(rows=4, cols=4, size=20, children=LizardTriangle(size=20, thickness=1))
+        hexagon_tesselation_repeat(rows=4, cols=4, size=20, children=LizardTriangle(size=20, thickness=1))
 
     Args:
         rows: number of rows to generate
@@ -114,12 +114,12 @@ def HexagonTesselationRepeat(rows: int, cols: int, size: float, children: PyOpen
     return shape
 
 
-def TriangleTesselationRepeatAtLocation(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def triangle_tesselation_repeat_at_location(x: int, y: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Places *children* at a specific spot in a triangle-tesselation grid.
 
     Usage::
 
-        TriangleTesselationRepeatAtLocation(x=0, y=0, size=20, children=LizardTriangle(size=20, thickness=1))
+        triangle_tesselation_repeat_at_location(x=0, y=0, size=20, children=LizardTriangle(size=20, thickness=1))
 
     Args:
         x: the x location to generate at (int)
@@ -138,12 +138,12 @@ def TriangleTesselationRepeatAtLocation(x: int, y: int, size: float, children: P
     )
 
 
-def TriangleTesselationRepeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def triangle_tesselation_repeat(rows: int, cols: int, size: float, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Tiles *children* across a triangle-tesselation grid.
 
     Usage::
 
-        TriangleTesselationRepeat(rows=4, cols=4, size=20, children=HalfRegularHexagon(20))
+        triangle_tesselation_repeat(rows=4, cols=4, size=20, children=half_regular_hexagon(20))
 
     Args:
         rows: number of rows to generate
@@ -174,19 +174,19 @@ def TriangleTesselationRepeat(rows: int, cols: int, size: float, children: PyOpe
 # ---------------------------------------------------------------------------
 
 
-def HexagonalTesselationGenerateEdge(pts: list[list[float]], side_length: float) -> list[list[float]]:
+def hexagonal_tesselation_generate_edge(pts: list[list[float]], side_length: float) -> list[list[float]]:
     """Scales a normalized edge-profile path by *side_length*."""
     return [[p[0] * side_length, p[1] * side_length] for p in pts]
 
 
-def HexagonalTesselation(points: list[list[list[float]]], radius: float = 10) -> list[list[float]]:
+def hexagonal_tesselation(points: list[list[list[float]]], radius: float = 10) -> list[list[float]]:
     """Makes a hex outline path, distorting each side using the given profiles.
 
     Each profile line runs from x=-0.5 to x=0.5.
 
     Usage::
 
-        HexagonalTesselation(points=[
+        hexagonal_tesselation(points=[
             [[-0.5, 0], [0, 0.2], [0.5, 0]],
             [[-0.5, 0], [0, -0.2], [0.5, 0]],
             [[-0.5, 0], [0.3, 0.2], [0.5, 0]],
@@ -211,18 +211,18 @@ def HexagonalTesselation(points: list[list[list[float]]], radius: float = 10) ->
             edge_pts = list(reversed(Path(points[side_idx]).rot(180)))
         else:
             edge_pts = points[side_idx]
-        edge = HexagonalTesselationGenerateEdge(pts=edge_pts, side_length=side_length)
+        edge = hexagonal_tesselation_generate_edge(pts=edge_pts, side_length=side_length)
         rotated_edge = Path(edge).rot(60 * i + 90)
         poly.extend(rotated_edge.move(center_pt))
     return poly
 
 
-def SquareTesselationGenerateEdge(pts: list[list[float]], side_length: float) -> list[list[float]]:
+def square_tesselation_generate_edge(pts: list[list[float]], side_length: float) -> list[list[float]]:
     """Scales a normalized edge-profile path by *side_length*."""
     return [[p[0] * side_length, p[1] * side_length] for p in pts]
 
 
-def SquareTesselation(
+def square_tesselation(
     points: list[list[list[float]]], size: list[float], thickness: float = 0, outer_offset: float = 0
 ) -> list[list[float]]:
     """Makes a square outline region, distorting each side using the given profiles.
@@ -232,7 +232,7 @@ def SquareTesselation(
 
     Usage::
 
-        SquareTesselation(
+        square_tesselation(
             points=[
                 [[-0.5, 0], [0, 0.2], [0.5, 0]],
                 [[-0.5, 0], [0, -0.2], [0.5, 0]],
@@ -253,8 +253,8 @@ def SquareTesselation(
     assert len(size) == 2, f"Input size must be of form [x,y], size={size}"
 
     width, length = size[0], size[1]
-    length_line = SquareTesselationGenerateEdge(points[0], length)
-    width_line = SquareTesselationGenerateEdge(points[1], width)
+    length_line = square_tesselation_generate_edge(points[0], length)
+    width_line = square_tesselation_generate_edge(points[1], width)
 
     poly = (
         Path(width_line).rot(90).reversed_path().move([-width / 2, 0])
@@ -277,7 +277,7 @@ def SquareTesselation(
 # ---------------------------------------------------------------------------
 
 
-def TesselationSideLine(
+def tesselation_side_line(
     path: list[list[float]], side: list[list[float]], flip: int = TESSELATION_LINE_NORMAL
 ) -> list[list[float]]:
     """Distorts one polygon side using a profile line.
@@ -318,7 +318,7 @@ def TesselationSideLine(
     return Path(result_path).move(path[0])
 
 
-def TesselationPolygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]") -> list[list[float]]:
+def tesselation_polygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]") -> list[list[float]]:
     """Distorts every side of a polygon using profile lines and indexes.
 
     Args:
@@ -335,19 +335,19 @@ def TesselationPolygon(path, side_indexes: "Sequence[int]", sides, flips: "Seque
     each_line = []
     for i in range(len(side_indexes)):
         each_line.extend(
-            TesselationSideLine(path=[path[i], path[(i + 1) % len(path)]], side=sides[side_indexes[i]], flip=flips[i])
+            tesselation_side_line(path=[path[i], path[(i + 1) % len(path)]], side=sides[side_indexes[i]], flip=flips[i])
         )
     return Path._deduplicate(each_line, closed=True)
 
 
-def TesselationDrop(
+def tesselation_drop(
     size: list[float], thickness: float = 0, outer_offset: float = 0, arc_offset: float = 0.2, arc_points: int = 10
 ) -> PyOpenSCAD:
     """Creates a drop tesselation.
 
     Usage::
 
-        TesselationDrop(size=[20, 20])
+        tesselation_drop(size=[20, 20])
 
     Args:
         size: the size of the drop [x, y]
@@ -357,18 +357,18 @@ def TesselationDrop(
         arc_points: how many points on the arc (default 10)
     """
     assert size != 0, "Need to have a size specified"
-    arc1 = shapes2d.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
-    arc2 = shapes2d.arc(n=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
-    data = SquareTesselation(points=[arc1, arc2], size=size, thickness=thickness, outer_offset=outer_offset)
+    arc1 = shapes2d.arc(count=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
+    arc2 = shapes2d.arc(count=arc_points, points=[[-0.5, 0], [0, arc_offset], [0.5, 0]])
+    data = square_tesselation(points=[arc1, arc2], size=size, thickness=thickness, outer_offset=outer_offset)
     return region(data)
 
 
-def TesselationLeaf(size: float) -> PyOpenSCAD:
+def tesselation_leaf(size: float) -> PyOpenSCAD:
     """A solid leaf for use with tesselations.
 
     Usage::
 
-        TesselationLeaf(40)
+        tesselation_leaf(40)
 
     Args:
         size: size of the leaf
@@ -389,7 +389,7 @@ def TesselationLeaf(size: float) -> PyOpenSCAD:
     )
 
 
-def TesselationLeafOutlineMakePolygon(section_height: float, section: float) -> list[list[float]]:
+def tesselation_leaf_outline_make_polygon(section_height: float, section: float) -> list[list[float]]:
     """Internal boundary path for the leaf outline."""
     return Path._deduplicate(
         [
@@ -405,7 +405,7 @@ def TesselationLeafOutlineMakePolygon(section_height: float, section: float) -> 
     )
 
 
-def TesselationLeafOutlineMakeVeins(
+def tesselation_leaf_outline_make_veins(
     calc_thickness: float, section_height: float, section: float, calc_vein_thickness: float
 ) -> list[list[float]]:
     """Internal region data for the leaf veins."""
@@ -487,11 +487,11 @@ def TesselationLeafOutlineMakeVeins(
         little_veins.append(_bosl2.union([a1, a2, a3, a4]))
 
     region_union = _bosl2.union([main_stem, _bosl2.union([side_a, side_b, _bosl2.union(little_veins)])])
-    boundary = _bosl2.make_region(TesselationLeafOutlineMakePolygon(section_height=section_height, section=section))
+    boundary = _bosl2.make_region(tesselation_leaf_outline_make_polygon(section_height=section_height, section=section))
     return _bosl2.intersection(region_union, boundary)
 
 
-def TesselationLeafOutline(
+def tesselation_leaf_outline(
     size: float, thickness: float | None = None, with_veins: bool = False, vein_thickness: float | None = None
 ) -> list[list[float]]:
     """A leaf outline (region data) for use with tesselations.
@@ -511,11 +511,11 @@ def TesselationLeafOutline(
     section = size / 4
     section_height = section * math.sqrt(3) / 2
 
-    outline = TesselationLeafOutlineMakePolygon(section=section, section_height=section_height)
+    outline = tesselation_leaf_outline_make_polygon(section=section, section_height=section_height)
     ring = _bosl2.difference(outline, Path(outline).offset(delta=-calc_thickness))
 
     if with_veins:
-        veins = TesselationLeafOutlineMakeVeins(
+        veins = tesselation_leaf_outline_make_veins(
             calc_thickness=calc_thickness,
             section_height=section_height,
             section=section,
@@ -527,15 +527,15 @@ def TesselationLeafOutline(
     return _bosl2.union(ring, veins)
 
 
-def TesselationLeafOutlineThree(
+def tesselation_leaf_outline_three(
     size: float, thickness: float | None = None, with_veins: bool = False, vein_thickness: float | None = None
 ) -> PyOpenSCAD:
     """A leaf outline, grouped into three to make layout easier.
 
     Usage::
 
-        TesselationLeafOutlineThree(40)
-        TesselationLeafOutlineThree(40, with_veins=True)
+        tesselation_leaf_outline_three(40)
+        tesselation_leaf_outline_three(40, with_veins=True)
 
     Args:
         size: size of the leaf
@@ -547,7 +547,7 @@ def TesselationLeafOutlineThree(
     section = size / 4
     section_height = section * math.sqrt(3) / 2
 
-    leaf = TesselationLeafOutline(size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness)
+    leaf = tesselation_leaf_outline(size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness)
     # `leaf` is REGION data (a list of outlines of differing lengths); Path's move/rot only
     # handle one path at a time, so transform each outline separately rather than feeding
     # them the ragged region wholesale.
@@ -563,7 +563,7 @@ def TesselationLeafOutlineThree(
 # ---------------------------------------------------------------------------
 
 
-def DeltoidTrihexagonalTilingGetPoints(pts: list[list[float]], i: int, kite: bool = False) -> list[list[float]]:
+def deltoid_trihexagonal_tiling_get_points(pts: list[list[float]], i: int, kite: bool = False) -> list[list[float]]:
     """Internal: gets the points for one wedge of the deltoid tiling."""
     if kite:
         p_next = pts[(i + 1) % 6]
@@ -577,27 +577,27 @@ def DeltoidTrihexagonalTilingGetPoints(pts: list[list[float]], i: int, kite: boo
     return [pts[i], pts[(i + 1) % 6], [0, 0]]
 
 
-def DeltoidTrihexagonalTilingInnerParts(pts: list[list[float]], thickness: float, kite: bool = False) -> "PyOpenSCAD":
+def deltoid_trihexagonal_tiling_inner_parts(pts: list[list[float]], thickness: float, kite: bool = False) -> "PyOpenSCAD":
     """Internal: native 2-D geometry for the deltoid tiling's inner wedges."""
     # Each wedge is a concentric ring (outer offset minus inner offset -- no clipping, see
     # Region.with_holes); the wedges overlap, so their union is real 2-D CSG done natively.
     geom = None
     for i in range(6):
-        p = DeltoidTrihexagonalTilingGetPoints(pts, i, kite)
+        p = deltoid_trihexagonal_tiling_get_points(pts, i, kite)
         ring = Region.with_holes(Path(p).offset(delta=thickness / 10), Path(p).offset(delta=-thickness)).geometry()
         geom = ring if geom is None else geom | ring
     return geom
 
 
-def DeltoidTrihexagonalTiling(
+def deltoid_trihexagonal_tiling(
     size: float, thickness: float = 1, outer_offset: float = 0, kite: bool = False
 ) -> PyOpenSCAD:
     """A tesselation to make a nice triangle-layout hex pattern.
 
     Usage::
 
-        DeltoidTrihexagonalTiling(20)
-        DeltoidTrihexagonalTiling(20, kite=True)
+        deltoid_trihexagonal_tiling(20)
+        deltoid_trihexagonal_tiling(20, kite=True)
 
     Args:
         size: size of the hex
@@ -618,17 +618,17 @@ def DeltoidTrihexagonalTiling(
     ]
     outer_ring = Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=-thickness)).geometry()
     inner = (
-        DeltoidTrihexagonalTilingInnerParts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
+        deltoid_trihexagonal_tiling_inner_parts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
     )
     return outer_ring | inner
 
 
-def HalfRegularHexagon(size: float, thickness: float = 1, outer_offset: float = 0) -> PyOpenSCAD:
+def half_regular_hexagon(size: float, thickness: float = 1, outer_offset: float = 0) -> PyOpenSCAD:
     """A half regular hexagon for layout, based on a triangle tesselation with rotations.
 
     Usage::
 
-        HalfRegularHexagon(20)
+        half_regular_hexagon(20)
 
     Args:
         size: size of the hex
@@ -663,12 +663,12 @@ def HalfRegularHexagon(size: float, thickness: float = 1, outer_offset: float = 
     return geom
 
 
-def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 0.1) -> PyOpenSCAD:
+def rhombi_tri_hexagonal(size: float, thickness: float = 1, outer_offset: float = 0.1) -> PyOpenSCAD:
     """A rhombitrihexagon layout tesselation, based on a triangle tesselation with rotations.
 
     Usage::
 
-        RhombiTriHexagonal(20)
+        rhombi_tri_hexagonal(20)
 
     Args:
         size: size of the hex
@@ -704,13 +704,13 @@ def RhombiTriHexagonal(size: float, thickness: float = 1, outer_offset: float = 
     return circle(d=size, fn=6) & petals
 
 
-def TesselationPegasus(size: list[float], thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
+def tesselation_pegasus(size: list[float], thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
     """Pegasus tesselation to use on lids.
 
     Usage::
 
-        TesselationPegasus(size=[20, 20])
-        TesselationPegasus(size=[30, 20], thickness=0.5)
+        tesselation_pegasus(size=[20, 20])
+        tesselation_pegasus(size=[30, 20], thickness=0.5)
 
     Args:
         size: [width, length]
@@ -797,5 +797,5 @@ def TesselationPegasus(size: list[float], thickness: float = 0, outer_offset: fl
         ]
     ]
 
-    data = SquareTesselation(points=[pts_a, pts_b], size=size, thickness=thickness, outer_offset=outer_offset)
+    data = square_tesselation(points=[pts_a, pts_b], size=size, thickness=thickness, outer_offset=outer_offset)
     return region(data)

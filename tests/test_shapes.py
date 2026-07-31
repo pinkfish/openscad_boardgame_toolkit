@@ -54,14 +54,14 @@ class TestMakeShapeObject(unittest.TestCase):
 
 class TestWidthCalculators(unittest.TestCase):
     def test_australia_map_width_scales_linearly(self) -> None:
-        w100 = shapes.AustraliaMapWidth(100)
-        w200 = shapes.AustraliaMapWidth(200)
+        w100 = shapes.australia_map_width(100)
+        w200 = shapes.australia_map_width(200)
         self.assertAlmostEqual(w200, 2 * w100, places=9)
         self.assertGreater(w100, 0)
 
     def test_ruins_width_scales_linearly(self) -> None:
-        w100 = shapes.Ruins2dWidth(100)
-        w200 = shapes.Ruins2dWidth(200)
+        w100 = shapes.ruins2d_width(100)
+        w200 = shapes.ruins2d_width(200)
         self.assertAlmostEqual(w200, 2 * w100, places=9)
         self.assertGreater(w100, 0)
 

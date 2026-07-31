@@ -16,11 +16,11 @@
 # under the License.
 
 # LibFile: shapes3d.py
-#    3-D shapes (dice, polyhedra) for board games. Built entirely on pysolidfive -- no pybosl2
+#    3-D shapes (dice, polyhedra) for board games. Built on pybosl2._sdf (SDF/libfive) -- no pybosl2
 #    port and no BOSL2 polyhedra.scad, which could never load through osuse() anyway (it
-#    depends on its include chain for PHI and friends, so the old Octahedron/Trapezohedron
+#    depends on its include chain for PHI and friends, so the old octahedron/trapezohedron
 #    never actually worked in the Python port). Every solid here is a convex polyhedron, which
-#    is exactly what pysolidfive.convex_polyhedron() (a max of hull-face half-spaces) or an
+#    is exactly what _sdf3.convex_polyhedron() (a max of hull-face half-spaces) or an
 #    intersection of rotated cuboid slabs expresses directly.
 #
 # FileSummary: 3D Shapes for all sorts of things.
@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-import pysolidfive
+from pybosl2._sdf import shapes3d as _sdf3
 
 import math
 
@@ -43,12 +43,12 @@ import math
 # ---------------------------------------------------------------------------
 
 
-def Dodecahedron(size: float) -> PyOpenSCAD:
+def dodecahedron(size: float) -> PyOpenSCAD:
     """Creates a 12-sided shape (d12) for use in games.
 
     Usage::
 
-        Dodecahedron(20)
+        dodecahedron(20)
 
     Args:
         size: width of the dodecahedron
@@ -56,18 +56,18 @@ def Dodecahedron(size: float) -> PyOpenSCAD:
     # Same construction as the original: a unit slab intersected with 5 copies tipped over by
     # the dodecahedral dihedral angle -- just composed symbolically as SDFs and meshed once.
     dihedral = 116.565
-    shape = pysolidfive.cuboid([2, 2, 1])
+    shape = _sdf3.cuboid([2, 2, 1])
     for i in range(5):
-        shape = shape & pysolidfive.cuboid([2, 2, 1]).rotate([dihedral, 0, 0]).rotate([0, 0, 72 * i])
-    return shape.scale([size, size, size]).color(default_material_colour)
+        shape = shape & _sdf3.cuboid([2, 2, 1]).rotate([dihedral, 0, 0]).rotate([0, 0, 72 * i])
+    return shape.scale([size, size, size]).to_csg().color(default_material_colour)
 
 
-def Tetrahedron(size: float) -> PyOpenSCAD:
+def tetrahedron(size: float) -> PyOpenSCAD:
     """Creates a d4 tetrahedron shape for use in games.
 
     Usage::
 
-        Tetrahedron(10)
+        tetrahedron(10)
 
     Args:
         size: diameter of the circumscribed sphere
@@ -81,31 +81,31 @@ def Tetrahedron(size: float) -> PyOpenSCAD:
     pts = [[r * math.cos(math.radians(120 * i)), r * math.sin(math.radians(120 * i)), 0] for i in range(3)]
     pts.append([0, 0, h])
     return (
-        pysolidfive.convex_polyhedron(pts)
+        _sdf3.convex_polyhedron(pts)
         .translate([-(size - side) / 2, 0, (size - side) / 2])
-        .color(default_material_colour)
+        .to_csg().color(default_material_colour)
     )
 
 
-def Octahedron(size: float) -> PyOpenSCAD:
+def octahedron(size: float) -> PyOpenSCAD:
     """Creates a d8 octahedron shape for use in games.
 
     Usage::
 
-        Octahedron(10)
+        octahedron(10)
 
     Args:
         size: diameter of the circumscribed sphere
     """
-    return pysolidfive.octahedron(size=size).color(default_material_colour)
+    return _sdf3.octahedron(size=size).to_csg().color(default_material_colour)
 
 
-def Icosahedron(size: float) -> PyOpenSCAD:
+def icosahedron(size: float) -> PyOpenSCAD:
     """Creates a d20 icosahedron shape for use in games.
 
     Usage::
 
-        Icosahedron(10)
+        icosahedron(10)
 
     Args:
         size: diameter of the circumscribed sphere
@@ -119,7 +119,7 @@ def Icosahedron(size: float) -> PyOpenSCAD:
     for sa in (-a, a):
         for sb in (-b, b):
             pts.extend([[0, sa, sb], [sb, 0, sa], [sa, sb, 0]])
-    return pysolidfive.convex_polyhedron(pts).color(default_material_colour)
+    return _sdf3.convex_polyhedron(pts).to_csg().color(default_material_colour)
 
 
 def _trapezohedron_vertices(size: float) -> tuple[list[list[float]], float, float]:
@@ -146,13 +146,13 @@ def _trapezohedron_vertices(size: float) -> tuple[list[list[float]], float, floa
     return [[0, 0, h], [0, 0, -h]] + top + bot, separation, h
 
 
-def Trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
     """Creates a d10 trapezohedron shape for use in games.
 
     Usage::
 
-        Trapezohedron(10)
-        Trapezohedron(20, children=text3d)  # with face labels as children
+        trapezohedron(10)
+        trapezohedron(20, children=text3d)  # with face labels as children
 
     Args:
         size:       diameter of the circumscribed sphere
@@ -165,7 +165,7 @@ def Trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | Non
                     reproduced.
     """
     pts, separation, h = _trapezohedron_vertices(size)
-    base = pysolidfive.convex_polyhedron(pts).color(default_material_colour)
+    base = _sdf3.convex_polyhedron(pts).to_csg().color(default_material_colour)
     if children is None:
         return base
 

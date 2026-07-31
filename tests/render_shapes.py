@@ -37,7 +37,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def render_shapes_shape(expr: str, out_png: Path, imgsize: tuple[int, int] = (320, 240)) -> RenderResult:
     """Convenience wrapper: renders a single shapes.py/tesselations.py/shapes3d.py expression,
-    e.g. `"Sword2d(70, 20).linear_extrude(height=2)"` (2-D shapes should be extruded so the
+    e.g. `"sword2d(70, 20).linear_extrude(height=2)"` (2-D shapes should be extruded so the
     render camera has a solid to frame). `expr` is evaluated with all three modules'
     public names and pythonscad's native primitives already imported into scope, and the
     project root already on sys.path.

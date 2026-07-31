@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-    from pysolidfive import PyShape2D  # noqa: F401
+    from pybosl2._sdf.shapes2d import PyShape2D  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
 
@@ -273,12 +273,12 @@ def ShapeByType(
         return outer - inner
 
     if t == ShapeType.CLOUD:
-        from shapes import CloudShape2d
+        from shapes import cloud_shape2d
 
         # resize() needs a 3-vector even for 2-D geometry (a 2-element vector raises
         # "TypeError: Invalid resize dimensions"); 0 leaves the unused Z axis alone.
-        outer = CloudShape2d(width=w).resize([w * aspect, w, 0])
-        inner = CloudShape2d(width=w).resize([w * aspect, w, 0]).offset(delta=-th)
+        outer = cloud_shape2d(width=w).resize([w * aspect, w, 0])
+        inner = cloud_shape2d(width=w).resize([w * aspect, w, 0]).offset(delta=-th)
         return (outer - inner).translate([-w / 2, -w / 2])
 
     if t in (
@@ -297,7 +297,7 @@ def ShapeByType(
         ShapeType.PENTAGON_R14,
         ShapeType.PENTAGON_R15,
     ):
-        from pentagon_tilings import PentagonTesselation
+        from pentagon_tilings import pentagon_tesselation
 
         r_names = {
             ShapeType.PENTAGON_R1: "R1",
@@ -317,7 +317,7 @@ def ShapeByType(
         }
         x = (math.floor(polygon_grid_rows / 2) - polygon_x) if polygon_x and polygon_grid_rows is not None else 0
         y = (math.floor(polygon_grid_cols / 2) - polygon_y) if polygon_y and polygon_grid_cols is not None else 0
-        shape = PentagonTesselation(
+        shape = pentagon_tesselation(
             pentagon_type=r_names[t],
             pentagon_size=w,
             thickness=th / 2,
@@ -335,13 +335,13 @@ def ShapeByType(
         return shape
 
     if t == ShapeType.PENTAGON_R2:
-        from pentagon_tilings import PentagonTesselationArea
+        from pentagon_tilings import pentagon_tesselation_area
 
         assert polygon_width is not None and polygon_length is not None, (
             "PENTAGON_R2 needs polygon_width/length layout context"
         )
 
-        return PentagonTesselationArea(
+        return pentagon_tesselation_area(
             pentagon_type="R2",
             width=polygon_width,
             length=polygon_length,
@@ -423,54 +423,54 @@ def ShapeByType(
         return SheepTesselationArea(size=w, thickness=th / 2, width=polygon_width, length=polygon_length)
 
     if t in (ShapeType.PENROSE_TILING_5, ShapeType.PENROSE_TILING_7):
-        from penrose_tiling import PenroseTiling
+        from penrose_tiling import penrose_tiling
 
         assert polygon_width is not None and polygon_length is not None, (
             "PENROSE_TILING needs polygon_width/length layout context"
         )
         max_width = max(polygon_width, polygon_length)
         base = 5 if t == ShapeType.PENROSE_TILING_5 else 7
-        return PenroseTiling(max_width * 1.5, divisions=math.ceil((max_width * 2 / w) / 3), base=base, thickness=th)
+        return penrose_tiling(max_width * 1.5, divisions=math.ceil((max_width * 2 / w) / 3), base=base, thickness=th)
 
     if t == ShapeType.DROP:
-        from tesselations import TesselationDrop
+        from tesselations import tesselation_drop
 
-        return TesselationDrop(size=[w, w * aspect], thickness=th / 2, outer_offset=0.1)
+        return tesselation_drop(size=[w, w * aspect], thickness=th / 2, outer_offset=0.1)
 
     if t in (ShapeType.DELTOID_TRIHEXAGONAL, ShapeType.DELTOID_TRIHEXAGONAL_KITE):
-        from tesselations import DeltoidTrihexagonalTiling
+        from tesselations import deltoid_trihexagonal_tiling
 
-        return DeltoidTrihexagonalTiling(
+        return deltoid_trihexagonal_tiling(
             size=w, thickness=th / 2, outer_offset=0.1, kite=(t == ShapeType.DELTOID_TRIHEXAGONAL_KITE)
         )
 
     if t == ShapeType.PEGASUS:
-        from tesselations import TesselationPegasus
+        from tesselations import tesselation_pegasus
 
-        return TesselationPegasus(size=[w, w * aspect], thickness=th / 2, outer_offset=0.1)
+        return tesselation_pegasus(size=[w, w * aspect], thickness=th / 2, outer_offset=0.1)
 
     if t == ShapeType.HALF_REGULAR_HEXAGON:
-        from tesselations import TriangleTesselationRepeatAtLocation, HalfRegularHexagon
+        from tesselations import triangle_tesselation_repeat_at_location, half_regular_hexagon
 
         assert polygon_x is not None and polygon_y is not None, "HALF_REGULAR_HEXAGON needs polygon_x/y layout context"
 
         # Multiply size by three since this breaks the triangle up into three.
-        return TriangleTesselationRepeatAtLocation(
+        return triangle_tesselation_repeat_at_location(
             size=w * 3,
             x=polygon_x,
             y=polygon_y,
-            children=HalfRegularHexagon(size=w * 3, thickness=th, outer_offset=0.1),
+            children=half_regular_hexagon(size=w * 3, thickness=th, outer_offset=0.1),
         )
 
     if t == ShapeType.RHOMBI_TRI_HEXAGONAL:
-        from tesselations import HexagonTesselationRepeatAtLocation, RhombiTriHexagonal
+        from tesselations import hexagon_tesselation_repeat_at_location, rhombi_tri_hexagonal
 
         assert polygon_x is not None and polygon_y is not None, "RHOMBI_TRI_HEXAGONAL needs polygon_x/y layout context"
 
-        return HexagonTesselationRepeatAtLocation(size=w / 2, x=polygon_x, y=polygon_y, children=RhombiTriHexagonal(w))
+        return hexagon_tesselation_repeat_at_location(size=w / 2, x=polygon_x, y=polygon_y, children=rhombi_tri_hexagonal(w))
 
     if t in (ShapeType.LEAF, ShapeType.LEAF_VEINS):
-        from tesselations import TesselationLeafOutlineThree
+        from tesselations import tesselation_leaf_outline_three
 
         assert polygon_x is not None and polygon_y is not None, "LEAF shapes need polygon_x/y layout context"
 
@@ -479,7 +479,7 @@ def ShapeByType(
         section_height = section * sqrt_three / 2
         pos = polygon_x % 4
         offset = {0: 0, 1: section * 2, 2: section * 4}.get(pos, section * 6)
-        shape = TesselationLeafOutlineThree(
+        shape = tesselation_leaf_outline_three(
             size=w + 0.1,
             thickness=th / 2,
             vein_thickness=th / 4,
