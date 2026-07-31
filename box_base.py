@@ -248,9 +248,6 @@ class BoxSpec:
     # future CapBox its own options, ...). The SAME spec can therefore be built by
     # any box type -- switch the type (e.g. via BoxKit) without touching this.
     type_options: Any = None
-    # Alias kept working for the module-level helpers/examples that predate
-    # ``type_options``: SlidingBox falls back to it when ``type_options`` is None.
-    sliding_lid_options: Any = None
 
     # ---- Contents (inner compartments / inserts) -----------------------------
     contents: Contents | None = None
