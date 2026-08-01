@@ -43,7 +43,7 @@ import types
 
 from pythonscad import *
 from base_bgtk import *
-from pybosl2._sdf import shapes2d as _sdf2
+from pybosl2 import shapes2d
 
 
 def _cosd(deg: float) -> float:
@@ -83,7 +83,7 @@ def pentagon_tesselation_area(
     line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     spin: float = 60,
-) -> "_sdf2.PyShape2D":
+) -> "shapes2d.Bosl2Shape2D":
     """Make the pentagon tessellation tiled across a rectangular area.
 
     Usage::
@@ -126,7 +126,12 @@ def pentagon_tesselation_area(
         line3=line3,
     )
 
-    bound = _sdf2.rect2d([width, length], anchor=[-1, -1]).translate([width / 2, length / 2])
+    # The area frame is corner-anchored 0..width x 0..length, which anchor=[-1,-1] already
+    # gives; the extra half-size translate the SDF version carried put the clip window on
+    # width/2..3*width/2, so the tiling only ever covered the far half of what it was asked
+    # to fill. (Invisible until the fill's bounding box could be measured -- see
+    # tests/test_lid_patterns.py.)
+    bound = shapes2d.square([width, length], anchor=[-1, -1, 0])
 
     pieces = []
     for yy in range(math.floor(rows) + 1):
@@ -134,7 +139,10 @@ def pentagon_tesselation_area(
             dx = pentagon_size * (cols / 2 - xx) * data.x_offset[0] + pentagon_size * (rows / 2 - yy) * data.y_offset[0]
             dy = pentagon_size * (cols / 2 - xx) * data.x_offset[1] + pentagon_size * (rows / 2 - yy) * data.y_offset[1]
             pieces.append(data.points.translate([dx - pentagon_size * 2, dy - pentagon_size * 2, 0]))
-    shape = _sdf2.PyShape2D.union2d(pieces).rotate([0, 0, spin]).translate([width / 2, length / 2, 0])
+    shape = pieces[0]
+    for piece in pieces[1:]:
+        shape = shape | piece
+    shape = shape.rotate([0, 0, spin]).translate([width / 2, length / 2])
 
     return bound & shape
 
@@ -153,7 +161,7 @@ def pentagon_tesselation(
     line1: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line2: "Sequence[Sequence[float]] | np.ndarray | None" = None,
     line3: "Sequence[Sequence[float]] | np.ndarray | None" = None,
-) -> "_sdf2.PyShape2D":
+) -> "shapes2d.Bosl2Shape2D":
     """Renders one tile of one of the 15 known classes of pentagon that tiles the plane,
     positioned at lattice index (x, y).
 
@@ -2287,17 +2295,23 @@ def _clean_path(pts: list[list[float]]) -> list[list[float]]:
     return merged
 
 
-def pentagon_border(vertices: list[list[float]], size: float, thickness: float) -> "_sdf2.PyShape2D":
+def pentagon_border(vertices: list[list[float]], size: float, thickness: float) -> "shapes2d.Bosl2Shape2D":
     """Internal: the outline ring of one pentagon instance -- the pentagon grown a hair minus
-    the pentagon shrunk by the wall thickness, as one exact 2-D SDF (the offsets are single
-    subtractions on the SDF, replacing the old region offset/difference dance)."""
+    the pentagon shrunk by the wall thickness.
+
+    Direct 2-D CSG, not an SDF. The SDF form was exact and elegant, but a lid's worth of these
+    can only reach the CSG lid stack by MESHING, which cost minutes per lid and made the
+    result impossible to measure (reading a bounding box off it crashed the app). The offsets
+    are the same two subtractions either way."""
     scaled = _clean_path(_sc(size, vertices))
-    pent = _sdf2.polygon2d(scaled)
-    return pent.offset(0.01) - pent.offset(-thickness)
+    return shapes2d.polygon(scaled).offset(delta=0.01) - shapes2d.polygon(scaled).offset(delta=-thickness)
 
 
-def inner_pentagon_tesselation(pattern: list, pentagon_size: float, thickness: float) -> "_sdf2.PyShape2D":
-    """Internal: every pentagon ring in the pattern, unioned symbolically."""
+def inner_pentagon_tesselation(pattern: list, pentagon_size: float, thickness: float) -> "shapes2d.Bosl2Shape2D":
+    """Internal: every pentagon ring in the pattern, unioned."""
     pieces = [pentagon_border(vertices=v, size=pentagon_size, thickness=thickness) for v in pattern[1]]
     assert pieces, "pentagon pattern has no pentagons -- unknown pentagon_type?"
-    return _sdf2.PyShape2D.union2d(pieces)
+    shape = pieces[0]
+    for piece in pieces[1:]:
+        shape = shape | piece
+    return shape

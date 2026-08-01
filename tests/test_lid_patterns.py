@@ -84,12 +84,11 @@ MESHES_EMPTY = {
     "PENROSE_TILING_7": "SDF meshes empty at lid size -- penrose_tiling res needs capping",
 }
 
-#: Patterns built as _sdf shapes rather than direct CSG. They FILL in about a second, but
-#: crossing to CSG means meshing an SDF over the whole lid -- MINUTES for one lid, and
-#: reading a bounding box off the result crashes the app outright. So they are covered by
-#: the fill test only, and this set is the reason: making pentagon_tilings.py emit CSG
-#: polygons (it already computes the point lists) is the fix that lets them join the rest.
-SDF_BACKED = {f"PENTAGON_R{n}" for n in range(1, 16)} | set(MESHES_EMPTY)
+#: Patterns still built as _sdf shapes rather than direct CSG. Crossing to CSG means meshing
+#: the SDF over the whole lid -- minutes per lid -- and reading a bounding box off the result
+#: crashes the app, so these are covered by the fill test only. The 15 pentagon families used
+#: to be here too; pentagon_tilings.py now emits CSG polygons and they are fully covered.
+SDF_BACKED = set(MESHES_EMPTY)
 
 #: The area the tests fill. Deliberately modest: cell count -- and so render cost -- grows
 #: with the AREA, and a compound tiling like DELTOID_TRIHEXAGONAL is ~600 cells on a

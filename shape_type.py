@@ -280,9 +280,6 @@ def ShapeByType(
             second_length_modifier=options.pentagon_second_length_modifier,
             third_length_modifier=options.pentagon_third_length_modifier,
         )
-        if t == ShapeType.PENTAGON_R1:
-            assert polygon_grid_rows is not None, "PENTAGON_R1 needs polygon_grid_rows layout context"
-            shape = shape.translate([(polygon_grid_rows * w) / 2, 0])
         return shape
 
     if t == ShapeType.PENTAGON_R2:
