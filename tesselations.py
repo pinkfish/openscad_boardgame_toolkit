@@ -256,21 +256,29 @@ def square_tesselation(
     length_line = square_tesselation_generate_edge(points[0], length)
     width_line = square_tesselation_generate_edge(points[1], width)
 
-    # pybosl2's numpy Path has no `+` concat -- join the point lists (.to_list()) instead.
+    # pybosl2's numpy Path has no `+` concat -- join the point lists instead. NB `to_list` is
+    # a PROPERTY, not a method: calling it raised "'list' object is not callable", which is
+    # what broke every square tesselation (DROP, PEGASUS).
     poly = (
-        Path(width_line).rot(90).reverse().move([-width / 2, 0]).to_list()
-        + Path(length_line).rot(0).move([0, -length / 2]).to_list()
-        + Path(width_line).rot(90).move([width / 2, 0]).to_list()
-        + Path(length_line).rot(0).reverse().move([0, length / 2]).to_list()
+        Path(width_line).rot(90).reverse().move([-width / 2, 0]).to_list
+        + Path(length_line).rot(0).move([0, -length / 2]).to_list
+        + Path(width_line).rot(90).move([width / 2, 0]).to_list
+        + Path(length_line).rot(0).reverse().move([0, length / 2]).to_list
     )
     poly = Path._deduplicate(poly, closed=True)
 
     outer = Path(poly).offset(delta=outer_offset, chamfer=True) if outer_offset != 0 else poly
-    if thickness != 0:
-        inner = Path._deduplicate(Path(poly).offset(delta=-thickness, chamfer=True), closed=True)
-    else:
-        inner = [[-100, -100], [-101, -100], [-101, -101]]
-    return _bosl2.difference(_bosl2.make_region(outer), _bosl2.make_region(inner))
+    outer = outer.to_list if hasattr(outer, "to_list") else list(outer)
+    if thickness == 0:
+        return [outer]
+
+    inner = Path._deduplicate(Path(poly).offset(delta=-thickness, chamfer=True), closed=True)
+    # The two offsets are CONCENTRIC, so the inner one lies strictly inside the outer: the
+    # difference needs no polygon clipping, it is just "outline plus hole", which is exactly
+    # how a region is represented (the same reasoning as base_bgtk.DifferenceWithOffset).
+    # The osuse BOSL2 difference() this replaces ABORTS THE PROCESS on these inputs, which is
+    # what stopped DROP and PEGASUS being usable as lid patterns.
+    return [outer, inner]
 
 
 # ---------------------------------------------------------------------------

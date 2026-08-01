@@ -320,7 +320,6 @@ _CENTRE_INDEXED_TILINGS = {
     ShapeType.PENTAGON_R13,
     ShapeType.PENTAGON_R14,
     ShapeType.PENTAGON_R15,
-    ShapeType.LIZARD,
 }
 
 #: Tilings whose tile places itself, indexed from the grid CORNER.
@@ -338,12 +337,8 @@ _CORNER_INDEXED_TILINGS = {
 #: themselves out across it.
 _AREA_PATTERNS = {
     ShapeType.VORONOI,
+    ShapeType.HILBERT,
     ShapeType.PENTAGON_R2,
-    ShapeType.GOOSE,
-    ShapeType.CHICKEN,
-    ShapeType.SHEEP,
-    ShapeType.BIRD,
-    ShapeType.FLYING_BIRD,
 }
 
 #: Area patterns built around the ORIGIN -- a Penrose tiling grows outwards from a unit
@@ -355,6 +350,11 @@ _CENTRED_AREA_PATTERNS = {
 
 #: Shape types laid out on a space-filling (dense) lattice rather than a spaced grid.
 _DENSE_TYPES = {
+    # The hex-lattice figurative tilings (see creature_tesselations).
+    ShapeType.LIZARD,
+    ShapeType.CHICKEN,
+    ShapeType.SHEEP,
+    ShapeType.FLYING_BIRD,
     ShapeType.DENSE_HEX,
     ShapeType.DENSE_TRIANGLE,
     ShapeType.DELTOID_TRIHEXAGONAL_KITE,

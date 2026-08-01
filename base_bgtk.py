@@ -514,6 +514,53 @@ def OffsetSweep(
     return result
 
 
+def stroke_path(pts, width: float, closed: bool = False):
+    """A *width*-wide stroke along the polyline *pts* -- one rectangle per segment plus a
+    disc at each interior join, unioned into 2-D geometry.
+
+    The direct-CSG stand-in for BOSL2's ``stroke()``, which has no function form reachable
+    from the port (and for the SDF ``stroke2d``, which forced whole modules to be SDF just
+    to draw lines). Used by penrose_tiling and hilbert.
+
+    Args:
+        pts:    the polyline points
+        width:  stroke width
+        closed: also stroke the segment from the last point back to the first
+    """
+    pts = [[float(p[0]), float(p[1])] for p in pts]
+    if closed and len(pts) > 2:
+        pts = pts + [pts[0]]
+    pieces = []
+    for a, b in zip(pts, pts[1:]):
+        length = math.dist(a, b)
+        if length <= 1e-9:
+            continue
+        angle = math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
+        pieces.append(
+            shapes2d.square([length, width])
+            .rotate(angle)
+            .translate([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2])
+        )
+    for q in pts[1:-1]:
+        pieces.append(shapes2d.circle(radius=width / 2).translate([q[0], q[1]]))
+    return union_all_2d(pieces)
+
+
+def union_all_2d(pieces: list):
+    """Union *pieces* with a balanced tree -- ``a | b | c | ...`` over hundreds of pieces
+    nests that many nodes deep, which the SDF backend cannot evaluate and the CSG one need
+    not put up with."""
+    pieces = [p for p in pieces if p is not None]
+    if not pieces:
+        return None
+    while len(pieces) > 1:
+        pieces = [
+            pieces[i] | pieces[i + 1] if i + 1 < len(pieces) else pieces[i]
+            for i in range(0, len(pieces), 2)
+        ]
+    return pieces[0]
+
+
 def PolygonPrism(
     paths,
     h: float,

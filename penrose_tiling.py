@@ -23,7 +23,8 @@
 
 from __future__ import annotations
 import math
-from pybosl2._sdf import shapes2d as _sdf2
+from base_bgtk import stroke_path, union_all_2d
+from pybosl2 import shapes2d
 
 # Golden ratio — used in subdivision
 PHI = (1 + math.sqrt(5)) / 2
@@ -89,14 +90,20 @@ def penrose_triangles_division(triangles: list[list], division: int) -> list[lis
 
 
 def penrose_tiling(
-    width: float, divisions: int = 7, thickness: float = 1, base: int = 5, res: int | None = None
-) -> "_sdf2.PyShape2D":
-    """Generates a 2-D Penrose tiling as a single pybosl2._sdf shape: the "thin" triangles
-    filled solid, the "thicc" triangles drawn as their two open edges stroked `thickness`
-    wide. (The original coloured the two families red/green and built the strokes with
-    _bosl2.stroke(), which has no BOSL2 function form and always aborted the render -- this
-    construction is the first one that actually works in the Python port. Extrude the result
-    with .linear_extrude(height=...) to get a solid.)
+    width: float, divisions: int = 7, thickness: float = 1, base: int = 5
+) -> "shapes2d.Bosl2Shape2D":
+    """Generates a 2-D Penrose tiling as one direct-CSG shape: the "thin" triangles filled
+    solid, the "thicc" triangles drawn as their two open edges stroked `thickness` wide.
+    Extrude the result with .linear_extrude(height=...) to get a solid.
+
+    The tiling is built around the ORIGIN, spanning roughly +/- `width` -- it is not framed
+    on a 0..width box (:class:`~patterns.AreaPattern` moves it onto the region it fills).
+
+    (The original coloured the two families red/green and built the strokes with
+    _bosl2.stroke(), which has no BOSL2 function form and always aborted the render. The
+    port went to SDF to get around that; the strokes are plain CSG rectangles now -- see
+    :func:`~base_bgtk.stroke_path` -- because reaching a CSG lid from an SDF meant meshing the
+    whole tiling, which at lid size produced no geometry at all.)
 
     Usage::
 
@@ -108,13 +115,7 @@ def penrose_tiling(
         divisions: number of recursive subdivisions (default 7)
         thickness: stroke width for "thicc" triangles (default 1)
         base:      number of base sectors (default 5)
-        res:       meshing resolution. Defaults to enough cells that the mesher's grid step
-                   stays at or below the stroke width -- at the library default (20) a
-                   thickness-1 tiling 100 wide meshes with 5-unit cells, which turns the
-                   strokes into dashed lines.
     """
-    if res is None:
-        res = max(20, math.ceil(2 * width / thickness))
     triangles = []
     for i in range(base * 2):
         a1 = (2 * i - 1) * math.pi / (base * 2)
@@ -130,12 +131,8 @@ def penrose_tiling(
     for kind, p1, p2, p3 in final_triangles:
         pts = [_vec_scale(p1, width), _vec_scale(p2, width), _vec_scale(p3, width)]
         if kind == "thin":
-            # Grown a whisker so triangles sharing an edge overlap rather than merely touch:
-            # a min()-union of exactly-abutting SDFs has a zero-level seam along the shared
-            # edge, which the mesher can turn into internal membrane artifacts.
-            pieces.append(_sdf2.polygon2d(pts, res=res).offset(0.001))
+            # Grown a whisker so triangles sharing an edge overlap rather than merely touch.
+            pieces.append(shapes2d.polygon(pts).offset(delta=0.001))
         else:
-            pieces.append(_sdf2.stroke2d(pts, width=thickness, res=res))
-    # union2d, not a linear `|` chain: deep subdivisions produce hundreds of triangles, and a
-    # chain that long overflows Python's recursion limit when the SDF is evaluated.
-    return _sdf2.PyShape2D.union2d(pieces)
+            pieces.append(stroke_path(pts, width=thickness))
+    return union_all_2d(pieces)

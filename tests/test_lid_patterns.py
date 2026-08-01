@@ -24,11 +24,10 @@
 #    ShapeTypes worked; the rest raised, most of them because the layout context they needed
 #    had no way to reach them.
 #
-#    Three levels, cheapest first, because meshing an SDF-backed tiling costs minutes while
-#    BUILDING one costs a second:
-#      1. every pattern FILLS its area           (all 42, ~30s)
-#      2. every CSG pattern lands on a real lid  (measured bounding boxes)
-#      3. every CSG fill actually covers the area it was given
+#    Three levels, cheapest first:
+#      1. every pattern FILLS its area          (all 42)
+#      2. every pattern lands on a real lid     (measured bounding boxes)
+#      3. every fill actually covers the area it was given
 #
 #    EXPECTED_BROKEN is the live inventory of what is still missing, by cause. Shrinking it
 #    is the work; an entry that starts passing fails the staleness test below.
@@ -45,50 +44,29 @@ from render_app import PROJECT_ROOT, measure_python, render_available
 # What does not work yet, by cause. Every entry is a bug, not a preference.
 # ---------------------------------------------------------------------------
 
-#: Patterns whose .scad module was never ported to Python. ShapeType offers them and
-#: ShapeByType imports a module that does not exist in this repo.
-NOT_PORTED = {
-    "LIZARD": "no lizard.py",
-    "VORONOI": "no voronoi.py",
-    "GOOSE": "no goose.py",
-    "CHICKEN": "no kite_tesselation.py / chicken.py",
-    "SHEEP": "no pentagons.py",
-    "BIRD": "no quad_tesselation.py",
-    "FLYING_BIRD": "no hex_tesselation.py",
-}
-
-#: Declared in the ShapeType enum but wired into no branch of ShapeByType.
-UNWIRED = {"HILBERT": "ShapeByType has no branch for it"}
-
-#: Broken inside tesselations.py itself (old Path API vs the pybosl2 numpy Path) --
-#: independent of the pattern system; also in test_all_shapes_render.KNOWN_BROKEN.
-TESSELATION_BUGS = {
-    "DROP": "tesselations.py old Path API ('list' object is not callable)",
-    "PEGASUS": "tesselations.py old Path API ('list' object is not callable)",
-}
-
-#: Aborts the PythonSCAD PROCESS (a BOSL2 region assertion under osuse), so it cannot be
-#: caught in-process -- the sweep below reruns the remainder in a fresh process.
+#: Aborts the PythonSCAD PROCESS -- a BOSL2 region call under osuse that cannot be caught
+#: in-process, so the sweep below reruns the remainder in a fresh process. The one entry
+#: left in the inventory. (Replacing the concentric-offset difference the way
+#: square_tesselation now does was NOT enough; the abort is elsewhere in the leaf's region
+#: work, so this needs the leaf outline moved off osuse region algebra entirely.)
 ABORTS_APP = {
-    "LEAF": "native BOSL2 region difference aborts under osuse",
-    "LEAF_VEINS": "native BOSL2 region difference aborts under osuse",
+    "LEAF": "BOSL2 region work under osuse aborts the process",
+    "LEAF_VEINS": "BOSL2 region work under osuse aborts the process",
 }
 
 #: Cannot FILL at all -- the inventory that has to shrink to zero.
-EXPECTED_BROKEN = {**NOT_PORTED, **UNWIRED, **TESSELATION_BUGS, **ABORTS_APP}
+EXPECTED_BROKEN = {**ABORTS_APP}
 
-#: Fills, but its SDF meshes to nothing at the resolution penrose_tiling picks for a
-#: lid-sized area (res = 2 * width / thickness). A LID-level break, not a fill-level one.
-MESHES_EMPTY = {
-    "PENROSE_TILING_5": "SDF meshes empty at lid size -- penrose_tiling res needs capping",
-    "PENROSE_TILING_7": "SDF meshes empty at lid size -- penrose_tiling res needs capping",
-}
-
-#: Patterns still built as _sdf shapes rather than direct CSG. Crossing to CSG means meshing
-#: the SDF over the whole lid -- minutes per lid -- and reading a bounding box off the result
-#: crashes the app, so these are covered by the fill test only. The 15 pentagon families used
-#: to be here too; pentagon_tilings.py now emits CSG polygons and they are fully covered.
-SDF_BACKED = set(MESHES_EMPTY)
+# Everything else now builds. What used to be here, and what it took:
+#   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD -- the modules ShapeByType
+#     imported were never written, in either language; the tilings are newly authored
+#     (creature_tesselations.py).
+#   * VORONOI, HILBERT -- likewise never written (voronoi.py, hilbert.py); HILBERT was in
+#     the enum but wired into no branch at all.
+#   * DROP, PEGASUS -- two real bugs in square_tesselation: `to_list` is a PROPERTY that was
+#     being called, and an osuse region difference that aborted the process.
+#   * The 15 pentagon families and both Penrose tilings -- were _sdf, so a lid could only be
+#     reached by meshing; both modules emit direct CSG now.
 
 #: The area the tests fill. Deliberately modest: cell count -- and so render cost -- grows
 #: with the AREA, and a compound tiling like DELTOID_TRIHEXAGONAL is ~600 cells on a
@@ -234,7 +212,7 @@ class PatternOnLidTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.names = [n for n in shape_type_names() if n not in EXPECTED_BROKEN and n not in SDF_BACKED]
+        cls.names = [n for n in shape_type_names() if n not in EXPECTED_BROKEN]
         cls.lids, cls.lid_errors = _sweep(_LID_SCRIPT, cls.names)
         cls.fills, cls.fill_errors = _sweep(_FILL_MEASURE_SCRIPT, cls.names)
 

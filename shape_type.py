@@ -303,27 +303,27 @@ def ShapeByType(
             spin=60,
         )
 
-    if t == ShapeType.LIZARD:
-        from lizard import LizardRepeatAtLocation
+    if t in (
+        ShapeType.LIZARD,
+        ShapeType.CHICKEN,
+        ShapeType.SHEEP,
+        ShapeType.FLYING_BIRD,
+        ShapeType.GOOSE,
+        ShapeType.BIRD,
+    ):
+        # Newly authored figurative tilings -- the modules the .scad called for these
+        # (lizard.scad, goose.scad, ...) were never written. See creature_tesselations.
+        import creature_tesselations as _creatures
 
-        x = (math.floor(polygon_grid_rows / 2) - polygon_x) if polygon_x and polygon_grid_rows is not None else 0
-        y = (math.floor(polygon_grid_cols / 2) - polygon_y) if polygon_y and polygon_grid_cols is not None else 0
-        return LizardRepeatAtLocation(size=w, thickness=th / 2, x=x, y=y, outer_offset=0.1)
-
-    if t == ShapeType.CHICKEN:
-        from kite_tesselation import TesselationHexKiteArea
-        from chicken import TesselationChickenHex
-
-        assert polygon_width is not None and polygon_length is not None, (
-            "CHICKEN needs polygon_width/length layout context"
-        )
-
-        return TesselationHexKiteArea(
-            size=w,
-            width=polygon_width,
-            length=polygon_length,
-            children=TesselationChickenHex(size=w, thickness=th / 2, outer_offset=0.1).rotate(30),
-        )
+        builder = {
+            ShapeType.LIZARD: _creatures.lizard2d,
+            ShapeType.CHICKEN: _creatures.chicken2d,
+            ShapeType.SHEEP: _creatures.sheep2d,
+            ShapeType.FLYING_BIRD: _creatures.flying_bird2d,
+            ShapeType.GOOSE: _creatures.goose2d,
+            ShapeType.BIRD: _creatures.bird2d,
+        }[t]
+        return builder(size=w, thickness=th / 2)
 
     if t == ShapeType.VORONOI:
         from voronoi import Voronoi
