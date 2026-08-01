@@ -37,9 +37,11 @@ from pybosl2 import shapes2d
 from pybosl2.regions import Path, Region
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse(BOSL2_STD_PATH)
+# No osuse() here any more: every region operation this file used to make through the
+# BOSL2 FFI (offset_stroke / union / intersection / difference) is direct 2-D CSG now.
+# That is not just tidiness -- a failing assert inside an osuse'd .scad function ABORTS THE
+# PROCESS instead of raising, which is what made the leaf tilings unusable and unfixable
+# from Python. See tests/repro_osuse_assert_aborts.py.
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -416,8 +418,15 @@ def tesselation_leaf_outline_make_polygon(section_height: float, section: float)
 
 def tesselation_leaf_outline_make_veins(
     calc_thickness: float, section_height: float, section: float, calc_vein_thickness: float
-) -> list[list[float]]:
-    """Internal region data for the leaf veins."""
+):
+    """Internal: the leaf's veins as 2-D geometry, clipped to the leaf outline.
+
+    Direct CSG throughout. This used to be osuse'd BOSL2 region algebra
+    (offset_stroke/union/intersection), which is fatal: a failing assert inside an osuse'd
+    function ABORTS THE PROCESS rather than raising, and this construction tripped one --
+    see tests/repro_osuse_assert_aborts.py. stroke_path() is the native stand-in for
+    offset_stroke(), and the region booleans are just `|` and `&` on shapes.
+    """
     vein_base_x = -section_height * 2 + calc_thickness
     vein_side_x = calc_vein_thickness / 2
     vein_side_y = section * 2 - calc_vein_thickness
@@ -427,77 +436,37 @@ def tesselation_leaf_outline_make_veins(
     len_bottom_vein = math.sqrt((vein_base_x - vein_side_x) ** 2 + vein_side_y**2)
     mini_seg = len_bottom_vein / 7
 
-    def stroke_region(p1: list[float], p2: list[float], width: float = calc_vein_thickness) -> list[list[float]]:
-        return _bosl2.make_region(_bosl2.offset_stroke([p1, p2], width=width))
+    def vein(p1: list[float], p2: list[float], width: float = calc_vein_thickness):
+        return stroke_path([p1, p2], width=width)
 
-    main_stem = stroke_region([vein_base_x, 0], [section_height * 2 - calc_thickness, 0])
-    side_a = stroke_region([vein_base_x, 0], [vein_side_x, vein_side_y])
-    side_b = stroke_region([vein_base_x, 0], [-vein_side_x, -vein_side_y])
+    def twig(end: list[float], angle: float):
+        """One little side twig, drawn along the bottom vein then swung into place."""
+        return stroke_path(
+            [[mini_seg * (i + 1.2), -calc_vein_thickness / 4], end], width=calc_vein_thickness
+        ).rotate(angle).translate([vein_base_x, 0])
 
-    little_veins = []
+    pieces = [
+        vein([vein_base_x, 0], [section_height * 2 - calc_thickness, 0]),   # main stem
+        vein([vein_base_x, 0], [vein_side_x, vein_side_y]),                 # side a
+        vein([vein_base_x, 0], [-vein_side_x, -vein_side_y]),               # side b
+    ]
+
     for i in range(4):
         x0 = section_height - section_height * 4 / 2 + vein_spacing * i
         x1 = section_height - section_height * 3 / 2 + 20 + vein_spacing * i
-        little_veins.append(stroke_region([x0, 0], [x1, 15]))
-        little_veins.append(stroke_region([x0, 0], [x1, -15]))
+        pieces.append(vein([x0, 0], [x1, 15]))
+        pieces.append(vein([x0, 0], [x1, -15]))
 
-        a1 = (
-            Path(
-                _bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2.5 - calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                )
-            )
-            .rot(90 - line_angle)
-            .move([vein_base_x, 0])
-        )
-        a2 = (
-            Path(
-                _bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2 + calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                )
-            )
-            .rot(90 - line_angle)
-            .move([vein_base_x, 0])
-        )
-        a3 = (
-            Path(
-                _bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, -mini_seg * 2],
-                    ],
-                    width=calc_vein_thickness,
-                )
-            )
-            .rot(-(90 - line_angle))
-            .move([vein_base_x, 0])
-        )
-        a4 = (
-            Path(
-                _bosl2.offset_stroke(
-                    [
-                        [mini_seg * (i + 1.2), -calc_vein_thickness / 4],
-                        [mini_seg * (i + 2) + mini_seg * 3, mini_seg * 2.5 + calc_vein_thickness / 4],
-                    ],
-                    width=calc_vein_thickness,
-                )
-            )
-            .rot(-(90 - line_angle))
-            .move([vein_base_x, 0])
-        )
-        little_veins.append(_bosl2.union([a1, a2, a3, a4]))
+        run = mini_seg * (i + 2) + mini_seg * 3
+        pieces.append(twig([run, -mini_seg * 2.5 - calc_vein_thickness / 4], 90 - line_angle))
+        pieces.append(twig([run, mini_seg * 2 + calc_vein_thickness / 4], 90 - line_angle))
+        pieces.append(twig([run, -mini_seg * 2], -(90 - line_angle)))
+        pieces.append(twig([run, mini_seg * 2.5 + calc_vein_thickness / 4], -(90 - line_angle)))
 
-    region_union = _bosl2.union([main_stem, _bosl2.union([side_a, side_b, _bosl2.union(little_veins)])])
-    boundary = _bosl2.make_region(tesselation_leaf_outline_make_polygon(section_height=section_height, section=section))
-    return _bosl2.intersection(region_union, boundary)
+    boundary = shapes2d.polygon(
+        tesselation_leaf_outline_make_polygon(section_height=section_height, section=section)
+    )
+    return union_all_2d(pieces) & boundary
 
 
 def tesselation_leaf_outline(
@@ -521,19 +490,18 @@ def tesselation_leaf_outline(
     section_height = section * math.sqrt(3) / 2
 
     outline = tesselation_leaf_outline_make_polygon(section=section, section_height=section_height)
-    ring = _bosl2.difference(outline, Path(outline).offset(delta=-calc_thickness))
+    shape = shapes2d.polygon(outline)
+    ring = shape - shapes2d.polygon(outline).offset(delta=-calc_thickness)
 
-    if with_veins:
-        veins = tesselation_leaf_outline_make_veins(
-            calc_thickness=calc_thickness,
-            section_height=section_height,
-            section=section,
-            calc_vein_thickness=calc_vein_thickness,
-        )
-    else:
-        veins = _bosl2.make_region([[-100, -100], [-101, -100], [-101, -101]])
+    if not with_veins:
+        return ring
 
-    return _bosl2.union(ring, veins)
+    return ring | tesselation_leaf_outline_make_veins(
+        calc_thickness=calc_thickness,
+        section_height=section_height,
+        section=section,
+        calc_vein_thickness=calc_vein_thickness,
+    )
 
 
 def tesselation_leaf_outline_three(
@@ -556,15 +524,18 @@ def tesselation_leaf_outline_three(
     section = size / 4
     section_height = section * math.sqrt(3) / 2
 
-    leaf = tesselation_leaf_outline(size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness)
-    # `leaf` is REGION data (a list of outlines of differing lengths); Path's move/rot only
-    # handle one path at a time, so transform each outline separately rather than feeding
-    # them the ragged region wholesale.
-    p1 = [Path(path).move([0, -section * 3 / 2]) for path in leaf]
-    p2 = [Path(path).rot(180).move([-section_height * 2, section * 3 / 2]) for path in leaf]
-    p3 = [Path(path).move([section_height * 2, section / 2]) for path in leaf]
-    data = _bosl2.union([p1, p2, p3])
-    return region(data)
+    # `leaf` is 2-D GEOMETRY now, not ragged region data, so the three copies are three
+    # ordinary transforms instead of a per-outline rebuild.
+    def leaf():
+        return tesselation_leaf_outline(
+            size=size, thickness=thickness, with_veins=with_veins, vein_thickness=vein_thickness
+        )
+
+    return (
+        leaf().translate([0, -section * 3 / 2])
+        | leaf().rotate(180).translate([-section_height * 2, section * 3 / 2])
+        | leaf().translate([section_height * 2, section / 2])
+    )
 
 
 # ---------------------------------------------------------------------------

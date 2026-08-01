@@ -32,6 +32,17 @@ from base_bgtk import *
 from pybosl2 import shapes2d
 
 import math
+import os
+import sys
+
+# The figurative tilings (lizard, goose, chicken, sheep, bird, flying bird, voronoi) live in
+# the tesselations/ DIRECTORY. It cannot be imported as a package -- the module
+# tesselations.py shadows it -- so the directory itself goes on the path and the plain
+# `from lizard import ...` imports below resolve. Without this they raise
+# ModuleNotFoundError and seven ShapeTypes are unusable, which is exactly what had happened.
+_TESSELATION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tesselations")
+if os.path.isdir(_TESSELATION_DIR) and _TESSELATION_DIR not in sys.path:
+    sys.path.append(_TESSELATION_DIR)
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -303,27 +314,68 @@ def ShapeByType(
             spin=60,
         )
 
-    if t in (
-        ShapeType.LIZARD,
-        ShapeType.CHICKEN,
-        ShapeType.SHEEP,
-        ShapeType.FLYING_BIRD,
-        ShapeType.GOOSE,
-        ShapeType.BIRD,
-    ):
-        # Newly authored figurative tilings -- the modules the .scad called for these
-        # (lizard.scad, goose.scad, ...) were never written. See creature_tesselations.
-        import creature_tesselations as _creatures
+    if t == ShapeType.LIZARD:
+        from lizard import LizardRepeatAtLocation
 
-        builder = {
-            ShapeType.LIZARD: _creatures.lizard2d,
-            ShapeType.CHICKEN: _creatures.chicken2d,
-            ShapeType.SHEEP: _creatures.sheep2d,
-            ShapeType.FLYING_BIRD: _creatures.flying_bird2d,
-            ShapeType.GOOSE: _creatures.goose2d,
-            ShapeType.BIRD: _creatures.bird2d,
-        }[t]
-        return builder(size=w, thickness=th / 2)
+        x = (math.floor(polygon_grid_rows / 2) - polygon_x) if polygon_x and polygon_grid_rows is not None else 0
+        y = (math.floor(polygon_grid_cols / 2) - polygon_y) if polygon_y and polygon_grid_cols is not None else 0
+        return LizardRepeatAtLocation(size=w, thickness=th / 2, x=x, y=y, outer_offset=0.1)
+
+    if t == ShapeType.CHICKEN:
+        from chicken import TesselationChickenHex
+        from kite_tesselation import TesselationHexKiteArea
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "CHICKEN needs polygon_width/length layout context"
+        )
+        return TesselationHexKiteArea(
+            size=w,
+            width=polygon_width,
+            length=polygon_length,
+            children=TesselationChickenHex(size=w, thickness=th / 2, outer_offset=0.1).rotate([0, 0, 30]),
+        )
+
+    if t == ShapeType.GOOSE:
+        from goose import TesselationGooseArea
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "GOOSE needs polygon_width/length layout context"
+        )
+        return TesselationGooseArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
+
+    if t == ShapeType.BIRD:
+        from quad_tesselation import TesselationBirdArea
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "BIRD needs polygon_width/length layout context"
+        )
+        return TesselationBirdArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
+
+    if t == ShapeType.FLYING_BIRD:
+        from hex_tesselation import TesselationFlyingBirdArea
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "FLYING_BIRD needs polygon_width/length layout context"
+        )
+        return TesselationFlyingBirdArea(width=polygon_width, length=polygon_length, thickness=th, size=w)
+
+    if t == ShapeType.SHEEP:
+        from pentagons import SheepTesselationArea
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "SHEEP needs polygon_width/length layout context"
+        )
+        return SheepTesselationArea(size=w, thickness=th / 2, width=polygon_width, length=polygon_length)
+
+    if t == ShapeType.HILBERT:
+        from hilbert import hilbert_curve
+
+        assert polygon_width is not None and polygon_length is not None, (
+            "HILBERT needs polygon_width/length layout context"
+        )
+        # The one shape in the enum with no implementation in EITHER stack -- there is a
+        # wiki image for it but no code, here or in .scad. hilbert.py is new.
+        return hilbert_curve(width=polygon_width, length=polygon_length, size=w, thickness=th)
 
     if t == ShapeType.VORONOI:
         from voronoi import Voronoi

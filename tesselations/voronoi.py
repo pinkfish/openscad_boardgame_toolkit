@@ -136,4 +136,7 @@ def Voronoi(
     base = square([width, length])
     if cutters is None:
         return base
-    return base - cutters.offset(r=corner_size, _fn=16)
+    # NATIVE offset here (base/cutters are native handles): its signature is
+    # offset(object, r, delta) -- it has no _fn=, and passing one raises
+    # "Error during parsing offset(object,r,delta)".
+    return base - cutters.offset(r=corner_size)

@@ -27,9 +27,11 @@
 #    shapes.py/tesselations.py bosl2 migration must fix; they are excluded from the build
 #    assertion and listed by the (skipped) test_known_broken_documented catalogue.
 
+import re
 import unittest
+from pathlib import Path
 
-from render_app import render_python, render_available
+from render_app import PROJECT_ROOT, render_python, render_available
 
 # name -> call expression (all build symbolically, no meshing).
 SHAPES2D = {
@@ -44,9 +46,61 @@ SHAPES2D = {
     "d20_outline2d": "d20_outline2d(20, 1)", "half_eye2d": "half_eye2d(30)", "side_eye2d": "side_eye2d(30)",
     "australia_map2d": "australia_map2d(30)", "train_outline": "train_outline(20)",
     "wagon_outline": "wagon_outline(20)", "portugal_castle": "portugal_castle(1, 20)",
+    # The *_outline variants: the same figures drawn as outlines rather than solids. Every
+    # one of these was ported and then never built by any test.
+    "sword2d_outline": "sword2d_outline(30, 10)",
+    "crossbow2d_outline": "crossbow2d_outline(30, 10)",
+    "sledgehammer2d_outline": "sledgehammer2d_outline(30, 10)",
+    "torch2d_outline": "torch2d_outline(30, 10)",
+    "shoe2d_outline": "shoe2d_outline(20)",
+    "bag2d_outline": "bag2d_outline(20)",
+    "saw_blade2d_outline": "saw_blade2d_outline(20)",
+    # Pure-number helpers (no geometry) -- assert they return something usable.
+    "australia_map_width": "float(australia_map_width(30))",
+    "ruins2d_width": "float(ruins2d_width(30))",
 }
 
+#: A pair of edge profiles, the input the tesselation primitives take: each runs x = -0.5
+#: .. +0.5 with y the sideways excursion.
+_PROFILES = "[[[-0.5, 0], [0, 0.2], [0.5, 0]], [[-0.5, 0], [0, -0.2], [0.5, 0]]]"
+_HEX_PROFILES = _PROFILES[:-1] + ", [[-0.5, 0], [0.3, 0.2], [0.5, 0]]]"
+
 TESSELLATIONS = {
+    # The tesselation PRIMITIVES -- the layout and edge-distortion machinery every figurative
+    # tiling is built on (creature_tesselations.py). Ported, but nothing built them.
+    "hexagonal_tesselation": f"hexagonal_tesselation(points={_HEX_PROFILES}, radius=10)",
+    "square_tesselation": f"square_tesselation(points={_PROFILES}, size=[20, 20], thickness=1)",
+    "tesselation_side_line": f"tesselation_side_line(path=[[0, 0], [10, 0]], side={_PROFILES}[0])",
+    "tesselation_polygon": (
+        f"tesselation_polygon(path=[[0, 0], [10, 0], [10, 10], [0, 10]], side_indexes=[0, 1, 0, 1],"
+        f" sides={_PROFILES}, flips=[0, 0, 0, 0])"
+    ),
+    "hexagonal_tesselation_generate_edge": (
+        f"hexagonal_tesselation_generate_edge(pts={_PROFILES}[0], side_length=10)"
+    ),
+    "square_tesselation_generate_edge": f"square_tesselation_generate_edge(pts={_PROFILES}[0], side_length=10)",
+    # Grid layout helpers.
+    "hexagon_tesselation_repeat_at_location": (
+        "hexagon_tesselation_repeat_at_location(x=1, y=1, size=10, children=circle(r=3))"
+    ),
+    "hexagon_tesselation_repeat": "hexagon_tesselation_repeat(rows=2, cols=2, size=10, children=circle(r=3))",
+    "triangle_tesselation_repeat_at_location": (
+        "triangle_tesselation_repeat_at_location(x=1, y=1, size=10, children=circle(r=3))"
+    ),
+    "triangle_tesselation_repeat": "triangle_tesselation_repeat(rows=2, cols=2, size=10, children=circle(r=3))",
+    # Leaf and deltoid internals.
+    "tesselation_leaf_outline_make_polygon": "tesselation_leaf_outline_make_polygon(section_height=4.3, section=5)",
+    "tesselation_leaf_outline_make_veins": (
+        "tesselation_leaf_outline_make_veins(calc_thickness=0.5, section_height=4.3, section=5,"
+        " calc_vein_thickness=0.25)"
+    ),
+    "deltoid_trihexagonal_tiling_get_points": (
+        "deltoid_trihexagonal_tiling_get_points(pts=[[10, 0], [5, 8], [-5, 8], [-10, 0], [-5, -8], [5, -8]], i=0)"
+    ),
+    "deltoid_trihexagonal_tiling_inner_parts": (
+        "deltoid_trihexagonal_tiling_inner_parts("
+        "pts=[[10, 0], [5, 8], [-5, 8], [-10, 0], [-5, -8], [5, -8]], thickness=1)"
+    ),
     "tesselation_drop": "tesselation_drop([20, 20])",
     "tesselation_leaf": "tesselation_leaf(15)",
     "tesselation_leaf_outline": "tesselation_leaf_outline(15)",
@@ -60,15 +114,17 @@ TESSELLATIONS = {
 
 # Pre-existing breakage (NOT the _sdf migration) -- a later shapes.py/tesselations.py bosl2
 # migration must fix these. Excluded from the build assertion; catalogued below.
-KNOWN_BROKEN = {
-    # shapes.py is fully migrated to bosl2 primitives now (native circle/hull/square/polygon
-    # -> shapes2d.* / .hull()); only these tesselations.py entries remain, on a deeper
-    # tesselations Path-API / osuse-region migration (separate from the shape primitives).
-    "tesselation_drop": "tesselations.py old Path API (Path '+' concat / _deduplicate) vs pybosl2 numpy Path",
-    "tesselation_pegasus": "tesselations.py old Path API (Path concat -> 'list not callable') vs pybosl2 numpy Path",
-    "tesselation_leaf_outline": "native BOSL2 region difference aborts under osuse",
-    "tesselation_leaf_outline_three": "native BOSL2 region difference aborts under osuse",
-}
+KNOWN_BROKEN: dict[str, str] = {}
+# EMPTY -- every shape and tessellation builds. What used to be listed here:
+#   * tesselation_drop / tesselation_pegasus -- `Path.to_list` is a PROPERTY that was being
+#     CALLED ("'list' object is not callable"), which broke every square tesselation.
+#   * tesselation_leaf_outline / _three -- did their region algebra through osuse'd BOSL2,
+#     where a failing assert ABORTS THE PROCESS rather than raising
+#     (tests/repro_osuse_assert_aborts.py). Rebuilt on direct 2-D CSG; tesselations.py no
+#     longer calls osuse at all.
+
+#: The 3-D polyhedra, meshed together by test_polyhedra_mesh below.
+SHAPES3D = ("dodecahedron", "octahedron", "icosahedron", "tetrahedron", "trapezohedron")
 
 _MARKER = "import pybosl2.shapes3d as _s3\n_s3.cuboid([1, 1, 1]).show()\n"
 
@@ -89,7 +145,7 @@ class Shapes3dRenderTest(unittest.TestCase):
     def test_polyhedra_mesh(self):
         body = (
             "from base_bgtk import *\n"
-            "from shapes3d import dodecahedron, octahedron, icosahedron, tetrahedron, trapezohedron\n"
+            "from shapes3d import " + ", ".join(SHAPES3D) + "\n"
             "(dodecahedron(18) | octahedron(14).translate([28,0,0]) | icosahedron(14).translate([54,0,0]) "
             "| tetrahedron(14).translate([80,0,0]) | trapezohedron(14).translate([106,0,0])).show()\n"
         )
@@ -121,10 +177,41 @@ class TessellationConstructTest(unittest.TestCase):
         self.assertGreater(r.facets or 0, 0)
 
 
-class KnownBrokenCatalogue(unittest.TestCase):
-    @unittest.skip("catalogue of pre-existing shape breakage (needs shapes/tesselations bosl2 migration)")
-    def test_known_broken_documented(self):
-        pass  # KNOWN_BROKEN above lists each broken shape + reason.
+class CoverageTest(unittest.TestCase):
+    """Every public shape and tessellation must be BUILT by the sweeps above.
+
+    Name parity with the .scad originals was never the problem -- both files are fully
+    ported (the only .scad names with no Python counterpart are nested helper modules
+    living inside their parent). The gap was COVERAGE: 23 ported public functions, including
+    seven whole `*_outline` shapes and the entire tessellation primitive layer that every
+    figurative tiling is built on, were never built by any test. Add a shape without adding
+    it to SHAPES2D / TESSELLATIONS and this fails."""
+
+    #: Not geometry, and nothing to build: module-level plumbing.
+    EXEMPT = {"region"}
+
+    def _public_functions(self, module: str) -> list[str]:
+        src = (Path(PROJECT_ROOT) / module).read_text()
+        return [
+            m.group(1)
+            for m in re.finditer(r"^def ([a-z][a-z0-9_]*)\(", src, re.M)
+            if m.group(1) not in self.EXEMPT
+        ]
+
+    def test_every_public_shape_is_built(self):
+        built = set(SHAPES2D) | set(TESSELLATIONS) | set(SHAPES3D)
+        for module in ("shapes.py", "tesselations.py", "shapes3d.py"):
+            with self.subTest(module=module):
+                missing = sorted(set(self._public_functions(module)) - built)
+                self.assertEqual(
+                    [], missing,
+                    f"{module}: public functions that no test builds -- add them to "
+                    f"SHAPES2D / TESSELLATIONS: {missing}",
+                )
+
+    def test_known_broken_is_empty(self):
+        """Every shape builds. An entry here is a bug, not a preference."""
+        self.assertEqual({}, KNOWN_BROKEN, f"shapes still broken: {sorted(KNOWN_BROKEN)}")
 
 
 if __name__ == "__main__":

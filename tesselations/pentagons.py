@@ -49,9 +49,9 @@ def SheepTesselation(size: float, x: float, y: float, thickness: float) -> types
         y:    y location
         thickness: thickness of the sheep
     Returns:
-        a tile-data object with .points, .x_offset, .y_offset (see PentagonTesselationData)
+        a tile-data object with .points, .x_offset, .y_offset (see pentagon_tesselation_data)
     """
-    from pentagon_tilings import PentagonTesselationData
+    from pentagon_tilings import pentagon_tesselation_data
 
     line3 = Bezier.flatten(
         [
@@ -74,7 +74,7 @@ def SheepTesselation(size: float, x: float, y: float, thickness: float) -> types
     line1 = [[0, 0], [1, 0]]
     line3_rev = list(reversed([[abs(i[0] - 1), i[1]] for i in line3]))
 
-    return PentagonTesselationData(
+    return pentagon_tesselation_data(
         "R2",
         size,
         x,
@@ -114,8 +114,10 @@ def SheepTesselationArea(size: float, width: float, length: float, thickness: fl
     shape = None
     for x in range(rows + 1):
         for y in range(cols + 1):
+            # data.points is already 2-D geometry (pentagon_tilings.py emits direct CSG);
+            # it used to be region point-data that needed region() to become a shape.
             piece = (
-                region(data.points)
+                data.points
                 .translate([size * x * x_offset[0], size * x * x_offset[1], 0])
                 .translate([size * y * y_offset[0], size * y * y_offset[1], 0])
             )

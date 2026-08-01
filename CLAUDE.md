@@ -46,7 +46,13 @@ PYTHONSCAD_BIN=/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD \
 
 ## Real-render environment (macOS, this machine)
 
-- Use `/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD` via `PYTHONSCAD_BIN`. The plain `PythonSCAD.app` build's hardened runtime rejects the installed numpy (`dlopen ... _multiarray_umath ...` failures in anything importing bosl2/pysolidfive), so nearly all renders fail under it.
+- Use `/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD` via `PYTHONSCAD_BIN` (v1.0.0, Jul 2026 build; embeds Python 3.14.5).
+- **An official release build cannot load numpy — but it is a signing problem, not a dead end.** The released app is signed WITHOUT `com.apple.security.cs.disable-library-validation`, so macOS library validation refuses to `dlopen` any third-party C extension (`_multiarray_umath ... different Team IDs`). The dev build carries that entitlement, which is the only reason it works. Re-signing a release copy with it fixes it completely — verified on v1.1.2, where the full box suite then passes 26/26:
+  ```sh
+  codesign -d --entitlements - --xml /Applications/PythonSCAD-dev.app > /tmp/ent.plist
+  codesign --force --deep --sign - --entitlements /tmp/ent.plist --options runtime /Applications/PythonSCAD-1.1.2.app
+  ```
+  (Ad-hoc signing the `.so` files alone is NOT enough — it gets past "unsigned" only to fail on the Team ID check.)
 - Modules that `osuse()` BOSL2 need a patched copy whose `assert(version_num()>=20210100)` line is neutralized: `~/Documents/OpenSCAD/libraries-pythonscad-patched/BOSL2` (override with `BOSL2_SCAD_DIR`). `osuse()` resolves relative to the process CWD, so render helpers run the binary with `cwd=` that directory.
 - `render_script()` (in `pysolidfive/tests/render_pysolidfive.py`) is the one subprocess entry point every render test shares; it pins `--backend Manifold` and parses `Triangles:`/`Facets:` from stderr to detect real geometry. Render tests skip gracefully when the binary or BOSL2 dir is missing.
 

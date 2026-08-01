@@ -92,7 +92,10 @@ def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0
         ],
     )
     merged = Path(path).merge_collinear()
-    return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=polygon(merged))
+    # polygon() is the NATIVE builtin: it rejects a pybosl2 Path / numpy points ("Error
+    # during parsing polygon(points,paths)"), so hand it plain float pairs.
+    pts = [[float(x), float(y)] for x, y in (merged.to_list if hasattr(merged, "to_list") else merged)]
+    return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=polygon(pts))
 
 
 def TesselationGooseBlock(size: float, thickness: float, outer_offset: float = 0) -> PyOpenSCAD:

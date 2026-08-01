@@ -27,14 +27,17 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2.paths import Path
+from pybosl2.regions import Region
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. HexagonalTesselation /
-# HexagonTesselationRepeatAtLocation / HexagonTesselationRepeat are imported
+# project is reached through normal Python imports. hexagonal_tesselation /
+# hexagon_tesselation_repeat_at_location / hexagon_tesselation_repeat are imported
 # lazily below since tesselations is a large sibling module converted
 # separately.
-_bosl2 = osuse("BOSL2/std.scad")
+# No osuse(): the region algebra here runs on pybosl2's own Region booleans. A failing
+# assert inside an osuse'd .scad function aborts the whole process rather than raising,
+# which is what this module used to do. See tests/repro_osuse_assert_aborts.py.
 
 _LIZARD_TOP = [
     [-0.5, 0.0], [-0.15, -0.3], [-0.0, -0.3], [0.25, -0.05], [0.05, 0.35],
@@ -65,17 +68,22 @@ def LizardHexTesselation(radius: float, thickness: float = 0, outer_offset: floa
         thickness: thickness of the lines (default 0)
         outer_offset: extra space to put around the shape (default 0)
     """
-    from tesselations import HexagonalTesselation
+    from tesselations import hexagonal_tesselation
 
     sized_lizard_points = Path(
-        HexagonalTesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius)
+        hexagonal_tesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius)
     ).merge_collinear()
     if outer_offset == 0 and thickness == 0:
         return sized_lizard_points
 
-    outer = sized_lizard_points.offset(delta=outer_offset)
-    inner = sized_lizard_points.offset(delta=-thickness) if thickness > 0 else []
-    return _bosl2.difference(outer, inner)
+    # A Region, not osuse'd BOSL2 region data: a failing assert inside an osuse'd .scad
+    # function ABORTS THE PROCESS instead of raising, and this call did exactly that (see
+    # tests/repro_osuse_assert_aborts.py). The two offsets are concentric, so the difference
+    # is just "outline plus hole".
+    outer = sized_lizard_points.offset(delta=outer_offset).to_list
+    if thickness <= 0:
+        return Region([outer])
+    return Region([outer, sized_lizard_points.offset(delta=-thickness).to_list])
 
 
 def LizardSingle(size: float) -> PyOpenSCAD:
@@ -123,14 +131,19 @@ def HexagonalTesselationTriangle(size: float, pts: list) -> list:
     side_length = 2 * size * math.sin(math.radians(30))
     apothem = math.sqrt(3) / 2 * side_length
 
-    combined = _bosl2.union(
-        [
-            pts,
-            Path(pts).rot(240).move([apothem / 2, size * 3 / 4]),
-            Path(pts).rot(120).move([apothem, 0]),
-        ]
+    # pybosl2 Region has union/difference/intersection but no rotate, so each outline is
+    # rotated as a Path and the rotated copies are rebuilt into Regions to union. (Was an
+    # osuse'd BOSL2 union -- see the note in LizardHexTesselation.)
+    def placed(angle: float, move: list[float]) -> list:
+        return [Path(path).rot(angle).move(move).to_list for path in pts.paths]
+
+    # The three copies ABUT rather than overlap, so no boolean is needed -- and asking GEOS
+    # to union outlines that share edges exactly raises "TopologyException: side location
+    # conflict". Collecting the outlines into one Region draws the same figure.
+    combined = Region(
+        list(pts.paths) + placed(240, [apothem / 2, size * 3 / 4]) + placed(120, [apothem, 0])
     )
-    return Path(combined).move([-apothem / 2, size])
+    return combined.translate([-apothem / 2, size])
 
 
 def LizardTriangle(size: float, thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
@@ -149,7 +162,9 @@ def LizardTriangle(size: float, thickness: float = 0, outer_offset: float = 0) -
         outer_offset: how much padding on the outside (default 0)
     """
     pts = LizardHexTesselation(radius=size / 2, thickness=thickness, outer_offset=outer_offset)
-    return region(HexagonalTesselationTriangle(size=size, pts=pts))
+    # HexagonalTesselationTriangle works in Region space; region() turns its outlines into
+    # 2-D geometry (even-odd, so the inner outline reads as a hole).
+    return region(HexagonalTesselationTriangle(size=size, pts=pts).paths)
 
 
 def LizardRepeatAtLocation(x: int, y: int, size: float, thickness: float, outer_offset: float = 0) -> PyOpenSCAD:
@@ -167,14 +182,14 @@ def LizardRepeatAtLocation(x: int, y: int, size: float, thickness: float, outer_
         thickness: the thickness of the lines
         outer_offset: extra space to put around the shape (default 0)
     """
-    from tesselations import HexagonTesselationRepeatAtLocation
+    from tesselations import hexagon_tesselation_repeat_at_location
 
     assert x is not None, "Need to have a x specified"
     assert y is not None, "Need to have a y specified"
     assert size > 0, f"Need to have a size specified size={size}"
 
     triangle = LizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset)
-    return HexagonTesselationRepeatAtLocation(x=x, y=y, size=size, children=triangle)
+    return hexagon_tesselation_repeat_at_location(x=x, y=y, size=size, children=triangle)
 
 
 def LizardRepeat(rows: int, cols: int, size: float, thickness: float, outer_offset: float = 0.01) -> PyOpenSCAD:
@@ -191,7 +206,7 @@ def LizardRepeat(rows: int, cols: int, size: float, thickness: float, outer_offs
         thickness: the thickness of the lines
         outer_offset: offset for the outer edge (default 0.01)
     """
-    from tesselations import HexagonTesselationRepeat
+    from tesselations import hexagon_tesselation_repeat
 
     assert rows > 0, "Need to have a rows specified"
     assert cols > 0, "Need to have a cols specified"
@@ -199,4 +214,4 @@ def LizardRepeat(rows: int, cols: int, size: float, thickness: float, outer_offs
     assert thickness > 0, "Need to have a thickness specified"
 
     triangle = LizardTriangle(size=size, thickness=thickness, outer_offset=outer_offset)
-    return HexagonTesselationRepeat(rows=rows, cols=cols, size=size, children=triangle)
+    return hexagon_tesselation_repeat(rows=rows, cols=cols, size=size, children=triangle)

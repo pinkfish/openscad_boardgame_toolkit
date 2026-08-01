@@ -306,6 +306,7 @@ class AreaPattern(Pattern):
 
 #: Tilings whose tile places itself from its cell index, indexed from the grid CENTRE.
 _CENTRE_INDEXED_TILINGS = {
+    ShapeType.LIZARD,
     ShapeType.PENTAGON_R1,
     ShapeType.PENTAGON_R3,
     ShapeType.PENTAGON_R4,
@@ -338,6 +339,11 @@ _CORNER_INDEXED_TILINGS = {
 _AREA_PATTERNS = {
     ShapeType.VORONOI,
     ShapeType.HILBERT,
+    ShapeType.GOOSE,
+    ShapeType.CHICKEN,
+    ShapeType.SHEEP,
+    ShapeType.BIRD,
+    ShapeType.FLYING_BIRD,
     ShapeType.PENTAGON_R2,
 }
 
@@ -350,11 +356,6 @@ _CENTRED_AREA_PATTERNS = {
 
 #: Shape types laid out on a space-filling (dense) lattice rather than a spaced grid.
 _DENSE_TYPES = {
-    # The hex-lattice figurative tilings (see creature_tesselations).
-    ShapeType.LIZARD,
-    ShapeType.CHICKEN,
-    ShapeType.SHEEP,
-    ShapeType.FLYING_BIRD,
     ShapeType.DENSE_HEX,
     ShapeType.DENSE_TRIANGLE,
     ShapeType.DELTOID_TRIHEXAGONAL_KITE,

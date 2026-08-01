@@ -37,15 +37,18 @@ import pybosl2.masking
 import pybosl2.shapes3d
 from pybosl2 import shapes2d
 from pybosl2.paths import Path
+from pybosl2.regions import Region
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior
 
 from typing import Callable
 
 
-# BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports.
-_bosl2 = osuse(BOSL2_STD_PATH)
+# No osuse() here: the region algebra the raised-floor ("extra_floors") geometry needs runs
+# on pybosl2's own Region booleans instead. That is a crash-avoidance measure, not a
+# preference -- a failing assert inside an osuse'd .scad function ABORTS THE PROCESS rather
+# than raising, so bad outline input could not even be reported. See
+# tests/repro_osuse_assert_aborts.py.
 
 STACKABLE_TYPE_NONE = 0
 STACKABLE_TYPE_INSIDE = 1
@@ -261,18 +264,23 @@ class PathBoxWithNoLid:
         """The outline variants every later stage reads.
 
         Region algebra is only needed when extra_floors overlap the outline. Without them --
-        every box in examples/ -- make_region(path) is just [path] and the union/difference of
-        a single region is that region, so this collapses to the path itself and stays pure
-        Python. (See the module note on the remaining extra_floors osuse dependency.)
+        every box in examples/ -- the union/difference of a single region is that region, so
+        this collapses to the path itself.
         """
         wall = self.wall_thickness
         self.sorted_floors = SortExtraFloors(self.extra_floors)
         if self.sorted_floors:
-            region_outside = _bosl2.union(
-                [_bosl2.make_region(self.path)] + [_bosl2.make_region(f.path) for f in self.sorted_floors]
-            )
-            self.outside_path = region_outside[0]
-            self.main_path = _bosl2.difference([self.path] + [f.path for f in self.sorted_floors])
+            # pybosl2's own Region booleans, NOT the osuse'd BOSL2 ones: a failing assert
+            # inside an osuse'd .scad function aborts the whole process instead of raising
+            # (tests/repro_osuse_assert_aborts.py), and a degenerate extra-floor outline is
+            # exactly the sort of input that trips one. These are pure Python.
+            outside = Region([self.path])
+            main = Region([self.path])
+            for floor in self.sorted_floors:
+                outside = outside.union(Region([floor.path]))
+                main = main.difference(Region([floor.path]))
+            self.outside_path = outside.paths[0]
+            self.main_path = main.paths[0]
         else:
             self.outside_path = self.path
             self.main_path = self.path
@@ -386,11 +394,14 @@ class PathBoxWithNoLid:
         if f.floor_height <= 0:
             return None
         wall = self.wall_thickness
-        joined_outer = Path(_bosl2.union([f.path, self.path])).offset(radius=-wall).round_corners(radius=wall)
-        inner_union = [Path(f.path).offset(delta=wall), self.inner_path] + [
-            Path(other.path).offset(delta=wall) for other in self.sorted_floors if other.floor_height > f.floor_height
-        ]
-        region = _bosl2.intersection(joined_outer, _bosl2.union(inner_union))
+        joined = Region([f.path]).union(Region([self.path]))
+        joined_outer = Path(joined.paths[0]).offset(radius=-wall).round_corners(radius=wall)
+
+        inner = Region([Path(f.path).offset(delta=wall)]).union(Region([self.inner_path]))
+        for other in self.sorted_floors:
+            if other.floor_height > f.floor_height:
+                inner = inner.union(Region([Path(other.path).offset(delta=wall)]))
+        region = Region([joined_outer]).intersection(inner).paths
         return PolygonPrism(
             region,
             h=self.height - self.floor_thickness - f.floor_height,

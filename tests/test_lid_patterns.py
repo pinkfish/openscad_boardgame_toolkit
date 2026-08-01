@@ -44,29 +44,24 @@ from render_app import PROJECT_ROOT, measure_python, render_available
 # What does not work yet, by cause. Every entry is a bug, not a preference.
 # ---------------------------------------------------------------------------
 
-#: Aborts the PythonSCAD PROCESS -- a BOSL2 region call under osuse that cannot be caught
-#: in-process, so the sweep below reruns the remainder in a fresh process. The one entry
-#: left in the inventory. (Replacing the concentric-offset difference the way
-#: square_tesselation now does was NOT enough; the abort is elsewhere in the leaf's region
-#: work, so this needs the leaf outline moved off osuse region algebra entirely.)
-ABORTS_APP = {
-    "LEAF": "BOSL2 region work under osuse aborts the process",
-    "LEAF_VEINS": "BOSL2 region work under osuse aborts the process",
-}
+#: Patterns that still do not build, by cause. EMPTY -- every ShapeType in the enum now
+#: builds as a lid pattern. Keep it that way: an entry here is a bug, and the staleness test
+#: below fails if one is listed that actually works.
+EXPECTED_BROKEN: dict[str, str] = {}
 
-#: Cannot FILL at all -- the inventory that has to shrink to zero.
-EXPECTED_BROKEN = {**ABORTS_APP}
-
-# Everything else now builds. What used to be here, and what it took:
-#   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD -- the modules ShapeByType
-#     imported were never written, in either language; the tilings are newly authored
-#     (creature_tesselations.py).
-#   * VORONOI, HILBERT -- likewise never written (voronoi.py, hilbert.py); HILBERT was in
-#     the enum but wired into no branch at all.
-#   * DROP, PEGASUS -- two real bugs in square_tesselation: `to_list` is a PROPERTY that was
-#     being called, and an osuse region difference that aborted the process.
-#   * The 15 pentagon families and both Penrose tilings -- were _sdf, so a lid could only be
-#     reached by meshing; both modules emit direct CSG now.
+# What used to be in this list, and what each took:
+#   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD / VORONOI / HILBERT -- the modules
+#     ShapeByType imported were never written, in EITHER language. Newly authored:
+#     creature_tesselations.py, voronoi.py, hilbert.py.
+#   * DROP / PEGASUS -- two real bugs in square_tesselation: `Path.to_list` is a PROPERTY that
+#     was being called ("'list' object is not callable"), and an osuse BOSL2 region difference
+#     that aborted the process.
+#   * LEAF / LEAF_VEINS -- the leaf outline did its region algebra through osuse'd BOSL2, and a
+#     failing assert in there kills the PROCESS rather than raising
+#     (tests/repro_osuse_assert_aborts.py). Rebuilt on direct 2-D CSG; tesselations.py no
+#     longer calls osuse at all.
+#   * The 15 pentagon families and both Penrose tilings -- were _sdf, so reaching a lid meant
+#     meshing; both modules emit direct CSG now.
 
 #: The area the tests fill. Deliberately modest: cell count -- and so render cost -- grows
 #: with the AREA, and a compound tiling like DELTOID_TRIHEXAGONAL is ~600 cells on a

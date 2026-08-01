@@ -32,7 +32,7 @@ from pybosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. TesselationPolygon and
+# project is reached through normal Python imports. tesselation_polygon and
 # the TESSELATION_LINE_* constants are imported lazily below since
 # tesselations is a large sibling module converted separately.
 _bosl2 = osuse(BOSL2_STD_PATH)
@@ -84,7 +84,7 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     Returns:
         a tile-data object with .geometry (native 2-D shape), .x_vec, .y_vec, .angles
     """
-    from tesselations import TesselationPolygon, TESSELATION_LINE_FLIPPED_REVERSE, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL
+    from tesselations import tesselation_polygon, TESSELATION_LINE_FLIPPED_REVERSE, TESSELATION_LINE_FLIPPED, TESSELATION_LINE_NORMAL
 
     ratio = 1 / 22 * size
     s1 = 15 * ratio
@@ -127,7 +127,7 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
 
     hexagon = Path(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)
 
-    new_hex = TesselationPolygon(
+    new_hex = tesselation_polygon(
         hexagon,
         [1, 2, 0, 1, 0, 2],
         [line1, line2, line3],

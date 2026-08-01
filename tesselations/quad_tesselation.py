@@ -32,7 +32,7 @@ from pybosl2.beziers import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
-# project is reached through normal Python imports. TesselationSideLine and
+# project is reached through normal Python imports. tesselation_side_line and
 # TESSELATION_LINE_NORMAL are imported lazily below since tesselations is a
 # large sibling module converted separately.
 
@@ -103,13 +103,18 @@ def TesselationFromQuadradicPoints(
         points: the quad points [P0, P1, P2, P3]
         side1/side2/side3/side4: profile line for each side, points span x in [-0.5, 0.5]
     """
-    from tesselations import TesselationSideLine, TESSELATION_LINE_NORMAL
+    from tesselations import tesselation_side_line, TESSELATION_LINE_NORMAL
+
+    # tesselation_side_line() hands back a pybosl2 Path, which has no `+` -- join the POINT
+    # LISTS instead. NB `to_list` is a property, not a method.
+    def side(a, b, profile):
+        return tesselation_side_line([points[a], points[b]], profile, TESSELATION_LINE_NORMAL).to_list
 
     path = (
-        TesselationSideLine([points[0], points[1]], side1, TESSELATION_LINE_NORMAL)
-        + TesselationSideLine([points[1], points[2]], side2, TESSELATION_LINE_NORMAL)
-        + TesselationSideLine([points[2], points[3]], side3, TESSELATION_LINE_NORMAL)
-        + TesselationSideLine([points[len(points) - 1], points[0]], side4, TESSELATION_LINE_NORMAL)
+        side(0, 1, side1)
+        + side(1, 2, side2)
+        + side(2, 3, side3)
+        + side(len(points) - 1, 0, side4)
     )
     return Path(path).merge_collinear()
 
