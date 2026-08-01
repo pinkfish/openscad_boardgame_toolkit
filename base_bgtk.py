@@ -52,7 +52,7 @@ _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
 # The numpy path maths (DifferenceWithOffset's pts= form); pybosl2/ never imports back here.
-from pybosl2.regions import Path, Path3D, Region
+from pybosl2 import Path2D, Path3D, Region
 from pybosl2 import shapes2d
 
 
@@ -421,8 +421,8 @@ def DifferenceWithOffset(
             # which is exactly how a BOSL2 region is represented. Verified against the real
             # BOSL2: difference(outer, inner) is literally [outer, inner], same winding
             # (tests/test_difference_with_offset.py).
-            return Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=offset))
-        return Path(pts).offset(delta=outer_offset)
+            return Region.with_holes(Path2D(pts).offset(delta=outer_offset), Path2D(pts).offset(delta=offset))
+        return Path2D(pts).offset(delta=outer_offset)
 
     assert children is not None, "DifferenceWithOffset: provide pts or children"
     if offset != 0:
@@ -440,8 +440,8 @@ def DifferenceWithOffsetRounded(
     if pts is not None:
         if offset != 0:
             # Concentric, so no clipping -- see the note in DifferenceWithOffset().
-            return Region.with_holes(Path(pts).offset(radius=outer_offset), Path(pts).offset(radius=offset))
-        return Path(pts).offset(radius=outer_offset)
+            return Region.with_holes(Path2D(pts).offset(radius=outer_offset), Path2D(pts).offset(radius=offset))
+        return Path2D(pts).offset(radius=outer_offset)
 
     assert children is not None, "DifferenceWithOffsetRounded: provide pts or children"
     if offset != 0:
@@ -455,7 +455,7 @@ def OffsetSweep(
     rounding_bottom: float = 0.0,
     rounding_top: float = 0.0,
     steps: int = 8,
-) -> Bosl2Solid:  # Path/Region.linear_extrude() returns a Bosl2Solid under pybosl2 0.6.5.
+) -> Bosl2Solid:  # Path2D/Region.linear_extrude() returns a Bosl2Solid under pybosl2 0.6.5.
     """Direct-CSG (Manifold) stand-in for BOSL2's `offset_sweep(path, height=h,
     bottom=os_circle(rb), top=os_circle(rt))`: extrude a native 2-D `profile` from z=0 up to
     `height`, with each end rim optionally rounded over (positive radius, convex -- the rim

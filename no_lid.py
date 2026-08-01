@@ -36,8 +36,8 @@ import numpy as np
 import pybosl2.masking
 import pybosl2.shapes3d
 from pybosl2 import shapes2d
-from pybosl2.paths import Path
-from pybosl2.regions import Region
+from pybosl2 import Path2D
+from pybosl2 import Region
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
 from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior
 
@@ -131,13 +131,13 @@ def FingerHoleWallSegment(
         make_finger_x: makes a finger dip on the x axis
         make_finger_y: makes a finger dip on the y axis
     """
-    assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
+    assert len(path) == 2, f"Path2D must be exactly 2 elements long path_length={len(path)}"
     assert finger_hole_size > 0, f"Need finger hole size > 0, finger_hole_size={finger_hole_size}"
     assert finger_hole_height > 0, f"Need finger hole height > 0, finger_hole_height={finger_hole_height}"
     assert height > 0, f"Need height > 0, height={height}"
     assert wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={wall_thickness}"
 
-    seg = Path(path, closed=False)
+    seg = Path2D(path, closed=False)
     split_length = seg.perimeter()
     normal = seg.normals()
     if normal[0][0] == 0:
@@ -172,7 +172,7 @@ class PathBoxWithNoLid:
     capturing them, and a caller can build a box in stages or inspect the derived paths.
     :func:`MakePathBoxWithNoLid` is the thin functional wrapper over it.
 
-    The 2-D work splits deliberately (see Path.offset): the outline insets are POINT
+    The 2-D work splits deliberately (see Path2D.offset): the outline insets are POINT
     math, done in numpy, because the wall-segment features have to walk each edge; everything
     that only needs a shape to extrude uses the native primitives instead.
 
@@ -236,7 +236,7 @@ class PathBoxWithNoLid:
         self.offset_sweep_options = offset_sweep_options
         self.mesh_res = mesh_res
 
-        assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+        assert len(path) >= 3, f"Path2D must be at least 3 elements long path_length={len(path)}"
         assert self.floor_thickness > 0, f"Need floor thickness > 0, floor_thickness={self.floor_thickness}"
         assert self.wall_thickness > 0, f"Need wall thickness > 0, wall_thickness={self.wall_thickness}"
         assert height > 0, f"Need height > 0, height={height}"
@@ -285,14 +285,14 @@ class PathBoxWithNoLid:
             self.outside_path = self.path
             self.main_path = self.path
 
-        self.calc_path = Path(self.outside_path).round_corners(radius=wall)
+        self.calc_path = Path2D(self.outside_path).round_corners(radius=wall)
         fit = self.stackable_fit_offset
-        self.inner_path = Path(self.main_path).offset(radius=-wall)
-        self.inner_path_stackable = Path(self.main_path).offset(radius=-wall / 2)
-        self.inner_path_stackable_bottom_outside = Path(self.main_path).offset(radius=-wall / 2 + fit)
-        self.inner_path_stackable_bottom_inside = Path(self.main_path).offset(radius=-wall - fit)
-        self.inner_path_stackable_bottom_inside_inside = Path(self.main_path).offset(radius=-wall / 2 - fit)
-        self.middle_path = Path(self.path).offset(radius=-wall / 2)
+        self.inner_path = Path2D(self.main_path).offset(radius=-wall)
+        self.inner_path_stackable = Path2D(self.main_path).offset(radius=-wall / 2)
+        self.inner_path_stackable_bottom_outside = Path2D(self.main_path).offset(radius=-wall / 2 + fit)
+        self.inner_path_stackable_bottom_inside = Path2D(self.main_path).offset(radius=-wall - fit)
+        self.inner_path_stackable_bottom_inside_inside = Path2D(self.main_path).offset(radius=-wall / 2 - fit)
+        self.middle_path = Path2D(self.path).offset(radius=-wall / 2)
 
     # -- pieces ----------------------------------------------------------------------------
 
@@ -325,14 +325,14 @@ class PathBoxWithNoLid:
         if self.stackable == STACKABLE_TYPE_INSIDE:
             outer_src = self.inner_path_stackable_bottom_outside if bottom else self.inner_path_stackable
             inner_src = self.inner_path_stackable_bottom_inside if bottom else self.inner_path
-            outer = PolygonPrism(Path(outer_src).round_corners(radius=stack / 2), h=stack + grow, rounding_top=wall / 4)
+            outer = PolygonPrism(Path2D(outer_src).round_corners(radius=stack / 2), h=stack + grow, rounding_top=wall / 4)
         elif self.stackable == STACKABLE_TYPE_OUTSIDE:
             inner_src = self.inner_path_stackable_bottom_inside_inside if bottom else self.inner_path_stackable
             outer = PolygonPrism(self.calc_path, h=stack + grow, rounding_top=wall / 4)
         else:
             return None
         inner = PolygonPrism(
-            Path(inner_src).round_corners(radius=stack / 4), h=stack + 0.02 + grow, rounding_top=-wall / 4
+            Path2D(inner_src).round_corners(radius=stack / 4), h=stack + 0.02 + grow, rounding_top=-wall / 4
         ).translate([0, 0, -0.01])
         return outer - inner
 
@@ -359,7 +359,7 @@ class PathBoxWithNoLid:
         extra = None
         for f in self.sorted_floors:
             piece = PolygonPrism(
-                Path(f.path).round_corners(radius=wall),
+                Path2D(f.path).round_corners(radius=wall),
                 h=(self.height - f.floor_height - stack) if self.stackable else (self.height - f.floor_height),
                 rounding_bottom=wall / 4 if self.stackable else wall / 2,
                 rounding_top=wall / 8 if self.stackable else wall / 4,
@@ -383,7 +383,7 @@ class PathBoxWithNoLid:
     def hollow_cut(self) -> "PyOpenSCAD":
         """The main cavity."""
         return PolygonPrism(
-            Path(self.inner_path).round_corners(radius=self.hollow_radius.radius),
+            Path2D(self.inner_path).round_corners(radius=self.hollow_radius.radius),
             h=self.height - self.floor_thickness,
             rounding_bottom=self.hollow_radius.bottom,
             rounding_top=0 if self.stackable else -self.hollow_radius.top,
@@ -395,12 +395,12 @@ class PathBoxWithNoLid:
             return None
         wall = self.wall_thickness
         joined = Region([f.path]).union(Region([self.path]))
-        joined_outer = Path(joined.paths[0]).offset(radius=-wall).round_corners(radius=wall)
+        joined_outer = Path2D(joined.paths[0]).offset(radius=-wall).round_corners(radius=wall)
 
-        inner = Region([Path(f.path).offset(delta=wall)]).union(Region([self.inner_path]))
+        inner = Region([Path2D(f.path).offset(delta=wall)]).union(Region([self.inner_path]))
         for other in self.sorted_floors:
             if other.floor_height > f.floor_height:
-                inner = inner.union(Region([Path(other.path).offset(delta=wall)]))
+                inner = inner.union(Region([Path2D(other.path).offset(delta=wall)]))
         region = Region([joined_outer]).intersection(inner).paths
         return PolygonPrism(
             region,
@@ -639,7 +639,7 @@ class PathBox(BoxBaseType):
         def inner_children(inner):
             pieces = []
             if magnet is not None and magnet.type != MAGNET_SLOT_TYPE_NONE:
-                edge_path = Path(opts.path).offset(radius=-self.wall_thickness / 4)
+                edge_path = Path2D(opts.path).offset(radius=-self.wall_thickness / 4)
                 n = len(edge_path)
                 for i in range(n):
                     p1 = edge_path[i]

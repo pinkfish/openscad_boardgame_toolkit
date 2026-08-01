@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from pybosl2.paths import Path
-from pybosl2.beziers import Bezier
+from pybosl2 import Path2D
+from pybosl2 import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -105,7 +105,7 @@ def TesselationFromQuadradicPoints(
     """
     from tesselations import tesselation_side_line, TESSELATION_LINE_NORMAL
 
-    # tesselation_side_line() hands back a pybosl2 Path, which has no `+` -- join the POINT
+    # tesselation_side_line() hands back a pybosl2 Path2D, which has no `+` -- join the POINT
     # LISTS instead. NB `to_list` is a property, not a method.
     def side(a, b, profile):
         return tesselation_side_line([points[a], points[b]], profile, TESSELATION_LINE_NORMAL).to_list
@@ -116,7 +116,7 @@ def TesselationFromQuadradicPoints(
         + side(2, 3, side3)
         + side(len(points) - 1, 0, side4)
     )
-    return Path(path).merge_collinear()
+    return Path2D(path).merge_collinear()
 
 
 def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1, flip: bool = False) -> PyOpenSCAD:

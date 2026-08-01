@@ -37,7 +37,7 @@ from base_bgtk import *
 from components import FingerHoleWall
 from lids_base import default_lid_catch_type
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
-from pybosl2.paths import Path
+from pybosl2 import Path2D
 from pybosl2 import shapes2d
 from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 
@@ -58,8 +58,8 @@ def _finger_hole_wall_segment_cutout(
         depth:   the thickness of the walls
         finger_catch: the type of catch to use and where to put them
     """
-    assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    seg = Path(path, closed=False)
+    assert len(path) == 2, f"Path2D must be exactly 2 elements long path_length={len(path)}"
+    seg = Path2D(path, closed=False)
     split_length = seg.perimeter()
     normal = seg.normals()
     vec_m = abs(path[0][0] - path[1][0]) / abs(path[0][1] - path[1][1]) if path[0][1] != path[1][1] else float("inf")
@@ -139,12 +139,12 @@ def _make_path_box_with_slipover_lid(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+    assert len(path) >= 3, f"Path2D must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
-    inner_path = Path(path).offset(radius=-wall_thickness - size_spacing)
-    calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
-    calc_path = Path(path).round_corners(radius=wall_thickness)
+    inner_path = Path2D(path).offset(radius=-wall_thickness - size_spacing)
+    calc_inner_path = Path2D(inner_path).round_corners(radius=wall_thickness / 2)
+    calc_path = Path2D(path).round_corners(radius=wall_thickness)
 
     x_arr = [p[0] for p in inner_path]
     y_arr = [p[1] for p in inner_path]
@@ -253,7 +253,7 @@ def _slipover_path_lid_parts(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+    assert len(path) >= 3, f"Path2D must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
     foot_offset = foot + size_spacing if foot > 0 else 0
@@ -261,9 +261,9 @@ def _slipover_path_lid_parts(
     if calc_lid_rounding is None:
         calc_lid_rounding = wall_thickness
 
-    inner_path = Path(path).offset(radius=-wall_thickness + size_spacing)
-    calc_inner_path = Path(inner_path).round_corners(radius=wall_thickness / 2)
-    calc_path = Path(path).round_corners(radius=calc_lid_rounding)
+    inner_path = Path2D(path).offset(radius=-wall_thickness + size_spacing)
+    calc_inner_path = Path2D(inner_path).round_corners(radius=wall_thickness / 2)
+    calc_path = Path2D(path).round_corners(radius=calc_lid_rounding)
 
     # The original construction intersected the plain extrusion with an os_smooth-topped
     # offset_sweep (a continuous-curvature eased rim); PolygonPrism() approximates that

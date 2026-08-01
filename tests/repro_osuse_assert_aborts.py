@@ -76,6 +76,13 @@ try:
 except ImportError:
     _IN_APP = False
 
+# Keep scratch off the boot volume (see tests/render_app.py TEMP_ROOT for the rationale).
+# Standalone script: resolve it locally rather than importing the harness.
+tempfile.tempdir = os.environ.get("BGTK_TMPDIR") or os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".render-tmp"
+)
+os.makedirs(tempfile.tempdir, exist_ok=True)
+
 
 #: The entire .scad side of the repro.
 BOOM_SCAD = 'function boom(n) = assert(n >= 3, "n must be >= 3") n;\n'

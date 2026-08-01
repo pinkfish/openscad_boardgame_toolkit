@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
-from pybosl2.beziers import Bezier
+from pybosl2 import Bezier
 
 # Safe despite shape_type.py's import of this module: lids_base doesn't import shapes (only
 # shape_type does, lazily, inside a function body), so there's no cycle at import time.

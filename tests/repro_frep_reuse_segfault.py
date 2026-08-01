@@ -132,6 +132,12 @@ def _drive():
     import sys
     import tempfile
 
+    # Keep scratch off the boot volume (see tests/render_app.py TEMP_ROOT).
+    tempfile.tempdir = os.environ.get("BGTK_TMPDIR") or os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".render-tmp"
+    )
+    os.makedirs(tempfile.tempdir, exist_ok=True)
+
     binary = _find_binary()
     if binary is None:
         print("No PythonSCAD binary found (set PYTHONSCAD_BIN). Aborting.")

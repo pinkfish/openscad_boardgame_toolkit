@@ -27,8 +27,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from pybosl2.paths import Path
-from pybosl2.beziers import Bezier
+from pybosl2 import Path2D
+from pybosl2 import Bezier
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -112,11 +112,12 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     # NATIVE, not osuse: a failing assert inside an osuse'd .scad function aborts the whole
     # process rather than raising (tests/repro_osuse_assert_aborts.py), and this was the last
     # such call in the toolkit. BOSL2's smooth_path(method="corners") routes through
-    # path_to_bezcornerpath(), which pybosl2 explicitly does not port -- but that is a
-    # continuous-curvature corner, which is what round_corners(method="smooth", joint=) does
-    # via the same _bezcorner() primitive. The curve differs from BOSL2's by well under a
-    # tenth of a millimetre at this scale.
-    smoothed = Path(
+    # path_to_bezcornerpath(), which pybosl2 ports as Path2D.to_bezcornerpath() -- so this is
+    # the faithful equivalent, not an approximation. (Path2D.smooth_path() is the *other*
+    # BOSL2 method, "edges", which interpolates through the points instead of cutting the
+    # corners, and round_corners(joint=0.3) rejects this path outright: the shortest segment
+    # is 0.038, so a 0.3 joint overlaps its neighbours ~8x.)
+    smoothed = Path2D(
         [
             [-1, 0], [-0.951467, 0.23843], [-0.84139, 0.462284], [-0.746843, 0.428975],
             [-0.751917, 0.323591], [-0.674043, 0.280095], [-0.576252, 0.374566],
@@ -125,10 +126,10 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
             [0.00442596, 0.0381548], [0, 0],
         ],
         closed=False,
-    ).round_corners(method="smooth", joint=0.3)
+    ).to_bezcornerpath(0.3, fn=3)  # .scad: smooth_path(size=0.3, method="corners", splinesteps=3)
     line1 = [[i[0] + 1, i[1]] for i in smoothed]
 
-    hexagon = Path(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)
+    hexagon = Path2D(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)
 
     new_hex = tesselation_polygon(
         hexagon,
@@ -144,14 +145,14 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
         ],
     )
 
-    rot_hex = Path(hexagon).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
-    rot_new_hex = Path(new_hex).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
+    rot_hex = Path2D(hexagon).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
+    rot_new_hex = Path2D(new_hex).yflip().rot(180 - (angles[1] - spin * 2)).move(hexagon[3])
     x_vec = [hexagon[4][0] - hexagon[0][0], hexagon[4][1] - hexagon[0][1]]
     y_vec = rot_hex[3]
 
     # The two bird outlines OVERLAP, so their union is real polygon clipping -- but the only
     # consumer immediately renders the region to 2-D geometry, so do the union in NATIVE 2-D
-    # CSG (Manifold) instead: DifferenceWithOffset returns a Path/Region whose .geometry() is
+    # CSG (Manifold) instead: DifferenceWithOffset returns a Path2D/Region whose .geometry() is
     # the native outline-minus-hole shape, and native `|` unions the two. No point-list region
     # clipping needed, and no osuse.
     geometry = (

@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", 
 import mock_libfive  # noqa: F401,E402  (installs numeric stand-ins; must precede toolkit imports)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from pybosl2.shapes2d import arc  # noqa: E402
+from pybosl2 import arc  # noqa: E402
 from pybosl2.transforms import apply, reorient  # noqa: E402
 
 TRUTH = json.load(open(os.path.join(os.path.dirname(__file__), "bosl2_truth.json")))
@@ -150,7 +150,7 @@ class TestArcMatchesBosl2(unittest.TestCase):
 
 class TestCatenaryMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from pybosl2.drawing import catenary
+        from pybosl2 import catenary
         for kwargs, case in zip(CATENARY_CASES, TRUTH["catenary"]):
             with self.subTest(kw=case["kw"]):
                 got = catenary(**kwargs)
@@ -160,7 +160,7 @@ class TestCatenaryMatchesBosl2(unittest.TestCase):
 
 class TestHelixMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from pybosl2.drawing import helix
+        from pybosl2 import helix
         for kwargs, case in zip(HELIX_CASES, TRUTH["helix"]):
             with self.subTest(kw=case["kw"]):
                 got = helix(**kwargs)
@@ -224,7 +224,7 @@ class TestColorMatchesBosl2(unittest.TestCase):
 
 class TestPartitionPathMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from pybosl2.partitions import partition_path
+        from pybosl2 import partition_path
         calls = {
             "flat": lambda: partition_path(["flat"]),
             "sawtooth": lambda: partition_path(["sawtooth"]),
@@ -253,7 +253,7 @@ class TestPartitionPathMatchesBosl2(unittest.TestCase):
 
 class TestNurbsMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from pybosl2.nurbs import nurbs_curve, nurbs_patch_points, nurbs_elevate_degree
+        from pybosl2 import nurbs_curve, nurbs_patch_points, nurbs_elevate_degree
         c3 = [[0, 0, 0], [10, 20, 5], [30, -10, 10], [50, 20, 0], [60, 0, 15]]
         c2 = [[0, 0], [10, 20], [30, -10], [50, 20], [60, 0]]
         patch = [[[-50, 50, 0], [-16, 50, 20], [16, 50, 20], [50, 50, 0]],
@@ -286,7 +286,7 @@ class TestNurbsMatchesBosl2(unittest.TestCase):
 
 class TestRoundingMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
-        from pybosl2.rounding import round_corners, smooth_path
+        from pybosl2 import round_corners, smooth_path
         sq = [[0, 0], [40, 0], [40, 30], [0, 30]]
         op = [[0, 0], [40, 0], [40, 30], [20, 45], [0, 30]]
         p3 = [[0, 0, 0], [40, 0, 0], [40, 40, 20], [0, 40, 20]]

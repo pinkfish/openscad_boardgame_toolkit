@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from pybosl2.paths import Path
+from pybosl2 import Path2D
 
 
 def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[float]]) -> list[list[float]]:
@@ -46,13 +46,13 @@ def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[
     line_small = [[p[0] * small_c, p[1] * small_c] for p in side1]
     line_long = [[p[0] * long_c, p[1] * long_c] for p in side2]
 
-    # A pybosl2 Path has no `+`; concatenate the point lists (`to_list` is a property).
-    part1 = Path(line_small).rot(60).move([b1 / 2, -a / 2]).to_list
-    part2 = list(reversed(Path(line_small).rot(-60).move([b1 / 2, a / 2]).to_list))
-    part3 = list(reversed(Path(line_long).rot(30).move([-(size - b1) / 2, a / 2]).to_list))
-    part4 = Path(line_long).rot(-30).move([-(size - b1) / 2, -a / 2]).to_list
+    # A pybosl2 Path2D has no `+`; concatenate the point lists (`to_list` is a property).
+    part1 = Path2D(line_small).rot(60).move([b1 / 2, -a / 2]).to_list
+    part2 = list(reversed(Path2D(line_small).rot(-60).move([b1 / 2, a / 2]).to_list))
+    part3 = list(reversed(Path2D(line_long).rot(30).move([-(size - b1) / 2, a / 2]).to_list))
+    part4 = Path2D(line_long).rot(-30).move([-(size - b1) / 2, -a / 2]).to_list
 
-    merged = Path(part1 + part2 + part3 + part4).merge_collinear()
+    merged = Path2D(part1 + part2 + part3 + part4).merge_collinear()
     return merged.move([size / 2 - b1, 0])
 
 
@@ -75,7 +75,7 @@ def MakeTesselationKiteHexagon(
         region_data = DifferenceWithOffset(
             outer_offset=outer_offset,
             offset=-thickness,
-            pts=Path(kites).right(size / 2).rot(i * 60),
+            pts=Path2D(kites).right(size / 2).rot(i * 60),
         )
         piece = region(region_data)
         shape = piece if shape is None else shape | piece

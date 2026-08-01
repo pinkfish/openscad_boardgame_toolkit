@@ -16,3 +16,6 @@ bosl2/docs/_generated/
 bosl2/docs/_extra/
 tests/_render_output/
 pysolidfive/tests/_render_output/
+
+# Render scratch (kept off the boot volume; see tests/render_app.py TEMP_ROOT)
+.render-tmp/

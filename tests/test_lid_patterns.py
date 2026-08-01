@@ -35,10 +35,18 @@
 # FileGroup: Tests
 
 import ast
+import os
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from render_app import PROJECT_ROOT, measure_python, render_available
+
+#: How many app processes a sweep runs at once. Each one is a separate PythonSCAD doing its
+#: own CSG, so this is bounded by RAM as much as by cores -- a dense lattice lid is hundreds
+#: of megabytes while it meshes, and oversubscribing an 8GB machine swaps and ends up slower
+#: than running serially. Threads, not processes: every worker is blocked in subprocess.run.
+SWEEP_WORKERS = int(os.environ.get("BGTK_TEST_WORKERS") or max(1, min(3, (os.cpu_count() or 2) - 1)))
 
 # ---------------------------------------------------------------------------
 # What does not work yet, by cause. Every entry is a bug, not a preference.
@@ -50,9 +58,10 @@ from render_app import PROJECT_ROOT, measure_python, render_available
 EXPECTED_BROKEN: dict[str, str] = {}
 
 # What used to be in this list, and what each took:
-#   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD / VORONOI / HILBERT -- the modules
-#     ShapeByType imported were never written, in EITHER language. Newly authored:
-#     creature_tesselations.py, voronoi.py, hilbert.py.
+#   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD / VORONOI -- the tesselations/
+#     modules these route to were unreachable: shape_type.py never put that directory on
+#     sys.path, so the imports failed and the branches were stubbed out. HILBERT was the one
+#     genuinely absent from both stacks and is newly authored (hilbert.py).
 #   * DROP / PEGASUS -- two real bugs in square_tesselation: `Path.to_list` is a PROPERTY that
 #     was being called ("'list' object is not callable"), and an osuse BOSL2 region difference
 #     that aborted the process.
@@ -86,7 +95,7 @@ def shape_type_names() -> list[str]:
     raise AssertionError("ShapeType enum not found in base_bgtk.py")
 
 
-def _sweep(script_body: str, names: list[str]) -> tuple[dict, dict]:
+def _sweep_serial(script_body: str, names: list[str]) -> tuple[dict, dict]:
     """Run *script_body* (a ``%r``-formatted name list) over *names*, surviving aborts.
 
     A pattern that aborts the app takes the whole process down mid-sweep, so the run
@@ -105,6 +114,31 @@ def _sweep(script_body: str, names: list[str]) -> tuple[dict, dict]:
             done = [remaining[0]]
         remaining = [n for n in remaining if n not in done]
     reports.pop("DONE", None)
+    return boxes, reports
+
+
+def _sweep(script_body: str, names: list[str]) -> tuple[dict, dict]:
+    """:func:`_sweep_serial` spread over :data:`SWEEP_WORKERS` app processes.
+
+    Names are dealt round-robin rather than in contiguous blocks: cost per pattern varies by
+    orders of magnitude (a dense lattice against a single square), and consecutive members of
+    the enum are related, so blocks would pile all the expensive ones into one worker.
+
+    Each worker keeps the abort-resume loop over its own slice, so an aborting pattern still
+    only costs one extra process -- and now only stalls its own slice."""
+    if SWEEP_WORKERS <= 1 or len(names) <= 1:
+        return _sweep_serial(script_body, names)
+
+    slices = [names[i::SWEEP_WORKERS] for i in range(SWEEP_WORKERS)]
+    slices = [s for s in slices if s]
+    boxes: dict = {}
+    reports: dict = {}
+    with ThreadPoolExecutor(max_workers=len(slices)) as pool:
+        for part_boxes, part_reports in pool.map(
+            lambda s: _sweep_serial(script_body, s), slices
+        ):
+            boxes.update(part_boxes)
+            reports.update(part_reports)
     return boxes, reports
 
 

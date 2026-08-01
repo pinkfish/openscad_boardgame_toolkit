@@ -35,7 +35,7 @@ from base_bgtk import *
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from pybosl2 import transforms
-from pybosl2.paths import Path
+from pybosl2 import Path2D
 from pybosl2 import geometry
 from pybosl2 import masking
 
@@ -775,7 +775,7 @@ def FingerHoleWall(
         def _poly(pts) -> Bosl2Shape2D:
             return shapes2d.polygon([[float(u), float(v)] for u, v in pts])
 
-        top_shape = _poly(top_polygon).hull(_poly(Path(top_polygon).mirror([1, 0])))
+        top_shape = _poly(top_polygon).hull(_poly(Path2D(top_polygon).mirror([1, 0])))
         side_shape = (
             (
                 shapes2d.square([rounding_radius, rounding_radius], center=True).translate(
@@ -884,12 +884,12 @@ def CornerCatch(
     base = shapes3d.cuboid([depth_of_hole, depth_of_hole, height], anchor=BOTTOM)
     if round_corner_back and rounding_edge > 0:
         base = base.edge_profile(
-            [BOTTOM + FRONT, BOTTOM + LEFT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip()
+            [BOTTOM + FRONT, BOTTOM + LEFT], children=Path2D(masking.mask2d_roundover(rounding_edge)).yflip()
         )
         base = base.corner_profile([BOTTOM + FRONT + LEFT], r=depth_of_hole / 2)
     elif rounding_edge > 0:
         base = base.edge_profile(
-            [BOTTOM + BACK, BOTTOM + RIGHT], children=Path(masking.mask2d_roundover(rounding_edge)).yflip()
+            [BOTTOM + BACK, BOTTOM + RIGHT], children=Path2D(masking.mask2d_roundover(rounding_edge)).yflip()
         )
         base = base.corner_profile([BOTTOM + BACK + RIGHT], r=depth_of_hole / 2)
     base = base.color(material_colour).mirror([0, 0, 1])

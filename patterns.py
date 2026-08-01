@@ -147,14 +147,16 @@ class DenseLattice(Lattice):
         return self.width / 2
 
     def counts(self, area: PatternArea) -> tuple[float, float]:
-        # NOTE (carried over verbatim from LidMeshDense, geometry-preserving): the counts
-        # are worked out from the CELL WIDTH while RegularPolygonGridDense steps rows by the
-        # row pitch (0.75 * 2 * radius), so the grid overruns the area by roughly 2x -- an
-        # 80mm-wide area gets 17 rows covering 153mm where 11 would do. The surplus is
-        # clipped, so it is waste rather than breakage; fixing it changes the cell count of
-        # every currently-working dense pattern and wants its own verification round.
-        cell_width = math.cos(math.radians(180 / self.edges)) * self.radius
-        return area.width / cell_width + 2, area.length / cell_width + 2
+        # Count in the pitches RegularPolygonGridDense actually steps by. Both the hexagon
+        # and the triangle branch advance rows in x by 0.75 * (radius + radius) and columns
+        # in y by 2 * apothem (== side_length for triangles), so one pair of pitches serves
+        # both. The old counts divided by cos(180/edges) * radius -- smaller than either
+        # pitch -- and over-built the grid ~1.7x in rows and 2x in cols, i.e. ~3.5x the
+        # cells, each one another union in a linear chain. The surplus was always clipped
+        # away, so this is invisible in the finished lid and purely a cost saving.
+        row_pitch = 1.5 * self.radius
+        col_pitch = math.sqrt(3) * self.radius
+        return area.width / row_pitch + 2, area.length / col_pitch + 2
 
     def tile(self, motif, area: PatternArea):
         rows, cols = self.counts(area)

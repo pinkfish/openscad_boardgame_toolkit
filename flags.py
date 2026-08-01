@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 from base_bgtk import *
 from pybosl2 import shapes2d
 from pybosl2 import shapes3d
-from pybosl2.beziers import Bezier
+from pybosl2 import Bezier
 from labels import Make3dStripedGrid
 
 

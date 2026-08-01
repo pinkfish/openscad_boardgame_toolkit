@@ -38,6 +38,16 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+# Renders write a .py script, a .png and (for measure_python) a log per shape, and the app
+# spills its own temp files too. That is easily gigabytes over a full sweep, so keep it OFF
+# the boot volume: default to a scratch dir beside the repo (which lives on the big external
+# drive) and let $BGTK_TMPDIR override. Setting TMPDIR as well means the app subprocess and
+# anything else using tempfile follows us there.
+TEMP_ROOT = Path(os.environ.get("BGTK_TMPDIR") or (PROJECT_ROOT / ".render-tmp"))
+TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+os.environ["TMPDIR"] = str(TEMP_ROOT)
+tempfile.tempdir = str(TEMP_ROOT)
+
 # A local BOSL2 copy patched to load under PythonSCAD (the version_num assert neutralised);
 # osuse() resolves "BOSL2/std.scad" relative to the process CWD, so the app is run with
 # cwd = this directory (the parent of the BOSL2/ folder).

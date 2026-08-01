@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
-from pybosl2.regions import Path, Region
+from pybosl2 import Path2D, Region
 
 
 # No osuse() here any more: every region operation this file used to make through the
@@ -207,14 +207,14 @@ def hexagonal_tesselation(points: list[list[list[float]]], radius: float = 10) -
 
     poly = []
     for i in range(6):
-        center_pt = Path([[apothem, 0]]).rot(60 * i)[0]
+        center_pt = Path2D([[apothem, 0]]).rot(60 * i)[0]
         side_idx = (i // 2) % 3
         if i % 2 == 0:
-            edge_pts = list(reversed(Path(points[side_idx]).rot(180)))
+            edge_pts = list(reversed(Path2D(points[side_idx]).rot(180)))
         else:
             edge_pts = points[side_idx]
         edge = hexagonal_tesselation_generate_edge(pts=edge_pts, side_length=side_length)
-        rotated_edge = Path(edge).rot(60 * i + 90)
+        rotated_edge = Path2D(edge).rot(60 * i + 90)
         poly.extend(rotated_edge.move(center_pt))
     return poly
 
@@ -258,23 +258,23 @@ def square_tesselation(
     length_line = square_tesselation_generate_edge(points[0], length)
     width_line = square_tesselation_generate_edge(points[1], width)
 
-    # pybosl2's numpy Path has no `+` concat -- join the point lists instead. NB `to_list` is
+    # pybosl2's numpy Path2D has no `+` concat -- join the point lists instead. NB `to_list` is
     # a PROPERTY, not a method: calling it raised "'list' object is not callable", which is
     # what broke every square tesselation (DROP, PEGASUS).
     poly = (
-        Path(width_line).rot(90).reverse().move([-width / 2, 0]).to_list
-        + Path(length_line).rot(0).move([0, -length / 2]).to_list
-        + Path(width_line).rot(90).move([width / 2, 0]).to_list
-        + Path(length_line).rot(0).reverse().move([0, length / 2]).to_list
+        Path2D(width_line).rot(90).reverse().move([-width / 2, 0]).to_list
+        + Path2D(length_line).rot(0).move([0, -length / 2]).to_list
+        + Path2D(width_line).rot(90).move([width / 2, 0]).to_list
+        + Path2D(length_line).rot(0).reverse().move([0, length / 2]).to_list
     )
-    poly = Path._deduplicate(poly, closed=True)
+    poly = Path2D._deduplicate(poly, closed=True)
 
-    outer = Path(poly).offset(delta=outer_offset, chamfer=True) if outer_offset != 0 else poly
+    outer = Path2D(poly).offset(delta=outer_offset, chamfer=True) if outer_offset != 0 else poly
     outer = outer.to_list if hasattr(outer, "to_list") else list(outer)
     if thickness == 0:
         return [outer]
 
-    inner = Path._deduplicate(Path(poly).offset(delta=-thickness, chamfer=True), closed=True)
+    inner = Path2D._deduplicate(Path2D(poly).offset(delta=-thickness, chamfer=True), closed=True)
     # The two offsets are CONCENTRIC, so the inner one lies strictly inside the outer: the
     # difference needs no polygon clipping, it is just "outline plus hole", which is exactly
     # how a region is represented (the same reasoning as base_bgtk.DifferenceWithOffset).
@@ -324,9 +324,9 @@ def tesselation_side_line(
         result_path = half + list(reversed([[p[0], -p[1]] for p in half]))
     else:
         scaled = [[p[0] * split_length, p[1] * split_length] for p in side_flipped]
-        result_path = Path(scaled).rot(angle)
+        result_path = Path2D(scaled).rot(angle)
 
-    return Path(result_path).move(path[0])
+    return Path2D(result_path).move(path[0])
 
 
 def tesselation_polygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequence[int]") -> list[list[float]]:
@@ -348,7 +348,7 @@ def tesselation_polygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequ
         each_line.extend(
             tesselation_side_line(path=[path[i], path[(i + 1) % len(path)]], side=sides[side_indexes[i]], flip=flips[i])
         )
-    return Path._deduplicate(each_line, closed=True)
+    return Path2D._deduplicate(each_line, closed=True)
 
 
 def tesselation_drop(
@@ -402,7 +402,7 @@ def tesselation_leaf(size: float) -> PyOpenSCAD:
 
 def tesselation_leaf_outline_make_polygon(section_height: float, section: float) -> list[list[float]]:
     """Internal boundary path for the leaf outline."""
-    return Path._deduplicate(
+    return Path2D._deduplicate(
         [
             [section_height * 2, 0],
             [0, section * 1],
@@ -564,7 +564,7 @@ def deltoid_trihexagonal_tiling_inner_parts(pts: list[list[float]], thickness: f
     geom = None
     for i in range(6):
         p = deltoid_trihexagonal_tiling_get_points(pts, i, kite)
-        ring = Region.with_holes(Path(p).offset(delta=thickness / 10), Path(p).offset(delta=-thickness)).geometry()
+        ring = Region.with_holes(Path2D(p).offset(delta=thickness / 10), Path2D(p).offset(delta=-thickness)).geometry()
         geom = ring if geom is None else geom | ring
     return geom
 
@@ -596,9 +596,9 @@ def deltoid_trihexagonal_tiling(
         [-width, 0],
         [width * -0.5, height / 2],
     ]
-    outer_ring = Region.with_holes(Path(pts).offset(delta=outer_offset), Path(pts).offset(delta=-thickness)).geometry()
+    outer_ring = Region.with_holes(Path2D(pts).offset(delta=outer_offset), Path2D(pts).offset(delta=-thickness)).geometry()
     inner = (
-        deltoid_trihexagonal_tiling_inner_parts(pts, thickness, kite) & Path(pts).offset(delta=-thickness + 0.1).polygon()
+        deltoid_trihexagonal_tiling_inner_parts(pts, thickness, kite) & Path2D(pts).offset(delta=-thickness + 0.1).polygon()
     )
     return outer_ring | inner
 
@@ -626,7 +626,7 @@ def half_regular_hexagon(size: float, thickness: float = 1, outer_offset: float 
         p_i = pts[i]
         p_next = pts[(i + 1) % 3]
         p_prev = pts[(i + 2) % 3]
-        poly = Path._deduplicate(
+        poly = Path2D._deduplicate(
             [
                 p_i,
                 [(p_i[0] + p_next[0] * 2) / 3, (p_i[1] + p_next[1] * 2) / 3],
@@ -636,8 +636,8 @@ def half_regular_hexagon(size: float, thickness: float = 1, outer_offset: float 
             ],
             closed=True,
         )
-        outer = Path._deduplicate(Path(poly).offset(delta=outer_offset))
-        inner = Path(poly).offset(delta=-thickness)
+        outer = Path2D._deduplicate(Path2D(poly).offset(delta=outer_offset))
+        inner = Path2D(poly).offset(delta=-thickness)
         ring = Region.with_holes(outer, inner).geometry()
         geom = ring if geom is None else geom | ring
     return geom

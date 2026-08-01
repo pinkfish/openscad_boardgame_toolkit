@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from pybosl2.paths import Path
+from pybosl2 import Path2D
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -91,8 +91,8 @@ def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0
             [1, 0],
         ],
     )
-    merged = Path(path).merge_collinear()
-    # polygon() is the NATIVE builtin: it rejects a pybosl2 Path / numpy points ("Error
+    merged = Path2D(path).merge_collinear()
+    # polygon() is the NATIVE builtin: it rejects a pybosl2 Path2D / numpy points ("Error
     # during parsing polygon(points,paths)"), so hand it plain float pairs.
     pts = [[float(x), float(y)] for x, y in (merged.to_list if hasattr(merged, "to_list") else merged)]
     return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=polygon(pts))

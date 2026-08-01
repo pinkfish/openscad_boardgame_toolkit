@@ -26,8 +26,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
-from pybosl2.paths import Path
-from pybosl2.regions import Region
+from pybosl2 import Path2D
+from pybosl2 import Region
 
 
 # BOSL2 is the only library loaded via osuse; everything else in this
@@ -70,7 +70,7 @@ def LizardHexTesselation(radius: float, thickness: float = 0, outer_offset: floa
     """
     from tesselations import hexagonal_tesselation
 
-    sized_lizard_points = Path(
+    sized_lizard_points = Path2D(
         hexagonal_tesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius)
     ).merge_collinear()
     if outer_offset == 0 and thickness == 0:
@@ -132,10 +132,10 @@ def HexagonalTesselationTriangle(size: float, pts: list) -> list:
     apothem = math.sqrt(3) / 2 * side_length
 
     # pybosl2 Region has union/difference/intersection but no rotate, so each outline is
-    # rotated as a Path and the rotated copies are rebuilt into Regions to union. (Was an
+    # rotated as a Path2D and the rotated copies are rebuilt into Regions to union. (Was an
     # osuse'd BOSL2 union -- see the note in LizardHexTesselation.)
     def placed(angle: float, move: list[float]) -> list:
-        return [Path(path).rot(angle).move(move).to_list for path in pts.paths]
+        return [Path2D(path).rot(angle).move(move).to_list for path in pts.paths]
 
     # The three copies ABUT rather than overlap, so no boolean is needed -- and asking GEOS
     # to union outlines that share edges exactly raises "TopologyException: side location

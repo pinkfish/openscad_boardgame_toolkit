@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import numpy as np
 import pybosl2.shapes3d
-from pybosl2.paths import Path
+from pybosl2 import Path2D
 from pybosl2 import shapes2d
 from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
 from lids_base import default_lid_catch_type
@@ -72,8 +72,8 @@ def _finger_hole_segment_cutout(
         height: the height of the finger hole
         wall_thickness: the thickness of the walls
     """
-    assert len(path) == 2, f"Path must be exactly 2 elements long path_length={len(path)}"
-    seg = Path(path, closed=False)
+    assert len(path) == 2, f"Path2D must be exactly 2 elements long path_length={len(path)}"
+    seg = Path2D(path, closed=False)
     split_length = seg.perimeter()
     normal = seg.normals()
     calc_len = split_length / 5
@@ -139,9 +139,9 @@ def PolygonBoxLidCatch(
         delta:  how much to offset the segment by
         lid_catch: the type of catch to use
     """
-    assert len(path) == 2, f"Path must be exactly 2 elements. path_length={len(path)}"
+    assert len(path) == 2, f"Path2D must be exactly 2 elements. path_length={len(path)}"
     assert delta is not None, "delta None in PolygonBoxLidCatch."
-    seg = Path(path, closed=False)
+    seg = Path2D(path, closed=False)
     split_length = seg.perimeter()
     calc_len = split_length / 5
 
@@ -239,7 +239,7 @@ def _make_path_box_with_cap_lid(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+    assert len(path) >= 3, f"Path2D must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
     calc_lid_wall_thickness = (
@@ -251,7 +251,7 @@ def _make_path_box_with_cap_lid(
         finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
     )
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
-    calc_path = np.asarray(Path(path).round_corners(radius=wall_thickness))
+    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness))
     # Plain lists for the native polygon() calls below: raw ndarrays across the native
     # boundary raise (and poison the interpreter) -- see the numpy interop convention.
     calc_path_native = calc_path.tolist()
@@ -347,7 +347,7 @@ def _make_path_box_with_cap_lid(
         extra_indices = list(positive_only_children) + (list(positive_negative_children) if MAKE_MMU == 1 else [])
         extra = None
         for i in extra_indices:
-            # Path-box children take (path, width, length, height) -- ResolveChild() is the
+            # Path2D-box children take (path, width, length, height) -- ResolveChild() is the
             # 3-argument box form and this call passed 5 arguments (a latent TypeError in the
             # never-exercised positive-children branch); resolve inline like the branch above.
             resolved: Any = kids[i](calc_path, calc_width, calc_length, inner_height) if callable(kids[i]) else kids[i]
@@ -410,12 +410,12 @@ def _cap_path_lid_parts(
     if lid_catch is None:
         lid_catch = default_lid_catch_type
 
-    assert len(path) >= 3, f"Path must be at least 3 elements long path_length={len(path)}"
+    assert len(path) >= 3, f"Path2D must be at least 3 elements long path_length={len(path)}"
     assert height > 0, f"Height must be >0 height={height}"
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
-    calc_path = np.asarray(Path(path).round_corners(radius=wall_thickness, _fn=16))
+    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness, _fn=16))
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
 
