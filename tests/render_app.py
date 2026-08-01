@@ -82,8 +82,12 @@ def _venv_site_packages() -> str | None:
 
 
 def render_available() -> bool:
-    """True when both the binary and a patched BOSL2 dir exist (for skipUnless)."""
-    return find_pythonscad_binary() is not None and find_bosl2_scad_dir() is not None
+    """True when the binary exists (for skipUnless).
+
+    BOSL2 is NOT required any more: no toolkit module calls osuse(), so nothing needs the
+    patched BOSL2 copy at import time. It is still located when present, purely so the
+    fixture generator (tests/generate_bosl2_truth.py) can reach the real library."""
+    return find_pythonscad_binary() is not None
 
 
 @dataclass
@@ -103,9 +107,11 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
     only raises FileNotFoundError if the binary can't be located (callers should skipUnless
     render_available() first)."""
     binary = find_pythonscad_binary()
-    bosl2_dir = find_bosl2_scad_dir()
-    if binary is None or bosl2_dir is None:
-        raise FileNotFoundError("PythonSCAD binary or patched BOSL2 dir not found (skip render tests)")
+    if binary is None:
+        raise FileNotFoundError("PythonSCAD binary not found (skip render tests)")
+    # Run from the BOSL2 dir when there is one -- harmless, and it keeps the one script that
+    # still osuse()s the real library working -- but the toolkit no longer needs it.
+    bosl2_dir = find_bosl2_scad_dir() or str(PROJECT_ROOT)
 
     header = (
         "import os, sys\n"

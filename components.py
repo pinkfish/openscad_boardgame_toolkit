@@ -42,9 +42,11 @@ from pybosl2 import masking
 import math
 
 
-# TODO: _bosl2 osuse handle is no longer used once HexBoxDivisions is fully migrated.
-# It can be removed once confirmed no other callers remain in the codebase.
-_bosl2 = osuse(BOSL2_STD_PATH)
+# No osuse() handle here any more: every call it served was migrated to native 2-D CSG /
+# OffsetSweep (see the notes in HexBoxDivisions below), leaving only the dead handle, which
+# still forced BOSL2 to be loadable at IMPORT time. Removing it also removes that: a failing
+# assert inside an osuse'd .scad function aborts the process rather than raising
+# (tests/repro_osuse_assert_aborts.py), so the fewer of these the better.
 
 # Magnet-slot-type constants
 MAGNET_SLOT_TYPE_NONE = 0

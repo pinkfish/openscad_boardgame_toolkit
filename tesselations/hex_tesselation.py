@@ -35,7 +35,6 @@ from pybosl2.beziers import Bezier
 # project is reached through normal Python imports. tesselation_polygon and
 # the TESSELATION_LINE_* constants are imported lazily below since
 # tesselations is a large sibling module converted separately.
-_bosl2 = osuse(BOSL2_STD_PATH)
 
 
 def generate_hexagon(
@@ -110,7 +109,14 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
             ]
         )
     )
-    smoothed = _bosl2.smooth_path(
+    # NATIVE, not osuse: a failing assert inside an osuse'd .scad function aborts the whole
+    # process rather than raising (tests/repro_osuse_assert_aborts.py), and this was the last
+    # such call in the toolkit. BOSL2's smooth_path(method="corners") routes through
+    # path_to_bezcornerpath(), which pybosl2 explicitly does not port -- but that is a
+    # continuous-curvature corner, which is what round_corners(method="smooth", joint=) does
+    # via the same _bezcorner() primitive. The curve differs from BOSL2's by well under a
+    # tenth of a millimetre at this scale.
+    smoothed = Path(
         [
             [-1, 0], [-0.951467, 0.23843], [-0.84139, 0.462284], [-0.746843, 0.428975],
             [-0.751917, 0.323591], [-0.674043, 0.280095], [-0.576252, 0.374566],
@@ -118,11 +124,8 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
             [-0.240604, 0.121256], [-0.0694036, 0.168683], [0.00618108, 0.133237],
             [0.00442596, 0.0381548], [0, 0],
         ],
-        size=0.3,
-        method="corners",
         closed=False,
-        splinesteps=3,
-    )
+    ).round_corners(method="smooth", joint=0.3)
     line1 = [[i[0] + 1, i[1]] for i in smoothed]
 
     hexagon = Path(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)

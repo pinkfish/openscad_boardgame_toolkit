@@ -53,8 +53,9 @@ PYTHONSCAD_BIN=/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD \
   codesign --force --deep --sign - --entitlements /tmp/ent.plist --options runtime /Applications/PythonSCAD-1.1.2.app
   ```
   (Ad-hoc signing the `.so` files alone is NOT enough — it gets past "unsigned" only to fail on the Team ID check.)
-- Modules that `osuse()` BOSL2 need a patched copy whose `assert(version_num()>=20210100)` line is neutralized: `~/Documents/OpenSCAD/libraries-pythonscad-patched/BOSL2` (override with `BOSL2_SCAD_DIR`). `osuse()` resolves relative to the process CWD, so render helpers run the binary with `cwd=` that directory.
-- `render_script()` (in `pysolidfive/tests/render_pysolidfive.py`) is the one subprocess entry point every render test shares; it pins `--backend Manifold` and parses `Triangles:`/`Facets:` from stderr to detect real geometry. Render tests skip gracefully when the binary or BOSL2 dir is missing.
+- **Nothing in the toolkit calls `osuse()` any more**, so BOSL2 does not need to be installed to build or render anything — verified with `BOSL2_SCAD_DIR` unset and the CWD elsewhere. The only remaining users are `tests/generate_bosl2_truth.py` (regenerates the ground-truth fixtures FROM the real library, which is the point of it) and `tests/repro_osuse_assert_aborts.py` (reproduces the crash below, which requires it). Those still want the patched copy whose `assert(version_num()>=20210100)` is neutralized: `~/Documents/OpenSCAD/libraries-pythonscad-patched/BOSL2` (override with `BOSL2_SCAD_DIR`).
+- **A failing `assert()` in `.scad` code reached through `osuse()`/`osinclude()` ABORTS THE PROCESS** (SIGABRT), uncatchable from Python, and discards already-flushed stderr so the run looks like it never happened. That is why the region algebra was migrated off the FFI. Repro: `tests/repro_osuse_assert_aborts.py`. Do not reintroduce `osuse()` in library code.
+- `render_python()` / `measure_python()` (in `tests/render_app.py`) are the subprocess entry points every render test shares; they pin `--backend Manifold` and parse `Triangles:`/`Facets:` from stderr to detect real geometry. Render tests skip gracefully when the binary is missing (BOSL2 is no longer required).
 
 ## Testing architecture
 
