@@ -157,24 +157,34 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
 #: Preamble injected before a measure_python() body. `measure(name, solid)` reports a
 #: solid's real axis-aligned bounding box -- PythonSCAD computes `.position`/`.size` by
 #: meshing, so this is the actual geometry, not what the script THINKS it built.
+#:
+#: Results go to a FILE, not just stderr: when a script makes the app ABORT (a BOSL2
+#: assertion, an frep crash) the process dies without flushing its stderr, so every line
+#: already reported is lost and a sweep cannot tell which case died. A file survives that,
+#: so everything up to the crash is still readable. {log!r} is filled in per run.
 _MEASURE_PREAMBLE = '''
 import sys as _sys
 
+_MEASURE_LOG = {log!r}
+
+
+def _emit(_line):
+    with open(_MEASURE_LOG, "a") as _f:
+        _f.write(_line + "\\n")
+    _sys.stderr.write(_line + "\\n")
+    _sys.stderr.flush()
+
 
 def measure(name, obj):
-    """Report obj's AABB as `MEASURE <name> x y z w l h` on stderr."""
+    """Report obj's AABB as `MEASURE <name> x y z w l h`."""
     n = obj.shape if hasattr(obj, "shape") else obj
     p, s = n.position, n.size
-    _sys.stderr.write(
-        "MEASURE %s %.6g %.6g %.6g %.6g %.6g %.6g\\n" % (name, p[0], p[1], p[2], s[0], s[1], s[2])
-    )
-    _sys.stderr.flush()
+    _emit("MEASURE %s %.6g %.6g %.6g %.6g %.6g %.6g" % (name, p[0], p[1], p[2], s[0], s[1], s[2]))
 
 
 def report(name, value):
-    """Report an arbitrary scalar/string as `REPORT <name> <value>` on stderr."""
-    _sys.stderr.write("REPORT %s %s\\n" % (name, value))
-    _sys.stderr.flush()
+    """Report an arbitrary scalar/string as `REPORT <name> <value>`."""
+    _emit("REPORT %s %s" % (name, value))
 '''
 
 
@@ -219,14 +229,24 @@ def measure_python(body: str, *, timeout: float = 300.0) -> MeasureResult:
 
     *body* is prepended with the same sys.path setup as :func:`render_python` plus the
     `measure()` / `report()` helpers, and must end in a `.show()` (the app needs a
-    top-level object). NOTE: never `measure()` and then `show()` the SAME solid when it
-    contains frep/SDF geometry -- measuring meshes it, and reusing a meshed handle in
-    another branch crashes the app. Show a throwaway primitive instead.
+    top-level object).
+
+    Results survive a crash: they are written to a side file as well as stderr, because an
+    app abort loses the whole stderr buffer (see _MEASURE_PREAMBLE). NOTE: never `measure()`
+    and then `show()` the SAME solid when it contains frep/SDF geometry -- measuring meshes
+    it, and reusing a meshed handle in another branch crashes the app. Show a throwaway
+    primitive instead.
     """
-    result = render_python(_MEASURE_PREAMBLE + body, timeout=timeout)
+    log = Path(tempfile.mkstemp(prefix="bgtk-measure-", suffix=".log")[1])
+    try:
+        result = render_python(_MEASURE_PREAMBLE.format(log=str(log)) + body, timeout=timeout)
+        lines = log.read_text().splitlines() if log.exists() else []
+    finally:
+        log.unlink(missing_ok=True)
+
     boxes: dict[str, Box3D] = {}
     reports: dict[str, str] = {}
-    for line in result.stderr.splitlines():
+    for line in lines:
         if line.startswith("MEASURE "):
             _, name, *nums = line.split()
             boxes[name] = Box3D(*(float(v) for v in nums))

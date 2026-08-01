@@ -108,13 +108,15 @@ class Lattice(ABC):
     Two ways to use one: :meth:`tile` stamps a motif at every cell (the lattice does the
     placing), and :meth:`cells` just enumerates the cells for a tile that places itself."""
 
-    #: Extra rings of cells enumerated for a self-placing tiling, so tiles that overhang
-    #: their nominal cell still reach the edges. Small on purpose: cost is quadratic in it
-    #: (a 120x80 lid at +11 is 437 cells instead of 154, and each cell of a pentagon tiling
-    #: is real geometry). The original ``+11`` was compensating for centre-indexed tilings
-    #: being left around the origin instead of moved onto the area -- which
-    #: :class:`TilingPattern` now does, so the margin only has to cover overhang.
-    self_placing_margin: int = 2
+    #: Extra rings of cells enumerated for a self-placing tiling. A self-placing tile steps
+    #: by ITS OWN pitch, which the lattice does not know (RHOMBI_TRI_HEXAGONAL steps ~8.2mm
+    #: on a 12mm lattice), so the loop runs a few rings wide and the surplus is clipped.
+    #: Small on purpose: cost is quadratic in it -- the original ``+11`` is 437 cells on a
+    #: 120x80 lid against 154 here, and each cell of a pentagon tiling is real geometry.
+    #: (That ``+11`` was compensating for centre-indexed tilings being left around the
+    #: origin instead of moved onto the area, which :class:`TilingPattern` now does.)
+    #: The honest fix is for a tiling to declare its step; then this becomes one ring.
+    self_placing_margin: int = 3
 
     @abstractmethod
     def counts(self, area: PatternArea) -> tuple[float, float]:
@@ -145,6 +147,12 @@ class DenseLattice(Lattice):
         return self.width / 2
 
     def counts(self, area: PatternArea) -> tuple[float, float]:
+        # NOTE (carried over verbatim from LidMeshDense, geometry-preserving): the counts
+        # are worked out from the CELL WIDTH while RegularPolygonGridDense steps rows by the
+        # row pitch (0.75 * 2 * radius), so the grid overruns the area by roughly 2x -- an
+        # 80mm-wide area gets 17 rows covering 153mm where 11 would do. The surplus is
+        # clipped, so it is waste rather than breakage; fixing it changes the cell count of
+        # every currently-working dense pattern and wants its own verification round.
         cell_width = math.cos(math.radians(180 / self.edges)) * self.radius
         return area.width / cell_width + 2, area.length / cell_width + 2
 
