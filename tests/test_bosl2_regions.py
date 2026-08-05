@@ -29,21 +29,30 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", "tests"))
-import mock_libfive  # noqa: F401,E402
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import venv_path  # noqa: F401,E402  -- pin pybosl2 to the project venv
 from pybosl2 import Path2D, Region  # noqa: E402
 
-# offset() now lives on Path2D as the private static engine behind Path2D.offset().
-offset = Path2D._offset
+# BOSL2 spells offset's radius "r"; pybosl2 0.6.x removed the short kwargs and made the
+# engine an INSTANCE method on Path2D. Adapt here so the call sites keep BOSL2's spelling.
+_BOSL2_KW = {"r": "radius", "d": "diameter", "n": "count", "_fn": "fn"}
+
+
+def offset(path, closed=True, **kw):
+    """BOSL2's ``offset(path, r=...)`` over pybosl2's Path2D engine."""
+    kwargs = {_BOSL2_KW.get(k, k): v for k, v in kw.items()}
+    closed = kwargs.pop("closed", closed)
+    return Path2D(path, closed=closed)._offset(**kwargs)
 
 SQUARE = [[0, 0], [80, 0], [80, 60], [0, 60]]
 
 
-class TestPathIsADropInList(unittest.TestCase):
+class TestPathBehavesLikeAPointList(unittest.TestCase):
+    """Path2D is no longer a ``list`` SUBCLASS (0.6.7) -- it indexes, iterates and
+    measures like one, and ``.to_list`` is the plain-list view."""
+
     def test_equals_a_plain_list(self):
-        self.assertEqual(Path2D(SQUARE), [[float(x), float(y)] for x, y in SQUARE])
+        self.assertEqual(Path2D(SQUARE).to_list, [[float(x), float(y)] for x, y in SQUARE])
 
     def test_indexes_and_iterates(self):
         p = Path2D(SQUARE)
@@ -67,25 +76,25 @@ class TestPathIsADropInList(unittest.TestCase):
 
 class TestPathMethods(unittest.TestCase):
     def test_offset_matches_the_free_function(self):
-        self.assertEqual(Path2D(SQUARE).offset(r=-2), offset(SQUARE, r=-2))
+        self.assertEqual(Path2D(SQUARE).offset(radius=-2).to_list, offset(SQUARE, r=-2))
 
     def test_offset_returns_a_path(self):
-        self.assertIsInstance(Path2D(SQUARE).offset(r=-2), Path2D)
+        self.assertIsInstance(Path2D(SQUARE).offset(radius=-2), Path2D)
 
     def test_chaining(self):
-        out = Path2D(SQUARE).offset(r=-2).round_corners(radius=1)
+        out = Path2D(SQUARE).offset(radius=-2).round_corners(radius=1)
         self.assertIsInstance(out, Path2D)
         self.assertGreater(len(out), 4)  # corners got rounded
 
     def test_does_not_mutate(self):
         p = Path2D(SQUARE)
-        p.offset(r=-2)
-        self.assertEqual(p, [[float(x), float(y)] for x, y in SQUARE])
+        p.offset(radius=-2)
+        self.assertEqual(p.to_list, [[float(x), float(y)] for x, y in SQUARE])
 
     def test_measurements(self):
         p = Path2D(SQUARE)
-        self.assertAlmostEqual(p.width, 80)
-        self.assertAlmostEqual(p.length_y, 60)
+        self.assertAlmostEqual(p.bounds().width, 80)
+        self.assertAlmostEqual(p.bounds().length, 60)
         self.assertAlmostEqual(p.area(), 4800)
         self.assertFalse(p.is_clockwise())
         self.assertTrue(Path2D(list(reversed(SQUARE))).is_clockwise())
@@ -96,7 +105,9 @@ class TestPathMethods(unittest.TestCase):
         self.assertFalse(p.contains([-5, 30]))
 
     def test_bounds(self):
-        np.testing.assert_allclose(Path2D(SQUARE).bounds(), [[0, 0], [80, 60]])
+        _b = Path2D(SQUARE).bounds()
+        np.testing.assert_allclose(
+            [[_b.min_x, _b.min_y], [_b.max_x, _b.max_y]], [[0, 0], [80, 60]])
 
     def test_transforms_return_paths(self):
         p = Path2D(SQUARE)
@@ -106,7 +117,7 @@ class TestPathMethods(unittest.TestCase):
         np.testing.assert_allclose(p.translate([1, 2])[0], [1, 2])
 
     def test_reversed_flips_winding(self):
-        self.assertTrue(Path2D(SQUARE).reversed_path().is_clockwise())
+        self.assertTrue(Path2D(SQUARE).reverse().is_clockwise())
 
     def test_array_is_numpy(self):
         arr = Path2D(SQUARE).array
@@ -115,12 +126,14 @@ class TestPathMethods(unittest.TestCase):
 
 
 class TestRegion(unittest.TestCase):
-    def test_is_a_drop_in_list_of_paths(self):
+    def test_indexes_and_iterates_like_a_list_of_paths(self):
+        """Region stopped being a ``list`` SUBCLASS in 0.6.7; it still indexes and
+        iterates, and each element is a Path2D rather than a bare point list."""
         r = Region.with_holes(SQUARE, offset(SQUARE, r=-2))
-        self.assertIsInstance(r, list)
         self.assertEqual(len(r), 2)
-        self.assertEqual(r[0], [[float(x), float(y)] for x, y in SQUARE])
-        self.assertEqual(r, [offset(SQUARE, r=0) if False else r[0], r[1]])  # plain-list compare
+        self.assertIsInstance(r[0], Path2D)
+        self.assertEqual(r[0].to_list, [[float(x), float(y)] for x, y in SQUARE])
+        self.assertEqual([len(path) for path in r], [4, 4])
 
     def test_coerces_paths(self):
         r = Region([SQUARE])
@@ -150,12 +163,15 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(len(r), 2)
 
     def test_bounds_spans_all_paths(self):
-        np.testing.assert_allclose(Region.with_holes(SQUARE, offset(SQUARE, r=-2)).bounds(),
-                                   [[0, 0], [80, 60]])
+        # NB: Region.bounds() gives a plain [[min], [max]] array, while Path2D.bounds()
+        # gives a Bounds2D object -- they are not the same shape of value in 0.6.7.
+        np.testing.assert_allclose(
+            Region.with_holes(SQUARE, offset(SQUARE, r=-2)).bounds(), [[0, 0], [80, 60]])
 
-    def test_empty_region_has_no_outline(self):
-        with self.assertRaises(AssertionError):
-            Region().outline
+    def test_empty_region_has_an_empty_outline(self):
+        """0.6.7 returns an EMPTY path here; it used to assert. Either is defensible --
+        this pins which one, so a silent flip back is caught."""
+        self.assertEqual(len(Region().outline), 0)
 
 
 class TestDifferenceWithOffsetReturnsRegion(unittest.TestCase):

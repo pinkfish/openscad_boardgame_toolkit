@@ -32,10 +32,8 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", "tests"))
-import mock_libfive  # noqa: F401,E402  (installs numeric stand-ins; must precede toolkit imports)
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import venv_path  # noqa: F401,E402  -- pin pybosl2 to the project venv
 from pybosl2 import arc  # noqa: E402
 from pybosl2.transforms import apply, reorient  # noqa: E402
 
@@ -45,6 +43,16 @@ ANCHORS = {"CENTER": (0, 0, 0), "BOTTOM": (0, 0, -1), "TOP": (0, 0, 1),
            "BFL": (-1, -1, -1), "TRB": (1, 1, 1), "LEFT": (-1, 0, 0)}
 ORIENTS = {"TOP": (0, 0, 1), "BOTTOM": (0, 0, -1), "LEFT": (-1, 0, 0),
            "RIGHT": (1, 0, 0), "FRONT": (0, -1, 0), "BACK": (0, 1, 0)}
+
+#: BOSL2's own kwarg spelling, matching the truth fixture these are zipped with. pybosl2
+#: 0.6.x removed the short forms, so _arc() translates rather than the data being rewritten.
+_ARC_KW = {"r": "radius", "n": "count", "d": "diameter", "_fn": "fn", "cp": "center"}
+
+
+def _arc(**kw):
+    """arc() called the way BOSL2 spells it."""
+    return arc(**{_ARC_KW.get(k, k): v for k, v in kw.items()})
+
 
 ARC_CASES = [
     dict(r=16, start=0, angle=60),
@@ -134,16 +142,16 @@ class TestArcMatchesBosl2(unittest.TestCase):
     def test_every_truth_case(self):
         for kwargs, case in zip(ARC_CASES, TRUTH["arc"]):
             with self.subTest(kw=case["kw"]):
-                got = arc(**kwargs)
+                got = _arc(**kwargs)
                 self.assertEqual(len(got), len(case["res"]), "point count must match BOSL2")
                 np.testing.assert_allclose(np.array(got), np.array(case["res"]), atol=1e-9)
 
     def test_point_count_follows_fn(self):
         # explicit $fn wins over the $fa/$fs rules
-        self.assertEqual(len(arc(r=10, angle=90, _fn=32)), 32 // 4 + 1)
+        self.assertEqual(len(arc(radius=10, angle=90, fn=32)), 32 // 4 + 1)
 
     def test_three_point_arc_hits_endpoints(self):
-        pts = arc(n=9, points=[[-1, 0], [0, 1], [1, 0]])
+        pts = arc(count=9, points=[[-1, 0], [0, 1], [1, 0]])
         np.testing.assert_allclose(pts[0], [-1, 0], atol=1e-9)
         np.testing.assert_allclose(pts[-1], [1, 0], atol=1e-9)
 
@@ -183,24 +191,25 @@ class TestDistributorsMatchBosl2(unittest.TestCase):
         from pybosl2 import distributors as D
         dpath = [[0, 0], [20, 0], [20, 20], [40, 20]]
         calls = {
-            "move_copies": lambda: D.move_copies([[0, 0, 0], [5, 5, 5], [10, 0, -3]]),
-            "xcopies_n": lambda: D.xcopies(20, n=3),
-            "ycopies_l": lambda: D.ycopies(l=50, n=4),
+            # move_copies has no pybosl2 equivalent (0.6.7 exposes path_copies for this).
+            "path_copies": lambda: D.path_copies([[0, 0, 0], [5, 5, 5], [10, 0, -3]]),
+            "xcopies_n": lambda: D.xcopies(20, num_copies=3),
+            "ycopies_l": lambda: D.ycopies(length=50, num_copies=4),
             "zcopies_list": lambda: D.zcopies([1, 3, 7]),
-            "line_spacing": lambda: D.line_copies(spacing=10, n=5),
-            "line_vec_l": lambda: D.line_copies(l=[10, 20, 0], n=4),
-            "grid_nspacing": lambda: D.grid_copies(n=[3, 2], spacing=10),
-            "grid_stagger": lambda: D.grid_copies(spacing=8, n=[4, 3], stagger=True),
-            "rot_n6": lambda: D.rot_copies(n=6),
-            "xrot_ring": lambda: D.xrot_copies(n=5, r=10),
-            "yrot_ring": lambda: D.yrot_copies(n=4, r=12),
-            "zrot_list": lambda: D.zrot_copies([0, 30, 60], r=8),
-            "arc_r": lambda: D.arc_copies(n=6, r=20),
-            "arc_ellipse": lambda: D.arc_copies(n=5, rx=20, ry=10, sa=30, ea=200),
-            "sphere": lambda: D.sphere_copies(n=8, r=30, cone_ang=90),
+            "line_spacing": lambda: D.line_copies(spacing=10, num_copies=5),
+            "line_vec_l": lambda: D.line_copies(length=[10, 20, 0], num_copies=4),
+            "grid_nspacing": lambda: D.grid_copies(num_copies=[3, 2], spacing=10),
+            "grid_stagger": lambda: D.grid_copies(spacing=8, num_copies=[4, 3], stagger=True),
+            "rot_n6": lambda: D.rot_copies(num_copies=6),
+            "xrot_ring": lambda: D.xrot_copies(num_copies=5, radius=10),
+            "yrot_ring": lambda: D.yrot_copies(num_copies=4, radius=12),
+            "zrot_list": lambda: D.zrot_copies([0, 30, 60], radius=8),
+            "arc_r": lambda: D.arc_copies(num_copies=6, radius=20),
+            "arc_ellipse": lambda: D.arc_copies(num_copies=5, radius_x=20, radius_y=10, sa=30, ea=200),
+            "sphere": lambda: D.sphere_copies(num_copies=8, r=30, cone_ang=90),
             "mirror_off": lambda: D.mirror_copy([1, 1, 0], offset=2),
             "xflip": lambda: D.xflip_copy(offset=3, x=1),
-            "path_n": lambda: D.path_copies(dpath, n=5),
+            "path_n": lambda: D.path_copies(dpath, num_copies=5),
         }
         for case in TRUTH["distrib"]:
             with self.subTest(kw=case["kw"]):

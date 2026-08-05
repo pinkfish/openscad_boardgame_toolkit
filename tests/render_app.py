@@ -106,6 +106,16 @@ class RenderResult:
     facets: int | None
     error: str | None
     stderr: str
+    #: The rendered PNG, for callers that keep it (render_script). None for render_python,
+    #: which throws its image away -- it only answers "did this produce geometry".
+    image_path: "Path | None" = None
+
+    @property
+    def triangles(self) -> int | None:
+        """Alias for :attr:`facets`. The app reports "Triangles: N" for PolySets and
+        "Facets: N" for CSG solids; the golden-image tests were written against the
+        former name."""
+        return self.facets
 
 
 def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: float = 300.0) -> RenderResult:
@@ -135,6 +145,26 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
 
     out_png = script.with_suffix(".png")
     try:
+        return _run_binary(binary, script, out_png, imgsize=imgsize, timeout=timeout, cwd=bosl2_dir)
+    finally:
+        script.unlink(missing_ok=True)
+        out_png.unlink(missing_ok=True)
+
+
+def _run_binary(
+    binary: str,
+    script: Path,
+    out_png: Path,
+    *,
+    imgsize: tuple[int, int],
+    timeout: float,
+    cwd: str,
+) -> RenderResult:
+    """Run one script file through the app and classify the outcome.
+
+    The shared half of :func:`render_python` and :func:`render_script` -- they differ only
+    in who owns the script file and the PNG."""
+    try:
         proc = subprocess.run(
             [
                 binary, "--trust-python", "--enable", "python-engine",
@@ -142,13 +172,10 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
                 "--render=true", "--backend", "Manifold", "--autocenter", "--viewall",
                 str(script),
             ],
-            capture_output=True, text=True, timeout=timeout, cwd=bosl2_dir,
+            capture_output=True, text=True, timeout=timeout, cwd=cwd,
         )
     except subprocess.TimeoutExpired as exc:
         return RenderResult(False, None, f"timed out after {timeout:.0f}s", str(exc.stderr or ""))
-    finally:
-        script.unlink(missing_ok=True)
-        out_png.unlink(missing_ok=True)
 
     stderr = proc.stderr or ""
     if "Traceback (most recent call last):" in stderr:
@@ -164,6 +191,48 @@ def render_python(body: str, *, imgsize: tuple[int, int] = (200, 150), timeout: 
     if n <= 0:
         return RenderResult(False, None, "no geometry (Facets/Triangles) reported", stderr)
     return RenderResult(True, n, None, stderr)
+
+
+def render_script(
+    source: str,
+    out_png: "Path | str",
+    *,
+    imgsize: tuple[int, int] = (320, 240),
+    cwd: str | None = None,
+    timeout: float = 300.0,
+) -> RenderResult:
+    """Render *source* to a NAMED png -- the entry point the golden-image helpers use.
+
+    :func:`render_python` answers "did this produce geometry" and throws its image away;
+    this keeps the PNG, because the ``render_*.py`` helpers compare it against a golden.
+    Previously lived in ``render_pysolidfive.render_script``, which died with pysolidfive
+    and took thirteen helper modules (and the eight render tests behind them) with it.
+    """
+    binary = find_pythonscad_binary()
+    if binary is None:
+        raise FileNotFoundError("PythonSCAD binary not found (skip render tests)")
+
+    out_png = Path(out_png)
+    out_png.parent.mkdir(parents=True, exist_ok=True)
+    header = (
+        "import os, sys\n"
+        "os.environ['FROM_MAKE'] = '1'\n"
+        + (f"sys.path.insert(0, {_venv_site_packages()!r})\n" if _venv_site_packages() else "")
+        + f"sys.path.insert(0, {str(PROJECT_ROOT)!r})\n"
+    )
+    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False, dir=tempfile.gettempdir()) as f:
+        f.write(header + source)
+        script = Path(f.name)
+    try:
+        result = _run_binary(
+            binary, script, out_png,
+            imgsize=imgsize, timeout=timeout,
+            cwd=cwd or (find_bosl2_scad_dir() or str(PROJECT_ROOT)),
+        )
+        result.image_path = out_png if out_png.exists() else None
+        return result
+    finally:
+        script.unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -270,3 +339,24 @@ def measure_python(body: str, *, timeout: float = 300.0) -> MeasureResult:
             _, name, value = line.split(None, 2)
             reports[name] = value.strip()
     return MeasureResult(result.ok, boxes, reports, result.error, result.stderr)
+
+
+def compare_images(path_a: "Path | str", path_b: "Path | str") -> float:
+    """Mean absolute per-channel pixel difference between two PNGs.
+
+    ``0.0`` = identical, ``255.0`` = maximally different; *b* is resized to *a* when the
+    sizes differ. Used by the golden-image render tests to say "this still looks like it
+    did". Recovered from the deleted ``render_pysolidfive`` helper.
+
+    Requires Pillow, which lives in this project's venv and is used only by these tests.
+    """
+    from PIL import Image
+
+    with Image.open(path_a) as img_a, Image.open(path_b) as img_b:
+        img_a = img_a.convert("RGB")
+        img_b = img_b.convert("RGB")
+        if img_a.size != img_b.size:
+            img_b = img_b.resize(img_a.size)
+        pixels_a = img_a.tobytes()
+        pixels_b = img_b.tobytes()
+        return sum(abs(a - b) for a, b in zip(pixels_a, pixels_b)) / len(pixels_a)

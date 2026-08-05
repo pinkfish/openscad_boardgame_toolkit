@@ -583,7 +583,10 @@ def RegularPolygonGridDense(
     assert cols > 0, f"cols must be > 0, cols={cols}"
     assert radius > 0, f"radius must be > 0, radius={radius}"
 
-    shape = None
+    # Collected then unioned as a BALANCED tree (see the note at the end): a left fold
+    # over rows*cols cells makes Manifold re-boolean the whole accumulated grid once per
+    # cell when the shape is finally meshed.
+    pieces = []
 
     if shape_edges == 6:
         apothem = radius * math.cos(math.radians(180 / shape_edges))
@@ -601,7 +604,7 @@ def RegularPolygonGridDense(
                     x = i * dy - radius
                     y = ((j * 2 + 1) * dx if (i % 2) == 0 else j * 2 * dx) - radius
                     piece = piece.translate([x, y, 0])
-                shape = piece if shape is None else shape | piece
+                pieces.append(piece)
     elif shape_edges == 3:
         side_length = radius * math.sqrt(3)
         triangle_height = math.sqrt(3) * side_length / 2
@@ -617,7 +620,8 @@ def RegularPolygonGridDense(
                 else:
                     piece = children() if callable(children) else children
                     piece = piece.translate([i * dy - radius, j * dx - radius, 0])
-                shape = piece if shape is None else shape | piece
+                pieces.append(piece)
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

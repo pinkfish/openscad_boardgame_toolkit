@@ -49,7 +49,7 @@ from render_components import render_components_shape
 from render_labels import render_labels_shape
 from render_lids_base import render_lids_base_shape
 from render_no_lid import render_no_lid_shape
-from render_pysolidfive import find_pythonscad_binary, render_pysolidfive_shape
+from render_app import find_pythonscad_binary, render_pysolidfive_shape
 from render_shapes import render_shapes_shape
 from render_sliding_box import render_sliding_box_shape
 from render_slipover_box import render_slipover_box_shape

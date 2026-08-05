@@ -37,9 +37,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # pysolidfive's own test suite is bundled with the package); add that directory too.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pysolidfive" / "tests"))
 
-import mock_libfive  # noqa: E402  (must be imported, and installed, before lids_base)
 
 import lids_base  # noqa: E402
+import patterns  # noqa: E402  -- IsDenseShapeType/DenseShapeEdges moved here with
+                 #                the pattern refactor (lids_base no longer owns the
+                 #                'is this shape dense' question; the lattice does)
 
 
 class TestIsDenseShapeType(unittest.TestCase):
@@ -50,24 +52,24 @@ class TestIsDenseShapeType(unittest.TestCase):
             lids_base.ShapeType.DELTOID_TRIHEXAGONAL_KITE,
             lids_base.ShapeType.DELTOID_TRIHEXAGONAL,
         ):
-            self.assertTrue(lids_base.IsDenseShapeType(t), f"{t} should be dense")
+            self.assertTrue(patterns.IsDenseShapeType(t), f"{t} should be dense")
 
     def test_non_dense_type(self) -> None:
-        self.assertFalse(lids_base.IsDenseShapeType(lids_base.ShapeType.SUPERSHAPE))
+        self.assertFalse(patterns.IsDenseShapeType(lids_base.ShapeType.SUPERSHAPE))
 
     def test_default_uses_module_default(self) -> None:
-        self.assertEqual(lids_base.IsDenseShapeType(), lids_base.IsDenseShapeType(lids_base.default_lid_shape_type))
+        self.assertEqual(patterns.IsDenseShapeType(), patterns.IsDenseShapeType(lids_base.default_lid_shape_type))
 
 
 class TestDenseShapeEdges(unittest.TestCase):
     def test_triangle_has_three_edges(self) -> None:
-        self.assertEqual(lids_base.DenseShapeEdges(lids_base.ShapeType.DENSE_TRIANGLE), 3)
+        self.assertEqual(patterns.DenseShapeEdges(lids_base.ShapeType.DENSE_TRIANGLE), 3)
 
     def test_hex_has_six_edges(self) -> None:
-        self.assertEqual(lids_base.DenseShapeEdges(lids_base.ShapeType.DENSE_HEX), 6)
+        self.assertEqual(patterns.DenseShapeEdges(lids_base.ShapeType.DENSE_HEX), 6)
 
     def test_other_dense_types_default_to_six(self) -> None:
-        self.assertEqual(lids_base.DenseShapeEdges(lids_base.ShapeType.DELTOID_TRIHEXAGONAL), 6)
+        self.assertEqual(patterns.DenseShapeEdges(lids_base.ShapeType.DELTOID_TRIHEXAGONAL), 6)
 
 
 if __name__ == "__main__":

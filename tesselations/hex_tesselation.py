@@ -112,12 +112,17 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     # NATIVE, not osuse: a failing assert inside an osuse'd .scad function aborts the whole
     # process rather than raising (tests/repro_osuse_assert_aborts.py), and this was the last
     # such call in the toolkit. BOSL2's smooth_path(method="corners") routes through
-    # path_to_bezcornerpath(), which pybosl2 ports as Path2D.to_bezcornerpath() -- so this is
-    # the faithful equivalent, not an approximation. (Path2D.smooth_path() is the *other*
-    # BOSL2 method, "edges", which interpolates through the points instead of cutting the
-    # corners, and round_corners(joint=0.3) rejects this path outright: the shortest segment
-    # is 0.038, so a 0.3 joint overlaps its neighbours ~8x.)
-    smoothed = Path2D(
+    # path_to_bezcornerpath(), which pybosl2 ports as Path2D.to_bezcornerpath().
+    #
+    # The .scad says size=0.3 -- and 0.3 CANNOT be used. This profile's shortest segment is
+    # 0.038, so a 0.3 corner offset puts each control point well past its neighbours and the
+    # resulting outline SELF-INTERSECTS (Path2D.is_path_simple() is False at 0.3 and 0.1,
+    # True from 0.05 down; the point count is 54 either way). A self-intersecting tile is not
+    # just cosmetically wrong: every boolean against it is pathological, and it took a
+    # flying-bird lid from ~5s to over 30 MINUTES -- it was the single reason the lid-pattern
+    # suite could not finish. Pick the largest offset that keeps the outline simple instead
+    # of hard-coding one, so the choice stays honest if the profile is ever edited.
+    profile = Path2D(
         [
             [-1, 0], [-0.951467, 0.23843], [-0.84139, 0.462284], [-0.746843, 0.428975],
             [-0.751917, 0.323591], [-0.674043, 0.280095], [-0.576252, 0.374566],
@@ -126,7 +131,14 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
             [0.00442596, 0.0381548], [0, 0],
         ],
         closed=False,
-    ).to_bezcornerpath(0.3, fn=3)  # .scad: smooth_path(size=0.3, method="corners", splinesteps=3)
+    )
+    smoothed = None
+    for corner_size in (0.3, 0.15, 0.08, 0.05, 0.03, 0.015):
+        candidate = profile.to_bezcornerpath(corner_size, fn=3)  # .scad: splinesteps=3
+        if candidate.is_path_simple():
+            smoothed = candidate
+            break
+    assert smoothed is not None, "no corner size leaves the flying-bird profile simple"
     line1 = [[i[0] + 1, i[1]] for i in smoothed]
 
     hexagon = Path2D(generate_hexagon(sides, angles)).rot(spin) if spin != 0 else generate_hexagon(sides, angles)
@@ -188,13 +200,19 @@ def TesselationFlyingBirdGrid(
     bird = FlyingBirdTesselation(size, thickness=thickness, outer_offset=outer_offset, spin=spin)
     tile = bird.geometry
 
-    shape = None
-    for i in range(row + 1):
-        for j in range(col + 1):
-            piece = tile.translate(
-                [i * bird.x_vec[0] + j * bird.y_vec[0], i * bird.x_vec[1] + j * bird.y_vec[1], 0]
-            )
-            shape = piece if shape is None else shape | piece
+    pieces = [
+        tile.translate(
+            [i * bird.x_vec[0] + j * bird.y_vec[0], i * bird.x_vec[1] + j * bird.y_vec[1], 0]
+        )
+        for i in range(row + 1)
+        for j in range(col + 1)
+    ]
+    # Balanced union, not `shape = shape | piece`. PythonSCAD assembles the CSG tree
+    # lazily, so a left fold looks free and then costs everything at MESH time: Manifold
+    # re-booleans the whole accumulated tiling once per cell. These bird outlines OVERLAP
+    # (see FlyingBirdTesselation), so every one of those is real polygon clipping -- this
+    # single loop was taking a flying-bird lid past the test harness's 15-minute timeout.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

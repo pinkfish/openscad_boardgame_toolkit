@@ -28,7 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from render_cap_box import find_bosl2_scad_dir
-from render_pysolidfive import RenderResult, render_script
+from render_app import RenderResult, render_script
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 

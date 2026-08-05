@@ -28,9 +28,6 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", "tests"))
-import mock_libfive  # noqa: F401,E402  (numeric stand-ins; must precede toolkit imports)
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from base_bgtk import InnerPath  # noqa: E402
 from no_lid import PathBoxWithNoLid  # noqa: E402

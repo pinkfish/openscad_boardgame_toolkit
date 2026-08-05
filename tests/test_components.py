@@ -38,7 +38,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 # pysolidfive's own test suite is bundled with the package); add that directory too.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pysolidfive" / "tests"))
 
-import mock_libfive  # noqa: E402  (must be imported, and installed, before components)
 
 import components  # noqa: E402
 

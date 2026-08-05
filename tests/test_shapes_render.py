@@ -45,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pysolidfive" / "tests"))
 
 from render_cap_box import find_bosl2_scad_dir
-from render_pysolidfive import compare_images, find_pythonscad_binary
+from render_app import compare_images, find_pythonscad_binary
 from render_shapes import render_shapes_shape
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden_images"

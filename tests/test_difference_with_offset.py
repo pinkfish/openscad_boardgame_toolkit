@@ -36,9 +36,6 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", "tests"))
-import mock_libfive  # noqa: F401,E402
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from base_bgtk import DifferenceWithOffset, DifferenceWithOffsetRounded  # noqa: E402
 

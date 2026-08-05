@@ -55,7 +55,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pysolidfive" / 
 
 from render_cap_box import find_bosl2_scad_dir
 from render_lids_base import render_lids_base_shape
-from render_pysolidfive import compare_images, find_pythonscad_binary
+from render_app import compare_images, find_pythonscad_binary
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden_images"
 OUT_DIR = Path(__file__).resolve().parent / "_render_output"

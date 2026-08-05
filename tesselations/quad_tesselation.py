@@ -209,7 +209,7 @@ def TesselationBirdGrid(row: int, col: int, size: float, thickness: float, outer
     assert thickness > 0, "Need a thickness"
 
     ratio = size / 100
-    shape = None
+    pieces = []
     for i in range(row + 1):
         for j in range(col + 1):
             y = i * (size * 2 - 20 * ratio)
@@ -217,7 +217,11 @@ def TesselationBirdGrid(row: int, col: int, size: float, thickness: float, outer
             piece = TesselationBirdBlock(size=size, thickness=thickness, outer_offset=outer_offset).translate(
                 [x, y, 0]
             )
-            shape = piece if shape is None else shape | piece
+            pieces.append(piece)
+    # Balanced union -- a left fold costs nothing to assemble (PythonSCAD is lazy)
+    # and then makes Manifold re-boolean the whole accumulated tiling once per cell
+    # at mesh time.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

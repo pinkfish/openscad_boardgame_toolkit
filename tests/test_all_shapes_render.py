@@ -177,6 +177,34 @@ class TessellationConstructTest(unittest.TestCase):
         self.assertGreater(r.facets or 0, 0)
 
 
+@unittest.skipUnless(render_available(), "PythonSCAD app / patched BOSL2 not available")
+class ShapeAspectRatioTest(unittest.TestCase):
+    """Shapes built with a NON-DEFAULT aspect ratio.
+
+    Inherited from the deleted test_shape_type.py, which could only run under the numeric
+    mock that died with pysolidfive. CLOUD is here by name because it shipped broken: it
+    called resize() with a 2-element vector, which the real resize() rejects and the mock
+    of the day accepted, so nothing caught it. Run against the real app there is no mock to
+    be more permissive than the thing it stands in for."""
+
+    def test_shapes_build_with_an_aspect_ratio(self):
+        body = (
+            "from base_bgtk import ShapeType\n"
+            "from shape_type import MakeShapeObject, ShapeByType\n"
+            "import pybosl2.shapes3d as _s3\n"
+            "for _n in ('CLOUD', 'HEXAGON', 'OCTOGON', 'CIRCLE'):\n"
+            "    _t = getattr(ShapeType, _n, None)\n"
+            "    if _t is None:\n"
+            "        continue\n"
+            "    _out = ShapeByType(MakeShapeObject(shape_type=_t, shape_width=11,\n"
+            "                                       shape_thickness=1, shape_aspect_ratio=1.5))\n"
+            "    assert _out is not None, _n + ' produced no shape with aspect_ratio=1.5'\n"
+            "_s3.cuboid([1, 1, 1]).show()\n"
+        )
+        r = render_python(body)
+        self.assertTrue(r.ok, r.error)
+
+
 class CoverageTest(unittest.TestCase):
     """Every public shape and tessellation must be BUILT by the sweeps above.
 

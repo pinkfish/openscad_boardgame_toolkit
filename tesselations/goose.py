@@ -160,7 +160,7 @@ def TesselationGooseGrid(row: int, col: int, size: float, thickness: float, oute
     assert thickness > 0, "Need a thickness"
 
     ratio = size / 100
-    shape = None
+    pieces = []
     for i in range(row + 1):
         for j in range(col + 1):
             y = TESSELATION_GOOSE_MIDDLE / 4 * i + (i + (TESSELATION_GOOSE_SIDE * 4) * j) * ratio
@@ -168,7 +168,11 @@ def TesselationGooseGrid(row: int, col: int, size: float, thickness: float, oute
             piece = TesselationGooseBlock(size=size, thickness=thickness, outer_offset=outer_offset).translate(
                 [x, y, 0]
             )
-            shape = piece if shape is None else shape | piece
+            pieces.append(piece)
+    # Balanced union -- a left fold costs nothing to assemble (PythonSCAD is lazy)
+    # and then makes Manifold re-boolean the whole accumulated tiling once per cell
+    # at mesh time.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

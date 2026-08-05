@@ -43,7 +43,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from render_pysolidfive import RenderResult, render_script
+from render_app import RenderResult, render_script
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 

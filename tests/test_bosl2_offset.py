@@ -32,14 +32,26 @@ import unittest
 
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "pysolidfive", "tests"))
-import mock_libfive  # noqa: F401,E402
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+import venv_path  # noqa: F401,E402  -- pin pybosl2 to the project venv
 from pybosl2 import Path2D  # noqa: E402
 
-# offset() now lives on Path2D as the private static engine behind Path2D.offset().
-offset = Path2D._offset
+#: BOSL2 spells these short; pybosl2 0.6.x removed every short kwarg. The FIXTURES keep
+#: BOSL2's spelling on purpose -- they are captured from the real library and must stay
+#: faithful to it -- so the translation belongs here, at the boundary, not in the data.
+_BOSL2_KW = {"r": "radius", "d": "diameter", "n": "count", "_fn": "fn", "l": "length", "h": "height"}
+
+
+def offset(path, closed=True, **kw):
+    """BOSL2's ``offset(path, ...)`` over pybosl2's engine.
+
+    Two things moved in pybosl2 0.6.x: the engine became an INSTANCE method on
+    :class:`Path2D` (passing a bare point list as ``self`` fails on ``.closed``), and the
+    short kwargs went away. Adapting here keeps every truth case written the way BOSL2
+    wrote it."""
+    kw = {_BOSL2_KW.get(k, k): v for k, v in kw.items()}
+    closed = kw.pop("closed", closed)
+    return Path2D(path, closed=closed)._offset(**kw)
 
 TRUTH = json.load(open(os.path.join(os.path.dirname(__file__), "bosl2_offset_truth.json")))
 

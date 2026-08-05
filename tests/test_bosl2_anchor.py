@@ -36,12 +36,13 @@ sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "pysolidfive", "tests"))
 
-import mock_libfive  # noqa: E402  (must install its native stand-ins before importing pybosl2)
 
+import venv_path  # noqa: F401,E402  -- pin pybosl2 to the project venv
 import pybosl2.shapes3d as b3  # noqa: E402
 import pybosl2.masking as bm  # noqa: E402
 from pybosl2.constants import TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK, CENTER  # noqa: E402
-from pybosl2.shapes3d import Bosl2Solid, _rot_from_to  # noqa: E402
+from pybosl2.shapes3d import Bosl2Solid  # noqa: E402
+from pybosl2.transforms import rot_from_to as _rot_from_to  # 0.6.7 moved it out of shapes3d
 
 
 def approx(a, b, tol=1e-6):
@@ -121,13 +122,13 @@ class TestAttach(unittest.TestCase):
         box = b3.cuboid([40, 30, 20])
         # cylinder h=12 attached to TOP, default child_anchor=BOTTOM, no overlap:
         # cyl spans z=[10,22]; combined z=[-10,22]
-        combined = box.attach(TOP, b3.cylinder(h=12, r=4))
+        combined = box.attach(TOP, b3.cylinder(height=12, radius=4))
         center, size = combined.bounds()
         self.assertAlmostEqual(size[2], 32.0, places=6)
 
     def test_attach_overlap_sinks_child_in(self):
         box = b3.cuboid([40, 30, 20])
-        combined = box.attach(TOP, b3.cylinder(h=12, r=4), overlap=2)
+        combined = box.attach(TOP, b3.cylinder(height=12, radius=4), overlap=2)
         _, size = combined.bounds()
         self.assertAlmostEqual(size[2], 30.0, places=6)  # cyl now z=[8,20]
 
@@ -178,24 +179,24 @@ class TestBboxBackedMasking(unittest.TestCase):
 class TestRegularPrism(unittest.TestCase):
     def test_hexagon_circumradius(self):
         # under the mock the prism's bbox is its bounding cylinder (2*circumradius square)
-        prism = b3.regular_prism(6, h=20, r=15)
+        prism = b3.regular_prism(6, height=20, radius=15)
         _, size = prism.bounds()
         self.assertAlmostEqual(size[0], 30.0, places=6)
         self.assertAlmostEqual(size[2], 20.0, places=6)
 
     def test_inradius_converts_to_circumradius(self):
-        prism = b3.regular_prism(5, h=10, ir=12)
+        prism = b3.regular_prism(5, height=10, inner_radius=12)
         _, size = prism.bounds()
         self.assertAlmostEqual(size[0], 2 * 12 / math.cos(math.pi / 5), places=5)
 
     def test_side_converts_to_circumradius(self):
-        prism = b3.regular_prism(4, h=10, side=10)
+        prism = b3.regular_prism(4, height=10, side=10)
         _, size = prism.bounds()
         self.assertAlmostEqual(size[0], 2 * (10 / (2 * math.sin(math.pi / 4))), places=5)
 
     def test_rejects_bad_n(self):
         with self.assertRaises(AssertionError):
-            b3.regular_prism(2, h=10, r=5)
+            b3.regular_prism(2, height=10, radius=5)
 
 
 if __name__ == "__main__":

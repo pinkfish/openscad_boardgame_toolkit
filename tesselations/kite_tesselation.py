@@ -70,15 +70,18 @@ def MakeTesselationKiteHexagon(
     """
     kites = MakeTesselationKite(size, side1, side2)
 
-    shape = None
+    pieces = []
     for i in range(6):
         region_data = DifferenceWithOffset(
             outer_offset=outer_offset,
             offset=-thickness,
             pts=Path2D(kites).right(size / 2).rot(i * 60),
         )
-        piece = region(region_data)
-        shape = piece if shape is None else shape | piece
+        pieces.append(region(region_data))
+    # Balanced union, not `shape = shape | piece`: a left fold re-unions the whole
+    # accumulated outline on every step, so its cost grows with the square of the piece
+    # count. These outlines are hundreds of vertices each.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 
@@ -113,10 +116,15 @@ def TesselationHexKiteArea(width: float, length: float, size: float, children: P
     rows = math.floor(width / (size * 4) + 3)
     cols = math.floor(length / (apothem * 2) + 3)
 
-    shape = None
-    for x in range(rows + 1):
-        for y in range(cols + 1):
-            piece = TesselationHexKiteAtLocation(size=size, x=x, y=y, children=children)
-            shape = piece if shape is None else shape | piece
+    pieces = [
+        TesselationHexKiteAtLocation(size=size, x=x, y=y, children=children)
+        for x in range(rows + 1)
+        for y in range(cols + 1)
+    ]
+    # Balanced union -- see MakeTesselationKiteHexagon. This is the loop that made the
+    # creature tilings (CHICKEN and friends) so slow to MESH: PythonSCAD builds the CSG
+    # tree lazily, so a left fold costs nothing to assemble and then makes Manifold
+    # re-boolean the whole accumulated tiling once per cell when the lid is finally meshed.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape.translate([-size / 2, 0, 0])
