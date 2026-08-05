@@ -39,7 +39,7 @@ from pybosl2 import shapes2d
 from pybosl2 import Path2D
 from pybosl2 import Region
 from components import FingerHoleWall, MagnetSlot, MAGNET_SLOT_TYPE_NONE
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior
+from box_base import Body, BoxBaseType, BoxSpec, BoxTypeOptions, Interior
 
 from typing import Callable
 
@@ -76,7 +76,6 @@ class NoLidBox(BoxBaseType):
         NoLidBox(BoxSpec(size=[100, 50, 20], label="tray", hollow=True)).make_box()  # open
     """
 
-    has_lid = False
 
     def _compute_interior(self) -> Interior:
         # No lid to subtract -- the interior runs from the floor to the open top.
@@ -100,7 +99,10 @@ class NoLidBox(BoxBaseType):
             anchor=BOTTOM + FRONT + LEFT,
             rounding=self.wall_thickness / 2,
         )
-        return body.color(self.material_colour)
+        return Body(
+            body.color(self.material_colour),
+            hollowed=True,
+        )
 
 
 def FingerHoleWallSegment(
@@ -159,7 +161,7 @@ def FingerHoleWallSegment(
             rounding_edge=wall_thickness / 2,
         )
         .rotate([0, 0, angle])
-        .translate([pts[0][0][0], pts[0][0][1], height - finger_hole_height + 0.01])
+        .translate([pts[0].point[0], pts[0].point[1], height - finger_hole_height + 0.01])
     )
 
 
@@ -535,9 +537,7 @@ class PathBox(BoxBaseType):
     """
 
     options_class = PathBoxOptions
-    has_lid = False
     # PathBoxWithNoLid opens its own interior (the rounded, flared cavity) when told to.
-    body_hollows_itself = True
 
     def __init__(self, spec: BoxSpec) -> None:
         # Lock the declared x/y extent to the outline's real bounding box so the base
@@ -667,8 +667,8 @@ class PathBox(BoxBaseType):
         return inner_children
 
     def _build_box_body(self, contents):
-        """The polygon shell, with its own interior already opened (hence
-        ``body_hollows_itself``).
+        """The polygon shell, with its own interior already opened (hence the returned
+        ``Body(..., hollowed=True)``).
 
         Two content channels compose: :attr:`PathBoxOptions.children` (the polygon-native
         ``InnerPath`` callable -- hex dividers, stackable rings, edge magnets) is built
@@ -687,5 +687,11 @@ class PathBox(BoxBaseType):
         # .shape is another wrapper, which breaks anything reading the native handle).
         # FIX IN BOSL2: build()/carve_finger_holes should always return a Bosl2Solid.
         if isinstance(shell, pybosl2.shapes3d.Bosl2Solid):
-            return shell
-        return pybosl2.shapes3d.Bosl2Solid(shell)
+            return Body(
+                shell,
+                hollowed=True,
+            )
+        return Body(
+            pybosl2.shapes3d.Bosl2Solid(shell),
+            hollowed=True,
+        )

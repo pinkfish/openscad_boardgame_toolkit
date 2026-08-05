@@ -36,8 +36,7 @@ import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.shapes2d
 from pybosl2._sdf import joiners as _sdf_joiners
-from lids_base import internal_build_lid
-from box_base import BoxBaseType, BoxSpec, LidPlate
+from box_base import Body, BoxSpec, LidPlate, LiddedBox
 from dataclasses import dataclass, field
 
 from typing import Callable
@@ -609,7 +608,7 @@ def _card_library_lid_parts(
         slide_supports = slide_support_a | slide_support_b
         # Plain unrounded boxes as native cubes (translated to match the old TOP+BACK+LEFT /
         # TOP+FRONT+LEFT anchors): slide_supports gets masked several times inside
-        # internal_build_lid(), and PythonSCAD segfaults when frep()-meshed nodes appear in
+        # build_lid(), and PythonSCAD segfaults when frep()-meshed nodes appear in
         # a tree that is referenced from more than one CSG branch.
         _hc_size = [wall_thickness * 3, wall_thickness * 3.5 + 0.02, lid_thickness + 1]
         handle_cut_a = (
@@ -972,7 +971,7 @@ def _card_ns(cs: CardSize) -> types.SimpleNamespace:
     return MakeCardSize(cs.width, cs.length, cs.single_card_thickness, cs.sleeve_wall_thickness)
 
 
-class CardLibraryBox(BoxBaseType):
+class CardLibraryBox(LiddedBox):
     """A card-library box on the new box system: a box + lid sized to hold a set of
     card groups, each group in its own sleeve.
 
@@ -993,8 +992,6 @@ class CardLibraryBox(BoxBaseType):
         box.make_sleeves().show()      # all sleeves; or box.make_sleeve(0)
     """
 
-    body_hollows_itself = True
-    body_carves_contents = True
 
     def __init__(self, spec: CardLibrarySpec) -> None:
         assert isinstance(spec, CardLibrarySpec), (
@@ -1017,10 +1014,13 @@ class CardLibraryBox(BoxBaseType):
 
     def _build_box_body(self, contents):
         children = [io.value for io in contents] or None
-        return _make_card_library_box(
-            size=self._box_size(), children=children, wall_thickness=self.wall_thickness,
-            floor_thickness=self.floor_thickness, lid_thickness=self.lid_thickness,
-            material_colour=self.material_colour, latch=self._card.latch,
+        return Body(
+            _make_card_library_box(
+                size=self._box_size(), children=children, wall_thickness=self.wall_thickness,
+                floor_thickness=self.floor_thickness, lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour, latch=self._card.latch,
+            ),
+            hollowed=True, carved=True,
         )
 
     def _lid_plate(self, lid) -> LidPlate:
@@ -1029,13 +1029,13 @@ class CardLibraryBox(BoxBaseType):
         latch itself joined to the finished lid."""
         base, extras, latch_parts, origin, size = _card_library_lid_parts(
             size=self._box_size(), wall_thickness=self.wall_thickness,
-            lid_thickness=lid.lid_thickness, latch=self._card.latch,
+            lid_thickness=self.lid_thickness, latch=self._card.latch,
             material_colour=self.material_colour,
         )
         return LidPlate(
             plate=base,
             size=size,
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
             origin=origin,
             shell=latch_parts,
             extra_overlays=extras,

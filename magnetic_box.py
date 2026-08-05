@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from box_base import LiddedBox, BoxSpec, BoxTypeOptions, LidPlate
 from dataclasses import dataclass
 
 
@@ -43,7 +43,7 @@ class MagneticBoxOptions(BoxTypeOptions):
     magnet_border: float = 1.5
 
 
-class MagneticBox(BoxBaseType):
+class MagneticBox(LiddedBox):
     """A box whose lid is held on by magnets set into the corners, on the new box
     system. Box and lid are separate prints; magnets are glued into both.
 
@@ -102,7 +102,7 @@ class MagneticBox(BoxBaseType):
         """A flat plate at the OUTER footprint with matching corner magnet pockets."""
         r = lid.lid_rounding if lid.lid_rounding is not None else self.wall_thickness
         top = pybosl2.shapes3d.cuboid(
-            [self.width, self.length, lid.lid_thickness],
+            [self.width, self.length, self.lid_thickness],
             rounding=r,
             anchor=BOTTOM + FRONT + LEFT,
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
@@ -111,5 +111,5 @@ class MagneticBox(BoxBaseType):
         return LidPlate(
             plate=top.color(self.material_colour),
             size=[self.width, self.length],
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
         )

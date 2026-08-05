@@ -35,7 +35,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 def render_lids_base_shape(expr: str, out_png: Path, imgsize: tuple[int, int] = (320, 240)) -> RenderResult:
     """Convenience wrapper: renders a single lids_base.py expression, e.g.
-    `"SlidingLidFingernail(3.0)"`. `expr` is evaluated with lids_base's/base_bgtk's/labels'/
+    `"sliding_lid_fingernail(3.0)"`. `expr` is evaluated with lids_base's/base_bgtk's/labels'/
     shape_type's public names and pythonscad's native primitives already imported into scope,
     and the project root already on sys.path.
 

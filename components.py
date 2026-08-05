@@ -1166,7 +1166,7 @@ def RaisedLabel(
     return InnerObject(solid, ObjectType.POSITIVE, color=colour)
 
 
-def _extrude_image(shape, depth: float):
+def extrude_image(shape, depth: float):
     """Turn *shape* into a *depth*-tall solid: a callable(depth) is called; a 2-D shape
     (Bosl2Shape2D / native 2-D, has ``linear_extrude``) is extruded; an already-3-D solid
     is returned unchanged. So a shape image can be any of the shapes.py / shape functions,
@@ -1190,7 +1190,7 @@ def EngravedShape(
     """Like :func:`EngravedLabel` but engraves a SHAPE image instead of text -- a 0.2mm
     second-colour impression of *shape* whose top face sits at ``position`` and cuts DOWN.
     *shape* is a 2-D shape (e.g. ``shapes.coin2d(14)``), a ``callable(depth)`` or a 3-D solid
-    (see :func:`_extrude_image`). Pre-size the shape to fit its cell.
+    (see :func:`extrude_image`). Pre-size the shape to fit its cell.
 
     Usage::
 
@@ -1198,7 +1198,7 @@ def EngravedShape(
         EngravedShape(saw_blade2d(16), [x, y, z0], colour="steelblue")
     """
     x, y, z = position
-    solid = _extrude_image(shape, depth)
+    solid = extrude_image(shape, depth)
     if spin:
         solid = solid.rotate([0, 0, spin])
     return InnerObject(solid.translate([x, y, z - depth]), ObjectType.POSITIVE_NEGATIVE, color=colour, clip=clip)
@@ -1215,7 +1215,7 @@ def RaisedShape(
     """Like :func:`RaisedLabel` but raises a SHAPE image (see :func:`EngravedShape`) sitting
     ON a surface at ``position``. Returns a ``POSITIVE`` InnerObject."""
     x, y, z = position
-    solid = _extrude_image(shape, height)
+    solid = extrude_image(shape, height)
     if spin:
         solid = solid.rotate([0, 0, spin])
     return InnerObject(solid.translate([x, y, z]), ObjectType.POSITIVE, color=colour)

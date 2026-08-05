@@ -36,7 +36,7 @@ import pybosl2.masking
 import pybosl2.shapes3d
 from pybosl2._sdf import joiners as _sdf_joiners
 from pybosl2._sdf import shapes3d as _sdf_shapes3d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from box_base import Body, BoxSpec, BoxTypeOptions, LidPlate, LiddedBox
 
 
 # The six axis orientations BOSL2 orient= takes at these call sites, as native Euler
@@ -465,14 +465,14 @@ def _filament_lid_parts(
     return top, knuckle | catch, [wall_thickness * 2.5, 0.0], hole
 
 
-class FilamentHingeBox(BoxBaseType):
+class FilamentHingeBox(LiddedBox):
     """A box whose lid is joined by a filament hinge (knuckles on the box and lid, a
     piece of filament threaded through them), on the new box system.
 
     Box and lid are SEPARATE prints (joined by filament after printing), so
     :meth:`make_box` and :meth:`make_lid` both work. ``contents`` entries are carved
-    into the box interior in order (the underlying geometry places them itself, hence
-    ``body_carves_contents``). Hinge parameters come from
+    into the box interior in order (the underlying geometry places them itself, so
+    :meth:`_build_box_body` returns ``Body(..., carved=True)``). Hinge parameters come from
     ``BoxSpec(type_options=FilamentHingeBoxOptions(thickness=..., hole_diameter=...))``.
 
     Usage::
@@ -486,8 +486,6 @@ class FilamentHingeBox(BoxBaseType):
     """
 
     options_class = FilamentHingeBoxOptions
-    body_hollows_itself = True
-    body_carves_contents = True
 
     def _build_box_body(self, contents):
         # Thread the InnerObject types into the underlying function's index lists so the
@@ -496,16 +494,19 @@ class FilamentHingeBox(BoxBaseType):
         children = [io.value for io in contents] or None
         pos_only = [i for i, io in enumerate(contents) if io.type == ObjectType.POSITIVE]
         pos_neg = [i for i, io in enumerate(contents) if io.type == ObjectType.POSITIVE_NEGATIVE]
-        return _make_box_with_filament_hinge_lid(
-            size=[self.width, self.length, self.height],
-            children=children,
-            wall_thickness=self.wall_thickness,
-            floor_thickness=self.floor_thickness,
-            lid_thickness=self.lid_thickness,
-            material_colour=self.material_colour,
-            hinge_options=self.options,
-            positive_only_children=pos_only,
-            positive_negative_children=pos_neg,
+        return Body(
+            _make_box_with_filament_hinge_lid(
+                size=[self.width, self.length, self.height],
+                children=children,
+                wall_thickness=self.wall_thickness,
+                floor_thickness=self.floor_thickness,
+                lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour,
+                hinge_options=self.options,
+                positive_only_children=pos_only,
+                positive_negative_children=pos_neg,
+            ),
+            hollowed=True, carved=True,
         )
 
     def _lid_plate(self, lid) -> LidPlate:
@@ -515,14 +516,14 @@ class FilamentHingeBox(BoxBaseType):
             size=[self.width, self.length, self.height],
             wall_thickness=self.wall_thickness,
             floor_thickness=self.floor_thickness,
-            lid_thickness=lid.lid_thickness,
+            lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
             hinge_options=self.options,
         )
         return LidPlate(
             plate=top,
             size=[self.width - origin[0], self.length],
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
             origin=origin,
             shell=shell,
             cutouts=[pin_hole],

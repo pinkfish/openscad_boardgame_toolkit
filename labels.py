@@ -450,7 +450,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     # `result` has been a Bosl2Solid ever since `outer - cutter` above (every later `|`/`-`
     # rewraps it, regardless of the other operand's type) -- unwrap to the native/mesh type
     # before returning, since callers combine this with plain native shapes (e.g.
-    # sliding_box.py's internal_build_lid() unions several lid children together, and a
+    # sliding_box.py's build_lid() unions several lid children together, and a
     # Bosl2Solid mixed in among native ones breaks the native `|` operator).
     return result.translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0]).shape
 

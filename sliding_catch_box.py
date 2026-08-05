@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
+from box_base import LiddedBox, BoxSpec, BoxTypeOptions, Interior, LidPlate
 
 
 @dataclass
@@ -42,7 +42,7 @@ class SlidingCatchBoxOptions(BoxTypeOptions):
     fill_middle: bool = True      # fill the middle of the lid (default True)
 
 
-class SlidingCatchBox(BoxBaseType):
+class SlidingCatchBox(LiddedBox):
     """A box whose lid slides into a groove on the top AND catches at the front, on the
     new box system. Sturdier than a plain sliding lid (and a bit thicker). Box and lid
     are separate prints; ``contents`` are carved into the box.
@@ -124,7 +124,7 @@ class SlidingCatchBox(BoxBaseType):
         """The sliding catch lid: a grooved, optionally middle-filled plate whose flat
         outer face carries the decoration."""
         w, l = self.width, self.length
-        wt, lt = self.wall_thickness, lid.lid_thickness
+        wt, lt = self.wall_thickness, self.lid_thickness
         ss = self.size_spacing
         o = self.options
         tt = o.top_thickness

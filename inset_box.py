@@ -32,9 +32,9 @@ from base_bgtk import *
 import pybosl2.shapes3d
 from pybosl2._sdf import shapes3d as _sdf_shapes3d
 from pybosl2._sdf import joiners as _sdf_joiners
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from box_base import LiddedBox, BoxSpec, BoxTypeOptions, LidPlate
 from dataclasses import dataclass
-from lids_base import MakeLidTab, MakeTabs
+from lids_base import make_lid_tab, make_tabs
 
 
 @dataclass
@@ -59,7 +59,7 @@ class InsetBoxOptions(BoxTypeOptions):
     rabbit_depth: float = 1.5
 
 
-class InsetBox(BoxBaseType):
+class InsetBox(LiddedBox):
     """A box with an inset lid that sits down INSIDE the top rim, on the new box system.
 
     The lid is held by either finger tabs (``style="tabbed"``, the default) or rabbit
@@ -118,10 +118,10 @@ class InsetBox(BoxBaseType):
         # minkowski op so this can be pure pybosl2.
         tab_cutter = minkowski(
             pybosl2.shapes3d.cuboid([0.45 * 2, 0.45 * 2, 0.45 * 2]).color(self.material_colour).shape,
-            MakeLidTab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
+            make_lid_tab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
                        prism_width=o.prism_width, wall_thickness=wt).shape,
         ).color(self.material_colour)
-        tabs_cut = MakeTabs(
+        tabs_cut = make_tabs(
             size=[w, l], lid_thickness=lt, tab_length=o.tab_length,
             make_tab_length=o.make_tab_length, make_tab_width=o.make_tab_width, children=tab_cutter,
         ).color(self.material_colour).translate([0, 0, h - lt])
@@ -147,9 +147,9 @@ class InsetBox(BoxBaseType):
             lock=o.rabbit_lock,
         ).translate([span / 2, wt / 2 - 0.01, -lt])
         # A factory, not a pre-meshed solid: PythonSCAD segfaults when one frep()-meshed handle
-        # is transformed in more than one CSG branch, and MakeTabs places the socket several times.
+        # is transformed in more than one CSG branch, and make_tabs places the socket several times.
         socket = lambda: (socket_box | socket_clip).color(self.material_colour)  # noqa: E731
-        tabs_cut = MakeTabs(
+        tabs_cut = make_tabs(
             size=[w, l], lid_thickness=lt, tab_length=o.rabbit_length + o.rabbit_offset,
             make_tab_length=o.make_tab_length, make_tab_width=o.make_tab_width, children=socket,
         ).color(self.material_colour).translate([0, 0, h - lt])
@@ -163,7 +163,7 @@ class InsetBox(BoxBaseType):
         """The flat inset plate that drops inside the top rim (the decorated face), plus
         the finger tabs / rabbit clips that hold it in (the shell)."""
         o = self.options
-        w, l, lt = self.width, self.length, lid.lid_thickness
+        w, l, lt = self.width, self.length, self.lid_thickness
         wt, inset = self.wall_thickness, o.inset
         off = wt - inset + self.size_spacing
         iw = w - (wt - inset) * 2 - self.size_spacing * 2
@@ -183,9 +183,9 @@ class InsetBox(BoxBaseType):
             ).translate([span / 2, wt / 2, lt / 2])
             tab = lambda: (base | clip).mesh()  # noqa: E731  (factory: see frep-handle-reuse note above)
         else:
-            tab = MakeLidTab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
+            tab = make_lid_tab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
                              prism_width=o.prism_width, wall_thickness=wt)
-        tabs = MakeTabs(
+        tabs = make_tabs(
             size=[w, l], lid_thickness=lt, make_tab_width=o.make_tab_width,
             make_tab_length=o.make_tab_length, children=tab,
         ).color(self.material_colour)

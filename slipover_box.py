@@ -32,10 +32,10 @@ if TYPE_CHECKING:
 from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
-from box_base import BoxBaseType, BoxSpec, Interior, LidPlate
+from box_base import LiddedBox, BoxSpec, Interior, LidPlate
 
 
-class SlipoverBox(BoxBaseType):
+class SlipoverBox(LiddedBox):
     """A box whose lid slips over the OUTSIDE, on the new box system.
 
     Unlike a cap box (cap over a stepped rim), the whole lid is a sleeve that slides
@@ -101,7 +101,7 @@ class SlipoverBox(BoxBaseType):
         the bottom so it slides over the box body (the shell), closed by a lid-thick top
         face (the decorated plate)."""
         w, l, h = self.width, self.length, self.height
-        wt, lt = self.wall_thickness, lid.lid_thickness
+        wt, lt = self.wall_thickness, self.lid_thickness
         r = self.wall_thickness / 2
         shell = pybosl2.shapes3d.cuboid(
             [w, l, h], anchor=BOTTOM + FRONT + LEFT, rounding=r,

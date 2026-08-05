@@ -22,7 +22,7 @@
 #    frep() meshes of the same SDF work fine, as does reusing plain CSG-built handles.
 #
 #    This is why the toolkit follows a "fresh mesh per use" discipline: pysolidfive callers
-#    never place one .mesh()/.color() result twice, and lids_base.MakeTabs() accepts a
+#    never place one .mesh()/.color() result twice, and lids_base.make_tabs() accepts a
 #    zero-argument factory callable as `children` so every tab placement gets its own mesh.
 #
 #    The file is dual-mode:

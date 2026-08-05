@@ -35,7 +35,7 @@ from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
+from box_base import LiddedBox, BoxSpec, BoxTypeOptions, Interior, LidPlate
 from lids_base import Lid
 
 
@@ -54,7 +54,7 @@ class SlidingBoxOptions(BoxTypeOptions):
     two_layer_vee_shape: bool = False
 
 
-class SlidingBox(BoxBaseType):
+class SlidingBox(LiddedBox):
     """A box with a sliding lid -- the dovetail chamfered lid slides in from the front.
 
     Usage::
@@ -66,7 +66,7 @@ class SlidingBox(BoxBaseType):
                           FingerHole(location=FingerHoleLocation.RIGHT, offset=-5)])
         solid.show()
 
-        lid = box.make_lid(Lid(lid_thickness=2, label=Label("Trains")))
+        lid = box.make_lid(Lid(label=Label("Trains")))
         lid.show()
     """
 
@@ -320,7 +320,7 @@ class SlidingBox(BoxBaseType):
         # The slab is built CENTER-anchored, so shift it into the lid frame: x/y into the
         # box's footprint, and z so the slab occupies 0 .. lid_thickness. The z shift used
         # to be up(height/2) -- the slab then floated at mid-box-height while the label and
-        # pattern overlays (which internal_build_lid always assembles at z=0) stayed on the
+        # pattern overlays (which build_lid always assembles at z=0) stayed on the
         # bed, so a labelled sliding lid came out as two detached pieces. It is a separate
         # print: it belongs at z=0 like every other lid plate.
         return (
@@ -359,7 +359,7 @@ class SlidingBox(BoxBaseType):
         return LidPlate(
             plate=slab,
             size=[self._lid_width, self._lid_length],
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
             origin=[(self.width - self._lid_width) / 2, (self.length - self._lid_length) / 2],
         )
 

@@ -39,7 +39,7 @@ from lids_base import default_lid_catch_type
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle
 from pybosl2 import Path2D
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from box_base import Body, BoxSpec, BoxTypeOptions, LidPlate, LiddedBox
 
 
 def _finger_hole_wall_segment_cutout(
@@ -78,7 +78,7 @@ def _finger_hole_wall_segment_cutout(
         FingerHoleWall(radius=radius, height=height, depth_of_hole=depth)
         .rotate([0, 0, angle])
         .rotate([0, 180, 90])
-        .translate([pts[0][0][0], pts[0][0][1], height - 0.01])
+        .translate([pts[0].point[0], pts[0].point[1], height - 0.01])
     )
 
 
@@ -340,7 +340,7 @@ class SlipoverPathBoxOptions(BoxTypeOptions):
     lid_catch: "CatchType | None" = None
 
 
-class SlipoverPathBox(BoxBaseType):
+class SlipoverPathBox(LiddedBox):
     """A slipover box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~slipover_box.SlipoverBox`. The lid is a sleeve that slides
     over the outside of the box; box and lid are separate prints. Facade over
@@ -368,8 +368,6 @@ class SlipoverPathBox(BoxBaseType):
     """
 
     options_class = SlipoverPathBoxOptions
-    body_hollows_itself = True
-    body_carves_contents = True
 
     def __init__(self, spec: BoxSpec) -> None:
         opts = spec.type_options
@@ -397,17 +395,20 @@ class SlipoverPathBox(BoxBaseType):
 
     def _build_box_body(self, contents):
         o = self._opts
-        return _make_path_box_with_slipover_lid(
-            path=o.path,
-            height=self.height,
-            children=self._children(contents),
-            wall_thickness=self.wall_thickness,
-            foot=o.foot,
-            size_spacing=self.size_spacing,
-            floor_thickness=self.floor_thickness,
-            lid_thickness=self.lid_thickness,
-            material_colour=self.material_colour,
-            lid_catch=o.lid_catch,
+        return Body(
+            _make_path_box_with_slipover_lid(
+                path=o.path,
+                height=self.height,
+                children=self._children(contents),
+                wall_thickness=self.wall_thickness,
+                foot=o.foot,
+                size_spacing=self.size_spacing,
+                floor_thickness=self.floor_thickness,
+                lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour,
+                lid_catch=o.lid_catch,
+            ),
+            hollowed=True, carved=True,
         )
 
     def _lid_plate(self, lid) -> LidPlate:
@@ -422,7 +423,7 @@ class SlipoverPathBox(BoxBaseType):
             wall_thickness=self.wall_thickness,
             foot=o.foot,
             size_spacing=self.size_spacing,
-            lid_thickness=lid.lid_thickness,
+            lid_thickness=self.lid_thickness,
             material_colour=self.material_colour,
             lid_catch=o.lid_catch,
         )
@@ -431,7 +432,7 @@ class SlipoverPathBox(BoxBaseType):
         return LidPlate(
             plate=top,
             size=[float(pts[:, 0].max() - ox), float(pts[:, 1].max() - oy)],
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
             origin=[ox, oy],
             offset=[0, 0, plate_z],
             shell=shell,

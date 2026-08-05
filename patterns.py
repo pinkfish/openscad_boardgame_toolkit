@@ -45,7 +45,7 @@ from __future__ import annotations
 import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Sequence
 
 from base_bgtk import ShapeType
 from components import RegularPolygonGrid, RegularPolygonGridDense
@@ -73,7 +73,7 @@ class PatternArea:
 
     width: float
     length: float
-    path: Any = None
+    path: Sequence[Sequence[float]] | None = None
 
     def outline(self) -> list[list[float]]:
         """The area's outline as a point list -- the explicit ``path`` or the rectangle."""
@@ -108,14 +108,15 @@ class Lattice(ABC):
     Two ways to use one: :meth:`tile` stamps a motif at every cell (the lattice does the
     placing), and :meth:`cells` just enumerates the cells for a tile that places itself."""
 
-    #: Extra rings of cells enumerated for a self-placing tiling. A self-placing tile steps
-    #: by ITS OWN pitch, which the lattice does not know (RHOMBI_TRI_HEXAGONAL steps ~8.2mm
-    #: on a 12mm lattice), so the loop runs a few rings wide and the surplus is clipped.
-    #: Small on purpose: cost is quadratic in it -- the original ``+11`` is 437 cells on a
-    #: 120x80 lid against 154 here, and each cell of a pentagon tiling is real geometry.
-    #: (That ``+11`` was compensating for centre-indexed tilings being left around the
-    #: origin instead of moved onto the area, which :class:`TilingPattern` now does.)
-    #: The honest fix is for a tiling to declare its step; then this becomes one ring.
+    #: Fallback rings of cells for a self-placing tiling that has NOT declared its step.
+    #: Such a tile steps by ITS OWN pitch, which the lattice cannot know
+    #: (RHOMBI_TRI_HEXAGONAL steps ~8.2mm on a 12mm lattice), so the loop runs a few rings
+    #: wide and the surplus is clipped. Small on purpose: cost is quadratic in it -- the
+    #: original ``+11`` is 437 cells on a 120x80 lid against 154 here, and each cell of a
+    #: pentagon tiling is real geometry. (That ``+11`` was compensating for centre-indexed
+    #: tilings being left around the origin instead of moved onto the area, which
+    #: :class:`TilingPattern` now does.) Prefer declaring ``TilingPattern.step``: then the
+    #: count is computed instead of padded, and this constant stops being used.
     self_placing_margin: int = 3
 
     @abstractmethod
@@ -126,10 +127,21 @@ class Lattice(ABC):
     def tile(self, motif, area: PatternArea):
         """Stamp *motif* at every cell covering *area*."""
 
-    def cells(self, area: PatternArea) -> Iterator[Cell]:
-        """Enumerate the cells covering *area*, widened by :attr:`self_placing_margin`."""
-        rows, cols = self.counts(area)
-        rows, cols = int(rows) + self.self_placing_margin, int(cols) + self.self_placing_margin
+    def cells(self, area: PatternArea, step: float | None = None) -> Iterator[Cell]:
+        """Enumerate the cells covering *area*.
+
+        *step* is the self-placing tile's OWN pitch, when it knows it: the count is then
+        derived from the area (plus a single ring for the part-cells at the edges), which
+        is both correct and cheaper than padding. Without it the count falls back to this
+        lattice's own cell count widened by :attr:`self_placing_margin`.
+        """
+        if step is not None and step > 0:
+            rows = int(math.ceil(area.width / step)) + 1
+            cols = int(math.ceil(area.length / step)) + 1
+        else:
+            raw_rows, raw_cols = self.counts(area)
+            rows = int(raw_rows) + self.self_placing_margin
+            cols = int(raw_cols) + self.self_placing_margin
         for i in range(rows):
             for j in range(cols):
                 yield Cell(i=i, j=j, rows=rows, cols=cols)
@@ -264,9 +276,13 @@ class TilingPattern(Pattern):
     tile: Callable[[Cell], Any]
     lattice: Lattice
     centred: bool = False
+    #: The tile's OWN pitch, when it is known. Declaring it makes the cell count derived
+    #: from the area rather than padded by ``Lattice.self_placing_margin`` -- fewer cells,
+    #: and no guessing. ``None`` keeps the padded fallback.
+    step: float | None = None
 
     def fill(self, area: PatternArea):
-        shape = union_all([self.tile(cell) for cell in self.lattice.cells(area)])
+        shape = union_all([self.tile(cell) for cell in self.lattice.cells(area, self.step)])
         if shape is None:
             return None
         # A centre-indexed tiling is built around (0, 0); the area runs from its corner,

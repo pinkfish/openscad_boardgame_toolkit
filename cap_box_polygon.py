@@ -38,13 +38,13 @@ import numpy as np
 import pybosl2.shapes3d
 from pybosl2 import Path2D
 from pybosl2 import shapes2d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, LidPlate
+from box_base import Body, BoxSpec, BoxTypeOptions, LidPlate, LiddedBox
 from lids_base import default_lid_catch_type
 from cap_box import (
-    CapBoxDefaultCapHeight,
-    CapBoxDefaultFingerHoldHeight,
-    CapBoxDefaultLidFingerHoldRounding,
-    CapBoxDefaultLidWallThickness,
+    cap_box_default_cap_height,
+    cap_box_default_finger_hold_height,
+    cap_box_default_lid_finger_hold_rounding,
+    cap_box_default_lid_wall_thickness,
 )
 
 
@@ -89,7 +89,7 @@ def _finger_hole_segment_cutout(
         return (
             pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
             .rotate([0, 0, angle])
-            .translate([float(pts[0][0][0]), float(pts[0][0][1]), 0.0])
+            .translate([float(pts[0].point[0]), float(pts[0].point[1]), 0.0])
         )
 
     pts = seg.cut_points(
@@ -98,22 +98,22 @@ def _finger_hole_segment_cutout(
     c1 = (
         pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
         .rotate([0, 0, angle])
-        .translate([float(pts[1][0][0]), float(pts[1][0][1]), height - calc_radius])
+        .translate([float(pts[1].point[0]), float(pts[1].point[1]), height - calc_radius])
     )
     c2 = (
         pybosl2.shapes3d.xcyl(length=wall_thickness * 2, radius=radius)
         .rotate([0, 0, angle])
-        .translate([float(pts[2][0][0]), float(pts[2][0][1]), height - calc_radius])
+        .translate([float(pts[2].point[0]), float(pts[2].point[1]), height - calc_radius])
     )
     c3 = (
         pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
-        .translate([float(pts[0][0][0]), float(pts[0][0][1]), calc_radius - height])
+        .translate([float(pts[0].point[0]), float(pts[0].point[1]), calc_radius - height])
     )
     c4 = (
         pybosl2.shapes3d.cuboid([wall_thickness * 2, wall_thickness * 2, wall_thickness * 2])
         .rotate([0, 0, angle])
-        .translate([float(pts[3][0][0]), float(pts[3][0][1]), calc_radius - height])
+        .translate([float(pts[3].point[0]), float(pts[3].point[1]), calc_radius - height])
     )
     # pybosl2 Bosl2Solid.hull() (3-D) instead of the native openscad hull().
     return c1.hull(c2, c3, c4)
@@ -161,8 +161,8 @@ def PolygonBoxLidCatch(
         return None
 
     pts = seg.cut_points([calc_len + wall_thickness + offset - delta, calc_len * 4 - wall_thickness - offset + delta])
-    p1 = [pts[0][0][0], pts[0][0][1]]
-    p2 = [pts[1][0][0], pts[1][0][1]]
+    p1 = [pts[0].point[0], pts[0].point[1]]
+    p2 = [pts[1].point[0], pts[1].point[1]]
     # The old _bosl2.path_sweep of the triangle profile along the 2-point segment is a
     # triangular prism: extrude the profile (centered along Z), stand it up (profile y -> Z,
     # extrusion axis -> the segment direction, profile x -> the LEFT of travel, matching
@@ -243,14 +243,14 @@ def _make_path_box_with_cap_lid(
     assert height > 0, f"Height must be >0 height={height}"
 
     calc_lid_wall_thickness = (
-        lid_wall_thickness if lid_wall_thickness is not None else CapBoxDefaultLidWallThickness(wall_thickness)
+        lid_wall_thickness if lid_wall_thickness is not None else cap_box_default_lid_wall_thickness(wall_thickness)
     )
     calc_floor_thickness = floor_thickness if floor_thickness is not None else wall_thickness
-    calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
+    calc_cap_height = cap_height if cap_height is not None else cap_box_default_cap_height(height)
     calc_finger_hold_height = (
-        finger_hold_height if finger_hold_height is not None else CapBoxDefaultFingerHoldHeight(height)
+        finger_hold_height if finger_hold_height is not None else cap_box_default_finger_hold_height(height)
     )
-    calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
+    calc_finger_hole_rounding = cap_box_default_lid_finger_hold_rounding(calc_cap_height)
     calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness))
     # Plain lists for the native polygon() calls below: raw ndarrays across the native
     # boundary raise (and poison the interpreter) -- see the numpy interop convention.
@@ -414,10 +414,10 @@ def _cap_path_lid_parts(
     assert height > 0, f"Height must be >0 height={height}"
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
-    calc_cap_height = cap_height if cap_height is not None else CapBoxDefaultCapHeight(height)
+    calc_cap_height = cap_height if cap_height is not None else cap_box_default_cap_height(height)
     calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness, _fn=16))
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
-    calc_finger_hole_rounding = CapBoxDefaultLidFingerHoldRounding(calc_cap_height)
+    calc_finger_hole_rounding = cap_box_default_lid_finger_hold_rounding(calc_cap_height)
 
     # The old offset_sweep with an os_smooth(joint=wall/2) top is a straight extrusion of
     # the rounded outline with an eased top rim -- polygon_prism's circular roundover of the
@@ -482,7 +482,7 @@ class CapPathBoxOptions(BoxTypeOptions):
     lid_catch: "CatchType | None" = None
 
 
-class CapPathBox(BoxBaseType):
+class CapPathBox(LiddedBox):
     """A cap box whose OUTLINE is a polygon, on the new box system -- the polygon
     counterpart of :class:`~cap_box.CapBox`. A cap slides over the top rim; box and lid
     are separate prints. Facade over :func:`_make_path_box_with_cap_lid` / :func:`_cap_path_lid_parts`.
@@ -508,8 +508,6 @@ class CapPathBox(BoxBaseType):
     """
 
     options_class = CapPathBoxOptions
-    body_hollows_itself = True
-    body_carves_contents = True
 
     def __init__(self, spec: BoxSpec) -> None:
         opts = spec.type_options
@@ -538,19 +536,22 @@ class CapPathBox(BoxBaseType):
 
     def _build_box_body(self, contents):
         o = self._opts
-        return _make_path_box_with_cap_lid(
-            path=o.path,
-            height=self.height,
-            children=self._children(contents),
-            cap_height=o.cap_height,
-            lid_thickness=self.lid_thickness,
-            wall_thickness=self.wall_thickness,
-            size_spacing=self.size_spacing,
-            lid_wall_thickness=o.lid_wall_thickness,
-            finger_hold_height=o.finger_hold_height,
-            floor_thickness=self.floor_thickness,
-            material_colour=self.material_colour,
-            lid_catch=o.lid_catch,
+        return Body(
+            _make_path_box_with_cap_lid(
+                path=o.path,
+                height=self.height,
+                children=self._children(contents),
+                cap_height=o.cap_height,
+                lid_thickness=self.lid_thickness,
+                wall_thickness=self.wall_thickness,
+                size_spacing=self.size_spacing,
+                lid_wall_thickness=o.lid_wall_thickness,
+                finger_hold_height=o.finger_hold_height,
+                floor_thickness=self.floor_thickness,
+                material_colour=self.material_colour,
+                lid_catch=o.lid_catch,
+            ),
+            hollowed=True, carved=True,
         )
 
     def _lid_plate(self, lid) -> LidPlate:
@@ -563,7 +564,7 @@ class CapPathBox(BoxBaseType):
             path=o.path,
             height=self.height,
             cap_height=o.cap_height,
-            lid_thickness=lid.lid_thickness,
+            lid_thickness=self.lid_thickness,
             wall_thickness=self.wall_thickness,
             size_spacing=self.size_spacing,
             lid_wall_thickness=o.lid_wall_thickness,
@@ -575,18 +576,24 @@ class CapPathBox(BoxBaseType):
         return LidPlate(
             plate=top,
             size=[float(pts[:, 0].max() - ox), float(pts[:, 1].max() - oy)],
-            thickness=lid.lid_thickness,
+            thickness=self.lid_thickness,
             origin=[ox, oy],
-            offset=[0, 0, cap_h - lid.lid_thickness],
+            offset=[0, 0, cap_h - self.lid_thickness],
             shell=shell,
             path=[[float(x), float(y)] for x, y in pts],
         )
 
     def _cap_height(self) -> float:
         o = self._opts
-        return float(o.cap_height) if o.cap_height else CapBoxDefaultCapHeight(self.height)
+        return float(o.cap_height) if o.cap_height else cap_box_default_cap_height(self.height)
 
     def _lid_adjustment(self, stack):
         """Flip the cap over for printing. Rotate FIRST, then lift: the other order left
-        the whole lid at negative z (below the print bed)."""
-        return stack.rotate([180, 0, 0]).translate([0, self.length, self._cap_height()])
+        the whole lid at negative z (below the print bed).
+
+        Only z is corrected. This used to add ``self.length`` in y as well, which assumes
+        the part sits at y in [0, length] before the flip -- true for a corner-anchored
+        box, but a polygon box is built CENTRED on the origin, so the flip already leaves
+        y where it belongs and the correction pushed the lid a whole length off its box.
+        """
+        return stack.rotate([180, 0, 0]).translate([0, 0, self._cap_height()])

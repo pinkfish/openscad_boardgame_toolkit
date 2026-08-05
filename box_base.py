@@ -27,7 +27,6 @@
 
 from __future__ import annotations
 
-import copy
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, fields, replace
 from enum import IntEnum
@@ -35,6 +34,7 @@ from typing import Any, Callable, ClassVar, Sequence, Union
 
 import pybosl2.shapes3d
 import pybosl2.transforms
+from pybosl2.shapes2d import Bosl2Shape2D
 from pybosl2.shapes3d import Bosl2Solid
 
 # Explicit imports (no `import *`): every name below is traceable to its source.
@@ -57,15 +57,21 @@ from base_bgtk import (
     default_wall_thickness,
     m_piece_wiggle_room,
 )
-from components import FingerHoleBase, FingerHoleWall
+from components import FingerHoleBase, FingerHoleWall, extrude_image
 from labels import LabelOptions
-from lids_base import Lid, internal_build_lid
+from lids_base import Lid, LidFit, make_lid_label, build_lid
 from shape_type import ShapeObject
 
 # Box contents are self-describing InnerObject entries (see base_bgtk.InnerObject /
 # ObjectType). They may be given directly as a list, or as a callable(InnerSize) for
 # content that needs to know the box interior size.
 Contents = Union[list[InnerObject], Callable[[InnerSize], list[InnerObject]]]
+
+# A picture to put on a lid instead of text: a 2-D shape that gets extruded, a
+# callable(depth) that builds one, or an already-3-D solid. Spelled out (rather than left
+# as a bare ``object``) because this is the union :func:`~components.extrude_image`
+# actually accepts -- see its three branches.
+LidImage = Union[Callable[[float], Bosl2Solid], Bosl2Shape2D, Bosl2Solid]
 
 
 class FingerHoleLocation(IntEnum):
@@ -198,7 +204,7 @@ class Label:
     size: list[float] | None = None
     # An image to place on the lid INSTEAD OF the text: a 2-D shape (e.g. shapes.coin2d(30)),
     # a callable(depth), or a solid. When set, `text` is ignored.
-    shape: object = None
+    shape: LidImage | None = None
 
 
 class BoxTypeOptions:
@@ -233,7 +239,7 @@ class Interior:
 
     origin: tuple[float, float, float]
     size: tuple[float, float, float]
-    region: Any = None
+    region: Sequence[Sequence[float]] | None = None
 
     @property
     def width(self) -> float:
@@ -259,7 +265,7 @@ class LidPlate:
 
     * ``plate`` is a flat slab occupying ``z = 0 .. thickness`` -- overlays (pattern
       mesh, label, fingernail) are always assembled onto it AT THE ORIGIN, because
-      :func:`~lids_base.internal_build_lid` flattens overlays to ``z = 0``.
+      :func:`~lids_base.build_lid` flattens overlays to ``z = 0``.
     * ``shell`` is everything else (cap walls, a sleeve, hinge knuckles, tabs), already
       in its final position.
     * ``offset`` is where the decorated plate is moved to before being joined to the
@@ -289,9 +295,51 @@ class LidPlate:
     origin: Sequence[float] = (0.0, 0.0)
     offset: Sequence[float] = (0.0, 0.0, 0.0)
     shell: Bosl2Solid | None = None
-    path: Any = None
-    extra_overlays: Sequence[Any] = ()
-    cutouts: Sequence[Any] = ()
+    path: Sequence[Sequence[float]] | None = None
+    extra_overlays: Sequence[Bosl2Solid] = ()
+    cutouts: Sequence[Bosl2Solid] = ()
+
+    def fit(self) -> LidFit:
+        """The footprint the decoration is fitted to -- see :class:`~lids_base.LidFit`.
+
+        The plate is the ONE source of the lid's thickness and footprint; this hands both
+        to the decoration instead of writing them onto the :class:`~lids_base.Lid`."""
+        return LidFit(
+            width=self.size[0],
+            length=self.size[1],
+            thickness=self.thickness,
+            origin=(self.origin[0], self.origin[1]),
+            path=self.path,
+        )
+
+
+@dataclass(frozen=True)
+class Body:
+    """A box type's raw body, plus what it has ALREADY done to itself.
+
+    The shared pipeline needs to know whether it still has to hollow the interior and
+    carve the contents. That used to be two class-level booleans
+    (``body_hollows_itself`` / ``body_carves_contents``) -- promises made by the subclass
+    that nothing checked and that were easy to leave stale. Making it the RETURN VALUE
+    ties the claim to the geometry that was actually built, in the one place that knows.
+
+    :meth:`BoxBaseType._build_box_body` may return a bare solid, which means "plain body,
+    the pipeline does the rest".
+
+    Attributes:
+        solid:    the body geometry
+        hollowed: True when the body already opened its own interior
+        carved:   True when the body already consumed ``contents`` itself
+    """
+
+    solid: Bosl2Solid
+    hollowed: bool = False
+    carved: bool = False
+
+    @classmethod
+    def of(cls, value: "Body | Bosl2Solid") -> "Body":
+        """Normalise a ``_build_box_body`` return value into a :class:`Body`."""
+        return value if isinstance(value, Body) else cls(solid=value)
 
 
 @dataclass(frozen=True)
@@ -369,7 +417,7 @@ class BoxSpec:
     # Use ``lid`` for full control (pass a pre-built :class:`~lids_base.Lid`).
     # ``lid`` takes precedence over ``lid_label`` when both are set.
     lid_label: str | None = None              # shorthand label text for the lid
-    lid_shape: object = None                  # a SHAPE image on the lid instead of a text label
+    lid_shape: LidImage | None = None                  # a SHAPE image on the lid instead of a text label
     lid: Lid | None = None                    # full Lid object (overrides lid_label/lid_shape)
     label_options: LabelOptions | None = None # styling for lid_label
     shape_options: ShapeObject | None = None  # lid pattern shape (the tiled background)
@@ -392,6 +440,20 @@ class BoxSpec:
                 f"{self.label}: walls (2 x {self.wall_thickness}) don't fit in "
                 f"width {w} / length {l} -- interior would be non-positive"
             )
+        # A fully-built `lid` and the lid shorthand are alternatives, not layers. Ranking
+        # them (as "lid takes precedence" did) meant a spec carrying both produced a lid
+        # that renders perfectly and ignores half of what was asked for.
+        if self.lid is not None:
+            also = [
+                name
+                for name in ("lid_label", "lid_shape", "label_options", "shape_options")
+                if getattr(self, name) is not None
+            ]
+            if also:
+                raise ValueError(
+                    f"{self.label}: BoxSpec(lid=...) already describes the whole lid, so "
+                    f"{also} would be ignored. Put them on the Lid, or drop the Lid."
+                )
 
 
 class BoxBaseType(ABC):
@@ -409,9 +471,9 @@ class BoxBaseType(ABC):
     Everything else -- resolving contents, hollowing, carving, MMU colour copies,
     finger holes, positioning, and the entire lid decoration stack -- happens once,
     here, for every type. A box type that builds its body through legacy geometry that
-    already hollows itself or already embeds contents says so with the
-    :attr:`body_hollows_itself` / :attr:`body_carves_contents` class flags, instead of
-    overriding :meth:`make_box` and silently dropping the rest of the pipeline.
+    already hollows itself or already embeds contents says so by RETURNING a
+    :class:`Body` that records it, instead of overriding :meth:`make_box` and silently
+    dropping the rest of the pipeline.
 
     Usage::
 
@@ -427,19 +489,6 @@ class BoxBaseType(ABC):
     #: The :class:`BoxTypeOptions` subclass this box type accepts in
     #: ``BoxSpec.type_options``; ``None`` -> the type takes no options.
     options_class: ClassVar[type[BoxTypeOptions] | None] = None
-
-    #: False for a box that is a single piece or has no lid at all; :meth:`make_lid`
-    #: then raises with a uniform message instead of each type inventing its own.
-    has_lid: ClassVar[bool] = True
-
-    #: True when :meth:`_build_box_body` already opens the interior itself (legacy
-    #: geometry that hollows internally), so the shared stage must not subtract again.
-    body_hollows_itself: ClassVar[bool] = False
-
-    #: True when :meth:`_build_box_body` already consumes ``contents`` itself (geometry
-    #: with its own content slots, e.g. a hinged box's four compartments), so the shared
-    #: carve + MMU stage is skipped. Finger holes and positioning still apply.
-    body_carves_contents: ClassVar[bool] = False
 
     def __init__(self, spec: BoxSpec) -> None:
         if not isinstance(spec, BoxSpec):
@@ -595,21 +644,30 @@ class BoxBaseType(ABC):
         resolved = self._resolve_contents(self._spec.contents if contents is None else contents)
         holes = self._spec.finger_holes if finger_holes is None else finger_holes
 
-        body = self._build_box_body(resolved)
-        if not self.body_carves_contents:
-            body = self._hollow_and_carve(body, resolved)
+        built = Body.of(self._build_box_body(resolved))
+        body = built.solid
+        if not built.carved:
+            body = self._hollow_and_carve(body, resolved, already_hollowed=built.hollowed)
             body = self._apply_mmu(body, resolved, MAKE_MMU)
         if holes:
             body = self._apply_finger_holes(body, holes)
-        return self._apply_positioning(body)
+        return self._apply_positioning(
+            body,
+            centre=[self.width, self.length, self.height],
+            anchor_size=[self.width, self.length, self._effective_height()],
+        )
 
     @abstractmethod
-    def _build_box_body(self, contents: list[InnerObject]) -> Bosl2Solid:
+    def _build_box_body(self, contents: list[InnerObject]) -> "Body | Bosl2Solid":
         """Build this box type's body.
 
-        *contents* is the resolved content list, passed so a type whose geometry embeds
-        its contents itself (:attr:`body_carves_contents`) or that must decide its own
-        hollowing (:attr:`body_hollows_itself`, via :meth:`should_hollow`) can use it.
+        Return the bare solid for the usual case -- the pipeline then hollows it, carves
+        the contents, and adds the MMU colour copies. A type whose geometry already does
+        one of those returns a :class:`Body` saying so (``Body(solid, hollowed=True)``),
+        which keeps the claim next to the geometry that makes it true.
+
+        *contents* is the resolved content list, passed so a type that embeds its contents
+        itself, or that must decide its own hollowing (:meth:`should_hollow`), can use it.
         Types that leave contents to the shared pipeline -- most of them -- ignore it."""
         raise NotImplementedError
 
@@ -651,9 +709,11 @@ class BoxBaseType(ABC):
         """True when *contents* carve cavities of their own (so the interior is left solid)."""
         return any(io.type in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE) for io in contents)
 
-    def _hollow_and_carve(self, body: Bosl2Solid, contents: list[InnerObject]) -> Bosl2Solid:
+    def _hollow_and_carve(
+        self, body: Bosl2Solid, contents: list[InnerObject], *, already_hollowed: bool = False
+    ) -> Bosl2Solid:
         """Open the interior and/or carve the negative contents into it."""
-        hollow = (not self.body_hollows_itself) and self.should_hollow(contents)
+        hollow = (not already_hollowed) and self.should_hollow(contents)
         cavities = self.has_cavities(contents)
         if not hollow and not cavities:
             return body
@@ -710,7 +770,7 @@ class BoxBaseType(ABC):
             if io.type not in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE):
                 continue
             piece = self._placed_content(io)
-            if getattr(io, "clip", True):
+            if io.clip:
                 # mask (a Bosl2Solid) must be the LEFT operand: its __and__ unwraps the
                 # right side, whereas a raw native handle on the left rejects a
                 # Bosl2Solid RHS ("invalid argument left to operator").
@@ -753,20 +813,44 @@ class BoxBaseType(ABC):
     # Positioning
     # ------------------------------------------------------------------
 
-    def _apply_positioning(self, body: Bosl2Solid) -> Bosl2Solid:
-        # Two different heights on purpose (see tests/test_box_geometry.py, which pins
-        # this for single- AND two-layer boxes): the pre-translate recentres in the
-        # DECLARED outer-height frame (self.height, the box's nominal size), while
-        # reorient sizes the anchor box by the ACTUAL body height (_effective_height(),
-        # which a two-layer sliding lid makes < self.height). With the default
-        # anchor/orient/spin the pair composes to the identity.
+    def _apply_positioning(
+        self,
+        body: Bosl2Solid,
+        *,
+        centre: Sequence[float],
+        anchor_size: Sequence[float],
+    ) -> Bosl2Solid:
+        """Apply ``BoxSpec.anchor``/``orient``/``spin`` to a finished part.
+
+        Two sizes, on purpose (see tests/test_box_geometry.py, which pins this for
+        single- AND two-layer boxes): *centre* is the frame the part is recentred in --
+        the box's DECLARED outer size -- while *anchor_size* is the box ``reorient``
+        builds its anchor from, which for a two-layer sliding box is the ACTUAL body
+        height and so smaller. With the default anchor/orient/spin the pair composes to
+        the identity.
+
+        Both parts go through here with the same ``centre``, which is what keeps a lid
+        concentric with, and turned the same way as, its box.
+        """
         tmat = pybosl2.transforms.reorient(
             anchor=self.anchor,
             spin=self.spin,
             orient=self.orient,
-            size=[self.width, self.length, self._effective_height()],
+            size=list(anchor_size),
         )
-        return body.translate([-self.width / 2, -self.length / 2, -self.height / 2]).multmatrix(tmat)
+        return body.translate([-centre[0] / 2, -centre[1] / 2, -centre[2] / 2]).multmatrix(tmat)
+
+class LiddedBox(BoxBaseType):
+    """A box that has a SEPARATE LID -- and therefore a :meth:`make_lid`.
+
+    Split from :class:`BoxBaseType` deliberately. A lidless type (NoLidBox, PathBox,
+    HingeBox) used to be a box with ``has_lid = False`` whose ``make_lid()`` raised at
+    build time -- a compile-time fact reported at runtime, one box at a time, which is
+    exactly what broke :class:`BoxKit`'s one-word type switch. Now a lidless type simply
+    is not a ``LiddedBox`` and does not have the method, so the question is answered
+    statically and ``BoxKit`` can answer it at construction.
+
+    Subclasses supply the lid's geometry through :meth:`_lid_plate` and nothing else."""
 
     # ------------------------------------------------------------------
     # make_lid -- the ONE lid pipeline
@@ -783,30 +867,44 @@ class BoxBaseType(ABC):
         The pipeline is the same for every box type: the type's :class:`LidPlate` says
         which flat face is decorated and what else the lid is made of; the decoration
         (pattern mesh, label, fingernail, extras) is stacked onto that face by
-        :func:`~lids_base.internal_build_lid`; the result is placed and joined to the
-        shell, then handed to :meth:`_lid_adjustment` for print orientation."""
-        if not self.has_lid:
-            raise NotImplementedError(
-                f"{self.label}: a {type(self).__name__} has no separate lid "
-                "(it is a single piece, or has no lid at all)"
-            )
+        :func:`~lids_base.build_lid`; the result is joined to the shell, POSITIONED IN THE
+        SAME FRAME AS THE BOX (so ``spin``/``anchor``/``orient`` turn and centre both
+        parts alike), and finally handed to :meth:`_lid_adjustment` for print orientation.
+        """
         resolved = self._resolve_lid(lid)
         plate = self._lid_plate(resolved)
-        return self._lid_adjustment(self._assemble_lid(plate, resolved))
+        assembled = self._assemble_lid(plate, resolved)
+        placed = self._apply_positioning(
+            assembled,
+            centre=self._lid_centre(plate),
+            anchor_size=self._lid_centre(plate),
+        )
+        # Print orientation LAST: it is about how the part lies on the bed, not about
+        # where the part sits relative to the box, so it must not be re-rotated after.
+        return self._lid_adjustment(placed)
+
+    def _lid_centre(self, plate: LidPlate) -> list[float]:
+        """The frame the lid is positioned in.
+
+        Deliberately the BOX's footprint, not the plate's: a sliding lid's plate
+        overhangs the interior and a cap's plate is the outer wall, but both must end up
+        concentric with the box they close. Only the height is the lid's own -- the plate
+        thickness plus however far up the shell carries it."""
+        return [self.width, self.length, plate.thickness + plate.offset[2]]
 
     def _resolve_lid(self, lid: Lid | None) -> Lid:
         """The :class:`~lids_base.Lid` to build: the caller's, else the spec's, else the
         spec's label/shape shorthand, else a plain undecorated lid.
 
-        Always returns a COPY with this box's defaults filled in, so a ``Lid`` can be
-        shared between boxes without being mutated."""
+        :class:`~lids_base.Lid` is frozen, so this hands back the object itself rather
+        than a defensive copy -- nothing downstream writes to it."""
         spec = self._spec
-        if lid is None:
-            lid = spec.lid
-        if lid is None and (spec.lid_label is not None or spec.lid_shape is not None
-                            or spec.shape_options is not None):
-            lid = Lid(
-                lid_thickness=self.lid_thickness,
+        if lid is not None:
+            return lid
+        if spec.lid is not None:
+            return spec.lid
+        if spec.lid_label is not None or spec.lid_shape is not None or spec.shape_options is not None:
+            return Lid(
                 label=(
                     Label(spec.lid_label or "", options=spec.label_options or LabelOptions(),
                           shape=spec.lid_shape)
@@ -816,12 +914,7 @@ class BoxBaseType(ABC):
                 shape_options=spec.shape_options,
                 material_colour=self.material_colour,
             )
-        if lid is None:
-            return Lid(lid_thickness=self.lid_thickness, material_colour=self.material_colour)
-        resolved = copy.copy(lid)
-        if not resolved.lid_thickness:
-            resolved.lid_thickness = self.lid_thickness
-        return resolved
+        return Lid(material_colour=self.material_colour)
 
     def _lid_plate(self, lid: Lid) -> LidPlate:
         """The lid's decorated face (and any shell around it) -- the ONE lid hook.
@@ -831,29 +924,30 @@ class BoxBaseType(ABC):
         :class:`LidPlate` describing it; it never assembles the decoration itself."""
         interior = self.interior()
         plate = pybosl2.shapes3d.cuboid(
-            [interior.width, interior.length, lid.lid_thickness],
+            [interior.width, interior.length, self.lid_thickness],
             anchor=BOTTOM + FRONT + LEFT,
         ).color(self.material_colour)
-        return LidPlate(plate=plate, size=[interior.width, interior.length], thickness=lid.lid_thickness)
+        return LidPlate(
+            plate=plate, size=[interior.width, interior.length], thickness=self.lid_thickness
+        )
 
     def _assemble_lid(self, plate: LidPlate, lid: Lid) -> Bosl2Solid:
         """Stack the lid's decoration onto *plate* and join it to the shell.
 
-        The decoration is fitted to the PLATE's footprint (its ``size``/``path``/
-        ``origin``), which is what stops a label drifting off a lid whose plate isn't
-        the box's interior rectangle."""
-        lid.size = list(plate.size)
-        lid.path = plate.path
-        self._fill_fingernail_defaults(lid, plate)
-
-        overlays = list(lid.overlay(label_builder=lambda label: self.make_label(label, plate)))
+        The decoration is fitted to the PLATE (its ``size``/``path``/``origin``/
+        ``thickness``), handed over as a :class:`~lids_base.LidFit`. That is what stops a
+        label drifting off a lid whose plate isn't the box's interior rectangle -- and it
+        travels as a value, so the :class:`~lids_base.Lid` is never written to."""
+        fit = plate.fit()
+        overlays = list(lid.overlay(fit, label_builder=lambda label: self.make_label(label, plate)))
         overlays.extend(plate.extra_overlays)
 
         decorated = plate.plate
         if overlays:
-            decorated = internal_build_lid(
+            decorated = build_lid(
+                plate.plate,
+                overlays,
                 lid_thickness=plate.thickness,
-                children=[plate.plate] + overlays,
                 size_spacing=self.size_spacing,
             )
         if any(plate.offset):
@@ -863,27 +957,11 @@ class BoxBaseType(ABC):
             body = body - cut
         return body.color(self.material_colour)
 
-    def _fill_fingernail_defaults(self, lid: Lid, plate: LidPlate) -> None:
-        """Size/position an enabled fingernail scoop from the plate footprint (never
-        mutating the caller's :class:`~lids_base.Fingernail`)."""
-        fn = lid.fingernail
-        if fn is None or not fn.enabled:
-            return
-        lid.fingernail = fn = replace(fn)
-        ox, oy = plate.origin[0], plate.origin[1]
-        pw, pl = plate.size[0], plate.size[1]
-        if fn.width is None:
-            fn.width = pw
-        if fn.length is None:
-            fn.length = pl
-        if fn.x_offset is None:
-            fn.x_offset = ox + pw / 2
-        if fn.y_offset is None:
-            fn.y_offset = oy + pl - 3
-
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
-        """Post-process the assembled lid -- flip it for printing, cut a hinge pin hole.
-        Subclasses MAY override."""
+        """Post-process the assembled lid for PRINTING -- flip it onto its printable face.
+
+        This is print orientation only. Where the lid sits relative to the box is handled
+        by :meth:`_apply_positioning`, which has already run. Subclasses MAY override."""
         return stack
 
     # ------------------------------------------------------------------
@@ -896,8 +974,6 @@ class BoxBaseType(ABC):
         Uses the label's own :class:`~labels.LabelOptions` directly (only the material
         colour is defaulted to the box's). Position and size default to the plate's
         footprint, so the label lands on the face being decorated whatever shape it is."""
-        from lids_base import MakeLidLabel
-
         opts = label.options
         effective_colour = (
             self.material_colour if opts.material_colour == default_material_colour else opts.material_colour
@@ -911,23 +987,22 @@ class BoxBaseType(ABC):
         # colour (a contrasting second material, like the text label -- NOT the body colour),
         # and centre it on the plate (or the caller's position). The caller pre-sizes the shape.
         if label.shape is not None:
-            from components import _extrude_image
-
             pos = (
                 list(label.position)
                 if label.position
                 else [origin[0] + plate.size[0] / 2, origin[1] + plate.size[1] / 2, 0]
             )
-            return _extrude_image(label.shape, plate.thickness).color(opts.label_colour).translate(pos)
+            return extrude_image(label.shape, plate.thickness).color(opts.label_colour).translate(pos)
 
         calc_pos = list(label.position) if label.position else origin
-        piece = MakeLidLabel(
+        piece = make_lid_label(
             size=calc_size,
             lid_thickness=plate.thickness,
             text_str=label.text,
             options=options,
         )
         return piece.translate(calc_pos) if piece is not None else None
+
 
 
 class BoxKit:
@@ -963,10 +1038,11 @@ class BoxKit:
 
     Two things do NOT survive a type switch, and both fail loudly rather than quietly:
     ``type_options`` belongs to one box type (the new type rejects it with a
-    ``TypeError`` naming the class it wanted), and a switch to a type with
-    ``has_lid = False`` (NoLidBox, PathBox, HingeBox) makes every ``make_lid()`` call
-    raise. Keep ``type_options`` on the individual boxes that need it, not in the kit,
-    if you want the one-word switch to stay a one-word switch.
+    ``TypeError`` naming the class it wanted), and switching to a lidless type (one that
+    is not a :class:`LiddedBox` -- NoLidBox, PathBox, HingeBox) is rejected AT KIT
+    CONSTRUCTION when the kit carries lid settings, rather than by every ``make_lid()``
+    call failing separately later. Keep ``type_options`` on the individual boxes that
+    need it, not in the kit, if you want the one-word switch to stay a one-word switch.
 
     Kit defaults and per-call overrides are merged per box (the call wins). Unknown
     keys are rejected up front (with the offending name) rather than surfacing as a
@@ -975,8 +1051,18 @@ class BoxKit:
 
     _SPEC_FIELDS = frozenset(f.name for f in fields(BoxSpec))
 
+    #: Spec fields that only mean anything on a box with a separate lid.
+    _LID_FIELDS = ("lid", "lid_label", "lid_shape", "label_options", "shape_options")
+
     def __init__(self, box_class: "type[BoxBaseType]", **defaults: Any) -> None:
         self._reject_unknown(defaults, "BoxKit default")
+        if not issubclass(box_class, LiddedBox):
+            lid_settings = [k for k in self._LID_FIELDS if defaults.get(k) is not None]
+            if lid_settings:
+                raise TypeError(
+                    f"{box_class.__name__} has no lid, so {lid_settings} would never be "
+                    "built. Drop them, or use a LiddedBox type."
+                )
         self.box_class = box_class
         self.defaults = defaults
 

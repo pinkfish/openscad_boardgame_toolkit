@@ -31,8 +31,8 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
-from lids_base import MakeLidTab
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions
+from lids_base import make_lid_tab
+from box_base import Body, BoxBaseType, BoxSpec, BoxTypeOptions
 from dataclasses import dataclass
 
 # ---------------------------------------------------------------------------
@@ -281,7 +281,7 @@ def _make_box_and_lid_with_inset_hinge(
         edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
     ).color(material_colour)
     latch = (
-        MakeLidTab(
+        make_lid_tab(
             length=tab_length,
             height=tab_height,
             lid_thickness=lid_thickness,
@@ -372,7 +372,7 @@ def _make_box_and_lid_with_inset_hinge(
         # (.shape). FIX IN BOSL2: add a minkowski op so this can be pure pybosl2.
         minkowski(
             pybosl2.shapes3d.cuboid([tab_offset * 2, tab_offset * 2, tab_offset * 2]).color(material_colour).shape,
-            MakeLidTab(
+            make_lid_tab(
                 length=tab_length,
                 height=tab_height,
                 lid_thickness=lid_thickness,
@@ -464,8 +464,8 @@ class HingeBox(BoxBaseType):
     whole assembly and there is no separate lid (:meth:`make_lid` raises). ``contents``
     entries are carved into the hinge box's four slots, in order (base interior, lid
     interior, on top of the base, on top of the lid); their ``InnerObject`` type is not
-    used (the hinge geometry defines each slot), which is why this type declares
-    ``body_carves_contents``. Hinge parameters come from
+    used (the hinge geometry defines each slot), which is why :meth:`_build_box_body`
+    returns ``Body(..., carved=True)``. Hinge parameters come from
     ``BoxSpec(type_options=HingeBoxOptions(hinge_diameter=6, ...))``.
 
     Usage::
@@ -477,26 +477,26 @@ class HingeBox(BoxBaseType):
     """
 
     options_class = HingeBoxOptions
-    has_lid = False
-    body_hollows_itself = True
-    body_carves_contents = True
 
     def _build_box_body(self, contents):
         children = [io.value for io in contents] or None   # raw solids into the hinge box's slots
         o = self.options
-        return _make_box_and_lid_with_inset_hinge(
-            size=[self.width, self.length, self.height],
-            children=children,
-            wall_thickness=self.wall_thickness,
-            floor_thickness=self.floor_thickness,
-            lid_thickness=self.lid_thickness,
-            material_colour=self.material_colour,
-            hinge_diameter=o.hinge_diameter,
-            hinge_offset=o.hinge_offset,
-            gap=o.gap,
-            side_gap=o.side_gap,
-            tab_length=o.tab_length,
-            tab_height=o.tab_height,
-            tab_offset=o.tab_offset,
-            prism_width=o.prism_width,
+        return Body(
+            _make_box_and_lid_with_inset_hinge(
+                size=[self.width, self.length, self.height],
+                children=children,
+                wall_thickness=self.wall_thickness,
+                floor_thickness=self.floor_thickness,
+                lid_thickness=self.lid_thickness,
+                material_colour=self.material_colour,
+                hinge_diameter=o.hinge_diameter,
+                hinge_offset=o.hinge_offset,
+                gap=o.gap,
+                side_gap=o.side_gap,
+                tab_length=o.tab_length,
+                tab_height=o.tab_height,
+                tab_offset=o.tab_offset,
+                prism_width=o.prism_width,
+            ),
+            hollowed=True, carved=True,
         )

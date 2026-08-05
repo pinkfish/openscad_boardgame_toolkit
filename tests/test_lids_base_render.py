@@ -21,7 +21,7 @@
 #    (pure-Python dense-shape-type helpers only). Every one of the shapes below turned up a real
 #    bug the first time it was actually rendered (see git history for specifics):
 #      - Bosl2Solid (pybosl2/ port) mixed directly into a native hull()/boolean without unwrapping
-#        `.shape` first (MakeLidTab's wedge hull())
+#        `.shape` first (make_lid_tab's wedge hull())
 #      - color(obj, colorspec) argument order backwards (LidMeshBasic's border/bound)
 #      - offset() (a 2-D op) called *after* linear_extrude() instead of before, silently
 #        producing empty geometry (LidMeshBasic's border/bound)
@@ -69,8 +69,8 @@ _TOLERANCE = 12.0
 #     a hex honeycomb across the whole boundary
 #   - lidmesh_repeating: LidMeshBasic(dense=False) -> LidMeshRepeating -> RegularPolygonGrid,
 #     tiling a repeating shape (with gaps, unlike a gapless square, so the pattern is visible)
-#   - sliding_fingernail: SlidingLidFingernail's cylinder + sphere/cube cutout
-#   - tabs: MakeTabs + MakeLidTab's hull()-based wedge geometry
+#   - sliding_fingernail: sliding_lid_fingernail's cylinder + sphere/cube cutout
+#   - tabs: make_tabs + make_lid_tab's hull()-based wedge geometry
 #   - internal_build_lid: the carve-and-stack composition helper
 SHAPES = [
     (
@@ -84,8 +84,8 @@ SHAPES = [
         "LidMeshBasic(size=[100.0, 50.0], lid_thickness=2.0, boundary=10.0, layout_width=10.0, "
         "children=square([6, 6], center=True))",
     ),
-    ("sliding_fingernail", "SlidingLidFingernail(3.0)"),
-    ("lid_tabs", "MakeTabs([50.0, 100.0], children=MakeLidTab(length=10.0, height=6.0))"),
+    ("sliding_fingernail", "sliding_lid_fingernail(3.0)"),
+    ("lid_tabs", "make_tabs([50.0, 100.0], children=make_lid_tab(length=10.0, height=6.0))"),
     ("internal_build_lid", "internal_build_lid(lid_thickness=2.0, children=[cube([50, 30, 2])])"),
 ]
 

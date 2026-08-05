@@ -70,7 +70,7 @@ LIDDED = {
 }
 
 # The lid decoration is a label plus the default tiled pattern: the combination that
-# exercises every overlay slot (mesh, label) through internal_build_lid.
+# exercises every overlay slot (mesh, label) through build_lid.
 _DECORATED = ", lid_label='T'"
 
 
@@ -188,6 +188,70 @@ class PipelineAppliesToEveryTypeTests(unittest.TestCase):
                 self.assertAlmostEqual(
                     plain.length, spun.width, delta=0.5,
                     msg=f"{name}: spin=90 did not swap width/length: {plain} vs {spun}",
+                )
+
+    def test_spin_turns_the_lid_with_its_box(self):
+        """One spec, two parts, ONE frame.
+
+        ``BoxSpec`` exists so the box and its lid agree, but positioning used to be
+        applied only in ``make_box``: ``spin=90`` turned the box a quarter turn and left
+        the lid where it was, so the pair no longer fitted together or laid out
+        consistently. Both parts go through ``_apply_positioning`` now, so the lid's
+        bounding box must swap width/length exactly as the box's does."""
+        lidded = {k: v for k, v in self.FACADES.items() if k in ("sliding", "cap_path")}
+        for name in lidded:
+            with self.subTest(box=name):
+                imports, ctor = self.FACADES[name]
+
+                def measure_lid(extra, tag):
+                    body = (
+                        f"{_HEADER}{imports}\n"
+                        f"box = {ctor.format(extra=extra)}\n"
+                        f"measure('{tag}', box.make_lid())\n"
+                        "import pybosl2.shapes3d as _s3\n"
+                        "_s3.cuboid([1, 1, 1]).show()\n"
+                    )
+                    r = measure_python(body)
+                    self.assertTrue(r.ok, f"{name}: {r.error}\n{r.stderr[-2000:]}")
+                    return r.boxes[tag]
+
+                plain = measure_lid("", "plain_lid")
+                spun = measure_lid(", spin=90", "spun_lid")
+                self.assertAlmostEqual(
+                    plain.width, spun.length, delta=0.6,
+                    msg=f"{name}: spin=90 did not turn the LID: {plain} vs {spun}",
+                )
+                self.assertAlmostEqual(
+                    plain.length, spun.width, delta=0.6,
+                    msg=f"{name}: spin=90 did not turn the LID: {plain} vs {spun}",
+                )
+
+    def test_lid_is_concentric_with_its_box(self):
+        """The lid must sit over the box, not beside it: same centre in x/y.
+
+        The other half of sharing a frame -- ``anchor`` moved the box and left the lid at
+        the origin, so overlaying the two parts showed them offset by half a box."""
+        for name in ("sliding", "cap_path"):
+            with self.subTest(box=name):
+                imports, ctor = self.FACADES[name]
+                body = (
+                    f"{_HEADER}{imports}\n"
+                    f"box = {ctor.format(extra='')}\n"
+                    "measure('box', box.make_box())\n"
+                    "measure('lid', box.make_lid())\n"
+                    "import pybosl2.shapes3d as _s3\n"
+                    "_s3.cuboid([1, 1, 1]).show()\n"
+                )
+                r = measure_python(body)
+                self.assertTrue(r.ok, f"{name}: {r.error}\n{r.stderr[-2000:]}")
+                b, l = r.boxes["box"], r.boxes["lid"]
+                self.assertAlmostEqual(
+                    b.x + b.width / 2, l.x + l.width / 2, delta=1.0,
+                    msg=f"{name}: lid is not centred over the box in x: box={b} lid={l}",
+                )
+                self.assertAlmostEqual(
+                    b.y + b.length / 2, l.y + l.length / 2, delta=1.0,
+                    msg=f"{name}: lid is not centred over the box in y: box={b} lid={l}",
                 )
 
     def test_finger_holes_cut_every_box_type(self):
@@ -351,14 +415,48 @@ class TypeOptionsTests(unittest.TestCase):
         self.assertEqual(reports["path_without_options"], "TypeError")
 
     def test_types_without_a_lid_say_so(self):
+        """A lidless type has no ``make_lid`` AT ALL -- it is not a :class:`LiddedBox`.
+
+        This used to be ``has_lid = False`` plus a ``NotImplementedError`` raised from a
+        ``make_lid`` that every box type carried: a compile-time fact reported at build
+        time, one box at a time. The absence of the method is the assertion now, which is
+        also what lets BoxKit reject a lidless type up front."""
         reports = self._run(
             "from no_lid import NoLidBox\n"
             "from hinge_box import HingeBox\n"
             "check('no_lid', lambda: NoLidBox(BoxSpec(size=[50, 50, 20], label='t')).make_lid())\n"
             "check('hinge', lambda: HingeBox(BoxSpec(size=[50, 50, 20], label='t')).make_lid())\n"
         )
-        self.assertEqual(reports["no_lid"], "NotImplementedError")
-        self.assertEqual(reports["hinge"], "NotImplementedError")
+        self.assertEqual(reports["no_lid"], "AttributeError")
+        self.assertEqual(reports["hinge"], "AttributeError")
+
+    def test_lidless_types_are_not_lidded_boxes(self):
+        """The static half of the same contract: the class hierarchy says it, so a caller
+        (and BoxKit) can ask without building anything."""
+        reports = self._run(
+            "from box_base import LiddedBox\n"
+            "from no_lid import NoLidBox, PathBox\n"
+            "from hinge_box import HingeBox\n"
+            "from sliding_box import SlidingBox\n"
+            "from cap_box import CapBox\n"
+            "for _n, _c in (('no_lid', NoLidBox), ('path', PathBox), ('hinge', HingeBox),\n"
+            "               ('sliding', SlidingBox), ('cap', CapBox)):\n"
+            "    report(_n, 'lidded' if issubclass(_c, LiddedBox) else 'lidless')\n"
+        )
+        self.assertEqual(
+            {"no_lid": "lidless", "path": "lidless", "hinge": "lidless",
+             "sliding": "lidded", "cap": "lidded"},
+            {k: reports[k] for k in ("no_lid", "path", "hinge", "sliding", "cap")},
+        )
+
+    def test_box_kit_rejects_lid_settings_for_a_lidless_type(self):
+        """BoxKit's one-word type switch fails at the KIT, not at each make_lid() call."""
+        reports = self._run(
+            "from box_base import BoxKit\n"
+            "from no_lid import NoLidBox\n"
+            "check('kit_with_lid_label', lambda: BoxKit(NoLidBox, lid_label='x'))\n"
+        )
+        self.assertEqual(reports["kit_with_lid_label"], "TypeError")
 
 
 if __name__ == "__main__":

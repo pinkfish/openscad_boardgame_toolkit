@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes3d
-from box_base import BoxBaseType, BoxSpec, BoxTypeOptions, Interior, LidPlate
+from box_base import LiddedBox, BoxSpec, BoxTypeOptions, Interior, LidPlate
 from dataclasses import dataclass
 
 
@@ -40,27 +40,27 @@ from dataclasses import dataclass
 # ---------------------------------------------------------------------------
 
 
-def CapBoxDefaultCapHeight(height: float) -> float:
+def cap_box_default_cap_height(height: float) -> float:
     """Default cap height for a box of given *height*."""
     return min(10, height / 2)
 
 
-def CapBoxDefaultFingerHoldHeight(height: float) -> float:
+def cap_box_default_finger_hold_height(height: float) -> float:
     """Default finger hold height for a box of given *height*."""
     return min(5, height / 4)
 
 
-def CapBoxDefaultFingerHoldLen(width: float, length: float) -> float:
+def cap_box_default_finger_hold_len(width: float, length: float) -> float:
     """Default finger hold length for a box of given *width* and *length*."""
     return min(width, length) / 5
 
 
-def CapBoxDefaultLidWallThickness(wall_thickness: float) -> float:
+def cap_box_default_lid_wall_thickness(wall_thickness: float) -> float:
     """Default lid wall thickness derived from *wall_thickness*."""
     return wall_thickness / 2
 
 
-def CapBoxDefaultLidFingerHoldRounding(cap_height: float) -> float:
+def cap_box_default_lid_finger_hold_rounding(cap_height: float) -> float:
     """Default rounding on the lid finger hold."""
     return min(3, cap_height / 2)
 
@@ -104,7 +104,7 @@ class CapBoxOptions(BoxTypeOptions):
     finger_holds: bool = True                       # grip scoops so you can lift the cap
 
 
-class CapBox(BoxBaseType):
+class CapBox(LiddedBox):
     """A box with a cap lid on the new box system: the cap slides down over the box's
     top rim. The top ``cap_height`` mm of the box wall is stepped in by the cap wall
     thickness so the cap sits flush. The cap has finger-hold scoops and a snap-fit
@@ -137,10 +137,10 @@ class CapBox(BoxBaseType):
 
     def _cap_height(self) -> float:
         h = self.options.cap_height
-        return float(h) if h else CapBoxDefaultCapHeight(self.height)
+        return float(h) if h else cap_box_default_cap_height(self.height)
 
     def _lid_wall(self) -> float:
-        return CapBoxDefaultLidWallThickness(self.wall_thickness)
+        return cap_box_default_lid_wall_thickness(self.wall_thickness)
 
     def _rim_frame(self, height: float, extra: float = 0.0):
         """A wall-thick frame (outer minus inner) of the given height -- the cap rim."""
@@ -152,7 +152,7 @@ class CapBox(BoxBaseType):
         return outer - inner
 
     def _finger_hold_height(self) -> float:
-        return CapBoxDefaultFingerHoldHeight(self.height)
+        return cap_box_default_finger_hold_height(self.height)
 
     def _finger_hold_cut(self):
         """The cap finger-hold cutter: a wall-band recess below the rim with a rounded
@@ -163,8 +163,8 @@ class CapBox(BoxBaseType):
         sp = self.size_spacing
         cap_h = self._cap_height()
         fh_h = self._finger_hold_height()
-        fh_len = CapBoxDefaultFingerHoldLen(w, l)
-        fh_round = CapBoxDefaultLidFingerHoldRounding(cap_h)
+        fh_len = cap_box_default_finger_hold_len(w, l)
+        fh_round = cap_box_default_lid_finger_hold_rounding(cap_h)
         wt = self.wall_thickness
 
         # Outer wall band minus the inner keep-away -> the reduced-wall band.
@@ -271,7 +271,7 @@ class CapBox(BoxBaseType):
         """The cap: a wall frame that fits over the box's top rim plus the matching catch
         protrusions (the shell), closed by a flat top plate (the decorated face)."""
         cap_h = self._cap_height()
-        lt = lid.lid_thickness
+        lt = self.lid_thickness
         shell = self._rim_frame(cap_h)
         catches = self._catches(is_lid=True)   # protrusions at the cap wall bottom
         if catches is not None:
