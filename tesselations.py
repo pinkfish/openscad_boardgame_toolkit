@@ -107,11 +107,15 @@ def hexagon_tesselation_repeat(rows: int, cols: int, size: float, children: PyOp
     dy = radius * 4 + apothem * 0.8
 
     assert children is not None, "children must be given"
-    shape = None
-    for i in range(rows):
-        for j in range(cols):
-            piece = children.translate([i / 2 * dy, j * dx + ((i + 1) % 2) * (dx / 2), 0])
-            shape = piece if shape is None else shape | piece
+    pieces = [
+        children.translate([i / 2 * dy, j * dx + ((i + 1) % 2) * (dx / 2), 0])
+        for i in range(rows)
+        for j in range(cols)
+    ]
+    # Balanced union: PythonSCAD builds the tree lazily, so a left fold is free to
+    # assemble and then makes Manifold re-boolean the whole accumulated tiling once
+    # per cell at MESH time -- quadratic in the cell count.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 
@@ -160,13 +164,17 @@ def triangle_tesselation_repeat(rows: int, cols: int, size: float, children: PyO
     height = side_length * (math.sqrt(3) / 2)
 
     assert children is not None, "children must be given"
-    shape = None
-    for i in range(rows):
-        for j in range(cols):
-            piece = children.rotate([0, 0, 60 * (i % 2)]).translate(
-                [side_length / 2 * i, height * j + (size - height) * (i % 2), 0]
-            )
-            shape = piece if shape is None else shape | piece
+    pieces = [
+        children.rotate([0, 0, 60 * (i % 2)]).translate(
+            [side_length / 2 * i, height * j + (size - height) * (i % 2), 0]
+        )
+        for i in range(rows)
+        for j in range(cols)
+    ]
+    # Balanced union: PythonSCAD builds the tree lazily, so a left fold is free to
+    # assemble and then makes Manifold re-boolean the whole accumulated tiling once
+    # per cell at MESH time -- quadratic in the cell count.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

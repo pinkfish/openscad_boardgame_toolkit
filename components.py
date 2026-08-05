@@ -537,7 +537,7 @@ def RegularPolygonGrid(
         )
         return children(space_width, space_length, cols, rows)
 
-    shape = None
+    pieces = []
     for i in range(int(rows)):
         for j in range(int(cols)):
             if inner_control == 1:
@@ -548,7 +548,11 @@ def RegularPolygonGrid(
             else:
                 piece = children(i, j) if callable(children) else children
                 piece = piece.translate([i * dy + offset_x - radius, j * dx + i * dx_y + offset_y - radius, 0])
-            shape = piece if shape is None else shape | piece
+            pieces.append(piece)
+    # Balanced union, not `shape = shape | piece`: PythonSCAD builds the tree lazily, so a
+    # left fold is free to assemble and then makes Manifold re-boolean the whole accumulated
+    # grid once per cell at MESH time -- quadratic in the cell count.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape
 

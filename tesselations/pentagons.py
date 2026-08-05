@@ -111,7 +111,7 @@ def SheepTesselationArea(size: float, width: float, length: float, thickness: fl
     x_offset = [data.x_offset[0], -data.x_offset[1]]
     y_offset = [data.y_offset[0], -data.y_offset[1]]
 
-    shape = None
+    pieces = []
     for x in range(rows + 1):
         for y in range(cols + 1):
             # data.points is already 2-D geometry (pentagon_tilings.py emits direct CSG);
@@ -121,6 +121,10 @@ def SheepTesselationArea(size: float, width: float, length: float, thickness: fl
                 .translate([size * x * x_offset[0], size * x * x_offset[1], 0])
                 .translate([size * y * y_offset[0], size * y * y_offset[1], 0])
             )
-            shape = piece if shape is None else shape | piece
+            pieces.append(piece)
+    # Balanced union: PythonSCAD builds the tree lazily, so a left fold is free to
+    # assemble and then makes Manifold re-boolean the whole accumulated tiling once
+    # per cell at MESH time -- quadratic in the cell count.
+    shape = union_all_2d(pieces)
     assert shape is not None
     return shape.translate([-cols * size, -size * 3 / 4, 0])

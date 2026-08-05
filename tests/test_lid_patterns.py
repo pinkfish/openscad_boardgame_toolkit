@@ -66,13 +66,21 @@ EXPECTED_BROKEN: dict[str, str] = {}
 #: the geometry, not raising the timeout.
 TOO_SLOW_TO_MESH: dict[str, str] = {
     "FLYING_BIRD": (
-        "one tile measures 56.9 x 32.2mm at size=12 (~5x nominal) and the tiles overlap "
-        "heavily, so unioning the 20 that cover an 80x60 area is superlinear: 1 tile and a "
-        "2x2 grid mesh in seconds, the full area does not finish in 400s. Balancing the "
-        "union (hex_tesselation) and removing the self-intersecting corner smoothing "
-        "(to_bezcornerpath at the .scad's size=0.3 makes the outline non-simple) both helped "
-        "and neither was sufficient -- the tile geometry itself needs work. This pattern has "
-        "never built a lid; before those two fixes it failed earlier still, in round_corners."
+        "Meshing the tiled area blows up near-exponentially in the TILE COUNT. Measured on "
+        "an 80x60 area (20 tiles, size=12): 4 tiles = seconds, 8 = 218s, 12/18/24 = over "
+        "240s. One tile spans 56.9 x 32.2mm while the lattice steps 28.8 x 13.4, so roughly "
+        "five tiles cover every point -- but plain overlap would cost quadratic, not this. "
+        "The shape of that curve says the tile carries DEGENERATE geometry (slivers or "
+        "self-intersections) that each boolean multiplies. Ruled out, with measurements, so "
+        "nobody repeats them: (1) the union strategy -- a balanced tree and a native n-ary "
+        "union are both no better than the original left fold; (2) the corner smoothing -- "
+        "to_bezcornerpath at the .scad's literal size=0.3 DOES yield a self-intersecting "
+        "outline (fixed: hex_tesselation now picks the largest size that stays simple), and "
+        "it was not sufficient; (3) the stroke offset -- thickness 2.0/1.0/0.5 all time out "
+        "identically. What is left is the tile's own construction: FlyingBirdTesselation "
+        "unions two overlapping bird outlines built by tesselation_polygon, and that output "
+        "is the thing to inspect for degeneracy. This pattern has never built a lid -- "
+        "before the smoothing fix it failed earlier still, inside round_corners."
     ),
 }
 
@@ -165,7 +173,6 @@ _FILL_SCRIPT = """
 from base_bgtk import *
 from shape_type import MakeShapeObject
 from patterns import PatternArea, pattern_for
-import venv_path  # noqa: F401,E402  -- pin pybosl2 to the project venv
 import pybosl2.shapes3d as _s3
 
 AREA = PatternArea(width=%(w)r, length=%(l)r)
