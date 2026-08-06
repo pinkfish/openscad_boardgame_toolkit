@@ -64,25 +64,13 @@ EXPECTED_BROKEN: dict[str, str] = {}
 #:
 #: Each entry is a DEFECT with a measured cause, not a tolerance. Removing one means fixing
 #: the geometry, not raising the timeout.
-TOO_SLOW_TO_MESH: dict[str, str] = {
-    "FLYING_BIRD": (
-        "Meshing the tiled area blows up near-exponentially in the TILE COUNT. Measured on "
-        "an 80x60 area (20 tiles, size=12): 4 tiles = seconds, 8 = 218s, 12/18/24 = over "
-        "240s. One tile spans 56.9 x 32.2mm while the lattice steps 28.8 x 13.4, so roughly "
-        "five tiles cover every point -- but plain overlap would cost quadratic, not this. "
-        "The shape of that curve says the tile carries DEGENERATE geometry (slivers or "
-        "self-intersections) that each boolean multiplies. Ruled out, with measurements, so "
-        "nobody repeats them: (1) the union strategy -- a balanced tree and a native n-ary "
-        "union are both no better than the original left fold; (2) the corner smoothing -- "
-        "to_bezcornerpath at the .scad's literal size=0.3 DOES yield a self-intersecting "
-        "outline (fixed: hex_tesselation now picks the largest size that stays simple), and "
-        "it was not sufficient; (3) the stroke offset -- thickness 2.0/1.0/0.5 all time out "
-        "identically. What is left is the tile's own construction: FlyingBirdTesselation "
-        "unions two overlapping bird outlines built by tesselation_polygon, and that output "
-        "is the thing to inspect for degeneracy. This pattern has never built a lid -- "
-        "before the smoothing fix it failed earlier still, inside round_corners."
-    ),
-}
+TOO_SLOW_TO_MESH: dict[str, str] = {}
+# EMPTY. FLYING_BIRD lived here until its tile was fixed: the outline is 186 points of
+# fine concave detail and Path2D.offset() left every offset of it self-intersecting, so
+# tiling twenty tangled rings never finished. base_bgtk.outline_shell() offsets natively
+# and clips those away -- the lid now measures in ~1.6s. An entry here is a DEFECT with a
+# measured cause, never a tolerance: removing one means fixing geometry, not raising a
+# timeout.
 
 # What used to be in this list, and what each took:
 #   * LIZARD / GOOSE / CHICKEN / SHEEP / BIRD / FLYING_BIRD / VORONOI -- the tesselations/

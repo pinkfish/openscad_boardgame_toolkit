@@ -430,6 +430,42 @@ def DifferenceWithOffset(
     return children.offset(delta=outer_offset)
 
 
+def outline_shell(pts, thickness: float, outer_offset: float = 0):
+    """An outline of *thickness* around *pts*, offset with the NATIVE 2-D offsetter.
+
+    Same intent as :func:`DifferenceWithOffset`'s ``pts=`` form -- outline minus an inset
+    copy -- but it survives detailed, concave outlines.
+
+    ``Path2D.offset()`` moves each vertex along its normal and keeps the point count, so
+    wherever the inset distance exceeds a local feature the result SELF-INTERSECTS: the
+    flying-bird tile's 186-point outline is simple, and every offset of it (even +0.2
+    outward) is not. That is invisible until something meshes it, and then every boolean
+    against the tangled path is pathological -- tiling twenty of them did not finish in
+    fifteen minutes. The native offsetter clips those self-intersections away instead, and
+    the same tiling meshes in about five seconds.
+
+    Prefer this for any outline with fine or concave detail (tesselation cells, creature
+    profiles). ``DifferenceWithOffset(pts=...)`` remains the cheaper choice for simple,
+    convex-ish paths where the two rings cannot tangle -- it builds region DATA and does no
+    clipping at all.
+
+    Args:
+        pts:          the closed outline
+        thickness:    wall thickness (inset amount; the hole is inset by this much)
+        outer_offset: extra outward offset applied to the outer ring first
+
+    Returns:
+        2-D geometry (native), ready to union/extrude.
+    """
+    # .shape drops to the native handle: the pybosl2 wrapper's offset() takes delta=/radius=
+    # and routes back to the point-list offsetter this function exists to avoid, whereas the
+    # native one takes r= and does real polygon clipping.
+    solid = shapes2d.polygon([[float(p[0]), float(p[1])] for p in Path2D(pts).to_list]).shape
+    if thickness == 0:
+        return solid.offset(r=outer_offset)
+    return solid.offset(r=outer_offset) - solid.offset(r=-abs(thickness))
+
+
 def DifferenceWithOffsetRounded(
     offset: float,
     outer_offset: float = 0,

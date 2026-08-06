@@ -162,14 +162,16 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     x_vec = [hexagon[4][0] - hexagon[0][0], hexagon[4][1] - hexagon[0][1]]
     y_vec = rot_hex[3]
 
-    # The two bird outlines OVERLAP, so their union is real polygon clipping -- but the only
-    # consumer immediately renders the region to 2-D geometry, so do the union in NATIVE 2-D
-    # CSG (Manifold) instead: DifferenceWithOffset returns a Path2D/Region whose .geometry() is
-    # the native outline-minus-hole shape, and native `|` unions the two. No point-list region
-    # clipping needed, and no osuse.
+    # outline_shell, NOT DifferenceWithOffset: this outline is 186 points of fine concave
+    # detail, and Path2D.offset() (which DifferenceWithOffset's pts= form uses) moves vertices
+    # without resolving the self-intersections that creates -- the outline is simple and every
+    # offset of it is not, at ANY distance including +0.2 outward. Tangled rings make every
+    # later boolean pathological: tiling twenty of them did not finish in fifteen minutes,
+    # which is why FLYING_BIRD could never build a lid. Offsetting natively clips the
+    # self-intersections away and the same tiling meshes in about five seconds.
     geometry = (
-        DifferenceWithOffset(pts=new_hex, offset=-thickness, outer_offset=outer_offset).geometry()
-        | DifferenceWithOffset(pts=rot_new_hex, offset=-thickness, outer_offset=outer_offset).geometry()
+        outline_shell(new_hex, thickness=thickness, outer_offset=outer_offset)
+        | outline_shell(rot_new_hex, thickness=thickness, outer_offset=outer_offset)
     )
 
     return types.SimpleNamespace(geometry=geometry, y_vec=y_vec, x_vec=x_vec, angles=angles)
