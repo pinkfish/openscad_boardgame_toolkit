@@ -415,7 +415,7 @@ def _cap_path_lid_parts(
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else cap_box_default_cap_height(height)
-    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness, _fn=16))
+    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness, fn=16))
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = cap_box_default_lid_finger_hold_rounding(calc_cap_height)
 
@@ -524,7 +524,7 @@ class CapPathBox(LiddedBox):
         """Build from a regular *sides*-gon whose circumdiameter is ``spec.size[0]``."""
         if sides < 3:
             raise ValueError(f"sides must be >= 3, got {sides}")
-        path = shapes2d._regular_ngon_path(sides, spec.size[0] / 2)
+        path = regular_ngon_path(sides, spec.size[0] / 2)
         return cls(replace(spec, type_options=CapPathBoxOptions(path=path, **opt_kwargs)))
 
     def _children(self, contents):

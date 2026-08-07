@@ -31,6 +31,11 @@ from base_bgtk import *
 from pybosl2 import shapes2d
 from pybosl2 import Bezier
 
+# The public shapes2d.egg() returns a solid; these want the outline to stroke, and the path
+# form is only reachable through this private helper. It moved out of the shapes2d namespace
+# in pybosl2 0.7, so import it from where it lives now rather than off the package.
+from pybosl2.shapes2d.curves import _egg_path
+
 # Safe despite shape_type.py's import of this module: lids_base doesn't import shapes (only
 # shape_type does, lazily, inside a function body), so there's no cycle at import time.
 from lids_base import (
@@ -543,7 +548,7 @@ def bag2d(
     # Rope
     rope_shape = (
         shapes2d.polygon(
-            shapes2d._egg_path(calc_rope_length, calc_rope_length / 3, calc_rope_length / 8, calc_rope_length, fn=180)
+            _egg_path(calc_rope_length, calc_rope_length / 3, calc_rope_length / 8, calc_rope_length, fn=180)
         )
         .rotate([0, 0, 90])
         .translate([-size / 2 + calc_rope_length / 6 * 2, size / 2 - calc_rope_length / 2 - calc_neck_width * 1.8])
@@ -975,10 +980,10 @@ def handshake2d(size: float) -> PyOpenSCAD:
     """
 
     def Thumb() -> PyOpenSCAD:
-        return _stroke(shapes2d._egg_path(15, 5, 4, 60), closed=True).rotate([0, 0, 220]).translate([38, 3])
+        return _stroke(_egg_path(15, 5, 4, 60), closed=True).rotate([0, 0, 220]).translate([38, 3])
 
     def Finger() -> PyOpenSCAD:
-        return _stroke(shapes2d._egg_path(12, 4, 5, 60), closed=True).rotate([0, 0, 230])
+        return _stroke(_egg_path(12, 4, 5, 60), closed=True).rotate([0, 0, 230])
 
     base = (
         shapes2d.polygon([[0, 0], [0, 30], [40, 5], [40, -25]])

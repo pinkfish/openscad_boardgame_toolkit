@@ -585,7 +585,7 @@ class PathBox(BoxBaseType):
         ``spec.size[0]`` (the replacement for :func:`MakePolygonBoxWithNoLid`)."""
         if sides < 3:
             raise ValueError(f"sides must be >= 3, got {sides}")
-        path = shapes2d._regular_ngon_path(sides, spec.size[0] / 2)
+        path = regular_ngon_path(sides, spec.size[0] / 2)
         return cls(replace(spec, type_options=PathBoxOptions(path=path, **opt_kwargs)))
 
     def _compute_interior(self) -> Interior:

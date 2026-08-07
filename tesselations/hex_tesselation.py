@@ -163,12 +163,13 @@ def FlyingBirdTesselation(size: float, thickness: float = 0, outer_offset: float
     y_vec = rot_hex[3]
 
     # outline_shell, NOT DifferenceWithOffset: this outline is 186 points of fine concave
-    # detail, and Path2D.offset() (which DifferenceWithOffset's pts= form uses) moves vertices
-    # without resolving the self-intersections that creates -- the outline is simple and every
-    # offset of it is not, at ANY distance including +0.2 outward. Tangled rings make every
-    # later boolean pathological: tiling twenty of them did not finish in fifteen minutes,
-    # which is why FLYING_BIRD could never build a lid. Offsetting natively clips the
-    # self-intersections away and the same tiling meshes in about five seconds.
+    # detail, and up to pybosl2 0.6.7 Path2D.offset() (which DifferenceWithOffset's pts= form
+    # uses) moved vertices without resolving the self-intersections that creates -- the outline
+    # was simple and every offset of it was not, at ANY distance including +0.2 outward.
+    # Tangled rings make every later boolean pathological: tiling twenty of them did not finish
+    # in fifteen minutes, which is why FLYING_BIRD could never build a lid. 0.7 repairs the
+    # folds, so both routes are sound now; this stays on the native offsetter, which clips them
+    # away in one call and meshes the tiling in about five seconds.
     geometry = (
         outline_shell(new_hex, thickness=thickness, outer_offset=outer_offset)
         | outline_shell(rot_new_hex, thickness=thickness, outer_offset=outer_offset)

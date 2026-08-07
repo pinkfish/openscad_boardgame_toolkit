@@ -23,6 +23,7 @@
 
 from openscad import *
 from base_bgtk import *
+from pybosl2 import Anchor
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from pybosl2.shapes3d import Bosl2Solid
@@ -252,7 +253,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     rounding = options.radius if options.radius * 2 <= min(width, length) else min(width, length) / 2
     result = (
         result
-        | shapes3d.cuboid([width, length, h_half], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+        | shapes3d.cuboid([width, length, h_half], rounding=rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM)
         .color(options.material_colour)
         .shape
     )
@@ -263,7 +264,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
 
     bg_height = lid_thickness if (full_h or options.border > 0) else lid_thickness / 2
     bg_box = shapes3d.cuboid(
-        [width, length, bg_height], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+        [width, length, bg_height], rounding=rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM
     ).color(options.material_colour)
     cut_z = (
         (lid_thickness + default_slicing_layer_height if full_h else lid_thickness / 2 + default_slicing_layer_height)
@@ -275,7 +276,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     cut_rounding = options.radius if options.radius * 2 <= min(w_cut, l_cut) else min(w_cut, l_cut) / 2
     cut_box = (
         shapes3d.cuboid(
-            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM
         )
         .color(options.material_colour)
         .translate([options.border, options.border, cut_z])
@@ -289,7 +290,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
         shapes3d.cuboid(
             [inner_w, inner_l, default_slicing_layer_height],
             rounding=inner_rounding,
-            edges="Z",
+            edges=Anchor.Z,
             anchor=FRONT + LEFT + BOTTOM,
         )
         .color(calc_background_colour)
@@ -372,7 +373,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
         # `bottom` layer beneath it entirely (this was rendering as a plain flat background).
         top = (
             shapes3d.cuboid(
-                [w, l, default_slicing_layer_height], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+                [w, l, default_slicing_layer_height], rounding=rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM
             )
             .color(calc_background_color)
             .translate([options.border + 0.01, options.border + 0.01, 0])
@@ -383,7 +384,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
         ).translate([0, 0, h_half])
 
         box_part = (
-            shapes3d.cuboid([w, l, h_half], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM)
+            shapes3d.cuboid([w, l, h_half], rounding=rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM)
             .color(options.material_colour)
             .translate([options.border, options.border, 0])
         )
@@ -403,7 +404,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
 
     z = lid_thickness if (full_h or options.border > 0) else lid_thickness / 2
     rounding = options.radius if options.radius * 2 <= min(width, length) else min(width, length) / 2
-    outer = shapes3d.cuboid([width, length, z], rounding=rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM).color(
+    outer = shapes3d.cuboid([width, length, z], rounding=rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM).color(
         options.material_colour
     )
     w_cut = width - options.border * 2
@@ -411,7 +412,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     cut_rounding = options.radius if options.radius * 2 <= min(w_cut, l_cut) else min(w_cut, l_cut) / 2
     cutter = (
         shapes3d.cuboid(
-            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges="Z", anchor=FRONT + LEFT + BOTTOM
+            [w_cut, l_cut, lid_thickness + 1], rounding=cut_rounding, edges=Anchor.Z, anchor=FRONT + LEFT + BOTTOM
         )
         .color(options.material_colour)
         .translate([options.border, options.border, -0.5])

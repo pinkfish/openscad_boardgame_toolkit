@@ -436,18 +436,21 @@ def outline_shell(pts, thickness: float, outer_offset: float = 0):
     Same intent as :func:`DifferenceWithOffset`'s ``pts=`` form -- outline minus an inset
     copy -- but it survives detailed, concave outlines.
 
-    ``Path2D.offset()`` moves each vertex along its normal and keeps the point count, so
-    wherever the inset distance exceeds a local feature the result SELF-INTERSECTS: the
-    flying-bird tile's 186-point outline is simple, and every offset of it (even +0.2
-    outward) is not. That is invisible until something meshes it, and then every boolean
-    against the tangled path is pathological -- tiling twenty of them did not finish in
-    fifteen minutes. The native offsetter clips those self-intersections away instead, and
-    the same tiling meshes in about five seconds.
+    This exists because ``Path2D.offset()`` used to move each vertex along its normal and
+    keep the point count, so wherever the inset distance exceeded a local feature the result
+    SELF-INTERSECTED: the flying-bird tile's 186-point outline was simple and every offset of
+    it (even +0.2 outward) was not. That is invisible until something meshes it, and then
+    every boolean against the tangled path is pathological -- tiling twenty of them did not
+    finish in fifteen minutes.
+
+    pybosl2 0.7 fixed that at the source: ``Path2D.offset()`` now drops the folded points, so
+    the same tile offsets to 160/158/129 simple points at delta +0.2/-0.2/-0.5. Either route
+    is therefore safe now, and this one is kept because the native offsetter clips rather
+    than repairs and does it in one call.
 
     Prefer this for any outline with fine or concave detail (tesselation cells, creature
     profiles). ``DifferenceWithOffset(pts=...)`` remains the cheaper choice for simple,
-    convex-ish paths where the two rings cannot tangle -- it builds region DATA and does no
-    clipping at all.
+    convex-ish paths -- it builds region DATA and does no clipping at all.
 
     Args:
         pts:          the closed outline
@@ -464,6 +467,28 @@ def outline_shell(pts, thickness: float, outer_offset: float = 0):
     if thickness == 0:
         return solid.offset(r=outer_offset)
     return solid.offset(r=outer_offset) - solid.offset(r=-abs(thickness))
+
+
+def regular_ngon_path(sides: int, radius: float) -> list[list[float]]:
+    """The vertices of a regular *sides*-gon on the circle of *radius*, BOSL2's winding.
+
+    Four box types wanted this and all four reached into ``shapes2d._regular_ngon_path()``,
+    a private pybosl2 helper -- which moved into a subpackage in 0.7 and took every polygon
+    box down with it. With no rounding or chamfer that helper is exactly the circumcircle
+    sampled at *sides* points from angle 0 (verified identical), so owning those three lines
+    here is both shorter and immune to the next refactor.
+
+    Args:
+        sides:  number of sides (>= 3)
+        radius: circumradius
+
+    Returns:
+        a closed path as a list of [x, y] points, first vertex on the +X axis
+    """
+    return [
+        [radius * math.cos(math.radians(a)), radius * math.sin(math.radians(a))]
+        for a in (360.0 * i / sides for i in range(sides))
+    ]
 
 
 def DifferenceWithOffsetRounded(

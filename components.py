@@ -32,6 +32,7 @@ from pythonscad import *
 from pybosl2.shapes3d import Bosl2Solid
 from pybosl2.shapes2d import Bosl2Shape2D
 from base_bgtk import *
+from pybosl2 import Anchor
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from pybosl2 import transforms
@@ -123,9 +124,7 @@ def HexBoxDivisions(
     if wall_thickness is None:
         wall_thickness = default_wall_thickness
 
-    # NOTE: shapes2d._regular_ngon_path is a private helper; if it disappears
-    # replace with: shapes2d.regular_ngon(n=num_sides, r=width/2) path call.
-    hex_path = shapes2d._regular_ngon_path(num_sides, width / 2)
+    hex_path = regular_ngon_path(num_sides, width / 2)
     hex_shape = shapes2d.polygon([[float(x), float(y)] for x, y in hex_path])
 
     w_div = wall_thickness / 2
@@ -444,7 +443,7 @@ def CuboidWithIndentsBottom(
     if calc_finger_hole_radius is None:
         calc_finger_hole_radius = min(size[0], size[1]) * 3 / 4
     poses = finger_positions if len(finger_positions) > 0 else [HoleToPosition(x) for x in finger_holes]
-    calc_edges = edges if edges is not None else "ALL"
+    calc_edges = edges if edges is not None else Anchor.ALL
 
     shape = shapes3d.cuboid(size, anchor=anchor, rounding=rounding, edges=calc_edges, chamfer=chamfer)
     # BOSL2 cuboid anchors are bounding-box points regardless of rounding, so the
