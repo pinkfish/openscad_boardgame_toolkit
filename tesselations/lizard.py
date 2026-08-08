@@ -71,7 +71,8 @@ def LizardHexTesselation(radius: float, thickness: float = 0, outer_offset: floa
     from tesselations import hexagonal_tesselation
 
     sized_lizard_points = Path2D(
-        hexagonal_tesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius)
+        hexagonal_tesselation(points=[_LIZARD_TAIL, _LIZARD_TOP, _LIZARD_OTHER_LEG], radius=radius),
+        closed=True,
     ).merge_collinear()
     if outer_offset == 0 and thickness == 0:
         return sized_lizard_points
@@ -97,7 +98,9 @@ def LizardSingle(size: float) -> PyOpenSCAD:
         size: the size of the lizard
     """
     assert size > 0, "Need to have a size specified"
-    return polygon(LizardHexTesselation(radius=size / 2))
+    # LizardHexTesselation returns a pybosl2 Path2D here (thickness=0); native polygon()
+    # needs plain float pairs.
+    return polygon(native_points(LizardHexTesselation(radius=size / 2)))
 
 
 def LizardSingleOutline(size: float, thickness: float) -> PyOpenSCAD:

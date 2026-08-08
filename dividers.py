@@ -60,8 +60,8 @@ def MakeDividerTab(
         anchor=BACK + LEFT + BOTTOM,
     )
     base = pybosl2.shapes3d.cuboid([tab_length + tab_radius * 2, tab_radius, thickness], anchor=BACK + LEFT + BOTTOM)
-    cut_a = pybosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([0, -tab_radius, 0.5])
-    cut_b = pybosl2.shapes3d.cyl(r=tab_radius, h=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
+    cut_a = pybosl2.shapes3d.cyl(radius=tab_radius, height=thickness + 1).translate([0, -tab_radius, 0.5])
+    cut_b = pybosl2.shapes3d.cyl(radius=tab_radius, height=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
     base_shape = (base - cut_a - cut_b).translate([-tab_radius, 0, 0])
 
     tab = (top | base_shape).translate([0, tab_height, 0]).shape

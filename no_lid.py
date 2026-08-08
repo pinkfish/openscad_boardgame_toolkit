@@ -287,7 +287,7 @@ class PathBoxWithNoLid:
             self.outside_path = self.path
             self.main_path = self.path
 
-        self.calc_path = Path2D(self.outside_path).round_corners(radius=wall)
+        self.calc_path = Path2D(self.outside_path, closed=True).round_corners(radius=wall)
         fit = self.stackable_fit_offset
         self.inner_path = Path2D(self.main_path).offset(radius=-wall)
         self.inner_path_stackable = Path2D(self.main_path).offset(radius=-wall / 2)
@@ -327,14 +327,16 @@ class PathBoxWithNoLid:
         if self.stackable == STACKABLE_TYPE_INSIDE:
             outer_src = self.inner_path_stackable_bottom_outside if bottom else self.inner_path_stackable
             inner_src = self.inner_path_stackable_bottom_inside if bottom else self.inner_path
-            outer = PolygonPrism(Path2D(outer_src).round_corners(radius=stack / 2), h=stack + grow, rounding_top=wall / 4)
+            outer = PolygonPrism(
+                Path2D(outer_src, closed=True).round_corners(radius=stack / 2), h=stack + grow, rounding_top=wall / 4
+            )
         elif self.stackable == STACKABLE_TYPE_OUTSIDE:
             inner_src = self.inner_path_stackable_bottom_inside_inside if bottom else self.inner_path_stackable
             outer = PolygonPrism(self.calc_path, h=stack + grow, rounding_top=wall / 4)
         else:
             return None
         inner = PolygonPrism(
-            Path2D(inner_src).round_corners(radius=stack / 4), h=stack + 0.02 + grow, rounding_top=-wall / 4
+            Path2D(inner_src, closed=True).round_corners(radius=stack / 4), h=stack + 0.02 + grow, rounding_top=-wall / 4
         ).translate([0, 0, -0.01])
         return outer - inner
 
@@ -361,7 +363,7 @@ class PathBoxWithNoLid:
         extra = None
         for f in self.sorted_floors:
             piece = PolygonPrism(
-                Path2D(f.path).round_corners(radius=wall),
+                Path2D(f.path, closed=True).round_corners(radius=wall),
                 h=(self.height - f.floor_height - stack) if self.stackable else (self.height - f.floor_height),
                 rounding_bottom=wall / 4 if self.stackable else wall / 2,
                 rounding_top=wall / 8 if self.stackable else wall / 4,
@@ -385,7 +387,7 @@ class PathBoxWithNoLid:
     def hollow_cut(self) -> "PyOpenSCAD":
         """The main cavity."""
         return PolygonPrism(
-            Path2D(self.inner_path).round_corners(radius=self.hollow_radius.radius),
+            Path2D(self.inner_path, closed=True).round_corners(radius=self.hollow_radius.radius),
             h=self.height - self.floor_thickness,
             rounding_bottom=self.hollow_radius.bottom,
             rounding_top=0 if self.stackable else -self.hollow_radius.top,
@@ -397,7 +399,7 @@ class PathBoxWithNoLid:
             return None
         wall = self.wall_thickness
         joined = Region([f.path]).union(Region([self.path]))
-        joined_outer = Path2D(joined.paths[0]).offset(radius=-wall).round_corners(radius=wall)
+        joined_outer = Path2D(joined.paths[0], closed=True).offset(radius=-wall).round_corners(radius=wall)
 
         inner = Region([Path2D(f.path).offset(delta=wall)]).union(Region([self.inner_path]))
         for other in self.sorted_floors:

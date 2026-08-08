@@ -223,7 +223,11 @@ def hexagonal_tesselation(points: list[list[list[float]]], radius: float = 10) -
             edge_pts = points[side_idx]
         edge = hexagonal_tesselation_generate_edge(pts=edge_pts, side_length=side_length)
         rotated_edge = Path2D(edge).rot(60 * i + 90)
-        poly.extend(rotated_edge.move(center_pt))
+        # native_points, not the bare rows: iterating a Path2D yields numpy arrays, and the
+        # declared return type here is plain point data that callers hand straight to the
+        # native polygon()/region() -- which answers a raw ndarray with "SystemError:
+        # <built-in function polygon> returned a result with an exception set".
+        poly.extend(native_points(rotated_edge.move(center_pt)))
     return poly
 
 

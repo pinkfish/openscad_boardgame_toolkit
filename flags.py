@@ -551,10 +551,11 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
             [232.6355, 228.18939999999998],
             [232.6355, 228.18939999999998],
         ]
+        # path_curve() returns a pybosl2 Path2D; native polygon() needs plain float pairs.
         path = Bezier(bez).path_curve()
         return (
-            polygon(path)
-            .resize([calc_len * mult, width])
+            polygon(native_points(path))
+            .resize([calc_len * mult, width, 0])
             .translate([-232.636 - calc_len / 2, -236.2621 + calc_width / 2])
             .linear_extrude(height=height)
         )
@@ -783,12 +784,12 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [289.1488, 241.26199999999997],
             ],
         ]
-        polys = [polygon(Bezier(p).path_curve()) for p in paths]
+        polys = [polygon(native_points(Bezier(p).path_curve())) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p
         return (
-            shape.resize([mult * calc_len, width])
+            shape.resize([mult * calc_len, width, 0])
             .translate([-len_max + (len_max - len_min) / 2, -width_max + (width_max - width_min) / 2])
             .linear_extrude(height=height)
             .color("yellow")
@@ -1366,12 +1367,12 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [329.08979, 247.21568],
             ],
         ]
-        polys = [polygon(Bezier(p).path_curve()) for p in paths]
+        polys = [polygon(native_points(Bezier(p).path_curve())) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p
         return (
-            shape.resize([mult * calc_len, width])
+            shape.resize([mult * calc_len, width, 0])
             .translate([-len_max + (len_max - len_min) / 2, -width_max + (width_max - width_min) / 2])
             .linear_extrude(height=height)
             .color("black")
@@ -1385,11 +1386,11 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         return shape.mirror([0, 1, 0])
 
     def WhiteDots(length: float, height: float) -> PyOpenSCAD:
-        a = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM)
-        b = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, length / 2, 0])
-        c = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, length / 2, 0])
-        d = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([length / 2, -length / 2, 0])
-        e = shapes3d.cyl(d=length / 5, h=height, anchor=BOTTOM).translate([-length / 2, -length / 2, 0])
+        a = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM)
+        b = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([length / 2, length / 2, 0])
+        c = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([-length / 2, length / 2, 0])
+        d = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([length / 2, -length / 2, 0])
+        e = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([-length / 2, -length / 2, 0])
         return (a | b | c | d | e).shape
 
     def BlueDotsShield(width: float, height: float, white_dot_height: float) -> PyOpenSCAD:
@@ -1439,8 +1440,8 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         bg = green | red
 
     coin = (
-        shapes3d.cyl(d=width / 2, h=height, anchor=BOTTOM)
-        - shapes3d.cyl(d=width / 2 - width / 12, h=height + 1, anchor=BOTTOM).translate([0, 0, -0.5])
+        shapes3d.cyl(diameter=width / 2, height=height, anchor=BOTTOM)
+        - shapes3d.cyl(diameter=width / 2 - width / 12, height=height + 1, anchor=BOTTOM).translate([0, 0, -0.5])
     ).color("#FFFF00")
     scrolls = MiddleScrolls(height=height, width=width / 2 + width / 150) - Quina(length / 5, height).translate(
         [0, 0, -0.5]

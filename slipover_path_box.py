@@ -143,8 +143,8 @@ def _make_path_box_with_slipover_lid(
     assert height > 0, f"Height must be >0 height={height}"
 
     inner_path = Path2D(path).offset(radius=-wall_thickness - size_spacing)
-    calc_inner_path = Path2D(inner_path).round_corners(radius=wall_thickness / 2)
-    calc_path = Path2D(path).round_corners(radius=wall_thickness)
+    calc_inner_path = Path2D(inner_path, closed=True).round_corners(radius=wall_thickness / 2)
+    calc_path = Path2D(path, closed=True).round_corners(radius=wall_thickness)
 
     x_arr = [p[0] for p in inner_path]
     y_arr = [p[1] for p in inner_path]
@@ -262,8 +262,8 @@ def _slipover_path_lid_parts(
         calc_lid_rounding = wall_thickness
 
     inner_path = Path2D(path).offset(radius=-wall_thickness + size_spacing)
-    calc_inner_path = Path2D(inner_path).round_corners(radius=wall_thickness / 2)
-    calc_path = Path2D(path).round_corners(radius=calc_lid_rounding)
+    calc_inner_path = Path2D(inner_path, closed=True).round_corners(radius=wall_thickness / 2)
+    calc_path = Path2D(path, closed=True).round_corners(radius=calc_lid_rounding)
 
     # The original construction intersected the plain extrusion with an os_smooth-topped
     # offset_sweep (a continuous-curvature eased rim); PolygonPrism() approximates that

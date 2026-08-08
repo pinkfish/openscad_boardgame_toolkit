@@ -45,7 +45,11 @@ import re
 import sys
 
 try:
-    import pythonscad  # noqa: F401  -- only importable inside the PythonSCAD app
+    # libfive, not pythonscad: the app registers libfive as a built-in extension and nothing
+    # else ships it, whereas there is now a pip-installable `pythonscad` shim, so importing
+    # THAT succeeds in a plain interpreter too -- which sent the driver down the in-app branch
+    # outside the app and died on the first SDF call instead of printing the table.
+    import libfive  # noqa: F401  -- only importable inside the PythonSCAD app
     _IN_APP = True
 except ImportError:
     _IN_APP = False
@@ -60,7 +64,19 @@ if _IN_APP:
 
 
 # ---------------------------------------------------------------------------
-# The cases. "geometry" is what pybosl2 0.6.7 did; 0.7.0 differs where noted.
+# The cases. "geometry" is what the CURRENT pinned pybosl2 (0.7.1) should do; 0.6.7 rendered
+# every one of them, 0.7.0 rendered only the two that never read the handle's bounds.
+#
+# 0.7.1 fixed the four wrapper cases two ways: Bosl2Solid no longer forwards private attribute
+# lookups (_tag_name/_attachments/...) to the native handle -- _wrap() did that on every
+# transform and boolean, and PythonSCAD segfaults on such a lookup against an frep handle --
+# and .to_csg() now rebuilds the meshed field as a polyhedron instead of handing the frep
+# handle over, so the CSG side never touches obj.position/obj.size on a live field.
+#
+# size_then_show is NOT pybosl2's to fix and is expected to stay empty: it reads .size off a
+# raw frep handle with no wrapper involved at all. That is the underlying PythonSCAD bug
+# (reading the bbox corrupts the field; the next render dies with exit -11 and empty stderr).
+# Flip it back to geometry=True if a PythonSCAD release ever fixes it.
 # ---------------------------------------------------------------------------
 
 CASES = {
@@ -74,15 +90,15 @@ CASES = {
     ),
     "csg_show": dict(
         geometry=True,
-        doc="sdf.to_csg().show() -- through the wrapper; SIGSEGV on 0.7.0",
+        doc="sdf.to_csg().show() -- through the wrapper; SIGSEGV on 0.7.0, fixed in 0.7.1",
     ),
     "csg_union_native": dict(
         geometry=True,
-        doc="native_cuboid | sdf.to_csg() -- the supported CSG/SDF bridge; SIGSEGV on 0.7.0",
+        doc="native_cuboid | sdf.to_csg() -- the CSG/SDF bridge; SIGSEGV on 0.7.0, fixed in 0.7.1",
     ),
     "size_then_show": dict(
-        geometry=True,
-        doc="read handle.size, THEN show the same handle; SIGSEGV on 0.7.0 (the mechanism)",
+        geometry=False,
+        doc="read handle.size, THEN show the same handle -- the raw PythonSCAD bug, still open",
     ),
 }
 
@@ -171,10 +187,12 @@ def _drive():
               f"actual={actual:22s} [{marker}]  -- {meta['doc']}")
 
     print(
-        "\nEvery REGRESSED row is the bug: the frep handle meshes correctly, but reading its"
-        "\nnative position/size -- which the pybosl2 CSG wrapper does for its bbox-backed"
-        "\nanchoring -- and then using it SIGSEGVs the app. Reproduced on pybosl2 0.7.0;"
-        "\nall five cases render on 0.6.7."
+        "\nEvery REGRESSED row is a live bug: the frep handle meshes correctly, but reading its"
+        "\nnative position/size and then using it SIGSEGVs the app. pybosl2 0.7.0 hit that from"
+        "\nits own bbox-backed anchoring, which took out every SDF-backed box; 0.7.1 no longer"
+        "\ntouches a live field that way, so the four wrapper rows render again. size_then_show"
+        "\ndoes it by hand with no wrapper and is expected to stay EMPTY until PythonSCAD fixes"
+        "\nthe underlying accessor -- see the note above CASES."
     )
     return 1 if failures else 0
 

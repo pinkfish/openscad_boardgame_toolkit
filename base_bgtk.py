@@ -54,6 +54,24 @@ BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir els
 # The numpy path maths (DifferenceWithOffset's pts= form); pybosl2/ never imports back here.
 from pybosl2 import Path2D, Path3D, Region
 from pybosl2 import shapes2d
+from pybosl2.version import version as _pybosl2_version
+
+# The toolkit needs pybosl2 >= 0.7.2 for its path fixes: Path2D/Path3D default to closed=False
+# (so every outline meant as a polygon says closed=True), Path.tangents returns one tangent per
+# POINT rather than per segment, and smooth_path/round_corners match real BOSL2.
+#
+# Checked here, at import, rather than left to the pyproject dependency pin, because that pin
+# does not apply on the path that matters: inside the PythonSCAD app the toolkit imports
+# whichever pybosl2 happens to be on sys.path, with no dependency resolution at all. And the
+# 0.7.1 failure mode is SILENT -- box and tile outlines quietly lose their closing edge and
+# lids round the wrong corners -- so without this the first symptom is a misprinted part.
+_REQUIRED_PYBOSL2 = "0.7.2"
+if _pybosl2_version < _REQUIRED_PYBOSL2:
+    raise ImportError(
+        f"openscad_boardgame_toolkit needs pybosl2 >= {_REQUIRED_PYBOSL2}, "
+        f"found {_pybosl2_version}. Older versions default paths to closed=True and return "
+        f"one tangent per segment, which silently changes box outlines and lid rounding."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +382,25 @@ class InnerObject:
 # ---------------------------------------------------------------------------
 
 
+def native_points(path) -> list[list[float]]:
+    """Coerce an outline to the plain ``[[x, y], ...]`` float pairs the native builtins want.
+
+    The native ``polygon()``/``region()`` accept only plain Python lists of floats: a pybosl2
+    ``Path2D``, a raw ndarray, or even a list of ``numpy.float64`` reaches the FFI as something
+    it cannot parse, and the failure is ugly -- ``TypeError: Error during parsing
+    polygon(points,paths)`` at best, ``SystemError: <built-in function polygon> returned a
+    result with an exception set`` at worst, which leaves an exception set on the interpreter
+    for whatever runs next. Anything that came out of the path maths goes through here first.
+
+    Args:
+        path: an outline -- a ``Path2D``, an ndarray, or any sequence of ``[x, y]`` pairs
+
+    Returns:
+        The same outline as plain lists of Python floats.
+    """
+    return [[float(p[0]), float(p[1])] for p in path]
+
+
 def region(paths: list) -> PyOpenSCAD:
     """Turns BOSL2 region data (a list of [x, y] outlines, even-odd nesting for holes) into
     real 2-D geometry via the native polygon(points, paths=...) multi-path form -- PythonSCAD
@@ -491,6 +528,25 @@ def regular_ngon_path(sides: int, radius: float) -> list[list[float]]:
     ]
 
 
+def _offset_rounded(shape: PyOpenSCAD, amount: float) -> PyOpenSCAD:
+    """Round-join offset that works on a pybosl2 2-D shape AND on a raw native one.
+
+    The two spell it differently and neither accepts the other's keyword: pybosl2 takes
+    ``radius=`` (its long-name convention), while the native builtin's signature is
+    ``offset(object, r, delta)`` -- handing that one ``radius=`` raises "TypeError: Error
+    during parsing offset(object,r,delta)". The delta-join sibling gets away with a single
+    call because ``delta=`` happens to be spelled the same on both sides.
+
+    Args:
+        shape:  a pybosl2 ``Bosl2Shape2D`` or a native 2-D solid
+        amount: offset distance (positive grows, negative shrinks)
+
+    Returns:
+        The offset shape, of whatever type went in.
+    """
+    return shape.offset(radius=amount) if isinstance(shape, shapes2d.Bosl2Shape2D) else shape.offset(r=amount)
+
+
 def DifferenceWithOffsetRounded(
     offset: float,
     outer_offset: float = 0,
@@ -506,8 +562,8 @@ def DifferenceWithOffsetRounded(
 
     assert children is not None, "DifferenceWithOffsetRounded: provide pts or children"
     if offset != 0:
-        return children.offset(radius=outer_offset) - children.offset(radius=offset)
-    return children.offset(radius=outer_offset)
+        return _offset_rounded(children, outer_offset) - _offset_rounded(children, offset)
+    return _offset_rounded(children, outer_offset)
 
 
 def OffsetSweep(

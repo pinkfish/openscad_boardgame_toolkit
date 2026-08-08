@@ -101,14 +101,22 @@ HELIX_CASES = [
 ]
 
 #: The turtle takes typed TurtleCommand objects in pybosl2 0.7, not BOSL2's flat string DSL,
-#: so the fixture's command lists are spelled out here instead of translated. The fixture's
-#: fourth case ("arcrightto") has no 0.7 spelling at all -- see TestTurtleMatchesBosl2.
+#: so the fixture's command lists are spelled out here instead of translated.
+#: Every rounding fixture case matches BOSL2 as of the tangents fix in pybosl2 (Path.tangents
+#: is now BOSL2's deriv()-based path_tangents, one per point). The smooth_path family used to
+#: diverge by 1.8-6.1 units on the 70-unit wig path, and d3_smooth used to come back with 48
+#: points instead of 28 because Bezier.arc_length() measured its sample polyline as a closed
+#: loop. create_bezier() itself was a faithful port all along.
+
 TURTLE_CASES = {
     "square_left": [TurtleCommand(Tct.MOVE, size=40), TurtleCommand(Tct.LEFT, angle=90)] * 3
     + [TurtleCommand(Tct.MOVE, size=40)],
     "repeat4": [TurtleCommand(Tct.REPEAT, size=4, sub_commands=[
         TurtleCommand(Tct.MOVE, size=40), TurtleCommand(Tct.LEFT, angle=90)])],
     "arcleft_rounded": [TurtleCommand(Tct.MOVE, size=40), TurtleCommand(Tct.ARCLEFT, radius=8)] * 4,
+    # arcleftto/arcrightto arc round to an ABSOLUTE heading; reachable since pybosl2 0.7.1
+    # added the TurtleCommandType members that route to Turtle2D._arc(absolute_angle=True).
+    "arcrightto": [TurtleCommand(Tct.MOVE, size=20), TurtleCommand(Tct.ARCRIGHTTO, radius=10, angle=-90)],
 }
 
 
@@ -204,9 +212,6 @@ class TestTurtleMatchesBosl2(unittest.TestCase):
         for case in TRUTH["turtle"]:
             with self.subTest(kw=case["kw"]):
                 if case["kw"] not in TURTLE_CASES:
-                    # "arcrightto": Turtle2D._arc() implements the absolute-angle form, but no
-                    # TurtleCommandType routes to it (_command() hard-codes absolute_angle=False),
-                    # so arcleftto/arcrightto are unreachable from pybosl2 0.7's public API.
                     self.skipTest(f"{case['kw']} has no pybosl2 0.7 spelling")
                 got = turtle2d(TURTLE_CASES[case["kw"]]).points().to_list
                 self.assertEqual(len(got), len(case["res"]), "point count must match BOSL2")
@@ -242,13 +247,6 @@ class TestDistributorsMatchBosl2(unittest.TestCase):
             with self.subTest(kw=case["kw"]):
                 if case["kw"] not in calls:
                     self.skipTest(f"{case['kw']} has no pybosl2 equivalent")
-                if case["kw"] == "zrot_list":
-                    # UPSTREAM BUG, pybosl2 0.7.0: rot_copies() guards the rots list with
-                    # `if num_copies is not None`, and num_copies now defaults to 1 instead of
-                    # None -- so an explicit rots list is always ignored and every
-                    # {,x,y,z}rot_copies(rots) returns a single identity-ish copy. 0.6.7
-                    # returned the 3 BOSL2 gives. Drop this skip once that default is None.
-                    self.skipTest("pybosl2 0.7.0 rot_copies() ignores an explicit rots list")
                 got = np.array([np.asarray(m) for m in calls[case["kw"]]()], dtype=float)
                 exp = np.array(case["res"], dtype=float)
                 self.assertEqual(got.shape, exp.shape, "matrix count must match BOSL2")

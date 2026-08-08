@@ -116,7 +116,7 @@ def TesselationFromQuadradicPoints(
         + side(2, 3, side3)
         + side(len(points) - 1, 0, side4)
     )
-    return Path2D(path).merge_collinear()
+    return Path2D(path, closed=True).merge_collinear()
 
 
 def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1, flip: bool = False) -> PyOpenSCAD:

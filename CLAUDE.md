@@ -26,7 +26,10 @@ Historically some box modules used pysolidfive SDF solids for rounded parts; SDF
 ## Commands
 
 ```sh
-# Fast unit tests (numeric mock, no PythonSCAD app needed) — repo root:
+# Inner loop — everything that does NOT drive the app: 158 tests in ~1.4s. Use this on edits.
+python3 tests/run_fast.py
+python3 tests/run_fast.py test_bosl2      # ...only modules matching a substring
+# Everything, including the app-driven modules: 296 tests in ~390s. Use before pushing.
 python3 -m unittest discover -s tests -p "test_*.py"
 # Single test file / case:
 python3 -m unittest discover -s tests -p "test_cap_box_render.py"

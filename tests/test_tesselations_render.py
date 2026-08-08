@@ -80,10 +80,14 @@ SHAPES = [
     ("tesselation_drop", "tesselation_drop(size=[20.0, 20.0], thickness=1).linear_extrude(height=2)"),
     # leaf family: solid, the vein-outline region variants, and the grouped-three layout
     ("tesselation_leaf", "tesselation_leaf(20).linear_extrude(height=2)"),
-    ("tesselation_leaf_outline", "region(tesselation_leaf_outline(20)).linear_extrude(height=2)"),
+    # No region() wrapper: tesselation_leaf_outline() returns 2-D GEOMETRY (a Bosl2Shape2D),
+    # not region data, so region() -- which subscripts its argument as point lists -- raised
+    # "TypeError: 'CsgShape2D' object is not subscriptable". Same call shape as the _three
+    # sibling below.
+    ("tesselation_leaf_outline", "tesselation_leaf_outline(20).linear_extrude(height=2)"),
     (
         "tesselation_leaf_outline_veins",
-        "region(tesselation_leaf_outline(20, with_veins=True)).linear_extrude(height=2)",
+        "tesselation_leaf_outline(20, with_veins=True).linear_extrude(height=2)",
     ),
     ("tesselation_leaf_outline_three", "tesselation_leaf_outline_three(20).linear_extrude(height=2)"),
     # region-boolean tilings

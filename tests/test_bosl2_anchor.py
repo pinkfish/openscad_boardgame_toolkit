@@ -19,10 +19,18 @@
 #    Pure-Python tests for pybosl2.shapes3d's bbox-backed anchoring/attachment system --
 #    Bosl2Solid.bounds()/anchor_point()/reanchor()/position()/attach()/align(), the
 #    _rot_from_to() helper, bbox-backed masking on an object with no tracked size metadata,
-#    and regular_prism(). These run against mock_libfive's _AabbSolid stand-in (which tracks a
-#    bounding box through translate/rotate/boolean just like PythonSCAD's native obj.size/
-#    obj.position), so the anchoring math is exercised numerically without the real app. The
-#    real-render equivalents live in the box-module render tests.
+#    and regular_prism(). These run against whatever geometry backend is importable -- the
+#    pythonscad wheel is enough, no app window needed -- so every expectation here must be the
+#    REAL bounding box, not the bounding cylinder a stand-in would report. (They used to run
+#    against mock_libfive's _AabbSolid; that moved inside the installed pysolidfive package and
+#    is no longer importable from here, which left the mock-only expectations below failing
+#    silently against real geometry.) The real-render equivalents live in the box-module
+#    render tests.
+#
+#    NOTE on attachments: position()/attach()/align() record the child in .attachments and
+#    defer the union to realize() -- pybosl2's own tests measure them the same way -- so
+#    bounds() on the returned solid still reports only the parent. Measure .realize().bounds()
+#    when you want the combined box.
 #
 # FileGroup: BOSL2
 
@@ -69,9 +77,14 @@ class TestBounds(unittest.TestCase):
         self.assertTrue(approx(size, [50, 10, 10]), size)
 
     def test_bounds_falls_back_to_tracked_metadata(self):
-        # An _AabbSolid with no box (mn=None) has no native bounds; the tracked cuboid
-        # size/anchor metadata is used instead.
-        blank: Any = mock_libfive._AabbSolid()
+        # A handle whose native accessors read None (what PythonSCAD returns for empty or
+        # degenerate geometry) has no native bounds; the tracked cuboid size/anchor metadata
+        # is used instead.
+        class _NoBox:
+            position = None
+            size = None
+
+        blank: Any = _NoBox()
         solid = Bosl2Solid(blank, size=[8, 6, 4], anchor=CENTER)
         center, size = solid.bounds()
         self.assertTrue(approx(center, [0, 0, 0]), center)
@@ -112,7 +125,7 @@ class TestPosition(unittest.TestCase):
         # a 6-cube (centered) placed at the parent's TOP -> its center lands at z=10,
         # so the combined top rises to 10+3=13
         combined = box.position(TOP, b3.cuboid([6, 6, 6]))
-        center, size = combined.bounds()
+        center, size = combined.realize().bounds()
         self.assertTrue(approx(size, [40, 30, 23]), size)  # z from -10 to 13
         self.assertAlmostEqual(center[2], 1.5, places=6)
 
@@ -123,13 +136,13 @@ class TestAttach(unittest.TestCase):
         # cylinder h=12 attached to TOP, default child_anchor=BOTTOM, no overlap:
         # cyl spans z=[10,22]; combined z=[-10,22]
         combined = box.attach(TOP, b3.cylinder(height=12, radius=4))
-        center, size = combined.bounds()
+        center, size = combined.realize().bounds()
         self.assertAlmostEqual(size[2], 32.0, places=6)
 
     def test_attach_overlap_sinks_child_in(self):
         box = b3.cuboid([40, 30, 20])
         combined = box.attach(TOP, b3.cylinder(height=12, radius=4), overlap=2)
-        _, size = combined.bounds()
+        _, size = combined.realize().bounds()
         self.assertAlmostEqual(size[2], 30.0, places=6)  # cyl now z=[8,20]
 
 
@@ -137,13 +150,13 @@ class TestAlign(unittest.TestCase):
     def test_align_outside_default(self):
         box = b3.cuboid([40, 30, 20])
         combined = box.align(TOP, b3.cuboid([6, 6, 6]))
-        _, size = combined.bounds()
+        _, size = combined.realize().bounds()
         self.assertAlmostEqual(size[2], 26.0, places=6)  # child sits on top, z=[10,16]
 
     def test_align_inside(self):
         box = b3.cuboid([40, 30, 20])
         combined = box.align(TOP, b3.cuboid([6, 6, 6]), inside=True)
-        _, size = combined.bounds()
+        _, size = combined.realize().bounds()
         self.assertAlmostEqual(size[2], 20.0, places=6)  # child tucked inside, bbox unchanged
 
 
@@ -167,11 +180,11 @@ class TestBboxBackedMasking(unittest.TestCase):
     def test_edge_mask_works_without_tracked_size(self):
         # Wrap a raw native cube with NO tracked size metadata -- masking must still find the
         # box via the native bbox and not raise.
-        raw: Any = mock_libfive._mock_cube([30, 30, 30], center=True)
+        raw: Any = b3.cuboid([30, 30, 30]).shape  # the bare native handle, no wrapper metadata
         solid = Bosl2Solid(raw)  # size=None
         self.assertIsNone(solid.size)
-        result = solid.edge_mask([TOP], children=bm.rounding_edge_mask(r=4, l=30))
-        # geometry-tracking under the mock keeps the box the same nominal size
+        result = solid.edge_mask([TOP], children=bm.rounding_edge_mask(radius=4, length=30))
+        # rounding an edge takes material away, so the box keeps its nominal extents
         _, size = result.bounds()
         self.assertTrue(approx(size, [30, 30, 30]), size)
 
@@ -185,9 +198,12 @@ class TestRegularPrism(unittest.TestCase):
         self.assertAlmostEqual(size[2], 20.0, places=6)
 
     def test_inradius_converts_to_circumradius(self):
-        prism = b3.regular_prism(5, height=10, inner_radius=12)
-        _, size = prism.bounds()
-        self.assertAlmostEqual(size[0], 2 * 12 / math.cos(math.pi / 5), places=5)
+        # A real pentagon's bbox is NOT 2*circumradius wide (only the even-n cases with a
+        # vertex on each side are), so assert the conversion itself: inner_radius=r has to
+        # build exactly the prism radius=r/cos(pi/n) builds.
+        by_inradius = b3.regular_prism(5, height=10, inner_radius=12)
+        by_radius = b3.regular_prism(5, height=10, radius=12 / math.cos(math.pi / 5))
+        self.assertTrue(approx(by_inradius.bounds()[1], by_radius.bounds()[1]), by_inradius.bounds()[1])
 
     def test_side_converts_to_circumradius(self):
         prism = b3.regular_prism(4, height=10, side=10)

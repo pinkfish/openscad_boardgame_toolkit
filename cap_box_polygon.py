@@ -251,7 +251,7 @@ def _make_path_box_with_cap_lid(
         finger_hold_height if finger_hold_height is not None else cap_box_default_finger_hold_height(height)
     )
     calc_finger_hole_rounding = cap_box_default_lid_finger_hold_rounding(calc_cap_height)
-    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness))
+    calc_path = np.asarray(Path2D(path, closed=True).round_corners(radius=wall_thickness))
     # Plain lists for the native polygon() calls below: raw ndarrays across the native
     # boundary raise (and poison the interpreter) -- see the numpy interop convention.
     calc_path_native = calc_path.tolist()
@@ -415,7 +415,7 @@ def _cap_path_lid_parts(
 
     calc_lid_wall_thickness = lid_wall_thickness if lid_wall_thickness is not None else wall_thickness / 2
     calc_cap_height = cap_height if cap_height is not None else cap_box_default_cap_height(height)
-    calc_path = np.asarray(Path2D(path).round_corners(radius=wall_thickness, fn=16))
+    calc_path = np.asarray(Path2D(path, closed=True).round_corners(radius=wall_thickness, fn=16))
     calc_path_native = calc_path.tolist()  # plain lists for the native polygon() calls
     calc_finger_hole_rounding = cap_box_default_lid_finger_hold_rounding(calc_cap_height)
 

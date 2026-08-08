@@ -91,7 +91,7 @@ def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0
             [1, 0],
         ],
     )
-    merged = Path2D(path).merge_collinear()
+    merged = Path2D(path, closed=True).merge_collinear()
     # polygon() is the NATIVE builtin: it rejects a pybosl2 Path2D / numpy points ("Error
     # during parsing polygon(points,paths)"), so hand it plain float pairs.
     pts = [[float(x), float(y)] for x, y in (merged.to_list if hasattr(merged, "to_list") else merged)]

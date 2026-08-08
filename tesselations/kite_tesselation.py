@@ -52,7 +52,7 @@ def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[
     part3 = list(reversed(Path2D(line_long).rot(30).move([-(size - b1) / 2, a / 2]).to_list))
     part4 = Path2D(line_long).rot(-30).move([-(size - b1) / 2, -a / 2]).to_list
 
-    merged = Path2D(part1 + part2 + part3 + part4).merge_collinear()
+    merged = Path2D(part1 + part2 + part3 + part4, closed=True).merge_collinear()
     return merged.move([size / 2 - b1, 0])
 
 

@@ -41,7 +41,11 @@
 import os
 
 try:
-    import pythonscad  # noqa: F401  -- only importable inside the PythonSCAD app
+    # libfive, not pythonscad: the app registers libfive as a built-in extension and nothing
+    # else ships it, whereas there is now a pip-installable `pythonscad` shim, so importing
+    # THAT succeeds in a plain interpreter too -- which sent the driver down the in-app branch
+    # outside the app and died on the first SDF call instead of printing the table.
+    import libfive  # noqa: F401  -- only importable inside the PythonSCAD app
     _IN_APP = True
 except ImportError:
     _IN_APP = False
