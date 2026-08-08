@@ -113,18 +113,22 @@ class InsetBox(LiddedBox):
             edges=[LEFT + FRONT, RIGHT + FRONT, LEFT + BACK, RIGHT + BACK, BOT],
         ).color(self.material_colour)
         body = body - self._lid_recess()
-        # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no minkowski(), so this stays on the native
-        # builtin and both operands must be native handles (.shape). FIX IN BOSL2: add a
-        # minkowski op so this can be pure pybosl2.
-        tab_cutter = minkowski(
-            pybosl2.shapes3d.cuboid([0.45 * 2, 0.45 * 2, 0.45 * 2]).color(self.material_colour).shape,
-            make_lid_tab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
-                       prism_width=o.prism_width, wall_thickness=wt).shape,
-        ).color(self.material_colour)
+        # pybosl2 0.7.4 added Bosl2Solid.minkowski, so this no longer drops to the native
+        # builtin: staying on the wrapper keeps the result a Bosl2Solid, which is what lets
+        # .color() take a Color (the native color() rejects one -- "Unknown color
+        # representation").
+        tab_cutter = (
+            pybosl2.shapes3d.cuboid([0.45 * 2, 0.45 * 2, 0.45 * 2])
+            .minkowski(
+                make_lid_tab(length=o.tab_length, height=o.tab_height, lid_thickness=lt,
+                             prism_width=o.prism_width, wall_thickness=wt)
+            )
+            .color(self.material_colour)
+        )
         tabs_cut = make_tabs(
             size=[w, l], lid_thickness=lt, tab_length=o.tab_length,
             make_tab_length=o.make_tab_length, make_tab_width=o.make_tab_width, children=tab_cutter,
-        ).color(self.material_colour).translate([0, 0, h - lt])
+        ).color(native_colour(self.material_colour)).translate([0, 0, h - lt])
         return body - tabs_cut
 
     def _build_body_rabbit(self):
@@ -152,7 +156,7 @@ class InsetBox(LiddedBox):
         tabs_cut = make_tabs(
             size=[w, l], lid_thickness=lt, tab_length=o.rabbit_length + o.rabbit_offset,
             make_tab_length=o.make_tab_length, make_tab_width=o.make_tab_width, children=socket,
-        ).color(self.material_colour).translate([0, 0, h - lt])
+        ).color(native_colour(self.material_colour)).translate([0, 0, h - lt])
         return body - tabs_cut
 
     # ------------------------------------------------------------------
@@ -188,7 +192,7 @@ class InsetBox(LiddedBox):
         tabs = make_tabs(
             size=[w, l], lid_thickness=lt, make_tab_width=o.make_tab_width,
             make_tab_length=o.make_tab_length, children=tab,
-        ).color(self.material_colour)
+        ).color(native_colour(self.material_colour))
 
         return LidPlate(plate=top, size=[iw, il], thickness=lt, origin=[off, off], shell=tabs)
 

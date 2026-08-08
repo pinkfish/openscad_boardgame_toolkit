@@ -92,7 +92,7 @@ def _make_path_box_with_slipover_lid(
     wall_height: float | None = None,
     floor_thickness: float | None = None,
     lid_thickness: float | None = None,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     positive_only_children: list[int] | None = None,
     positive_negative_children: list[int] | None = None,
     lid_catch: CatchType | None = None,
@@ -211,7 +211,7 @@ def _slipover_path_lid_parts(
     foot: float = 0,
     finger_catch: CatchType | None = None,
     lid_rounding: float | None = None,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     offset_sweep_options: types.SimpleNamespace | None = None,
     lid_catch: CatchType | None = None,
 ) -> PyOpenSCAD:
@@ -271,7 +271,7 @@ def _slipover_path_lid_parts(
     # these rim sizes the silhouettes differ by well under half a millimetre.
     # (offset_sweep_options is therefore unused now; kept in the signature so existing
     # call sites don't break.)
-    top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2).color(material_colour)
+    top = PolygonPrism(calc_path, h=lid_thickness, rounding_top=lid_thickness / 2).color(native_colour(material_colour))
 
     finger_height = min(20, (height - foot_offset - lid_thickness) / 2)
 

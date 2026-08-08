@@ -33,6 +33,7 @@ from enum import IntEnum
 from typing import Any, Callable, ClassVar, Sequence, Union
 
 import pybosl2.shapes3d
+from pybosl2 import Color
 import pybosl2.transforms
 from pybosl2.shapes2d import Bosl2Shape2D
 from pybosl2.shapes3d import Bosl2Solid
@@ -388,7 +389,7 @@ class BoxSpec:
     wall_thickness: float = field(default_factory=lambda: default_wall_thickness)
     floor_thickness: float = field(default_factory=lambda: default_floor_thickness)
     lid_thickness: float = field(default_factory=lambda: default_lid_thickness)
-    material_colour: str = field(default_factory=lambda: default_material_colour)
+    material_colour: Color = field(default_factory=lambda: default_material_colour)
 
     # ---- Positioning (applied to the finished box by _apply_positioning) ------
     spin: float = 0
@@ -554,7 +555,7 @@ class BoxBaseType(ABC):
         return self._spec.lid_thickness
 
     @property
-    def material_colour(self) -> str:
+    def material_colour(self) -> Color:
         return self._spec.material_colour
 
     @property

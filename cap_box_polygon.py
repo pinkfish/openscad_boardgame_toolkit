@@ -190,7 +190,7 @@ def _make_path_box_with_cap_lid(
     lid_wall_thickness: float | None = None,
     finger_hold_height: float = 5,
     floor_thickness: float | None = None,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     positive_only_children: list[int] | None = None,
     positive_negative_children: list[int] | None = None,
     lid_catch: CatchType | None = None,
@@ -369,7 +369,7 @@ def _cap_path_lid_parts(
     lid_wall_thickness: float | None = None,
     lid_rounding: float | None = None,
     lid_inner_rounding: float | None = None,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     offset_sweep_options: types.SimpleNamespace | None = None,
     lid_catch: CatchType | None = None,
 ) -> tuple:

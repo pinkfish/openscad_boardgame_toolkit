@@ -52,25 +52,28 @@ _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
 # The numpy path maths (DifferenceWithOffset's pts= form); pybosl2/ never imports back here.
-from pybosl2 import Path2D, Path3D, Region
+from pybosl2 import Color, Path2D, Path3D, Region
 from pybosl2 import shapes2d
 from pybosl2.version import version as _pybosl2_version
 
-# The toolkit needs pybosl2 >= 0.7.2 for its path fixes: Path2D/Path3D default to closed=False
-# (so every outline meant as a polygon says closed=True), Path.tangents returns one tangent per
-# POINT rather than per segment, and smooth_path/round_corners match real BOSL2.
+# The toolkit needs pybosl2 >= 0.7.4 for: the path fixes (Path2D/Path3D default to
+# closed=False, so every outline meant as a polygon says closed=True; Path.tangents returns one
+# tangent per POINT rather than per segment; smooth_path/round_corners match real BOSL2), the
+# corner-selector fix (a single corner no longer over-selects four), and the Color class the
+# colours below are built from.
 #
 # Checked here, at import, rather than left to the pyproject dependency pin, because that pin
 # does not apply on the path that matters: inside the PythonSCAD app the toolkit imports
 # whichever pybosl2 happens to be on sys.path, with no dependency resolution at all. And the
 # 0.7.1 failure mode is SILENT -- box and tile outlines quietly lose their closing edge and
 # lids round the wrong corners -- so without this the first symptom is a misprinted part.
-_REQUIRED_PYBOSL2 = "0.7.2"
+_REQUIRED_PYBOSL2 = "0.7.4"
 if _pybosl2_version < _REQUIRED_PYBOSL2:
     raise ImportError(
         f"openscad_boardgame_toolkit needs pybosl2 >= {_REQUIRED_PYBOSL2}, "
         f"found {_pybosl2_version}. Older versions default paths to closed=True and return "
-        f"one tangent per segment, which silently changes box outlines and lid rounding."
+        f"one tangent per segment, which silently changes box outlines and lid rounding, "
+        f"and have no Color class."
     )
 
 
@@ -161,10 +164,14 @@ default_voronoi_seed = 10000  # Seed for reproducible Voronoi
 # Colours
 # ---------------------------------------------------------------------------
 
-default_material_colour = "yellow"
-default_label_colour = "black"
-default_label_background_colour = "lime"
-default_positive_colour = "black"
+# pybosl2 0.7.4 added the Color class and typed Colorable.color() as `Color | None`, so a bare
+# colour NAME is no longer the declared input even though the backend still accepts one. These
+# are the toolkit's colours, normalised once here, so every `.color(...)` downstream is already
+# passing the right type instead of 100-odd call sites each converting a string.
+default_material_colour = Color("yellow")
+default_label_colour = Color("black")
+default_label_background_colour = Color("lime")
+default_positive_colour = Color("black")
 
 # ---------------------------------------------------------------------------
 # BOSL2-style anchor / direction vectors
@@ -370,7 +377,7 @@ class InnerObject:
     # duck-typed: a solid, a pysolidfive shape, or (in tests) any stand-in object
     value: Any
     type: ObjectType = ObjectType.NEGATIVE
-    color: str | None = None
+    color: Color | None = None
     # When True (default) a NEGATIVE piece is clipped to the box interior so it can't
     # punch through the walls/floor. Set False for a deliberate breaching cut -- e.g. a
     # card finger hole that goes through the floor and up through the cards.
@@ -380,6 +387,27 @@ class InnerObject:
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
+
+
+def native_colour(colour):
+    """Coerce a colour to the form the NATIVE ``color()`` builtin accepts.
+
+    The toolkit's colours are :class:`~pybosl2.Color` objects (see the constants above), which
+    pybosl2's own ``.color()`` understands. The native builtin does not -- handing it a Color
+    raises ``TypeError: Unknown color representation`` -- so anywhere the receiver is a raw
+    native handle rather than a pybosl2 wrapper, the colour goes through here first.
+
+    Prefer keeping the chain on a pybosl2 wrapper instead; this is only for the few places that
+    genuinely have no pybosl2 equivalent (``text()`` + ``resize()``).
+
+    Args:
+        colour: a ``Color``, or anything the native builtin already accepts
+
+    Returns:
+        The native colour form: an ``[R, G, B]``/``[R, G, B, A]`` list for a Color, else
+        *colour* unchanged.
+    """
+    return colour._to_native() if isinstance(colour, Color) else colour
 
 
 def native_points(path) -> list[list[float]]:

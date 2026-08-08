@@ -47,7 +47,9 @@ from base_bgtk import (
     default_lid_thickness,
     default_material_colour,
     m_piece_wiggle_room,
+    native_colour,
 )
+from pybosl2 import Color
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from labels import LabelOptions, MakeFramedLidLabel, MakeFramelessLidLabel
@@ -92,7 +94,7 @@ def lid_pattern_mesh(
     area: "PatternArea",
     lid_thickness: float,
     boundary: float = 10,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
 ) -> "PyOpenSCAD | None":
     """The lid's pattern layer: *pattern* filling *area*, extruded and trimmed to the lid.
 
@@ -269,7 +271,12 @@ class ShapePattern(Decoration):
             and built.motif is not None
             and not callable(built.motif)
         ):
-            return TiledPattern(motif=built.motif.color(lid.material_colour), lattice=built.lattice)
+            # native_colour(): a motif may be EITHER a pybosl2 wrapper or a raw native handle
+            # (shapes.py returns natives), and native color() rejects a Color. The native form
+            # is accepted by both, so it is the safe choice at a polymorphic site like this.
+            return TiledPattern(
+                motif=built.motif.color(native_colour(lid.material_colour)), lattice=built.lattice
+            )
         return built
 
 
@@ -342,7 +349,7 @@ class Lid:
     boundary: float = 10
     layout_width: float = default_lid_layout_width
     aspect_ratio: float = default_lid_aspect_ratio
-    material_colour: str = default_material_colour
+    material_colour: Color = default_material_colour
     label: "Label | None" = None
     lid_rounding: float | None = None
     extra_children: tuple = ()
@@ -355,7 +362,7 @@ class Lid:
         boundary: float = 10,
         layout_width: float | None = None,
         aspect_ratio: float | None = None,
-        material_colour: str | None = None,
+        material_colour: Color | None = None,
         label: "Label | None" = None,
         lid_rounding: float | None = None,
         extra_children: "Sequence | None" = None,
@@ -551,7 +558,7 @@ def sliding_lid_fingernail(
     finger_gap: float = 1.5,
     sphere: float = 12,
     finger_length: float = 10,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
 ) -> PyOpenSCAD:
     """Creates a finger-nail recess for lifting a sliding lid.
 

@@ -150,7 +150,7 @@ def _make_card_library_box(
     wall_thickness: float | None = None,
     lip_size: float | None = None,
     lid_thickness: float | None = None,
-    material_colour: str = "magenta",
+    material_colour: Color = Color("magenta"),
     latch: str = CARD_LIBRARY_LATCH_SLIDING,
     hinge_hole_diameter: float | None = None,
     print_in_place_offset: float | None = None,
@@ -467,7 +467,7 @@ def _card_library_lid_parts(
     lip_size: float | None = None,
     lid_boundary: float = 10,
     latch: str = CARD_LIBRARY_LATCH_SLIDING,
-    material_colour: str = "magenta",
+    material_colour: Color = Color("magenta"),
     hinge_hole_diameter: float | None = None,
     print_in_place_offset: float | None = None,
     size_spacing: float | None = None,
@@ -654,7 +654,7 @@ def _card_library_lid_parts(
                 [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
                 wall_thickness=wall_thickness,
             )
-            .color(material_colour)
+            .color(native_colour(material_colour))
             .translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
         )
         add(
@@ -671,7 +671,7 @@ def _card_library_lid_parts(
                 lid_thickness=lid_thickness,
                 wall_thickness=wall_thickness,
             )
-            .color(material_colour)
+            .color(native_colour(material_colour))
             .translate([width * 3 / 4, wall_thickness, 0])
         )
         add(
@@ -679,7 +679,7 @@ def _card_library_lid_parts(
                 [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
                 wall_thickness=wall_thickness,
             )
-            .color(material_colour)
+            .color(native_colour(material_colour))
             .translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
         )
         add(
@@ -698,7 +698,7 @@ def _card_library_lid_parts(
                 wall_thickness=wall_thickness,
             )
             .rotate([0, 0, 180])
-            .color(material_colour)
+            .color(native_colour(material_colour))
             .translate([width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0])
         )
 
@@ -711,9 +711,9 @@ def CardSleeveForLibrary(
     children: "PyOpenSCAD | list[PyOpenSCAD | Callable[..., PyOpenSCAD]] | Callable[..., PyOpenSCAD] | None" = None,
     wall_thickness: float | None = None,
     lip_size: float | None = None,
-    material_colour: str = "magenta",
+    material_colour: Color = Color("magenta"),
     font: str | None = None,
-    label_colour: str | None = None,
+    label_colour: Color | None = None,
     label: str = "",
     add_positive: bool = False,
     emboss_text: float = 0.2,
@@ -841,11 +841,13 @@ def CardSleeveForLibrary(
         # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no resize() on Bosl2Shape2D/Bosl2Solid, and the
         # label is scaled to fit by resize(), so text()+resize() stays on the native builtins.
         # FIX IN BOSL2: add a resize op (and shapes2d.text stays usable) so this can be pybosl2.
+        # native_colour(): the receiver here is a NATIVE handle, and native color() rejects a
+        # Color object.
         text_piece = (
             text(label, font=calc_font, valign="center", halign="center")
             .resize([text_new_length, text_new_width, 0])
             .linear_extrude(0.3 + emboss_text)
-            .color(label_colour)
+            .color(native_colour(label_colour))
             .rotate([180, 90, 0])
             .translate([0.3 if emboss_text else 0.5, length / 2, text_length / 2 + text_length_offset])
         )
@@ -963,7 +965,7 @@ class CardLibrarySpec:
     wall_thickness: float | None = None
     lid_thickness: float | None = None
     floor_thickness: float | None = None
-    material_colour: str = "magenta"
+    material_colour: Color = Color("magenta")
     latch: str = CARD_LIBRARY_LATCH_SLIDING
 
 

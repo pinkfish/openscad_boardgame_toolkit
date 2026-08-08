@@ -8,18 +8,18 @@ version = "0.1.0"
 description = "Board game insert toolkit for OpenSCAD / PythonSCAD"
 requires-python = ">=3.10"
 dependencies = [
-    # 0.7.2 or newer: the toolkit depends on its path fixes. Path2D/Path3D default to
+    # 0.7.4 or newer: the toolkit depends on its path fixes and its Color class. Path2D/Path3D default to
     # closed=False there (so every outline meant as a polygon passes closed=True explicitly),
     # Path.tangents returns one tangent per point, and smooth_path/round_corners match BOSL2.
     # On 0.7.1 the box outlines silently lose their closing edge and the lids round wrong.
-    "pybosl2>=0.7.2",
+    "pybosl2>=0.7.4",
     "numpy",
 ]
 authors = [{ name = "pinkfish" }]
 
 [project.optional-dependencies]
 scripts = [
-    "pybosl2>=0.7.2",
+    "pybosl2>=0.7.4",
     "pymeshlab",
     "lark",
     "hyperpack",

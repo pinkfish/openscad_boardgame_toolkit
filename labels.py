@@ -65,8 +65,8 @@ class LabelOptions:
     text_scale: float = 1.0
     text_length: float | None = None
     angle: float | None = 0
-    label_colour: str = default_label_colour
-    label_background_colour: str = default_label_background_colour
+    label_colour: Color = default_label_colour
+    label_background_colour: Color = default_label_background_colour
     short_length: bool = False
     label_diff: list[float] = field(default_factory=lambda: [0, 0])
     border: float = 2
@@ -75,7 +75,7 @@ class LabelOptions:
     font: str = default_label_font
     full_height: bool = False
     finger_hole_size: float | None = 10
-    material_colour: str = default_material_colour
+    material_colour: Color = default_material_colour
     label_type: LabelType = default_label_type
     solid_background: bool = default_label_solid_background
 
@@ -86,7 +86,7 @@ def MakeLabelOptions(**kwargs) -> LabelOptions:
 
     Usage::
 
-        MakeLabelOptions(material_colour="yellow")
+        MakeLabelOptions(material_colour=Color("yellow"))
         MakeLabelOptions(font="Stencil Std:style=Bold", label_type=LabelType.FRAMELESS)
 
     Args:
@@ -246,7 +246,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
 
     result = (
         TextShape(text_height=default_slicing_layer_height + 0.01, calc_font=calc_font)
-        .color(calc_label_colour)
+        .color(native_colour(calc_label_colour))
         .translate([0, 0, h_half])
     )
 
@@ -298,7 +298,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     )
     text_cut = (
         TextShape(text_height=default_slicing_layer_height + 21, calc_font=calc_font)
-        .color(calc_background_colour)
+        .color(native_colour(calc_background_colour))
         .translate([0, 0, -1])
     )
     result = result | (inner_box - text_cut).translate([0, 0, h_half]).shape
@@ -363,7 +363,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             shape = text_shape.translate([options.offset, options.offset, 0]).offset(radius=edge_offset)
         return shape.linear_extrude(text_thickness)
 
-    def StripedBackground(calc_background_color: str) -> PyOpenSCAD:
+    def StripedBackground(calc_background_color: Color) -> PyOpenSCAD:
         w = width - options.border * 2
         l = length - options.border * 2
         rounding = options.radius if options.radius * 2 <= min(w, l) else min(w, l) / 2
@@ -430,7 +430,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
         calc_font=calc_font,
         text_thickness=default_slicing_layer_height if full_h else default_slicing_layer_height * 2,
         edge_offset=0.01,
-    ).color(options.label_colour).translate([0, 0, label_z])
+    ).color(native_colour(options.label_colour)).translate([0, 0, label_z])
 
     result = result | TextShape(
         calc_font=calc_font,
@@ -443,7 +443,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     striped = StripedBackground(calc_background_color=calc_background_color)
     cut2 = (
         TextShape(calc_font=calc_font, text_thickness=lid_thickness * 4, edge_offset=0.01)
-        .color(options.material_colour)
+        .color(native_colour(options.material_colour))
         .translate([0, 0, (-lid_thickness / 2) if full_h else (lid_thickness / 2 - default_slicing_layer_height * 2)])
     )
     result = result | (striped - cut2)

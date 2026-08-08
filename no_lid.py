@@ -201,7 +201,7 @@ class PathBoxWithNoLid:
         hollow_radius: types.SimpleNamespace | None = None,
         make_finger_x: bool | None = None,
         make_finger_y: bool | None = None,
-        material_colour: str = "grey",
+        material_colour: Color = Color("grey"),
         finger_hole_size: float | None = None,
         offset_sweep_options: types.SimpleNamespace | None = None,
         hollow: bool = False,

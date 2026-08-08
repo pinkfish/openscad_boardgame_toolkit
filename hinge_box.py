@@ -213,7 +213,7 @@ def _make_box_and_lid_with_inset_hinge(
     tab_offset: float = 0.2,
     tab_length: float = 10,
     tab_height: float = 6,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     print_in_place_offset: float | None = None,
 ) -> PyOpenSCAD:
     """Makes a box with an inset hinge on the side.
@@ -288,7 +288,7 @@ def _make_box_and_lid_with_inset_hinge(
             prism_width=prism_width,
             wall_thickness=wall_thickness,
         )
-        .color(material_colour)
+        .color(native_colour(material_colour))
         .mirror([0, 0, 1])
         .rotate([0, 0, 270])
         .translate([0, length / 2 + tab_length / 2, height / 2 - lid_thickness])
@@ -368,17 +368,18 @@ def _make_box_and_lid_with_inset_hinge(
     lid_body = lid_body | (lid_rim_outer - lid_rim_inner).color(material_colour)
 
     catch_cutter = (
-        # NATIVE-BOUNDARY (bosl2 gap): pybosl2 has no minkowski(); keep native + native handles
-        # (.shape). FIX IN BOSL2: add a minkowski op so this can be pure pybosl2.
-        minkowski(
-            pybosl2.shapes3d.cuboid([tab_offset * 2, tab_offset * 2, tab_offset * 2]).color(material_colour).shape,
+        # pybosl2 0.7.4 added Bosl2Solid.minkowski, so this no longer drops to the native
+        # builtin. Staying on the wrapper is what keeps the whole chain a Bosl2Solid -- the
+        # native color() further down rejects a Color ("Unknown color representation").
+        pybosl2.shapes3d.cuboid([tab_offset * 2, tab_offset * 2, tab_offset * 2])
+        .minkowski(
             make_lid_tab(
                 length=tab_length,
                 height=tab_height,
                 lid_thickness=lid_thickness,
                 prism_width=prism_width,
                 wall_thickness=wall_thickness,
-            ).shape,
+            )
         )
         .mirror([0, 1, 0])
         .rotate([0, 0, 270])
@@ -434,7 +435,7 @@ def _make_box_and_lid_with_inset_hinge(
 
     hinge = (
         _inset_hinge(length=hinge_length, width=hinge_width, offset=hinge_offset, diameter=hinge_diameter)
-        .color(material_colour)
+        .color(native_colour(material_colour))
         .rotate([0, 0, 90])
         .translate([width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 - hinge_offset])
     )

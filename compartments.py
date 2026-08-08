@@ -41,6 +41,7 @@ from functools import reduce
 from typing import Callable
 
 import pybosl2.shapes3d
+from pybosl2 import Color
 from base_bgtk import BACK, BOTTOM, FRONT, LEFT, RIGHT, InnerObject, InnerSize, ObjectType
 from components import FingerHoleWall, EngravedLabel, EngravedShape, default_label_layer_depth
 
@@ -141,7 +142,7 @@ class Compartment:
     radius: float = 2.0
     solid: object = None               # for Shape.CUSTOM: the well solid or callable(depth)
     # --- label engraving (Irish-Gauge style): 0.2mm second-colour text/image on the floor ---
-    label_colour: str | None = None    # MMU fill colour for the label (None -> positive_colour)
+    label_colour: Color | None = None    # MMU fill colour for the label (None -> positive_colour)
     label_size: float | None = None    # font size; None -> auto-fit to the well
     label_depth: float = default_label_layer_depth   # cut depth (default 0.2mm = one layer)
     label_font: str | None = None      # None -> default_label_font

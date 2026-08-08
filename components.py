@@ -699,7 +699,7 @@ def FingerHoleWall(
     rounding_radius: float = 3,
     orient: list[float] | None = None,
     spin: float = 0,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     rounding_edge: float = 0,
     round_front: bool = True,
     round_back: bool = True,
@@ -826,7 +826,7 @@ def CornerCatch(
     rounding_radius: float = 3,
     orient: list[float] | None = None,
     spin: float = 0,
-    material_colour: str | None = None,
+    material_colour: Color | None = None,
     rounding_edge: float = 0,
     round_front: bool = True,
     round_back: bool = True,
@@ -1127,7 +1127,7 @@ def EngravedLabel(
     size: float = 10,
     font: str | None = None,
     spin: float = 0,
-    colour: str | None = None,
+    colour: Color | None = None,
     clip: bool = False,
 ) -> InnerObject:
     """A second-colour text engraving whose TOP face sits at ``position`` and which cuts
@@ -1145,7 +1145,7 @@ def EngravedLabel(
     Usage::
 
         # centred on a well floor at interior-local (x, y, z0):
-        EngravedLabel("£5", [x, y, z0], size=14, colour="gold")
+        EngravedLabel("£5", [x, y, z0], size=14, colour=Color("gold"))
     """
     x, y, z = position
     solid = text3d(text, height=depth, size=size, font=font, spin=spin).translate([x, y, z - depth])
@@ -1160,7 +1160,7 @@ def RaisedLabel(
     size: float = 10,
     font: str | None = None,
     spin: float = 0,
-    colour: str | None = None,
+    colour: Color | None = None,
 ) -> InnerObject:
     """A second-colour text label that sits ON a surface at ``position`` and rises
     ``height`` (default 0.2mm) -- like Irish-Gauge's money-tray numbers.
@@ -1191,7 +1191,7 @@ def EngravedShape(
     *,
     depth: float = default_label_layer_depth,
     spin: float = 0,
-    colour: str | None = None,
+    colour: Color | None = None,
     clip: bool = False,
 ) -> InnerObject:
     """Like :func:`EngravedLabel` but engraves a SHAPE image instead of text -- a 0.2mm
@@ -1202,7 +1202,7 @@ def EngravedShape(
     Usage::
 
         from shapes import saw_blade2d
-        EngravedShape(saw_blade2d(16), [x, y, z0], colour="steelblue")
+        EngravedShape(saw_blade2d(16), [x, y, z0], colour=Color("steelblue"))
     """
     x, y, z = position
     solid = extrude_image(shape, depth)
@@ -1217,7 +1217,7 @@ def RaisedShape(
     *,
     height: float = default_label_layer_depth,
     spin: float = 0,
-    colour: str | None = None,
+    colour: Color | None = None,
 ) -> InnerObject:
     """Like :func:`RaisedLabel` but raises a SHAPE image (see :func:`EngravedShape`) sitting
     ON a surface at ``position``. Returns a ``POSITIVE`` InnerObject."""
