@@ -71,7 +71,7 @@ LIDDED = {
 
 # The lid decoration is a label plus the default tiled pattern: the combination that
 # exercises every overlay slot (mesh, label) through build_lid.
-_DECORATED = ", lid_label='T'"
+_DECORATED = ", lid='T'"
 
 
 @unittest.skipUnless(render_available(), "PythonSCAD app / patched BOSL2 not available")
@@ -454,9 +454,9 @@ class TypeOptionsTests(unittest.TestCase):
         reports = self._run(
             "from box_base import BoxKit\n"
             "from no_lid import NoLidBox\n"
-            "check('kit_with_lid_label', lambda: BoxKit(NoLidBox, lid_label='x'))\n"
+            "check('kit_with_lid', lambda: BoxKit(NoLidBox, lid='x'))\n"
         )
-        self.assertEqual(reports["kit_with_lid_label"], "TypeError")
+        self.assertEqual(reports["kit_with_lid"], "TypeError")
 
 
 if __name__ == "__main__":

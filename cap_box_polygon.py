@@ -491,20 +491,20 @@ class CapPathBox(LiddedBox):
     The polygon and cap parameters go in ``BoxSpec.type_options`` as a
     :class:`CapPathBoxOptions`; ``BoxSpec.size`` is ``[width, length, height]`` but the
     x/y extent is re-derived from the outline. The lid gets an automatic label + shape
-    pattern when ``BoxSpec.lid_label`` is set.
+    pattern when ``BoxSpec.lid`` is set.
 
     Usage::
 
         from box_base import BoxSpec
         from cap_box_polygon import CapPathBox, CapPathBoxOptions
 
-        box = CapPathBox(BoxSpec(size=[80, 80, 25], label="hexcap", lid_label="Ore",
+        box = CapPathBox(BoxSpec(size=[80, 80, 25], label="hexcap", lid="Ore",
                                  type_options=CapPathBoxOptions(path=[[0,0],[80,0],[40,80]])))
         box.make_box().show()
         box.make_lid().show()
 
         # regular hexagon
-        CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label="hex", lid_label="Gold"),
+        CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label="hex", lid="Gold"),
                                    sides=6).make_box().show()
     """
 

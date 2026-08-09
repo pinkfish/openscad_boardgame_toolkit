@@ -160,7 +160,7 @@ def company_box(num=0):
         label=f"CompanyBox{num}",
         material_colour=c.color,
         contents=_company_contents(c),
-        lid_label=c.lid,
+        lid=c.lid,
     )
 
 
@@ -193,7 +193,7 @@ def money_box():
             label="MoneyBox",
             wall_thickness=wall_thickness,
             lid_thickness=lid_thickness,
-            lid_label="Bank",
+            lid="Bank",
             contents=_money_contents,
         )
     )

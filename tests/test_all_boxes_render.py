@@ -27,30 +27,30 @@ from render_app import render_python, render_available
 # name -> (import lines, constructor expression, has_separate_lid)
 BOX_CASES = {
     "sliding": ("from sliding_box import SlidingBox",
-                "SlidingBox(BoxSpec(size=[100, 60, 25], label='t', lid_label='T'))", True),
+                "SlidingBox(BoxSpec(size=[100, 60, 25], label='t', lid='T'))", True),
     "no_lid": ("from no_lid import NoLidBox",
                "NoLidBox(BoxSpec(size=[80, 50, 20], label='t', hollow=True))", False),
     "cap": ("from cap_box import CapBox",
-            "CapBox(BoxSpec(size=[90, 60, 30], label='t', lid_label='T'))", True),
+            "CapBox(BoxSpec(size=[90, 60, 30], label='t', lid='T'))", True),
     "slipover": ("from slipover_box import SlipoverBox",
-                 "SlipoverBox(BoxSpec(size=[90, 60, 25], label='t', lid_label='T'))", True),
+                 "SlipoverBox(BoxSpec(size=[90, 60, 25], label='t', lid='T'))", True),
     "sliding_catch": ("from sliding_catch_box import SlidingCatchBox",
-                      "SlidingCatchBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T'))", True),
+                      "SlidingCatchBox(BoxSpec(size=[100, 50, 20], label='t', lid='T'))", True),
     "hinge": ("from hinge_box import HingeBox",
               "HingeBox(BoxSpec(size=[100, 50, 20], label='t'))", False),
     "filament_hinge": ("from filament_hinge_box import FilamentHingeBox",
-                       "FilamentHingeBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T'))", True),
+                       "FilamentHingeBox(BoxSpec(size=[100, 50, 20], label='t', lid='T'))", True),
     "magnetic": ("from magnetic_box import MagneticBox, MagneticBoxOptions",
-                 "MagneticBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T', "
+                 "MagneticBox(BoxSpec(size=[100, 50, 20], label='t', lid='T', "
                  "type_options=MagneticBoxOptions(magnet_diameter=6, magnet_thickness=2)))", True),
     "inset": ("from inset_box import InsetBox",
-              "InsetBox(BoxSpec(size=[100, 50, 20], label='t', lid_label='T'))", True),
+              "InsetBox(BoxSpec(size=[100, 50, 20], label='t', lid='T'))", True),
     "path": ("from no_lid import PathBox",
              "PathBox.regular_polygon(BoxSpec(size=[100, 100, 24], label='t', hollow=True), sides=6)", False),
     "cap_path": ("from cap_box_polygon import CapPathBox",
-                 "CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label='t', lid_label='T'), sides=6)", True),
+                 "CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label='t', lid='T'), sides=6)", True),
     "slipover_path": ("from slipover_path_box import SlipoverPathBox",
-                      "SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label='t', lid_label='T'), sides=6)", True),
+                      "SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label='t', lid='T'), sides=6)", True),
     "card_library": ("from card_library import CardLibraryBox, CardLibrarySpec, CardSize, CardGroup",
                      "CardLibraryBox(CardLibrarySpec(card_size=CardSize(66, 92, 0.4), groups=[CardGroup('R', 30)]))", True),
 }
@@ -136,8 +136,8 @@ class CompartmentBoxRenderTest(unittest.TestCase):
 
 @unittest.skipUnless(render_available(), "PythonSCAD app / patched BOSL2 not available")
 class LidShapeRenderTest(unittest.TestCase):
-    """A lid decorated with a SHAPE image instead of a text label (BoxSpec.lid_shape /
-    Label.shape / make_label)."""
+    """A lid decorated with a SHAPE image instead of a text label
+    (Lid(label=Label(shape=...)) / make_label)."""
 
     def test_sliding_lid_with_shape(self):
         body = (
@@ -145,10 +145,12 @@ class LidShapeRenderTest(unittest.TestCase):
             "from base_bgtk import *\n"
             "from box_base import BoxSpec\n"
             "from sliding_box import SlidingBox\n"
+            "from box_base import Label, Lid\n"
             "from labels import MakeLabelOptions\n"
             "from shapes import saw_blade2d\n"
-            "SlidingBox(BoxSpec(size=[80, 60, 20], label='ls', lid_shape=saw_blade2d(45),\n"
-            "                   label_options=MakeLabelOptions(label_colour='red'))).make_lid().show()\n"
+            "SlidingBox(BoxSpec(size=[80, 60, 20], label='ls', lid=Lid(label=Label(\n"
+            "    '', shape=saw_blade2d(45),\n"
+            "    options=MakeLabelOptions(label_colour='red'))))).make_lid().show()\n"
         )
         r = render_python(body)
         self.assertTrue(r.ok, f"lid shape failed: {r.error}")

@@ -199,7 +199,7 @@ _s3.cuboid([1, 1, 1]).show()
 
 _LID_SCRIPT = """
 from base_bgtk import *
-from box_base import BoxSpec
+from box_base import BoxSpec, Lid
 from shape_type import MakeShapeObject
 from sliding_box import SlidingBox
 import pybosl2.shapes3d as _s3
@@ -207,7 +207,7 @@ import pybosl2.shapes3d as _s3
 for _name in %%r:
     _opts = MakeShapeObject(shape_type=getattr(ShapeType, _name), shape_width=12, shape_thickness=2)
     try:
-        measure(_name, SlidingBox(BoxSpec(size=[%(w)r, %(l)r, 25], label='t', shape_options=_opts)).make_lid())
+        measure(_name, SlidingBox(BoxSpec(size=[%(w)r, %(l)r, 25], label='t', lid=Lid(shape_options=_opts))).make_lid())
     except Exception as _exc:
         report(_name, type(_exc).__name__ + ': ' + str(_exc).replace(chr(10), ' ')[:70])
 report('DONE', 'yes')

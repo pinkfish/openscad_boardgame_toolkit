@@ -50,14 +50,14 @@ class SlidingCatchBox(LiddedBox):
     Catch/lid parameters come from
     ``BoxSpec(type_options=SlidingCatchBoxOptions(top_thickness=2))``. The lid runs
     through the shared lid pipeline, so a label / shape pattern / fingernail lands on
-    its flat (outer) face when ``BoxSpec.lid_label`` / ``lid_shape`` is set.
+    its flat (outer) face when ``BoxSpec.lid`` is set.
 
     Usage::
 
         from box_base import BoxSpec
         from sliding_catch_box import SlidingCatchBox
 
-        box = SlidingCatchBox(BoxSpec(size=[100, 50, 20], label="catch", lid_label="Frog"))
+        box = SlidingCatchBox(BoxSpec(size=[100, 50, 20], label="catch", lid="Frog"))
         box.make_box().show()
         box.make_lid().show()
     """

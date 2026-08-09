@@ -81,7 +81,7 @@ _contents = layout_compartments(
 _player = KIT.box(
     size=[player_box_width, player_box_length, player_box_height],
     label="PlayerBox",
-    lid_label="Player",
+    lid="Player",
     contents=_contents,
 )
 

@@ -61,7 +61,6 @@ from base_bgtk import (
 from components import FingerHoleBase, FingerHoleWall, extrude_image
 from labels import LabelOptions
 from lids_base import Lid, LidFit, make_lid_label, build_lid
-from shape_type import ShapeObject
 
 # Box contents are self-describing InnerObject entries (see base_bgtk.InnerObject /
 # ObjectType). They may be given directly as a list, or as a callable(InnerSize) for
@@ -373,7 +372,7 @@ class BoxSpec:
                 InnerObject(pybosl2.shapes3d.cuboid([inner.width, inner.length, inner.height]))
             ],
             finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
-            lid_label="Earth",
+            lid="Earth",
         )
 
         box = SlidingBox(spec)
@@ -414,14 +413,21 @@ class BoxSpec:
     hollow: bool = False
 
     # ---- Lid configuration ---------------------------------------------------
-    # Use ``lid_label`` for the common case (text + default shape pattern).
-    # Use ``lid`` for full control (pass a pre-built :class:`~lids_base.Lid`).
-    # ``lid`` takes precedence over ``lid_label`` when both are set.
-    lid_label: str | None = None              # shorthand label text for the lid
-    lid_shape: LidImage | None = None                  # a SHAPE image on the lid instead of a text label
-    lid: Lid | None = None                    # full Lid object (overrides lid_label/lid_shape)
-    label_options: LabelOptions | None = None # styling for lid_label
-    shape_options: ShapeObject | None = None  # lid pattern shape (the tiled background)
+    # ONE field says what the lid looks like:
+    #   None      -- a plain, undecorated lid.
+    #   "Trains"  -- shorthand for a text label, in the default style.
+    #   Lid(...)  -- full control: pattern, label styling, fingernail, extras.
+    # There is nothing to rank and nothing to combine, because there is only one field.
+    # It replaced five (lid/lid_label/lid_shape/label_options/shape_options) whose
+    # legal combinations had to be policed at construction and re-resolved at build.
+    # Everything they said is said on the Lid instead:
+    #   lid_label="T"          -> lid="T"
+    #   lid_shape=img          -> lid=Lid(label=Label("", shape=img))
+    #   label_options=BLUE     -> lid=Lid(label=Label("T", options=BLUE))
+    #   shape_options=HEX      -> lid=Lid(shape_options=HEX)
+    # A BoxKit still shares one lid across a whole project and lets each box name
+    # itself: a str override merges into the kit's Lid via Lid.with_label().
+    lid: "Lid | str | None" = None
 
     def __post_init__(self) -> None:
         if not (isinstance(self.size, (list, tuple)) and len(self.size) == 3):
@@ -441,20 +447,12 @@ class BoxSpec:
                 f"{self.label}: walls (2 x {self.wall_thickness}) don't fit in "
                 f"width {w} / length {l} -- interior would be non-positive"
             )
-        # A fully-built `lid` and the lid shorthand are alternatives, not layers. Ranking
-        # them (as "lid takes precedence" did) meant a spec carrying both produced a lid
-        # that renders perfectly and ignores half of what was asked for.
-        if self.lid is not None:
-            also = [
-                name
-                for name in ("lid_label", "lid_shape", "label_options", "shape_options")
-                if getattr(self, name) is not None
-            ]
-            if also:
-                raise ValueError(
-                    f"{self.label}: BoxSpec(lid=...) already describes the whole lid, so "
-                    f"{also} would be ignored. Put them on the Lid, or drop the Lid."
-                )
+        if self.lid is not None and not isinstance(self.lid, (Lid, str)):
+            raise TypeError(
+                f"{self.label}: lid must be a Lid, a label string, or None -- got "
+                f"{type(self.lid).__name__}. Decoration options (label styling, shape "
+                "pattern, fingernail) go on the Lid: lid=Lid(...)."
+            )
 
 
 class BoxBaseType(ABC):
@@ -481,7 +479,7 @@ class BoxBaseType(ABC):
         spec = BoxSpec(size=[50, 100, 30], label="mybox", wall_thickness=3,
                        contents=lambda inner: [InnerObject(cavity)],
                        finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
-                       lid_label="Trains")
+                       lid="Trains")
         box = SlidingBox(spec)
         box.make_box().show()
         box.make_lid().show()
@@ -857,13 +855,11 @@ class LiddedBox(BoxBaseType):
     # make_lid -- the ONE lid pipeline
     # ------------------------------------------------------------------
 
-    def make_lid(self, lid: Lid | None = None) -> Bosl2Solid:
+    def make_lid(self, lid: "Lid | str | None" = None) -> Bosl2Solid:
         """Make the lid for this box -- the second of the two top-level methods.
 
-        With no argument (and a :class:`BoxSpec` given at construction) the lid is built
-        from :attr:`BoxSpec.lid`, or from :attr:`BoxSpec.lid_label` /
-        :attr:`BoxSpec.lid_shape` / :attr:`BoxSpec.shape_options`. Pass an explicit
-        :class:`~lids_base.Lid` to override the spec.
+        With no argument the lid is built from :attr:`BoxSpec.lid`. Pass a
+        :class:`~lids_base.Lid` (or a label string) to override the spec.
 
         The pipeline is the same for every box type: the type's :class:`LidPlate` says
         which flat face is decorated and what else the lid is made of; the decoration
@@ -893,29 +889,21 @@ class LiddedBox(BoxBaseType):
         thickness plus however far up the shell carries it."""
         return [self.width, self.length, plate.thickness + plate.offset[2]]
 
-    def _resolve_lid(self, lid: Lid | None) -> Lid:
-        """The :class:`~lids_base.Lid` to build: the caller's, else the spec's, else the
-        spec's label/shape shorthand, else a plain undecorated lid.
+    def _resolve_lid(self, lid: "Lid | str | None") -> Lid:
+        """The :class:`~lids_base.Lid` to build: the caller's, else the spec's.
+
+        A spec ``lid`` of ``None`` gives a plain undecorated lid and a ``str`` gives a
+        text label; both inherit the box's material colour, while a fully-built
+        :class:`~lids_base.Lid` keeps its own.
 
         :class:`~lids_base.Lid` is frozen, so this hands back the object itself rather
         than a defensive copy -- nothing downstream writes to it."""
-        spec = self._spec
-        if lid is not None:
-            return lid
-        if spec.lid is not None:
-            return spec.lid
-        if spec.lid_label is not None or spec.lid_shape is not None or spec.shape_options is not None:
-            return Lid(
-                label=(
-                    Label(spec.lid_label or "", options=spec.label_options or LabelOptions(),
-                          shape=spec.lid_shape)
-                    if (spec.lid_label is not None or spec.lid_shape is not None)
-                    else None
-                ),
-                shape_options=spec.shape_options,
-                material_colour=self.material_colour,
-            )
-        return Lid(material_colour=self.material_colour)
+        chosen = lid if lid is not None else self._spec.lid
+        if isinstance(chosen, Lid):
+            return chosen
+        if chosen is None:
+            return Lid(material_colour=self.material_colour)
+        return Lid(label=Label(chosen), material_colour=self.material_colour)
 
     def _lid_plate(self, lid: Lid) -> LidPlate:
         """The lid's decorated face (and any shell around it) -- the ONE lid hook.
@@ -1026,16 +1014,24 @@ class BoxKit:
         from box_base import BoxKit
         from sliding_box import SlidingBox
 
-        kit = BoxKit(SlidingBox, wall_thickness=2, lid_thickness=3, label_options=BLUE)
+        kit = BoxKit(SlidingBox, wall_thickness=2, lid_thickness=3,
+                     lid=Lid(label=Label("", options=BLUE)))
 
         seals = kit.box(size=[tw, tl, sh], label="Seals",
                         contents=lambda inner: [InnerObject(RoundedBoxAllSides(...))],
-                        lid_label="Seals")
+                        lid="Seals")
         seals.make_box().show()
         seals.make_lid().show()
 
         # Switch the ENTIRE project to cap boxes -> change one word:
-        #     kit = BoxKit(CapBox, wall_thickness=2, lid_thickness=3, label_options=BLUE)
+        #     kit = BoxKit(CapBox, wall_thickness=2, lid_thickness=3, ...)
+
+    **The lid merges rather than replacing.** ``lid`` is the one field where "the call
+    wins" would be wrong: the kit owns the shared look (pattern, label styling,
+    fingernail) and each box owns only its own words. So a ``str`` override is merged
+    into the kit's :class:`~lids_base.Lid` via :meth:`~lids_base.Lid.with_label` --
+    ``lid="Seals"`` above keeps ``BLUE``. Passing a full ``Lid`` replaces the kit's
+    outright, which is the escape hatch for a box that wants a different look.
 
     Two things do NOT survive a type switch, and both fail loudly rather than quietly:
     ``type_options`` belongs to one box type (the new type rejects it with a
@@ -1053,7 +1049,7 @@ class BoxKit:
     _SPEC_FIELDS = frozenset(f.name for f in fields(BoxSpec))
 
     #: Spec fields that only mean anything on a box with a separate lid.
-    _LID_FIELDS = ("lid", "lid_label", "lid_shape", "label_options", "shape_options")
+    _LID_FIELDS = ("lid",)
 
     def __init__(self, box_class: "type[BoxBaseType]", **defaults: Any) -> None:
         self._reject_unknown(defaults, "BoxKit default")
@@ -1075,9 +1071,25 @@ class BoxKit:
 
     def spec(self, **overrides: Any) -> BoxSpec:
         """Build a :class:`BoxSpec` from the kit's shared defaults + per-box overrides
-        (the override wins for any field set in both)."""
+        (the override wins for any field set in both, except ``lid`` -- see
+        :meth:`_merge_lid`)."""
         self._reject_unknown(overrides, "BoxKit override")
-        return BoxSpec(**{**self.defaults, **overrides})
+        merged = {**self.defaults, **overrides}
+        if "lid" in overrides:
+            merged["lid"] = self._merge_lid(self.defaults.get("lid"), overrides["lid"])
+        return BoxSpec(**merged)
+
+    @staticmethod
+    def _merge_lid(default: "Lid | str | None", override: "Lid | str | None") -> "Lid | str | None":
+        """Combine the kit's lid with a box's own.
+
+        A bare label string on top of the kit's :class:`~lids_base.Lid` means "the kit's
+        lid, saying this" -- otherwise a kit could share a lid style OR let each box
+        name itself, but never both, which is what having five lid fields used to buy.
+        Anything else is a plain replacement."""
+        if isinstance(override, str) and isinstance(default, Lid):
+            return default.with_label(override)
+        return override
 
     def box(self, **overrides: Any) -> "BoxBaseType":
         """Construct a box object (of this kit's type) from the merged spec. Call

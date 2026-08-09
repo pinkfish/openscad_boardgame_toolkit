@@ -314,7 +314,7 @@ class AreaPattern(Pattern):
 # ShapeType -> Pattern (the compatibility layer)
 # ---------------------------------------------------------------------------
 #
-# ShapeType + ShapeObject remain the declarative surface (`BoxSpec(shape_options=...)`,
+# ShapeType + ShapeObject remain the declarative surface (`Lid(shape_options=...)`,
 # the customizer dropdown, .scad parity). This is the ONE place that maps a shape type to
 # the kind of pattern it actually is; the layout context each kind needs is supplied HERE,
 # by the pattern, instead of being a keyword argument the lid pipeline was supposed to know

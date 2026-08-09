@@ -67,7 +67,7 @@ class InsetBox(LiddedBox):
     ``BoxSpec(type_options=InsetBoxOptions(style="rabbit"))``. Box and lid are separate
     prints; ``contents`` are carved into the box interior by the shared pipeline. The lid is
     built face-up (with its label / shape pattern overlays), then flipped for printing, so a
-    ``BoxSpec.lid_label`` / ``lid_shape`` lands on the outer face.
+    ``BoxSpec.lid`` lands on the outer face.
 
     Usage::
 

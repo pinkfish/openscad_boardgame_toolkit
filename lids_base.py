@@ -24,7 +24,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable, Sequence, TYPE_CHECKING
 
 # `fill` is a NATIVE builtin (no pybosl2 equivalent is wired up for it) and is imported by
@@ -442,6 +442,27 @@ class Lid:
         object.__setattr__(self, "lid_rounding", lid_rounding)
         object.__setattr__(self, "extra_children", tuple(extra_children or ()))
         object.__setattr__(self, "fingernail", fingernail)
+
+    def with_label(self, text: str) -> "Lid":
+        """A copy of this lid whose label reads *text*, keeping everything else.
+
+        This is what makes ONE ``BoxSpec.lid`` field as convenient as the five it
+        replaced: a :class:`~box_base.BoxKit` carries the shared lid (pattern, label
+        styling, fingernail) and each box supplies only its own words::
+
+            kit = BoxKit(SlidingBox, lid=Lid(shape_options=HEX,
+                                             label=Label("", options=BLUE)))
+            kit.box(size=..., label="Seals", lid="Seals")   # -> with_label("Seals")
+
+        The existing label's OPTIONS and placement survive -- only ``text`` changes. A
+        lid with no label yet gets a default-styled one.
+        """
+        # Label lives in box_base, which imports this module -- so the import has to be
+        # here rather than at module scope. It is the only direction the cycle allows.
+        from box_base import Label
+
+        label = replace(self.label, text=text) if self.label is not None else Label(text)
+        return replace(self, label=label)
 
     def pattern(self) -> "Pattern | None":
         """The :class:`~patterns.Pattern` this lid is decorated with, or ``None``."""

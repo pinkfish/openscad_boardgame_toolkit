@@ -25,7 +25,7 @@
 #    Nothing else in this file mentions the box type.
 
 from base_bgtk import *
-from box_base import BoxKit
+from box_base import BoxKit, Label, Lid
 from sliding_box import SlidingBox
 from components import RoundedBoxAllSides, RoundedBoxGrid
 from labels import MakeLabelOptions
@@ -66,22 +66,24 @@ KIT = BoxKit(
     SlidingBox,
     wall_thickness=2,
     lid_thickness=3,
-    label_options=BLUE,
+    # The lid style every box shares. Each box passes its own text as lid="...", which
+    # BoxKit merges into this one (Lid.with_label) rather than replacing it -- so the
+    # blue label styling is written once, here.
+    lid=Lid(label=Label("", options=BLUE)),
 )
 
 
 # A tiny helper for the single-compartment rounded sections (Seals/Farmer/Herald):
 # custom interior geometry is supplied through contents= as InnerObject components.
-def _section(size, label, label_options=None):
+def _section(size, label, options=None):
     return KIT.box(
         size=size,
         label=label,
         contents=lambda inner: [
             InnerObject(RoundedBoxAllSides([inner.width, inner.length, section_height], radius=15))
         ],
-        lid_label=label,
-        # per-box override of the kit's default label style, when given:
-        **({"label_options": label_options} if label_options is not None else {}),
+        # Just the text (kit styling), or a whole Lid when this box wants its own style.
+        lid=label if options is None else Lid(label=Label(label, options=options)),
     )
 
 
@@ -142,8 +144,7 @@ _player = KIT.box(
             ).translate([0, first_width + 2, 0])   # 2 = wall_thickness
         ),
     ],
-    lid_label="Player",
-    label_options=BLUE_R5,
+    lid=Lid(label=Label("Player", options=BLUE_R5)),
 )
 
 

@@ -349,7 +349,7 @@ class SlipoverPathBox(LiddedBox):
 
     The polygon goes in ``BoxSpec.type_options`` as a :class:`SlipoverPathBoxOptions`;
     ``BoxSpec.size`` is ``[width, length, height]`` but the x/y extent is re-derived from
-    the outline. The lid gets an automatic label + shape pattern when ``BoxSpec.lid_label``
+    the outline. The lid gets an automatic label + shape pattern when ``BoxSpec.lid``
     is set.
 
     Usage::
@@ -357,14 +357,14 @@ class SlipoverPathBox(LiddedBox):
         from box_base import BoxSpec
         from slipover_path_box import SlipoverPathBox, SlipoverPathBoxOptions
 
-        box = SlipoverPathBox(BoxSpec(size=[80, 60, 15], label="slip", lid_label="Coins",
+        box = SlipoverPathBox(BoxSpec(size=[80, 60, 15], label="slip", lid="Coins",
                                       type_options=SlipoverPathBoxOptions(
                                           path=[[0,0],[80,0],[80,60],[0,60]])))
         box.make_box().show()
         box.make_lid().show()
 
         # regular hexagon
-        SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label="hex", lid_label="Wood"),
+        SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label="hex", lid="Wood"),
                                         sides=6).make_box().show()
     """
 
