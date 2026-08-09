@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
+from pybosl2 import shapes2d
 from pybosl2 import Path2D
 
 
@@ -95,7 +96,7 @@ def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0
     # polygon() is the NATIVE builtin: it rejects a pybosl2 Path2D / numpy points ("Error
     # during parsing polygon(points,paths)"), so hand it plain float pairs.
     pts = [[float(x), float(y)] for x, y in (merged.to_list if hasattr(merged, "to_list") else merged)]
-    return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=polygon(pts))
+    return DifferenceWithOffset(offset=-thickness, outer_offset=outer_offset, children=shapes2d.polygon(pts))
 
 
 def TesselationGooseBlock(size: float, thickness: float, outer_offset: float = 0) -> PyOpenSCAD:

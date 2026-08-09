@@ -310,7 +310,7 @@ class PathBoxWithNoLid:
         wall = self.wall_thickness
 
         def profile(inset: float = 0.0):
-            return polygon([[float(x), float(y)] for x, y in outer_path]).offset(r=-(wall + float(inset)))
+            return shapes2d.polygon(outer_path).offset(radius=-(wall + float(inset)))
 
         return InnerPath(
             width=self.width,

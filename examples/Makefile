@@ -17,15 +17,23 @@ include generate.makefile
 # PythonSCAD (.py) examples: built dynamically by scripts/build_boxes.py, which discovers the
 # @make_box sections and traces each example's transitive .py dependencies, so it rebuilds only
 # what a source change affects and picks up new boxes automatically -- no makefile regeneration.
-#   make py                 build/update every .py example's boxes (one by one)
+#   make py                 build/update every .py example's boxes
 #   make py-splendor        build just one game's boxes
 #   make py ARGS="--force"  pass extra flags through (e.g. --jobs 4, --mmu-only, --box Name)
+#
+# --batch (BUILD_FLAGS below) builds all of a game's 3mf targets in ONE app process. Startup
+# plus imports cost ~2.7s per process against ~0.06s of actual geometry, so a whole game goes
+# from minutes to seconds. Staleness is unchanged -- still decided per box, so an untouched
+# example still rebuilds nothing. Override with `make py BUILD_FLAGS=` to go back to one
+# process per box (useful when a crash needs isolating to a single target).
+BUILD_FLAGS ?= --batch
+
 .PHONY: py
 py:
-	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py --all $(ARGS)
+	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py --all $(BUILD_FLAGS) $(ARGS)
 
 py-%:
-	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py $* $(ARGS)
+	PYSCAD="$(PYSCAD)" PYSCAD_BOSL2_DIR="$(PYSCAD_BOSL2_DIR)" $(VENV_PYTHON) ../scripts/build_boxes.py $* $(BUILD_FLAGS) $(ARGS)
 
 3mfmerge: ../scripts/colorscad/3mfmerge/build
 

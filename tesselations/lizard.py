@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import Path2D
+from pybosl2 import shapes2d
 from pybosl2 import Region
 
 
@@ -100,7 +101,7 @@ def LizardSingle(size: float) -> PyOpenSCAD:
     assert size > 0, "Need to have a size specified"
     # LizardHexTesselation returns a pybosl2 Path2D here (thickness=0); native polygon()
     # needs plain float pairs.
-    return polygon(native_points(LizardHexTesselation(radius=size / 2)))
+    return shapes2d.polygon(LizardHexTesselation(radius=size / 2))
 
 
 def LizardSingleOutline(size: float, thickness: float) -> PyOpenSCAD:

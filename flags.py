@@ -554,7 +554,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         # path_curve() returns a pybosl2 Path2D; native polygon() needs plain float pairs.
         path = Bezier(bez).path_curve()
         return (
-            polygon(native_points(path))
+            shapes2d.polygon(path)
             .resize([calc_len * mult, width, 0])
             .translate([-232.636 - calc_len / 2, -236.2621 + calc_width / 2])
             .linear_extrude(height=height)
@@ -784,7 +784,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [289.1488, 241.26199999999997],
             ],
         ]
-        polys = [polygon(native_points(Bezier(p).path_curve())) for p in paths]
+        polys = [shapes2d.polygon(Bezier(p).path_curve()) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p
@@ -1367,7 +1367,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
                 [329.08979, 247.21568],
             ],
         ]
-        polys = [polygon(native_points(Bezier(p).path_curve())) for p in paths]
+        polys = [shapes2d.polygon(Bezier(p).path_curve()) for p in paths]
         shape = polys[0]
         for p in polys[1:]:
             shape = shape | p

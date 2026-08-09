@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 from base_bgtk import *
 from pybosl2 import shapes2d
 from pybosl2 import Bezier
+from pybosl2 import Region
 
 # The public shapes2d.egg() returns a solid; these want the outline to stroke, and the path
 # form is only reachable through this private helper. It moved out of the shapes2d namespace
@@ -828,9 +829,12 @@ def australia_map2d(length: float) -> PyOpenSCAD:
     Args:
         length: length of the map
     """
-    # `import` is a Python keyword; PythonSCAD exposes the core import() module as
-    # osimport().
-    return osimport(str(_SVG_DIR / "australia.svg")).resize([length, australia_map_width(length), 0])
+    # Region.from_svg, not the renderer's importer: this gives real outlines (measurable,
+    # offsettable, testable without a renderer) instead of an opaque native handle. The loader
+    # returns the SVG's own user units, which the resize below normalises anyway.
+    return Region.from_svg(str(_SVG_DIR / "australia.svg")).geometry().resize(
+        [length, australia_map_width(length), 0]
+    )
 
 
 def rock2d(length: float, width: float, rounding: float | None = None) -> PyOpenSCAD:
@@ -867,10 +871,12 @@ def ruins2d(size: float) -> PyOpenSCAD:
 
         ruins2d(50)
     """
-    # offset helps fix the shape not closed issue.
+    # The offset(delta=0.01) that used to sit here worked around the renderer importer leaving
+    # this drawing's subpaths unclosed. Region.from_svg closes every ring itself, so the fudge
+    # is gone with it.
     return (
-        osimport(str(_SVG_DIR / "ruins.svg"))
-        .offset(delta=0.01)
+        Region.from_svg(str(_SVG_DIR / "ruins.svg"))
+        .geometry()
         .resize([size, ruins2d_width(size), 0])
         .translate([-size / 2, -ruins2d_width(size) / 2])
     )
@@ -1024,10 +1030,10 @@ def fist2d(size: float) -> PyOpenSCAD:
         size: size of the fist
     """
     scale_factor = size / 172
-    # NATIVE-BOUNDARY (bosl2 gap): pybosl2 shapes2d.polygon takes a single path; this fist
-    # traces an SVG with points= + paths= (multi-path even-odd holes), which has no single
-    # pybosl2 call. FIX IN BOSL2: a polygon/region form that accepts points + index paths.
-    all_shape = polygon(
+    # The SVG trace below names its outlines as INDEX lists into one shared point list.
+    # indexed_region() dereferences them into pybosl2's Region, so this stays on the pybosl2
+    # API instead of dropping to the native polygon(points, paths) form.
+    all_shape = indexed_region(
         points=[
             [6.75602, 71.5659],
             [6.837219, 71.4035],

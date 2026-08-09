@@ -76,16 +76,18 @@ class TestInnerPathContract(unittest.TestCase):
 
         import no_lid
 
-        original = no_lid.polygon
-        no_lid.polygon = lambda pts: _Recorder()
+        # The outline now goes through pybosl2 (shapes2d.polygon + .offset(radius=)) rather
+        # than the native builtin, so the inset arrives as `radius`, not the native `r`.
+        original = no_lid.shapes2d.polygon
+        no_lid.shapes2d.polygon = lambda pts: _Recorder()
         try:
             inner = PathBoxWithNoLid(path=SQUARE, height=20, wall_thickness=3, floor_thickness=2).inner()
             inner.profile()
             inner.profile(2)
         finally:
-            no_lid.polygon = original
+            no_lid.shapes2d.polygon = original
 
-        self.assertEqual(calls, [{"r": -3.0}, {"r": -5.0}])
+        self.assertEqual(calls, [{"radius": -3.0}, {"radius": -5.0}])
 
 
 if __name__ == "__main__":

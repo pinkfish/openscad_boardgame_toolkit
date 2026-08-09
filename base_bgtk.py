@@ -56,18 +56,20 @@ from pybosl2 import Color, Path2D, Path3D, Region
 from pybosl2 import shapes2d
 from pybosl2.version import version as _pybosl2_version
 
-# The toolkit needs pybosl2 >= 0.7.4 for: the path fixes (Path2D/Path3D default to
+# The toolkit needs pybosl2 >= 0.7.7 for: the path fixes (Path2D/Path3D default to
 # closed=False, so every outline meant as a polygon says closed=True; Path.tangents returns one
 # tangent per POINT rather than per segment; smooth_path/round_corners match real BOSL2), the
-# corner-selector fix (a single corner no longer over-selects four), and the Color class the
-# colours below are built from.
+# corner-selector fix (a single corner no longer over-selects four), the Color class the
+# colours below are built from, Region.even_odd (region()/indexed_region() below), and the SVG loader's curve-length
+# fix -- shapes.py loads its drawings through Region.from_svg, which on 0.7.6 spends 196s on
+# a single file.
 #
 # Checked here, at import, rather than left to the pyproject dependency pin, because that pin
 # does not apply on the path that matters: inside the PythonSCAD app the toolkit imports
 # whichever pybosl2 happens to be on sys.path, with no dependency resolution at all. And the
 # 0.7.1 failure mode is SILENT -- box and tile outlines quietly lose their closing edge and
 # lids round the wrong corners -- so without this the first symptom is a misprinted part.
-_REQUIRED_PYBOSL2 = "0.7.4"
+_REQUIRED_PYBOSL2 = "0.7.7"
 if _pybosl2_version < _REQUIRED_PYBOSL2:
     raise ImportError(
         f"openscad_boardgame_toolkit needs pybosl2 >= {_REQUIRED_PYBOSL2}, "
@@ -429,24 +431,42 @@ def native_points(path) -> list[list[float]]:
     return [[float(p[0]), float(p[1])] for p in path]
 
 
-def region(paths: list) -> PyOpenSCAD:
-    """Turns BOSL2 region data (a list of [x, y] outlines, even-odd nesting for holes) into
-    real 2-D geometry via the native polygon(points, paths=...) multi-path form -- PythonSCAD
-    has no region() builtin of its own, but several tesselations.py/shapes.py constructions
-    return raw region data from the real-BOSL2 region functions (union/difference/
-    make_region/offset_stroke) and need rendering. Coordinates are forced to plain floats:
-    region data that flowed through the pybosl2/ port's numpy-based path math otherwise reaches
-    the FFI as numpy.float64, which the native side rejects.
+def region(paths: list) -> "Bosl2Shape2D":
+    """Turn BOSL2 region data (a list of [x, y] outlines, EVEN-ODD nesting) into 2-D geometry.
+
+    Several tesselations.py/shapes.py constructions return raw region data (lists of outlines)
+    and need it as geometry.
+
+    Uses :meth:`pybosl2.Region.even_odd`, so the result is a ``Bosl2Shape2D`` rather than a raw
+    native handle. Note the plain ``Region(...)`` constructor is NOT interchangeable here: it
+    reads outline 0 as the boundary and every other outline as a hole, which is right for a
+    ring and silently wrong for data with several disjoint solids -- the 118-outline fist
+    rendered visibly broken through it while still producing geometry.
+
+    Coordinates are forced to plain floats because the path maths hands back numpy scalars.
     """
     # A single bare path is fine too.
     path_list = paths if isinstance(paths[0][0], (list, tuple)) or hasattr(paths[0][0], "__len__") else [paths]
-    pts: list[list[float]] = []
-    idx: list[list[int]] = []
-    for path in path_list:
-        base = len(pts)
-        pts.extend([[float(p[0]), float(p[1])] for p in path])
-        idx.append(list(range(base, base + len(path))))
-    return polygon(pts, paths=idx)
+    return Region.even_odd([[[float(p[0]), float(p[1])] for p in path] for path in path_list]).geometry()
+
+
+def indexed_region(points: list, paths: list) -> "Bosl2Shape2D":
+    """Turn OpenSCAD's ``points`` + ``paths`` (index lists) polygon form into 2-D geometry.
+
+    The native ``polygon(points=..., paths=...)`` names each outline as a list of INDICES into
+    one shared point list -- the form an SVG trace produces. Nesting is EVEN-ODD.
+
+    Dereferences the indices and hands the outlines to :func:`region`, so a large traced
+    literal keeps its original points/paths shape while still producing a ``Bosl2Shape2D``.
+
+    Args:
+        points: the shared ``[x, y]`` point list
+        paths:  one list of indices into *points* per outline
+
+    Returns:
+        A ``Bosl2Shape2D`` of the region.
+    """
+    return region([[points[i] for i in path] for path in paths])
 
 
 def ResolveChild(c, inner_width: float, inner_length: float, inner_height: float):
