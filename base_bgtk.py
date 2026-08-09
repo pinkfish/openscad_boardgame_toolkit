@@ -38,6 +38,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
 
@@ -576,7 +577,7 @@ def regular_ngon_path(sides: int, radius: float) -> list[list[float]]:
     ]
 
 
-def _offset_rounded(shape: PyOpenSCAD, amount: float) -> PyOpenSCAD:
+def _offset_rounded(shape: PyOpenSCAD, amount: float) -> "Bosl2Shape2D":
     """Round-join offset that works on a pybosl2 2-D shape AND on a raw native one.
 
     The two spell it differently and neither accepts the other's keyword: pybosl2 takes
@@ -600,7 +601,7 @@ def DifferenceWithOffsetRounded(
     outer_offset: float = 0,
     pts: list[list[float]] | None = None,
     children: PyOpenSCAD | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """Like :func:`DifferenceWithOffset` but using a rounded (r=) offset."""
     if pts is not None:
         if offset != 0:

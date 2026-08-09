@@ -33,6 +33,7 @@ from typing import Callable, Sequence, TYPE_CHECKING
 from pythonscad import fill
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 
 # Explicit imports, matching box_base.py -- every name below is traceable to its source.
@@ -459,7 +460,7 @@ class Lid:
             material_colour=self.material_colour,
         )
 
-    def fingernail_cutout(self, fit: "LidFit") -> PyOpenSCAD | None:
+    def fingernail_cutout(self, fit: "LidFit") -> "Bosl2Solid | None":
         """The fingernail scoop sized/placed from *fit*, or ``None`` when disabled.
 
         Defaults that used to be written back onto the caller's :class:`Fingernail` are
@@ -559,7 +560,7 @@ def sliding_lid_fingernail(
     sphere: float = 12,
     finger_length: float = 10,
     material_colour: Color | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Creates a finger-nail recess for lifting a sliding lid.
 
     Usage::
@@ -598,7 +599,7 @@ def make_lid_tab(
     lid_thickness: float | None = None,
     prism_width: float = 0.75,
     wall_thickness: float = 2,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a single lid tab (for tabbed boxes).
 
     Usage::

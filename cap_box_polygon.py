@@ -32,6 +32,7 @@ import types
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import numpy as np
@@ -56,7 +57,7 @@ def _segment_angle(normal: "np.ndarray | list[list[float]]") -> float:
 
 def _finger_hole_segment_cutout(
     path: list[list[float]], radius: float, height: float, wall_thickness: float
-) -> PyOpenSCAD | None:
+) -> "Bosl2Solid | None":
     """Makes a single segment for use in the cap-box wall.
 
     Makes the rounded finger holes on the side of the cap box at the

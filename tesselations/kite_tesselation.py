@@ -24,6 +24,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import Path2D
@@ -58,7 +59,7 @@ def MakeTesselationKite(size: float, side1: list[list[float]], side2: list[list[
 
 def MakeTesselationKiteHexagon(
     size: float, side1: list[list[float]], side2: list[list[float]], thickness: float, outer_offset: float
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """Tiles 6 kites rotated around a point into a hexagon outline shape.
 
     Args:

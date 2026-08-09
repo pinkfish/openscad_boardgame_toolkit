@@ -28,6 +28,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes3d
@@ -80,7 +81,7 @@ CATCH_WEDGE_LID_FACTOR = 5 / 8       # wedge depth added to the cap (x wall)
 CATCH_BUMP_POSITIONS = (6 / 8, 2 / 8)  # where along a wall the two bumps sit (fraction)
 
 
-def catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> PyOpenSCAD:
+def catch_bump(wall_thickness: float, radius: float, anchor_dir: list[int]) -> "Bosl2Solid":
     """A rounded catch nub: a sphere clipped to a small cube on one face.
 
     The single copy: :mod:`slipover_box` carried a near-identical one that nothing called

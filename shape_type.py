@@ -26,6 +26,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
     from pybosl2._sdf.shapes2d import PyShape2D  # noqa: F401
 from base_bgtk import *
@@ -168,7 +169,7 @@ def ShapeByType(
     polygon_grid_cols: int | None = None,
     polygon_width: float | None = None,
     polygon_length: float | None = None,
-) -> "PyOpenSCAD | PyShape2D | None":
+) -> "Bosl2Shape2D | PyShape2D | None":
     """Render a 2-D lid pattern shape described by *options*.
 
     Usage::

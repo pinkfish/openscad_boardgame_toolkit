@@ -28,6 +28,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.shapes3d
@@ -40,7 +41,7 @@ from dataclasses import dataclass
 # ---------------------------------------------------------------------------
 
 
-def _hinge_cone(r: float, offset: float) -> "PyOpenSCAD":
+def _hinge_cone(r: float, offset: float) -> "Bosl2Solid":
     """Makes the hinge cone for use in hinges.
 
     A 45-degree cone with an inner/outer that can be joined with other
@@ -56,12 +57,12 @@ def _hinge_cone(r: float, offset: float) -> "PyOpenSCAD":
     """
     outer = pybosl2.shapes3d.cylinder(height=r, radius1=r, radius2=0, center=False)
     inner = pybosl2.shapes3d.cylinder(height=r - offset, radius1=r - offset, radius2=0, center=False).translate([0, 0, -0.01])
-    return (outer - inner).shape
+    return outer - inner
 
 
 def _hinge_line_with_spacing_and_num(
     diameter: float, num: float, spacing: float, offset: float, spin: float = 90
-) -> "PyOpenSCAD":
+) -> "Bosl2Solid":
     """Makes a hinge setup in a straight line, given an explicit spacing and count.
 
     Usage::
@@ -141,10 +142,10 @@ def _hinge_line_with_spacing_and_num(
     combined = combined.translate([0, 0, -length / 2])
 
     bound = pybosl2.shapes3d.cuboid([diameter * 2, diameter * 2, length])
-    return (bound & combined).rotate([0, 270, 0]).shape
+    return (bound & combined).rotate([0, 270, 0])
 
 
-def _hinge_line(length: float, diameter: float, offset: float, spin: float = 90) -> "PyOpenSCAD":
+def _hinge_line(length: float, diameter: float, offset: float, spin: float = 90) -> "Bosl2Solid":
     """Makes a hinge setup in a straight line.
 
     Has pieces that stick out each side wide enough to hook onto edges
@@ -165,7 +166,7 @@ def _hinge_line(length: float, diameter: float, offset: float, spin: float = 90)
     return _hinge_line_with_spacing_and_num(diameter=diameter, offset=offset, spin=spin, num=num, spacing=spacing)
 
 
-def _inset_hinge(length: float, width: float, diameter: float, offset: float) -> PyOpenSCAD:
+def _inset_hinge(length: float, width: float, diameter: float, offset: float) -> "Bosl2Solid":
     """Create a hinge that works and moves in the middle.
 
     Centers the pieces back on the line with the middle being length/2,
@@ -195,7 +196,7 @@ def _inset_hinge(length: float, width: float, diameter: float, offset: float) ->
         .translate([0, width - diameter / 2, 0])
     )
 
-    return (middle | line1 | line2).translate([0, -width / 2, 0]).shape
+    return (middle | line1 | line2).translate([0, -width / 2, 0])
 
 
 def _make_box_and_lid_with_inset_hinge(
@@ -215,7 +216,7 @@ def _make_box_and_lid_with_inset_hinge(
     tab_height: float = 6,
     material_colour: Color | None = None,
     print_in_place_offset: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a box with an inset hinge on the side.
 
     This is a print-in-place box with a hinge that makes the lid hinge onto
@@ -288,7 +289,7 @@ def _make_box_and_lid_with_inset_hinge(
             prism_width=prism_width,
             wall_thickness=wall_thickness,
         )
-        .color(native_colour(material_colour))
+        .color(material_colour)
         .mirror([0, 0, 1])
         .rotate([0, 0, 270])
         .translate([0, length / 2 + tab_length / 2, height / 2 - lid_thickness])
@@ -435,7 +436,7 @@ def _make_box_and_lid_with_inset_hinge(
 
     hinge = (
         _inset_hinge(length=hinge_length, width=hinge_width, offset=hinge_offset, diameter=hinge_diameter)
-        .color(native_colour(material_colour))
+        .color(material_colour)
         .rotate([0, 0, 90])
         .translate([width + gap / 2, hinge_length / 2 + side_gap, height / 2 - hinge_diameter / 2 - hinge_offset])
     )

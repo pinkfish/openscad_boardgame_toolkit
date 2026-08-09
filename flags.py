@@ -91,7 +91,7 @@ def FlagBackgroundAndBorder(
     return piece if shape is None else shape | piece
 
 
-def StAndrewsCross(length: float, height: float) -> PyOpenSCAD:
+def StAndrewsCross(length: float, height: float) -> "Bosl2Solid":
     """Flag of the St Andrews Cross to use for anything.
 
     Usage::
@@ -104,10 +104,10 @@ def StAndrewsCross(length: float, height: float) -> PyOpenSCAD:
     """
     a = shapes3d.cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, 22.5]).color(Color("white"))
     b = shapes3d.cuboid([length * 2, length / 2 / 5, height], anchor=BOTTOM).rotate([0, 0, -22.5]).color(Color("white"))
-    return (a | b).shape
+    return (a | b)
 
 
-def StPatricksCross(length: float, height: float) -> PyOpenSCAD:
+def StPatricksCross(length: float, height: float) -> "Bosl2Solid":
     """Flag of the St Patricks Cross to use for anything.
 
     Usage::
@@ -138,7 +138,7 @@ def StPatricksCross(length: float, height: float) -> PyOpenSCAD:
         .rotate([0, 0, -22.5])
         .color(Color("red"))
     )
-    return (a | b | c | d).shape
+    return (a | b | c | d)
 
 
 def StGeorgesCross(length: float, white_height: float, red_height: float) -> PyOpenSCAD:
@@ -154,10 +154,10 @@ def StGeorgesCross(length: float, white_height: float, red_height: float) -> PyO
         red_height: height of the red parts
     """
 
-    def RedBit(height: float) -> PyOpenSCAD:
+    def RedBit(height: float) -> "Bosl2Solid":
         a = shapes3d.cuboid([length, length / 15, height], anchor=BOTTOM)
         b = shapes3d.cuboid([length, length / 15, height], anchor=BOTTOM).rotate([0, 0, 90])
-        return (a | b).shape
+        return (a | b)
 
     fimbration = length / 15 / 2
     white = shapes3d.cuboid([length, length / 15 + fimbration, white_height], anchor=BOTTOM).color(
@@ -249,10 +249,10 @@ def AustralianFlag(
     """
 
     def Star5(d: float) -> PyOpenSCAD:
-        return shapes2d.star(n=5, r=d / 2, ir=d * 4 / 9 / 2)
+        return shapes2d.star(tips=5, radius=d / 2, inner_radius=d * 4 / 9 / 2)
 
     def Star7(d: float) -> PyOpenSCAD:
-        return shapes2d.star(n=7, r=d / 2, ir=d * 4 / 9 / 2).rotate([0, 0, 180 / 14 + 180])
+        return shapes2d.star(tips=7, radius=d / 2, inner_radius=d * 4 / 9 / 2).rotate([0, 0, 180 / 14 + 180])
 
     flag_len = 450
     flag_width = 225
@@ -321,7 +321,12 @@ def AustralianFlag(
     ).translate([length / 4, length * 3 / 8, 0])
 
     union_all = stars if bg_union is None else bg_union | stars
-    bound = cube([450, 225, 30]).scale([length / flag_len, length / flag_len, 1])
+    # cuboid(anchor=BOTTOM+FRONT+LEFT) is the pybosl2 spelling of native cube()'s
+    # corner-at-origin box. It has to be a wrapper: the native & below would get a
+    # wrapper on the right and raise 'invalid argument left to operator'.
+    bound = shapes3d.cuboid([450, 225, 30], anchor=BOTTOM + FRONT + LEFT).scale(
+        [length / flag_len, length / flag_len, 1]
+    )
     piece = (bound & union_all).translate([-length / 2, -length / 4, 0])
     return piece if shape is None else shape | piece
 
@@ -354,15 +359,15 @@ def SwedenFlag(
     line_horiz = width * 2 / 10
     line_vert = length * 2 / 16
 
-    def CrossBit(height: float) -> PyOpenSCAD:
+    def CrossBit(height: float) -> "Bosl2Solid":
         a = shapes3d.cuboid([length, line_horiz, height], anchor=TOP)
         b = shapes3d.cuboid([line_vert, width, height], anchor=TOP).translate([-length * 3 / 16, 0, 0])
-        return (a | b).shape
+        return a | b
 
     background_height = height - layer_thickness * 2 if solid_background else height * 3 / 4
     cross_height = layer_thickness if solid_background else height
-    cross1 = CrossBit(cross_height).translate([0, 0, height]).color("yellow")
-    cross2 = CrossBit(cross_height).translate([0, 0, height]).color("yellow")
+    cross1 = CrossBit(cross_height).translate([0, 0, height]).color(Color("yellow"))
+    cross2 = CrossBit(cross_height).translate([0, 0, height]).color(Color("yellow"))
     shape = FlagBackgroundAndBorder(
         length,
         background_height,
@@ -430,9 +435,8 @@ def UnitedStatesFlag(
                 )
                 y = -top_bit_length / 2 + star_offset_width / 2 + star_offset_width * j
                 # `or` is a Python keyword and can't be passed as a kwarg name; BOSL2's
-                # star() takes `or` (outer radius) as a synonym for `r`, so `r=` is used here.
                 piece = (
-                    shapes2d.star(5, r=star_size / 2, ir=star_size / 4, spin=180 / 5)
+                    shapes2d.star(5, radius=star_size / 2, inner_radius=star_size / 4, spin=180 / 5)
                     .linear_extrude(height=white_height - blue_height)
                     .translate([x, y, blue_height])
                     .color("white")
@@ -441,7 +445,7 @@ def UnitedStatesFlag(
         assert shape is not None
         return shape
 
-    def StarSection(white_height: float) -> PyOpenSCAD:
+    def StarSection(white_height: float) -> "Bosl2Solid":
         section = FlagBackgroundAndBorder(
             length=top_bit_width,
             height=background_stars_material_thickness,
@@ -483,7 +487,7 @@ def UnitedStatesFlag(
         cutout = shapes3d.cuboid(
             [top_bit_width + 0.01, top_bit_length + 0.01, max(white_height, red_height) + 2], anchor=BOTTOM + LEFT
         ).translate([-width / 2 + stripe * 6.5, -length / 2 + top_bit_length / 2, -1])
-        return (whole - cutout).shape
+        return (whole - cutout)
 
     def MainFlag(white_height: float, red_height: float) -> PyOpenSCAD:
         a = Stripes(white_height=white_height, red_height=red_height).translate([-width / 2, 0, 0])
@@ -792,7 +796,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
             shape.resize([mult * calc_len, width, 0])
             .translate([-len_max + (len_max - len_min) / 2, -width_max + (width_max - width_min) / 2])
             .linear_extrude(height=height)
-            .color("yellow")
+            .color(Color("yellow"))
         )
 
     def MiddleScrollsBlack(height: float, width: float) -> PyOpenSCAD:
@@ -1375,7 +1379,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
             shape.resize([mult * calc_len, width, 0])
             .translate([-len_max + (len_max - len_min) / 2, -width_max + (width_max - width_min) / 2])
             .linear_extrude(height=height)
-            .color("black")
+            .color(Color("black"))
         )
 
     def MiddleScrolls(height: float, width: float) -> PyOpenSCAD:
@@ -1385,13 +1389,13 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         shape = yellow_minus_black | MiddleScrollsBlack(height=height, width=width)
         return shape.mirror([0, 1, 0])
 
-    def WhiteDots(length: float, height: float) -> PyOpenSCAD:
+    def WhiteDots(length: float, height: float) -> "Bosl2Solid":
         a = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM)
         b = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([length / 2, length / 2, 0])
         c = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([-length / 2, length / 2, 0])
         d = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([length / 2, -length / 2, 0])
         e = shapes3d.cyl(diameter=length / 5, height=height, anchor=BOTTOM).translate([-length / 2, -length / 2, 0])
-        return (a | b | c | d | e).shape
+        return (a | b | c | d | e)
 
     def BlueDotsShield(width: float, height: float, white_dot_height: float) -> PyOpenSCAD:
         width_shield = width
@@ -1402,7 +1406,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         white = WhiteDots(width_shield / 2, white_dot_height).color("white")
         return (blue | white).translate([0, -(length_shield - width_shield) / 2, 0])
 
-    def AllBlueShields(length: float, height: float, white_dot_height: float) -> PyOpenSCAD:
+    def AllBlueShields(length: float, height: float, white_dot_height: float) -> "Bosl2Solid":
         outer_shield = length / 10
         inner_layout = outer_shield * 5 / 8
         shield_width = length / 40
@@ -1411,7 +1415,7 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         c = BlueDotsShield(shield_width, height, white_dot_height).translate([-inner_layout / 2, 0, 0])
         d = BlueDotsShield(shield_width, height, white_dot_height).translate([0, inner_layout / 2, 0])
         e = BlueDotsShield(shield_width, height, white_dot_height).translate([0, -inner_layout / 2, 0])
-        return (a | b | c | d | e).shape
+        return (a | b | c | d | e)
 
     shape = None
     if border > 0:

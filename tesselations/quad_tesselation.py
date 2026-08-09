@@ -25,6 +25,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import Path2D
@@ -119,7 +120,7 @@ def TesselationFromQuadradicPoints(
     return Path2D(path, closed=True).merge_collinear()
 
 
-def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1, flip: bool = False) -> PyOpenSCAD:
+def TesselationBird(size: float, thickness: float = 2, outer_offset: float = 0.1, flip: bool = False) -> "Bosl2Shape2D":
     """A simple bird tesselation.
 
     Usage::

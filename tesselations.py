@@ -31,6 +31,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
@@ -365,7 +366,7 @@ def tesselation_polygon(path, side_indexes: "Sequence[int]", sides, flips: "Sequ
 
 def tesselation_drop(
     size: list[float], thickness: float = 0, outer_offset: float = 0, arc_offset: float = 0.2, arc_points: int = 10
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """Creates a drop tesselation.
 
     Usage::
@@ -569,7 +570,7 @@ def deltoid_trihexagonal_tiling_get_points(pts: list[list[float]], i: int, kite:
     return [pts[i], pts[(i + 1) % 6], [0, 0]]
 
 
-def deltoid_trihexagonal_tiling_inner_parts(pts: list[list[float]], thickness: float, kite: bool = False) -> "PyOpenSCAD":
+def deltoid_trihexagonal_tiling_inner_parts(pts: list[list[float]], thickness: float, kite: bool = False) -> "Bosl2Shape2D":
     """Internal: native 2-D geometry for the deltoid tiling's inner wedges."""
     # Each wedge is a concentric ring (outer offset minus inner offset -- no clipping, see
     # Region.with_holes); the wedges overlap, so their union is real 2-D CSG done natively.
@@ -583,7 +584,7 @@ def deltoid_trihexagonal_tiling_inner_parts(pts: list[list[float]], thickness: f
 
 def deltoid_trihexagonal_tiling(
     size: float, thickness: float = 1, outer_offset: float = 0, kite: bool = False
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """A tesselation to make a nice triangle-layout hex pattern.
 
     Usage::
@@ -615,7 +616,7 @@ def deltoid_trihexagonal_tiling(
     return outer_ring | inner
 
 
-def half_regular_hexagon(size: float, thickness: float = 1, outer_offset: float = 0) -> PyOpenSCAD:
+def half_regular_hexagon(size: float, thickness: float = 1, outer_offset: float = 0) -> "Bosl2Shape2D":
     """A half regular hexagon for layout, based on a triangle tesselation with rotations.
 
     Usage::
@@ -696,7 +697,7 @@ def rhombi_tri_hexagonal(size: float, thickness: float = 1, outer_offset: float 
     return circle(d=size, fn=6) & petals
 
 
-def tesselation_pegasus(size: list[float], thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
+def tesselation_pegasus(size: list[float], thickness: float = 0, outer_offset: float = 0) -> "Bosl2Shape2D":
     """Pegasus tesselation to use on lids.
 
     Usage::

@@ -30,6 +30,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import numpy as np
@@ -320,7 +321,7 @@ class PathBoxWithNoLid:
             profile=profile,
         )
 
-    def stackable_ring(self, bottom: bool = False) -> "PyOpenSCAD | None":
+    def stackable_ring(self, bottom: bool = False) -> "Bosl2Solid | None":
         """The interlocking ring for a stackable box (was the StackableBoxInternal closure)."""
         wall, stack, fit = self.wall_thickness, self.stackable_thickness, self.stackable_fit_offset
         grow = fit if bottom else 0
@@ -340,7 +341,7 @@ class PathBoxWithNoLid:
         ).translate([0, 0, -0.01])
         return outer - inner
 
-    def outer_body(self) -> "PyOpenSCAD":
+    def outer_body(self) -> "Bosl2Solid":
         """The solid outside of the box: the main prism, its stack ring, and any extra floors."""
         wall, stack = self.wall_thickness, self.stackable_thickness
         solid = PolygonPrism(
@@ -384,7 +385,7 @@ class PathBoxWithNoLid:
                     body = body - cut
         return self.carve_children(body)
 
-    def hollow_cut(self) -> "PyOpenSCAD":
+    def hollow_cut(self) -> "Bosl2Solid":
         """The main cavity."""
         return PolygonPrism(
             Path2D(self.inner_path, closed=True).round_corners(radius=self.hollow_radius.radius),
@@ -393,7 +394,7 @@ class PathBoxWithNoLid:
             rounding_top=0 if self.stackable else -self.hollow_radius.top,
         ).translate([0, 0, self.floor_thickness])
 
-    def extra_floor_cut(self, f: types.SimpleNamespace) -> "PyOpenSCAD | None":
+    def extra_floor_cut(self, f: types.SimpleNamespace) -> "Bosl2Solid | None":
         """The cavity above one raised floor."""
         if f.floor_height <= 0:
             return None
@@ -413,7 +414,7 @@ class PathBoxWithNoLid:
             rounding_top=0 if self.stackable else -self.hollow_radius.top,
         ).translate([0, 0, f.floor_height + self.floor_thickness])
 
-    def carve_children(self, body: "PyOpenSCAD") -> "PyOpenSCAD":
+    def carve_children(self, body: "PyOpenSCAD") -> "Bosl2Solid":
         """Subtract the caller's children, resolving a callable against :meth:`inner`."""
         if self.children is None:
             return body

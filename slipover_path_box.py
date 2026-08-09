@@ -32,6 +32,7 @@ from pythonscad import *
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from components import FingerHoleWall
@@ -96,7 +97,7 @@ def _make_path_box_with_slipover_lid(
     positive_only_children: list[int] | None = None,
     positive_negative_children: list[int] | None = None,
     lid_catch: CatchType | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes the inside of a polygon slipover box.
 
     This will take a second lid that slides over the outside of the box.
@@ -214,7 +215,7 @@ def _slipover_path_lid_parts(
     material_colour: Color | None = None,
     offset_sweep_options: types.SimpleNamespace | None = None,
     lid_catch: CatchType | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """The pieces of a polygon slipover sleeve: ``(top_plate, shell, plate_z, rounded_path)``.
 
     Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in

@@ -24,6 +24,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import Path2D
@@ -88,7 +89,7 @@ def LizardHexTesselation(radius: float, thickness: float = 0, outer_offset: floa
     return Region([outer, sized_lizard_points.offset(delta=-thickness).to_list])
 
 
-def LizardSingle(size: float) -> PyOpenSCAD:
+def LizardSingle(size: float) -> "Bosl2Shape2D":
     """Creates a single lizard.
 
     Usage::
@@ -104,7 +105,7 @@ def LizardSingle(size: float) -> PyOpenSCAD:
     return shapes2d.polygon(LizardHexTesselation(radius=size / 2))
 
 
-def LizardSingleOutline(size: float, thickness: float) -> PyOpenSCAD:
+def LizardSingleOutline(size: float, thickness: float) -> "Bosl2Shape2D":
     """Creates a single lizard with an outline.
 
     Usage::
@@ -150,7 +151,7 @@ def HexagonalTesselationTriangle(size: float, pts: list) -> list:
     return combined.translate([-apothem / 2, size])
 
 
-def LizardTriangle(size: float, thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
+def LizardTriangle(size: float, thickness: float = 0, outer_offset: float = 0) -> "Bosl2Shape2D":
     """Makes the triangle that can be used to fill in the lizard tesselation in a wider group.
 
     This will not need to be rotated.

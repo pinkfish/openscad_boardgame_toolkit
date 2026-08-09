@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
 from base_bgtk import *
 from pybosl2._sdf import shapes3d as _sdf3
 
@@ -43,7 +44,7 @@ import math
 # ---------------------------------------------------------------------------
 
 
-def dodecahedron(size: float) -> PyOpenSCAD:
+def dodecahedron(size: float) -> "Bosl2Solid":
     """Creates a 12-sided shape (d12) for use in games.
 
     Usage::
@@ -62,7 +63,7 @@ def dodecahedron(size: float) -> PyOpenSCAD:
     return shape.scale([size, size, size]).to_csg().color(default_material_colour)
 
 
-def tetrahedron(size: float) -> PyOpenSCAD:
+def tetrahedron(size: float) -> "Bosl2Solid":
     """Creates a d4 tetrahedron shape for use in games.
 
     Usage::
@@ -87,7 +88,7 @@ def tetrahedron(size: float) -> PyOpenSCAD:
     )
 
 
-def octahedron(size: float) -> PyOpenSCAD:
+def octahedron(size: float) -> "Bosl2Solid":
     """Creates a d8 octahedron shape for use in games.
 
     Usage::
@@ -100,7 +101,7 @@ def octahedron(size: float) -> PyOpenSCAD:
     return _sdf3.octahedron(size=size).to_csg().color(default_material_colour)
 
 
-def icosahedron(size: float) -> PyOpenSCAD:
+def icosahedron(size: float) -> "Bosl2Solid":
     """Creates a d20 icosahedron shape for use in games.
 
     Usage::
@@ -146,7 +147,7 @@ def _trapezohedron_vertices(size: float) -> tuple[list[list[float]], float, floa
     return [[0, 0, h], [0, 0, -h]] + top + bot, separation, h
 
 
-def trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | None = None) -> PyOpenSCAD:
+def trapezohedron(size: float, length_mod: float = 0, children: PyOpenSCAD | None = None) -> "Bosl2Solid":
     """Creates a d10 trapezohedron shape for use in games.
 
     Usage::

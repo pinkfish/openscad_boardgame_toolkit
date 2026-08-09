@@ -30,6 +30,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.masking
@@ -115,7 +116,7 @@ def _make_box_with_filament_hinge_lid(
     positive_colour: Color | None = None,
     positive_only_children: list[int] | None = None,
     positive_negative_children: list[int] | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a box with a filament hinge on the top.
 
     The hole for the filament is specified as an argument to the system.
@@ -290,7 +291,7 @@ def _filament_box_inside_mask(
     rounding: float = 0,
     print_in_place_offset: float | None = None,
     hinge_options: types.SimpleNamespace | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """The inside mask to intersect against, so inside cuts don't disturb the hinges.
 
     Usage::
@@ -343,7 +344,7 @@ def _filament_box_inside_mask(
     body = body - cut2
 
     # Unwrapped: the native intersection at the call sites needs a raw solid.
-    return body.shape
+    return body
 
 
 def _filament_lid_parts(
@@ -357,7 +358,7 @@ def _filament_lid_parts(
     hinge_options: types.SimpleNamespace | None = None,
     print_in_place_offset: float | None = None,
     size_spacing: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """The pieces of a filament-hinge lid: ``(top_plate, shell, plate_origin, pin_hole)``.
 
     Split into pieces (rather than returning a finished lid) so the ONE lid pipeline in

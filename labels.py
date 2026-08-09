@@ -96,7 +96,7 @@ def MakeLabelOptions(**kwargs) -> LabelOptions:
     return LabelOptions(**kwargs)
 
 
-def MakeStripedGrid(size: list[float], bar_width: float = 1) -> PyOpenSCAD:
+def MakeStripedGrid(size: list[float], bar_width: float = 1) -> "Bosl2Shape2D":
     """Creates a 2-D striped background grid for labels.
 
     Usage::
@@ -170,10 +170,15 @@ def Make3dStripedGrid(
             )
             .rotate([0, 0, 45])
             .translate([j * (bar_width + dx), length / 2, 0])
-            .shape
         )
         pieces.append(piece)
-    return union(pieces)
+    # union_all_2d keeps the result a pybosl2 wrapper. That matters beyond tidiness: the NATIVE
+    # __sub__ RAISES "invalid argument left to operator" instead of returning NotImplemented,
+    # so Python never falls back to the wrapper's __rsub__ -- a native left operand with a
+    # wrapper on the right is a hard error, which is what broke UnionJack.
+    shape = union_all_2d(pieces)  # dimension-agnostic: it just balances the | tree
+    assert shape is not None
+    return shape
 
 
 def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> PyOpenSCAD:
@@ -306,7 +311,7 @@ def MakeMainLidLabelSolid(size: list[float], lid_thickness: float, label: str, o
     return result.translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0])
 
 
-def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> PyOpenSCAD:
+def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> "Bosl2Solid":
     """Makes a label in a striped-background frame for use on lids.
 
     Usage::
@@ -363,7 +368,7 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
             shape = text_shape.translate([options.offset, options.offset, 0]).offset(radius=edge_offset)
         return shape.linear_extrude(text_thickness)
 
-    def StripedBackground(calc_background_color: Color) -> PyOpenSCAD:
+    def StripedBackground(calc_background_color: Color) -> "Bosl2Solid":
         w = width - options.border * 2
         l = length - options.border * 2
         rounding = options.radius if options.radius * 2 <= min(w, l) else min(w, l) / 2
@@ -453,10 +458,10 @@ def MakeMainLidLabelStriped(size: list[float], lid_thickness: float, label: str,
     # before returning, since callers combine this with plain native shapes (e.g.
     # sliding_box.py's build_lid() unions several lid children together, and a
     # Bosl2Solid mixed in among native ones breaks the native `|` operator).
-    return result.translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0]).shape
+    return result.translate([-width / 2 + options.label_diff[0], -length / 2 + options.label_diff[1], 0])
 
 
-def MakeFramedLidLabel(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> PyOpenSCAD | None:
+def MakeFramedLidLabel(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> "Bosl2Solid | None":
     """Makes a framed (solid or striped) label for a lid.
 
     Usage::

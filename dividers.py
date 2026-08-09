@@ -28,6 +28,7 @@ import pybosl2.shapes3d
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 
 # ---------------------------------------------------------------------------
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
 
 def MakeDividerTab(
     tab_height: float, tab_length: float, thickness: float, tab_radius: float = 2, children: PyOpenSCAD | None = None
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a single divider tab with nice curved transitions.
 
     Any *children* solid is differenced out of the tab (e.g., an SVG icon).
@@ -64,7 +65,7 @@ def MakeDividerTab(
     cut_b = pybosl2.shapes3d.cyl(radius=tab_radius, height=thickness + 1).translate([tab_length + tab_radius * 2, -tab_radius, 0.5])
     base_shape = (base - cut_a - cut_b).translate([-tab_radius, 0, 0])
 
-    tab = (top | base_shape).translate([0, tab_height, 0]).shape
+    tab = (top | base_shape).translate([0, tab_height, 0])
     if children is not None:
         tab = tab - children
     return tab
@@ -79,7 +80,7 @@ def MakeDivider(
     tab_length: float | None = None,
     hole_offset: float = 6,
     children: list[PyOpenSCAD] | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a divider card with a tab at the top.
 
     Usage::
@@ -139,7 +140,10 @@ def MakeDivider(
     for extra in kids[1:]:
         body = body - extra
 
-    return (tab | body.shape) & cube([width, length, thickness])
+    # cuboid(anchor=BOTTOM+FRONT+LEFT) is the pybosl2 spelling of the native cube()'s
+    # corner-at-origin box, so the whole chain stays on the wrapper API.
+    clip = pybosl2.shapes3d.cuboid([width, length, thickness], anchor=BOTTOM + FRONT + LEFT)
+    return (tab | body) & clip
 
 
 def MakeDividerWithText(
@@ -155,7 +159,7 @@ def MakeDividerWithText(
     text_depth: float | None = None,
     font: str | None = None,
     children: list[PyOpenSCAD] | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a divider with text printed in the tab.
 
     Usage::

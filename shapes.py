@@ -26,6 +26,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
@@ -60,7 +61,7 @@ from lids_base import (
 _SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
 
 
-def _stroke(path, width: float = 1, closed: bool = False) -> PyOpenSCAD:
+def _stroke(path, width: float = 1, closed: bool = False) -> "Bosl2Shape2D":
     """Draws a path as 2-D geometry with round caps and joins -- the same look BOSL2's
     stroke() module gives, built as a union of hull()ed circle pairs per segment. Needed
     because BOSL2's stroke() has NO function form (calling _stroke() as an expression
@@ -158,7 +159,7 @@ def sword2d(
     hilt_pos: float | None = None,
     hilt_rounding: float | None = None,
     blade_rounding: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """2d shape of a sword.
 
     Usage::
@@ -212,7 +213,7 @@ def sword2d_outline(
     hilt_rounding: float | None = None,
     blade_rounding: float | None = None,
     line_width: float = 1,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """2d outline of a sword.
 
     Usage::
@@ -275,7 +276,7 @@ def crossbow2d(
     handle_width: float | None = None,
     bow_width: float | None = None,
     outer_circle: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """A 2d crossbow shape.
 
     Usage::
@@ -317,7 +318,7 @@ def crossbow2d_outline(
     bow_width: float | None = None,
     outer_circle: float | None = None,
     line_width: float = 1,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An outline of a 2d crossbow shape.
 
     Usage::
@@ -352,7 +353,7 @@ def sledgehammer2d(
     head_length: float | None = None,
     rounding_head: float | None = None,
     rounding_handle: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """A 2d sledgehammer shape.
 
     Usage::
@@ -395,7 +396,7 @@ def sledgehammer2d_outline(
     rounding_handle: float = 1,
     line_width: float = 1,
     strap_width: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An outline of a 2d sledgehammer shape.
 
     Usage::
@@ -446,7 +447,7 @@ def sledgehammer2d_outline(
 
 def shoe2d(
     size: float, leg_length: float | None = None, base_width: float | None = None, sole_height: float | None = None
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An nice 2d shoe shape.
 
     Usage::
@@ -508,7 +509,7 @@ def bag2d(
     main_round_diameter: float | None = None,
     neck_width: float | None = None,
     rope_length: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An nice 2d bag shape.
 
     Usage::
@@ -594,7 +595,7 @@ def bag2d_outline(
 
 def torch2d(
     length: float, width: float, handle_width: float | None = None, head_length: float | None = None
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An nice 2d torch shape.
 
     Usage::
@@ -624,7 +625,7 @@ def torch2d_outline(
     handle_width: float | None = None,
     head_length: float | None = None,
     line_width: float = 1,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An nice 2d torch outline shape.
 
     Usage::
@@ -664,7 +665,7 @@ def teapot2d(
     spout_length: float | None = None,
     side_handle_length: float | None = None,
     side_handle_rounding: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """An nice 2d teapot shape.
 
     Usage::
@@ -748,7 +749,7 @@ def teapot2d(
     return body | spout | top | handle | side_handle
 
 
-def coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOpenSCAD:
+def coin2d(size: float, text: str = "1", text_size: float | None = None) -> "Bosl2Shape2D":
     """A simple coin icon to use in things.
 
     Usage::
@@ -777,7 +778,7 @@ def coin2d(size: float, text: str = "1", text_size: float | None = None) -> PyOp
     return outer - inner - glyph
 
 
-def coin_pile2d(size: float, rounding: float | None = None, coin_num: int | None = None) -> PyOpenSCAD:
+def coin_pile2d(size: float, rounding: float | None = None, coin_num: int | None = None) -> "Bosl2Shape2D":
     """Makes a coin pile to use in other places.
 
     Usage::
@@ -819,7 +820,7 @@ def australia_map_width(length: float) -> float:
     return length * (_australia_map_width / _australia_map_length)
 
 
-def australia_map2d(length: float) -> PyOpenSCAD:
+def australia_map2d(length: float) -> "Bosl2Shape2D":
     """a map of australia.
 
     Usage::
@@ -837,7 +838,7 @@ def australia_map2d(length: float) -> PyOpenSCAD:
     )
 
 
-def rock2d(length: float, width: float, rounding: float | None = None) -> PyOpenSCAD:
+def rock2d(length: float, width: float, rounding: float | None = None) -> "Bosl2Shape2D":
     """Makes a rock shape to use in walls and things.
 
     Usage::
@@ -864,7 +865,7 @@ def ruins2d_width(length: float) -> float:
     return length * (ruins_2d_width / ruins_2d_length)
 
 
-def ruins2d(size: float) -> PyOpenSCAD:
+def ruins2d(size: float) -> "Bosl2Shape2D":
     """Makes a small ruins image to use in stuff.
 
     Usage::
@@ -938,7 +939,7 @@ def d20_outline2d(size: float, offset: float) -> PyOpenSCAD:
     return shape
 
 
-def saw_blade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenSCAD:
+def saw_blade2d(size: float, inner_spindle_size: float | None = None) -> "Bosl2Shape2D":
     """Makes a nice 2d saw blade.
 
     Args:
@@ -951,7 +952,7 @@ def saw_blade2d(size: float, inner_spindle_size: float | None = None) -> PyOpenS
     return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0]) - shapes2d.circle(radius=calc_inner_spindle_size)
 
 
-def saw_blade2d_outline(size: float, inner_spindle_size: float | None = None, outer_width: float = 1) -> PyOpenSCAD:
+def saw_blade2d_outline(size: float, inner_spindle_size: float | None = None, outer_width: float = 1) -> "Bosl2Shape2D":
     """Makes a nice 2d saw blade outline.
 
     Usage::
@@ -964,7 +965,7 @@ def saw_blade2d_outline(size: float, inner_spindle_size: float | None = None, ou
         outer_width: outer width of the shape
     """
 
-    def OuterBlade() -> PyOpenSCAD:
+    def OuterBlade() -> "Bosl2Shape2D":
         return shapes2d.supershape(m1=20, n1=20, n2=9, n3=6).resize([size, size, 0])
 
     calc_inner_spindle_size = inner_spindle_size
@@ -974,7 +975,7 @@ def saw_blade2d_outline(size: float, inner_spindle_size: float | None = None, ou
     return shape | shapes2d.circle(radius=calc_inner_spindle_size)
 
 
-def handshake2d(size: float) -> PyOpenSCAD:
+def handshake2d(size: float) -> "Bosl2Shape2D":
     """Creates two hands shaking hands.
 
     Usage::
@@ -1017,7 +1018,7 @@ def handshake2d(size: float) -> PyOpenSCAD:
     return whole.resize([size, size * 60 / 80, 0])
 
 
-def fist2d(size: float) -> PyOpenSCAD:
+def fist2d(size: float) -> "Bosl2Shape2D":
     """A nice fist for use in stuff.  Fist is from
     [fist printables](https://www.printables.com/model/799571-fist-customizable)
     by [Vendicar Design](https://www.printables.com/@VendicarDecarian)
@@ -3592,14 +3593,14 @@ def fist2d_outline(size: float, line_width: float) -> PyOpenSCAD:
     return DifferenceWithOffset(-line_width, children=fist2d(size))
 
 
-def leaf2d(size: float) -> PyOpenSCAD:
+def leaf2d(size: float) -> "Bosl2Shape2D":
     """Makes a nice leaf.
 
     Args:
         size: size of the leaf
     """
 
-    def LeafHalf() -> PyOpenSCAD:
+    def LeafHalf() -> "Bosl2Shape2D":
         return (shapes2d.circle(diameter=0.25).translate([0, 0.125])).hull(shapes2d.circle(diameter=8, fn=64).translate([11, 23]), shapes2d.circle(diameter=8, fn=64).translate([14, 48]), shapes2d.circle(diameter=0.25).translate([0, 98.125]))
 
     whole = (LeafHalf() | LeafHalf().mirror([1, 0])).translate([0, -50])
@@ -3639,7 +3640,7 @@ def laurel_wreath2d(size: float) -> PyOpenSCAD:
     return whole.resize([size, scale_factor * basic_height, 0])
 
 
-def anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
+def anvil2d(size: float, with_hammer: bool = False) -> "Bosl2Shape2D":
     """Makes a nice 2d anvil.
 
     Usage::
@@ -3670,7 +3671,7 @@ def anvil2d(size: float, with_hammer: bool = False) -> PyOpenSCAD:
     return whole.resize([size, new_height, 0])
 
 
-def half_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
+def half_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> "Bosl2Shape2D":
     """Makes a single eye for use in various things where eyes are needed.
     This is a half eye on an angle.
 
@@ -3696,7 +3697,7 @@ def half_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupi
     return eye | lid
 
 
-def side_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> PyOpenSCAD:
+def side_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupil_size: float = 5) -> "Bosl2Shape2D":
     """Makes a single eye for use in various things where eyes are needed.
     This is a half eye on an angle.
 
@@ -3718,7 +3719,7 @@ def side_eye2d(angle: float, outer_size: float = 10, inner_size: float = 8, pupi
     return ring | pupil
 
 
-def cloud_shape2d(width: float) -> PyOpenSCAD:
+def cloud_shape2d(width: float) -> "Bosl2Shape2D":
     """Makes a cloud object.  This object was made by Twanne on thingiverse:
     https://www.thingiverse.com/thing:641665/files
 
@@ -3736,7 +3737,7 @@ def cloud_shape2d(width: float) -> PyOpenSCAD:
     return a | b | c | d
 
 
-def single_log2d(size: float, line_width: float = 1) -> PyOpenSCAD:
+def single_log2d(size: float, line_width: float = 1) -> "Bosl2Shape2D":
     """A single log image.
 
     Usage::
@@ -3763,7 +3764,7 @@ def single_log2d(size: float, line_width: float = 1) -> PyOpenSCAD:
     return whole.resize([size, size / 35 * 25, 0])
 
 
-def tower2d(size: float) -> PyOpenSCAD:
+def tower2d(size: float) -> "Bosl2Shape2D":
     """Make a single keep tower for use in games and stuff.
 
     Usage::
@@ -3795,7 +3796,7 @@ def tower2d(size: float) -> PyOpenSCAD:
     return (top_bottom | crown | side).translate([0, -size / 4])
 
 
-def sign2d(size: float) -> PyOpenSCAD:
+def sign2d(size: float) -> "Bosl2Shape2D":
     """Makes a sign shape to use for stuff.
 
     Usage::
@@ -4283,7 +4284,7 @@ def portugal_castle(stroke_width: float, width: float) -> PyOpenSCAD:
     return whole.resize([width, (max_height - min_height) * mult, 0])
 
 
-def train_outline(length: float) -> PyOpenSCAD:
+def train_outline(length: float) -> "Bosl2Shape2D":
     """Creates a nice train outline to use for stuff.
 
     Usage::
@@ -4479,7 +4480,7 @@ def train_outline(length: float) -> PyOpenSCAD:
     return whole.translate([-length / 2, -length * train_width / train_length / 2])
 
 
-def wagon_outline(length: float) -> PyOpenSCAD:
+def wagon_outline(length: float) -> "Bosl2Shape2D":
     """Create a wagon outline from the exciting svg.
 
     Usage::

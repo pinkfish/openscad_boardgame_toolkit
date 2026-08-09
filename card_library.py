@@ -30,6 +30,7 @@ from pythonscad import *
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 import pybosl2.masking
@@ -154,7 +155,7 @@ def _make_card_library_box(
     latch: str = CARD_LIBRARY_LATCH_SLIDING,
     hinge_hole_diameter: float | None = None,
     print_in_place_offset: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Makes a card library box with the specified latch type.
 
     Usage::
@@ -404,7 +405,7 @@ def _make_card_library_box(
     return body
 
 
-def SlidingChannel(size: list[float], wall_thickness: float) -> "PyOpenSCAD":
+def SlidingChannel(size: list[float], wall_thickness: float) -> "Bosl2Solid":
     """Creates a sliding channel for the card library latch.
 
     Args:
@@ -424,12 +425,12 @@ def SlidingChannel(size: list[float], wall_thickness: float) -> "PyOpenSCAD":
         [width - height, 0, -0.1]
     )
 
-    return (a | b).shape
+    return a | b
 
 
 def SlidingLatch(
     size: list[float], print_in_place_offset: float, lid_thickness: float, wall_thickness: float
-) -> "PyOpenSCAD":
+) -> "Bosl2Solid":
     """Creates a sliding latch for the card library box lid.
 
     Args:
@@ -457,7 +458,7 @@ def SlidingLatch(
         anchor=BOTTOM + BACK + LEFT,
     ).translate([print_in_place_offset * 0.25, length - wall_thickness * 2.75 - print_in_place_offset * 2, 0])
 
-    return (a | b | c).shape
+    return a | b | c
 
 
 def _card_library_lid_parts(
@@ -471,7 +472,7 @@ def _card_library_lid_parts(
     hinge_hole_diameter: float | None = None,
     print_in_place_offset: float | None = None,
     size_spacing: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """The pieces of a card-library lid: ``(base, extra_overlays, latch_parts, plate_origin,
     plate_size)``.
 
@@ -654,7 +655,7 @@ def _card_library_lid_parts(
                 [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
                 wall_thickness=wall_thickness,
             )
-            .color(native_colour(material_colour))
+            .color(material_colour)
             .translate([width * 3 / 4 - print_in_place_offset * 2, wall_thickness, lid_thickness])
         )
         add(
@@ -671,7 +672,7 @@ def _card_library_lid_parts(
                 lid_thickness=lid_thickness,
                 wall_thickness=wall_thickness,
             )
-            .color(native_colour(material_colour))
+            .color(material_colour)
             .translate([width * 3 / 4, wall_thickness, 0])
         )
         add(
@@ -679,7 +680,7 @@ def _card_library_lid_parts(
                 [sliding_latch_size[0] + print_in_place_offset * 2, sliding_latch_size[1], sliding_latch_size[2]],
                 wall_thickness=wall_thickness,
             )
-            .color(native_colour(material_colour))
+            .color(material_colour)
             .translate([width * 3 / 4 - print_in_place_offset, length - edge_size - wall_thickness, lid_thickness])
         )
         add(
@@ -698,7 +699,7 @@ def _card_library_lid_parts(
                 wall_thickness=wall_thickness,
             )
             .rotate([0, 0, 180])
-            .color(native_colour(material_colour))
+            .color(material_colour)
             .translate([width * 3 / 4 + wall_thickness * 3 - print_in_place_offset, length - wall_thickness, 0])
         )
 

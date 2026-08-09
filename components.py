@@ -107,7 +107,7 @@ def HexBoxDivisions(
     num_sides: int = 6,
     wall_thickness: float | None = None,
     bottom_radius: float | None = None,
-) -> PyOpenSCAD:
+) -> "Bosl2Shape2D":
     """Creates a box with divisions inside for hex shaped tiles.
 
     Usage:
@@ -159,7 +159,7 @@ def HexBoxDivisions(
     return shape.translate([0, 0, 2])
 
 
-def RoundedBoxOnLength(size: list[float], radius: float) -> PyOpenSCAD:
+def RoundedBoxOnLength(size: list[float], radius: float) -> "Bosl2Solid":
     """Creates a rounded box with a nice radius on two sides (length side).
 
     Usage:
@@ -185,7 +185,7 @@ def RoundedBoxOnLength(size: list[float], radius: float) -> PyOpenSCAD:
     return (rounded - cut).hull( top)
 
 
-def RoundedBoxAllSides(size: list[float], radius: float) -> PyOpenSCAD:
+def RoundedBoxAllSides(size: list[float], radius: float) -> "Bosl2Solid":
     """Creates a rounded box with all sides rounded.
 
     Usage:
@@ -330,7 +330,7 @@ def CylinderWithIndents(
     cyl_fn: int | None = None,
     anchor: list[int] | None = None,
     children: PyOpenSCAD | None = None,
-) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
+) -> "Bosl2Solid | shapes3d.Bosl2Solid":
     """Makes a cylinder with optional finger-hole indents at specified angles.
 
     Usage:
@@ -399,7 +399,7 @@ def CuboidWithIndentsBottom(
     edges: list | None = None,
     anchor: list[int] | None = None,
     children: PyOpenSCAD | None = None,
-) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
+) -> "Bosl2Solid | shapes3d.Bosl2Solid":
     """Makes a cuboid with finger-hole indents on specified sides, anchored at the bottom.
 
     Usage:
@@ -970,7 +970,7 @@ def FingerHoleBase(
 # ---------------------------------------------------------------------------
 
 
-def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness: int = 32) -> PyOpenSCAD:
+def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness: int = 32) -> "Bosl2Shape2D":
     """Generates a 2-D Hilbert curve for use on lids and other surfaces.
 
     Usage:
@@ -985,28 +985,28 @@ def HilbertCurve(order: int, size: float, line_thickness: float = 20, smoothness
     assert order > 0, f"Need order > 0, order={order}"
     assert size > 0, f"Need size > 0, size={size}"
 
-    def topline(n: int) -> PyOpenSCAD:
+    def topline(n: int) -> "Bosl2Shape2D":
         if n > 0:
             return topline(n - 1).scale([0.5, 0.5])
         return shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
             shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2])
         )
 
-    def leftline(n: int) -> PyOpenSCAD:
+    def leftline(n: int) -> "Bosl2Shape2D":
         if n > 0:
             return leftline(n - 1).translate([-size, 0]).scale([0.5, 0.5])
         return shapes2d.circle(diameter=line_thickness).translate([-size / 2, size / 2]).hull(
             shapes2d.circle(diameter=line_thickness).translate([-size / 2, -size / 2])
         )
 
-    def rightline(n: int) -> PyOpenSCAD:
+    def rightline(n: int) -> "Bosl2Shape2D":
         if n > 0:
             return rightline(n - 1).translate([size, 0]).scale([0.5, 0.5])
         return shapes2d.circle(diameter=line_thickness).translate([size / 2, size / 2]).hull(
             shapes2d.circle(diameter=line_thickness).translate([size / 2, -size / 2])
         )
 
-    def hilbert(n: int) -> PyOpenSCAD:
+    def hilbert(n: int) -> "Bosl2Shape2D":
         if n > 0:
             return (
                 hilbert(n - 1).scale([0.5, 0.5]).translate([size / 2, size / 2])
@@ -1043,7 +1043,7 @@ def MagnetSlot(
     spin: float = 0,
     orient: list[float] | None = None,
     anchor: list[int] | None = None,
-) -> "PyOpenSCAD | shapes3d.Bosl2Solid":
+) -> "Bosl2Solid | shapes3d.Bosl2Solid":
     """Creates a slot for a magnet of a given size and type.
 
     Usage:

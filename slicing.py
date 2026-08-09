@@ -26,6 +26,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import transforms
@@ -61,7 +62,7 @@ def SplitBox(
     y: list[float] | None = None,
     orient: list[float] | None = None,
     spin: float = 0,
-) -> PyOpenSCAD:
+) -> "Bosl2Solid":
     """Slices a box into left and right parts with a puzzle-join interface.
 
     Usage::

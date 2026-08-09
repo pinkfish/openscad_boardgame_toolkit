@@ -24,6 +24,7 @@ from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
 from base_bgtk import *
 from pybosl2 import shapes2d
@@ -39,7 +40,7 @@ TESSELATION_GOOSE_SIDE = 30
 TESSELATION_GOOSE_MIDDLE = 3
 
 
-def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0, outer_offset: float = 0) -> PyOpenSCAD:
+def TesselationGoose(flip: bool = False, size: float = 100, thickness: float = 0, outer_offset: float = 0) -> "Bosl2Shape2D":
     """The nice goose shape.
 
     Usage::
