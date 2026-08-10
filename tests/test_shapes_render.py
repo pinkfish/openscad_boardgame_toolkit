@@ -96,7 +96,7 @@ SHAPES = [
     ("shape_single_log", f"single_log2d(40){_E}"),
     ("shape_tower", f"tower2d(40){_E}"),
     ("shape_sign", f"sign2d(40){_E}"),
-    ("shape_portugal_castle", f"portugal_castle(stroke_width=1.5, width=40){_E}"),
+    ("shape_portugal_castle", f"portugal_castle(width=40){_E}"),
     ("shape_train_outline", f"train_outline(60){_E}"),
     ("shape_wagon_outline", f"wagon_outline(60){_E}"),
 ]

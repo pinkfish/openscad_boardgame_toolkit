@@ -130,14 +130,17 @@ def example_games():
         if not f.endswith(".py") or f == "__init__.py":
             continue
         base = f[:-3]
-        if any(True for _ in scan_py_sections(open(os.path.join(EXAMPLES, f)).read().splitlines())):
+        with open(os.path.join(EXAMPLES, f)) as fh:
+            lines = fh.read().splitlines()
+        if any(True for _ in scan_py_sections(lines)):
             games.append(base)
     return games
 
 
 def sections(game):
     """(make_boxes, doc_boxes) for a game, de-duplicated in declaration order."""
-    lines = open(os.path.join(EXAMPLES, game + ".py")).read().splitlines()
+    with open(os.path.join(EXAMPLES, game + ".py")) as fh:
+        lines = fh.read().splitlines()
     makes, docs = [], []
     for name, kind in scan_py_sections(lines):
         target = makes if kind == "make" else docs

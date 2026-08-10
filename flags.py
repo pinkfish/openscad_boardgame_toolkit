@@ -43,7 +43,6 @@ from pybosl2.shapes3d import Bosl2Solid
 from labels import Make3dStripedGrid
 
 
-# portugal_castle is imported lazily below since shapes is a large sibling
 # module converted separately.
 
 
@@ -532,8 +531,6 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
         background: put in a green/red background with stripes (default True)
         border: border to put on the flag (this goes outside the length) (default 0)
     """
-    from shapes import portugal_castle
-
     width = length * 2 / 3
 
     def Quina(width: float, height: float) -> "Bosl2Solid":

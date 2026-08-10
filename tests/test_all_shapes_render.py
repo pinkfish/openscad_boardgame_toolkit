@@ -45,7 +45,7 @@ SHAPES2D = {
     "torch2d": "torch2d(30, 10)", "teapot2d": "teapot2d(30, 10)", "rock2d": "rock2d(30, 10)",
     "d20_outline2d": "d20_outline2d(20, 1)", "half_eye2d": "half_eye2d(30)", "side_eye2d": "side_eye2d(30)",
     "australia_map2d": "australia_map2d(30)", "train_outline": "train_outline(20)",
-    "wagon_outline": "wagon_outline(20)", "portugal_castle": "portugal_castle(1, 20)",
+    "wagon_outline": "wagon_outline(20)", "portugal_castle": "portugal_castle(20)",
     # The *_outline variants: the same figures drawn as outlines rather than solids. Every
     # one of these was ported and then never built by any test.
     "sword2d_outline": "sword2d_outline(30, 10)",
