@@ -89,6 +89,24 @@ class Direction(str, Enum):
     GRID = "grid"         # wrapped into ``cols`` columns
 
 
+class PackingBin(str, Enum):
+    """How compartments are distributed across ROWS when a group wraps.
+
+    A row is the bin: it is one band of interior width, and a compartment either fits in
+    what is left of it or it does not. The names and behaviours follow ``rectpack``'s
+    ``PackingBin`` so the choice means the same thing here as it does there.
+
+    Leaving this unset keeps the historical behaviour -- a ``row`` group is exactly one row
+    and overflowing it is a :class:`LayoutError`. That is deliberate: wrapping by default
+    would re-arrange compartments in boxes people have already printed.
+    """
+
+    BNF = "bnf"        #: Bin Next Fit: if it does not fit the current row, close that row and start another.
+    BFF = "bff"        #: Bin First Fit: put it in the first row it fits; earlier rows stay open.
+    BBF = "bbf"        #: Bin Best Fit: put it in the row it leaves the least room in.
+    GLOBAL = "global"  #: fill each row with the best-fitting compartment left, then move on.
+
+
 class Justify(str, Enum):
     """How leftover space is distributed when packing (all keep the minimum gap)."""
 
@@ -116,7 +134,9 @@ class Compartment:
 
     ``depth`` is the well depth (``None`` = the full interior height). ``count``
     repeats the compartment. ``fill=True`` makes it absorb the leftover width in its
-    row. ``removal`` is how you get pieces out (see :data:`SCOOP_MIN_DEPTH`):
+    row. ``rotate=True`` lets the packer turn the compartment a quarter turn when that
+    is what makes a row fit -- off by default, because turning one silently would move
+    every compartment in an existing box. ``removal`` is how you get pieces out (see :data:`SCOOP_MIN_DEPTH`):
 
       * ``"auto"``      -> ``card_hole`` if ``is_card`` else ``scoop`` if the well is
                            deep enough (>= SCOOP_MIN_DEPTH) else ``finger``
@@ -139,6 +159,7 @@ class Compartment:
     removal: Removal = Removal.AUTO
     scoop_depth: float | None = None   # how far the scoop dips below the well floor; None = auto
     fill: bool = False
+    rotate: bool = False               # the packer MAY turn this 90 degrees to make it fit
     radius: float = 2.0
     solid: object = None               # for Shape.CUSTOM: the well solid or callable(depth)
     # --- label engraving (Irish-Gauge style): 0.2mm second-colour text/image on the floor ---
@@ -150,8 +171,11 @@ class Compartment:
     label_shape: object = None         # a SHAPE image engraved on the floor instead of/with text
                                        # (a 2-D shape e.g. shapes.coin2d(14), a callable(depth), or a solid)
 
-    def cell(self) -> tuple[float, float]:
-        """The (width, length) bounding cell this compartment occupies for packing."""
+    def cell(self, rotated: bool = False) -> tuple[float, float]:
+        """The (width, length) bounding cell this compartment occupies for packing.
+
+        *rotated* turns it a quarter turn, swapping the two. Only ``rect`` and ``custom``
+        have a cell that is not square, so only they can change shape by turning."""
         if self.shape == Shape.CIRCLE:
             assert self.d, f"circle compartment needs d=, got {self.d}"
             return self.d, self.d
@@ -160,7 +184,7 @@ class Compartment:
             return self.across, self.across
         # rect and custom both pack by their w x l bounding cell.
         assert self.w and self.l, f"{Shape(self.shape).value} compartment needs w= and l=, got {self.w}x{self.l}"
-        return self.w, self.l
+        return (self.l, self.w) if rotated else (self.w, self.l)
 
     def resolved_removal(self, depth: float) -> Removal:
         if self.removal != Removal.AUTO:
@@ -180,6 +204,7 @@ class Group:
     cols: int | None = None     # for Direction.GRID
     label: str | None = None
     fill: bool = False
+    packing: "PackingBin | None" = None   # wrap into rows with this strategy; None = one row
 
 
 # ---------------------------------------------------------------------------
@@ -187,11 +212,17 @@ class Group:
 # ---------------------------------------------------------------------------
 
 
-def _well_solid(c: Compartment, cw: float, cl: float, depth: float) -> object:
-    """The well cavity solid, cell-corner-anchored at (0,0,0), spanning up to z=depth."""
+def _well_solid(c: Compartment, cw: float, cl: float, depth: float, rotated: bool = False) -> object:
+    """The well cavity solid, cell-corner-anchored at (0,0,0), spanning up to z=depth.
+
+    *rotated* means the packer turned this compartment a quarter turn. The cell dimensions
+    arrive already swapped, which is all a rect/circle/hex needs -- they are built TO the
+    cell. A custom silhouette is not, so it has to be turned itself."""
     if c.shape == Shape.CUSTOM:
         assert c.solid is not None, "custom compartment needs solid= (a Bosl2Solid or callable(depth))"
         shape = c.solid(depth) if callable(c.solid) else c.solid
+        if rotated:
+            shape = shape.rotate([0, 0, 90])
         # The ported silhouette is built around its own origin -> centre it in the cell.
         return shape.translate([cw / 2, cl / 2, 0])
     if c.shape == Shape.CIRCLE:
@@ -257,7 +288,7 @@ def _label_engraving(c: Compartment, x: float, y: float, cw: float, cl: float, z
 
 
 def _place_one(
-    c: Compartment, x: float, y: float, cw: float, cl: float, IH: float
+    c: Compartment, x: float, y: float, cw: float, cl: float, IH: float, rotated: bool = False
 ) -> tuple[list[InnerObject], object | None, InnerObject | None]:
     """Place one compartment -> (well InnerObjects, scoop solid to be merged, other
     removal InnerObject). The scoop is returned raw so a row of them can be merged
@@ -265,7 +296,7 @@ def _place_one(
     depth = IH if c.depth is None else min(c.depth, IH)
     z0 = IH - depth                 # well floor: wells open at the interior top
     top = IH
-    wells = [InnerObject(_well_solid(c, cw, cl, depth).translate([x, y, z0]), ObjectType.NEGATIVE)]
+    wells = [InnerObject(_well_solid(c, cw, cl, depth, rotated).translate([x, y, z0]), ObjectType.NEGATIVE)]
 
     # Engrave the compartment's label/image into its floor (Irish-Gauge style): a 0.2mm
     # second-colour impression, centred, revealed when the pieces are lifted out.
@@ -375,6 +406,82 @@ def _positions(available: float, sizes: list[float], min_gap: float, justify: Ju
     return pos
 
 
+# ---------------------------------------------------------------------------
+# The packing result, and its cache
+# ---------------------------------------------------------------------------
+
+#: Bumped whenever the PACKING changes -- new orientation rules, different gap handling,
+#: anything that could put a compartment somewhere else for the same input. It is part of
+#: every cache key, so a bump invalidates every cached plan rather than silently serving a
+#: layout the current code would not produce.
+BIN_PACKING_VERSION = 3
+
+
+@dataclass(frozen=True)
+class Placement:
+    """Where the packer put one compartment. Pure data -- no geometry."""
+
+    group: int          #: index into the groups list
+    item: int           #: index into that group's EXPANDED items
+    row: int            #: which row of the group (scoops merge per row)
+    x: float
+    y: float
+    width: float
+    length: float
+    rotated: bool
+
+
+def _compartment_signature(c: Compartment) -> tuple:
+    """The parts of a compartment that decide where it lands.
+
+    Deliberately NOT the whole object: `solid`, `label_shape` and the colours are geometry,
+    they cannot be hashed, and they cannot move a cell. Two compartments with different
+    artwork pack identically and should share a cached plan.
+    """
+    return (
+        str(c.shape), c.w, c.l, c.d, c.across, c.sides,
+        max(1, c.count), bool(c.fill), bool(c.rotate),
+    )
+
+
+def _layout_key(
+    groups: list[Group], inner: "InnerSize", edge: float, min_gap: float,
+    justify: Justify, region: list | None,
+) -> tuple:
+    """The cache key for one packing run: every input that can change the answer.
+
+    The version goes in the key rather than being checked alongside it, so a stale plan is
+    unreachable instead of merely detectable.
+    """
+    return (
+        BIN_PACKING_VERSION,
+        round(float(inner.width), 6), round(float(inner.length), 6), round(float(inner.height), 6),
+        round(float(edge), 6), round(float(min_gap), 6), str(justify),
+        tuple(
+            (str(g.direction), g.cols, bool(g.fill), str(g.packing),
+             tuple(_compartment_signature(c) for c in g.items))
+            for g in groups
+        ),
+        None if region is None else tuple((round(float(x), 6), round(float(y), 6)) for x, y in region),
+    )
+
+
+#: Packing plans already worked out, by :func:`_layout_key`. The PLAN is cached, never the
+#: geometry: a solid handle reused across two CSG branches crashes the renderer (see
+#: CLAUDE.md), so every build makes its own solids from the same, cheap, plan.
+_PLAN_CACHE: "dict[tuple, tuple[Placement, ...]]" = {}
+
+
+def layout_cache_clear() -> None:
+    """Empty the packing cache. For tests, and for anyone editing the packer."""
+    _PLAN_CACHE.clear()
+
+
+def layout_cache_info() -> dict:
+    """How many plans are cached, and under which version."""
+    return {"entries": len(_PLAN_CACHE), "version": BIN_PACKING_VERSION}
+
+
 def layout_compartments(
     groups: list[Group],
     *,
@@ -398,6 +505,11 @@ def layout_compartments(
     non-rectangular outline still bin-packs cleanly. The explicit ``region`` argument
     wins over ``InnerSize.region``.
 
+    **Wrapping:** a ``row`` group is one row and overflowing it is an error. Give the group
+    a :class:`PackingBin` strategy (``Group(items, packing=PackingBin.BBF)``) and it wraps
+    into as many rows as it needs instead, each row being a bin of interior width. Pair it
+    with ``Compartment(rotate=True)`` to let the packer turn compartments to fit more in.
+
     Args:
         min_gap:  the minimum gap between compartments and at the edges (mm).
         margin:   edge margin; defaults to ``min_gap`` when not given.
@@ -416,7 +528,8 @@ def layout_compartments(
     """
     edge = min_gap if margin is None else margin
 
-    def build(inner: InnerSize) -> list[InnerObject]:
+    def pack(inner: InnerSize) -> "tuple[Placement, ...]":
+        """Work out where every compartment goes. Pure arithmetic, cached by the caller."""
         AW = inner.width - 2 * edge
         AL = inner.length - 2 * edge
         IH = inner.height
@@ -434,7 +547,7 @@ def layout_compartments(
 
         # Band length (Y-extent) of each group; fill groups expand into the leftover
         # length after reserving the minimum gaps.
-        fixed = [None if g.fill else _group_band_length(g, min_gap) for g in groups]
+        fixed = [None if g.fill else _group_band_length(g, min_gap, AW) for g in groups]
         n_fill = sum(1 for b in fixed if b is None)
         fixed_len = sum(b for b in fixed if b is not None)
         gaps_len = min_gap * (len(groups) - 1)
@@ -449,12 +562,22 @@ def layout_compartments(
             )
 
         ypos = _positions(AL, bands, min_gap, justify)
-        pieces: list[InnerObject] = []
-        for g, band, y in zip(groups, bands, ypos):
-            pieces.extend(_place_group(g, y=edge + y, band=band, AW=AW, x_off=edge, IH=IH,
-                                       min_gap=min_gap, justify=justify, interior_width=inner.width,
-                                       region=region_use))
-        return pieces
+        plan: list[Placement] = []
+        for gi, (g, band, y) in enumerate(zip(groups, bands, ypos)):
+            plan.extend(_plan_group(g, gi, y=edge + y, band=band, AW=AW, x_off=edge,
+                                    min_gap=min_gap, justify=justify, interior_width=inner.width,
+                                    region=region_use))
+        return tuple(plan)
+
+    def build(inner: InnerSize) -> list[InnerObject]:
+        region_use = region if region is not None else getattr(inner, "region", None)
+        key = _layout_key(groups, inner, edge, min_gap, justify, region_use)
+        plan = _PLAN_CACHE.get(key)
+        if plan is None:
+            plan = _PLAN_CACHE[key] = pack(inner)
+        # The PLAN is cached; the geometry never is. Building the solids again each time is
+        # what keeps two boxes (or a box and its lid) from sharing a handle.
+        return _realise(groups, plan, inner.height)
 
     return build
 
@@ -464,27 +587,172 @@ def _name(g: Group, it: Compartment, gi: int) -> str:
     return it.label or g.label or f"{Shape(it.shape).value} in group {gi}"
 
 
-def _group_band_length(g: Group, min_gap: float) -> float:
-    """Y-extent of a group's band from its (non-fill) compartments' cells."""
+def _group_band_length(g: Group, min_gap: float, available_width: float | None = None) -> float:
+    """Y-extent of a group's band from its (non-fill) compartments' cells.
+
+    *available_width* is needed whenever anything in the group may be turned: turning swaps
+    a cell's width for its LENGTH, so it changes the band's depth as much as the row's
+    width, and the band has to be measured on the orientation the row will actually use.
+    """
     items = _expand(g.items)
-    cells = [it.cell() for it in items]
     if g.direction == Direction.GRID:
         cols = g.cols or max(1, len(items))
         rows = (len(items) + cols - 1) // cols
-        row_h = max((cl for (_cw, cl) in cells), default=0.0)
+        row_h = 0.0
+        for i in range(0, len(items), cols):
+            row = items[i : i + cols]
+            turns = _row_turns(row, available_width, min_gap) if available_width else [False] * len(row)
+            row_h = max(row_h, max((it.cell(t)[1] for it, t in zip(row, turns)), default=0.0))
         return rows * row_h + (rows - 1) * min_gap
+    if g.packing is not None and available_width:
+        # Wrapped: the band has to cover every row the strategy produces, not just one.
+        total, rows = 0.0, _assign_rows(items, available_width, min_gap, g.packing)
+        for assigned in rows:
+            total += max((items[i].cell(t)[1] for i, t in assigned), default=0.0)
+        return total + min_gap * max(0, len(rows) - 1)
     # row: band = deepest cell in Y
-    return max((cl for (_cw, cl) in cells), default=0.0)
+    turns = _row_turns(items, available_width, min_gap) if available_width else [False] * len(items)
+    return max((it.cell(t)[1] for it, t in zip(items, turns)), default=0.0)
 
 
-def _row_widths(items: list[Compartment], available: float, min_gap: float) -> list[float]:
+def _fit_width(item: Compartment, used: float, available: float, min_gap: float) -> "tuple[float, bool] | None":
+    """The width *item* would take in a row already holding *used*, and whether it is turned.
+
+    ``None`` when it will not fit either way round. A turnable item is offered both ways and
+    the NARROWER one that fits wins, because the width is what the row is short of.
+    """
+    gap = min_gap if used > 0 else 0.0
+    options = [(item.cell()[0], False)]
+    if item.rotate:
+        options.append((item.cell(True)[0], True))
+    options.sort()
+    for width, turned in options:
+        if used + gap + width <= available + 1e-6:
+            return width + gap, turned
+    return None
+
+
+def _assign_rows(
+    items: list[Compartment], available: float, min_gap: float, strategy: "PackingBin",
+) -> list[list[tuple[int, bool]]]:
+    """Distribute *items* across rows of *available* width, by *strategy*.
+
+    Each row is a bin. Returns a list of rows, each a list of ``(item index, turned)`` in
+    the order they sit along X. Items keep their given order except under
+    :attr:`PackingBin.GLOBAL`, which is explicitly about choosing what goes next.
+
+    An item too wide for an EMPTY row can never be placed; that is a real overflow and is
+    left to the caller's fit check to report, so the message stays the one users know.
+    """
+    rows: list[list[tuple[int, bool]]] = []
+    used: list[float] = []
+
+    def open_row() -> int:
+        rows.append([])
+        used.append(0.0)
+        return len(rows) - 1
+
+    if strategy == PackingBin.GLOBAL:
+        remaining = list(range(len(items)))
+        while remaining:
+            r = open_row()
+            placed_any = True
+            while placed_any and remaining:
+                placed_any = False
+                best = None   # (leftover, index-in-remaining, width, turned)
+                for slot, i in enumerate(remaining):
+                    fit = _fit_width(items[i], used[r], available, min_gap)
+                    if fit is None:
+                        continue
+                    width, turned = fit
+                    leftover = available - (used[r] + width)
+                    if best is None or leftover < best[0]:
+                        best = (leftover, slot, width, turned)
+                if best is not None:
+                    _leftover, slot, width, turned = best
+                    rows[r].append((remaining.pop(slot), turned))
+                    used[r] += width
+                    placed_any = True
+            if not rows[r]:
+                # Nothing left fits an empty row: emit the rest so the fit check reports it.
+                rows[r].extend((i, False) for i in remaining)
+                break
+        return rows
+
+    for i, item in enumerate(items):
+        if strategy == PackingBin.BNF:
+            candidates = [len(rows) - 1] if rows else []
+        elif strategy == PackingBin.BFF:
+            candidates = list(range(len(rows)))
+        else:  # BBF -- every open row, best fitness wins
+            candidates = list(range(len(rows)))
+
+        chosen = None
+        best_leftover = None
+        for r in candidates:
+            fit = _fit_width(item, used[r], available, min_gap)
+            if fit is None:
+                continue
+            width, turned = fit
+            if strategy in (PackingBin.BNF, PackingBin.BFF):
+                chosen = (r, width, turned)
+                break
+            leftover = available - (used[r] + width)
+            if best_leftover is None or leftover < best_leftover:
+                best_leftover, chosen = leftover, (r, width, turned)
+
+        if chosen is None:
+            r = open_row()
+            fit = _fit_width(item, 0.0, available, min_gap)
+            # Too wide even for an empty row: place it anyway and let the fit check speak.
+            width, turned = fit if fit is not None else (item.cell()[0], False)
+            chosen = (r, width, turned)
+
+        r, width, turned = chosen
+        rows[r].append((i, turned))
+        used[r] += width
+    return rows
+
+
+def _row_turns(items: list[Compartment], available: float, min_gap: float) -> list[bool]:
+    """Which items in a row to turn a quarter turn.
+
+    Rows are laid out along X, so a row fits when the cell WIDTHS plus their gaps fit in
+    *available*. Turning a rotatable item swaps its width for its length, so it is worth
+    doing exactly when it makes the row narrower -- and only until the row fits, because
+    turning more than that is churn that changes a layout for no reason.
+
+    Greedy, largest saving first: a row is a handful of compartments, and taking the
+    biggest saving each time reaches a fitting row in as few turns as possible.
+    """
+    turns = [False] * len(items)
+    savings = [
+        (it.cell()[0] - it.cell(True)[0], i)
+        for i, it in enumerate(items)
+        if it.rotate and not it.fill and it.cell(True)[0] < it.cell()[0]
+    ]
+    if not savings:
+        return turns
+    need = _tight([it.cell()[0] for it in items], min_gap)
+    for saving, i in sorted(savings, reverse=True):
+        if need <= available + 1e-6:
+            break
+        turns[i] = True
+        need -= saving
+    return turns
+
+
+def _row_widths(items: list[Compartment], available: float, min_gap: float,
+                turns: list[bool] | None = None) -> list[float]:
     """Cell widths for a row: fixed items keep their bbox width; fill items split the
     leftover width after reserving the minimum gaps between items."""
-    fixed_w = sum(it.cell()[0] for it in items if not it.fill)
+    if turns is None:
+        turns = [False] * len(items)
+    fixed_w = sum(it.cell(t)[0] for it, t in zip(items, turns) if not it.fill)
     n_fill = sum(1 for it in items if it.fill)
     gaps = min_gap * (len(items) - 1)
     fill_w = max(0.0, available - fixed_w - gaps) / n_fill if n_fill else 0.0
-    return [fill_w if it.fill else it.cell()[0] for it in items]
+    return [fill_w if it.fill else it.cell(t)[0] for it, t in zip(items, turns)]
 
 
 def _check_row_fits(g: Group, row_items: list[Compartment], widths: list[float], AW: float,
@@ -498,49 +766,81 @@ def _check_row_fits(g: Group, row_items: list[Compartment], widths: list[float],
         )
 
 
-def _place_group(g: Group, *, y: float, band: float, AW: float, x_off: float, IH: float,
-                 min_gap: float, justify: Justify, interior_width: float,
-                 region: list | None = None) -> list[InnerObject]:
+def _plan_group(g: Group, gi: int, *, y: float, band: float, AW: float, x_off: float,
+                min_gap: float, justify: Justify, interior_width: float,
+                region: list | None = None) -> list[Placement]:
+    """Where every compartment of one group goes. Pure arithmetic -- no geometry."""
     items = _expand(g.items)
-    pieces: list[InnerObject] = []
+    out: list[Placement] = []
 
     if g.direction == Direction.GRID:
         cols = g.cols or max(1, len(items))
         cy = y
-        for i in range(0, len(items), cols):
+        for row_index, i in enumerate(range(0, len(items), cols)):
             row = items[i : i + cols]
-            row_h = max(it.cell()[1] for it in row)
-            widths = _row_widths(row, AW, min_gap)
+            turns = _row_turns(row, AW, min_gap)
+            row_h = max(it.cell(t)[1] for it, t in zip(row, turns))
+            widths = _row_widths(row, AW, min_gap, turns)
             _check_row_fits(g, row, widths, AW, min_gap, interior_width, x_off)
             xpos = _positions(AW, widths, min_gap, justify)
-            row_scoops: list = []
-            for it, cw, x in zip(row, widths, xpos):
+            for j, (cw, x, turned) in enumerate(zip(widths, xpos, turns)):
                 if not _cell_in_region(x_off + x, cy, cw, row_h, region):
                     continue   # cell falls outside the polygon outline -- skip it
-                wells, scoop, other = _place_one(it, x_off + x, cy, cw, row_h, IH)
-                pieces.extend(wells)
-                if other is not None:
-                    pieces.append(other)
-                if scoop is not None:
-                    row_scoops.append(scoop)
-            pieces.extend(_merge_scoops(row_scoops))   # contiguous scoop per row
+                out.append(Placement(gi, i + j, row_index, x_off + x, cy, cw, row_h, turned))
             cy += row_h + min_gap
-        return pieces
+        return out
 
-    # row: distribute items along X.
-    widths = _row_widths(items, AW, min_gap)
+    # row: distribute items along X. With a packing strategy the row WRAPS -- items that
+    # do not fit start another row, chosen by that strategy -- otherwise it is one row and
+    # overflowing it is an error, which is what it has always been.
+    if g.packing is not None:
+        cy = y
+        for row_index, assigned in enumerate(_assign_rows(items, AW, min_gap, g.packing)):
+            row = [items[i] for i, _t in assigned]
+            turns = [t for _i, t in assigned]
+            widths = _row_widths(row, AW, min_gap, turns)
+            _check_row_fits(g, row, widths, AW, min_gap, interior_width, x_off)
+            row_h = max((it.cell(t)[1] for it, t in zip(row, turns)), default=0.0)
+            xpos = _positions(AW, widths, min_gap, justify)
+            for (i, turned), cw, x in zip(assigned, widths, xpos):
+                if not _cell_in_region(x_off + x, cy, cw, row_h, region):
+                    continue   # cell falls outside the polygon outline -- skip it
+                out.append(Placement(gi, i, row_index, x_off + x, cy, cw, row_h, turned))
+            cy += row_h + min_gap
+        return out
+
+    turns = _row_turns(items, AW, min_gap)
+    widths = _row_widths(items, AW, min_gap, turns)
     _check_row_fits(g, items, widths, AW, min_gap, interior_width, x_off)
     xpos = _positions(AW, widths, min_gap, justify)
-    scoops: list = []
-    for it, cw, x in zip(items, widths, xpos):
-        cl = band if it.fill else it.cell()[1]
+    for j, (it, cw, x, turned) in enumerate(zip(items, widths, xpos, turns)):
+        cl = band if it.fill else it.cell(turned)[1]
         if not _cell_in_region(x_off + x, y, cw, cl, region):
             continue   # cell falls outside the polygon outline -- skip it
-        wells, scoop, other = _place_one(it, x_off + x, y, cw, cl, IH)
+        out.append(Placement(gi, j, 0, x_off + x, y, cw, cl, turned))
+    return out
+
+
+def _realise(groups: list[Group], plan: "tuple[Placement, ...]", IH: float) -> list[InnerObject]:
+    """Turn a packing plan into geometry.
+
+    Separate from the packing on purpose: the plan is cheap, deterministic and cacheable,
+    while the solids must be built fresh every time -- one solid handle used by two CSG
+    branches crashes the renderer.
+    """
+    expanded = [_expand(g.items) for g in groups]
+    pieces: list[InnerObject] = []
+    scoops: "dict[tuple[int, int], list]" = {}
+    for place in plan:
+        item = expanded[place.group][place.item]
+        wells, scoop, other = _place_one(
+            item, place.x, place.y, place.width, place.length, IH, place.rotated
+        )
         pieces.extend(wells)
         if other is not None:
             pieces.append(other)
         if scoop is not None:
-            scoops.append(scoop)
-    pieces.extend(_merge_scoops(scoops))   # one contiguous scoop along the row
+            scoops.setdefault((place.group, place.row), []).append(scoop)
+    for key in sorted(scoops):
+        pieces.extend(_merge_scoops(scoops[key]))   # one contiguous scoop per row
     return pieces
