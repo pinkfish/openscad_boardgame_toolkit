@@ -29,7 +29,7 @@
 # FileGroup: Examples
 
 from base_bgtk import FROM_MAKE, MAKE_MMU, InnerObject, LabelType, make_box
-from box_base import BoxKit, Label, Lid
+from box_base import BoxKit, BoxSpec, Label, Lid
 from cap_box import CapBox
 from compartments import Compartment, Group, Justify, Removal, Shape, layout_compartments
 from components import FingerHoleBase, RoundedBoxAllSides
@@ -124,13 +124,17 @@ _card_box = KIT.box(
     lid="Cards",
 )
 
-_token_box = KIT.box(
-    size=[token_box_width, token_box_length, token_box_height],
-    label="ModernArtTokens",
-    contents=lambda inner: [
+_token_box = CapBox(
+    BoxSpec.builder()
+    .size(token_box_width, token_box_length, token_box_height)
+    .label("ModernArtTokens")
+    .wall_thickness(wall_thickness)
+    .floor_thickness(floor_thickness)
+    .lid_thickness(lid_thickness)
+    .contents(lambda inner: [
         InnerObject(RoundedBoxAllSides([inner.width, inner.length, inner.height], radius=15))
-    ],
-    lid=Lid(
+    ])
+    .lid(Lid(
         shape_options=MakeShapeObject(
             shape_type=ShapeType.PENROSE_TILING_5, shape_width=25, shape_thickness=0.75
         ),
@@ -138,7 +142,8 @@ _token_box = KIT.box(
             font="Marker Felt:style=Regular",
             label_type=LabelType.FRAMED_SOLID if MAKE_MMU else LabelType.FRAMED,
         )),
-    ),
+    ))
+    .build()
 )
 
 

@@ -39,7 +39,7 @@ from base_bgtk import (
     ObjectType,
     make_box,
 )
-from box_base import BoxKit, Label, Lid
+from box_base import BoxKit, BoxSpec, Label, Lid
 from cap_box import CapBox
 from components import FingerHoleBase, RoundedBoxAllSides
 from labels import MakeLabelOptions
@@ -205,20 +205,25 @@ def StartCaveBoxLid():
 
 
 # ---- LootBox ------------------------------------------------------------------
-_loot = KIT.box(
-    size=[loot_box_width, loot_box_length, loot_box_height],
-    label="LootBox",
-    contents=lambda inner: [
+_loot = CapBox(
+    BoxSpec.builder()
+    .size(loot_box_width, loot_box_length, loot_box_height)
+    .label("LootBox")
+    .wall_thickness(wall_thickness)
+    .floor_thickness(floor_thickness)
+    .lid_thickness(lid_thickness)
+    .contents(lambda inner: [
         InnerObject(
             RoundedBoxAllSides(
                 [inner.width, inner.length, inner.height], radius=10,
             ),
             ObjectType.NEGATIVE,
         ),
-    ],
-    lid=Lid(
+    ])
+    .lid(Lid(
         label=Label("Loot", options=_LABEL_OPTIONS),
-    ),
+    ))
+    .build()
 )
 
 

@@ -43,7 +43,7 @@ from base_bgtk import (
     LabelType,
     make_box,
 )
-from box_base import BoxKit, Label, Lid
+from box_base import BoxKit, BoxSpec, Label, Lid
 from cap_box import CapBox
 from labels import MakeLabelOptions
 from shape_type import MakeShapeObject, ShapeType
@@ -78,20 +78,20 @@ _BASE_LID = Lid(
 )
 
 # ---- PiecesBox ---------------------------------------------------------------
-_pieces_box = BoxKit(
-    CapBox,
-    wall_thickness=wall_thickness,
-    lid_thickness=lid_thickness,
-).box(
-    size=[canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height],
-    label="PiecesBox",
-    contents=lambda inner: [
+_pieces_box = CapBox(
+    BoxSpec.builder()
+    .size(canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height)
+    .label("PiecesBox")
+    .wall_thickness(wall_thickness)
+    .lid_thickness(lid_thickness)
+    .contents(lambda inner: [
         InnerObject(s3.cuboid(
             [inner.width, inner.length, canvas_piece_box_height],
             rounding=5,
             anchor=BOTTOM,
         )),
-    ],
+    ])
+    .build()
 )
 
 

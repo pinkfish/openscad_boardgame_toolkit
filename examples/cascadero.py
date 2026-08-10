@@ -25,7 +25,7 @@
 #    Nothing else in this file mentions the box type.
 
 from base_bgtk import FROM_MAKE, InnerObject, make_box
-from box_base import BoxKit, Label, Lid
+from box_base import BoxKit, BoxSpec, Label, Lid
 from sliding_box import SlidingBox
 from components import RoundedBoxAllSides, RoundedBoxGrid
 from labels import MakeLabelOptions
@@ -130,10 +130,13 @@ def HeraldBoxLid():
 # Player box -- two-section interior (grid + open area), still one kit box
 # ---------------------------------------------------------------------------
 
-_player = KIT.box(
-    size=[player_width, player_length, section_height],
-    label="Player",
-    contents=lambda inner: [
+_player = SlidingBox(
+    BoxSpec.builder()
+    .size(player_width, player_length, section_height)
+    .label("Player")
+    .wall_thickness(2)
+    .lid_thickness(3)
+    .contents(lambda inner: [
         InnerObject(
             RoundedBoxGrid([inner.width, first_width, section_height],
                            radius=radius, rows=2, cols=1, all_sides=True)
@@ -143,8 +146,9 @@ _player = KIT.box(
                 [inner.width, inner.length - first_width, section_height], radius=radius
             ).translate([0, first_width + 2, 0])   # 2 = wall_thickness
         ),
-    ],
-    lid=Lid(label=Label("Player", options=BLUE_R5)),
+    ])
+    .lid(Lid(label=Label("Player", options=BLUE_R5)))
+    .build()
 )
 
 

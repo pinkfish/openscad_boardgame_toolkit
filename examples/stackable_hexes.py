@@ -49,11 +49,13 @@ def StackableHexBox(divisions=1, magnet_type=MAGNET_SLOT_TYPE_ROUND, magnet_size
             )
         return None
 
-    spec = BoxSpec(
-        size=[stackable_width, stackable_width, stackable_height],
-        label="StackableHex",
-        wall_thickness=wall_thickness,
-        hollow=(divisions <= 1),
+    spec = (
+        BoxSpec.builder()
+        .size(stackable_width, stackable_width, stackable_height)
+        .label("StackableHex")
+        .wall_thickness(wall_thickness)
+        .hollow(divisions <= 1)
+        .build()
     )
     return PathBox.regular_polygon(
         spec,

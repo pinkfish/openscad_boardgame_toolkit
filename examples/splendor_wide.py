@@ -42,7 +42,7 @@ from base_bgtk import (
     default_floor_thickness,
     make_box,
 )
-from box_base import BoxKit, Label, Lid
+from box_base import BoxKit, BoxSpec, Label, Lid
 from labels import MakeLabelOptions
 from shape_type import MakeShapeObject, ShapeType
 from slipover_box import SlipoverBox
@@ -154,11 +154,14 @@ def _contents(inner):
 
 
 # ---- The box ------------------------------------------------------------------
-_box = KIT.box(
-    size=[splendor_box_width, splendor_box_length, splendor_box_height],
-    label="SplendorBox",
-    contents=_contents,
-    lid=Lid(
+_box = SlipoverBox(
+    BoxSpec.builder()
+    .size(splendor_box_width, splendor_box_length, splendor_box_height)
+    .label("SplendorBox")
+    .wall_thickness(wall_thickness)
+    .lid_thickness(lid_thickness)
+    .contents(_contents)
+    .lid(Lid(
         layout_width=12,
         shape_options=MakeShapeObject(
             shape_type=ShapeType.CIRCLE,
@@ -166,7 +169,8 @@ _box = KIT.box(
             shape_thickness=0.75,
         ),
         label=Label("Splendor", options=_LABEL_OPTIONS),
-    ),
+    ))
+    .build()
 )
 
 

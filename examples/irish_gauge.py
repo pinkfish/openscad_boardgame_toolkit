@@ -210,24 +210,24 @@ def spacer_box_back():
         [0, 0],
     ]
     return PathBox(
-        BoxSpec(
+        BoxSpec.create(
             size=[box_width, box_length, spacer_back_height],
             label="SpacerBoxBack",
             wall_thickness=wall_thickness,
             hollow=True,
-            type_options=PathBoxOptions(path=path),
+            path=path,
         )
     )
 
 
 def spacer_box_company():
     return NoLidBox(
-        BoxSpec(
-            size=[spacer_company_width, spacer_company_length, spacer_company_height],
-            label="SpacerBoxCompany",
-            wall_thickness=wall_thickness,
-            hollow=True,
-        )
+        BoxSpec.builder()
+        .size(spacer_company_width, spacer_company_length, spacer_company_height)
+        .label("SpacerBoxCompany")
+        .wall_thickness(wall_thickness)
+        .hollow(True)
+        .build()
     )
 
 
