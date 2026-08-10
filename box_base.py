@@ -638,7 +638,15 @@ class BoxBaseType(ABC):
     #: ``BoxSpec.type_options``; ``None`` -> the type takes no options.
     options_class: ClassVar[type[BoxTypeOptions] | None] = None
 
-    def __init__(self, spec: BoxSpec) -> None:
+    def __init__(self, spec: BoxSpec, _called_from_builder: bool = False) -> None:
+        if not _called_from_builder:
+            import warnings
+            warnings.warn(
+                f"Direct instantiation of {type(self).__name__} is deprecated. "
+                "Use the fluent box builder API instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if not isinstance(spec, BoxSpec):
             raise TypeError(
                 f"{type(self).__name__} expects a BoxSpec, got {type(spec).__name__}. "
@@ -1292,7 +1300,7 @@ class BoxKit:
         """Construct a box object (of this kit's type) from the merged spec. Call
         :meth:`BoxBaseType.make_box` / :meth:`BoxBaseType.make_lid` on it to build the
         two matching parts."""
-        return self.box_class(self.spec(**overrides))
+        return self.box_class(self.spec(**overrides), _called_from_builder=True)
 
     def with_type(self, box_class: "type[BoxBaseType]") -> "BoxKit":
         """Return a copy of this kit that builds *box_class* instead, keeping all
@@ -1461,17 +1469,108 @@ class BoxBuilder:
         self._spec_builder.lid(lid)
         return self
 
+    def lid_boundary(self, value: float) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["boundary"] = value
+        return self
+
+    def lid_layout_width(self, value: float) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["layout_width"] = value
+        return self
+
+    def lid_aspect_ratio(self, value: float) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["aspect_ratio"] = value
+        return self
+
+    def lid_material_colour(self, value: Color) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["material_colour"] = value
+        return self
+
+    def lid_label(self, text: str, options: Any = None) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["label"] = Label(text, options=options) if options is not None else Label(text)
+        return self
+
+    def lid_rounding(self, value: float) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["lid_rounding"] = value
+        return self
+
+    def lid_extra_children(self, value: Sequence) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["extra_children"] = value
+        return self
+
+    def lid_fingernail(self, value: Fingernail | bool) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["fingernail"] = value
+        return self
+
+    def lid_shape_type(self, value: Any) -> BoxBuilder:
+        if "_lid_shape_kwargs" not in self.__dict__:
+            self._lid_shape_kwargs = {}
+        self._lid_shape_kwargs["shape_type"] = value
+        return self
+
+    def lid_shape_width(self, value: float) -> BoxBuilder:
+        if "_lid_shape_kwargs" not in self.__dict__:
+            self._lid_shape_kwargs = {}
+        self._lid_shape_kwargs["shape_width"] = value
+        return self
+
+    def lid_shape_thickness(self, value: float) -> BoxBuilder:
+        if "_lid_shape_kwargs" not in self.__dict__:
+            self._lid_shape_kwargs = {}
+        self._lid_shape_kwargs["shape_thickness"] = value
+        return self
+
+    def lid_shape_aspect_ratio(self, value: float) -> BoxBuilder:
+        if "_lid_shape_kwargs" not in self.__dict__:
+            self._lid_shape_kwargs = {}
+        self._lid_shape_kwargs["shape_aspect_ratio"] = value
+        return self
+
+    def lid_shape_rounding(self, value: float) -> BoxBuilder:
+        if "_lid_shape_kwargs" not in self.__dict__:
+            self._lid_shape_kwargs = {}
+        self._lid_shape_kwargs["rounding"] = value
+        return self
+
+    def lid_pattern(self, value: Any) -> BoxBuilder:
+        if "_lid_kwargs" not in self.__dict__:
+            self._lid_kwargs = {}
+        self._lid_kwargs["pattern"] = value
+        return self
+
     def option(self, key: str, value: Any) -> BoxBuilder:
         self._spec_builder.option(key, value)
         return self
 
     def build_spec(self) -> BoxSpec:
+        if ("_lid_kwargs" in self.__dict__ and self._lid_kwargs) or ("_lid_shape_kwargs" in self.__dict__ and self._lid_shape_kwargs):
+            lid_builder = Lid.builder()
+            if "_lid_kwargs" in self.__dict__:
+                lid_builder._kwargs.update(self._lid_kwargs)
+            if "_lid_shape_kwargs" in self.__dict__:
+                lid_builder._shape_kwargs = self._lid_shape_kwargs
+            self._spec_builder.lid(lid_builder.build())
         return self._spec_builder.build()
 
     def build(self) -> BoxBaseType:
         if self._box_class is None:
             raise ValueError("Box type must be specified. Use .type(BoxClass) or call a type-specific builder.")
-        return self._box_class(self.build_spec())
+        return self._box_class(self.build_spec(), _called_from_builder=True)
 
 
 class CapBoxBuilder(BoxBuilder):

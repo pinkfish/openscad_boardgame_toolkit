@@ -73,11 +73,13 @@ KIT = BoxKit(
     wall_thickness=wall_thickness,
     floor_thickness=floor_thickness,
     lid_thickness=lid_thickness,
-    lid=Lid(
-        shape_options=MakeShapeObject(
-            shape_type=ShapeType.PENROSE_TILING_5, shape_width=25, shape_thickness=0.75
-        ),
-        label=Label("", options=_LABEL),
+    lid=(
+        Lid.builder()
+        .shape_type(ShapeType.PENROSE_TILING_5)
+        .shape_width(25)
+        .shape_thickness(0.75)
+        .label("", options=_LABEL)
+        .build()
     ),
 )
 
@@ -134,14 +136,12 @@ _token_box = (
     .contents(lambda inner: [
         InnerObject(RoundedBoxAllSides([inner.width, inner.length, inner.height], radius=15))
     ])
-    .lid(Lid(
-        shape_options=MakeShapeObject(
-            shape_type=ShapeType.PENROSE_TILING_5, shape_width=25, shape_thickness=0.75
-        ),
-        label=Label("Modern Art", options=MakeLabelOptions(
-            font="Marker Felt:style=Regular",
-            label_type=LabelType.FRAMED_SOLID if MAKE_MMU else LabelType.FRAMED,
-        )),
+    .lid_shape_type(ShapeType.PENROSE_TILING_5)
+    .lid_shape_width(25)
+    .lid_shape_thickness(0.75)
+    .lid_label("Modern Art", options=MakeLabelOptions(
+        font="Marker Felt:style=Regular",
+        label_type=LabelType.FRAMED_SOLID if MAKE_MMU else LabelType.FRAMED,
     ))
     .cap()
     .build()

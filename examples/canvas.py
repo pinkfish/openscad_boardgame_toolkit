@@ -64,17 +64,17 @@ divider_upright_length = 45
 divider_upright_diff = 73
 
 # ---- Shared lid style (MakeLid from the .scad) ------------------------------
-_BASE_LID = Lid(
-    boundary=5,
-    layout_width=5,
-    shape_options=MakeShapeObject(
-        shape_type=ShapeType.CIRCLE,
-        shape_thickness=1.5,
-        shape_width=7,
-    ),
-    label=Label("", options=MakeLabelOptions(
+_BASE_LID = (
+    Lid.builder()
+    .boundary(5)
+    .layout_width(5)
+    .shape_type(ShapeType.CIRCLE)
+    .shape_thickness(1.5)
+    .shape_width(7)
+    .label("", options=MakeLabelOptions(
         label_type=LabelType.FRAMED_SOLID if MAKE_MMU else LabelType.FRAMED,
-    )),
+    ))
+    .build()
 )
 
 # ---- PiecesBox ---------------------------------------------------------------

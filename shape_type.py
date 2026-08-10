@@ -125,6 +125,7 @@ def MakeShapeObject(
     pentagon_first_length_modifier: float = 0,
     pentagon_second_length_modifier: float = 0,
     pentagon_third_length_modifier: float = 0,
+    _called_from_builder: bool = False,
 ) -> ShapeObject:
     """Create a :class:`ShapeObject` with the given parameters.
 
@@ -139,6 +140,13 @@ def MakeShapeObject(
         supershape_m1/m2/n1/n2/n3/a/b: Superformula parameters
         pentagon_*:         pentagon tiling modifiers
     """
+    if not _called_from_builder:
+        import warnings
+        warnings.warn(
+            "Direct call to MakeShapeObject is deprecated. Configure shapes directly on LidBuilder.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     return ShapeObject(
         shape_type=shape_type,
         shape_width=shape_width,

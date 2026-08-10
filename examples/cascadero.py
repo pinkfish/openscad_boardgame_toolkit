@@ -69,7 +69,11 @@ KIT = BoxKit(
     # The lid style every box shares. Each box passes its own text as lid="...", which
     # BoxKit merges into this one (Lid.with_label) rather than replacing it -- so the
     # blue label styling is written once, here.
-    lid=Lid(label=Label("", options=BLUE)),
+    lid=(
+        Lid.builder()
+        .label("", options=BLUE)
+        .build()
+    ),
 )
 
 
@@ -83,7 +87,7 @@ def _section(size, label, options=None):
             InnerObject(RoundedBoxAllSides([inner.width, inner.length, section_height], radius=15))
         ],
         # Just the text (kit styling), or a whole Lid when this box wants its own style.
-        lid=label if options is None else Lid(label=Label(label, options=options)),
+        lid=label if options is None else Lid.builder().label(label, options=options).build(),
     )
 
 
@@ -147,7 +151,7 @@ _player = (
             ).translate([0, first_width + 2, 0])   # 2 = wall_thickness
         ),
     ])
-    .lid(Lid(label=Label("Player", options=BLUE_R5)))
+    .lid_label("Player", options=BLUE_R5)
     .sliding()
     .build()
 )

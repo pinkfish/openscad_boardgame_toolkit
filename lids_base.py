@@ -435,6 +435,7 @@ class Lid:
         dense: bool = False,
         dense_shape_edges: int = 6,
         lid_thickness: float | None = None,
+        _called_from_builder: bool = False,
     ) -> None:
         """Build a lid, from a :class:`Decoration` or from the keyword sugar.
 
@@ -444,6 +445,13 @@ class Lid:
         meant ``Lid(pattern=X, shape_options=Y)`` silently threw Y away and produced a
         lid that renders perfectly and is not the one that was asked for.
         """
+        if not _called_from_builder:
+            import warnings
+            warnings.warn(
+                "Direct instantiation of Lid is deprecated. Use Lid.builder() to construct lids.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         given = {
             "decoration": decoration,
             "shape_options": shape_options,
@@ -867,9 +875,42 @@ class LidBuilder:
         self._kwargs["shape_options"] = value
         return self
 
+    def shape_type(self, value: Any) -> LidBuilder:
+        if "_shape_kwargs" not in self.__dict__:
+            self._shape_kwargs = {}
+        self._shape_kwargs["shape_type"] = value
+        return self
+
+    def shape_width(self, value: float) -> LidBuilder:
+        if "_shape_kwargs" not in self.__dict__:
+            self._shape_kwargs = {}
+        self._shape_kwargs["shape_width"] = value
+        return self
+
+    def shape_thickness(self, value: float) -> LidBuilder:
+        if "_shape_kwargs" not in self.__dict__:
+            self._shape_kwargs = {}
+        self._shape_kwargs["shape_thickness"] = value
+        return self
+
+    def shape_aspect_ratio(self, value: float) -> LidBuilder:
+        if "_shape_kwargs" not in self.__dict__:
+            self._shape_kwargs = {}
+        self._shape_kwargs["shape_aspect_ratio"] = value
+        return self
+
+    def rounding(self, value: float) -> LidBuilder:
+        if "_shape_kwargs" not in self.__dict__:
+            self._shape_kwargs = {}
+        self._shape_kwargs["rounding"] = value
+        return self
+
     def pattern(self, value: Any) -> LidBuilder:
         self._kwargs["pattern"] = value
         return self
 
     def build(self) -> Lid:
-        return Lid(**self._kwargs)
+        if "_shape_kwargs" in self.__dict__ and self._shape_kwargs:
+            from shape_type import MakeShapeObject
+            self._kwargs["shape_options"] = MakeShapeObject(**self._shape_kwargs, _called_from_builder=True)
+        return Lid(**self._kwargs, _called_from_builder=True)

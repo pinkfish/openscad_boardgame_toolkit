@@ -130,8 +130,10 @@ _square_tile = KIT.box(
             ObjectType.POSITIVE_NEGATIVE,
         ),
     ],
-    lid=Lid(
-        label=Label("Kenmore Gold", options=_LABEL_OPTIONS),
+    lid=(
+        Lid.builder()
+        .label("Kenmore Gold", options=_LABEL_OPTIONS)
+        .build()
     ),
 )
 
@@ -188,8 +190,10 @@ _start_cave = KIT.box(
             ObjectType.POSITIVE_NEGATIVE,
         ),
     ],
-    lid=Lid(
-        label=Label("Start Cave", options=_LABEL_OPTIONS),
+    lid=(
+        Lid.builder()
+        .label("Start Cave", options=_LABEL_OPTIONS)
+        .build()
     ),
 )
 
@@ -220,9 +224,7 @@ _loot = (
             ObjectType.NEGATIVE,
         ),
     ])
-    .lid(Lid(
-        label=Label("Loot", options=_LABEL_OPTIONS),
-    ))
+    .lid_label("Loot", options=_LABEL_OPTIONS)
     .cap()
     .build()
 )

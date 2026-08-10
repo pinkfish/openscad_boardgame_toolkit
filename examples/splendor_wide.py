@@ -161,15 +161,11 @@ _box = (
     .wall_thickness(wall_thickness)
     .lid_thickness(lid_thickness)
     .contents(_contents)
-    .lid(Lid(
-        layout_width=12,
-        shape_options=MakeShapeObject(
-            shape_type=ShapeType.CIRCLE,
-            shape_width=18,
-            shape_thickness=0.75,
-        ),
-        label=Label("Splendor", options=_LABEL_OPTIONS),
-    ))
+    .lid_layout_width(12)
+    .lid_shape_type(ShapeType.CIRCLE)
+    .lid_shape_width(18)
+    .lid_shape_thickness(0.75)
+    .lid_label("Splendor", options=_LABEL_OPTIONS)
     .slipover()
     .build()
 )
