@@ -483,3 +483,69 @@ class TypeOptionsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(render_available(), "PythonSCAD app / patched BOSL2 not available")
+class CardLibrarySleeveTests(unittest.TestCase):
+    """A card library's sleeves have to FIT IN THE BOX -- nothing was checking they do.
+
+    The sleeves are the point of this box type (the cards live in them, the box holds the
+    sleeves), and they had no coverage of any kind: not a render, not a measurement. A sleeve
+    a millimetre too wide is a box you cannot load, and it would have shipped silently.
+    """
+
+    _SETUP = (
+        "from card_library import CardLibraryBox, CardLibrarySpec, CardSize, CardGroup\n"
+        "_b = CardLibraryBox(CardLibrarySpec(card_size=CardSize(66, 92, 0.4),\n"
+        "                                    groups=[CardGroup('R', 30), CardGroup('B', 20)]))\n"
+    )
+
+    def _measure(self):
+        body = (
+            f"{_HEADER}{self._SETUP}"
+            "measure('box', _b.make_box())\n"
+            "_i = _b.interior()\n"
+            "report('interior', ','.join(str(v) for v in _i.size))\n"
+            "measure('sleeve0', _b.make_sleeve(0))\n"
+            "measure('sleeve1', _b.make_sleeve(1))\n"
+            "measure('sleeves', _b.make_sleeves())\n"
+            "import pybosl2.shapes3d as _s3\n"
+            "_s3.cuboid([1, 1, 1]).show()\n"
+        )
+        r = measure_python(body)
+        self.assertTrue(r.ok, f"{r.error}\n{r.stderr[-2000:]}")
+        interior = [float(v) for v in r.reports["interior"].split(",")]
+        return r.boxes, interior
+
+    def test_every_sleeve_fits_the_box_interior(self):
+        """Each sleeve must fit the interior cross-section it slides into."""
+        boxes, interior = self._measure()
+        for name in ("sleeve0", "sleeve1"):
+            with self.subTest(sleeve=name):
+                s = boxes[name]
+                self.assertLessEqual(s.width, interior[0] + 0.01,
+                                     f"{name} is wider ({s.width}) than the interior ({interior[0]})")
+                self.assertLessEqual(s.height, interior[2] + 0.01,
+                                     f"{name} is taller ({s.height}) than the interior ({interior[2]})")
+
+    def test_the_sleeves_together_fit_along_the_box(self):
+        """All the sleeves have to go in AT ONCE, so their combined thickness must fit too.
+
+        Per-sleeve checks pass happily on a set that cannot all be loaded together, which is
+        the failure a user actually hits.
+        """
+        boxes, interior = self._measure()
+        stacked = boxes["sleeve0"].length + boxes["sleeve1"].length
+        self.assertLessEqual(stacked, interior[1] + 0.01,
+                             f"two sleeves stack to {stacked}, interior is only {interior[1]} deep")
+
+    def test_a_sleeve_is_built_per_group(self):
+        """One sleeve per card group, each with real geometry."""
+        boxes, _ = self._measure()
+        for name in ("sleeve0", "sleeve1", "sleeves"):
+            with self.subTest(part=name):
+                s = boxes[name]
+                self.assertGreater(min(s.width, s.length, s.height), 0, f"{name} has no geometry: {s}")
+        # The 30-card group's sleeve must be thicker than the 20-card one.
+        self.assertGreater(boxes["sleeve0"].length, boxes["sleeve1"].length,
+                           "a 30-card sleeve should be thicker than a 20-card one")
