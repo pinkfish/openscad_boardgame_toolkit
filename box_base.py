@@ -753,7 +753,20 @@ class BoxBaseType(ABC):
             )
         else:
             resolved = contents
-        return list(resolved) if resolved else []
+        items = list(resolved) if resolved else []
+        # Contents are SELF-DESCRIBING entries, not bare solids -- an InnerObject says
+        # whether its value carves a cavity, adds material, or does both. A bare solid gets
+        # as far as the hollow decision and dies there on `io.type` with
+        # "'PyOpenSCAD' object has no attribute 'type'", which says nothing about what is
+        # wrong or where. Name it here instead, at the boundary it came in through.
+        for index, item in enumerate(items):
+            if not isinstance(item, InnerObject):
+                raise TypeError(
+                    f"{self._spec.label}: contents[{index}] is a {type(item).__name__}, not an "
+                    "InnerObject. Wrap it: InnerObject(solid) carves it into the interior, "
+                    "InnerObject(solid, ObjectType.POSITIVE) adds it."
+                )
+        return items
 
     def _placed_content(self, io: InnerObject) -> Bosl2Solid:
         """Resolve *io*'s value and translate it into the box interior frame."""
