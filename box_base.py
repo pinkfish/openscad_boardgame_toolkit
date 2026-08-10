@@ -454,6 +454,103 @@ class BoxSpec:
                 "pattern, fingernail) go on the Lid: lid=Lid(...)."
             )
 
+    @classmethod
+    def create(cls, **kwargs) -> BoxSpec:
+        """Create a BoxSpec, dynamically gathering extra keyword arguments into type_options dict."""
+        import dataclasses
+        spec_fields = {f.name for f in dataclasses.fields(cls)}
+        spec_kwargs = {}
+        options_kwargs = {}
+        for k, v in kwargs.items():
+            if k in spec_fields:
+                spec_kwargs[k] = v
+            else:
+                options_kwargs[k] = v
+        if options_kwargs:
+            existing = spec_kwargs.get("type_options")
+            if existing is None:
+                spec_kwargs["type_options"] = options_kwargs
+            elif isinstance(existing, dict):
+                spec_kwargs["type_options"] = {**existing, **options_kwargs}
+            elif isinstance(existing, BoxTypeOptions):
+                existing_dict = dataclasses.asdict(existing)
+                spec_kwargs["type_options"] = {**existing_dict, **options_kwargs}
+        return cls(**spec_kwargs)
+
+    @classmethod
+    def builder(cls) -> BoxSpecBuilder:
+        return BoxSpecBuilder()
+
+
+class BoxSpecBuilder:
+    """Fluent builder for BoxSpec."""
+    def __init__(self) -> None:
+        self._kwargs: dict[str, Any] = {}
+
+    def size(self, w: float, l: float, h: float) -> BoxSpecBuilder:
+        self._kwargs["size"] = [w, l, h]
+        return self
+
+    def label(self, label: str) -> BoxSpecBuilder:
+        self._kwargs["label"] = label
+        return self
+
+    def wall_thickness(self, thickness: float) -> BoxSpecBuilder:
+        self._kwargs["wall_thickness"] = thickness
+        return self
+
+    def floor_thickness(self, thickness: float) -> BoxSpecBuilder:
+        self._kwargs["floor_thickness"] = thickness
+        return self
+
+    def lid_thickness(self, thickness: float) -> BoxSpecBuilder:
+        self._kwargs["lid_thickness"] = thickness
+        return self
+
+    def material_colour(self, colour: Color) -> BoxSpecBuilder:
+        self._kwargs["material_colour"] = colour
+        return self
+
+    def spin(self, spin: float) -> BoxSpecBuilder:
+        self._kwargs["spin"] = spin
+        return self
+
+    def anchor(self, anchor: list[float]) -> BoxSpecBuilder:
+        self._kwargs["anchor"] = anchor
+        return self
+
+    def orient(self, orient: list[float]) -> BoxSpecBuilder:
+        self._kwargs["orient"] = orient
+        return self
+
+    def type_options(self, type_options: Any) -> BoxSpecBuilder:
+        self._kwargs["type_options"] = type_options
+        return self
+
+    def contents(self, contents: Contents) -> BoxSpecBuilder:
+        self._kwargs["contents"] = contents
+        return self
+
+    def finger_holes(self, finger_holes: list[FingerHole]) -> BoxSpecBuilder:
+        self._kwargs["finger_holes"] = finger_holes
+        return self
+
+    def hollow(self, hollow: bool) -> BoxSpecBuilder:
+        self._kwargs["hollow"] = hollow
+        return self
+
+    def lid(self, lid: Lid | str | None) -> BoxSpecBuilder:
+        self._kwargs["lid"] = lid
+        return self
+
+    def option(self, key: str, value: Any) -> BoxSpecBuilder:
+        """Set a type-specific option dynamically."""
+        self._kwargs[key] = value
+        return self
+
+    def build(self) -> BoxSpec:
+        return BoxSpec.create(**self._kwargs)
+
 
 class BoxBaseType(ABC):
     """Abstract base type that **every** board game toolkit box type inherits from.
@@ -520,6 +617,17 @@ class BoxBaseType(ABC):
                 raise TypeError(
                     f"{cls.__name__} requires BoxSpec(type_options="
                     f"{cls.options_class.__name__}(...)): {exc}"
+                ) from exc
+        if isinstance(given, dict):
+            try:
+                import dataclasses
+                valid_fields = {f.name for f in dataclasses.fields(cls.options_class)}
+                filtered_given = {k: v for k, v in given.items() if k in valid_fields}
+                return cls.options_class(**filtered_given)
+            except Exception as exc:
+                raise TypeError(
+                    f"{cls.__name__} failed to construct type_options {cls.options_class.__name__} "
+                    f"from dictionary {given}: {exc}"
                 ) from exc
         if not isinstance(given, cls.options_class):
             raise TypeError(
@@ -777,35 +885,52 @@ class BoxBaseType(ABC):
     def _carve_contents(self, body: Bosl2Solid, contents: list[InnerObject], mask: Bosl2Solid) -> Bosl2Solid:
         """Subtract every negative content, clipped to *mask* so it cannot punch
         through the walls or floor."""
-        result = body
+        clipped_pieces = []
+        unclipped_pieces = []
         for io in contents:
             if io.type not in (ObjectType.NEGATIVE, ObjectType.POSITIVE_NEGATIVE):
                 continue
             piece = self._placed_content(io)
             if io.clip:
-                # mask (a Bosl2Solid) must be the LEFT operand: its __and__ unwraps the
-                # right side, whereas a raw native handle on the left rejects a
-                # Bosl2Solid RHS ("invalid argument left to operator").
-                result = result - (mask & piece)
+                clipped_pieces.append(piece)
             else:
-                # Breaching cut (e.g. a card finger hole): subtract raw so it can go
-                # through the floor / walls.
-                result = result - piece
+                unclipped_pieces.append(piece)
+
+        result = body
+        if clipped_pieces:
+            clipped_union = clipped_pieces[0]
+            for p in clipped_pieces[1:]:
+                clipped_union = clipped_union | p
+            result = result - (mask & clipped_union)
+
+        if unclipped_pieces:
+            unclipped_union = unclipped_pieces[0]
+            for p in unclipped_pieces[1:]:
+                unclipped_union = unclipped_union | p
+            result = result - unclipped_union
+
         return result
 
     def _apply_finger_holes(self, body: Bosl2Solid, finger_holes: list[FingerHole]) -> Bosl2Solid:
-        result = body
+        if not finger_holes:
+            return body
+        cutters = []
         for fh in finger_holes:
-            result = result - finger_hole_cutter(
-                fh,
-                name=self.label,
-                width=self.width,
-                length=self.length,
-                height=self.height,
-                wall_thickness=self.wall_thickness,
-                floor_thickness=self.floor_thickness,
+            cutters.append(
+                finger_hole_cutter(
+                    fh,
+                    name=self.label,
+                    width=self.width,
+                    length=self.length,
+                    height=self.height,
+                    wall_thickness=self.wall_thickness,
+                    floor_thickness=self.floor_thickness,
+                )
             )
-        return result
+        union_cutter = cutters[0]
+        for c in cutters[1:]:
+            union_cutter = union_cutter | c
+        return body - union_cutter
 
     def _apply_mmu(self, body: Bosl2Solid, contents: list[InnerObject], make_mmu: int) -> Bosl2Solid:
         """Union coloured copies of positive contents back onto *body*.
@@ -955,8 +1080,11 @@ class LiddedBox(BoxBaseType):
         if any(plate.offset):
             decorated = decorated.translate(list(plate.offset))
         body = decorated if plate.shell is None else (plate.shell | decorated)
-        for cut in plate.cutouts:
-            body = body - cut
+        if plate.cutouts:
+            union_cutouts = plate.cutouts[0]
+            for cut in plate.cutouts[1:]:
+                union_cutouts = union_cutouts | cut
+            body = body - union_cutouts
         return body.color(self.material_colour)
 
     def _lid_adjustment(self, stack: Bosl2Solid) -> Bosl2Solid:
@@ -1065,6 +1193,7 @@ class BoxKit:
     _LID_FIELDS = ("lid",)
 
     def __init__(self, box_class: "type[BoxBaseType]", **defaults: Any) -> None:
+        self.box_class = box_class
         self._reject_unknown(defaults, "BoxKit default")
         if not issubclass(box_class, LiddedBox):
             lid_settings = [k for k in self._LID_FIELDS if defaults.get(k) is not None]
@@ -1073,14 +1202,17 @@ class BoxKit:
                     f"{box_class.__name__} has no lid, so {lid_settings} would never be "
                     "built. Drop them, or use a LiddedBox type."
                 )
-        self.box_class = box_class
         self.defaults = defaults
 
-    @classmethod
-    def _reject_unknown(cls, kwargs: dict, what: str) -> None:
-        bad = set(kwargs) - cls._SPEC_FIELDS
+    def _reject_unknown(self, kwargs: dict, what: str) -> None:
+        import dataclasses
+        valid_keys = set(self._SPEC_FIELDS)
+        if self.box_class.options_class is not None:
+            valid_keys.update(f.name for f in dataclasses.fields(self.box_class.options_class))
+        bad = set(kwargs) - valid_keys
         if bad:
-            raise TypeError(f"{what}(s) are not BoxSpec fields: {sorted(bad)}")
+            opt_class_name = self.box_class.options_class.__name__ if self.box_class.options_class else "None"
+            raise TypeError(f"{what}(s) are not BoxSpec or {opt_class_name} fields: {sorted(bad)}")
 
     def spec(self, **overrides: Any) -> BoxSpec:
         """Build a :class:`BoxSpec` from the kit's shared defaults + per-box overrides
@@ -1090,7 +1222,7 @@ class BoxKit:
         merged = {**self.defaults, **overrides}
         if "lid" in overrides:
             merged["lid"] = self._merge_lid(self.defaults.get("lid"), overrides["lid"])
-        return BoxSpec(**merged)
+        return BoxSpec.create(**merged)
 
     @staticmethod
     def _merge_lid(default: "Lid | str | None", override: "Lid | str | None") -> "Lid | str | None":

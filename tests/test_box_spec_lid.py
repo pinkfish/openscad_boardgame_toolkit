@@ -160,5 +160,40 @@ class BoxKitLidMergeTests(unittest.TestCase):
             BoxKit(NoLidBox, lid="x")
 
 
+class APIErgonomicsTests(unittest.TestCase):
+    """Checks the dynamic option coercion, fluent builder, and simplified arguments in BoxSpec/BoxKit."""
+
+    def test_box_spec_create_coerces_extra_kwargs(self):
+        spec = BoxSpec.create(size=_SIZE, label="t", two_layer=True, inset=2.0)
+        self.assertEqual(spec.size, _SIZE)
+        self.assertEqual(spec.label, "t")
+        self.assertEqual(spec.type_options, {"two_layer": True, "inset": 2.0})
+
+    def test_box_spec_builder(self):
+        spec = BoxSpec.builder() \
+            .size(100, 60, 25) \
+            .label("built-spec") \
+            .wall_thickness(4.0) \
+            .option("two_layer", True) \
+            .build()
+        self.assertEqual(spec.size, [100, 60, 25])
+        self.assertEqual(spec.label, "built-spec")
+        self.assertEqual(spec.wall_thickness, 4.0)
+        self.assertEqual(spec.type_options, {"two_layer": True})
+
+    def test_box_resolve_options_dict_coercion(self):
+        # SlidingBox accepts SlidingBoxOptions. Check that passing a dict to SlidingBox coerces correctly.
+        spec = BoxSpec.create(size=_SIZE, label="t", type_options={"two_layer": True, "extra_ignored": 42})
+        box = SlidingBox(spec)
+        self.assertTrue(box.options.two_layer)
+
+    def test_box_kit_validates_and_merges_extra_options(self):
+        # SlidingBox takes `two_layer`. BoxKit should allow it as an override/default.
+        kit = BoxKit(SlidingBox, wall_thickness=2, two_layer=False)
+        spec = kit.spec(size=_SIZE, label="t", two_layer=True)
+        self.assertEqual(spec.wall_thickness, 2)
+        self.assertEqual(spec.type_options, {"two_layer": True})
+
+
 if __name__ == "__main__":
     unittest.main()
