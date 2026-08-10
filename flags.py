@@ -19,6 +19,10 @@
 #    This file has all the modules needed to make some fun flags.
 
 from __future__ import annotations
+import pathlib
+import re
+import urllib.error
+import urllib.request
 from base_bgtk import (
     BACK,
     BOTTOM,
@@ -36,7 +40,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 from pybosl2 import shapes2d
-_SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
+_SVG_DIR = pathlib.Path(__file__).resolve().parent / "svg"
 _FLAG_SVG_DIR = _SVG_DIR / "flags"
 from pybosl2 import Region
 from pybosl2 import shapes3d
@@ -127,26 +131,114 @@ _FLAG_CODES = {
     "st_patricks_cross": "st-patrick",
 }
 
-#: flag-icons' 4x3 drawings all declare viewBox="0 0 640 480".
-_FLAG_VIEWBOX = (640.0, 480.0)
+#: Upstream for :func:`flag_for_country` -- flag-icons' 4x3 set, MIT licensed.
+FLAG_ICONS_URL = "https://raw.githubusercontent.com/lipis/flag-icons/main/flags/4x3/{code}.svg"
 
 
-def flag_aspect_height(length: float) -> float:
-    """The height a flag of *length* has at the drawings' 4:3 aspect."""
-    view_w, view_h = _FLAG_VIEWBOX
-    return length * view_h / view_w
+def flag_viewbox(path: "pathlib.Path") -> tuple[float, float]:
+    """The (length, width) an SVG declares in its ``viewBox``.
+
+    SVG calls these two "width" and "height"; a flag's are its LENGTH (along the fly) and its
+    WIDTH (along the hoist), which is what every function here takes, so they are named that
+    way on the way out.
+
+    Read from the file rather than assumed, because it is what sets the flag's ASPECT and its
+    scale. flag-icons draws everything in 640x480, but a drawing from anywhere else (Wikimedia
+    uses each flag's official ratio) has its own, and hardcoding 640x480 would silently
+    stretch it.
+    """
+    text = path.read_text(errors="replace")
+    match = re.search(r'viewBox\s*=\s*"\s*([-\d.eE]+)[ ,]+([-\d.eE]+)[ ,]+([-\d.eE]+)[ ,]+([-\d.eE]+)', text)
+    if match is None:
+        raise ValueError(f"{path.name} declares no viewBox, so its size and aspect are unknown")
+    _min_x, _min_y, view_length, view_width = (float(v) for v in match.groups())
+    assert view_length > 0 and view_width > 0, f"{path.name}: viewBox has a non-positive size"
+    return view_length, view_width
+
+
+def _ssl_context():
+    """An SSL context that can actually verify github's certificate.
+
+    A python.org build on macOS ships no CA bundle of its own and does not read the system
+    keychain, so a plain urlopen() fails with CERTIFICATE_VERIFY_FAILED even though curl
+    works. certifi's bundle is what pip and requests use; fall back to the default context
+    when it is not installed rather than disabling verification, which would be worse than
+    failing.
+    """
+    import ssl
+
+    try:
+        import certifi
+    except ImportError:
+        return ssl.create_default_context()
+    return ssl.create_default_context(cafile=certifi.where())
+
+
+def flag_svg_for_country(code: str, refresh: bool = False) -> "pathlib.Path":
+    """The drawing for an ISO 3166-1 alpha-2 country code, downloading it if needed.
+
+    Fetched once from flag-icons and cached in ``svg/flags/``, so a build only ever touches
+    the network for a flag it has never seen. Everything already vendored there is a cache
+    hit and never hits the network at all.
+
+    Usage::
+
+        flag_svg_for_country("fr")
+
+    Args:
+        code: an ISO 3166-1 alpha-2 code, e.g. ``"fr"``, ``"jp"``, or a flag-icons
+            subdivision code like ``"gb-sct"``. Case-insensitive.
+        refresh: re-download even when it is already cached.
+
+    Returns:
+        Path to the cached SVG.
+
+    Raises:
+        ValueError: if there is no such flag upstream.
+    """
+    key = code.strip().lower()
+    assert key, "a country code is required"
+    cached = _FLAG_SVG_DIR / f"{key}.svg"
+    if cached.is_file() and not refresh:
+        return cached
+
+    url = FLAG_ICONS_URL.format(code=key)
+    try:
+        with urllib.request.urlopen(url, timeout=30, context=_ssl_context()) as response:
+            body = response.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        if exc.code == 404:
+            raise ValueError(f"no flag for country code {code!r} in flag-icons ({url})") from exc
+        raise
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            f"could not fetch {url}: {exc.reason}. Every flag this project ships is already "
+            f"cached in {_FLAG_SVG_DIR}; only a code that has never been used needs the "
+            "network. If this is a certificate error on macOS, run "
+            '"/Applications/Python 3.x/Install Certificates.command" once.'
+        ) from exc
+    _FLAG_SVG_DIR.mkdir(parents=True, exist_ok=True)
+    cached.write_text(body)
+    return cached
 
 
 def flag_from_svg(
-    code: str,
+    source: "str | pathlib.Path",
     length: float,
-    height: float | None = None,
+    width: float | None = None,
     thickness: float = 2,
     border: float = 0,
 ) -> "Bosl2Solid":
-    """Build a flag from its drawing in ``svg/flags/``.
+    """Build a flag from a drawing in ``svg/flags/``.
 
     The one place a flag becomes geometry. Every named flag below is a call to this.
+
+    The drawing is SCALED by its own viewBox, never resized to fit its geometry's bounding
+    box: some flags are drawn with parts that run past the viewBox (Scotland's saltire by 6%,
+    the US flag by 2%), and fitting the bounding box to the requested size would shrink the
+    whole flag to make room for that overhang -- so a 60mm flag would not be 60mm of flag.
+    Scaling by the viewBox makes the FLAG exactly *length* wide, which is what the dimension
+    means. Nothing is clipped; any overhang is drawn where the drawing puts it.
 
     Usage::
 
@@ -154,72 +246,105 @@ def flag_from_svg(
         flag_from_svg("pt", 60, thickness=3, border=2)
 
     Args:
-        code: the drawing's basename in ``svg/flags/`` (an ISO code for the flag-icons ones)
-        length: length of the flag
-        height: height of the flag (default: the drawing's own 4:3 aspect)
+        source: a code cached in ``svg/flags/`` (``"au"``), or a path to any SVG
+        length: length of the flag, exactly
+        width: width of the flag (default: the drawing's own viewBox aspect)
         thickness: how thick to extrude it
         border: if > 0, put a frame of this width around the flag
 
     Returns:
-        One multi-colour solid, corner at the origin, extending +x/+y and 0..*thickness* in z.
+        One multi-colour solid, the flag's corner at the origin, extending +x/+y and
+        0..*thickness* in z.
     """
     assert length > 0, f"length must be > 0, got {length}"
     assert thickness > 0, f"thickness must be > 0, got {thickness}"
-    view_w, view_h = _FLAG_VIEWBOX
-    calc_height = flag_aspect_height(length) if height is None else height
+    path = pathlib.Path(source)
+    if not path.suffix:
+        path = _FLAG_SVG_DIR / f"{path.name}.svg"
+    view_len, view_wide = flag_viewbox(path)
+    calc_width = length * view_wide / view_len if width is None else width
 
-    shape = Region.from_svg(str(_FLAG_SVG_DIR / f"{code}.svg")).geometry()
-    # Some drawings overhang their viewBox -- Scotland's saltire by 6%, the US flag by 2%.
-    # A renderer clips that; without clipping, the resize below shrinks the whole flag to fit
-    # the overhang inside the requested size.
-    shape = shape & shapes2d.rect([view_w, view_h]).translate([view_w / 2, -view_h / 2])
-
+    shape = Region.from_svg(str(path)).geometry()
     flag = (
-        shape.resize([length, calc_height, 0])
+        shape.scale([length / view_len, calc_width / view_wide, 1])
         .linear_extrude(height=thickness)
-        .translate([0, calc_height, 0])
+        .translate([0, calc_width, 0])
     )
     if border > 0:
         frame = shapes3d.cuboid(
-            [length + border * 2, calc_height + border * 2, thickness], anchor=BOTTOM + FRONT + LEFT
+            [length + border * 2, calc_width + border * 2, thickness], anchor=BOTTOM + FRONT + LEFT
         ) - shapes3d.cuboid(
-            [length, calc_height, thickness + 1], anchor=BOTTOM + FRONT + LEFT
+            [length, calc_width, thickness + 1], anchor=BOTTOM + FRONT + LEFT
         ).translate([border, border, -0.5])
         flag = flag.translate([border, border, 0]) | frame.color(default_material_colour)
     return flag
 
 
-def StAndrewsCross(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def flag_for_country(
+    code: str,
+    length: float,
+    width: float | None = None,
+    thickness: float = 2,
+    border: float = 0,
+) -> "Bosl2Solid":
+    """Any country's flag, by ISO 3166-1 alpha-2 code.
+
+    Looks the drawing up in flag-icons (downloading and caching it the first time) and builds
+    it at the drawing's own aspect ratio, exactly *length* wide.
+
+    Usage::
+
+        flag_for_country("fr", 60)
+        flag_for_country("jp", 60, thickness=3, border=1)
+
+    Args:
+        code: ISO 3166-1 alpha-2 code, e.g. ``"fr"``; flag-icons subdivision codes
+            (``"gb-sct"``) work too. Case-insensitive.
+        length: length of the flag, exactly
+        width: width of the flag (default: the drawing's own aspect)
+        thickness: how thick to extrude it
+        border: if > 0, put a frame of this width around the flag
+
+    Returns:
+        The flag as one multi-colour solid.
+
+    Raises:
+        ValueError: if there is no such flag upstream.
+    """
+    return flag_from_svg(flag_svg_for_country(code), length, width, thickness, border)
+
+
+def StAndrewsCross(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of Scotland -- the white saltire of St Andrew on blue.
 
     Usage::
 
         StAndrewsCross(60)
     """
-    return flag_from_svg(_FLAG_CODES["st_andrews_cross"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["st_andrews_cross"], length, width, thickness, border)
 
 
-def StPatricksCross(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def StPatricksCross(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """St Patrick's Saltire -- the red saltire on white.
 
     Usage::
 
         StPatricksCross(60)
     """
-    return flag_from_svg(_FLAG_CODES["st_patricks_cross"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["st_patricks_cross"], length, width, thickness, border)
 
 
-def StGeorgesCross(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def StGeorgesCross(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of England -- the red cross of St George on white.
 
     Usage::
 
         StGeorgesCross(60)
     """
-    return flag_from_svg(_FLAG_CODES["st_georges_cross"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["st_georges_cross"], length, width, thickness, border)
 
 
-def UnionJack(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def UnionJack(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of the United Kingdom.
 
     Usage::
@@ -227,44 +352,44 @@ def UnionJack(length: float, height: float | None = None, thickness: float = 2, 
         UnionJack(60)
         UnionJack(60, border=2)
     """
-    return flag_from_svg(_FLAG_CODES["union_jack"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["union_jack"], length, width, thickness, border)
 
 
-def AustralianFlag(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def AustralianFlag(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of Australia.
 
     Usage::
 
         AustralianFlag(60)
     """
-    return flag_from_svg(_FLAG_CODES["australia"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["australia"], length, width, thickness, border)
 
 
-def SwedenFlag(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def SwedenFlag(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of Sweden.
 
     Usage::
 
         SwedenFlag(60)
     """
-    return flag_from_svg(_FLAG_CODES["sweden"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["sweden"], length, width, thickness, border)
 
 
-def UnitedStatesFlag(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def UnitedStatesFlag(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of the United States.
 
     Usage::
 
         UnitedStatesFlag(60)
     """
-    return flag_from_svg(_FLAG_CODES["united_states"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["united_states"], length, width, thickness, border)
 
 
-def PortugeseFlag(length: float, height: float | None = None, thickness: float = 2, border: float = 0):
+def PortugeseFlag(length: float, width: float | None = None, thickness: float = 2, border: float = 0):
     """Flag of Portugal.
 
     Usage::
 
         PortugeseFlag(60)
     """
-    return flag_from_svg(_FLAG_CODES["portugal"], length, height, thickness, border)
+    return flag_from_svg(_FLAG_CODES["portugal"], length, width, thickness, border)

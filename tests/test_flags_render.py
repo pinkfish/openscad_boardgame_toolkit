@@ -61,7 +61,7 @@ _TOLERANCE = 12.0
 # is to notice a shape changing rather than to print these.
 FLAGS = [
     # Every flag is now its real drawing from svg/flags/ (see the README there), so these are
-    # one call each with the same shape: (length, height=aspect, thickness, border).
+    # one call each with the same shape: (length, width=aspect, thickness, border).
     ("flag_st_andrews_cross", "StAndrewsCross(60)"),
     ("flag_st_patricks_cross", "StPatricksCross(60)"),
     ("flag_st_georges_cross", "StGeorgesCross(60)"),
@@ -70,8 +70,8 @@ FLAGS = [
     ("flag_sweden", "SwedenFlag(60)"),
     ("flag_united_states", "UnitedStatesFlag(60)"),
     ("flag_portugese", "PortugeseFlag(60)"),
-    # A flag with an explicit height and a border, so those two arguments are covered.
-    ("flag_portugese_border", "PortugeseFlag(60, 40, border=2)"),
+    # A flag with an explicit width and a border, so those two arguments are covered.
+    ("flag_portugese_border", "PortugeseFlag(60, width=40, border=2)"),
     # The background/border wrapper every flag can compose onto. It requires children[0]
     # (the cutout) and children[1] (the face), so it is exercised with a simple pair.
     (
