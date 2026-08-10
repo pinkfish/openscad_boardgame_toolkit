@@ -22,23 +22,22 @@
 # FileGroup: Basics
 
 from __future__ import annotations
+
 import math
 import os
-
-import numpy as np
-
-from enum import IntEnum
 from dataclasses import dataclass
+from enum import IntEnum
 from typing import Any, TypeVar
 
+import numpy as np
 
 _T = TypeVar("_T")
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
+    from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
 
 # base_bgtk itself no longer calls into BOSL2 -- the path maths it used to need is now
@@ -53,8 +52,7 @@ _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
 # The numpy path maths (DifferenceWithOffset's pts= form); pybosl2/ never imports back here.
-from pybosl2 import Color, Path2D, Path3D, Region
-from pybosl2 import shapes2d
+from pybosl2 import Color, Path2D, Path3D, Region, shapes2d
 from pybosl2.version import version as _pybosl2_version
 
 # The toolkit needs pybosl2 >= 0.7.7 for: the path fixes (Path2D/Path3D default to
@@ -211,11 +209,67 @@ FROM_MAKE = MakeParameter("FROM_MAKE", 0)
 # comment on the def line or the line right after it (which is where scripts/s2p.py emits it).
 
 
-def make_box(fn):
-    """Mark a zero-argument function as a printable box. scripts/make_files.py emits the mmu +
-    single 3mf build rules for it. Put `@make_box` on the line above the `def`."""
-    fn._bgtk_make = True
-    return fn
+def make_box(fn=None, /, **param_lists):
+    """Mark a zero-argument function as a printable box for the build system.
+
+    Simple form (marks one target)::
+
+        @make_box
+        def MyBox():
+            return ...
+
+    Parameterised form (unwinds each value in *param_lists* into a separate
+    zero-arg wrapper named ``{function}_{value}``)::
+
+        @make_box(colour=["Red", "Green", "Blue"])
+        def MyLid(colour=None):
+            return _build_lid(colour)
+
+    The template itself is also marked (``MyLid()`` calls with the default),
+    and each wrapper is injected into the module namespace so ``from example
+    import MyLid_Red`` works.
+    """
+    if fn is not None and not param_lists:
+        # @make_box  -- bare decorator
+        fn._bgtk_make = True
+        return fn
+
+    import functools
+    import itertools
+
+    if not param_lists:
+        raise TypeError("make_box() with parens requires at least one keyword argument")
+
+    keys = list(param_lists.keys())
+
+    def _decorate(template_fn):
+        template_fn._bgtk_make = True
+        template_fn._bgtk_make_template = param_lists
+
+        for values in itertools.product(*param_lists.values()):
+            combo = dict(zip(keys, values))
+            suffix = "__".join(str(v).replace(" ", "_") for v in values)
+            wrapper_name = f"{template_fn.__name__}__{suffix}"
+
+            def _build_wrapper(**p):
+                @functools.wraps(template_fn)
+                def _w():
+                    return template_fn(**p)
+
+                return _w
+
+            wrapper = _build_wrapper(**combo)
+            wrapper.__name__ = wrapper_name
+            wrapper.__qualname__ = wrapper_name
+            wrapper._bgtk_make = True
+            wrapper._bgtk_make_of = template_fn.__name__
+            template_fn.__globals__[wrapper_name] = wrapper
+
+        return template_fn
+
+    if fn is not None:
+        return _decorate(fn)
+    return _decorate
 
 
 def document_box(fn):
