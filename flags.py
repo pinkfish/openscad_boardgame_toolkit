@@ -40,7 +40,6 @@ _SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
 from pybosl2.svg import svg_outlines
 from pybosl2 import shapes3d
 from pybosl2.shapes3d import Bosl2Solid
-from pybosl2 import Bezier
 from labels import Make3dStripedGrid
 
 
@@ -537,41 +536,21 @@ def PortugeseFlag(length: float, height: float, background: bool = True, border:
 
     width = length * 2 / 3
 
-    def Quina(width: float, height: float) -> PyOpenSCAD:
+    def Quina(width: float, height: float) -> "Bosl2Solid":
+        """One quina -- the small shields on the Portuguese flag's escutcheon.
+
+        The outline lives in svg/portugal_quina.svg, generated from this function's own
+        Bezier(...).path_curve() output (129 points, max deviation 5e-7), so it is the same
+        curve rather than a re-trace. The magic numbers below are the drawing's own extents,
+        kept because the resize/translate still places it from them.
+        """
         calc_len = 247.6548 - 232.636
         calc_width = 236.2621 - 217.4357
         mult = width / calc_width
-        bez = [
-            [232.636, 228.19],
-            [232.636, 228.19],
-            [232.636, 228.195],
-            [232.636, 228.195],
-            [232.636, 230.4069],
-            [233.48526999999999, 232.4222],
-            [234.8478, 233.8844],
-            [236.213, 235.3511],
-            [238.0932, 236.2621],
-            [240.1498, 236.2621],
-            [242.217, 236.2621],
-            [244.0937, 235.35723000000002],
-            [245.4527, 233.8967],
-            [246.8108, 232.43800000000002],
-            [247.6548, 230.42451],
-            [247.6548, 228.2037],
-            [247.6548, 228.2037],
-            [247.6548, 217.4357],
-            [247.6548, 217.4357],
-            [247.6548, 217.4357],
-            [232.6628, 217.4234],
-            [232.6628, 217.4234],
-            [232.6628, 217.4234],
-            [232.6355, 228.18939999999998],
-            [232.6355, 228.18939999999998],
-        ]
-        # path_curve() returns a pybosl2 Path2D; native polygon() needs plain float pairs.
-        path = Bezier(bez).path_curve()
+        # svg_outlines, not Region.from_svg: a single ring with no nesting to resolve.
+        (ring,) = svg_outlines(str(_SVG_DIR / "portugal_quina.svg"))
         return (
-            shapes2d.polygon(path)
+            shapes2d.polygon(ring)
             .resize([calc_len * mult, width, 0])
             .translate([-232.636 - calc_len / 2, -236.2621 + calc_width / 2])
             .linear_extrude(height=height)
