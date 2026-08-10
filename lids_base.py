@@ -176,7 +176,14 @@ def build_lid(
         size_spacing = m_piece_wiggle_room
     assert lid_thickness > 0, f"lid_thickness must be > 0 lid_thickness={lid_thickness}"
 
-    pieces = list(overlays)
+    # EVERY piece is a pybosl2 solid from here on. A native left operand rejects a pybosl2
+    # right one -- native `__or__`/`__sub__` RAISE rather than returning NotImplemented, so
+    # Python never gets to try the wrapper's reflected method -- which made the unions below
+    # depend on the order overlays happened to arrive in. Normalising once here is what makes
+    # them order-independent; do not push raw handles past this line.
+    pieces = [p if isinstance(p, shapes3d.Bosl2Solid) else shapes3d.Bosl2Solid(p) for p in overlays]
+    if not isinstance(base, shapes3d.Bosl2Solid):
+        base = shapes3d.Bosl2Solid(base)
     n = len(pieces)
     # Each overlay's mask is used by the base AND by every earlier overlay -- build each
     # one ONCE (the projection + offset + extrude is the expensive part of a lid stack)

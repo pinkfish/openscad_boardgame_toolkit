@@ -53,6 +53,7 @@ from base_bgtk import (
     union_all_2d,
 )
 from pybosl2.shapes3d import Bosl2Solid
+from pybosl2.parts import KnuckleHinge
 from pybosl2.shapes2d import Bosl2Shape2D
 from pybosl2 import Anchor
 from pybosl2 import shapes3d
@@ -1248,3 +1249,62 @@ def RaisedShape(
     if spin:
         solid = solid.rotate([0, 0, spin])
     return InnerObject(solid.translate([x, y, z]), ObjectType.POSITIVE, color=colour)
+
+
+def knuckle_hinge_leaf(
+    length: float,
+    segs: int,
+    knuckle_diam: float,
+    pin_diam: float,
+    *,
+    inner: bool,
+    gap: float = 0.2,
+    fn: int = 32,
+) -> Bosl2Solid:
+    """One leaf of a print-in-place knuckle hinge.
+
+    Shared by the two box types that build one (``filament_hinge_box``, ``card_library``),
+    because the mapping below is easy to get subtly wrong in a way that still renders.
+
+    Both were SDF parts (``pybosl2._sdf.joiners.knuckle_hinge``) until pybosl2 0.7.8, for one
+    reason: the CSG :class:`~pybosl2.parts.KnuckleHinge`'s two leaves used to INTERSECT at
+    every fold angle, so a hinge printed as one fused solid that could not open. 0.7.8 cuts
+    the pin's neighbourhood out of each leaf's plate except across its own knuckles. The
+    saving is large -- hundreds of facets a leaf against tens of thousands.
+
+    The parameters do NOT map one-for-one onto the SDF port's:
+
+    * ``offset`` there was the distance from the pin to the mounting face. ``arm`` here is
+      measured to the end of the plate, and the plate already includes the knuckle radius,
+      so the arm is ``knuckle_diam / 2`` shorter to put the face in the same place.
+    * ``gap`` is passed explicitly because the two libraries disagree on the default
+      (0.2 against 0.4) and it sets the PRINTED clearance between meshing knuckles.
+    * ``fn`` is set because a knuckle is a CYLINDER and the default facet count leaves its
+      bounding box ~1% inside the nominal diameter -- enough to shorten a leaf by 0.05mm
+      against the SDF part it replaced. 32 lands exactly on nominal; 64 and 128 gain nothing.
+
+    The leaf comes back with its pin along X through the origin and its plate in +/-Y; the
+    caller rotates it onto the hinge line and translates its corner into place.
+
+    Args:
+        length: total hinge length along the pin
+        segs: knuckle count across BOTH leaves
+        knuckle_diam: outer diameter of a knuckle, and the plate thickness
+        pin_diam: diameter of the pin bore
+        inner: True for the leaf that meshes into the ``inner=False`` one
+        gap: printed clearance between knuckles
+
+    Returns:
+        The leaf as a :class:`~pybosl2.shapes3d.Bosl2Solid`.
+    """
+    return KnuckleHinge(
+        length=length,
+        segs=segs,
+        knuckle_diam=knuckle_diam,
+        pin_diam=pin_diam,
+        arm=knuckle_diam - knuckle_diam / 2,
+        thick=knuckle_diam,
+        gap=gap,
+        inner=inner,
+        fn=fn,
+    ).shape()

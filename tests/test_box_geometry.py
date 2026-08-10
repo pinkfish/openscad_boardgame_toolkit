@@ -66,15 +66,21 @@ LIDDED = {
                       "SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label='t'{extra}), sides=6)"),
     "filament_hinge": ("from filament_hinge_box import FilamentHingeBox",
                        "FilamentHingeBox(BoxSpec(size=[100, 50, 20], label='t'{extra}))"),
-    # NOT covered: card_library. Its lid still contains an SDF knuckle hinge, and measuring a
-    # solid meshes it -- which crashes the app when the same handle is then used again. It
-    # stays on the render-only test until its two _sdf_joiners.knuckle_hinge sites move to the
-    # CSG part, exactly as filament_hinge did.
+    "card_library": ("from card_library import CardLibraryBox, CardLibrarySpec, CardSize, CardGroup",
+                     "CardLibraryBox(CardLibrarySpec(card_size=CardSize(66, 92, 0.4), "
+                     "groups=[CardGroup('R', 30)]))"),
+    # Every box type with a lid is covered.
     #
-    # filament_hinge WAS excluded for that same reason and no longer is: pybosl2 0.7.8 fixed
-    # the CSG KnuckleHinge's leaves (they used to intersect at every fold angle) and the box
-    # moved onto it, so there is no frep handle left to trip over -- and it goes from
-    # facets>0 to being measured like every other type.
+    # filament_hinge and card_library were both excluded while their lids contained SDF
+    # knuckle hinges: measuring a solid meshes it, which crashes the app when the same handle
+    # is used again. pybosl2 0.7.8 fixed the CSG KnuckleHinge (its leaves used to intersect at
+    # every fold angle) and both moved onto it, so there is no frep handle left to trip over.
+    #
+    # card_library is built from a CardLibrarySpec rather than a BoxSpec, so it has no
+    # `{extra}` to substitute a lid into -- _measure_lids() decorates it through
+    # make_lid("T") instead. Covering it immediately found that its decorated lid did not
+    # build AT ALL ("invalid argument left to operator" from a native/wrapper union in
+    # build_lid), which every other lid path had got away with.
 }
 
 # The lid decoration is a label plus the default tiled pattern: the combination that
@@ -88,11 +94,19 @@ class LidGeometryTests(unittest.TestCase):
 
     def _measure_lids(self, name):
         imports, ctor = LIDDED[name]
+        # A type built from a BoxSpec takes its decoration through the spec (the documented
+        # path); one with its own spec object has nowhere to put it, so pass it to make_lid().
+        if "{extra}" in ctor:
+            plain_expr = f"{ctor.format(extra='')}.make_lid()"
+            decorated_expr = f"{ctor.format(extra=_DECORATED)}.make_lid()"
+        else:
+            plain_expr = f"{ctor}.make_lid()"
+            decorated_expr = f"{ctor}.make_lid('T')"
         body = (
             f"{_HEADER}{imports}\n"
-            f"plain = {ctor.format(extra='')}.make_lid()\n"
+            f"plain = {plain_expr}\n"
             f"measure('plain', plain)\n"
-            f"decorated = {ctor.format(extra=_DECORATED)}.make_lid()\n"
+            f"decorated = {decorated_expr}\n"
             f"measure('decorated', decorated)\n"
             "import pybosl2.shapes3d as _s3\n"
             "_s3.cuboid([1, 1, 1]).show()\n"
@@ -139,7 +153,7 @@ class LidGeometryTests(unittest.TestCase):
         air (which is exactly how the sliding-lid bug showed up: a 2mm lid measuring 13.5mm)."""
         heights = {"sliding": 25, "sliding_two_layer": 25, "cap": 30, "slipover": 25,
                    "sliding_catch": 20, "magnetic": 20, "inset": 20, "cap_path": 25,
-                   "slipover_path": 15, "filament_hinge": 20}
+                   "slipover_path": 15, "filament_hinge": 20, "card_library": 74}
         for name in LIDDED:
             with self.subTest(box=name):
                 _, decorated = self._measure_lids(name)

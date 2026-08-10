@@ -55,35 +55,10 @@ if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 import pybosl2.masking
 import pybosl2.shapes3d
-from pybosl2.parts import KnuckleHinge
+from components import knuckle_hinge_leaf
 from box_base import Body, BoxSpec, BoxTypeOptions, LidPlate, LiddedBox
 
 
-def _knuckle_leaf(length: float, segs: int, options: "HingeOptions", *, inner: bool):
-    """One leaf of the print-in-place hinge, built as CSG.
-
-    This was an SDF part (``pybosl2._sdf.joiners.knuckle_hinge``) until pybosl2 0.7.8, for
-    one reason: the CSG :class:`~pybosl2.parts.KnuckleHinge`'s two leaves used to INTERSECT
-    at every fold angle, so they printed as one fused solid that could not hinge. 0.7.8 cuts
-    the pin's neighbourhood out of each leaf's plate except across its own knuckles, and the
-    pair now has clearance. The saving is large: 276 facets a leaf against 17864.
-
-    The parameters do not map one-for-one. The SDF port's ``offset`` was the distance from
-    the pin to the mounting face; ``arm`` is measured to the end of the plate and the plate
-    already includes the knuckle radius, so the arm is that much shorter. ``gap`` is passed
-    explicitly because the two libraries disagree on the default (0.2 vs 0.4) and it sets the
-    printed clearance between knuckles.
-    """
-    return KnuckleHinge(
-        length=length,
-        segs=segs,
-        knuckle_diam=options.thickness,
-        pin_diam=options.hole_diameter + options.pin_slop,
-        arm=options.thickness - options.thickness / 2,
-        thick=options.thickness,
-        gap=0.2,
-        inner=inner,
-    ).shape()
 
 
 # The six axis orientations BOSL2 orient= takes at these call sites, as native Euler
@@ -281,7 +256,9 @@ def _make_box_with_filament_hinge_lid(
     # with the pin along the box's LENGTH and the arm reaching +Z to the box's top face.
     # translate: put the pin `thickness` below that face, at the left wall.
     knuckle = (
-        _knuckle_leaf(length, hinge_seg, calc_hinge_options, inner=True)
+        knuckle_hinge_leaf(length, hinge_seg, calc_hinge_options.thickness,
+                           calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
+                           inner=True)
         .rotate([270, 0, 90])
         .color(material_colour)
         .translate(
@@ -459,7 +436,9 @@ def _filament_lid_parts(
 
     kd = calc_hinge_options.thickness
     # The lid's leaf lies FLAT: pin along the lid's length, arm reaching +X across the lid.
-    knuckle = _knuckle_leaf(length, hinge_seg, calc_hinge_options, inner=False).rotate([0, 0, 270])
+    knuckle = knuckle_hinge_leaf(length, hinge_seg, calc_hinge_options.thickness,
+                                    calc_hinge_options.hole_diameter + calc_hinge_options.pin_slop,
+                                    inner=False).rotate([0, 0, 270])
     # The SDF port's `clear_top=True`: keep only the lower half of the leaf, so the lid sits
     # flush on the box instead of standing a full knuckle-diameter proud of it. There is no
     # such option on the CSG part, so cut the top half off directly.

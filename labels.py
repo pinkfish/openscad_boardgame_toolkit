@@ -578,15 +578,17 @@ def MakeFramedLidLabel(size: list[float], lid_thickness: float, label: str, opti
 
     assert result is not None, "label produced no geometry"
     result = result.rotate([0, 0, rotate_angle])
-    # `result` is a Bosl2Solid here whenever the finger-hole cutout applies (its `.color()`
-    # rewraps it above), otherwise native from MakeMainLidLabelSolid()/MakeMainLidLabelStriped()
-    # -- unwrap either way so callers always get a consistent, native, type (see those two
-    # functions' own returns for the same reasoning).
+    # Normalise UP to a pybosl2 solid, not down to a native handle. This used to return
+    # `result.shape` for a "consistent, native, type", which made the label the one lid
+    # overlay that was raw native -- and a native left operand rejects a pybosl2 right one
+    # ("invalid argument left to operator"), so whether a lid built at all came down to the
+    # order its overlays happened to be stacked in. card_library's put the label first and
+    # could not build a decorated lid at all.
     result = result.translate([length / 2, -width / 2, 0]).rotate([0, 0, 90])
-    return result.shape if isinstance(result, Bosl2Solid) else result
+    return result if isinstance(result, Bosl2Solid) else Bosl2Solid(result)
 
 
-def MakeFramelessLidLabel(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> PyOpenSCAD:
+def MakeFramelessLidLabel(size: list[float], lid_thickness: float, label: str, options: LabelOptions) -> "Bosl2Solid":
     """Makes a frameless (text only) label for a lid.
 
     Usage::

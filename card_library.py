@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.shapes2d
-from pybosl2._sdf import joiners as _sdf_joiners
+from components import knuckle_hinge_leaf
 from box_base import Body, BoxSpec, LidPlate, LiddedBox
 from dataclasses import dataclass, field
 
@@ -389,24 +389,22 @@ def _make_card_library_box(
         [width - wall_thickness, wall_thickness + 0.01, floor_thickness - 0.01]
     )
 
+    _hinge_len = length - wall_thickness * 2 - print_in_place_offset * 2
+    _knuckle_d = wall_thickness + lid_thickness
+    # rotate: stand the leaf up with its pin along the box's LENGTH and its arm reaching +Z.
+    # translate: the helper returns a leaf centred on its pin, so half a knuckle in X and Z
+    # and half the hinge in Y put its corner where the SDF part's already was.
     back_hinge = (
-        _sdf_joiners.knuckle_hinge(
-            length=length - wall_thickness * 2 - print_in_place_offset * 2,
-            segs=hinge_seg,
-            offset=wall_thickness + lid_thickness,
-            knuckle_diam=wall_thickness + lid_thickness,
-            arm_height=0,
-            arm_angle=90,
-            clear_top=False,
-            inner=True,
-            spin=90,
-            pin_diam=hinge_hole_diameter,
-            orient=list(TOP),
-            anchor=BOTTOM + BACK + LEFT,
-        )
-        .to_csg()
+        knuckle_hinge_leaf(_hinge_len, hinge_seg, _knuckle_d, hinge_hole_diameter, inner=True)
+        .rotate([270, 0, 90])
         .color(material_colour)
-        .translate([0, wall_thickness + print_in_place_offset, height_without_hinge - wall_thickness - lid_thickness])
+        .translate(
+            [
+                _knuckle_d / 2,
+                wall_thickness + print_in_place_offset + _hinge_len / 2,
+                height_without_hinge - wall_thickness - lid_thickness + _knuckle_d / 2,
+            ]
+        )
     )
     body = body | back_hinge
 
@@ -551,23 +549,20 @@ def _card_library_lid_parts(
         .translate([wall_thickness * 2, 0, 0])
     )
 
+    _hinge_len = length - wall_thickness * 2 - print_in_place_offset * 2
+    _knuckle_d = wall_thickness + lid_thickness
+    # The lid's leaf lies FLAT: pin along the lid's length, arm reaching +X across the lid.
     back_hinge = (
-        _sdf_joiners.knuckle_hinge(
-            length=length - wall_thickness * 2 - print_in_place_offset * 2,
-            segs=hinge_seg,
-            offset=wall_thickness + lid_thickness,
-            knuckle_diam=wall_thickness + lid_thickness,
-            pin_diam=hinge_hole_diameter,
-            arm_height=0,
-            arm_angle=90,
-            clear_top=False,
-            spin=90,
-            orient=list(LEFT),
-            anchor=TOP + BACK + LEFT,
-        )
-        .to_csg()
+        knuckle_hinge_leaf(_hinge_len, hinge_seg, _knuckle_d, hinge_hole_diameter, inner=False)
+        .rotate([0, 0, 270])
         .color(material_colour)
-        .translate([0, wall_thickness + print_in_place_offset, 0])
+        .translate(
+            [
+                _knuckle_d / 2,
+                wall_thickness + print_in_place_offset + _hinge_len / 2,
+                _knuckle_d / 2,
+            ]
+        )
     )
 
     back_holder = (
