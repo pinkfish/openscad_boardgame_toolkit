@@ -21,15 +21,36 @@
 # FileSummary: Shared label pieces.
 # FileGroup: Basics
 
-from openscad import *
-from base_bgtk import *
+from base_bgtk import (
+    BOTTOM,
+    FRONT,
+    LEFT,
+    Color,
+    LabelType,
+    default_label_background_colour,
+    default_label_colour,
+    default_label_font,
+    default_label_solid_background,
+    default_label_type,
+    default_material_colour,
+    default_slicing_layer_height,
+    native_colour,
+    union_all_2d,
+)
+from pythonscad import textmetrics
 from pybosl2 import Anchor
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d
 from pybosl2.shapes3d import Bosl2Solid
+from pybosl2.shapes2d import Bosl2Shape2D
 
 import math
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Annotation-only: the native handle type has no runtime object to import.
+    from openscad import PyOpenSCAD  # noqa: F401
 
 
 # ---------------------------------------------------------------------------

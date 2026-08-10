@@ -35,7 +35,7 @@ import os, sys, json
 _examples = os.getcwd(); _root = os.path.dirname(_examples)
 for _p in (_examples, _root):
     if _p not in sys.path: sys.path.insert(0, _p)
-from base_bgtk import *
+from pythonscad import cube
 import base_bgtk
 b = base_bgtk._bosl2
 def jl(x):

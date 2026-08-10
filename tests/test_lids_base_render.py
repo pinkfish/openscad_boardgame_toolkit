@@ -19,7 +19,9 @@
 #    Renders a representative sample of lids_base.py shapes with the *real* PythonSCAD binary
 #    and compares them against committed golden images. Complements tests/test_lids_base.py
 #    (pure-Python dense-shape-type helpers only). Every one of the shapes below turned up a real
-#    bug the first time it was actually rendered (see git history for specifics):
+#    bug the first time it was actually rendered (see git history for specifics). LidMeshBasic
+#    below is the predecessor of today's Lid + patterns.py path; the bugs are kept because they
+#    are what these renders exist to catch, not because the class still exists:
 #      - Bosl2Solid (pybosl2/ port) mixed directly into a native hull()/boolean without unwrapping
 #        `.shape` first (make_lid_tab's wedge hull())
 #      - color(obj, colorspec) argument order backwards (LidMeshBasic's border/bound)
@@ -65,28 +67,44 @@ _TOLERANCE = 12.0
 
 # (test-name-suffix, lids_base.py expression) -- one per distinct technique rather than one per
 # public function:
-#   - lidmesh_dense: LidMeshBasic(dense=True) -> LidMeshDense -> RegularPolygonGridDense, tiling
-#     a hex honeycomb across the whole boundary
-#   - lidmesh_repeating: LidMeshBasic(dense=False) -> LidMeshRepeating -> RegularPolygonGrid,
-#     tiling a repeating shape (with gaps, unlike a gapless square, so the pattern is visible)
+#   - lidmesh_dense: Lid(shape_options=...) -> ShapePattern -> a dense hex honeycomb tiled
+#     across the whole boundary
+#   - lidmesh_repeating: Lid(children=...) -> TiledMotif -> GridLattice, tiling a raw motif
+#     (with gaps, unlike a gapless square, so the pattern is visible). The motif here is a
+#     NATIVE square() on purpose: `children` is typed PyOpenSCAD, and handing TiledMotif a
+#     native handle used to die with "Unknown color representation".
 #   - sliding_fingernail: sliding_lid_fingernail's cylinder + sphere/cube cutout
 #   - tabs: make_tabs + make_lid_tab's hull()-based wedge geometry
-#   - internal_build_lid: the carve-and-stack composition helper
+#   - build_lid: the carve-and-stack composition helper. TWO overlays, because one overlay
+#     only exercises the base-carving loop -- the second is what drives the nested loop that
+#     carves overlay j out of overlay i. They are also deliberately tall enough to change the
+#     picture: with a flat 20x10 overlay this render moves by 2.11 against a tolerance of 12,
+#     i.e. the golden could not see the composition it is supposed to be testing.
+#
+# The first three used to name LidMeshBasic / internal_build_lid, which no longer exist. That
+# did NOT fail the suite -- render_lids_base_shape turns an exception into result.ok=False and
+# the helper below calls skipTest(), so three dead tests reported as "skipped" for as long as
+# they were broken. Check skip reasons, not just the OK line.
 SHAPES = [
     (
         "lidmesh_dense",
-        "LidMeshBasic(size=[100.0, 50.0], lid_thickness=2.0, boundary=10.0, layout_width=10.0, "
-        "dense=True, children=ShapeByType(MakeShapeObject(shape_type=ShapeType.DENSE_HEX, "
-        "shape_thickness=2, shape_width=10)))",
+        "Lid(shape_options=MakeShapeObject(shape_type=ShapeType.DENSE_HEX, shape_thickness=2, "
+        "shape_width=10), boundary=10.0, layout_width=10.0)"
+        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0))",
     ),
     (
         "lidmesh_repeating",
-        "LidMeshBasic(size=[100.0, 50.0], lid_thickness=2.0, boundary=10.0, layout_width=10.0, "
-        "children=square([6, 6], center=True))",
+        "Lid(children=square([6, 6], center=True), boundary=10.0, layout_width=10.0)"
+        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0))",
     ),
     ("sliding_fingernail", "sliding_lid_fingernail(3.0)"),
     ("lid_tabs", "make_tabs([50.0, 100.0], children=make_lid_tab(length=10.0, height=6.0))"),
-    ("internal_build_lid", "internal_build_lid(lid_thickness=2.0, children=[cube([50, 30, 2])])"),
+    (
+        "build_lid",
+        "build_lid(base=cube([50, 30, 2]), overlays=["
+        "cube([44, 24, 8]).translate([3, 3, 0]).color('red'), "
+        "cube([16, 10, 14]).translate([17, 10, 0]).color('blue')], lid_thickness=2.0)",
+    ),
 ]
 
 
@@ -142,7 +160,7 @@ class RealRenderTestCase(unittest.TestCase):
     def test_lid_tabs(self) -> None:
         self._render_and_compare(*SHAPES[3])
 
-    def test_internal_build_lid(self) -> None:
+    def test_build_lid(self) -> None:
         self._render_and_compare(*SHAPES[4])
 
 

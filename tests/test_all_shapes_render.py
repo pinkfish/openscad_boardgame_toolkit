@@ -135,6 +135,10 @@ def _construct(imports: str, cases: dict) -> str:
         for name, expr in cases.items() if name not in KNOWN_BROKEN
     )
     return (
+        # `from pythonscad import *` for the natives some CASES call directly (children=circle(r=3)).
+        # These used to arrive through base_bgtk, which re-exported all 101 native builtins; it no
+        # longer does, so a harness that evaluates arbitrary expressions has to ask for them.
+        "from pythonscad import *\n"
         "from base_bgtk import *\n" + imports + "\n_fails = []\n" + calls
         + "if _fails:\n    raise RuntimeError('SHAPE FAILURES -> ' + ' ;; '.join(_fails))\n" + _MARKER
     )

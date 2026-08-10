@@ -20,13 +20,12 @@
 
 from __future__ import annotations
 import math
-from pythonscad import *
+from base_bgtk import DifferenceWithOffset, region, union_all_2d
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import Path2D
 
 

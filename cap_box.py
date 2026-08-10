@@ -24,13 +24,12 @@
 from __future__ import annotations
 import copy
 
-from pythonscad import *
+from base_bgtk import BACK, BOT, BOTTOM, FRONT, LEFT, RIGHT, TOP, CatchType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import shapes3d
 from box_base import LiddedBox, BoxSpec, BoxTypeOptions, Interior, LidPlate
 from dataclasses import dataclass

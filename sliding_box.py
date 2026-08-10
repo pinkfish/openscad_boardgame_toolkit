@@ -25,15 +25,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from pythonscad import *
+from base_bgtk import BACK, BOT, BOTTOM, FRONT, LEFT, RIGHT, TOP
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
 
-from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
+from pybosl2.shapes3d import Bosl2Solid
 from pybosl2 import shapes2d
 from box_base import LiddedBox, BoxSpec, BoxTypeOptions, Interior, LidPlate
 from lids_base import Lid

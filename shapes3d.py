@@ -27,13 +27,12 @@
 # FileGroup: Shapes
 
 from __future__ import annotations
-from pythonscad import *
+from base_bgtk import default_material_colour
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
-from base_bgtk import *
 from pybosl2._sdf import shapes3d as _sdf3
 
 import math

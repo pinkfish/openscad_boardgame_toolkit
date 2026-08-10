@@ -304,7 +304,11 @@ class TiledMotif(Decoration):
     def pattern(self, lid: "Lid") -> Pattern | None:
         motif = self.motif
         if not callable(motif):
-            motif = motif.color(lid.material_colour)
+            # POLYMORPHIC receiver: `motif` is whatever the caller passed -- a pybosl2
+            # wrapper or (as the type says) a raw native handle. A pybosl2 Color reaches
+            # a native .color() as "TypeError: Unknown color representation", so the
+            # colour goes through native_colour(), whose [R, G, B] list BOTH accept.
+            motif = motif.color(native_colour(lid.material_colour))
         return TiledPattern(motif=motif, lattice=self.lattice)
 
 

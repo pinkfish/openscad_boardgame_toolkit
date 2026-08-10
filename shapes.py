@@ -22,13 +22,15 @@ from __future__ import annotations
 import math
 import types
 
-from pythonscad import *
+from base_bgtk import DifferenceWithOffset, ShapeType, indexed_region
+# `text` is imported for coin2d's globals()["text"] lookup -- its `text` PARAMETER
+# shadows the name, so the primitive can only be reached through the module globals.
+from pythonscad import circle, text
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import shapes2d
 from pybosl2 import Bezier
 from pybosl2 import Region

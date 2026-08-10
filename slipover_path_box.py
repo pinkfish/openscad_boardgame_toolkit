@@ -28,13 +28,24 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from pythonscad import *
+from base_bgtk import (
+    MAKE_MMU,
+    CatchType,
+    Color,
+    PolygonPrism,
+    default_floor_thickness,
+    default_lid_thickness,
+    default_material_colour,
+    default_wall_thickness,
+    m_piece_wiggle_room,
+    native_colour,
+    regular_ngon_path,
+)
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from components import FingerHoleWall
 from lids_base import default_lid_catch_type
 from cap_box_polygon import PolygonBoxLidCatch, _segment_angle

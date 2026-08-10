@@ -28,10 +28,32 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 
-from pythonscad import *
+if TYPE_CHECKING:
+    # Annotation-only: the native handle type has no runtime object to import.
+    from openscad import PyOpenSCAD  # noqa: F401
+
+from base_bgtk import (
+    BACK,
+    BOT,
+    BOTTOM,
+    CENTER,
+    FRONT,
+    LEFT,
+    RIGHT,
+    TOP,
+    Color,
+    InnerObject,
+    ObjectType,
+    OffsetSweep,
+    PolygonPrism,
+    default_label_font,
+    default_material_colour,
+    default_wall_thickness,
+    regular_ngon_path,
+    union_all_2d,
+)
 from pybosl2.shapes3d import Bosl2Solid
 from pybosl2.shapes2d import Bosl2Shape2D
-from base_bgtk import *
 from pybosl2 import Anchor
 from pybosl2 import shapes3d
 from pybosl2 import shapes2d

@@ -21,12 +21,12 @@
 from __future__ import annotations
 import math
 import random
-from pythonscad import *
+from base_bgtk import default_voronoi_seed
+from pythonscad import square
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 
 
 def VoronoiPoints(

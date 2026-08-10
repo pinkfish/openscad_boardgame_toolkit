@@ -26,7 +26,7 @@
 
 import types
 
-from base_bgtk import *
+from base_bgtk import BOTTOM, FROM_MAKE, FRONT, LEFT, RIGHT, InnerObject, ObjectType, make_box
 from box_base import BoxKit, BoxSpec
 from sliding_box import SlidingBox
 from no_lid import NoLidBox, PathBox, PathBoxOptions

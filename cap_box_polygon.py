@@ -34,7 +34,18 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
+from base_bgtk import (
+    MAKE_MMU,
+    CatchType,
+    Color,
+    PolygonPrism,
+    default_floor_thickness,
+    default_lid_thickness,
+    default_material_colour,
+    default_wall_thickness,
+    m_piece_wiggle_room,
+    regular_ngon_path,
+)
 import numpy as np
 import pybosl2.shapes3d
 from pybosl2 import Path2D

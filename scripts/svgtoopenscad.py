@@ -4,7 +4,7 @@
 # parsed path segment has them -- relax those two checks for this one CLI script rather
 # than asserting on every access.
 # pyright: reportOptionalMemberAccess=false, reportAttributeAccessIssue=false
-from svgelements import *
+from svgelements import SVG, CubicBezier, Group, Line, Path, Polygon
 import logging
 
 logging.basicConfig(level=logging.DEBUG)

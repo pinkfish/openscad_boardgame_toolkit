@@ -22,14 +22,13 @@
 # FileGroup: Shapes
 
 from __future__ import annotations
-from pythonscad import *
+from base_bgtk import ShapeType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes2d import Bosl2Shape2D  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
     from pybosl2._sdf.shapes2d import PyShape2D  # noqa: F401
-from base_bgtk import *
 from pybosl2 import shapes2d
 
 import math

@@ -19,12 +19,10 @@
 #    Chicken tesselation.
 
 from __future__ import annotations
-from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from kite_tesselation import MakeTesselationKiteHexagon
 from pybosl2 import Path2D
 

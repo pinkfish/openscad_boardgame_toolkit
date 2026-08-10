@@ -22,8 +22,8 @@
 # FileGroup: Dividers
 
 from __future__ import annotations
-from pythonscad import *
-from base_bgtk import *
+from base_bgtk import BACK, BOTTOM, FRONT, LEFT, RIGHT, default_label_font
+from pythonscad import text
 import pybosl2.shapes3d
 from typing import TYPE_CHECKING
 

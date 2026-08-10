@@ -24,7 +24,7 @@
 #    the BoxKit(...) call below -- e.g. BoxKit(CapBox, ...) once CapBox is available.
 #    Nothing else in this file mentions the box type.
 
-from base_bgtk import *
+from base_bgtk import FROM_MAKE, InnerObject, make_box
 from box_base import BoxKit, Label, Lid
 from sliding_box import SlidingBox
 from components import RoundedBoxAllSides, RoundedBoxGrid

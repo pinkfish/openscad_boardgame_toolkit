@@ -25,7 +25,7 @@
 #    Each function takes the well depth and returns the marker cavity solid built
 #    around its own origin (the compartment layout centres it in the cell).
 
-from base_bgtk import *
+from base_bgtk import BACK, BOTTOM, FRONT, LEFT, RIGHT
 import pybosl2.shapes3d as s3
 
 # ---- Navoria marker measurements (from the shared .scad) --------------------------

@@ -19,16 +19,27 @@
 #    This file has all the modules needed to make some fun flags.
 
 from __future__ import annotations
-from pythonscad import *
+from base_bgtk import (
+    BACK,
+    BOTTOM,
+    FRONT,
+    LEFT,
+    RIGHT,
+    TOP,
+    Color,
+    default_material_colour,
+    default_slicing_layer_height,
+    union_all_2d,
+)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import shapes2d
 _SVG_DIR = __import__("pathlib").Path(__file__).resolve().parent / "svg"
 from pybosl2.svg import svg_outlines
 from pybosl2 import shapes3d
+from pybosl2.shapes3d import Bosl2Solid
 from pybosl2 import Bezier
 from labels import Make3dStripedGrid
 

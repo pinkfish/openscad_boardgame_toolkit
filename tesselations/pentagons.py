@@ -21,12 +21,11 @@
 from __future__ import annotations
 import math
 import types
-from pythonscad import *
+from base_bgtk import union_all_2d
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import Bezier
 
 

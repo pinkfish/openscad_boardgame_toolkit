@@ -34,7 +34,6 @@ from typing import Any, TypeVar
 
 _T = TypeVar("_T")
 
-from pythonscad import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -48,7 +47,8 @@ if TYPE_CHECKING:
 # (not the script dir), so when BOSL2_SCAD_DIR is set (the make build and the render tests both
 # set it) load BOSL2 by absolute path -- that works from any CWD, including running an
 # examples/ box from the repo root. BOSL2_STD_PATH is exported so every other toolkit module
-# that also osuse()s BOSL2 resolves it the same way (they all `from base_bgtk import *` first).
+# that also osuse()s BOSL2 resolves it the same way -- these days only tests/generate_bosl2_truth.py
+# (which regenerates the ground-truth fixtures from the real library) still does.
 _bosl2_dir = os.environ.get("BOSL2_SCAD_DIR")
 BOSL2_STD_PATH = os.path.join(_bosl2_dir, "BOSL2", "std.scad") if _bosl2_dir else "BOSL2/std.scad"
 
@@ -63,14 +63,16 @@ from pybosl2.version import version as _pybosl2_version
 # corner-selector fix (a single corner no longer over-selects four), the Color class the
 # colours below are built from, Region.even_odd (region()/indexed_region() below), and the SVG loader's curve-length
 # fix -- shapes.py loads its drawings through Region.from_svg, which on 0.7.6 spends 196s on
-# a single file.
+# a single file. 0.7.8 adds the knuckle-hinge clearance fix filament_hinge_box depends on:
+# before it the CSG KnuckleHinge's two leaves intersected at every fold angle, so the box
+# printed as one fused solid that could not open.
 #
 # Checked here, at import, rather than left to the pyproject dependency pin, because that pin
 # does not apply on the path that matters: inside the PythonSCAD app the toolkit imports
 # whichever pybosl2 happens to be on sys.path, with no dependency resolution at all. And the
 # 0.7.1 failure mode is SILENT -- box and tile outlines quietly lose their closing edge and
 # lids round the wrong corners -- so without this the first symptom is a misprinted part.
-_REQUIRED_PYBOSL2 = "0.7.7"
+_REQUIRED_PYBOSL2 = "0.7.8"
 if _pybosl2_version < _REQUIRED_PYBOSL2:
     raise ImportError(
         f"openscad_boardgame_toolkit needs pybosl2 >= {_REQUIRED_PYBOSL2}, "
@@ -78,6 +80,78 @@ if _pybosl2_version < _REQUIRED_PYBOSL2:
         f"one tangent per segment, which silently changes box outlines and lid rounding, "
         f"and have no Color class."
     )
+
+
+# The toolkit's prelude surface: what other modules may import from base_bgtk.
+#
+# base_bgtk used to `from pythonscad import *`, which re-exported all 101 native builtins
+# under its own name -- so `from base_bgtk import *` (which 30 files did) silently pulled in
+# cube/sphere/union/... alongside the toolkit's own names, and no file's imports said which
+# of the two it was using. Both wildcards are gone; this list is what is left, and it
+# deliberately does NOT re-export the stdlib names (os, math, np, dataclass, ...) that merely
+# happen to be imported above.
+__all__ = [
+    "BACK",
+    "BOSL2_STD_PATH",
+    "BOT",
+    "BOTTOM",
+    "CENTER",
+    "DOWN",
+    "FROM_MAKE",
+    "FRONT",
+    "LEFT",
+    "MAKE_MMU",
+    "RIGHT",
+    "TOP",
+    "UP",
+    "CatchType",
+    "Color",
+    "DifferenceWithOffset",
+    "DifferenceWithOffsetRounded",
+    "InnerObject",
+    "InnerPath",
+    "InnerSize",
+    "LabelType",
+    "MakeParameter",
+    "ObjectType",
+    "OffsetSweep",
+    "Path2D",
+    "Path3D",
+    "PolygonPrism",
+    "Region",
+    "ResolveChild",
+    "ShapeType",
+    "Vec3",
+    "default_floor_thickness",
+    "default_hinge_hole_diameter",
+    "default_hinge_pin_slop",
+    "default_hinge_thickness",
+    "default_label_background_colour",
+    "default_label_colour",
+    "default_label_font",
+    "default_label_solid_background",
+    "default_label_type",
+    "default_lid_thickness",
+    "default_material_colour",
+    "default_positive_colour",
+    "default_print_in_place_offset",
+    "default_slicing_layer_height",
+    "default_stackable_thickness",
+    "default_voronoi_seed",
+    "default_wall_thickness",
+    "document_box",
+    "indexed_region",
+    "m_piece_wiggle_room",
+    "make_box",
+    "native_colour",
+    "native_points",
+    "outline_shell",
+    "region",
+    "regular_ngon_path",
+    "shapes2d",
+    "stroke_path",
+    "union_all_2d",
+]
 
 
 # ---------------------------------------------------------------------------

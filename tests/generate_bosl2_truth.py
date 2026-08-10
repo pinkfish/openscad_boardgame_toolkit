@@ -34,7 +34,8 @@ import os, sys, json
 _examples = os.getcwd(); _root = os.path.dirname(_examples)
 for _p in (_examples, _root):
     if _p not in sys.path: sys.path.insert(0, _p)
-from base_bgtk import *
+from base_bgtk import BACK, BOTTOM, CENTER, FRONT, LEFT, RIGHT, TOP
+from pythonscad import cube
 import base_bgtk
 from pythonscad import osuse
 

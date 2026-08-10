@@ -64,9 +64,17 @@ LIDDED = {
                  "CapPathBox.regular_polygon(BoxSpec(size=[90, 90, 25], label='t'{extra}), sides=6)"),
     "slipover_path": ("from slipover_path_box import SlipoverPathBox",
                       "SlipoverPathBox.regular_polygon(BoxSpec(size=[90, 90, 15], label='t'{extra}), sides=6)"),
-    # NOT covered: filament_hinge and card_library. Their lids contain frep/SDF knuckle
-    # hinges, and measuring a solid meshes it -- which crashes the app when the same
-    # handle is then used again. They stay on the render-only test.
+    "filament_hinge": ("from filament_hinge_box import FilamentHingeBox",
+                       "FilamentHingeBox(BoxSpec(size=[100, 50, 20], label='t'{extra}))"),
+    # NOT covered: card_library. Its lid still contains an SDF knuckle hinge, and measuring a
+    # solid meshes it -- which crashes the app when the same handle is then used again. It
+    # stays on the render-only test until its two _sdf_joiners.knuckle_hinge sites move to the
+    # CSG part, exactly as filament_hinge did.
+    #
+    # filament_hinge WAS excluded for that same reason and no longer is: pybosl2 0.7.8 fixed
+    # the CSG KnuckleHinge's leaves (they used to intersect at every fold angle) and the box
+    # moved onto it, so there is no frep handle left to trip over -- and it goes from
+    # facets>0 to being measured like every other type.
 }
 
 # The lid decoration is a label plus the default tiled pattern: the combination that
@@ -131,7 +139,7 @@ class LidGeometryTests(unittest.TestCase):
         air (which is exactly how the sliding-lid bug showed up: a 2mm lid measuring 13.5mm)."""
         heights = {"sliding": 25, "sliding_two_layer": 25, "cap": 30, "slipover": 25,
                    "sliding_catch": 20, "magnetic": 20, "inset": 20, "cap_path": 25,
-                   "slipover_path": 15}
+                   "slipover_path": 15, "filament_hinge": 20}
         for name in LIDDED:
             with self.subTest(box=name):
                 _, decorated = self._measure_lids(name)

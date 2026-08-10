@@ -23,12 +23,11 @@
 
 from __future__ import annotations
 
-from pythonscad import *
+from base_bgtk import BACK, BOT, BOTTOM, FRONT, LEFT, RIGHT, native_colour
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 import pybosl2.shapes3d
 from pybosl2._sdf import shapes3d as _sdf_shapes3d
 from pybosl2._sdf import joiners as _sdf_joiners

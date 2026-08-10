@@ -26,13 +26,32 @@ import copy
 import math
 import types
 
-from pythonscad import *
+from base_bgtk import (
+    BACK,
+    BOTTOM,
+    FRONT,
+    LEFT,
+    RIGHT,
+    TOP,
+    Color,
+    OffsetSweep,
+    ResolveChild,
+    default_floor_thickness,
+    default_hinge_hole_diameter,
+    default_label_colour,
+    default_label_font,
+    default_lid_thickness,
+    default_print_in_place_offset,
+    default_wall_thickness,
+    m_piece_wiggle_room,
+    native_colour,
+)
+from pythonscad import text, textmetrics
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 import pybosl2.masking
 import pybosl2.shapes3d
 import pybosl2.shapes2d

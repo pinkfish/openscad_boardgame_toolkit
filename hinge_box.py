@@ -24,13 +24,27 @@
 from __future__ import annotations
 import copy
 
-from pythonscad import *
+from base_bgtk import (
+    BACK,
+    BOT,
+    BOTTOM,
+    FRONT,
+    LEFT,
+    RIGHT,
+    TOP,
+    Color,
+    ResolveChild,
+    default_floor_thickness,
+    default_lid_thickness,
+    default_material_colour,
+    default_print_in_place_offset,
+    default_wall_thickness,
+)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 import pybosl2.shapes3d
 from lids_base import make_lid_tab
 from box_base import Body, BoxBaseType, BoxSpec, BoxTypeOptions

@@ -27,7 +27,7 @@
 #    from the .scad original are approximated by their bounding footprint here -- the
 #    point is that the layout + removal framework expresses the whole box.
 
-from base_bgtk import *
+from base_bgtk import FROM_MAKE, make_box
 from box_base import BoxKit
 from sliding_box import SlidingBox
 from compartments import Compartment, Group, Shape, layout_compartments

@@ -26,13 +26,23 @@ import math
 import types
 from dataclasses import dataclass, field, replace
 
-from pythonscad import *
+from base_bgtk import (
+    BOTTOM,
+    FRONT,
+    LEFT,
+    Color,
+    InnerPath,
+    PolygonPrism,
+    default_floor_thickness,
+    default_stackable_thickness,
+    default_wall_thickness,
+    regular_ngon_path,
+)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 import numpy as np
 import pybosl2.masking
 import pybosl2.shapes3d

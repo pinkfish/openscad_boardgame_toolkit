@@ -22,13 +22,13 @@
 # FileGroup: Slicing
 
 from __future__ import annotations
-from pythonscad import *
+from base_bgtk import CENTER, TOP
+from pythonscad import circle, cube, minkowski, sphere, square
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid  # noqa: F401
     from openscad import PyOpenSCAD  # noqa: F401
-from base_bgtk import *
 from pybosl2 import transforms
 
 import math

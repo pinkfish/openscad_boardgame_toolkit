@@ -24,7 +24,7 @@
 
 import types
 
-from base_bgtk import *
+from base_bgtk import FROM_MAKE, make_box
 from box_base import BoxSpec
 from no_lid import PathBox, PathBoxOptions, STACKABLE_TYPE_INSIDE
 from components import HexBoxDivisions, MAGNET_SLOT_TYPE_ROUND, MAGNET_SLOT_TYPE_RECT

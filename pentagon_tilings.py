@@ -41,8 +41,6 @@ from collections.abc import Sequence
 import math
 import types
 
-from pythonscad import *
-from base_bgtk import *
 from pybosl2 import shapes2d
 
 
