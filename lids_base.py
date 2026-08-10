@@ -173,6 +173,14 @@ class LidOverlay:
     silhouette (holes closed -- that is what ``fill()`` did), in the same frame as ``solid``.
     Leave it ``None`` and :func:`build_lid` falls back to projecting, so a caller passing a
     bare solid still works.
+
+    Not every piece is worth converting, and the fallback is why it does not have to be.
+    Measured per call: a dense pattern's projection is ~38ms and its outline is already
+    known (the region it was clipped to), so it hands one over. A LABEL's projection is
+    ~2.1ms, while its silhouette is a rounded plate unioned with two finger-hole rings, then
+    rotated and offset -- geometry that would have to be kept in step with the label builder
+    by hand, and that is irregular text in the frameless variant. 2ms is not worth that
+    coupling, so labels still project.
     """
 
     solid: "Bosl2Solid"
