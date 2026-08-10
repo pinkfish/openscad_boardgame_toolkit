@@ -96,7 +96,7 @@ def lid_pattern_mesh(
     lid_thickness: float,
     boundary: float = 10,
     material_colour: Color | None = None,
-) -> "PyOpenSCAD | None":
+) -> "LidOverlay | None":
     """The lid's pattern layer: *pattern* filling *area*, extruded and trimmed to the lid.
 
     The ONE place a lid pattern becomes lid geometry. The pattern only ever produces flat
@@ -145,11 +145,38 @@ def lid_pattern_mesh(
         material_colour
     ).translate([0, 0, -0.5])
 
-    bound = shapes2d.polygon(calc_path).offset(radius=-boundary).linear_extrude(height=lid_thickness).color(material_colour)
+    # The pattern's own 2-D silhouette. Everything the mesh contains is clipped to this, and
+    # the border ring runs right around its edge, so it IS the filled outline build_lid needs
+    # to cut a pocket -- known here for free, where projecting the finished solid back down
+    # costs ~38ms on a dense pattern.
+    outline = shapes2d.polygon(calc_path).offset(radius=-boundary)
+    bound = outline.linear_extrude(height=lid_thickness).color(material_colour)
     # border (always a pybosl2 solid) on the LEFT: a pattern may hand back a raw native
     # handle (RHOMBI_TRI_HEXAGONAL does), and a native left operand rejects a pybosl2 right
     # one -- "invalid argument left to operator". Union is commutative; the operands are not.
-    return (border | mesh) & bound
+    return LidOverlay(solid=(border | mesh) & bound, footprint=outline)
+
+
+@dataclass(frozen=True)
+class LidOverlay:
+    """A decoration piece plus the 2-D outline it was cut from.
+
+    Every overlay on a lid starts life as a 2-D shape that is then extruded -- a pattern
+    fills a region, a label is text on a plate, a fingernail is a scoop. :func:`build_lid`
+    needs each piece's filled SILHOUETTE to cut a pocket for it, and it used to recover that
+    by projecting the finished 3-D solid back down to 2-D
+    (``fill(solid.projection(cut=False))``), throwing away the 2-D shape it had just been
+    built from and paying to rediscover it. On a dense pattern that projection is ~38ms
+    against ~0.1ms for the outline the pattern already knew: 380x, per overlay, per lid.
+
+    So a piece may now hand its own outline along with itself. ``footprint`` is the FILLED
+    silhouette (holes closed -- that is what ``fill()`` did), in the same frame as ``solid``.
+    Leave it ``None`` and :func:`build_lid` falls back to projecting, so a caller passing a
+    bare solid still works.
+    """
+
+    solid: "Bosl2Solid"
+    footprint: "Bosl2Shape2D | None" = None
 
 
 def build_lid(
@@ -181,7 +208,10 @@ def build_lid(
     # Python never gets to try the wrapper's reflected method -- which made the unions below
     # depend on the order overlays happened to arrive in. Normalising once here is what makes
     # them order-independent; do not push raw handles past this line.
-    pieces = [p if isinstance(p, shapes3d.Bosl2Solid) else shapes3d.Bosl2Solid(p) for p in overlays]
+    # An overlay may be a bare solid or a LidOverlay carrying its own 2-D silhouette.
+    footprints: list = [o.footprint if isinstance(o, LidOverlay) else None for o in overlays]
+    raw = [o.solid if isinstance(o, LidOverlay) else o for o in overlays]
+    pieces = [p if isinstance(p, shapes3d.Bosl2Solid) else shapes3d.Bosl2Solid(p) for p in raw]
     if not isinstance(base, shapes3d.Bosl2Solid):
         base = shapes3d.Bosl2Solid(base)
     n = len(pieces)
@@ -190,20 +220,30 @@ def build_lid(
     # instead of rebuilding it inside the nested loop below.
     masks: dict[int, PyOpenSCAD] = {}
 
-    def mask(i: int) -> PyOpenSCAD:
+    def mask(i: int):
         cached = masks.get(i)
         if cached is None:
-            piece = pieces[i]
-            native = piece.shape if isinstance(piece, shapes3d.Bosl2Solid) else piece
-            # NATIVE chain: fill()/projection() are native builtins (no pybosl2 equivalent
-            # wired here), so .offset() is the native method -- it takes r=, not pybosl2's
-            # radius=.
-            cached = masks[i] = (
-                fill(native.projection(cut=False))
-                .offset(r=-size_spacing)
-                .linear_extrude(height=lid_thickness + 1)
-                .translate([0, 0, -0.5])
-            )
+            outline = footprints[i]
+            if outline is not None:
+                # The piece told us its own 2-D silhouette, so use it: no projection, and
+                # the offset stays a 2-D op on a 2-D shape, which is what it is for.
+                cached = masks[i] = (
+                    outline.offset(radius=-size_spacing)
+                    .linear_extrude(height=lid_thickness + 1)
+                    .translate([0, 0, -0.5])
+                )
+            else:
+                # No footprint (a caller-supplied extra): recover it the expensive way.
+                # NATIVE chain: fill()/projection() are native builtins (no pybosl2
+                # equivalent wired here), so .offset() is the native method -- it takes r=,
+                # not pybosl2's radius=.
+                native = pieces[i].shape
+                cached = masks[i] = shapes3d.Bosl2Solid(
+                    fill(native.projection(cut=False))
+                    .offset(r=-size_spacing)
+                    .linear_extrude(height=lid_thickness + 1)
+                    .translate([0, 0, -0.5])
+                )
         return cached
 
     for i in range(n):
@@ -479,8 +519,11 @@ class Lid:
         """The :class:`~patterns.Pattern` this lid is decorated with, or ``None``."""
         return self.decoration.pattern(self)
 
-    def mesh(self, fit: "LidFit") -> PyOpenSCAD | None:
-        """This lid's pattern layer fitted to *fit*, or ``None`` when it has no pattern."""
+    def mesh(self, fit: "LidFit") -> "LidOverlay | None":
+        """This lid's pattern layer fitted to *fit*, or ``None`` when it has no pattern.
+
+        Comes back as a :class:`LidOverlay` carrying its own 2-D outline, so
+        :func:`build_lid` never has to project it back down to find one."""
         pattern = self.pattern()
         if pattern is None:
             return None

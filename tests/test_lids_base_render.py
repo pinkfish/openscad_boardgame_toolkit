@@ -68,7 +68,9 @@ _TOLERANCE = 12.0
 # (test-name-suffix, lids_base.py expression) -- one per distinct technique rather than one per
 # public function:
 #   - lidmesh_dense: Lid(shape_options=...) -> ShapePattern -> a dense hex honeycomb tiled
-#     across the whole boundary
+#     across the whole boundary. `.solid` because mesh() hands back a LidOverlay: the pattern
+#     carries its own 2-D outline so build_lid never has to project the finished solid back
+#     down to find one.
 #   - lidmesh_repeating: Lid(children=...) -> TiledMotif -> GridLattice, tiling a raw motif
 #     (with gaps, unlike a gapless square, so the pattern is visible). The motif here is a
 #     NATIVE square() on purpose: `children` is typed PyOpenSCAD, and handing TiledMotif a
@@ -90,12 +92,12 @@ SHAPES = [
         "lidmesh_dense",
         "Lid(shape_options=MakeShapeObject(shape_type=ShapeType.DENSE_HEX, shape_thickness=2, "
         "shape_width=10), boundary=10.0, layout_width=10.0)"
-        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0))",
+        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0)).solid",
     ),
     (
         "lidmesh_repeating",
         "Lid(children=square([6, 6], center=True), boundary=10.0, layout_width=10.0)"
-        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0))",
+        ".mesh(LidFit(width=100.0, length=50.0, thickness=2.0)).solid",
     ),
     ("sliding_fingernail", "sliding_lid_fingernail(3.0)"),
     ("lid_tabs", "make_tabs([50.0, 100.0], children=make_lid_tab(length=10.0, height=6.0))"),
