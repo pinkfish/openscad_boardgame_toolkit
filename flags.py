@@ -228,6 +228,7 @@ def flag_from_svg(
     width: float | None = None,
     thickness: float = 2,
     border: float = 0,
+    simplify: float = 0.5,
 ) -> "Bosl2Solid":
     """Build a flag from a drawing in ``svg/flags/``.
 
@@ -251,6 +252,8 @@ def flag_from_svg(
         width: width of the flag (default: the drawing's own viewBox aspect)
         thickness: how thick to extrude it
         border: if > 0, put a frame of this width around the flag
+        simplify: drop points closer than this (in the drawing's own units) to the line they
+            sit on; 0 to keep every point the drawing has
 
     Returns:
         One multi-colour solid, the flag's corner at the origin, extending +x/+y and
@@ -264,7 +267,15 @@ def flag_from_svg(
     view_len, view_wide = flag_viewbox(path)
     calc_width = length * view_wide / view_len if width is None else width
 
-    shape = Region.from_svg(str(path)).geometry()
+    region = Region.from_svg(str(path))
+    if simplify and hasattr(region, "simplify"):
+        # Traced artwork carries far more points than a printed flag can show. The
+        # Portuguese arms are the extreme case: 42768 facets and 31.5s to render, against
+        # 13756 and 11.8s at a 0.5-unit tolerance -- which on a 60mm flag is 0.047mm of
+        # deviation, an order of magnitude under a 0.4mm nozzle. Nothing visible changes.
+        # hasattr: Region.simplify arrived in pybosl2 0.7.9; older wheels just skip it.
+        region = region.simplify(simplify)
+    shape = region.geometry()
     flag = (
         shape.scale([length / view_len, calc_width / view_wide, 1])
         .linear_extrude(height=thickness)

@@ -110,6 +110,69 @@ def shape_type_names() -> list[str]:
     raise AssertionError("ShapeType enum not found in base_bgtk.py")
 
 
+#: Set to sweep EVERY pattern through the lid tests instead of one per kind.
+#: ``LID_PATTERN_FULL=1 python3 -m unittest discover -s tests -p "test_lid_patterns.py"``
+FULL_LID_SWEEP = os.environ.get("LID_PATTERN_FULL") == "1"
+
+
+def pattern_kinds() -> "dict[str, str]":
+    """Each ShapeType's pattern KIND (TiledPattern / TilingPattern / AreaPattern).
+
+    Classified in-process: :func:`~patterns.pattern_for` is the routing table and is pure
+    Python, so this costs nothing and needs no app. Anything that will not classify is left
+    out and picked up by the fill sweep, which still covers every type.
+    """
+    try:
+        from patterns import pattern_for
+        from shape_type import MakeShapeObject
+        from base_bgtk import ShapeType
+    except Exception:  # pragma: no cover - only when the toolkit will not import at all
+        return {}
+    kinds: dict[str, str] = {}
+    for name in shape_type_names():
+        member = getattr(ShapeType, name, None)
+        if member is None:
+            continue
+        try:
+            pattern = pattern_for(MakeShapeObject(shape_type=member, shape_width=12, shape_thickness=2))
+        except Exception:
+            continue
+        if pattern is not None:
+            kinds[name] = type(pattern).__name__
+    return kinds
+
+
+def lid_sweep_names(candidates: list[str]) -> list[str]:
+    """The patterns to put on a real LID: one per kind, unless FULL_LID_SWEEP.
+
+    Building a lid costs ~2s a pattern and the sweep runs twice, so all 42 of them came to
+    284s -- over half the entire test suite -- to re-prove the same three things about the
+    lid PIPELINE. What the pipeline actually varies on is the kind of pattern it is handed
+    (a motif stamped per cell, a tile that places itself, or a region filled in one shot),
+    so one representative of each exercises every path through it.
+
+    Coverage is not lost, it is moved: PatternFillTest still sweeps EVERY ShapeType (13s,
+    no meshing), which is what catches a type that is missing, misrouted or broken. This
+    only trims the expensive re-proof. Set ``LID_PATTERN_FULL=1`` for the whole sweep --
+    worth doing when patterns.py or the lid pipeline changes.
+    """
+    if FULL_LID_SWEEP:
+        return candidates
+    kinds = pattern_kinds()
+    if not kinds:
+        return candidates
+    chosen: dict[str, str] = {}
+    for name in candidates:
+        kind = kinds.get(name)
+        if kind is not None and kind not in chosen:
+            chosen[kind] = name
+    picked = set(chosen.values())
+    # DENSE_HEX is the reference every other lid is measured against, so it is never dropped.
+    if "DENSE_HEX" in candidates:
+        picked.add("DENSE_HEX")
+    return [n for n in candidates if n in picked]
+
+
 def _sweep_serial(script_body: str, names: list[str]) -> tuple[dict, dict]:
     """Run *script_body* (a ``%r``-formatted name list) over *names*, surviving aborts.
 
@@ -256,10 +319,10 @@ class PatternOnLidTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.names = [
+        cls.names = lid_sweep_names([
             n for n in shape_type_names()
             if n not in EXPECTED_BROKEN and n not in TOO_SLOW_TO_MESH
-        ]
+        ])
         cls.lids, cls.lid_errors = _sweep(_LID_SCRIPT, cls.names)
         cls.fills, cls.fill_errors = _sweep(_FILL_MEASURE_SCRIPT, cls.names)
 
