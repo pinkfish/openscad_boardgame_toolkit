@@ -523,6 +523,10 @@ class Lid:
         label = replace(self.label, text=text) if self.label is not None else Label(text)
         return replace(self, label=label)
 
+    @classmethod
+    def builder(cls) -> LidBuilder:
+        return LidBuilder()
+
     def pattern(self) -> "Pattern | None":
         """The :class:`~patterns.Pattern` this lid is decorated with, or ``None``."""
         return self.decoration.pattern(self)
@@ -814,3 +818,58 @@ def make_lid_label(size: list[float], lid_thickness: float, text_str: str, optio
     elif calc_label_type in (LabelType.FRAMELESS_ANGLE, LabelType.FRAMELESS, LabelType.FRAMELESS_SHORT):
         return MakeFramelessLidLabel(size=size, label=text_str, lid_thickness=lid_thickness, options=options)
     return None
+
+
+class LidBuilder:
+    """Fluent builder for Lid."""
+
+    def __init__(self) -> None:
+        self._kwargs: dict[str, Any] = {}
+
+    def decoration(self, value: Decoration) -> LidBuilder:
+        self._kwargs["decoration"] = value
+        return self
+
+    def boundary(self, value: float) -> LidBuilder:
+        self._kwargs["boundary"] = value
+        return self
+
+    def layout_width(self, value: float) -> LidBuilder:
+        self._kwargs["layout_width"] = value
+        return self
+
+    def aspect_ratio(self, value: float) -> LidBuilder:
+        self._kwargs["aspect_ratio"] = value
+        return self
+
+    def material_colour(self, value: Color) -> LidBuilder:
+        self._kwargs["material_colour"] = value
+        return self
+
+    def label(self, text: str, options: Any = None) -> LidBuilder:
+        from box_base import Label
+        self._kwargs["label"] = Label(text, options=options) if options is not None else Label(text)
+        return self
+
+    def lid_rounding(self, value: float) -> LidBuilder:
+        self._kwargs["lid_rounding"] = value
+        return self
+
+    def extra_children(self, value: Sequence) -> LidBuilder:
+        self._kwargs["extra_children"] = value
+        return self
+
+    def fingernail(self, value: Fingernail | bool) -> LidBuilder:
+        self._kwargs["fingernail"] = value
+        return self
+
+    def shape_options(self, value: Any) -> LidBuilder:
+        self._kwargs["shape_options"] = value
+        return self
+
+    def pattern(self, value: Any) -> LidBuilder:
+        self._kwargs["pattern"] = value
+        return self
+
+    def build(self) -> Lid:
+        return Lid(**self._kwargs)

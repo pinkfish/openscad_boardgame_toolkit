@@ -124,8 +124,8 @@ _card_box = KIT.box(
     lid="Cards",
 )
 
-_token_box = CapBox(
-    BoxSpec.builder()
+_token_box = (
+    BoxSpec.box_builder()
     .size(token_box_width, token_box_length, token_box_height)
     .label("ModernArtTokens")
     .wall_thickness(wall_thickness)
@@ -143,6 +143,7 @@ _token_box = CapBox(
             label_type=LabelType.FRAMED_SOLID if MAKE_MMU else LabelType.FRAMED,
         )),
     ))
+    .cap()
     .build()
 )
 

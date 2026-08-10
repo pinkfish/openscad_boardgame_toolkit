@@ -154,8 +154,8 @@ def _contents(inner):
 
 
 # ---- The box ------------------------------------------------------------------
-_box = SlipoverBox(
-    BoxSpec.builder()
+_box = (
+    BoxSpec.box_builder()
     .size(splendor_box_width, splendor_box_length, splendor_box_height)
     .label("SplendorBox")
     .wall_thickness(wall_thickness)
@@ -170,6 +170,7 @@ _box = SlipoverBox(
         ),
         label=Label("Splendor", options=_LABEL_OPTIONS),
     ))
+    .slipover()
     .build()
 )
 

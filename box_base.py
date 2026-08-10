@@ -481,6 +481,58 @@ class BoxSpec:
     def builder(cls) -> BoxSpecBuilder:
         return BoxSpecBuilder()
 
+    @classmethod
+    def box_builder(cls) -> BoxBuilder:
+        return BoxBuilder()
+
+    @classmethod
+    def cap(cls) -> CapBoxBuilder:
+        return CapBoxBuilder()
+
+    @classmethod
+    def sliding(cls) -> SlidingBoxBuilder:
+        return SlidingBoxBuilder()
+
+    @classmethod
+    def magnetic(cls) -> MagneticBoxBuilder:
+        return MagneticBoxBuilder()
+
+    @classmethod
+    def inset(cls) -> InsetBoxBuilder:
+        return InsetBoxBuilder()
+
+    @classmethod
+    def path(cls) -> PathBoxBuilder:
+        return PathBoxBuilder()
+
+    @classmethod
+    def hinge(cls) -> HingeBoxBuilder:
+        return HingeBoxBuilder()
+
+    @classmethod
+    def filament_hinge(cls) -> FilamentHingeBoxBuilder:
+        return FilamentHingeBoxBuilder()
+
+    @classmethod
+    def sliding_catch(cls) -> SlidingCatchBoxBuilder:
+        return SlidingCatchBoxBuilder()
+
+    @classmethod
+    def slipover_path(cls) -> SlipoverPathBoxBuilder:
+        return SlipoverPathBoxBuilder()
+
+    @classmethod
+    def cap_path(cls) -> CapPathBoxBuilder:
+        return CapPathBoxBuilder()
+
+    @classmethod
+    def slipover(cls) -> SlipoverBoxBuilder:
+        return SlipoverBoxBuilder()
+
+    @classmethod
+    def no_lid(cls) -> NoLidBoxBuilder:
+        return NoLidBoxBuilder()
+
 
 class BoxSpecBuilder:
     """Fluent builder for BoxSpec."""
@@ -1246,3 +1298,581 @@ class BoxKit:
         """Return a copy of this kit that builds *box_class* instead, keeping all
         shared defaults -- the programmatic form of switching the box type."""
         return BoxKit(box_class, **self.defaults)
+
+
+class BoxBuilder:
+    """Generic box builder supporting fluent specification."""
+
+    def __init__(self, box_class: type[BoxBaseType] | None = None) -> None:
+        self._box_class = box_class
+        self._spec_builder = BoxSpecBuilder()
+
+    def type(self, box_class: type[BoxBaseType]) -> Any:
+        """Set the box type. Returns a type-specific builder if one is registered, or self."""
+        self._box_class = box_class
+        builder_class = _TYPE_BUILDERS.get(box_class.__name__)
+        if builder_class:
+            return builder_class(self)
+        return self
+
+    def cap(self) -> CapBoxBuilder:
+        return CapBoxBuilder(self)
+
+    def sliding(self) -> SlidingBoxBuilder:
+        return SlidingBoxBuilder(self)
+
+    def magnetic(self) -> MagneticBoxBuilder:
+        return MagneticBoxBuilder(self)
+
+    def inset(self, value: float | None = None) -> InsetBoxBuilder:
+        builder = InsetBoxBuilder(self)
+        if value is not None:
+            builder.inset(value)
+        return builder
+
+    def path(self, value: Any = None) -> PathBoxBuilder:
+        builder = PathBoxBuilder(self)
+        if value is not None:
+            builder.path(value)
+        return builder
+
+    def hinge(self) -> HingeBoxBuilder:
+        return HingeBoxBuilder(self)
+
+    def filament_hinge(self) -> FilamentHingeBoxBuilder:
+        return FilamentHingeBoxBuilder(self)
+
+    def sliding_catch(self) -> SlidingCatchBoxBuilder:
+        return SlidingCatchBoxBuilder(self)
+
+    def slipover_path(self) -> SlipoverPathBoxBuilder:
+        return SlipoverPathBoxBuilder(self)
+
+    def cap_path(self) -> CapPathBoxBuilder:
+        return CapPathBoxBuilder(self)
+
+    def slipover(self) -> SlipoverBoxBuilder:
+        return SlipoverBoxBuilder(self)
+
+    def no_lid(self) -> NoLidBoxBuilder:
+        return NoLidBoxBuilder(self)
+
+    @classmethod
+    def cap_builder(cls) -> CapBoxBuilder:
+        return CapBoxBuilder()
+
+    @classmethod
+    def sliding_builder(cls) -> SlidingBoxBuilder:
+        return SlidingBoxBuilder()
+
+    @classmethod
+    def magnetic_builder(cls) -> MagneticBoxBuilder:
+        return MagneticBoxBuilder()
+
+    @classmethod
+    def inset_builder(cls) -> InsetBoxBuilder:
+        return InsetBoxBuilder()
+
+    @classmethod
+    def path_builder(cls) -> PathBoxBuilder:
+        return PathBoxBuilder()
+
+    @classmethod
+    def hinge_builder(cls) -> HingeBoxBuilder:
+        return HingeBoxBuilder()
+
+    @classmethod
+    def filament_hinge_builder(cls) -> FilamentHingeBoxBuilder:
+        return FilamentHingeBoxBuilder()
+
+    @classmethod
+    def sliding_catch_builder(cls) -> SlidingCatchBoxBuilder:
+        return SlidingCatchBoxBuilder()
+
+    @classmethod
+    def slipover_path_builder(cls) -> SlipoverPathBoxBuilder:
+        return SlipoverPathBoxBuilder()
+
+    @classmethod
+    def cap_path_builder(cls) -> CapPathBoxBuilder:
+        return CapPathBoxBuilder()
+
+    @classmethod
+    def slipover_builder(cls) -> SlipoverBoxBuilder:
+        return SlipoverBoxBuilder()
+
+    @classmethod
+    def no_lid_builder(cls) -> NoLidBoxBuilder:
+        return NoLidBoxBuilder()
+
+    def size(self, w: float, l: float, h: float) -> BoxBuilder:
+        self._spec_builder.size(w, l, h)
+        return self
+
+    def label(self, label: str) -> BoxBuilder:
+        self._spec_builder.label(label)
+        return self
+
+    def wall_thickness(self, thickness: float) -> BoxBuilder:
+        self._spec_builder.wall_thickness(thickness)
+        return self
+
+    def floor_thickness(self, thickness: float) -> BoxBuilder:
+        self._spec_builder.floor_thickness(thickness)
+        return self
+
+    def lid_thickness(self, thickness: float) -> BoxBuilder:
+        self._spec_builder.lid_thickness(thickness)
+        return self
+
+    def material_colour(self, colour: Color) -> BoxBuilder:
+        self._spec_builder.material_colour(colour)
+        return self
+
+    def spin(self, spin: float) -> BoxBuilder:
+        self._spec_builder.spin(spin)
+        return self
+
+    def anchor(self, anchor: list[float]) -> BoxBuilder:
+        self._spec_builder.anchor(anchor)
+        return self
+
+    def orient(self, orient: list[float]) -> BoxBuilder:
+        self._spec_builder.orient(orient)
+        return self
+
+    def type_options(self, type_options: Any) -> BoxBuilder:
+        self._spec_builder.type_options(type_options)
+        return self
+
+    def contents(self, contents: Contents) -> BoxBuilder:
+        self._spec_builder.contents(contents)
+        return self
+
+    def finger_holes(self, finger_holes: list[FingerHole]) -> BoxBuilder:
+        self._spec_builder.finger_holes(finger_holes)
+        return self
+
+    def hollow(self, hollow: bool) -> BoxBuilder:
+        self._spec_builder.hollow(hollow)
+        return self
+
+    def lid(self, lid: Lid | str | None) -> BoxBuilder:
+        self._spec_builder.lid(lid)
+        return self
+
+    def option(self, key: str, value: Any) -> BoxBuilder:
+        self._spec_builder.option(key, value)
+        return self
+
+    def build_spec(self) -> BoxSpec:
+        return self._spec_builder.build()
+
+    def build(self) -> BoxBaseType:
+        if self._box_class is None:
+            raise ValueError("Box type must be specified. Use .type(BoxClass) or call a type-specific builder.")
+        return self._box_class(self.build_spec())
+
+
+class CapBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from cap_box import CapBox
+        super().__init__(CapBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def cap_height(self, value: float) -> CapBoxBuilder:
+        self._spec_builder.option("cap_height", value)
+        return self
+
+    def catch(self, value: Any) -> CapBoxBuilder:
+        self._spec_builder.option("catch", value)
+        return self
+
+    def finger_holds(self, value: bool) -> CapBoxBuilder:
+        self._spec_builder.option("finger_holds", value)
+        return self
+
+
+class SlidingBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from sliding_box import SlidingBox
+        super().__init__(SlidingBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def two_layer(self, value: bool) -> SlidingBoxBuilder:
+        self._spec_builder.option("two_layer", value)
+        return self
+
+    def finger_channel(self, value: bool) -> SlidingBoxBuilder:
+        self._spec_builder.option("finger_channel", value)
+        return self
+
+    def finger_scoop(self, value: bool) -> SlidingBoxBuilder:
+        self._spec_builder.option("finger_scoop", value)
+        return self
+
+    def finger_scoop_rounding(self, value: float) -> SlidingBoxBuilder:
+        self._spec_builder.option("finger_scoop_rounding", value)
+        return self
+
+    def notch_depth(self, value: float) -> SlidingBoxBuilder:
+        self._spec_builder.option("notch_depth", value)
+        return self
+
+    def lid_inset(self, value: float) -> SlidingBoxBuilder:
+        self._spec_builder.option("lid_inset", value)
+        return self
+
+    def lid_recess(self, value: float) -> SlidingBoxBuilder:
+        self._spec_builder.option("lid_recess", value)
+        return self
+
+    def stop_recess(self, value: float) -> SlidingBoxBuilder:
+        self._spec_builder.option("stop_recess", value)
+        return self
+
+
+class MagneticBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from magnetic_box import MagneticBox
+        super().__init__(MagneticBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def magnet_diameter(self, value: float) -> MagneticBoxBuilder:
+        self._spec_builder.option("magnet_diameter", value)
+        return self
+
+    def magnet_thickness(self, value: float) -> MagneticBoxBuilder:
+        self._spec_builder.option("magnet_thickness", value)
+        return self
+
+    def magnet_slot_type(self, value: Any) -> MagneticBoxBuilder:
+        self._spec_builder.option("magnet_slot_type", value)
+        return self
+
+    def lid_inset(self, value: float) -> MagneticBoxBuilder:
+        self._spec_builder.option("lid_inset", value)
+        return self
+
+
+class InsetBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from inset_box import InsetBox
+        super().__init__(InsetBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def style(self, value: str) -> InsetBoxBuilder:
+        self._spec_builder.option("style", value)
+        return self
+
+    def inset(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("inset", value)
+        return self
+
+    def tab_height(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("tab_height", value)
+        return self
+
+    def tab_length(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("tab_length", value)
+        return self
+
+    def prism_width(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("prism_width", value)
+        return self
+
+    def make_tab_width(self, value: bool) -> InsetBoxBuilder:
+        self._spec_builder.option("make_tab_width", value)
+        return self
+
+    def make_tab_length(self, value: bool) -> InsetBoxBuilder:
+        self._spec_builder.option("make_tab_length", value)
+        return self
+
+    def rabbit_width(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_width", value)
+        return self
+
+    def rabbit_length(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_length", value)
+        return self
+
+    def rabbit_offset(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_offset", value)
+        return self
+
+    def rabbit_lock(self, value: bool) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_lock", value)
+        return self
+
+    def rabbit_compression(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_compression", value)
+        return self
+
+    def rabbit_thickness(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_thickness", value)
+        return self
+
+    def rabbit_snap(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_snap", value)
+        return self
+
+    def rabbit_depth(self, value: float) -> InsetBoxBuilder:
+        self._spec_builder.option("rabbit_depth", value)
+        return self
+
+
+class PathBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from no_lid import PathBox
+        super().__init__(PathBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def path(self, value: Any) -> PathBoxBuilder:
+        self._spec_builder.option("path", value)
+        return self
+
+    def radius(self, value: float) -> PathBoxBuilder:
+        self._spec_builder.option("radius", value)
+        return self
+
+    def sides(self, value: int) -> PathBoxBuilder:
+        self._spec_builder.option("sides", value)
+        return self
+
+    def hollow_radius(self, value: Any) -> PathBoxBuilder:
+        self._spec_builder.option("hollow_radius", value)
+        return self
+
+    def make_finger_x(self, value: bool) -> PathBoxBuilder:
+        self._spec_builder.option("make_finger_x", value)
+        return self
+
+    def make_finger_y(self, value: bool) -> PathBoxBuilder:
+        self._spec_builder.option("make_finger_y", value)
+        return self
+
+    def stackable(self, value: Any) -> PathBoxBuilder:
+        self._spec_builder.option("stackable", value)
+        return self
+
+    def magnet(self, value: Any) -> PathBoxBuilder:
+        self._spec_builder.option("magnet", value)
+        return self
+
+
+class HingeBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from hinge_box import HingeBox
+        super().__init__(HingeBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def knuckle_length(self, value: float) -> HingeBoxBuilder:
+        self._spec_builder.option("knuckle_length", value)
+        return self
+
+    def knuckle_count(self, value: int) -> HingeBoxBuilder:
+        self._spec_builder.option("knuckle_count", value)
+        return self
+
+    def gap(self, value: float) -> HingeBoxBuilder:
+        self._spec_builder.option("gap", value)
+        return self
+
+    def pin_diameter(self, value: float) -> HingeBoxBuilder:
+        self._spec_builder.option("pin_diameter", value)
+        return self
+
+    def clearance(self, value: float) -> HingeBoxBuilder:
+        self._spec_builder.option("clearance", value)
+        return self
+
+    def clasp(self, value: Any) -> HingeBoxBuilder:
+        self._spec_builder.option("clasp", value)
+        return self
+
+    def clasp_wiggle(self, value: float) -> HingeBoxBuilder:
+        self._spec_builder.option("clasp_wiggle", value)
+        return self
+
+
+class FilamentHingeBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from filament_hinge_box import FilamentHingeBox
+        super().__init__(FilamentHingeBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def clasp(self, value: Any) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("clasp", value)
+        return self
+
+    def knuckle_length(self, value: float) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("knuckle_length", value)
+        return self
+
+    def knuckle_count(self, value: int) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("knuckle_count", value)
+        return self
+
+    def pin_diameter(self, value: float) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("pin_diameter", value)
+        return self
+
+    def clearance(self, value: float) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("clearance", value)
+        return self
+
+    def wall_inset(self, value: float) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("wall_inset", value)
+        return self
+
+    def clasp_wiggle(self, value: float) -> FilamentHingeBoxBuilder:
+        self._spec_builder.option("clasp_wiggle", value)
+        return self
+
+
+class SlidingCatchBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from sliding_catch_box import SlidingCatchBox
+        super().__init__(SlidingCatchBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def catch_clearance(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("catch_clearance", value)
+        return self
+
+    def stop_clearance(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("stop_clearance", value)
+        return self
+
+    def two_layer(self, value: bool) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("two_layer", value)
+        return self
+
+    def finger_channel(self, value: bool) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("finger_channel", value)
+        return self
+
+    def finger_scoop(self, value: bool) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("finger_scoop", value)
+        return self
+
+    def finger_scoop_rounding(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("finger_scoop_rounding", value)
+        return self
+
+    def notch_depth(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("notch_depth", value)
+        return self
+
+    def lid_inset(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("lid_inset", value)
+        return self
+
+    def lid_recess(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("lid_recess", value)
+        return self
+
+    def stop_recess(self, value: float) -> SlidingCatchBoxBuilder:
+        self._spec_builder.option("stop_recess", value)
+        return self
+
+
+class SlipoverPathBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from slipover_path_box import SlipoverPathBox
+        super().__init__(SlipoverPathBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def path(self, value: Any) -> SlipoverPathBoxBuilder:
+        self._spec_builder.option("path", value)
+        return self
+
+    def radius(self, value: float) -> SlipoverPathBoxBuilder:
+        self._spec_builder.option("radius", value)
+        return self
+
+    def sides(self, value: int) -> SlipoverPathBoxBuilder:
+        self._spec_builder.option("sides", value)
+        return self
+
+    def outer_spacing(self, value: float) -> SlipoverPathBoxBuilder:
+        self._spec_builder.option("outer_spacing", value)
+        return self
+
+    def stackable(self, value: Any) -> SlipoverPathBoxBuilder:
+        self._spec_builder.option("stackable", value)
+        return self
+
+
+class CapPathBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from cap_box_polygon import CapPathBox
+        super().__init__(CapPathBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+    def path(self, value: Any) -> CapPathBoxBuilder:
+        self._spec_builder.option("path", value)
+        return self
+
+    def radius(self, value: float) -> CapPathBoxBuilder:
+        self._spec_builder.option("radius", value)
+        return self
+
+    def sides(self, value: int) -> CapPathBoxBuilder:
+        self._spec_builder.option("sides", value)
+        return self
+
+    def cap_height(self, value: float) -> CapPathBoxBuilder:
+        self._spec_builder.option("cap_height", value)
+        return self
+
+    def catch(self, value: Any) -> CapPathBoxBuilder:
+        self._spec_builder.option("catch", value)
+        return self
+
+    def finger_holds(self, value: bool) -> CapPathBoxBuilder:
+        self._spec_builder.option("finger_holds", value)
+        return self
+
+
+class SlipoverBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from slipover_box import SlipoverBox
+        super().__init__(SlipoverBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+
+class NoLidBoxBuilder(BoxBuilder):
+    def __init__(self, parent: BoxBuilder | None = None) -> None:
+        from no_lid import NoLidBox
+        super().__init__(NoLidBox)
+        if parent:
+            self._spec_builder = parent._spec_builder
+
+
+_TYPE_BUILDERS = {
+    "CapBox": CapBoxBuilder,
+    "SlidingBox": SlidingBoxBuilder,
+    "MagneticBox": MagneticBoxBuilder,
+    "InsetBox": InsetBoxBuilder,
+    "PathBox": PathBoxBuilder,
+    "HingeBox": HingeBoxBuilder,
+    "FilamentHingeBox": FilamentHingeBoxBuilder,
+    "SlidingCatchBox": SlidingCatchBoxBuilder,
+    "SlipoverPathBox": SlipoverPathBoxBuilder,
+    "CapPathBox": CapPathBoxBuilder,
+    "SlipoverBox": SlipoverBoxBuilder,
+    "NoLidBox": NoLidBoxBuilder,
+}

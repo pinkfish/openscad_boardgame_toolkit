@@ -209,24 +209,25 @@ def spacer_box_back():
         [0, box_length - money_box_length - 2],
         [0, 0],
     ]
-    return PathBox(
-        BoxSpec.create(
-            size=[box_width, box_length, spacer_back_height],
-            label="SpacerBoxBack",
-            wall_thickness=wall_thickness,
-            hollow=True,
-            path=path,
-        )
+    return (
+        BoxSpec.box_builder()
+        .size(box_width, box_length, spacer_back_height)
+        .label("SpacerBoxBack")
+        .wall_thickness(wall_thickness)
+        .hollow(True)
+        .path(path)
+        .build()
     )
 
 
 def spacer_box_company():
-    return NoLidBox(
-        BoxSpec.builder()
+    return (
+        BoxSpec.box_builder()
         .size(spacer_company_width, spacer_company_length, spacer_company_height)
         .label("SpacerBoxCompany")
         .wall_thickness(wall_thickness)
         .hollow(True)
+        .no_lid()
         .build()
     )
 

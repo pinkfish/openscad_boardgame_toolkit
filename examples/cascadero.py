@@ -130,8 +130,8 @@ def HeraldBoxLid():
 # Player box -- two-section interior (grid + open area), still one kit box
 # ---------------------------------------------------------------------------
 
-_player = SlidingBox(
-    BoxSpec.builder()
+_player = (
+    BoxSpec.box_builder()
     .size(player_width, player_length, section_height)
     .label("Player")
     .wall_thickness(2)
@@ -148,6 +148,7 @@ _player = SlidingBox(
         ),
     ])
     .lid(Lid(label=Label("Player", options=BLUE_R5)))
+    .sliding()
     .build()
 )
 

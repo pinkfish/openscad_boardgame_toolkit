@@ -78,8 +78,8 @@ _BASE_LID = Lid(
 )
 
 # ---- PiecesBox ---------------------------------------------------------------
-_pieces_box = CapBox(
-    BoxSpec.builder()
+_pieces_box = (
+    BoxSpec.box_builder()
     .size(canvas_piece_box_width, canvas_piece_box_length, canvas_piece_box_height)
     .label("PiecesBox")
     .wall_thickness(wall_thickness)
@@ -91,6 +91,7 @@ _pieces_box = CapBox(
             anchor=BOTTOM,
         )),
     ])
+    .cap()
     .build()
 )
 

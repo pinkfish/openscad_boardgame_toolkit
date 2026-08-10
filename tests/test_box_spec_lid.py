@@ -194,6 +194,58 @@ class APIErgonomicsTests(unittest.TestCase):
         self.assertEqual(spec.wall_thickness, 2)
         self.assertEqual(spec.type_options, {"two_layer": True})
 
+    def test_lid_builder(self):
+        lid = Lid.builder() \
+            .boundary(5) \
+            .label("CustomLid") \
+            .build()
+        self.assertEqual(lid.boundary, 5)
+        self.assertIsNotNone(lid.label)
+        self.assertEqual(lid.label.text, "CustomLid")
+
+    def test_box_builder_and_type_specific_builders(self):
+        from box_base import BoxBuilder, CapBoxBuilder, SlidingBoxBuilder
+        from cap_box import CapBox
+
+        # Using BoxSpec.box_builder() generic
+        box = BoxSpec.box_builder() \
+            .type(CapBox) \
+            .size(90, 60, 25) \
+            .label("cap-via-builder") \
+            .cap_height(4.0) \
+            .build()
+        
+        self.assertIsInstance(box, CapBox)
+        self.assertEqual(box.spec.size, [90, 60, 25])
+        self.assertEqual(box.options.cap_height, 4.0)
+
+        # Direct instantiation of a type-specific builder
+        sliding_box = SlidingBoxBuilder() \
+            .size(100, 50, 20) \
+            .label("sliding-via-builder") \
+            .two_layer(True) \
+            .build()
+
+        self.assertEqual(sliding_box.spec.label, "sliding-via-builder")
+        self.assertTrue(sliding_box.options.two_layer)
+
+        # Using type-specific entry points directly on BoxSpec class
+        box2 = BoxSpec.cap() \
+            .size(90, 60, 25) \
+            .label("cap-via-direct-builder") \
+            .cap_height(5.0) \
+            .build()
+        self.assertEqual(box2.options.cap_height, 5.0)
+
+        # Using BoxSpec.box_builder() and then calling .cap()
+        box3 = BoxSpec.box_builder() \
+            .cap() \
+            .size(90, 60, 25) \
+            .label("cap-via-generic-chain") \
+            .cap_height(6.0) \
+            .build()
+        self.assertEqual(box3.options.cap_height, 6.0)
+
 
 if __name__ == "__main__":
     unittest.main()

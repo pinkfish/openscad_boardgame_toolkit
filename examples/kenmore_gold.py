@@ -205,8 +205,8 @@ def StartCaveBoxLid():
 
 
 # ---- LootBox ------------------------------------------------------------------
-_loot = CapBox(
-    BoxSpec.builder()
+_loot = (
+    BoxSpec.box_builder()
     .size(loot_box_width, loot_box_length, loot_box_height)
     .label("LootBox")
     .wall_thickness(wall_thickness)
@@ -223,6 +223,7 @@ _loot = CapBox(
     .lid(Lid(
         label=Label("Loot", options=_LABEL_OPTIONS),
     ))
+    .cap()
     .build()
 )
 
