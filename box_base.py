@@ -96,6 +96,7 @@ default_finger_hole_radius = 14.0        # radius of the scoop / channel
 default_finger_hole_rounding = 3.0       # roundover where the scoop meets the wall
 default_finger_hole_depth = 6.0          # how far a WALL hole cuts into the wall
 default_floor_finger_hole_height = 14.0  # height of a FLOOR hole above the interior floor
+_RESOLVED_BOX_SIZES = {}
 
 
 @dataclass
@@ -344,35 +345,24 @@ class Body:
 
 @dataclass(frozen=True)
 class BoxSpec:
-    """Complete, **immutable** specification for a box: dimensions, materials,
-    contents, and lid.
+    """The configuration for a single box.
 
-    ``BoxSpec`` is a frozen dataclass and validates itself on construction (see
-    :meth:`__post_init__`), so an impossible box (non-positive dimensions, walls that
-    don't fit) fails loudly at the point of definition rather than as a confusing
-    geometry error deep in the build.
+    It is validated on construction and immutable once built. Rather than constructing a
+    spec directly (which requires passing all fields, even defaults), build one fluently
+    using the builder:
 
-    Pass a single ``BoxSpec`` to any :class:`BoxBaseType` subclass constructor
-    (e.g. ``SlidingBox(spec)``).  Call :meth:`~BoxBaseType.make_box` and
-    :meth:`~BoxBaseType.make_lid` with **no arguments** to generate both parts from
-    this single shared object -- the box and lid are therefore guaranteed to have
-    matching dimensions and thicknesses.
-
-    Usage::
-
-        from box_base import BoxSpec, FingerHole, FingerHoleLocation
-        from sliding_box import SlidingBox
-
-        spec = BoxSpec(
-            size=[100, 60, 30],
-            label="EarthCardBox",
-            wall_thickness=3,
-            lid_thickness=2,
-            contents=lambda inner: [
+        spec = (
+            BoxSpec.box_builder()
+            .size(100, 80, 40)
+            .label("PiecesBox")
+            .wall_thickness(2)
+            .lid_thickness(2)
+            .contents(lambda inner: [
                 InnerObject(pybosl2.shapes3d.cuboid([inner.width, inner.length, inner.height]))
-            ],
-            finger_holes=[FingerHole(location=FingerHoleLocation.LEFT)],
-            lid="Earth",
+            ])
+            .finger_holes([FingerHole(location=FingerHoleLocation.LEFT)])
+            .lid("Earth")
+            .build()
         )
 
         box = SlidingBox(spec)
@@ -384,6 +374,8 @@ class BoxSpec:
     size: list[float]   # [width, length, height] outer dimensions
     label: str          # print-file / debug name for this box
     expandable: bool = False
+    box_id: str | None = None
+    final_size: list[float] | None = None
 
     # ---- Material / thickness (all fall back to the base_bgtk global defaults) ----
     wall_thickness: float = field(default_factory=lambda: default_wall_thickness)
@@ -431,6 +423,11 @@ class BoxSpec:
     lid: "Lid | str | None" = None
 
     def __post_init__(self) -> None:
+        bid = self.box_id or self.label
+        if bid in _RESOLVED_BOX_SIZES:
+            object.__setattr__(self, "final_size", list(_RESOLVED_BOX_SIZES[bid]))
+            object.__setattr__(self, "size", list(_RESOLVED_BOX_SIZES[bid]))
+
         if not (isinstance(self.size, (list, tuple)) and len(self.size) == 3):
             raise ValueError(f"{self.label}: size must be [width, length, height], got {self.size!r}")
         w, l, h = self.size
@@ -546,6 +543,10 @@ class BoxSpecBuilder:
 
     def expandable(self, val: bool = True) -> BoxSpecBuilder:
         self._kwargs["expandable"] = val
+        return self
+
+    def box_id(self, val: str) -> BoxSpecBuilder:
+        self._kwargs["box_id"] = val
         return self
 
     def label(self, label: str) -> BoxSpecBuilder:
@@ -1426,6 +1427,10 @@ class BoxBuilder:
         self._spec_builder.expandable(val)
         return self
 
+    def box_id(self, val: str) -> BoxBuilder:
+        self._spec_builder.box_id(val)
+        return self
+
     def label(self, label: str) -> BoxBuilder:
         self._spec_builder.label(label)
         return self
@@ -2031,12 +2036,79 @@ class BoxPacking:
 _PACKING_CACHE = {}
 
 
+def _load_disk_cache():
+    import json
+    import os
+    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".bgtk_packing_cache.json")
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_disk_cache(cache_data):
+    import json
+    import os
+    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".bgtk_packing_cache.json")
+    try:
+        with open(cache_path, "w") as f:
+            json.dump(cache_data, f, indent=2)
+    except Exception:
+        pass
+
+
+def _update_resolved_sizes(placements, boxes):
+    builder_ids = {}
+    for builder in boxes:
+        kwargs = builder._spec_builder._kwargs
+        name = kwargs.get("label", "Box")
+        box_id = kwargs.get("box_id")
+        
+        base_name = name
+        idx = 2
+        while name in builder_ids:
+            name = f"{base_name}_{idx}"
+            idx += 1
+            
+        builder_ids[name] = box_id or name
+
+    for name, info in placements.items():
+        if name in builder_ids:
+            bid = builder_ids[name]
+            _RESOLVED_BOX_SIZES[bid] = info["size"]
+
+
 def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_items: list[dict] = None) -> BoxPacking:
     """Packs BoxBuilder instances and additional flat items (like boards) inside the container.
 
     Each BoxBuilder can specify a fixed size (via .size()) or a minimum size (via .min_size()).
     Expandable boxes will be automatically expanded to fill the remaining height/width.
     """
+    import hashlib
+    import json
+    import base_bgtk
+
+    # Generate a unique hash for the current inputs and BGTK version
+    serialized_inputs = {
+        "container_size": container_size,
+        "boxes": [
+            {
+                "label": builder._spec_builder._kwargs.get("label", "Box"),
+                "size": builder._spec_builder._kwargs.get("size", [0.0, 0.0, 0.0]),
+                "expandable": builder._spec_builder._kwargs.get("expandable", False)
+            }
+            for builder in boxes
+        ],
+        "additional_items": additional_items or [],
+        "bgtk_version": getattr(base_bgtk, "__version__", "0.0.0")
+    }
+    
+    serialized_str = json.dumps(serialized_inputs, sort_keys=True)
+    input_hash = hashlib.sha256(serialized_str.encode("utf-8")).hexdigest()
+
     box_keys = tuple(sorted((
         builder._spec_builder._kwargs.get("label", "Box"),
         tuple(builder._spec_builder._kwargs.get("size", [0.0, 0.0, 0.0])),
@@ -2049,6 +2121,7 @@ def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_
     ) for item in additional_items)) if additional_items else ()
     cache_key = (tuple(container_size), box_keys, additional_keys)
     
+    # Check in-memory cache first
     if cache_key in _PACKING_CACHE:
         cached_packing = _PACKING_CACHE[cache_key]
         builder_map = {}
@@ -2066,8 +2139,36 @@ def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_
             if name in builder_map:
                 info["builder"] = builder_map[name]
                 
+        _update_resolved_sizes(cached_packing._placements, boxes)
         return cached_packing
 
+    # Check disk cache next
+    disk_cache = _load_disk_cache()
+    if input_hash in disk_cache:
+        cached_entry = disk_cache[input_hash]
+        placements = cached_entry["placements"]
+        
+        builder_map = {}
+        for builder in boxes:
+            kwargs = builder._spec_builder._kwargs
+            name = kwargs.get("label", "Box")
+            base_name = name
+            idx = 2
+            while name in builder_map:
+                name = f"{base_name}_{idx}"
+                idx += 1
+            builder_map[name] = builder
+            
+        for name, info in placements.items():
+            if name in builder_map:
+                info["builder"] = builder_map[name]
+                
+        _update_resolved_sizes(placements, boxes)
+        packing = BoxPacking(placements, container_size)
+        _PACKING_CACHE[cache_key] = packing
+        return packing
+
+    # Cache miss - compute the layout
     from compartments import pack_3d_boxes
     
     items = []
@@ -2107,6 +2208,21 @@ def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_
     for name, info in packed.items():
         info["builder"] = builder_map.get(name)
         
+    # Save computed layout to disk cache
+    placements_to_cache = {}
+    for name, info in packed.items():
+        placements_to_cache[name] = {
+            "pos": info["pos"],
+            "size": info["size"],
+            "rotated": info.get("rotated", False)
+        }
+    disk_cache[input_hash] = {
+        "placements": placements_to_cache,
+        "inputs": serialized_inputs
+    }
+    _save_disk_cache(disk_cache)
+    
+    _update_resolved_sizes(packed, boxes)
     packing = BoxPacking(packed, container_size)
     _PACKING_CACHE[cache_key] = packing
     return packing

@@ -1,0 +1,150 @@
+{
+  "a433f0cfc3101773a4cd858eb8a3c9fc162122627ca104d0e1a2aac3ce939868": {
+    "placements": {
+      "AnimalCardsBox": {
+        "pos": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          76.0,
+          156,
+          47.0
+        ],
+        "rotated": false
+      },
+      "CanopyBox": {
+        "pos": [
+          76.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          38.0,
+          158,
+          47.0
+        ],
+        "rotated": false
+      },
+      "SproutBox": {
+        "pos": [
+          114.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          76.0,
+          158,
+          13.0
+        ],
+        "rotated": false
+      },
+      "AnimalBox": {
+        "pos": [
+          114.0,
+          0.0,
+          13.0
+        ],
+        "size": [
+          174.0,
+          158,
+          12.5
+        ],
+        "rotated": false
+      },
+      "AnimalBox2": {
+        "pos": [
+          114.0,
+          0.0,
+          25.5
+        ],
+        "size": [
+          174.0,
+          158,
+          12.5
+        ],
+        "rotated": false
+      },
+      "Boards": {
+        "pos": [
+          114.0,
+          0.0,
+          38.0
+        ],
+        "size": [
+          174.0,
+          150.0,
+          6.0
+        ],
+        "rotated": false
+      }
+    },
+    "inputs": {
+      "container_size": [
+        288,
+        158,
+        47
+      ],
+      "boxes": [
+        {
+          "label": "AnimalCardsBox",
+          "size": [
+            76.0,
+            156,
+            23.599999999999998
+          ],
+          "expandable": true
+        },
+        {
+          "label": "SproutBox",
+          "size": [
+            76.0,
+            158,
+            13.0
+          ],
+          "expandable": true
+        },
+        {
+          "label": "CanopyBox",
+          "size": [
+            38.0,
+            158,
+            46.0
+          ],
+          "expandable": true
+        },
+        {
+          "label": "AnimalBox",
+          "size": [
+            174.0,
+            158,
+            12.5
+          ],
+          "expandable": true
+        },
+        {
+          "label": "AnimalBox2",
+          "size": [
+            174.0,
+            158,
+            12.5
+          ],
+          "expandable": true
+        }
+      ],
+      "additional_items": [
+        {
+          "name": "Boards",
+          "size": [
+            174.0,
+            150.0,
+            6.0
+          ],
+          "expandable": []
+        }
+      ],
+      "bgtk_version": "0.1.0"
+    }
+  }
+}

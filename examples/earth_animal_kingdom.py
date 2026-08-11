@@ -66,9 +66,9 @@ _animal_cards_builder = (
     .wall_thickness(default_wall_thickness)
     .lid_thickness(default_lid_thickness)
     .contents(lambda inner: [
-        InnerObject(s3.cube([72, 123, animal_cards_height])),
+        InnerObject(s3.cube([72, 123, inner.height])),
         InnerObject(
-            FingerHoleBase(radius=17, height=animal_cards_height - default_lid_thickness, spin=0)
+            FingerHoleBase(radius=17, height=inner.height, spin=0)
             .translate([inner.width / 2, 0, -2]),
             type=ObjectType.NEGATIVE
         )
@@ -88,8 +88,8 @@ _sprout_builder = (
     .hollow(False)
     .contents(lambda inner: [
         InnerObject(
-            s3.cuboid([inner.width, inner.length, sprout_box_height], anchor=s3.BOTTOM)
-            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, sprout_box_height], radius=5).translate([1, 1, 0]),
+            s3.cuboid([inner.width, inner.length, inner.height], anchor=s3.BOTTOM)
+            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, inner.height], radius=5).translate([1, 1, 0]),
             type=ObjectType.NEGATIVE
         )
     ])
@@ -108,8 +108,8 @@ _canopy_builder = (
     .hollow(False)
     .contents(lambda inner: [
         InnerObject(
-            s3.cuboid([inner.width, inner.length, canopy_box_height], anchor=s3.BOTTOM)
-            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, canopy_box_height], radius=5).translate([1, 1, 0]),
+            s3.cuboid([inner.width, inner.length, inner.height], anchor=s3.BOTTOM)
+            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, inner.height], radius=5).translate([1, 1, 0]),
             type=ObjectType.NEGATIVE
         )
     ])
@@ -129,7 +129,7 @@ _animal_builder = (
     .contents(lambda inner: [
         # Large upper cutout
         InnerObject(
-            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
+            RoundedBoxAllSides([inner.width - 2, inner.length - 2, inner.height], radius=3)
             .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
             type=ObjectType.NEGATIVE
         )
@@ -155,7 +155,7 @@ _animal_builder_2 = (
     .contents(lambda inner: [
         # Large upper cutout
         InnerObject(
-            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
+            RoundedBoxAllSides([inner.width - 2, inner.length - 2, inner.height], radius=3)
             .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
             type=ObjectType.NEGATIVE
         )
@@ -184,17 +184,10 @@ PACKING = pack_boxes(
     ]
 )
 
-SIZES = PACKING.get_sizes()
-
-# Retrieve dynamically calculated dimensions for rest of script references
-card_box_width, card_box_length, animal_cards_height = SIZES["AnimalCardsBox"]
-sprout_box_width, sprout_box_length, sprout_box_height = SIZES["SproutBox"]
-canopy_box_width, canopy_box_length, canopy_box_height = SIZES["CanopyBox"]
-animal_box_width, animal_box_length, animal_box_height = SIZES["AnimalBox"]
-
+# Resolved sizes are automatically mapped to builders during pack_boxes
+animal_box_width, animal_box_length, _ = PACKING.get_sizes()["AnimalBox"]
 spacer_box_width = animal_box_width
 spacer_box_length = animal_box_length
-spacer_box_height = 0.0
 
 # Build the finalized specs
 _animal_cards_box = _animal_cards_builder.build()
@@ -382,128 +375,7 @@ def make_custom_compartment(container_id, inner_w, inner_l):
         depth=animal_token_thickness
     )
 
-# ---- Boxes -------------------------------------------------------------------
-_animal_cards_box = (
-    BoxSpec.box_builder()
-    .size(card_box_width, card_box_length, animal_cards_height)
-    .label("PiecesBox")
-    .wall_thickness(default_wall_thickness)
-    .lid_thickness(default_lid_thickness)
-    .contents(lambda inner: [
-        InnerObject(s3.cube([72, 123, animal_cards_height])),
-        InnerObject(
-            FingerHoleBase(radius=17, height=animal_cards_height - default_lid_thickness, spin=0)
-            .translate([inner.width / 2, 0, -2]),
-            type=ObjectType.NEGATIVE
-        )
-    ])
-    .lid_label("Animal Cards", options=MakeLabelOptions(label_type=default_label_type))
-    .sliding()
-    .build()
-)
-
-_sprout_box = (
-    BoxSpec.box_builder()
-    .size(sprout_box_width, sprout_box_length, sprout_box_height)
-    .label("SproutBox")
-    .wall_thickness(default_wall_thickness)
-    .floor_thickness(default_floor_thickness)
-    .lid_thickness(default_lid_thickness)
-    .hollow(False)
-    .contents(lambda inner: [
-        InnerObject(
-            s3.cuboid([inner.width, inner.length, sprout_box_height], anchor=s3.BOTTOM)
-            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, sprout_box_height], radius=5).translate([1, 1, 0]),
-            type=ObjectType.NEGATIVE
-        )
-    ])
-    .lid_label("Sprouts", options=MakeLabelOptions(label_type=default_label_type))
-    .filament_hinge()
-    .build()
-)
-
-_canopy_box = (
-    BoxSpec.box_builder()
-    .size(canopy_box_width, canopy_box_length, canopy_box_height)
-    .label("CanopyBox")
-    .wall_thickness(default_wall_thickness)
-    .floor_thickness(default_floor_thickness)
-    .lid_thickness(default_lid_thickness)
-    .hollow(False)
-    .contents(lambda inner: [
-        InnerObject(
-            s3.cuboid([inner.width, inner.length, canopy_box_height], anchor=s3.BOTTOM)
-            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, canopy_box_height], radius=5).translate([1, 1, 0]),
-            type=ObjectType.NEGATIVE
-        )
-    ])
-    .lid_label("Canopies", options=MakeLabelOptions(label_type=default_label_type))
-    .filament_hinge()
-    .build()
-)
-
-_animal_box = (
-    BoxSpec.box_builder()
-    .size(animal_box_width, animal_box_length, animal_box_height)
-    .label("AnimalBox")
-    .wall_thickness(1.5)
-    .floor_thickness(default_floor_thickness)
-    .lid_thickness(default_lid_thickness)
-    .hollow(False)
-    .contents(lambda inner: [
-        # Large upper cutout
-        InnerObject(
-            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
-            .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
-            type=ObjectType.NEGATIVE
-        )
-    ] + layout_compartments([
-        Group([make_custom_compartment("container0", inner.width, inner.length)])
-    ])(inner))
-    .lid_label("Animals", options=MakeLabelOptions(label_type=default_label_type))
-    .lid_shape_type(default_lid_shape_type)
-    .lid_shape_width(default_lid_shape_width)
-    .lid_shape_thickness(default_lid_shape_thickness)
-    .slipover()
-    .build()
-)
-
-_animal_box_2 = (
-    BoxSpec.box_builder()
-    .size(animal_box_width, animal_box_length, animal_box_height)
-    .label("AnimalBox2")
-    .wall_thickness(1.5)
-    .floor_thickness(default_floor_thickness)
-    .lid_thickness(default_lid_thickness)
-    .hollow(False)
-    .contents(lambda inner: [
-        # Large upper cutout
-        InnerObject(
-            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
-            .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
-            type=ObjectType.NEGATIVE
-        )
-    ] + layout_compartments([
-        Group([make_custom_compartment("container1", inner.width, inner.length)])
-    ])(inner))
-    .lid_label("Animals", options=MakeLabelOptions(label_type=default_label_type))
-    .lid_shape_type(default_lid_shape_type)
-    .lid_shape_width(default_lid_shape_width)
-    .lid_shape_thickness(default_lid_shape_thickness)
-    .slipover()
-    .build()
-)
-
-_spacer_box = (
-    BoxSpec.box_builder()
-    .size(spacer_box_width, spacer_box_length, max(spacer_box_height, 1.0))
-    .label("SpacerBox")
-    .wall_thickness(default_wall_thickness)
-    .floor_thickness(default_floor_thickness)
-    .hollow(True)
-    .no_lid()
-    .build()
-)
+# ---- Target Boxes -----------------------------------------------------------
 
 @make_box
 def AnimalCardsBox():
@@ -552,3 +424,7 @@ def SpacerBox():
 @document_box
 def BoxLayoutA():
     return PACKING.shape()
+
+
+if FROM_MAKE != 1:
+    BoxLayoutA()
