@@ -383,7 +383,7 @@ class BoxSpec:
     # ---- Required: identity + outer geometry ---------------------------------
     size: list[float]   # [width, length, height] outer dimensions
     label: str          # print-file / debug name for this box
-    min_size: list[float] | None = None
+    expandable: bool = False
 
     # ---- Material / thickness (all fall back to the base_bgtk global defaults) ----
     wall_thickness: float = field(default_factory=lambda: default_wall_thickness)
@@ -544,10 +544,8 @@ class BoxSpecBuilder:
         self._kwargs["size"] = [w, l, h]
         return self
 
-    def min_size(self, w: float, l: float, h: float) -> BoxSpecBuilder:
-        self._kwargs["min_size"] = [w, l, h]
-        if "size" not in self._kwargs:
-            self._kwargs["size"] = [w, l, h]
+    def expandable(self, val: bool = True) -> BoxSpecBuilder:
+        self._kwargs["expandable"] = val
         return self
 
     def label(self, label: str) -> BoxSpecBuilder:
@@ -1424,8 +1422,8 @@ class BoxBuilder:
         self._spec_builder.size(w, l, h)
         return self
 
-    def min_size(self, w: float, l: float, h: float) -> BoxBuilder:
-        self._spec_builder.min_size(w, l, h)
+    def expandable(self, val: bool = True) -> BoxBuilder:
+        self._spec_builder.expandable(val)
         return self
 
     def label(self, label: str) -> BoxBuilder:
@@ -2030,12 +2028,46 @@ class BoxPacking:
         return {name: info["size"] for name, info in self._placements.items()}
 
 
+_PACKING_CACHE = {}
+
+
 def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_items: list[dict] = None) -> BoxPacking:
     """Packs BoxBuilder instances and additional flat items (like boards) inside the container.
 
     Each BoxBuilder can specify a fixed size (via .size()) or a minimum size (via .min_size()).
     Expandable boxes will be automatically expanded to fill the remaining height/width.
     """
+    box_keys = tuple(sorted((
+        builder._spec_builder._kwargs.get("label", "Box"),
+        tuple(builder._spec_builder._kwargs.get("size", [0.0, 0.0, 0.0])),
+        builder._spec_builder._kwargs.get("expandable", False)
+    ) for builder in boxes))
+    additional_keys = tuple(sorted((
+        item["name"],
+        tuple(item["size"]),
+        tuple(item.get("expandable", []))
+    ) for item in additional_items)) if additional_items else ()
+    cache_key = (tuple(container_size), box_keys, additional_keys)
+    
+    if cache_key in _PACKING_CACHE:
+        cached_packing = _PACKING_CACHE[cache_key]
+        builder_map = {}
+        for builder in boxes:
+            kwargs = builder._spec_builder._kwargs
+            name = kwargs.get("label", "Box")
+            base_name = name
+            idx = 2
+            while name in builder_map:
+                name = f"{base_name}_{idx}"
+                idx += 1
+            builder_map[name] = builder
+            
+        for name, info in cached_packing._placements.items():
+            if name in builder_map:
+                info["builder"] = builder_map[name]
+                
+        return cached_packing
+
     from compartments import pack_3d_boxes
     
     items = []
@@ -2053,21 +2085,14 @@ def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_
             
         builder_map[name] = builder
         
-        min_size = kwargs.get("min_size")
         size = kwargs.get("size", [0.0, 0.0, 0.0])
+        expandable = kwargs.get("expandable", False)
         
-        if min_size is not None:
-            items.append({
-                "name": name,
-                "size": min_size,
-                "expandable": ["h"]
-            })
-        else:
-            items.append({
-                "name": name,
-                "size": size,
-                "expandable": []
-            })
+        items.append({
+            "name": name,
+            "size": size,
+            "expandable": ["h"] if expandable else []
+        })
             
     if additional_items:
         for item in additional_items:
@@ -2082,4 +2107,6 @@ def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_
     for name, info in packed.items():
         info["builder"] = builder_map.get(name)
         
-    return BoxPacking(packed, container_size)
+    packing = BoxPacking(packed, container_size)
+    _PACKING_CACHE[cache_key] = packing
+    return packing

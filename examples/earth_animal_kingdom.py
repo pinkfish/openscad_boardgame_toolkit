@@ -57,10 +57,11 @@ min_card_height = single_card_thickness * animal_card_num + 2.0
 min_sprout_height = sprout_cube_width + default_floor_thickness + default_lid_thickness + 1.0 # ~13.0
 min_animal_height = default_floor_thickness + default_lid_thickness + animal_token_thickness + 0.5 # 12.5
 
-# Define the builders first (min_size sets the min/start size and marks them as expandable)
+# Define the builders first (size sets the base/min size, and expandable(True) marks them for expansion)
 _animal_cards_builder = (
     BoxSpec.box_builder()
-    .min_size(default_wall_thickness * 2 + 72, box_length - 2, min_card_height)
+    .size(default_wall_thickness * 2 + 72, box_length - 2, min_card_height)
+    .expandable(True)
     .label("AnimalCardsBox")
     .wall_thickness(default_wall_thickness)
     .lid_thickness(default_lid_thickness)
@@ -78,7 +79,8 @@ _animal_cards_builder = (
 
 _sprout_builder = (
     BoxSpec.box_builder()
-    .min_size(default_wall_thickness * 2 + 72, box_length, min_sprout_height)
+    .size(default_wall_thickness * 2 + 72, box_length, min_sprout_height)
+    .expandable(True)
     .label("SproutBox")
     .wall_thickness(default_wall_thickness)
     .floor_thickness(default_floor_thickness)
@@ -97,7 +99,8 @@ _sprout_builder = (
 
 _canopy_builder = (
     BoxSpec.box_builder()
-    .min_size(38.0, box_length, box_height - 1.0)
+    .size(38.0, box_length, box_height - 1.0)
+    .expandable(True)
     .label("CanopyBox")
     .wall_thickness(default_wall_thickness)
     .floor_thickness(default_floor_thickness)
@@ -116,7 +119,8 @@ _canopy_builder = (
 
 _animal_builder = (
     BoxSpec.box_builder()
-    .min_size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .expandable(True)
     .label("AnimalBox")
     .wall_thickness(1.5)
     .floor_thickness(default_floor_thickness)
@@ -141,7 +145,8 @@ _animal_builder = (
 
 _animal_builder_2 = (
     BoxSpec.box_builder()
-    .min_size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .expandable(True)
     .label("AnimalBox2")
     .wall_thickness(1.5)
     .floor_thickness(default_floor_thickness)
