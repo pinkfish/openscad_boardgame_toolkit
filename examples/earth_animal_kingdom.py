@@ -19,8 +19,8 @@
 #    PythonSCAD port of earth_animal_kingdom.scad.
 #    Uses layout_compartments with custom 2D packed solids to fit in 2 boxes.
 
-from base_bgtk import FROM_MAKE, MAKE_MMU, InnerObject, LabelType, make_box, ObjectType
-from box_base import BoxSpec, Label, Lid
+from base_bgtk import FROM_MAKE, MAKE_MMU, InnerObject, LabelType, make_box, ObjectType, document_box
+from box_base import BoxSpec, Label, Lid, pack_boxes
 from components import FingerHoleBase, RoundedBoxAllSides
 from labels import MakeLabelOptions
 from shape_type import ShapeType
@@ -41,11 +41,6 @@ default_lid_shape_type = ShapeType.BIRD
 default_lid_shape_width = 20
 default_lid_shape_thickness = 1.5
 
-score_pad_width = 81
-score_pad_length = 99
-score_pad_thickness = 5
-score_pad_number = 1
-
 canopies_num = 20
 animal_token_thickness = 8.0
 
@@ -56,30 +51,163 @@ animal_card_num = 36
 card_10_thickness = 6
 single_card_thickness = card_10_thickness / 10.0
 
-# 72 x 123 card size
-card_box_width = default_wall_thickness * 2 + 72
-card_box_length = box_length - 2
-animal_cards_height = single_card_thickness * animal_card_num + 2
+# Define the items to pack with their minimum dimensions
+boards_size = [174.0, 150.0, 6.0] # Flat stack of game boards
+min_card_height = single_card_thickness * animal_card_num + 2.0
+min_sprout_height = sprout_cube_width + default_floor_thickness + default_lid_thickness + 1.0 # ~13.0
+min_animal_height = default_floor_thickness + default_lid_thickness + animal_token_thickness + 0.5 # 12.5
 
-score_pad_box_width = score_pad_width + default_wall_thickness * 4
-score_pad_box_length = box_length - card_box_length * 2 - 1
-score_pad_box_height = score_pad_thickness * score_pad_number + default_floor_thickness
+# Define the builders first (min_size sets the min/start size and marks them as expandable)
+_animal_cards_builder = (
+    BoxSpec.box_builder()
+    .min_size(default_wall_thickness * 2 + 72, box_length - 2, min_card_height)
+    .label("AnimalCardsBox")
+    .wall_thickness(default_wall_thickness)
+    .lid_thickness(default_lid_thickness)
+    .contents(lambda inner: [
+        InnerObject(s3.cube([72, 123, animal_cards_height])),
+        InnerObject(
+            FingerHoleBase(radius=17, height=animal_cards_height - default_lid_thickness, spin=0)
+            .translate([inner.width / 2, 0, -2]),
+            type=ObjectType.NEGATIVE
+        )
+    ])
+    .lid_label("Animal Cards", options=MakeLabelOptions(label_type=default_label_type))
+    .sliding()
+)
 
-sprout_box_length = box_length
-sprout_box_width = card_box_width
-sprout_box_height = box_height - animal_cards_height - 1
+_sprout_builder = (
+    BoxSpec.box_builder()
+    .min_size(default_wall_thickness * 2 + 72, box_length, min_sprout_height)
+    .label("SproutBox")
+    .wall_thickness(default_wall_thickness)
+    .floor_thickness(default_floor_thickness)
+    .lid_thickness(default_lid_thickness)
+    .hollow(False)
+    .contents(lambda inner: [
+        InnerObject(
+            s3.cuboid([inner.width, inner.length, sprout_box_height], anchor=s3.BOTTOM)
+            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, sprout_box_height], radius=5).translate([1, 1, 0]),
+            type=ObjectType.NEGATIVE
+        )
+    ])
+    .lid_label("Sprouts", options=MakeLabelOptions(label_type=default_label_type))
+    .filament_hinge()
+)
 
-canopy_box_length = box_length
-canopy_box_width = 38
-canopy_box_height = box_height - 1
+_canopy_builder = (
+    BoxSpec.box_builder()
+    .min_size(38.0, box_length, box_height - 1.0)
+    .label("CanopyBox")
+    .wall_thickness(default_wall_thickness)
+    .floor_thickness(default_floor_thickness)
+    .lid_thickness(default_lid_thickness)
+    .hollow(False)
+    .contents(lambda inner: [
+        InnerObject(
+            s3.cuboid([inner.width, inner.length, canopy_box_height], anchor=s3.BOTTOM)
+            & RoundedBoxAllSides([inner.width - 2, inner.length - 2, canopy_box_height], radius=5).translate([1, 1, 0]),
+            type=ObjectType.NEGATIVE
+        )
+    ])
+    .lid_label("Canopies", options=MakeLabelOptions(label_type=default_label_type))
+    .filament_hinge()
+)
 
-animal_box_width = box_width - card_box_width - 38
-animal_box_length = box_length
-animal_box_height = default_floor_thickness + default_lid_thickness + animal_token_thickness + 0.5
+_animal_builder = (
+    BoxSpec.box_builder()
+    .min_size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .label("AnimalBox")
+    .wall_thickness(1.5)
+    .floor_thickness(default_floor_thickness)
+    .lid_thickness(default_lid_thickness)
+    .hollow(False)
+    .contents(lambda inner: [
+        # Large upper cutout
+        InnerObject(
+            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
+            .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
+            type=ObjectType.NEGATIVE
+        )
+    ] + layout_compartments([
+        Group([make_custom_compartment("container0", inner.width, inner.length)])
+    ])(inner))
+    .lid_label("Animals", options=MakeLabelOptions(label_type=default_label_type))
+    .lid_shape_type(default_lid_shape_type)
+    .lid_shape_width(default_lid_shape_width)
+    .lid_shape_thickness(default_lid_shape_thickness)
+    .slipover()
+)
+
+_animal_builder_2 = (
+    BoxSpec.box_builder()
+    .min_size(box_width - (default_wall_thickness * 2 + 72) - 38.0, box_length, min_animal_height)
+    .label("AnimalBox2")
+    .wall_thickness(1.5)
+    .floor_thickness(default_floor_thickness)
+    .lid_thickness(default_lid_thickness)
+    .hollow(False)
+    .contents(lambda inner: [
+        # Large upper cutout
+        InnerObject(
+            RoundedBoxAllSides([inner.width - 2, inner.length - 2, animal_box_height], radius=3)
+            .translate([1, 1, inner.height - animal_token_thickness / 2.0]),
+            type=ObjectType.NEGATIVE
+        )
+    ] + layout_compartments([
+        Group([make_custom_compartment("container1", inner.width, inner.length)])
+    ])(inner))
+    .lid_label("Animals", options=MakeLabelOptions(label_type=default_label_type))
+    .lid_shape_type(default_lid_shape_type)
+    .lid_shape_width(default_lid_shape_width)
+    .lid_shape_thickness(default_lid_shape_thickness)
+    .slipover()
+)
+
+# Run the 3D packing engine using our new general API
+PACKING = pack_boxes(
+    container_size=[box_width, box_length, box_height],
+    boxes=[
+        _animal_cards_builder,
+        _sprout_builder,
+        _canopy_builder,
+        _animal_builder,
+        _animal_builder_2
+    ],
+    additional_items=[
+        {"name": "Boards", "size": boards_size, "expandable": []}
+    ]
+)
+
+SIZES = PACKING.get_sizes()
+
+# Retrieve dynamically calculated dimensions for rest of script references
+card_box_width, card_box_length, animal_cards_height = SIZES["AnimalCardsBox"]
+sprout_box_width, sprout_box_length, sprout_box_height = SIZES["SproutBox"]
+canopy_box_width, canopy_box_length, canopy_box_height = SIZES["CanopyBox"]
+animal_box_width, animal_box_length, animal_box_height = SIZES["AnimalBox"]
 
 spacer_box_width = animal_box_width
 spacer_box_length = animal_box_length
-spacer_box_height = box_height - animal_box_height * 2 - 1
+spacer_box_height = 0.0
+
+# Build the finalized specs
+_animal_cards_box = _animal_cards_builder.build()
+_sprout_box = _sprout_builder.build()
+_canopy_box = _canopy_builder.build()
+_animal_box = _animal_builder.build()
+_animal_box_2 = _animal_builder_2.build()
+
+_spacer_box = (
+    BoxSpec.box_builder()
+    .size(spacer_box_width, spacer_box_length, 1.0)
+    .label("SpacerBox")
+    .wall_thickness(default_wall_thickness)
+    .floor_thickness(default_floor_thickness)
+    .hollow(True)
+    .no_lid()
+    .build()
+)
 
 # ---- Items list (name, width, length, num) -----------------------------------
 ANIMAL_PIECES = [
@@ -363,7 +491,7 @@ _animal_box_2 = (
 
 _spacer_box = (
     BoxSpec.box_builder()
-    .size(spacer_box_width, spacer_box_length, spacer_box_height)
+    .size(spacer_box_width, spacer_box_length, max(spacer_box_height, 1.0))
     .label("SpacerBox")
     .wall_thickness(default_wall_thickness)
     .floor_thickness(default_floor_thickness)
@@ -415,3 +543,7 @@ def AnimalBox2Lid():
 @make_box
 def SpacerBox():
     return _spacer_box.make_box()
+
+@document_box
+def BoxLayoutA():
+    return PACKING.shape()

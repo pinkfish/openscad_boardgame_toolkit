@@ -383,6 +383,7 @@ class BoxSpec:
     # ---- Required: identity + outer geometry ---------------------------------
     size: list[float]   # [width, length, height] outer dimensions
     label: str          # print-file / debug name for this box
+    min_size: list[float] | None = None
 
     # ---- Material / thickness (all fall back to the base_bgtk global defaults) ----
     wall_thickness: float = field(default_factory=lambda: default_wall_thickness)
@@ -541,6 +542,12 @@ class BoxSpecBuilder:
 
     def size(self, w: float, l: float, h: float) -> BoxSpecBuilder:
         self._kwargs["size"] = [w, l, h]
+        return self
+
+    def min_size(self, w: float, l: float, h: float) -> BoxSpecBuilder:
+        self._kwargs["min_size"] = [w, l, h]
+        if "size" not in self._kwargs:
+            self._kwargs["size"] = [w, l, h]
         return self
 
     def label(self, label: str) -> BoxSpecBuilder:
@@ -1417,6 +1424,10 @@ class BoxBuilder:
         self._spec_builder.size(w, l, h)
         return self
 
+    def min_size(self, w: float, l: float, h: float) -> BoxBuilder:
+        self._spec_builder.min_size(w, l, h)
+        return self
+
     def label(self, label: str) -> BoxBuilder:
         self._spec_builder.label(label)
         return self
@@ -1975,3 +1986,100 @@ _TYPE_BUILDERS = {
     "SlipoverBox": SlipoverBoxBuilder,
     "NoLidBox": NoLidBoxBuilder,
 }
+
+
+class BoxPacking:
+    """Represents a successfully packed 3D layout of boxes inside a game box."""
+    def __init__(self, placements: dict, container_size: list[float]) -> None:
+        self._placements = placements
+        self._container_size = container_size
+
+    def shape(self) -> Bosl2Solid:
+        """Returns the 3D union of all packed boxes (without their lids) in their correct positions."""
+        import functools
+        import operator
+        import pybosl2.shapes3d as s3_shapes
+        objs = [
+            s3_shapes.cube([self._container_size[0], self._container_size[1], 1.0], anchor=[-1,-1,-1]),
+            s3_shapes.cube([self._container_size[0], 1.0, self._container_size[2]], anchor=[-1,-1,-1])
+        ]
+        for name, info in self._placements.items():
+            pos = info["pos"]
+            size = info["size"]
+            rotated = info.get("rotated", False)
+            builder = info.get("builder")
+            
+            if builder is None:
+                b = s3_shapes.cube(size, anchor=[-1,-1,-1])
+                b = b.translate(pos)
+                objs.append(b)
+            else:
+                # Update the builder size dynamically with the expanded packed size
+                builder.size(size[0], size[1], size[2])
+                box_obj = builder.build()
+                b_geom = box_obj.make_box()
+                if rotated:
+                    b_geom = b_geom.rotate([0, 0, 90]).translate([pos[0] + size[0], pos[1], pos[2]])
+                else:
+                    b_geom = b_geom.translate(pos)
+                objs.append(b_geom)
+        return functools.reduce(operator.or_, objs)
+
+    def get_sizes(self) -> dict[str, list[float]]:
+        """Returns the resolved sizes of all packed boxes, mapped by their name/label."""
+        return {name: info["size"] for name, info in self._placements.items()}
+
+
+def pack_boxes(container_size: list[float], boxes: list[BoxBuilder], additional_items: list[dict] = None) -> BoxPacking:
+    """Packs BoxBuilder instances and additional flat items (like boards) inside the container.
+
+    Each BoxBuilder can specify a fixed size (via .size()) or a minimum size (via .min_size()).
+    Expandable boxes will be automatically expanded to fill the remaining height/width.
+    """
+    from compartments import pack_3d_boxes
+    
+    items = []
+    builder_map = {}
+    
+    for builder in boxes:
+        kwargs = builder._spec_builder._kwargs
+        name = kwargs.get("label", "Box")
+        
+        base_name = name
+        idx = 2
+        while name in builder_map:
+            name = f"{base_name}_{idx}"
+            idx += 1
+            
+        builder_map[name] = builder
+        
+        min_size = kwargs.get("min_size")
+        size = kwargs.get("size", [0.0, 0.0, 0.0])
+        
+        if min_size is not None:
+            items.append({
+                "name": name,
+                "size": min_size,
+                "expandable": ["h"]
+            })
+        else:
+            items.append({
+                "name": name,
+                "size": size,
+                "expandable": []
+            })
+            
+    if additional_items:
+        for item in additional_items:
+            items.append({
+                "name": item["name"],
+                "size": item["size"],
+                "expandable": item.get("expandable", [])
+            })
+            
+    packed = pack_3d_boxes(container_size, items)
+    
+    for name, info in packed.items():
+        info["builder"] = builder_map.get(name)
+        
+    return BoxPacking(packed, container_size)

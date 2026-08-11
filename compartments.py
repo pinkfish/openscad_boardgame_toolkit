@@ -844,3 +844,106 @@ def _realise(groups: list[Group], plan: "tuple[Placement, ...]", IH: float) -> l
     for key in sorted(scoops):
         pieces.extend(_merge_scoops(scoops[key]))   # one contiguous scoop per row
     return pieces
+
+
+def pack_3d_boxes(container_size: list[float], items: list[dict]) -> dict:
+    """Generic 3D First-Fit Decreasing box packer with Z-axis rotation and AABB height/width expansion.
+
+    Args:
+        container_size: [width, length, height] of the game box interior.
+        items: list of dicts:
+            {
+                "name": str,
+                "size": [w, l, h],         # minimum dimensions
+                "expandable": list[str]     # list containing "h" (height) and/or "w" (width) to expand
+            }
+
+    Returns:
+        A dictionary mapping item names to their packing configuration:
+            {
+                name: {
+                    "pos": [x, y, z],
+                    "size": [w, l, h],
+                    "rotated": bool
+                }
+            }
+    """
+    import itertools
+    container_w, container_l, container_h = container_size
+
+    def overlaps(b1, b2):
+        x1, y1, z1, w1, l1, h1 = b1
+        x2, y2, z2, w2, l2, h2 = b2
+        return (x1 < x2 + w2 and x1 + w1 > x2 and
+                y1 < y2 + l2 and y1 + l1 > y2 and
+                z1 < z2 + h2 and z1 + h1 > z2)
+
+    best_solution = None
+    for perm in itertools.permutations(items):
+        placements = []
+        extreme_points = [(0.0, 0.0, 0.0)]
+        success = True
+        
+        for item in perm:
+            placed = False
+            extreme_points = sorted(list(set(extreme_points)), key=lambda p: (p[2], p[1], p[0]))
+            
+            orientations = [(item["size"], False)]
+            if item["size"][0] != item["size"][1]:
+                orientations.append(([item["size"][1], item["size"][0], item["size"][2]], True))
+                
+            for (w, l, h), rotated in orientations:
+                for ep in extreme_points:
+                    x, y, z = ep
+                    if x + w <= container_w and y + l <= container_l and z + h <= container_h:
+                        candidate = (x, y, z, w, l, h)
+                        if not any(overlaps(candidate, other[1:7]) for other in placements):
+                            placements.append((item["name"], x, y, z, w, l, h, rotated))
+                            extreme_points.append((x + w, y, z))
+                            extreme_points.append((x, y + l, z))
+                            extreme_points.append((x, y, z + h))
+                            placed = True
+                            break
+                if placed:
+                    break
+            if not placed:
+                success = False
+                break
+        if success:
+            best_solution = placements
+            break
+            
+    if not best_solution:
+        raise LayoutError(f"Could not pack components in 3D game box of size {container_size}!")
+        
+    # AABB Height (Z) and Width (X) expansion pass
+    expanded = list(best_solution)
+    for idx, (name, x, y, z, w, l, h, rotated) in enumerate(expanded):
+        expandable = next(item["expandable"] for item in items if item["name"] == name)
+        if "h" in expandable:
+            min_upper_z = float(container_h)
+            for other_name, ox, oy, oz, ow, ol, oh, orot in expanded:
+                if other_name == name:
+                    continue
+                if (x < ox + ow and x + w > ox) and (y < oy + ol and y + l > oy):
+                    if oz >= z + h:
+                        if oz < min_upper_z:
+                            min_upper_z = oz
+            new_h = min_upper_z - z
+            expanded[idx] = (name, x, y, z, w, l, new_h, rotated)
+            
+    for idx, (name, x, y, z, w, l, h, rotated) in enumerate(expanded):
+        expandable = next(item["expandable"] for item in items if item["name"] == name)
+        if "w" in expandable:
+            min_right_x = float(container_w)
+            for other_name, ox, oy, oz, ow, ol, oh, orot in expanded:
+                if other_name == name:
+                    continue
+                if (y < oy + ol and y + l > oy) and (z < oz + oh and z + h > oz):
+                    if ox >= x + w:
+                        if ox < min_right_x:
+                            min_right_x = ox
+            new_w = min_right_x - x
+            expanded[idx] = (name, x, y, z, new_w, l, h, rotated)
+            
+    return {name: {"pos": [x, y, z], "size": [w, l, h], "rotated": rotated} for name, x, y, z, w, l, h, rotated in expanded}
