@@ -45,48 +45,82 @@ def generate_layout_pdf(
     page_w = 297  # A4 landscape
     page_h = 210
 
-    # Scale: fit both top-down and side-view side-by-side
-    margin = 12
-    gap = 10
-    avail_w = page_w - 2 * margin - gap
-    avail_h = page_h - 2 * margin - 20  # reserve 20mm for title
+    # Projection settings (Cabinet Oblique)
+    import math
+    angle_rad = math.radians(30)
+    cos_a = math.cos(angle_rad)
+    sin_a = math.sin(angle_rad)
+    alpha = 0.45  # shortening factor for depth Y
 
-    # Total width of two boxes side-by-side is 2 * game_box_size[0]
-    scale = min(avail_w / (2 * game_box_size[0]), avail_h / max(game_box_size[1], game_box_size[2]))
+    def project(x, y, z):
+        # Cabinet Oblique: X maps right/up-right, Y (depth) maps up-right, Z maps straight up
+        px = x + y * cos_a * alpha
+        py = -z - y * sin_a * alpha
+        return px, py
 
-    # Offsets
-    offset_x_top = margin
-    offset_x_side = margin + game_box_size[0] * scale + gap
-    offset_y = margin + 15
+    # Headroom for exploded stacking (Z-displacement of upper boxes by 70mm)
+    max_z_exploded = game_box_size[2] + 70.0
+
+    # Bounding box of projected coordinates (including headroom) to scale to page
+    corners = [
+        (0, 0, 0),
+        (game_box_size[0], 0, 0),
+        (0, game_box_size[1], 0),
+        (game_box_size[0], game_box_size[1], 0),
+        (0, 0, game_box_size[2]),
+        (game_box_size[0], 0, game_box_size[2]),
+        (0, game_box_size[1], game_box_size[2]),
+        (game_box_size[0], game_box_size[1], game_box_size[2]),
+        (0, 0, max_z_exploded),
+        (game_box_size[0], 0, max_z_exploded),
+        (0, game_box_size[1], max_z_exploded),
+        (game_box_size[0], game_box_size[1], max_z_exploded),
+    ]
+    projected = [project(x, y, z) for x, y, z in corners]
+    min_px = min(p[0] for p in projected)
+    max_px = max(p[0] for p in projected)
+    min_py = min(p[1] for p in projected)
+    max_py = max(p[1] for p in projected)
+
+    proj_w = max_px - min_px
+    proj_h = max_py - min_py
+
+    margin = 15
+    avail_w = page_w - 2 * margin
+    avail_h = page_h - 2 * margin - 20
+
+    scale = min(avail_w / proj_w, avail_h / proj_h)
+
+    # Offsets to center the projection on the A4 page
+    offset_x = margin + (avail_w - proj_w * scale) / 2 - min_px * scale
+    offset_y = margin + 15 - min_py * scale
 
     # Project title
     pdf.set_font("Helvetica", "B", 14)
     pdf.cell(0, 8, f"Packing Guide: {project_name}", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 9)
-    pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm",
+    pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm  |  3D Exploded Assembly",
              align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
 
-    # Scaling functions
-    def to_x_top(x): return offset_x_top + x * scale
-    def to_y_top(y): return offset_y + (game_box_size[1] - y) * scale
-    def to_x_side(x): return offset_x_side + x * scale
-    def to_z_side(z): return offset_y + (game_box_size[2] - z) * scale
-    def to_d(mm): return mm * scale
+    def to_pdf(x, y, z):
+        px, py = project(x, y, z)
+        return offset_x + px * scale, offset_y + py * scale
 
-    # ---- Draw Views Labels ----------------------------------------------------
-    pdf.set_font("Helvetica", "B", 10)
-    pdf.set_text_color(50, 50, 50)
-    pdf.text(offset_x_top, offset_y - 2, "Top-Down View (X-Y)")
-    pdf.text(offset_x_side, offset_y - 2, "Side View / Stacking (X-Z)")
-
-    # ---- Draw Game Box Outlines -----------------------------------------------
-    pdf.set_draw_color(100, 100, 100)
-    pdf.set_line_width(0.3)
-    # Top-Down outline
-    pdf.rect(to_x_top(0), to_y_top(game_box_size[1]), to_d(game_box_size[0]), to_d(game_box_size[1]))
-    # Side outline
-    pdf.rect(to_x_side(0), to_z_side(game_box_size[2]), to_d(game_box_size[0]), to_d(game_box_size[2]))
+    # Draw Game Box Outline (Z=0 bottom face, vertical corners, Z=H top face)
+    pdf.set_draw_color(150, 150, 150)
+    pdf.set_line_width(0.2)
+    # Bottom face
+    p_base = [to_pdf(0, 0, 0), to_pdf(game_box_size[0], 0, 0),
+              to_pdf(game_box_size[0], game_box_size[1], 0), to_pdf(0, game_box_size[1], 0)]
+    pdf.polygon(p_base, style="D")
+    # Corners
+    for cx, cy in [(0, 0), (game_box_size[0], 0), (game_box_size[0], game_box_size[1]), (0, game_box_size[1])]:
+        pdf.line(*to_pdf(cx, cy, 0), *to_pdf(cx, cy, game_box_size[2]))
+    # Top face
+    p_top = [to_pdf(0, 0, game_box_size[2]), to_pdf(game_box_size[0], 0, game_box_size[2]),
+             to_pdf(game_box_size[0], game_box_size[1], game_box_size[2]), to_pdf(0, game_box_size[1], game_box_size[2])]
+    pdf.polygon(p_top, style="D")
 
     # Known box colors
     colors = [
@@ -95,62 +129,86 @@ def generate_layout_pdf(
         (160, 100, 80), (120, 140, 160),
     ]
 
-    # ---- Draw Placements (Boxes) ---------------------------------------------
-    for box_idx, p in enumerate(packing.placements):
+    def draw_box_3d(x, y, z, bw, bl, bh, color, label=None, index_str=None):
+        # Front face
+        p_front = [to_pdf(x, y, z), to_pdf(x + bw, y, z),
+                   to_pdf(x + bw, y, z + bh), to_pdf(x, y, z + bh)]
+        # Right face
+        p_right = [to_pdf(x + bw, y, z), to_pdf(x + bw, y + bl, z),
+                   to_pdf(x + bw, y + bl, z + bh), to_pdf(x + bw, y, z + bh)]
+        # Top face
+        p_top = [to_pdf(x, y, z + bh), to_pdf(x + bw, y, z + bh),
+                 to_pdf(x + bw, y + bl, z + bh), to_pdf(x, y + bl, z + bh)]
+
+        # Face colors for 3D shading
+        c_top = color
+        c_front = tuple(max(0, int(c * 0.85)) for c in color)
+        c_right = tuple(max(0, int(c * 0.70)) for c in color)
+
+        # Top Face
+        pdf.set_fill_color(*c_top)
+        pdf.set_draw_color(40, 40, 40)
+        pdf.set_line_width(0.15)
+        pdf.polygon(p_top, style="DF")
+
+        # Front Face
+        pdf.set_fill_color(*c_front)
+        pdf.polygon(p_front, style="DF")
+
+        # Right Face
+        pdf.set_fill_color(*c_right)
+        pdf.polygon(p_right, style="DF")
+
+        # Text labels
+        if label or index_str:
+            cx, cy = to_pdf(x + bw / 2, y + bl / 2, z + bh)
+            if index_str:
+                pdf.set_text_color(0, 0, 0)
+                pdf.set_font("Helvetica", "B", 7)
+                pdf.text(cx - 1.5, cy - 1, index_str)
+            if label:
+                pdf.set_text_color(255, 255, 255)
+                pdf.set_font("Helvetica", "", 4.5)
+                lbl = label[:12] + ".." if len(label) > 12 else label
+                pdf.text(cx - 5, cy + 2.5, f"{lbl} {bw:.0f}x{bl:.0f}")
+
+    # Draw Spacers
+    for sp in packing.spacer_placements:
+        x, y, z = sp.position
+        sw, sl, sh = sp.size
+        draw_box_3d(x, y, z, sw, sl, sh, (220, 220, 220), "spacer")
+
+    # Draw Placements (ordered by height Z so bottom ones draw first, preventing overlap bugs)
+    sorted_placements = sorted(enumerate(packing.placements), key=lambda x: x[1].position[2])
+
+    for box_idx, p in sorted_placements:
         x, y, z = p.position
         bw, bl, bh = p.size
         color = colors[box_idx % len(colors)]
 
-        # 1. Draw in Top-Down View
-        pdf.set_fill_color(*color)
-        pdf.set_draw_color(40, 40, 40)
-        pdf.set_line_width(0.2)
-        pdf.rect(to_x_top(x), to_y_top(y + bl), to_d(bw), to_d(bl), style="DF")
+        # Exploded stacking: pull upper boxes (Z > 0) upwards
+        z_drawn = z
+        if z > 0:
+            z_drawn = z + 70.0  # Explode upward by 70mm
 
-        # Label inside top-down view
-        pdf.set_font("Helvetica", "", 5)
-        pdf.set_text_color(255, 255, 255)
-        label_text = f"{p.label} ({bw:.0f}x{bl:.0f}x{bh:.0f})"
-        pdf.text(to_x_top(x) + 1, to_y_top(y + bl) + to_d(bl) - 2, label_text)
-        
-        # Packing order number
-        pdf.set_text_color(0, 0, 0)
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.text(to_x_top(x) + 1, to_y_top(y + bl) + 3, str(box_idx + 1))
+            # Draw target placement footprint outline on the lower level
+            p_slot = [to_pdf(x, y, z), to_pdf(x + bw, y, z),
+                      to_pdf(x + bw, y + bl, z), to_pdf(x, y + bl, z)]
+            pdf.set_draw_color(200, 50, 50)
+            pdf.set_line_width(0.15)
+            pdf.polygon(p_slot, style="D")
 
-        # 2. Draw in Side View (X-Z Stacking)
-        pdf.set_fill_color(*color)
-        pdf.set_draw_color(40, 40, 40)
-        pdf.rect(to_x_side(x), to_z_side(z + bh), to_d(bw), to_d(bh), style="DF")
+            # Draw dashed vertical trace line
+            cx_slot, cy_slot = to_pdf(x + bw / 2, y + bl / 2, z)
+            cx_float, cy_float = to_pdf(x + bw / 2, y + bl / 2, z_drawn)
+            pdf.set_draw_color(200, 50, 50)
+            pdf.set_line_width(0.2)
+            pdf.set_dash_pattern(dash=2, gap=2)
+            pdf.line(cx_slot, cy_slot, cx_float, cy_float)
+            pdf.set_dash_pattern(dash=0, gap=0)
 
-        # Label inside side view
-        pdf.set_font("Helvetica", "", 5)
-        pdf.set_text_color(255, 255, 255)
-        pdf.text(to_x_side(x) + 1, to_z_side(z + bh) + to_d(bh) - 2, p.label)
-        
-        # Packing order number
-        pdf.set_text_color(0, 0, 0)
-        pdf.set_font("Helvetica", "B", 7)
-        pdf.text(to_x_side(x) + 1, to_z_side(z + bh) + 3, str(box_idx + 1))
-
-    # ---- Draw Spacers --------------------------------------------------------
-    for sp in packing.spacer_placements:
-        x, y, z = sp.position
-        sw, sl, sh = sp.size
-
-        # Top-down spacer
-        pdf.set_fill_color(220, 220, 220)
-        pdf.set_draw_color(150, 150, 150)
-        pdf.set_line_width(0.15)
-        pdf.rect(to_x_top(x), to_y_top(y + sl), to_d(sw), to_d(sl), style="DF")
-        pdf.set_font("Helvetica", "", 4)
-        pdf.set_text_color(120, 120, 120)
-        pdf.text(to_x_top(x) + 1, to_y_top(y + sl) + 2, "spacer")
-
-        # Side view spacer
-        pdf.set_fill_color(220, 220, 220)
-        pdf.rect(to_x_side(x), to_z_side(z + sh), to_d(sw), to_d(sh), style="DF")
-        pdf.text(to_x_side(x) + 1, to_z_side(z + sh) + 2, "spacer")
+        # Draw the 3D shaded box
+        draw_box_3d(x, y, z_drawn, bw, bl, bh, color, p.label, str(box_idx + 1))
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output_path))
