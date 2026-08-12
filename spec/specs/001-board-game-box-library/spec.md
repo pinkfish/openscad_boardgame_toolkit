@@ -212,7 +212,12 @@ The designer wants precise control over compartment placement. They specify exac
 - What happens when spacer trays have a height under 5mm? They are permitted -- spacer trays can be shorter than 5mm in height (unlike width/length which has a 15mm minimum).
 - What happens when a 3MF file already exists on disk but the exported mesh is empty (no geometry)? The file is NOT written; a warning is emitted.
 - What happens when the Hausdorff distance tolerance is too tight and floating-point noise triggers unnecessary rewrites? The tolerance defaults to a value large enough to absorb FP jitter (e.g., 0.001mm) but is user-configurable.
-- What happens when exporting a box with no lid (a no-lid box type)? Only a body 3MF is produced; no lid 3MF is generated.
+- What happens when the Hausdorff comparison file or `.layout_cache.json` is corrupted or unreadable? The corrupted file is treated as a cache miss — silently overwritten with regenerated data.
+- What happens when exporting a box with no lid (a no-lid box type)? Only a body 3MF is produced; no lid 3MF is generated. If a `LidBuilder` is configured on a no-lid type, a warning is emitted and the lid decoration is silently dropped.
+- What happens when the Project has no sub-boxes (empty)? No files are produced; `ExportResult` returns empty written/skipped lists and no PDF is generated.
+- What happens when a box has no compartments AND no explicit `size`? A `ValueError` is raised — either compartments or an explicit size is required.
+- What happens when a spacer tray's computed height is zero or negative due to a packing error? A `ValueError` is raised during spacer generation.
+- What happens when min text height threshold is set to 0mm? All labels print regardless of computed size — a threshold of 0 disables the size guard.
 - What happens when lid text auto-sizes below 4mm on a large lid but the text string is very short (e.g., "A")? The text is scaled until the character height hits the minimum; if it can't reach 4mm while fitting the lid, the label is skipped.
 - What happens when a through-hole pattern intersects the label frame or text area? Through-holes are clipped to avoid the label area -- the label text and frame take precedence and pattern holes stop at the label boundary.
 - What happens when the box body color and all three accent colors are set to the same value? The multi-color 3MF degenerates to a single material; it is still valid but the user gets a warning that no visible color contrast exists.
@@ -235,8 +240,8 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-011**: The library MUST validate that all nested sub-boxes fit within the outer box interior (both footprint and height) before accepting the specification.
 - **FR-012**: The library MUST support declaring minimum dimensions for each nested sub-box, allowing the box to auto-expand to fill available space in its row or column up to the outer box interior bounds. If `size` is not explicitly set, the minimum dimensions MUST be auto-computed from the compartment dimensions within that box.
 - **FR-013**: The library MUST align sub-boxes into rows where every box in the same row shares a common length (the length of the longest box in that row), so rows are uniform and boxes are easy to place and remove.
-- **FR-014**: The library MUST generate hollow spacer trays to fill gaps larger than 10mm (default threshold, configurable) between the expanded boxes and the outer box walls. Spacer trays MUST NOT be narrower than 15mm in width or length.
-- **FR-015**: The library MUST absorb gaps smaller than the auto-fill threshold (default 10mm) into adjacent expandable boxes rather than generating spacer trays.
+- **FR-014**: The library MUST generate hollow spacer trays to fill gaps ≥ 10mm (default threshold, configurable) between the expanded boxes and the outer box walls. Spacer trays MUST NOT be narrower than 15mm in width or length.
+- **FR-015**: The library MUST absorb gaps smaller than the auto-fill threshold (default 10mm) into adjacent expandable boxes rather than generating spacer trays. Gaps exactly equal to the threshold generate spacer trays.
 - **FR-016**: The library MUST use variable row widths: each row's width is determined by the widest box in that row after expansion, and rows are not forced to equal widths.
 - **FR-017**: The library MUST allow each sub-box to declare which dimensions are expandable (both width and length by default). Non-expandable dimensions stay at their minimum specified value.
 - **FR-018**: The library MUST support non-rectangular box outlines derived from 2D polygon paths, allowing compartments and contents to be clipped to the polygonal interior boundary.
@@ -249,7 +254,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-025**: The library MUST support multi-material (MMU) printing: positive inserts printed in a different colour/material from the box body.
 - **FR-026**: The library MUST expose a fluent builder API so users chain calls to define a box.
 - **FR-027**: The library MUST report dimensioned requirements for the 3D printer bed: the bounding box of each generated piece.
-- **FR-028**: The library MUST allow boxes to be split/sliced for printing on smaller beds by dividing parts along user-specified cut planes.
+- **FR-028**: [DEFERRED] The library MUST allow boxes to be split/sliced for printing on smaller beds by dividing parts along user-specified cut planes. Deferred to future release — not in v1 scope.
 - **FR-029**: The library MUST export each box body and each lid as separate 3MF files containing all material/color assignments (multi-color 3MF), and also export single-color 3MF variants for single-extruder printers.
 - **FR-030**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
 - **FR-031**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
@@ -315,3 +320,10 @@ The designer wants precise control over compartment placement. They specify exac
 - Through-hole patterns stop at the label boundary -- the label text and frame take visual precedence over decorative holes.
 - Diagonal text orientation follows the lid's natural corner-to-corner angle (not forced to 45°) for non-square lids.
 - Framed labels include diagonal hatching lines behind the text at a spacing that allows the text to bridge without supports.
+- Through-hole patterns clip at all lid boundaries — partial holes at lid edges are truncated (same as label intersection clipping).
+- PDF packing guide renders boxes as solid shaded models from an isometric camera angle (30° above horizontal, 45° rotated) with semi-transparent walls to reveal hidden interior boxes.
+- Performance baselines assume Apple Silicon or equivalent x86-64 hardware. Cached regeneration targets < 1s for compartment layout and < 2s for auto-sizing. Uncached first-run packing may take 30s–5min depending on box count; no upper bound is guaranteed.
+- `.layout_cache.json` is expected to remain < 1MB for typical projects (< 50 boxes).
+- Missing pybosl2 or pymeshlab dependencies at import time produce a clear error message naming the missing package and minimum required version (pymeshlab ≥ 0.2.0).
+- SC-003 (assemblability without modification) is verified via render tests checking mating geometry dimensions; physical print validation is deferred to the user.
+- Borrowed tessellation files are assumed to be stable; if they are refactored, pattern fill functions under `spec_driven/lid/pattern.py` must be updated accordingly.

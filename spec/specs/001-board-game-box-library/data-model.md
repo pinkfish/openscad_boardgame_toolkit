@@ -68,7 +68,9 @@ Immutable RGBA dataclass. Named presets: `Color.WHITE()`, `Color.BLACK()`, etc. 
 | `floor_thickness` | `float \| None` | None |
 | `lid_thickness` | `float \| None` | None |
 | `lid` | `LidBuilder \| None` | None |
+| `finger_holes` | `tuple[FingerHoleBuilder, ...]` | () |
 | `compartments` | `tuple[CompartmentBuilder, ...]` | () |
+| `final_size` | `tuple[float, float, float] \| None` | None (resolved by 3D packer, set-once frozen after export) |
 
 **Methods**: `compartment(label, *, size, depth, ...) -> CompartmentBuilder`
 

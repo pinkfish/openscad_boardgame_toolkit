@@ -12,7 +12,7 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Language/Version**: Python 3.12+ with strict type annotations (`py.typed` marker)
 
-**Primary Dependencies**: pybosl2 >= 0.7.8 (CSG geometry), numpy, pymeshlab (Hausdorff mesh comparison)
+**Primary Dependencies**: pybosl2 >= 0.7.8 (CSG geometry), numpy, pymeshlab >= 0.2.0 (Hausdorff mesh comparison)
 
 **Borrowed from existing code**: Tessellation generators (`penrose_tiling.py`, `pentagon_tilings.py`, `tesselations/`), shape generators (`shapes.py` coin/hex/etc.), and pybosl2's `cuboid()`/`cylinder()`/boolean CSG. These are algorithm libraries, not architecture constraints.
 
