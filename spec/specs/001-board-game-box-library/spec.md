@@ -26,6 +26,8 @@
 - Q: How many accent colors for lid decorations? → A: Three independently settable colors: one for label text, one for the frame (top layer), one for the pattern top layer. Patterns support multiple colors.
 - Q: How does label auto-sizing determine dimensions? → A: Label fills available lid area minus a configurable border margin. If the computed text size is below a minimum (default 4mm, settable), the label is skipped entirely rather than printed illegibly.
 - Q: How are box minimum dimensions computed from compartments? → A: `size` is auto-computed from compartment dimensions if not explicitly set. If `size` IS set, it is used as-is and compartments must fit within. Box expansion happens during the Project packing phase where sub-boxes are fitted into the main game box.
+- Q: Should the packing layout PDF show a 2D top-down or 3D angle view? → A: 3D angle view with packing steps, showing how interior hidden boxes stack into the game box. Visualizes the packing order and interior box arrangement.
+- Q: Is the PDF generated automatically or on-demand? → A: Automatic with every `project.export()`, but cached — only regenerates if the box layout or library version has changed since the last export.
 
 ## User Scenarios & Testing
 
@@ -165,6 +167,22 @@ The designer wants each box lid to look polished and be easy to print. They set 
 
 ---
 
+### User Story 10 - Generate Packing Layout PDF Guide (Priority: P3)
+
+After generating all box pieces, the designer needs a visual guide showing where each box goes inside the game box. The system produces a PDF with a 3D-angle view of the game box interior, showing each sub-box at its packed position, numbered in packing order. Hidden interior boxes are visible through transparency. Spacer trays are labeled. The PDF is generated automatically on export but only regenerated if the layout changed (cached by SHA-256 hash of the layout + library version).
+
+**Why this priority**: A packing guide is essential documentation for anyone assembling the insert — they need to know which box goes where, in what order. Cached regeneration avoids unnecessary PDF rebuilds during iterative development. Depends on the full packing/export pipeline being complete (P2).
+
+**Independent Test**: Export a 4-box game, verify a PDF exists in the output directory, verify it shows 4 labeled boxes in correct positions with packing order numbered.
+
+**Acceptance Scenarios**:
+
+1. **Given** a Project with 4 sub-boxes packed into a 300x200mm game box, **When** `project.export()` runs, **Then** a PDF is produced in `{out_dir}/{project.name}/layout.pdf` showing the game box outline, each sub-box at its packed position with label and dimensions, and spacer trays marked.
+2. **Given** a previously exported layout with no changes, **When** `project.export()` runs again, **Then** the PDF is NOT regenerated — it is skipped along with unchanged 3MF files.
+3. **Given** a layout change (different box sizes or positions), **When** `project.export()` runs, **Then** the PDF IS regenerated to reflect the new layout.
+
+---
+
 ### User Story 6 - Custom Compartment Layout (Manual Positioning) (Priority: P3)
 
 The designer wants precise control over compartment placement. They specify exact X, Y coordinates for each compartment within the box interior, overriding automatic layout.
@@ -198,6 +216,7 @@ The designer wants precise control over compartment placement. They specify exac
 - What happens when lid text auto-sizes below 4mm on a large lid but the text string is very short (e.g., "A")? The text is scaled until the character height hits the minimum; if it can't reach 4mm while fitting the lid, the label is skipped.
 - What happens when a through-hole pattern intersects the label frame or text area? Through-holes are clipped to avoid the label area -- the label text and frame take precedence and pattern holes stop at the label boundary.
 - What happens when the box body color and all three accent colors are set to the same value? The multi-color 3MF degenerates to a single material; it is still valid but the user gets a warning that no visible color contrast exists.
+- What happens when the game box has no sub-boxes (empty Project)? No PDF is generated — the layout is trivially empty and there is nothing to pack.
 
 ## Requirements
 
@@ -235,6 +254,8 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-030**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
 - **FR-031**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
 - **FR-032**: The library MUST report which files were written and which were skipped during export, so the user knows what changed.
+- **FR-033**: The library MUST generate a PDF packing guide showing the game box interior from a 3D angle view, with each sub-box labeled at its packed position, dimensions shown, spacer trays marked, and boxes numbered in packing order with hidden interior boxes visible through transparency.
+- **FR-034**: The library MUST cache the PDF output — regenerating only when the box layout or library version has changed since the last export (same SHA-256 hash gate as 3MF files).
 
 ### Key Entities
 
@@ -248,6 +269,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **Project**: The top-level game insert description. A collection of multiple related boxes (e.g., an outer game box plus its nested sub-boxes) that orchestrates nesting layout and generates all pieces together. The public API surface; internally maps to BoxKit during export.
 - **Spacer Box**: A hollow tray auto-generated to fill a gap in the nested layout. Has the same wall/floor construction as regular boxes but no compartments or lid. Minimum dimensions: 15mm width, 15mm length; may be shorter than 5mm in height.
 - **3MF Export**: The output of a box or BoxKit -- a set of 3MF files written to disk, each containing embedded geometry with per-object material/color assignments (multi-color) or a single material (single-color). File naming follows `<label>_body.3mf` / `<label>_lid.3mf` conventions with `_single` suffix for single-color variants. Content-based caching via Hausdorff distance comparison prevents unnecessary file rewrites.
+- **Layout PDF**: A packing guide generated alongside 3MF exports. Shows the game box interior from a 3D angle view with sub-boxes labeled at their packed positions, numbered in packing order, and hidden interior boxes visible through transparency. Regenerated only when layout or library version changes.
 
 ## Success Criteria
 
@@ -269,6 +291,8 @@ The designer wants precise control over compartment placement. They specify exac
 - **SC-014**: A lid with label text "Cards" auto-sized on a 100x70mm lid produces text with height ≥ 4mm and fills the lid area minus a 5mm border margin.
 - **SC-015**: A lid with label text "A" on a 30x20mm lid produces zero label geometry (skipped because text height < 4mm) and no 3MF color assignments for the label.
 - **SC-016**: A framed label exported as multi-color 3MF produces exactly the expected material assignments: body color for the lid slab, text color for the label text, frame top color for the frame border top layer.
+- **SC-017**: A 4-box Project exported produces `layout.pdf` in the game output directory showing all 4 boxes at their packed positions with correct labels and dimensions.
+- **SC-018**: Re-exporting an unchanged Project skips `layout.pdf` regeneration (same as 3MF files — zero writes if layout hash matches).
 
 ## Assumptions
 

@@ -16,7 +16,7 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Borrowed from existing code**: Tessellation generators (`penrose_tiling.py`, `pentagon_tilings.py`, `tesselations/`), shape generators (`shapes.py` coin/hex/etc.), and pybosl2's `cuboid()`/`cylinder()`/boolean CSG. These are algorithm libraries, not architecture constraints.
 
-**Storage**: Disk JSON cache (`spec_driven/.layout_cache.json`), 3MF files in `{out_dir}/{game}/mmu/` and `{out_dir}/{game}/single/`
+**Storage**: Disk JSON cache (`spec_driven/.layout_cache.json`), 3MF files + `layout.pdf` in `{out_dir}/{game}/mmu/`, `{out_dir}/{game}/single/`, and `{out_dir}/{game}/layout.pdf`
 
 **Testing**: `unittest` two-tier: fast pure-Python and full PythonSCAD render. `pyright` strict mode for type checking.
 
@@ -24,7 +24,7 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Project Type**: Greenfield Python library inside `spec_driven/`, single-import strictly-typed API
 
-**Performance Goals**: 20-compartment layout < 1s, 6-sub-box auto-size < 2s, Hausdorff-based 3MF write-if-changed
+**Performance Goals**: Full bin-packing may take longer on first run (complex layouts). Once cached (SHA-256 hit), regeneration completes in: 20-compartment layout < 1s, 6-sub-box auto-size < 2s, Hausdorff-based 3MF write-if-changed. Cached re-exports with zero geometry changes complete in < 0.5s.
 
 **Constraints**: Enums for all type selections, no bare strings, no dict parameter objects, typed builders per box type, no import of existing `box_base.py`/`lids_base.py` architecture, CSG over SDF, Apache-2.0 header. **ALL geometry MUST use pybosl2 solids (`cuboid`, `cylinder`, `sphere`, `prismoid`, etc.) and pybosl2 2D shapes/paths — never import `pythonscad` or any native OpenSCAD built-in directly.**
 
@@ -92,7 +92,8 @@ spec_driven/                    # NEW: Greenfield package
 ├── export/                     # NEW: Fresh 3MF export
 │   ├── exporter.py             # BoxExporter
 │   ├── result.py               # ExportResult
-│   └── hausdorff.py            # pymeshlab-based conditional write
+│   ├── hausdorff.py            # pymeshlab-based conditional write
+│   └── layout_pdf.py           # PDF packing guide generation
 ├── shapes/                     # BORROWED: Existing shape generators
 │   └── (coin, hexagon, rounded rect, etc. from shapes.py)
 └── tesselations/               # BORROWED: Existing tessellation generators
@@ -137,6 +138,7 @@ tests/
 | 3MF export | **Fresh** | New exporter, same pymeshlab backend |
 | Typed builder API | **Fresh** | Enums, typed dataclasses, `@overload` dispatch. Adds a unique `box_id` field to distinguish duplicate instances. |
 | Caching strategy | **Fresh** | Same SHA-256 approach, new cache file. Stores 3D box packing layouts in `.layout_cache.json` to bypass solver on subsequent runs. |
+| PDF packing guide | **Fresh** | 3D angle view of packed layout with box labels, dimensions, packing order. Cached regeneration. |
 
 ## Complexity Tracking
 

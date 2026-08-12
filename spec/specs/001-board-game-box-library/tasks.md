@@ -63,7 +63,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Implement `SlidingBoxBuilder` (extends BoxBuilder, adds `two_layer` etc.) in `spec_driven/builders/sliding.py`
+- [ ] T018 [US1] Implement `SlidingBoxBuilder` (extends BoxBuilder, adds `two_layer` etc., `size` defaults to `None` for auto-compute from compartments) in `spec_driven/builders/sliding.py`
 - [ ] T019 [US1] Implement `SlidingBox` class (body + lid geometry) using pybosl2 in `spec_driven/box/types/sliding.py`
 - [ ] T020 [US1] Implement box type registry (`BoxType` → class mapping) in `spec_driven/box/registry.py`
 - [ ] T021 [US1] Implement interior computation and hollowing in `spec_driven/box/interior.py`
@@ -245,6 +245,28 @@
 
 ---
 
+## Phase 10b: User Story 10 - Generate Packing Layout PDF Guide (Priority: P3)
+
+**Goal**: `project.export()` produces a `layout.pdf` in the output directory. The PDF shows a 3D-angle view of the game box interior with sub-boxes labeled at packed positions, numbered in packing order, and hidden boxes visible through transparency. PDF is cached: only regenerated when layout or library version changes.
+
+**Independent Test**: Export a 4-box game, verify `layout.pdf` exists showing 4 labeled boxes at correct positions.
+
+### Tests for User Story 10
+
+- [ ] T078a [P] [US10] Write unit test: PDF file exists in output directory after export in `tests/test_spec_driven/test_export.py`
+- [ ] T078b [P] [US10] Write unit test: PDF skipped on re-export when layout unchanged in `tests/test_spec_driven/test_export.py`
+
+### Implementation for User Story 10
+
+- [ ] T078c [US10] Implement 3D angle view packing layout renderer (box outlines, labels, dimensions, spacer markers) in `spec_driven/export/layout_pdf.py`
+- [ ] T078d [US10] Implement packing order numbering and hidden-box transparency visualization in `spec_driven/export/layout_pdf.py`
+- [ ] T078e [US10] Implement PDF caching with SHA-256 layout hash (skip regeneration if unchanged) in `spec_driven/export/layout_pdf.py`
+- [ ] T078f [US10] Wire PDF generation into `Project.export()` pipeline and add `layout.pdf` to `ExportResult` in `spec_driven/project.py`
+
+**Checkpoint**: Packing layout PDF generated and cached alongside 3MF exports
+
+---
+
 ## Phase 11: Polish & Cross-Cutting Concerns
 
 **Purpose**: Reference example, documentation, final integration
@@ -273,6 +295,7 @@
 - **US7 (Phase 8)**: Depends on US4 (needs row layout), US1 (needs box construction)
 - **US8 (Phase 9)**: Depends on US7 (needs full packing + spacers), US9 (needs color layers)
 - **US5/US6 (Phase 10)**: Depends on US7 (needs nested packing framework)
+- **US10 (Phase 10b)**: Depends on US8 (needs full export pipeline + packing layout)
 - **Polish (Phase 11)**: Depends on all implemented stories
 
 ### User Story Dependencies
@@ -282,7 +305,7 @@ Phase 2 (Foundational)
   ├── Phase 3 (US1) ──── Phase 6 (US3)
   ├── Phase 4 (US2) ──── Phase 5 (US9) ──────────────────┐
   ├── Phase 3 (US1) ──── Phase 7 (US4) ── Phase 8 (US7) ─┤
-  │                                                       ├── Phase 9 (US8)
+  │                                                       ├── Phase 9 (US8) ── Phase 10b (US10)
   │                             Phase 10 (US5/US6) ────────┘
   └── Phase 11 (Polish)
 ```
