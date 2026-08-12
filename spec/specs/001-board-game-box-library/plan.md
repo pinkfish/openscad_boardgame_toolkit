@@ -140,6 +140,86 @@ tests/
 | Caching strategy | **Fresh** | Same SHA-256 approach, new cache file. Stores 3D box packing layouts in `.layout_cache.json` to bypass solver on subsequent runs. |
 | PDF packing guide | **Fresh** | 3D angle view of packed layout with box labels, dimensions, packing order. Cached regeneration. |
 
+## Earth Animal Kingdom Example Migration
+
+The reference example under `boxes/earth_animal_kingdom/` must faithfully port the original design (`examples/earth_animal_kingdom.py` / `.scad`) to the new `spec_driven` Project API. The original design is more complex than the initial simplified port and must include all components.
+
+### Game Box
+
+- **Retail box**: 288mm × 158mm × 47mm (W × L × H)
+- **Defaults**: wall_thickness=2.0, floor_thickness=1.6, lid_thickness=2.0, gap_threshold=10.0, min_spacer_dim=15.0
+
+### Boxes (7 total)
+
+| Box | Type | Dimensions (mm) | Contents |
+|-----|------|-----------------|----------|
+| AnimalCardsBox | Sliding | ~76 × box_length × ~24 | 36 animal cards (72×123mm each, stacked 6mm per 10 cards = 21.6mm total) |
+| SproutBox | Filament Hinge | ~76 × box_length × ~13 | 50 sprout cubes (8mm³ each) |
+| CanopyBox | Filament Hinge | ~38 × box_length × ~46 | 20 canopy tokens |
+| AnimalBox | Slipover | fills remaining width × box_length × ~13 | 3D bin-packed animal tokens (half) — custom-shaped compartments with 0.2mm raised floor labels per animal |
+| AnimalBox2 | Slipover | same as AnimalBox | 3D bin-packed animal tokens (other half) — custom-shaped compartments with raised floor labels |
+| SpacerBox | No Lid | matches AnimalBox × 1.0 | Hollow spacer tray |
+| Boards | No Lid | 174 × 150 × 6 | Board stack |
+
+### Animal Token Inventory (37 entries, 31 unique species)
+
+Ported from `ANIMAL_PIECES` in `examples/earth_animal_kingdom.py`. Each entry: `object(width=W, length=L[, num=N])`. Tokens are 8mm thick. Species with `num > 1` share a single compartment sized to fit all copies.
+
+```python
+elephant       = object(width=43.5, length=54)
+polar_bear     = object(width=36.5, length=53)
+cow            = object(width=36.5, length=47.5)
+pig            = object(width=24.5, length=35)
+gazelle        = object(width=41,   length=35)
+turkey         = object(width=24,   length=25, num=5)
+fly            = object(width=11,   length=11)
+capybara       = object(width=16.5, length=32, num=2)
+capybara_2     = object(width=16.5, length=32, num=3)
+monkey         = object(width=29,   length=24)
+pangolin       = object(width=16,   length=21, num=5)
+deer           = object(width=47,   length=25.5)
+goanna         = object(width=25,   length=30)
+fox            = object(width=16,   length=35)
+snake          = object(width=14,   length=41.5)
+rabbit         = object(width=18.5, length=21)
+termite        = object(width=12,   length=12, num=5)
+ornyx          = object(width=39,   length=40)
+platypus       = object(width=14.5, length=25)
+lemur          = object(width=22,   length=30)
+peacock        = object(width=30,   length=27)
+gopher         = object(width=17.5, length=17, num=5)
+crocodile      = object(width=16,   length=85)
+goat           = object(width=37,   length=36)
+jaguar         = object(width=20,   length=49)
+rhino          = object(width=36,   length=64)
+goose          = object(width=25,   length=21)
+eagle          = object(width=31,   length=43)
+spider_monkey  = object(width=26.5, length=25)
+hoopoe         = object(width=17,   length=16)
+kangaroo       = object(width=37,   length=39)
+loon           = object(width=26.5, length=13)
+tarsier        = object(width=29,   length=12.5)
+jay            = object(width=12.5, length=12)
+chipmunk       = object(width=15,   length=14)
+quokka         = object(width=24,   length=15)
+beaver         = object(width=15.5, length=35)
+```
+
+### Animal Bin-Packing Strategy
+
+Animal tokens are split into two halves via a best-fit-decreasing 2D bin-packing pass over the two `AnimalBox` containers (each ~165×150mm usable). Within each container, compartments are arranged with 3mm spacing. Multi-quantity species (qty > 1) are stacked in a single compartment whose depth = quantity × 8mm (token thickness). Each compartment floor has the animal name extruded as a 0.2mm raised label. Finger scoops are placed on all compartment front walls.
+
+### Migration Checklist
+
+- [ ] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list
+- [ ] Implement multi-quantity compartment stacking (same W×L, depth = qty × 8mm)
+- [ ] Wire the 3D bin-packing solver (`packing/layout.py`) to distribute animals across the two AnimalBox containers
+- [ ] Generate labeled compartment floors (0.2mm extruded text per animal name)
+- [ ] Port the card box with correct 36-card count and finger hole scoop
+- [ ] Port the sprout box (50 cubes) and canopy box (20 tokens)
+- [ ] Verify all 7 boxes pack within the 288×158mm game box interior
+- [ ] Export all files and verify against original `examples/release/earth_animal_kingdom/` output
+
 ## Complexity Tracking
 
 > No violations.

@@ -154,18 +154,22 @@ project = Project("EarthAnimalKingdom", game_box_size=(288, 158, 47))
 
 cards = project.box(
     BoxType.SLIDING, "AnimalCards",
-    size=(100, 70, 40),
+    size=(110, 80, 40),
     lid=LidBuilder(text="Animal Cards", label_mode=LabelMode.FRAMED),
 )
-cards.compartment("Deck", size=(90, 65), depth=36, finger_scoop=True)
+cards.compartment("Deck", size=(50, 70), depth=36, finger_scoop=True)
+cards.compartment("Discard", size=(50, 70), depth=36)
 
+# Per-animal compartments in token boxes
+ANIMALS = ["Lion", "Elephant", "Eagle", "Bear", "Wolf", "Fox", "Owl", "Hawk"]
 for i in range(2):
     b = project.box(
-        BoxType.FILAMENT_HINGE, f"AnimalBox{i+1}",
-        size=(70, 55, 30),
+        BoxType.FILAMENT_HINGE, f"Animals{i+1}",
+        size=(130, 55, 30),
         lid=LidBuilder(text=f"Animals {i+1}"),
     )
-    b.compartment("Tokens", size=(65, 50), depth=26, finger_scoop=True)
+    for animal in ANIMALS[i * 4 : (i + 1) * 4]:
+        b.compartment(animal, size=(25, 45), depth=26, finger_scoop=True)
 
 project.box(BoxType.NO_LID, "Boards", size=(70, 150, 15), expandable=False)
 
