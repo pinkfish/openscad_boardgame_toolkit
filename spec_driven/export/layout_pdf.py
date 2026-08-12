@@ -63,13 +63,13 @@ def generate_layout_pdf(
     pdf.ln(3)
 
     def to_x(x_mm): return offset_x + x_mm * scale
-    def to_y(y_mm): return offset_y + y_mm * scale
+    def to_y(y_mm): return offset_y + (game_box_size[1] - y_mm) * scale
     def to_d(mm): return mm * scale
 
     # Draw game box outline
     pdf.set_draw_color(100, 100, 100)
     pdf.set_line_width(0.3)
-    pdf.rect(to_x(0), to_y(0), to_d(game_box_size[0]), to_d(game_box_size[1]))
+    pdf.rect(to_x(0), to_y(game_box_size[1]), to_d(game_box_size[0]), to_d(game_box_size[1]))
 
     # Group placements into rows by Y position
     rows: dict[float, list] = {}
@@ -86,14 +86,13 @@ def generate_layout_pdf(
     ]
 
     # Row displacement for exploded view
-    row_displace = 0
-    row_height = 0
+    accumulated_displace = 0.0
+    prev_row_height = 0.0
     for row_idx, (y_pos, row_boxes) in enumerate(reversed(sorted_rows)):
-        # Each row gets its own displaced position
-        displace_y = 0
         if row_idx > 0:
-            # Pull this row up
-            displace_y = -to_d(row_height) - 5  # 5mm gap between exploded rows
+            accumulated_displace += to_d(prev_row_height) + 5  # 5mm gap between exploded rows
+
+        displace_y = accumulated_displace
 
         for box_idx, p in enumerate(row_boxes):
             x, y, _ = p.position
@@ -104,13 +103,13 @@ def generate_layout_pdf(
             pdf.set_fill_color(*color)
             pdf.set_draw_color(40, 40, 40)
             pdf.set_line_width(0.2)
-            box_y = to_y(y_pos) + displace_y
+            box_y = to_y(y + bl) + displace_y
             pdf.rect(to_x(x), box_y, to_d(bw), to_d(bl), style="DF")
 
             # Draw arrow from displaced position back to original
             if displace_y != 0:
                 arrow_start_y = box_y + to_d(bl) / 2
-                arrow_end_y = to_y(y_pos) + to_d(bl) / 2
+                arrow_end_y = to_y(y + bl) + to_d(bl) / 2
                 arrow_x = to_x(x) + to_d(bw) / 2
 
                 pdf.set_draw_color(200, 50, 50)
@@ -119,10 +118,10 @@ def generate_layout_pdf(
                 pdf.set_dash_pattern(dash=2, gap=2)
                 pdf.line(arrow_x, arrow_start_y, arrow_x, arrow_end_y)
                 pdf.set_dash_pattern(dash=0, gap=0)
-                # Arrow head
+                # Arrow head pointing back (upward on page)
                 head_size = 2
-                pdf.line(arrow_x, arrow_end_y, arrow_x - head_size, arrow_end_y - head_size * 1.5)
-                pdf.line(arrow_x, arrow_end_y, arrow_x + head_size, arrow_end_y - head_size * 1.5)
+                pdf.line(arrow_x, arrow_end_y, arrow_x - head_size, arrow_end_y + head_size * 1.5)
+                pdf.line(arrow_x, arrow_end_y, arrow_x + head_size, arrow_end_y + head_size * 1.5)
 
             # Box label + dimensions
             pdf.set_font("Helvetica", "", 6)
@@ -137,7 +136,7 @@ def generate_layout_pdf(
             pdf.set_font("Helvetica", "B", 8)
             pdf.text(to_x(x) + 1, box_y + 3, str(box_idx + 1))
 
-        row_height = max(p.size[1] for p in row_boxes)
+        prev_row_height = max(p.size[1] for p in row_boxes)
 
     # Draw spacers
     for sp in packing.spacer_placements:
@@ -146,10 +145,10 @@ def generate_layout_pdf(
         pdf.set_fill_color(200, 200, 200)
         pdf.set_draw_color(150, 150, 150)
         pdf.set_line_width(0.15)
-        pdf.rect(to_x(x), to_y(y), to_d(sw), to_d(sl), style="DF")
+        pdf.rect(to_x(x), to_y(y + sl), to_d(sw), to_d(sl), style="DF")
         pdf.set_font("Helvetica", "", 5)
         pdf.set_text_color(100, 100, 100)
-        pdf.text(to_x(x) + 1, to_y(y) + 3, "spacer")
+        pdf.text(to_x(x) + 1, to_y(y + sl) + 3, "spacer")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output_path))
