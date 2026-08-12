@@ -200,8 +200,9 @@ for idx, col in enumerate(player_colours):
 canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    size=(168.0, 89.0, None),
-    expandable=True,
+    size=(168.0, 89.0, 49.1),
+    position=(16.0, 198.0, 0.0),
+    expandable=False,
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
 canopy.compartment("Canopies", size=(160.0, 81.0), depth=45.0, finger_scoop=True)
@@ -210,19 +211,21 @@ canopy.compartment("Canopies", size=(160.0, 81.0), depth=45.0, finger_scoop=True
 score_pad = project.box(
     BoxType.NO_LID,
     "ScorePadBox",
-    size=(107.0, 89.0, 6.6),
+    size=(102.0, 89.0, 6.6),
+    position=(184.0, 198.0, 0.0),
     expandable=False,
 )
-score_pad.compartment("Pad", size=(99.0, 81.0), depth=5.0)
+score_pad.compartment("Pad", size=(94.0, 81.0), depth=5.0)
 
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(107.0, 89.0, None),
-    expandable=True,
+    size=(102.0, 89.0, 39.1),
+    position=(184.0, 198.0, 6.6),
+    expandable=False,
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("green")),
 )
-sprout.compartment("Sprouts", size=(99.0, 81.0), depth=35.0, finger_scoop=True)
+sprout.compartment("Sprouts", size=(94.0, 81.0), depth=35.0, finger_scoop=True)
 
 # ── 7. Seed Box ───────────────────────────────────────────────────
 # Fits vertically on the side
@@ -230,17 +233,37 @@ seed = project.box(
     BoxType.FILAMENT_HINGE,
     "SeedBox",
     size=(16.0, 46.0, 72.0),
+    position=(0.0, 0.0, 0.0),
     expandable=False,
     lid=LidBuilder(text="Seeds", text_color=Color("white"), frame_color=Color("brown")),
 )
 seed.compartment("Seeds", size=(8.0, 38.0), depth=68.4)
 
 # ── 8. Player Boards (Flat addition to pack alongside boxes) ──────
-# Player boards block: width 242, length 288, height 14.7 (6 boards + 1 middle board + 1 abundance board)
+# Player boards block: width 242, length 288, height 16.8 (6 boards + 1 middle board + 1 abundance board)
 project.box(
     BoxType.NO_LID,
     "PlayerBoards",
     size=(242.0, 288.0, 16.8),
+    position=(16.0, 0.0, 55.2),
+    expandable=False,
+)
+
+# ── 9. Abundance Boards (Vertical stack on right side) ───────────
+project.box(
+    BoxType.NO_LID,
+    "AbundanceBoards",
+    size=(12.6, 241.0, 57.0),
+    position=(275.4, 46.0, 0.0),
+    expandable=False,
+)
+
+# ── 10. Top Spaced Box (Hollow spacer next to abundance boards) ──
+project.box(
+    BoxType.NO_LID,
+    "TopSpacedBox",
+    size=(33.4, 241.0, 15.0),
+    position=(242.0, 46.0, 57.0),
     expandable=False,
 )
 
