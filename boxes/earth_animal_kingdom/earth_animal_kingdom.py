@@ -84,9 +84,16 @@ ANIMALS: list[tuple[str, A]] = [
 
 TOKEN_THICKNESS = 8.0
 
-# ── Split animals into two halves ─────────────────────────────────
-mid = len(ANIMALS) // 2
-half1, half2 = ANIMALS[:mid], ANIMALS[mid:]
+# ── Split animals into two halves using multi-bin packing solver ─────
+# We pack using token size + 1.5mm clearance. The solver respects the 170x154 interior of each 174x158 box.
+comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
+bin_sizes = [(170, 154), (170, 154)]
+packed_bins = project.pack_compartments_across_bins(comps, bin_sizes)
+if not packed_bins:
+    raise ValueError("Failed to pack animal compartments across the two boxes!")
+
+half1 = [(name, next(a for n, a in ANIMALS if n == name)) for name, _, _, _ in packed_bins[0]]
+half2 = [(name, next(a for n, a in ANIMALS if n == name)) for name, _, _, _ in packed_bins[1]]
 
 
 def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
@@ -94,7 +101,7 @@ def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
     box = project.box(
         BoxType.FILAMENT_HINGE,
         label,
-        # size=None → auto-computed from compartment dimensions below
+        size=(174, 158, 12.5),
         lid=LidBuilder(
             text=label,
             label_mode=LabelMode.FRAMED,
@@ -106,11 +113,9 @@ def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
     for name, a in animals:
         depth = a.num * TOKEN_THICKNESS
         box.compartment(
-            name, size=(a.width + 4, a.length + 4), depth=depth,
+            name, size=(a.width + 1.5, a.length + 1.5), depth=depth,
             finger_scoop=True, scoop_side=ScoopSide.FRONT,
         )
-
-    return box
 
     return box
 
@@ -127,7 +132,7 @@ card_height = (CARD_COUNT / 10) * 6.0 + project.floor_thickness + project.lid_th
 card_box = project.box(
     BoxType.SLIDING,
     "AnimalCardsBox",
-    # size=None → auto-computed from card compartment
+    size=(88, 139, 33.2),
     lid=LidBuilder(
         text="Animal Cards",
         label_mode=LabelMode.FRAMED,
@@ -138,28 +143,27 @@ card_box = project.box(
     ),
 )
 card_box.compartment(
-    "Cards", size=(CARD_W, CARD_L), depth=card_height - project.lid_thickness - project.floor_thickness,
+    "Cards", size=(CARD_W, CARD_L), depth=33.2 - project.lid_thickness - project.floor_thickness,
     finger_scoop=True,
 )
 
 # ── Sprout Box ────────────────────────────────────────────────────
-sprout_h = 8.0 + project.floor_thickness + project.lid_thickness
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
     size=(72, 158, 12),
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
 )
-sprout.compartment("Sprouts", size=(64, 150), depth=8.0, finger_scoop=True)
+sprout.compartment("Sprouts", size=(64, 150), depth=12 - project.lid_thickness - project.floor_thickness, finger_scoop=True)
 
 # ── Canopy Box ────────────────────────────────────────────────────
 canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    # size=None → auto-computed from canopy compartment below
+    size=(38, 158, 12),
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
-canopy.compartment("Canopies", size=(30, CARD_L), depth=42, finger_scoop=True)
+canopy.compartment("Canopies", size=(30, CARD_L), depth=12 - project.lid_thickness - project.floor_thickness, finger_scoop=True)
 
 # ── Board Storage ─────────────────────────────────────────────────
 project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)

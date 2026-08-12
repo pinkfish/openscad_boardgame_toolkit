@@ -252,6 +252,15 @@ To satisfy the single-page layout guide requirements, `layout_pdf.py` renders th
   * Dashed vertical alignment lines and arrows point from the corners/center of the floating upper boxes down to their corresponding slots at the base.
   * Each box is drawn as a 3D-shaded block (rendering the top, front, and right side faces with distinct color tones to convey depth), complete with a label, dimensions, and packing order index.
 
+### Compartment Auto-Layout with Rotation
+To ensure dense packing of compartments (like the animal compartments in `AnimalBox1` and `AnimalBox2`), `layout_compartments` implements a shelf-packing algorithm with 90-degree rotation support:
+* **Sorting Heuristic**: Compartments are sorted by their maximum dimension (width or length) in descending order to establish a clean starting baseline.
+* **Rotation Evaluation**: For each compartment, the engine evaluates both the original orientation `(w, l)` and the rotated orientation `(l, w)`. It prefers the orientation that fits in the current row while minimizing row height increase. If neither fits in the current row, it wraps to a new row and evaluates both orientations there.
+
+### Multi-Bin Compartment Packing API
+To allow compartments to be dynamically partitioned across multiple boxes (like the two animal boxes), the `Project` class implements `project.pack_compartments_across_bins(compartments, bin_sizes)`. 
+* **Solver**: Runs a backtracking search over the bin allocations, using the rotation-enabled shelf packer `layout_compartments` as the feasibility check for each bin. This is extremely fast (under 1 second) and distributes the 37 animal compartments optimally across the two `170 x 154` boxes.
+
 ### Migration Checklist
 
 - [x] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list using `object(width=, length=, num=)` format

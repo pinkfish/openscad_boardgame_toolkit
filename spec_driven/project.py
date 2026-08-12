@@ -236,11 +236,7 @@ class Project:
                 from spec_driven.export.layout_pdf import (
                     generate_layout_pdf, should_regenerate_layout,
                 )
-                interior = (
-                    self.game_box_size[0] - 2 * self.wall_thickness,
-                    self.game_box_size[1] - 2 * self.wall_thickness,
-                    self.game_box_size[2] - self.lid_thickness - self.floor_thickness,
-                )
+                interior = self.game_box_size
                 box_data = [
                     {
                         "label": b.label,
@@ -268,3 +264,13 @@ class Project:
             skipped=tuple(skipped),
             total_files=len(written) + len(skipped),
         )
+
+    def pack_compartments_across_bins(
+        self,
+        compartments: list[tuple[str, float, float, float]],
+        bin_sizes: list[tuple[float, float]],
+        wall_spacing: float = 2.0,
+    ) -> list[list[tuple[str, float, float, float]]] | None:
+        """Partitions compartments across multiple bin interior footprints using backtracking shelf packing."""
+        from spec_driven.compartments.layout import pack_compartments_across_bins
+        return pack_compartments_across_bins(compartments, bin_sizes, wall_spacing)

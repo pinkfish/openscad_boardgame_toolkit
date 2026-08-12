@@ -33,10 +33,7 @@ def layout_compartments(
     compartments: list[tuple[str, float, float, float]],
     wall_spacing: float = 2.0,
 ) -> CompartmentLayout:
-    """Simple row-based layout of compartments in the interior.
-
-    Places compartments left-to-right, wrapping to new rows when
-    width is exceeded.
+    """Row-based layout of compartments inside the box interior with 90-degree rotation support.
 
     Args:
         interior: The available interior space.
@@ -53,28 +50,55 @@ def layout_compartments(
     interior_w = interior.width
     interior_l = interior.length
 
+    # Sort compartments by area descending to match the multi-bin solver
+    sorted_comps = sorted(compartments, key=lambda c: c[1] * c[2], reverse=True)
+
     x_cursor = wall_spacing
     y_cursor = wall_spacing
     current_row_height = 0.0
 
-    for label, comp_w, comp_l, comp_depth in compartments:
-        if x_cursor + comp_w + wall_spacing > interior_w:
+    for label, comp_w, comp_l, comp_depth in sorted_comps:
+        # Check both normal and rotated orientations
+        fits_normal = (x_cursor + comp_w + wall_spacing <= interior_w) and (y_cursor + comp_l + wall_spacing <= interior_l)
+        fits_rotated = (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
+
+        w, l = comp_w, comp_l
+        if fits_normal or fits_rotated:
+            if fits_normal and fits_rotated:
+                # If both fit, choose the orientation that keeps the length (row height) smaller
+                # or maintains normal layout.
+                if comp_l > comp_w:
+                    w, l = comp_l, comp_w
+            elif fits_rotated:
+                w, l = comp_l, comp_w
+        else:
+            # Wrap to a new row
             x_cursor = wall_spacing
             y_cursor += current_row_height + wall_spacing
             current_row_height = 0.0
 
-            if y_cursor + comp_l + wall_spacing > interior_l:
+            # Re-evaluate fit in new row
+            fits_normal_new = (x_cursor + comp_w + wall_spacing <= interior_w) and (y_cursor + comp_l + wall_spacing <= interior_l)
+            fits_rotated_new = (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
+
+            if fits_normal_new or fits_rotated_new:
+                if fits_normal_new and fits_rotated_new:
+                    if comp_l > comp_w:
+                        w, l = comp_l, comp_w
+                elif fits_rotated_new:
+                    w, l = comp_l, comp_w
+            else:
                 layout.overflow = True
                 break
 
-        if comp_w > interior_w or comp_l > interior_l:
+        if w > interior_w or l > interior_l:
             layout.overflow = True
             break
 
         layout.placements.append(
             CompartmentPlacement(
                 label=label,
-                size=(comp_w, comp_l),
+                size=(w, l),
                 depth=comp_depth,
                 position=(
                     interior.origin_x + x_cursor,
@@ -82,8 +106,8 @@ def layout_compartments(
                 ),
             )
         )
-        x_cursor += comp_w + wall_spacing
-        current_row_height = max(current_row_height, comp_l)
+        x_cursor += w + wall_spacing
+        current_row_height = max(current_row_height, l)
 
     return layout
 
@@ -148,3 +172,87 @@ def compute_min_box_size(
     box_h = max_d + floor_thickness + lid_thickness + 4
 
     return (box_w, box_l, box_h)
+
+
+def pack_compartments_across_bins(
+    compartments: list[tuple[str, float, float, float]],
+    bin_sizes: list[tuple[float, float]],
+    wall_spacing: float = 2.0,
+) -> list[list[tuple[str, float, float, float]]] | None:
+    """Partitions compartments across multiple bin interior footprints using backtracking shelf packing.
+
+    Args:
+        compartments: List of (label, width, length, depth) tuples.
+        bin_sizes: List of (width, length) representing available bin footprints.
+        wall_spacing: Gap between compartments.
+
+    Returns:
+        A list of lists containing the partitioned compartments for each bin,
+        or None if they cannot be successfully packed.
+    """
+    sorted_items = sorted(compartments, key=lambda x: x[1] * x[2], reverse=True)
+    bins_content = [[] for _ in bin_sizes]
+
+    def check_fit(bin_idx: int, candidate_list: list) -> bool:
+        bin_w, bin_l = bin_sizes[bin_idx]
+        x_cursor = wall_spacing
+        y_cursor = wall_spacing
+        current_row_height = 0.0
+
+        for _, comp_w, comp_l, _ in candidate_list:
+            fits_normal = (x_cursor + comp_w + wall_spacing <= bin_w) and (y_cursor + comp_l + wall_spacing <= bin_l)
+            fits_rotated = (x_cursor + comp_l + wall_spacing <= bin_w) and (y_cursor + comp_w + wall_spacing <= bin_l)
+
+            w, l = comp_w, comp_l
+            if fits_normal or fits_rotated:
+                if fits_normal and fits_rotated:
+                    if comp_l > comp_w:
+                        w, l = comp_l, comp_w
+                elif fits_rotated:
+                    w, l = comp_l, comp_w
+            else:
+                x_cursor = wall_spacing
+                y_cursor += current_row_height + wall_spacing
+                current_row_height = 0.0
+
+                fits_normal_new = (x_cursor + comp_w + wall_spacing <= bin_w) and (y_cursor + comp_l + wall_spacing <= bin_l)
+                fits_rotated_new = (x_cursor + comp_l + wall_spacing <= bin_w) and (y_cursor + comp_w + wall_spacing <= bin_l)
+
+                if fits_normal_new or fits_rotated_new:
+                    if fits_normal_new and fits_rotated_new:
+                        if comp_l > comp_w:
+                            w, l = comp_l, comp_w
+                    elif fits_rotated_new:
+                        w, l = comp_l, comp_w
+                else:
+                    return False
+
+            x_cursor += w + wall_spacing
+            current_row_height = max(current_row_height, l)
+
+        return True
+
+    steps = 0
+    max_steps = 100000
+
+    def search(idx: int) -> list | None:
+        nonlocal steps
+        steps += 1
+        if steps > max_steps:
+            return None
+
+        if idx == len(sorted_items):
+            return [list(b) for b in bins_content]
+
+        item = sorted_items[idx]
+        for i in range(len(bin_sizes)):
+            bins_content[i].append(item)
+            if check_fit(i, bins_content[i]):
+                res = search(idx + 1)
+                if res is not None:
+                    return res
+            bins_content[i].pop()
+
+        return None
+
+    return search(0)

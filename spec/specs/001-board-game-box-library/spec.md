@@ -234,11 +234,12 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-002**: The library MUST support at least these lid types: sliding lid, cap lid (friction-fit), hinged lid, and filament-hinge lid, each producing correct mating geometry between lid and body.
 - **FR-003**: The library MUST allow users to define interior compartments by specifying dimensions (width, length, depth) either as absolute values (e.g., `size=(50.5, 70.2)`) or as ratios of the box interior dimensions (e.g., `width_ratio=0.5` takes 50% of the interior width). All dimensions MUST maintain 0.1mm precision — no rounding to whole millimetres.
 - **FR-003a**: When any compartment uses ratio-based sizing, the sum of all compartment width ratios in a row MUST NOT exceed 1.0, and the sum of length ratios MUST NOT exceed the available length per row. The library MUST validate this at specification time and reject configurations where ratios overflow.
-- **FR-004**: The library MUST provide automatic compartment layout that arranges compartments in the interior without overlaps, respecting wall thickness between adjacent compartments and between compartments and box walls.
+- **FR-004**: The library MUST provide automatic compartment layout that arranges compartments in the interior without overlaps, respecting wall thickness between adjacent compartments and between compartments and box walls. The layout engine MUST support rotating compartments by 90 degrees during bin-packing to optimize space utilization.
 - **FR-005**: The library MUST allow manual positioning of compartments by specifying explicit coordinates within the interior frame.
 - **FR-006**: The library MUST support finger cutouts on compartment walls (notches) and compartment floors (scoops), as well as finger holes on box exterior walls.
 - **FR-007**: The library MUST reject invalid configurations at specification time: compartments deeper than the interior height, compartments that cannot fit in the interior, overlapping manually positioned compartments.
-- **FR-008**: The library MUST support grouping compartments so they are packed together during automatic layout, and support packing bins (best-fit, next-fit) for arrangement strategy.
+- **FR-008**: The library MUST support grouping compartments so they are packed together during automatic layout, and support packing bins (best-fit, next-fit, with rotation) for arrangement strategy.
+- **FR-008a**: The library MUST provide a method `project.pack_compartments_across_bins(compartments, bin_sizes)` that distributes a list of compartments across multiple box interior spaces (bins) dynamically using a 2D multi-bin packing solver with rotation support.
 - **FR-009**: The library MUST generate all pieces as output -- box body, lid, and any separate sub-boxes -- with consistent material colouring and the same coordinate frame so they align when assembled.
 - **FR-010**: The library MUST support nested sub-boxes: an outer box specification containing inner sub-box specifications, with the nesting layout automatically packed into the outer box interior.
 - **FR-011**: The library MUST validate that all nested sub-boxes fit within the outer box interior (both footprint and height) before accepting the specification.
@@ -287,7 +288,7 @@ The designer wants precise control over compartment placement. They specify exac
 ### Measurable Outcomes
 
 - **SC-001**: A user can generate a complete box (body + lid + compartments) in under 10 lines of builder API code.
-- **SC-002**: Automatic compartment layout completes for 20 compartments in under 1 second.
+- **SC-002**: Automatic compartment layout (supporting 90-degree rotations of compartments) completes for 20 compartments in under 1 second.
 - **SC-003**: All box lid types (sliding, cap, hinged, filament-hinge) produce geometry that mates correctly -- the lid and body can be assembled without modification.
 - **SC-004**: 100% of invalid compartment configurations (overflow, excessive depth) are rejected at specification time with a descriptive error rather than producing broken geometry.
 - **SC-005**: A nested box layout with 5 sub-boxes in a parent box produces valid, non-overlapping placements where the parent box can close with its lid on.
