@@ -929,7 +929,8 @@ def pack_3d_boxes(container_size: list[float], items: list[dict]) -> dict:
                     if oz >= z + h:
                         if oz < min_upper_z:
                             min_upper_z = oz
-            new_h = min_upper_z - z
+            gap = (min_upper_z - z) - h
+            new_h = (min_upper_z - z) if gap < 3.0 else h
             expanded[idx] = (name, x, y, z, w, l, new_h, rotated)
             
     for idx, (name, x, y, z, w, l, h, rotated) in enumerate(expanded):
