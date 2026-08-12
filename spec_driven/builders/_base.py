@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: Apache-2.0
+"""BoxBuilder base class and registry stub."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, ClassVar
+
+from spec_driven.enums import BoxType
+
+if TYPE_CHECKING:
+    from spec_driven.lid.builder import LidBuilder
+    from spec_driven.compartments.builder import CompartmentBuilder
+
+
+@dataclass(frozen=True)
+class BoxBuilder:
+    """Base builder for all box types.
+
+    Carries common fields shared by every box type. Subclassed by
+    type-specific builders that add their own typed fields.
+    """
+
+    box_type: ClassVar[BoxType]
+    label: str
+    """Box identifier, used for file naming."""
+    box_id: str | None = None
+    """Unique instance identifier; defaults to label."""
+    size: tuple[float, float, float] | None = None
+    """Box dimensions [W, L, H] in mm. None = auto-compute from compartments."""
+    final_size: tuple[float, float, float] | None = None
+    """Resolved size after packing; set-once frozen during export."""
+    expandable: bool = True
+    """Box can be auto-sized larger during packing."""
+    expandable_width: bool = True
+    """Width axis can expand."""
+    expandable_length: bool = True
+    """Length axis can expand."""
+    wall_thickness: float | None = None
+    """Per-box wall thickness override; None uses project default."""
+    floor_thickness: float | None = None
+    """Per-box floor thickness override."""
+    lid_thickness: float | None = None
+    """Per-box lid thickness override."""
+    lid: LidBuilder | None = None
+    """Lid decoration configuration."""
+    finger_holes: tuple[FingerHoleBuilder, ...] = ()
+    """Finger holes on box exterior walls."""
+    compartments: tuple[CompartmentBuilder, ...] = ()
+    """Interior compartments."""
+
+    def compartment(
+        self,
+        label: str,
+        *,
+        size: tuple[float, float],
+        depth: float,
+        rounded_corners: float = 0.0,
+        finger_scoop: bool = False,
+        scoop_side: "ScoopSide" = None,
+    ) -> CompartmentBuilder:
+        """Add a compartment to this box."""
+        from spec_driven.compartments.builder import CompartmentBuilder
+        from spec_driven.enums import ScoopSide
+
+        cb = CompartmentBuilder(
+            label=label,
+            size=size,
+            depth=depth,
+            rounded_corners=rounded_corners,
+            finger_scoop=finger_scoop,
+            scoop_side=scoop_side or ScoopSide.FRONT,
+        )
+        object.__setattr__(self, "compartments", self.compartments + (cb,))
+        return cb
+
+
+@dataclass(frozen=True)
+class FingerHoleBuilder:
+    """Finger hole configuration for a box exterior wall."""
+
+    side: str
+    radius: float = 14.0
+    depth: float = 6.0

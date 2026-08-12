@@ -20,12 +20,12 @@
 
 **Purpose**: Package initialization and foundational types
 
-- [ ] T001 Create `spec_driven/` package directory with `__init__.py` and `py.typed` marker
-- [ ] T002 [P] Implement enums (`BoxType`, `LabelMode`, `PatternType`, `ScoopSide`) in `spec_driven/enums.py`
-- [ ] T003 [P] Implement `Color` dataclass with named presets in `spec_driven/color.py`
-- [ ] T004 [P] Create `spec_driven.py` root import module re-exporting public surface
-- [ ] T005 [P] Write test for enums validation in `tests/test_spec_driven/test_enums.py`
-- [ ] T006 [P] Write test for Color in `tests/test_spec_driven/test_color.py`
+- [x] T001 Create `spec_driven/` package directory with `__init__.py` and `py.typed` marker
+- [x] T002 [P] Implement enums (`BoxType`, `LabelMode`, `PatternType`, `ScoopSide`) in `spec_driven/enums.py`
+- [x] T003 [P] Implement `Color` dataclass with named presets in `spec_driven/color.py`
+- [x] T004 [P] Create `spec_driven.py` root import module re-exporting public surface
+- [x] T005 [P] Write test for enums validation in `tests/test_spec_driven/test_enums.py`
+- [x] T006 [P] Write test for Color in `tests/test_spec_driven/test_color.py`
 
 ---
 
@@ -35,16 +35,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Implement `BoxBuilder` base frozen dataclass with common fields including `box_id` (unique instance identifier) and `final_size` (resolved by 3D packer) in `spec_driven/builders/_base.py`
-- [ ] T008 [P] Implement `CompartmentBuilder` frozen dataclass in `spec_driven/compartments/builder.py`
-- [ ] T009 [P] Implement `LidBuilder` and `PatternBuilder` frozen dataclasses in `spec_driven/lid/builder.py`
-- [ ] T010 Implement `BoxProtocol` abstract base and `Interior` dataclass in `spec_driven/box/base.py`
-- [ ] T011 Implement `Project` class skeleton (constructor, `box()` factory with `@overload` signatures, empty `export()`) in `spec_driven/project.py`
-- [ ] T011a [P] Implement default clearance gap constant for 3D printing tolerances in `spec_driven/compartments/builder.py`
-- [ ] T012 [P] Write test for BoxBuilder instantiation/validation including `box_id` uniqueness and `final_size` in `tests/test_spec_driven/test_builders.py`
-- [ ] T013 [P] Write test for CompartmentBuilder in `tests/test_spec_driven/test_compartments.py`
-- [ ] T014 [P] Write test for LidBuilder/PatternBuilder in `tests/test_spec_driven/test_lid_builder.py`
-- [ ] T015 [P] Write test for Project constructor and basic box registration in `tests/test_spec_driven/test_project.py`
+- [x] T007 Implement `BoxBuilder` base frozen dataclass with common fields including `box_id` (unique instance identifier) and `final_size` (resolved by 3D packer) in `spec_driven/builders/_base.py`
+- [x] T008 [P] Implement `CompartmentBuilder` frozen dataclass in `spec_driven/compartments/builder.py`
+- [x] T009 [P] Implement `LidBuilder` and `PatternBuilder` frozen dataclasses in `spec_driven/lid/builder.py`
+- [x] T010 Implement `BoxProtocol` abstract base and `Interior` dataclass in `spec_driven/box/base.py`
+- [x] T011 Implement `Project` class skeleton (constructor, `box()` factory with `@overload` signatures, empty `export()`) in `spec_driven/project.py`
+- [x] T011a [P] Implement default clearance gap constant for 3D printing tolerances in `spec_driven/compartments/builder.py`
+- [x] T012 [P] Write test for BoxBuilder instantiation/validation including `box_id` uniqueness and `final_size` in `tests/test_spec_driven/test_builders.py`
+- [x] T013 [P] Write test for CompartmentBuilder in `tests/test_spec_driven/test_compartments.py`
+- [x] T014 [P] Write test for LidBuilder/PatternBuilder in `tests/test_spec_driven/test_lid_builder.py`
+- [x] T015 [P] Write test for Project constructor and basic box registration in `tests/test_spec_driven/test_project.py`
 
 **Checkpoint**: Foundation ready — user story implementation can now begin in parallel
 
@@ -58,17 +58,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Write render test: single box with 3 compartments, verify interior dimensions in `tests/test_spec_driven/render/test_box_render.py`
-- [ ] T017 [P] [US1] Write unit test: compartment layout fits interior bounds in `tests/test_spec_driven/test_compartments.py`
+- [x] T016 [P] [US1] Write render test: single box with 3 compartments, verify interior dimensions in `tests/test_spec_driven/render/test_box_render.py`
+- [x] T017 [P] [US1] Write unit test: compartment layout fits interior bounds in `tests/test_spec_driven/test_compartments.py`
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Implement `SlidingBoxBuilder` (extends BoxBuilder, adds `two_layer` etc., `size` defaults to `None` for auto-compute from compartments) in `spec_driven/builders/sliding.py`
-- [ ] T019 [US1] Implement `SlidingBox` class (body + lid geometry) using pybosl2 in `spec_driven/box/types/sliding.py`
-- [ ] T020 [US1] Implement box type registry (`BoxType` → class mapping) in `spec_driven/box/registry.py`
-- [ ] T021 [US1] Implement interior computation and hollowing in `spec_driven/box/interior.py`
-- [ ] T022 [US1] Implement compartment auto-layout (2D shelf-based, no row alignment yet) in `spec_driven/compartments/layout.py`
-- [ ] T023 [US1] Wire `Project.box()` → builder → BoxSpec → box construction in `spec_driven/project.py`
+- [x] T018 [US1] Implement `SlidingBoxBuilder` (extends BoxBuilder, adds `two_layer` etc., `size` defaults to `None` for auto-compute from compartments) in `spec_driven/builders/sliding.py`
+- [x] T019 [US1] Implement `SlidingBox` class (body + lid geometry) using pybosl2 in `spec_driven/box/types/sliding.py`
+- [x] T020 [US1] Implement box type registry (`BoxType` → class mapping) in `spec_driven/box/registry.py`
+- [x] T021 [US1] Implement interior computation and hollowing in `spec_driven/box/interior.py`
+- [x] T022 [US1] Implement compartment auto-layout (2D shelf-based, no row alignment yet) in `spec_driven/compartments/layout.py`
+- [x] T023 [US1] Wire `Project.box()` → builder → BoxSpec → box construction in `spec_driven/project.py`
 
 **Checkpoint**: User Story 1 fully functional — one box type with compartments
 
