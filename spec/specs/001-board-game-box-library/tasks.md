@@ -247,7 +247,7 @@
 
 ## Phase 10b: User Story 10 - Generate Packing Layout PDF Guide (Priority: P3)
 
-**Goal**: `project.export()` produces a `layout.pdf` in the output directory. The PDF shows a 3D-angle view of the game box interior with sub-boxes labeled at packed positions, numbered in packing order, and hidden boxes visible through transparency. PDF is cached: only regenerated when layout or library version changes.
+**Goal**: `project.export()` produces a `layout.pdf` in the output directory on exactly one page. The PDF shows a 3D oblique/isometric exploded projection (looking slightly from above and to the side) of the game box interior. Upper-level boxes are vertically displaced along the Z-axis (exploded view) with dashed alignment lines showing their slots to clearly reveal the layout of lower-level boxes at the base. Boxes are labeled, colored, and numbered in packing order. PDF is cached: only regenerated when layout or library version changes.
 
 **Independent Test**: Export a 4-box game, verify `layout.pdf` exists showing 4 labeled boxes at correct positions.
 
@@ -258,8 +258,8 @@
 
 ### Implementation for User Story 10
 
-- [x] T078c [US10] Implement 3D angle view packing layout renderer (box outlines, labels, dimensions, spacer markers) in `spec_driven/export/layout_pdf.py`
-- [x] T078d [US10] Implement packing order numbering and hidden-box transparency visualization in `spec_driven/export/layout_pdf.py`
+- [x] T078c [US10] Implement 3D oblique projection packing layout renderer (outlines, labels, dimensions, spacer markers) in `spec_driven/export/layout_pdf.py`
+- [x] T078d [US10] Implement packing order numbering, colored 3D shaded boxes, vertical exploded displacement, and dashed alignment lines in `spec_driven/export/layout_pdf.py`
 - [x] T078e [US10] Implement PDF caching with SHA-256 layout hash (skip regeneration if unchanged) in `spec_driven/export/layout_pdf.py`
 - [x] T078f [US10] Wire PDF generation into `Project.export()` pipeline and add `layout.pdf` to `ExportResult` in `spec_driven/project.py`
 

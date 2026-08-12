@@ -169,7 +169,7 @@ The designer wants each box lid to look polished and be easy to print. They set 
 
 ### User Story 10 - Generate Packing Layout PDF Guide (Priority: P3)
 
-After generating all box pieces, the designer needs a visual guide showing where each box goes inside the game box. The system produces a PDF with a 3D-angle view of the game box interior, showing each sub-box at its packed position, numbered in packing order. Hidden interior boxes are visible through transparency. Spacer trays are labeled. The PDF is generated automatically on export but only regenerated if the layout changed (cached by SHA-256 hash of the layout + library version).
+After generating all box pieces, the designer needs a visual guide showing exactly where each box goes inside the game box. The system produces a PDF packing guide on exactly one page. It MUST NOT use a flat top-down or side view. Instead, it MUST use a 3D isometric/oblique angle view (looking slightly from above and to the side of the box) so the interior depth and vertical layers are clearly visible. The guide MUST show a step-by-step breakdown of how the box is filled up, pulling the top-level stacked boxes out of the project box (using vertical Z-displacement and arrows) to reveal the lower-level boxes at the base, progressing step-by-step or showing a clear exploded assembly view on the single page. The PDF is generated automatically on export but only regenerated if the layout changed (cached by SHA-256 hash of the layout + library version).
 
 **Why this priority**: A packing guide is essential documentation for anyone assembling the insert — they need to know which box goes where, in what order. Cached regeneration avoids unnecessary PDF rebuilds during iterative development. Depends on the full packing/export pipeline being complete (P2).
 
@@ -177,8 +177,8 @@ After generating all box pieces, the designer needs a visual guide showing where
 
 **Acceptance Scenarios**:
 
-1. **Given** a Project with 4 sub-boxes packed into a 300x200mm game box, **When** `project.export()` runs, **Then** a PDF is produced in `{out_dir}/{project.name}/layout.pdf` showing the game box outline, each sub-box at its packed position with label and dimensions, and spacer trays marked.
-2. **Given** a multi-row packed layout, **When** the PDF is viewed, **Then** rows are shown as layered steps: the top row of boxes is rendered displaced upward with arrows tracing back to their original positions in the game box, revealing the row beneath.
+1. **Given** a Project with 4 sub-boxes packed into a 300x200mm game box, **When** `project.export()` runs, **Then** a PDF is produced in `{out_dir}/{project.name}/layout.pdf` on exactly one page, showing the game box outline in a 3D oblique/isometric projection, each sub-box at its packed position with label and dimensions, and spacer trays marked.
+2. **Given** a multi-layer stacked layout, **When** the PDF is viewed, **Then** it shows a 3D exploded view with stacked upper boxes pulled upward along the Z-axis with dashed lines/arrows showing their placement positions, clearly revealing the lower-level boxes at the base.
 3. **Given** a previously exported layout with no changes, **When** `project.export()` runs again, **Then** the PDF is NOT regenerated — it is skipped along with unchanged 3MF files.
 4. **Given** a layout change (different box sizes or positions), **When** `project.export()` runs, **Then** the PDF IS regenerated to reflect the new layout.
 
@@ -302,9 +302,9 @@ The designer wants precise control over compartment placement. They specify exac
 - **SC-014**: A lid with label text "Cards" auto-sized on a 100x70mm lid produces text with height ≥ 4mm and fills the lid area minus a 5mm border margin.
 - **SC-015**: A lid with label text "A" on a 30x20mm lid produces zero label geometry (skipped because text height < 4mm) and no 3MF color assignments for the label.
 - **SC-016**: A framed label exported as multi-color 3MF produces exactly the expected material assignments: body color for the lid slab, text color for the label text, frame top color for the frame border top layer.
-- **SC-017**: A 4-box Project exported produces `layout.pdf` in the game output directory showing all 4 boxes at their packed positions with correct labels and dimensions.
+- **SC-017**: A 4-box Project exported produces `layout.pdf` in the game output directory on exactly one page showing all 4 boxes at their packed positions with correct labels and dimensions.
 - **SC-018**: Re-exporting an unchanged Project skips `layout.pdf` regeneration (same as 3MF files — zero writes if layout hash matches).
-- **SC-019**: The generated `layout.pdf` MUST be a valid PDF file that renders correctly in any PDF viewer, with all sub-boxes drawn at their correct packed positions matching the computed `BoxPacking` layout. Each box MUST show its label, dimensions, and packing order number at the correct scaled coordinates.
+- **SC-019**: The generated `layout.pdf` MUST be a valid PDF file that renders correctly in any PDF viewer on exactly one page. It MUST NOT use flat top-down or side views; instead, it MUST draw the game box and packed sub-boxes in a 3D oblique or isometric projection (viewed from above and to the side). To show stacked layers clearly, upper boxes MUST be displaced vertically along the Z-axis (exploded view) with dashed alignment lines showing their slots, revealing the boxes underneath. Each box MUST display its label, dimensions, and packing order number at the correct coordinates.
 
 ## Assumptions
 

@@ -239,6 +239,19 @@ beaver         = object(width=15.5, length=35)
 
 Animal tokens are split into two halves via a best-fit-decreasing 2D bin-packing pass over the two `AnimalBox` containers (each ~165×150mm usable). Within each container, compartments are arranged with 3mm spacing. Multi-quantity species (qty > 1) are stacked in a single compartment whose depth = quantity × 8mm (token thickness). Each compartment floor has the animal name extruded as a 0.2mm raised label. Finger scoops are placed on all compartment front walls.
 
+### 3D Oblique Exploded PDF Guide Layout
+To satisfy the single-page layout guide requirements, `layout_pdf.py` renders the game box and nested sub-boxes in a 3D Cabinet Oblique Projection:
+* **Projection Math**: 
+  * `X` maps to `x + y * cos(45) * 0.45`
+  * `Y` (Z-axis height / layers) maps to `-z - y * sin(45) * 0.45`
+  * This projects coordinates from 3D space onto the 2D PDF plane looking slightly from above and to the side.
+* **Exploded Stacking Breakdown**:
+  * Placements are grouped into layers along the Z-axis.
+  * Lower-level boxes (Z = 0) are drawn at their base coordinates inside the game box outline.
+  * Stacked upper boxes (Z > 0) are pulled upward along the Z-axis (displaced vertically in standard Z space) so they float above the base.
+  * Dashed vertical alignment lines and arrows point from the corners/center of the floating upper boxes down to their corresponding slots at the base.
+  * Each box is drawn as a 3D-shaded block (rendering the top, front, and right side faces with distinct color tones to convey depth), complete with a label, dimensions, and packing order index.
+
 ### Migration Checklist
 
 - [x] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list using `object(width=, length=, num=)` format
