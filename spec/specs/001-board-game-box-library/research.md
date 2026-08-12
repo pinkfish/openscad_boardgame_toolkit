@@ -218,3 +218,20 @@ Every geometric solid and 2D shape/path in `spec_driven/` MUST be constructed th
 **Rationale**: pybosl2 provides a pure-Python, numpy-backed API that wraps the native solids with additional metadata (bounds, anchor points, size tracking) and avoids the native handle reuse segfault. The existing codebase has already eliminated wildcard imports of native built-ins (only 8 native functions remain at 16 sites across the legacy code). `spec_driven/` goes further: zero native imports.
 
 **Enforcement**: Code review rule — any `import pythonscad` or `from pythonscad import ...` in `spec_driven/` is rejected. All geometry comes from `pybosl2.shapes3d` (solids) and `pybosl2.shapes2d` (paths). Transforms use `pybosl2.transforms`. Measurement uses `pybosl2`'s bounding box support.
+
+### Decision: Prefer bosl2 basic pieces over higher-level generators
+
+Where bosl2's basic primitives (`cube`, `cylinder`, `sphere`, `linear_extrude`, `rotate_extrude`) suffice, use them directly. Avoid higher-level shape generators (e.g., `coin`, `hexagon`, rounded rects from `shapes.py`) unless the shape cannot be expressed as a simple composition of basic pieces. This keeps the code minimal and reduces maintenance of borrowed shape code.
+
+**Rationale**: bosl2's basic pieces are well-tested, fast, and have consistent APIs. Higher-level generators add indirection and potential for drift. The borrowed shape generators from the existing codebase (`shapes.py`) should only be used for complex shapes (e.g., hex grids, voronoi fills) that cannot be trivially expressed as basic booleans.
+
+### Decision: Use pybosl2's built-in Color type — do not reimplement
+
+`spec_driven/color.py` must be replaced with a thin re-export of pybosl2's built-in `Color` type. The custom `Color` dataclass (with named presets like `WHITE()`, `BLACK()`, `GOLD()`) is an unnecessary reimplementation. pybosl2's `Color` provides the same RGBA representation and integrates directly with the CSG pipeline without conversion.
+
+**Rationale**: Maintaining a parallel Color type creates impedance mismatch — every color value must be converted between `spec_driven.Color` and `pybosl2.Color` at geometry construction boundaries. Using pybosl2's Color natively eliminates this conversion layer. The named preset constructors (`Color.WHITE()`, etc.) can be preserved as module-level constants or simple functions that return pybosl2 Color instances.
+
+**Alternatives considered**:
+- Keep custom Color: Adds conversion overhead at every geometry boundary.
+- Use plain tuples: Loses type safety and named semantics.
+- Use `colorsys` + raw floats: Reimplements what pybosl2 already provides.

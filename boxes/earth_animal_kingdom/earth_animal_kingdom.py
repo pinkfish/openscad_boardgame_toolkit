@@ -98,8 +98,8 @@ def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
         lid=LidBuilder(
             text=label,
             label_mode=LabelMode.FRAMED,
-            text_color=Color.WHITE(),
-            frame_color=Color(0.8, 0.4, 0.1),
+            text_color=Color("white"),
+            frame_color=Color("gold"),
         ),
     )
 
@@ -131,10 +131,10 @@ card_box = project.box(
     lid=LidBuilder(
         text="Animal Cards",
         label_mode=LabelMode.FRAMED,
-        text_color=Color.WHITE(),
-        frame_color=Color(0.2, 0.6, 0.3),
+        text_color=Color("white"),
+        frame_color=Color("darkgreen"),
         pattern=PatternBuilder(type=PatternType.HEX_GRID),
-        pattern_color=Color(0.3, 0.7, 0.4),
+        pattern_color=Color([0.3, 0.7, 0.4]),
     ),
 )
 card_box.compartment(
@@ -148,7 +148,7 @@ sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
     size=(72, 158, 12),
-    lid=LidBuilder(text="Sprouts", text_color=Color.WHITE(), frame_color=Color(0.3, 0.8, 0.3)),
+    lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
 )
 sprout.compartment("Sprouts", size=(64, 150), depth=8.0, finger_scoop=True)
 
@@ -157,7 +157,7 @@ canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
     # size=None → auto-computed from canopy compartment below
-    lid=LidBuilder(text="Canopy", text_color=Color.WHITE(), frame_color=Color(0.4, 0.6, 0.2)),
+    lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
 canopy.compartment("Canopies", size=(30, CARD_L), depth=42, finger_scoop=True)
 

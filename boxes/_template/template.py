@@ -27,8 +27,8 @@ project = Project(
 #     lid=LidBuilder(
 #         text="Cards",
 #         label_mode=LabelMode.FRAMED,
-#         text_color=Color.WHITE(),
-#         frame_color=Color.GOLD(),
+#         text_color=Color("white"),
+#         frame_color=Color("gold"),
 #     ),
 # )
 # cards.compartment("Deck", size=(90, 65), depth=45, finger_scoop=True)

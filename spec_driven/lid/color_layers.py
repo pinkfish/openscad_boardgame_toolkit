@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from spec_driven.color import Color
+from spec_driven import Color
 
 if TYPE_CHECKING:
     from bosl2 import Bosl2Solid
@@ -42,7 +42,7 @@ def resolve_colors(
 
     Args:
         body_color: The base box body color.
-        text_color: Label text color. Defaults to Color.WHITE().
+        text_color: Label text color. Defaults to Color("white").
         frame_color: Frame top layer color. Defaults to a contrasting hue.
         pattern_color: Pattern top layer color. Defaults to a third hue.
 
@@ -50,7 +50,7 @@ def resolve_colors(
         ColorLayerAssignment with all colors resolved.
     """
     if text_color is None:
-        text_color = Color.WHITE()
+        text_color = Color("white")
 
     if frame_color is None:
         # Contrasting hue: shift by 120 degrees
@@ -71,7 +71,8 @@ def resolve_colors(
 def _contrast_hue(base: Color, shift: float) -> Color:
     """Shift the hue of a color for contrast."""
     import colorsys
-    h, l, s = colorsys.rgb_to_hls(base.r, base.g, base.b)
+    r, g, b, _ = base.rgba
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
     h = (h + shift) % 1.0
     r, g, b = colorsys.hls_to_rgb(h, l, s)
-    return Color(r, g, b, base.a)
+    return Color([r, g, b])

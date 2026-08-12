@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from spec_driven.enums import LabelMode, PatternType
 
 if TYPE_CHECKING:
-    from spec_driven.color import Color
+    from spec_driven import Color
 
 
 @dataclass(frozen=True)
