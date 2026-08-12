@@ -45,38 +45,48 @@ def generate_layout_pdf(
     page_w = 297  # A4 landscape
     page_h = 210
 
-    # Scale: fit game box into page with margins
-    margin = 15
-    draw_w = page_w - 2 * margin
-    draw_h = page_h - 2 * margin - 20  # reserve 20mm for title
-    scale = min(draw_w / game_box_size[0], draw_h / game_box_size[1])
+    # Scale: fit both top-down and side-view side-by-side
+    margin = 12
+    gap = 10
+    avail_w = page_w - 2 * margin - gap
+    avail_h = page_h - 2 * margin - 20  # reserve 20mm for title
 
-    offset_x = margin + (draw_w - game_box_size[0] * scale) / 2
-    offset_y = margin + 10
+    # Total width of two boxes side-by-side is 2 * game_box_size[0]
+    scale = min(avail_w / (2 * game_box_size[0]), avail_h / max(game_box_size[1], game_box_size[2]))
+
+    # Offsets
+    offset_x_top = margin
+    offset_x_side = margin + game_box_size[0] * scale + gap
+    offset_y = margin + 15
 
     # Project title
     pdf.set_font("Helvetica", "B", 14)
     pdf.cell(0, 8, f"Packing Guide: {project_name}", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 9)
-    pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm  |  "
-             f"Scale 1:{1/scale:.0f}", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm",
+             align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
 
-    def to_x(x_mm): return offset_x + x_mm * scale
-    def to_y(y_mm): return offset_y + (game_box_size[1] - y_mm) * scale
+    # Scaling functions
+    def to_x_top(x): return offset_x_top + x * scale
+    def to_y_top(y): return offset_y + (game_box_size[1] - y) * scale
+    def to_x_side(x): return offset_x_side + x * scale
+    def to_z_side(z): return offset_y + (game_box_size[2] - z) * scale
     def to_d(mm): return mm * scale
 
-    # Draw game box outline
+    # ---- Draw Views Labels ----------------------------------------------------
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.set_text_color(50, 50, 50)
+    pdf.text(offset_x_top, offset_y - 2, "Top-Down View (X-Y)")
+    pdf.text(offset_x_side, offset_y - 2, "Side View / Stacking (X-Z)")
+
+    # ---- Draw Game Box Outlines -----------------------------------------------
     pdf.set_draw_color(100, 100, 100)
     pdf.set_line_width(0.3)
-    pdf.rect(to_x(0), to_y(game_box_size[1]), to_d(game_box_size[0]), to_d(game_box_size[1]))
-
-    # Group placements into rows by Y position
-    rows: dict[float, list] = {}
-    for p in packing.placements:
-        y_key = round(p.position[1], 1)
-        rows.setdefault(y_key, []).append(p)
-    sorted_rows = sorted(rows.items())
+    # Top-Down outline
+    pdf.rect(to_x_top(0), to_y_top(game_box_size[1]), to_d(game_box_size[0]), to_d(game_box_size[1]))
+    # Side outline
+    pdf.rect(to_x_side(0), to_z_side(game_box_size[2]), to_d(game_box_size[0]), to_d(game_box_size[2]))
 
     # Known box colors
     colors = [
@@ -85,70 +95,62 @@ def generate_layout_pdf(
         (160, 100, 80), (120, 140, 160),
     ]
 
-    # Row displacement for exploded view
-    accumulated_displace = 0.0
-    prev_row_height = 0.0
-    for row_idx, (y_pos, row_boxes) in enumerate(reversed(sorted_rows)):
-        if row_idx > 0:
-            accumulated_displace += to_d(prev_row_height) + 5  # 5mm gap between exploded rows
+    # ---- Draw Placements (Boxes) ---------------------------------------------
+    for box_idx, p in enumerate(packing.placements):
+        x, y, z = p.position
+        bw, bl, bh = p.size
+        color = colors[box_idx % len(colors)]
 
-        displace_y = accumulated_displace
+        # 1. Draw in Top-Down View
+        pdf.set_fill_color(*color)
+        pdf.set_draw_color(40, 40, 40)
+        pdf.set_line_width(0.2)
+        pdf.rect(to_x_top(x), to_y_top(y + bl), to_d(bw), to_d(bl), style="DF")
 
-        for box_idx, p in enumerate(row_boxes):
-            x, y, _ = p.position
-            bw, bl, bh = p.size
-            color = colors[box_idx % len(colors)]
+        # Label inside top-down view
+        pdf.set_font("Helvetica", "", 5)
+        pdf.set_text_color(255, 255, 255)
+        label_text = f"{p.label} ({bw:.0f}x{bl:.0f}x{bh:.0f})"
+        pdf.text(to_x_top(x) + 1, to_y_top(y + bl) + to_d(bl) - 2, label_text)
+        
+        # Packing order number
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.text(to_x_top(x) + 1, to_y_top(y + bl) + 3, str(box_idx + 1))
 
-            # Draw the displaced box
-            pdf.set_fill_color(*color)
-            pdf.set_draw_color(40, 40, 40)
-            pdf.set_line_width(0.2)
-            box_y = to_y(y + bl) + displace_y
-            pdf.rect(to_x(x), box_y, to_d(bw), to_d(bl), style="DF")
+        # 2. Draw in Side View (X-Z Stacking)
+        pdf.set_fill_color(*color)
+        pdf.set_draw_color(40, 40, 40)
+        pdf.rect(to_x_side(x), to_z_side(z + bh), to_d(bw), to_d(bh), style="DF")
 
-            # Draw arrow from displaced position back to original
-            if displace_y != 0:
-                arrow_start_y = box_y + to_d(bl) / 2
-                arrow_end_y = to_y(y + bl) + to_d(bl) / 2
-                arrow_x = to_x(x) + to_d(bw) / 2
+        # Label inside side view
+        pdf.set_font("Helvetica", "", 5)
+        pdf.set_text_color(255, 255, 255)
+        pdf.text(to_x_side(x) + 1, to_z_side(z + bh) + to_d(bh) - 2, p.label)
+        
+        # Packing order number
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Helvetica", "B", 7)
+        pdf.text(to_x_side(x) + 1, to_z_side(z + bh) + 3, str(box_idx + 1))
 
-                pdf.set_draw_color(200, 50, 50)
-                pdf.set_line_width(0.3)
-                # Dashed line from displaced to original
-                pdf.set_dash_pattern(dash=2, gap=2)
-                pdf.line(arrow_x, arrow_start_y, arrow_x, arrow_end_y)
-                pdf.set_dash_pattern(dash=0, gap=0)
-                # Arrow head pointing back (upward on page)
-                head_size = 2
-                pdf.line(arrow_x, arrow_end_y, arrow_x - head_size, arrow_end_y + head_size * 1.5)
-                pdf.line(arrow_x, arrow_end_y, arrow_x + head_size, arrow_end_y + head_size * 1.5)
-
-            # Box label + dimensions
-            pdf.set_font("Helvetica", "", 6)
-            pdf.set_text_color(255, 255, 255)
-            label_text = f"{p.label}  {bw:.0f}x{bl:.0f}x{bh:.0f}"
-            text_x = to_x(x) + 1
-            text_y = box_y + to_d(bl) - 3
-            pdf.text(text_x, text_y, label_text)
-
-            # Packing order number
-            pdf.set_text_color(0, 0, 0)
-            pdf.set_font("Helvetica", "B", 8)
-            pdf.text(to_x(x) + 1, box_y + 3, str(box_idx + 1))
-
-        prev_row_height = max(p.size[1] for p in row_boxes)
-
-    # Draw spacers
+    # ---- Draw Spacers --------------------------------------------------------
     for sp in packing.spacer_placements:
-        x, y, _ = sp.position
-        sw, sl, _ = sp.size
-        pdf.set_fill_color(200, 200, 200)
+        x, y, z = sp.position
+        sw, sl, sh = sp.size
+
+        # Top-down spacer
+        pdf.set_fill_color(220, 220, 220)
         pdf.set_draw_color(150, 150, 150)
         pdf.set_line_width(0.15)
-        pdf.rect(to_x(x), to_y(y + sl), to_d(sw), to_d(sl), style="DF")
-        pdf.set_font("Helvetica", "", 5)
-        pdf.set_text_color(100, 100, 100)
-        pdf.text(to_x(x) + 1, to_y(y + sl) + 3, "spacer")
+        pdf.rect(to_x_top(x), to_y_top(y + sl), to_d(sw), to_d(sl), style="DF")
+        pdf.set_font("Helvetica", "", 4)
+        pdf.set_text_color(120, 120, 120)
+        pdf.text(to_x_top(x) + 1, to_y_top(y + sl) + 2, "spacer")
+
+        # Side view spacer
+        pdf.set_fill_color(220, 220, 220)
+        pdf.rect(to_x_side(x), to_z_side(z + sh), to_d(sw), to_d(sh), style="DF")
+        pdf.text(to_x_side(x) + 1, to_z_side(z + sh) + 2, "spacer")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output_path))
