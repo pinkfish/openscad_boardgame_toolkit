@@ -93,7 +93,24 @@ class Project:
             wt = builder.wall_thickness or self.wall_thickness
             ft = builder.floor_thickness or self.floor_thickness
             lt = builder.lid_thickness or self.lid_thickness
-            size = builder.size or (100, 80, 40)
+
+            comp_data = [
+                (cb.label, cb.size[0], cb.size[1], cb.depth)
+                for cb in builder.compartments
+            ]
+
+            if builder.size is None:
+                # Compute box size from compartment dimensions
+                if not comp_data:
+                    raise ValueError(
+                        f"Box '{builder.label}' has no explicit size and no "
+                        f"compartments — at least one is required."
+                    )
+                from spec_driven.compartments.layout import compute_min_box_size
+                min_w, min_l, min_h = compute_min_box_size(comp_data, wt, ft, lt)
+                size = (min_w, min_l, min_h)
+            else:
+                size = builder.size
 
             box_cls = BOX_IMPL_REGISTRY.get(builder.box_type)
             if box_cls is None:
@@ -111,10 +128,6 @@ class Project:
                 origin_z=ft,
             )
 
-            comp_data = [
-                (cb.label, cb.size[0], cb.size[1], cb.depth)
-                for cb in builder.compartments
-            ]
             if comp_data:
                 from spec_driven.compartments.layout import layout_compartments
                 comp_layout = layout_compartments(interior, comp_data)

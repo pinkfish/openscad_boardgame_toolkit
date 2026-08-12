@@ -30,7 +30,7 @@ class CompartmentLayout:
 
 def layout_compartments(
     interior: Interior,
-    compartments: list[tuple[str, float, float, float]],  # (label, w, l, depth)
+    compartments: list[tuple[str, float, float, float]],
     wall_spacing: float = 2.0,
 ) -> CompartmentLayout:
     """Simple row-based layout of compartments in the interior.
@@ -58,19 +58,15 @@ def layout_compartments(
     current_row_height = 0.0
 
     for label, comp_w, comp_l, comp_depth in compartments:
-        # Check if compartment fits in remaining width
         if x_cursor + comp_w + wall_spacing > interior_w:
-            # Move to next row
             x_cursor = wall_spacing
             y_cursor += current_row_height + wall_spacing
             current_row_height = 0.0
 
-            # Check if compartment fits in interior length
             if y_cursor + comp_l + wall_spacing > interior_l:
                 layout.overflow = True
                 break
 
-        # Check if compartment itself fits in interior
         if comp_w > interior_w or comp_l > interior_l:
             layout.overflow = True
             break
@@ -90,3 +86,65 @@ def layout_compartments(
         current_row_height = max(current_row_height, comp_l)
 
     return layout
+
+
+def compute_min_box_size(
+    compartments: list[tuple[str, float, float, float]],
+    wall_thickness: float = 2.0,
+    floor_thickness: float = 1.6,
+    lid_thickness: float = 2.0,
+) -> tuple[float, float, float]:
+    """Compute the minimum box outer dimensions from compartment data.
+
+    Estimates the box size needed to hold all compartments in a shelf layout.
+    Width is total width of all compartments assuming they fill rows.
+    Length is the total row stack height from the estimated layout.
+
+    Args:
+        compartments: List of (label, width, length, depth) tuples.
+        wall_thickness: Box wall thickness.
+        floor_thickness: Box floor thickness.
+        lid_thickness: Box lid thickness.
+
+    Returns:
+        (width, length, height) — minimum outer box dimensions.
+    """
+    if not compartments:
+        return (
+            wall_thickness * 4,
+            wall_thickness * 4,
+            floor_thickness + lid_thickness + 5,
+        )
+
+    max_w = max(w for _, w, _, _ in compartments)
+    max_l = max(l for _, _, l, _ in compartments)
+    max_d = max(d for _, _, _, d in compartments)
+    spacing = 2.0
+
+    # Estimate total footprint by computing how compartments would pack
+    total_width = 0.0
+    total_rows = 0.0
+    current_width = spacing
+    current_row_height = 0.0
+
+    # Sort by length descending for better packing estimate
+    sorted_items = sorted(compartments, key=lambda x: x[2], reverse=True)
+
+    for _, comp_w, comp_l, _ in sorted_items:
+        if current_width + comp_w > total_width:
+            total_width = max(total_width, current_width)
+            current_width = spacing
+            total_rows += current_row_height + spacing
+            current_row_height = 0.0
+        current_width += comp_w + spacing
+        current_row_height = max(current_row_height, comp_l)
+
+    total_width = max(total_width, current_width)
+    total_rows += current_row_height + spacing
+
+    # Ensure single-row layout fits
+    box_w = max(total_width, max_w) + 2 * wall_thickness + 8
+    box_l = max(total_rows, max_l) + 2 * wall_thickness + 8
+    box_h = max_d + floor_thickness + lid_thickness + 4
+
+    return (box_w, box_l, box_h)
