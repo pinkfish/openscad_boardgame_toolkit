@@ -250,7 +250,9 @@ To satisfy the single-page layout guide requirements, `layout_pdf.py` renders th
   * Lower-level boxes (Z = 0) are drawn at their base coordinates inside the game box outline.
   * Stacked upper boxes (Z > 0) are pulled upward along the Z-axis (displaced vertically in standard Z space) so they float above the base.
   * Dashed vertical alignment lines and arrows point from the corners/center of the floating upper boxes down to their corresponding slots at the base.
-  * Each box is drawn as a 3D-shaded block (rendering the top, front, and right side faces with distinct color tones to convey depth), complete with a label, dimensions, and packing order index.
+  * Each box is drawn as a 3D-shaded block (rendering the top, front, and right side faces with distinct color tones to convey depth), complete with a label and packing order index.
+  * The text labels on the boxes in the layout PDF must be visible, larger, and highly readable. If a label is blocked/hidden because another box is stacked on top of it, the label text must be shifted to the side. The text label must only display the box's label, and not display its size/dimensions.
+  * Hollow spacer boxes (which can be non-rectangular using 2D polygon paths) are generated to fill all open spaces/gaps, making the insert layout complete to the full extent of the game box. These spacer boxes must also be rendered in the layout PDF.
 
 ### Compartment Auto-Layout with Rotation
 To ensure dense packing of compartments (like the animal compartments in `AnimalBox1` and `AnimalBox2`), `layout_compartments` implements a shelf-packing algorithm with 90-degree rotation support:

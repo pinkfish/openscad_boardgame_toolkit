@@ -168,7 +168,6 @@ for col in player_colours:
         BoxType.SLIPOVER,
         f"PlayerBox{col.capitalize()}",
         size=(68.0, 99.0, 9.2),
-        material_colour=col,
         lid=LidBuilder(text="Player", text_color=Color("white")),
     )
     pbox.compartment("PlayerComponents", size=(60.0, 91.0), depth=5.6, finger_scoop=True)

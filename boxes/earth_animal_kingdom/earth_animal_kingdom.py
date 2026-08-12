@@ -100,9 +100,6 @@ def add_animal_box(label: str):
     )
 
 
-# ── Board Storage ─────────────────────────────────────────────────
-project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
-
 # ── Animal Cards Box ──────────────────────────────────────────────
 CARD_W, CARD_L = 72.0, 123.0
 CARD_COUNT = 36
@@ -131,7 +128,7 @@ card_box.compartment(
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(76, 158, None),
+    size=(76, 156, None),
     expandable=True,
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
 )
@@ -146,6 +143,9 @@ canopy = project.box(
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
 canopy.compartment("Canopies", size=(30, CARD_L), depth=8.0, finger_scoop=True)
+
+# ── Board Storage ─────────────────────────────────────────────────
+project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
 
 # ── Define Animal Token Boxes ─────────────────────────────────────
 add_animal_box("AnimalBox1")
