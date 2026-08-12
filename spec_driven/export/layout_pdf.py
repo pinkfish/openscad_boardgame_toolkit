@@ -18,10 +18,9 @@ def generate_layout_pdf(
     project_name: str,
     game_box_size: tuple[float, float, float],
 ) -> Path | None:
-    """Generate a PDF packing guide with layered exploded breakdown.
+    """Generate a PDF packing guide with layered step-by-step breakdown.
 
-    Renders each row of boxes as a separate step where boxes are displaced
-    upward with arrows tracing back to their original positions.
+    Renders each layer (Base, Middle, Top) on a separate page.
 
     Args:
         packing: The computed packed layout.
@@ -38,7 +37,6 @@ def generate_layout_pdf(
         return None
 
     pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.add_page()
     pdf.set_auto_page_break(auto=False)
 
     # Page dimensions
@@ -53,15 +51,11 @@ def generate_layout_pdf(
     alpha = 0.45  # shortening factor for depth Y
 
     def project(x, y, z):
-        # Cabinet Oblique: X maps right/up-right, Y (depth) maps up-right, Z maps straight up
         px = x + y * cos_a * alpha
         py = -z - y * sin_a * alpha
         return px, py
 
-    # Headroom for exploded stacking (Z-displacement of upper boxes by 70mm)
-    max_z_exploded = game_box_size[2] + 70.0
-
-    # Bounding box of projected coordinates (including headroom) to scale to page
+    # Bounding box of projected coordinates (no headroom exploded offset since pages are separate)
     corners = [
         (0, 0, 0),
         (game_box_size[0], 0, 0),
@@ -71,10 +65,6 @@ def generate_layout_pdf(
         (game_box_size[0], 0, game_box_size[2]),
         (0, game_box_size[1], game_box_size[2]),
         (game_box_size[0], game_box_size[1], game_box_size[2]),
-        (0, 0, max_z_exploded),
-        (game_box_size[0], 0, max_z_exploded),
-        (0, game_box_size[1], max_z_exploded),
-        (game_box_size[0], game_box_size[1], max_z_exploded),
     ]
     projected = [project(x, y, z) for x, y, z in corners]
     min_px = min(p[0] for p in projected)
@@ -95,32 +85,9 @@ def generate_layout_pdf(
     offset_x = margin + (avail_w - proj_w * scale) / 2 - min_px * scale
     offset_y = margin + 15 - min_py * scale
 
-    # Project title
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 8, f"Packing Guide: {project_name}", align="C", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 9)
-    pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm  |  3D Exploded Assembly",
-             align="C", new_x="LMARGIN", new_y="NEXT")
-    pdf.ln(3)
-
     def to_pdf(x, y, z):
         px, py = project(x, y, z)
         return offset_x + px * scale, offset_y + py * scale
-
-    # Draw Game Box Outline (Z=0 bottom face, vertical corners, Z=H top face)
-    pdf.set_draw_color(150, 150, 150)
-    pdf.set_line_width(0.2)
-    # Bottom face
-    p_base = [to_pdf(0, 0, 0), to_pdf(game_box_size[0], 0, 0),
-              to_pdf(game_box_size[0], game_box_size[1], 0), to_pdf(0, game_box_size[1], 0)]
-    pdf.polygon(p_base, style="D")
-    # Corners
-    for cx, cy in [(0, 0), (game_box_size[0], 0), (game_box_size[0], game_box_size[1]), (0, game_box_size[1])]:
-        pdf.line(*to_pdf(cx, cy, 0), *to_pdf(cx, cy, game_box_size[2]))
-    # Top face
-    p_top = [to_pdf(0, 0, game_box_size[2]), to_pdf(game_box_size[0], 0, game_box_size[2]),
-             to_pdf(game_box_size[0], game_box_size[1], game_box_size[2]), to_pdf(0, game_box_size[1], game_box_size[2])]
-    pdf.polygon(p_top, style="D")
 
     # Known box colors
     colors = [
@@ -129,7 +96,7 @@ def generate_layout_pdf(
         (160, 100, 80), (120, 140, 160),
     ]
 
-    def draw_box_3d(x, y, z, bw, bl, bh, color, label=None, index_str=None):
+    def draw_box_3d(x, y, z, bw, bl, bh, color, label=None, index_str=None, visible_placements=None):
         # Front face
         p_front = [to_pdf(x, y, z), to_pdf(x + bw, y, z),
                    to_pdf(x + bw, y, z + bh), to_pdf(x, y, z + bh)]
@@ -168,10 +135,11 @@ def generate_layout_pdf(
             
             cx, cy = to_pdf(x + bw / 2, y + bl / 2, z + bh)
             
-            # Determine if label is covered by stacked/upper boxes
+            # Determine if label is covered by other active/visible boxes on this page
             is_covered = False
             z_top = z + bh
-            for other in packing.placements:
+            check_list = visible_placements or packing.placements
+            for other in check_list:
                 if other.label == label:
                     continue
                 ox, oy, oz = other.position
@@ -220,43 +188,85 @@ def generate_layout_pdf(
                 pdf.set_font("Helvetica", "B", 7)
                 pdf.text((cx_shifted if is_covered else cx) - tw/2 - 4.5, (cy_shifted if is_covered else cy) + th/2 - 1.0, index_str)
 
-    # Draw Spacers
-    for sp in packing.spacer_placements:
-        x, y, z = sp.position
-        sw, sl, sh = sp.size
-        draw_box_3d(x, y, z, sw, sl, sh, (220, 220, 220), "spacer")
+    # Group placements dynamically by Z coordinates into 3 logical layers
+    H = game_box_size[2]
+    layer_defs = [
+        ("Base Layer", lambda z: z < 0.1, lambda z: False),
+        ("Middle Layer", lambda z: 0.1 <= z < H * 0.7, lambda z: z < 0.1),
+        ("Top Layer", lambda z: z >= H * 0.7, lambda z: z < H * 0.7),
+    ]
 
-    # Draw Placements (ordered by height Z so bottom ones draw first, preventing overlap bugs)
-    sorted_placements = sorted(enumerate(packing.placements), key=lambda x: x[1].position[2])
+    active_pages = []
+    for name, is_active, is_lower in layer_defs:
+        active_p = [p for p in packing.placements if is_active(p.position[2])]
+        lower_p = [p for p in packing.placements if is_lower(p.position[2])]
+        active_s = [s for s in packing.spacer_placements if is_active(s.position[2])]
+        lower_s = [s for s in packing.spacer_placements if is_lower(s.position[2])]
+        if active_p or active_s:
+            active_pages.append({
+                "name": name,
+                "active_placements": active_p,
+                "lower_placements": lower_p,
+                "active_spacers": active_s,
+                "lower_spacers": lower_s,
+            })
 
-    for box_idx, p in sorted_placements:
-        x, y, z = p.position
-        bw, bl, bh = p.size
-        color = colors[box_idx % len(colors)]
+    for step_idx, page in enumerate(active_pages):
+        pdf.add_page()
 
-        # Exploded stacking: pull upper boxes (Z > 0) upwards
-        z_drawn = z
-        if z > 0:
-            z_drawn = z + 70.0  # Explode upward by 70mm
+        # Page Header
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.cell(0, 8, f"Packing Guide: {project_name} — Step {step_idx + 1}: {page['name']}", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Helvetica", "", 9)
+        pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm",
+                 align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(3)
 
-            # Draw target placement footprint outline on the lower level
-            p_slot = [to_pdf(x, y, z), to_pdf(x + bw, y, z),
-                      to_pdf(x + bw, y + bl, z), to_pdf(x, y + bl, z)]
-            pdf.set_draw_color(200, 50, 50)
-            pdf.set_line_width(0.15)
-            pdf.polygon(p_slot, style="D")
+        # Draw Game Box Outline
+        pdf.set_draw_color(150, 150, 150)
+        pdf.set_line_width(0.2)
+        # Bottom face
+        p_base = [to_pdf(0, 0, 0), to_pdf(game_box_size[0], 0, 0),
+                  to_pdf(game_box_size[0], game_box_size[1], 0), to_pdf(0, game_box_size[1], 0)]
+        pdf.polygon(p_base, style="D")
+        # Corners
+        for cx, cy in [(0, 0), (game_box_size[0], 0), (game_box_size[0], game_box_size[1]), (0, game_box_size[1])]:
+            pdf.line(*to_pdf(cx, cy, 0), *to_pdf(cx, cy, game_box_size[2]))
+        # Top face
+        p_top = [to_pdf(0, 0, game_box_size[2]), to_pdf(game_box_size[0], 0, game_box_size[2]),
+                 to_pdf(game_box_size[0], game_box_size[1], game_box_size[2]), to_pdf(0, game_box_size[1], game_box_size[2])]
+        pdf.polygon(p_top, style="D")
 
-            # Draw dashed vertical trace line
-            cx_slot, cy_slot = to_pdf(x + bw / 2, y + bl / 2, z)
-            cx_float, cy_float = to_pdf(x + bw / 2, y + bl / 2, z_drawn)
-            pdf.set_draw_color(200, 50, 50)
-            pdf.set_line_width(0.2)
-            pdf.set_dash_pattern(dash=2, gap=2)
-            pdf.line(cx_slot, cy_slot, cx_float, cy_float)
-            pdf.set_dash_pattern(dash=0, gap=0)
+        # 1. Draw Lower Layer Spacers (background - light gray)
+        for sp in page["lower_spacers"]:
+            x, y, z = sp.position
+            sw, sl, sh = sp.size
+            draw_box_3d(x, y, z, sw, sl, sh, (240, 240, 240))
 
-        # Draw the 3D shaded box
-        draw_box_3d(x, y, z_drawn, bw, bl, bh, color, p.label, str(box_idx + 1))
+        # 2. Draw Lower Layer Placements (background context - light gray)
+        for p in page["lower_placements"]:
+            x, y, z = p.position
+            bw, bl, bh = p.size
+            draw_box_3d(x, y, z, bw, bl, bh, (220, 220, 220))
+
+        # 3. Draw Active Layer Spacers (full gray spacers)
+        for sp in page["active_spacers"]:
+            x, y, z = sp.position
+            sw, sl, sh = sp.size
+            draw_box_3d(x, y, z, sw, sl, sh, (200, 200, 200), "spacer")
+
+        # 4. Draw Active Layer Placements (colored)
+        # Sort placements by height Z to render bottom active ones first
+        sorted_active = sorted(page["active_placements"], key=lambda p: p.position[2])
+        for p in sorted_active:
+            x, y, z = p.position
+            bw, bl, bh = p.size
+            
+            # Find original index for color mapping
+            orig_idx = next(i for i, orig in enumerate(packing.placements) if orig.label == p.label)
+            color = colors[orig_idx % len(colors)]
+            
+            draw_box_3d(x, y, z, bw, bl, bh, color, p.label, str(orig_idx + 1), page["active_placements"])
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output_path))

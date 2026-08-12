@@ -239,21 +239,26 @@ beaver         = object(width=15.5, length=35)
 Animal tokens are split into two halves via a best-fit-decreasing 2D bin-packing pass over the two `AnimalBox` containers (each ~165×150mm usable). Within each container, compartments are arranged with 3mm spacing. Multi-quantity species (qty > 1) are stacked in a single compartment whose depth = quantity × 8mm (token thickness). Each compartment floor has the animal name extruded as a 0.2mm raised label. Finger scoops are placed on all compartment front walls.
 
 ### 3D Oblique Exploded PDF Guide Layout
-To satisfy the single-page layout guide requirements, `layout_pdf.py` renders the game box and nested sub-boxes in a 3D Cabinet Oblique Projection:
+To satisfy the layout guide requirements, `layout_pdf.py` renders the game box and nested sub-boxes in a 3D Cabinet Oblique Projection across multiple pages representing distinct stacking layers:
 * **Projection Math**: 
-  * `X` maps to `x + y * cos(45) * 0.45`
-  * `Y` (Z-axis height / layers) maps to `-z - y * sin(45) * 0.45`
+  * `X` maps to `x + y * cos(30) * 0.45`
+  * `Y` (Z-axis height / layers) maps to `-z - y * sin(30) * 0.45`
   * This projects coordinates from 3D space onto the 2D PDF plane looking slightly from above and to the side.
-* **Exploded Stacking Breakdown**:
-  * Placements are grouped into layers along the Z-axis.
-  * Lower-level boxes (Z = 0) are drawn at their base coordinates inside the game box outline.
-  * Stacked upper boxes (Z > 0) are pulled upward along the Z-axis (displaced vertically in standard Z space) so they float above the base.
-  * Dashed vertical alignment lines and arrows point from the corners/center of the floating upper boxes down to their corresponding slots at the base.
-  * Each box is drawn as a 3D-shaded block (rendering the top, front, and right side faces with distinct color tones to convey depth), complete with a label and packing order index.
+* **Layer-by-Layer Stacking Breakdown**:
+  * Placements are grouped dynamically into three primary layers:
+    1. **Base Layer** (`z < 0.1` mm): Boxes sitting directly on the box floor.
+    2. **Middle Layer** (`0.1 <= z < H * 0.7` mm): Stacked middle boxes.
+    3. **Top Layer** (`z >= H * 0.7` mm): Top-level boards and cards.
+  * For each layer, a separate page is generated in the PDF guide:
+    * The boxes and spacers belonging to the active layer are drawn in full color.
+    * The boxes belonging to the lower layers (already packed in previous steps) are drawn in light gray to provide background context.
+    * Boxes belonging to upper layers are hidden.
+  * Each box is drawn as a 3D-shaded block, complete with a label and packing order index.
   * The text labels on the boxes in the layout PDF must be visible, larger, and highly readable. If a label is blocked/hidden because another box is stacked on top of it, the label text must be shifted to the side. The text label must only display the box's label, and not display its size/dimensions.
   * Hollow spacer boxes (which can be non-rectangular using 2D polygon paths) are generated to fill all open spaces/gaps, making the insert layout complete to the full extent of the game box. Spacer boxes/trays cannot be thinner than 5mm in any dimension (width, length, or height) to prevent printing extremely fragile slivers. For vertical gaps along the Z-axis, a spacer box is generated if the gap height is >= 3mm (subject to the 5mm minimum thickness rule). If the gap height is < 3mm, the adjacent box's height expands to absorb the gap, prioritizing expansion on the X and Y axes over the Z-axis. Spacer boxes must also be rendered in the layout PDF.
   * A clearance slack of 1-2mm is applied in the X and Y directions around nested sub-boxes relative to the game box walls or neighboring boxes to ensure they can be easily placed and removed from the game box.
   * The animal boxes inside the Earth Animal Kingdom layout must have heights matching exactly the token thickness (8mm) plus the floor and lid thicknesses, plus 0.5mm slack (yielding 12.1mm outer height), with spacer boxes generated on top to fill the remaining height.
+
 
 ### Compartment Auto-Layout with Rotation
 To ensure dense packing of compartments (like the animal compartments in `AnimalBox1` and `AnimalBox2`), `layout_compartments` implements a shelf-packing algorithm with 90-degree rotation support:

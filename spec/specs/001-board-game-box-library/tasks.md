@@ -248,9 +248,9 @@
 
 ## Phase 10b: User Story 10 - Generate Packing Layout PDF Guide (Priority: P3)
 
-**Goal**: `project.export()` produces a `layout.pdf` in the output directory on exactly one page. The PDF shows a 3D oblique/isometric exploded projection (looking slightly from above and to the side) of the game box interior. Upper-level boxes are vertically displaced along the Z-axis (exploded view) with dashed alignment lines showing their slots to clearly reveal the layout of lower-level boxes at the base. Boxes are labeled, colored, and numbered in packing order. PDF is cached: only regenerated when layout or library version changes.
+**Goal**: `project.export()` produces a `layout.pdf` in the output directory containing multiple pages representing distinct stacking layers (e.g. Base Layer, Middle Layer, Top Layer). On each page, the boxes belonging to that layer are drawn in full color, while already-placed boxes are drawn in light gray. Boxes are labeled, colored, and numbered in packing order. PDF is cached: only regenerated when layout or library version changes.
 
-**Independent Test**: Export a 4-box game, verify `layout.pdf` exists showing 4 labeled boxes at correct positions.
+**Independent Test**: Export a 4-box game, verify `layout.pdf` exists showing 4 labeled boxes at correct positions across one or more pages.
 
 ### Tests for User Story 10
 
