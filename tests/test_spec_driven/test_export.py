@@ -78,3 +78,62 @@ class ExportTests(unittest.TestCase):
 
             # Verify boxes referenced in layout
             self.assertIn("layout", result.written[-1])
+
+    def test_stale_spacer_deletion(self) -> None:
+        """Orphaned spacer files are deleted when fewer spacers are generated."""
+        from spec_driven.packing.layout import Placement
+
+        p = Project("StaleTest", game_box_size=(300, 200, 80))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create fake stale spacer files
+            mmu = Path(tmpdir) / "StaleTest" / "mmu"
+            single = Path(tmpdir) / "StaleTest" / "single"
+            mmu.mkdir(parents=True, exist_ok=True)
+            single.mkdir(parents=True, exist_ok=True)
+            for i in range(1, 4):
+                (mmu / f"spacer_{i}_body.3mf").touch()
+                (single / f"spacer_{i}_body_single.3mf").touch()
+
+            # Only spacer_1 is "current"
+            current = [Placement(label="spacer_1", position=(0, 0, 0), size=(10, 10, 10))]
+            p._delete_stale_spacers(tmpdir, current)
+
+            self.assertTrue((mmu / "spacer_1_body.3mf").exists())
+            self.assertFalse((mmu / "spacer_2_body.3mf").exists())
+            self.assertFalse((mmu / "spacer_3_body.3mf").exists())
+            self.assertFalse((single / "spacer_2_body_single.3mf").exists())
+
+    def test_board_thickness_excluded_from_spacers(self) -> None:
+        """The reserved board area is excluded from spacer generation.
+
+        With board_thickness=15 and a box filling the whole box area (z=0..35),
+        no spacer is generated — the board (below z=0) is correctly excluded.
+        """
+        p = Project(
+            "BoardTest", game_box_size=(100, 100, 50),
+            clearance_slack=0.0, board_thickness=15,
+        )
+        # Fill the entire box area: z=0..35 (50 - 15 board)
+        p.box(BoxType.NO_LID, "FullTray", size=(100, 100, 35), position=(0, 0, 0))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = p.export(tmpdir)
+            spacer_files = [f for f in result.written if "spacer" in f]
+            self.assertEqual(len(spacer_files), 0, f"Expected no spacer, got {spacer_files}")
+
+    def test_real_gap_above_board_still_spacer(self) -> None:
+        """A genuine gap within the box area (not the board) still yields a spacer."""
+        p = Project(
+            "GapTest", game_box_size=(100, 100, 50),
+            clearance_slack=0.0, board_thickness=15,
+        )
+        # Box fills z=0..20, leaving a real z=20..35 gap above it
+        p.box(BoxType.NO_LID, "ShortTray", size=(100, 100, 20), position=(0, 0, 0))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = p.export(tmpdir)
+            spacer_files = [f for f in result.written if "spacer" in f]
+            self.assertGreater(len(spacer_files), 0, "Expected a spacer for the z=20..35 gap")
+
+

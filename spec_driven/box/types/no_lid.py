@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 from spec_driven.box.base import Interior
@@ -26,7 +26,7 @@ class NoLidBox:
         )
 
     def _build_shell(self, spec: dict) -> "Bosl2Solid":
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         wt = spec.get("wall_thickness", 2.0)
         ft = spec.get("floor_thickness", 1.6)
         outer = cuboid([spec["width"], spec["length"], spec["height"]])
@@ -43,7 +43,7 @@ class NoLidBox:
         inside  → a recess carved into the top rim (box nests inside the box above)
         outside → a ridge added around the outside (box fits around the box below)
         """
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         wt = spec.get("wall_thickness", 2.0)
         stack = spec.get("stackable_thickness") or wt
         fit = spec.get("stackable_fit_offset", 0.1)
@@ -70,12 +70,12 @@ class NoLidBox:
                 (spec["length"] - ridge_l) / 2,
                 0,
             ])
-            return body + ridge
+            return body | ridge
         return body
 
     def _add_magnet_slots(self, body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         """Carve magnet cavities into opposing side walls."""
-        from bosl2 import cuboid, cylinder
+        from pybosl2 import cuboid, cylinder
         magnet_type = spec.get("magnet_type")
         if not magnet_type:
             return body
@@ -84,7 +84,7 @@ class NoLidBox:
         if magnet_type == "round":
             diameter = size[0] if size else 6.0
             depth = size[2] if size and len(size) > 2 else 3.0
-            slot = cylinder(h=depth + 0.2, r=diameter / 2 + 0.1)
+            slot = cylinder(height=depth + 0.2, radius=diameter / 2 + 0.1)
         else:  # rect
             w = size[0] if size else 10.0
             l = size[1] if size and len(size) > 1 else 5.0
@@ -96,8 +96,8 @@ class NoLidBox:
 
         # Opposing sides (front/back walls): place slots at the wall midpoint
         if magnet_type == "round":
-            slot_a = slot.rotate_x(90).translate([spec["width"] / 2, -0.1, mid_h])
-            slot_b = slot.rotate_x(90).translate([
+            slot_a = slot.rotate([90, 0, 0]).translate([spec["width"] / 2, -0.1, mid_h])
+            slot_b = slot.rotate([90, 0, 0]).translate([
                 spec["width"] / 2, spec["length"] + 0.1, mid_h,
             ])
         else:
@@ -123,5 +123,6 @@ class NoLidBox:
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
+        from pybosl2 import cuboid
         """No-lid boxes have no lid."""
         return None

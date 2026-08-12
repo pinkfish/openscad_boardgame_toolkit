@@ -18,7 +18,7 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Storage**: Disk JSON cache (`spec_driven/.layout_cache.json`), 3MF files + `layout.pdf` in `{out_dir}/{game}/mmu/`, `{out_dir}/{game}/single/`, and `{out_dir}/{game}/layout.pdf`
 
-**Testing**: `unittest` two-tier: fast pure-Python and full PythonSCAD render. `pyright` strict mode for type checking.
+**Testing**: `unittest` two-tier: fast pure-Python and full PythonSCAD render with golden-image comparison. `pyright` strict mode for type checking.
 
 **Target Platform**: macOS (PythonSCAD.app), cross-platform Python
 
@@ -43,6 +43,43 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 | V. Documented by Default | PASS | All enums/builders/functions fully docstringed; Earth Animal Kingdom is reference |
 
 **Gate Result**: All pass.
+
+## Testing Policy — Full Detailed Unit Tests for All Code Changes
+
+Every change to the codebase MUST be accompanied by full, detailed unit tests. This is non-negotiable and applies to every commit, bug fix, and feature addition:
+
+1. **Every code change has a test**: no module, function, class, or builder is added or modified without a corresponding unit test. A code change without a test is incomplete and MUST NOT be marked done.
+2. **Detailed, not smoke tests**: tests MUST assert specific behaviour — exact dimensions (to 0.1mm), exact placements, exact enum values, exact error messages — not merely that "a solid was returned" or "no exception was raised".
+3. **Fast pure-Python tests first**: logic that does not require pybosl2/PythonSCAD MUST be covered by fast tests runnable via `python3 -m pytest tests/test_spec_driven/` (no render binary). Geometry-layout math, packing, builders, enums, and validation all belong here.
+4. **Render tests for geometry**: any change that produces CSG geometry MUST also include a render test (or be marked `bosl2`-skipped) that verifies real faceted output when the PythonSCAD binary is available.
+5. **Edge cases and negative paths**: tests MUST cover error/validation paths (e.g., ratio sums > 1.0, zero rows/cols, oversized compartments, no-lid + lid conflict) in addition to happy paths.
+6. **Test task per change**: every implementation task in `tasks.md` is paired with a test task (or the task description explicitly states the test it adds). The `[P]` test tasks run before their implementation counterpart (TDD where practical).
+7. **pybosl2/PythonSCAD render tests MUST run — not just be skipped**: the pieces that cannot be tested in pure Python (CSG geometry — `build_body`/`build_lid`, pattern fills, hex-grid cutouts, tessellation wraps, stackable rims, magnet slots, lid labels) MUST be exercised under the real pybosl2 inside PythonSCAD.app. These tests run via the PythonSCAD binary (`/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD`) and MUST NOT silently `skipTest` in CI when the binary is present. A `skip` is only acceptable when the binary is genuinely unavailable.
+8. **Golden-image render tests**: every render test that produces a mesh MUST render it to an image and compare against a committed **golden image** (PNG) using a pixel-difference threshold. This catches visual regressions (wrong orientation, missing cutout, mis-sized feature) that mesh-count or bounding-box assertions miss. Golden images live under `tests/test_spec_driven/golden/` and are regenerated intentionally (not automatically) when the reference geometry changes.
+
+Rationale: the spec-driven library is geometry-heavy and correctness-critical (a wrong 0.1mm offset produces an unprintable box). Detailed unit tests are the only reliable guard against silent regression.
+
+## Documentation Policy — Detailed Python Docs for All Public Methods
+
+Every public method, class, function, enum, and dataclass field MUST carry a detailed Python docstring:
+
+1. **Every public method documented**: no public `def`/`class` ships without a docstring. Private helpers (`_leading_underscore`) are exempt but MUST have descriptive names.
+2. **Detailed docstrings, not one-liners**: docstrings MUST document every parameter (name, type, meaning, valid range, default rationale), the return value (type + meaning), raised exceptions, and a 1–2 line usage example where non-obvious.
+3. **Dataclass fields documented**: every `dataclass` field has a `# comment` or docstring stating its meaning, valid range, and default.
+4. **Auto-generated API docs**: the docstrings feed an API documentation generator (Sphinx/pdoc) — they are the source of truth, not prose separate from the code.
+5. **`py.typed` + full annotations**: every public signature is fully type-annotated so the API docs render accurate parameter types.
+
+## CI/CD — GitHub Actions
+
+The repository MUST have GitHub Actions workflows that run on every push:
+
+1. **Test verification** (`.github/workflows/test.yml`): runs the fast pure-Python suite (`pytest tests/test_spec_driven/`) and `pyright` type checking on every push and PR.
+2. **Rendering verification** (`.github/workflows/render.yml`): runs the pybosl2/PythonSCAD render tests (golden-image comparison) on push — these exercise the CSG geometry (`build_body`/`build_lid`, pattern fills, hex-grid cutouts, tessellation wraps, stackable rims, magnet slots, lid labels) that pure Python cannot validate. The workflow provisions the PythonSCAD binary and fails on any render regression.
+3. **Docs generation** (`.github/workflows/docs.yml`):
+   - **Dev docs on checkin**: every push to a non-release branch regenerates and publishes the API docs under a `dev/` prefix (development documentation).
+   - **Release docs**: a release (git tag / GitHub Release) regenerates and publishes the full versioned release docs, and promotes them as the stable documentation.
+   - Docs are generated from the docstrings (no hand-maintained API reference), so the docs can never drift from the code.
+4. **Spacer/artifact hygiene** is covered by the export step's `_delete_stale_spacers()` (no orphaned 3MF files), enforced by the render/export tests.
 
 ## Project Structure
 
@@ -448,6 +485,14 @@ This is the source of truth for the game-box layout. When porting an example:
 3. **Spacers are derived from the leftover space** after the manual layout is applied — the auto spacer generation fills any remaining gaps.
 
 This is why the 1835 port uses explicit `position=` for all 12 boxes (MoneyBox1–2, HexBox1–4, ShareBox1–4, MiddleBox, FirstPlayer), reproducing the original `BoxLayout` coordinates. The auto-packer is only a fallback for boxes with no manual position.
+
+### Generated Boxes Are Always Accurate — Stale Boxes Are Deleted
+
+Generated box output (boxes, spacers, lids) MUST always accurately reflect the current layout:
+
+1. **Spacer accuracy**: spacer generation MUST produce only the spacers the layout actually needs. The original 1835 layout produces exactly ONE spacer (`SpacerBox` — the 11mm gap above the `FirstPlayer` box). The generator MUST NOT emit spurious spacers for reserved regions — in particular, the **board area** (`board_thickness`, e.g. 15mm) is reserved for the game board, which sits on TOP of the box, and MUST NOT be treated as a spacer gap. Model `board_thickness` explicitly so the spacer pass only considers the usable box volume (`game_box_height - board_thickness`), with the board occupying the top `z = height - board_thickness .. height`.
+2. **Stale-file cleanup**: when a re-export produces fewer spacers than a previous run, the obsolete spacer 3MF files on disk (e.g. `spacer_3_body.3mf` when only `spacer_1`/`spacer_2` are now generated) MUST be deleted. The export step MUST NOT leave orphaned spacer files that no longer correspond to a generated spacer.
+3. **Deterministic naming**: spacers are numbered `spacer_1..spacer_N` in generation order; a spacer that is removed shifts no other spacer's numbering (renumbering happens naturally each run).
 
 ### Migration Checklist
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 from spec_driven.box.base import Interior
@@ -27,14 +27,14 @@ class HingeBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         try:
-            from bosl2 import cylinder
+            from pybosl2 import cylinder
         except ImportError:
             pass
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         try:
-            from bosl2 import cylinder
+            from pybosl2 import cylinder
         except ImportError:
             pass
         wt = spec.get("wall_thickness", 2.0)
@@ -53,14 +53,15 @@ class HingeBox:
         spacing = spec["width"] / (hinge_count + 1)
         for i in range(hinge_count):
             x = spacing * (i + 1)
-            knuckle = cylinder(h=spec["length"] * 0.1 + wt, r=hinge_d / 2)
-            knuckle = knuckle.rotate_x(90)
+            knuckle = cylinder(height=spec["length"] * 0.1 + wt, radius=hinge_d / 2)
+            knuckle = knuckle.rotate([90, 0, 0])
             knuckle = knuckle.translate([x, spec["length"], spec["height"]])
-            body = body + knuckle
+            body = body | knuckle
 
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
+        from pybosl2 import cuboid
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         lid = cuboid([spec["width"], spec["length"], lt])

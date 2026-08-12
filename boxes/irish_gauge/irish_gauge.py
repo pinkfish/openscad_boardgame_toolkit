@@ -74,7 +74,7 @@ money = project.box(
 for i, denomination in enumerate(["1", "5", "10"]):
     money.compartment(
         denomination, size=(card_width, card_length - 4), depth=money_box_height,
-        finger_scoop=True,
+        finger_scoop=True, no_rotate=True,
     )
 
 # ── Company Boxes (5, shared footprint, distinct contents) ────────

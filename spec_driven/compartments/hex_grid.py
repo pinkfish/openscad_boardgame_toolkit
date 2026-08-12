@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 COS_30 = math.cos(math.radians(30))
 
@@ -137,39 +137,38 @@ def build_hex_grid(spec: HexGridSpec) -> "Bosl2Solid":
         from the box floor), or None if pybosl2 is unavailable.
     """
     try:
-        from bosl2 import RegularPolygon, cylinder
+        from pybosl2 import regular_prism, cylinder
     except ImportError:
         return None
 
     cells = compute_hex_layout(spec)
-    r = spec.circumradius
     cutouts = None
 
     for cell in cells:
         cx, cy = cell.center
 
-        # Hexagonal prism cutout for the tile
-        hex_cutout = RegularPolygon(
-            width=spec.tile_width, height=spec.height + 10, shape_edges=6
+        # Hexagonal prism cutout for the tile (diameter = apothem-to-apothem width)
+        hex_cutout = regular_prism(
+            sides=6, height=spec.height + 10, diameter=spec.tile_width,
         )
 
         # Push block: subtract a smaller hexagon from the cell center,
         # leaving a raised central pillar (FR-041)
         if spec.push_block_height > 0:
-            push = RegularPolygon(
-                width=spec.push_block_width, height=spec.push_block_height, shape_edges=6
+            push = regular_prism(
+                sides=6, height=spec.push_block_height, diameter=spec.push_block_width,
             )
             hex_cutout = hex_cutout - push
 
         # Finger hole: circular cutout through the floor (FR-042).
         # Offset from the pillar to the cell edge when both are present.
         if spec.finger_hole_diameter > 0:
-            hole = cylinder(h=spec.height + 1, r=spec.finger_hole_diameter / 2)
+            hole = cylinder(height=spec.height + 1, radius=spec.finger_hole_diameter / 2)
             offset_x = spec.circumradius * 0.4 if spec.push_block_height > 0 else 0.0
             hole = hole.translate([offset_x, 0, -0.5])
             hex_cutout = hex_cutout - hole
 
         hex_cutout = hex_cutout.translate([cx, cy, 0])
-        cutouts = hex_cutout if cutouts is None else cutouts + hex_cutout
+        cutouts = hex_cutout if cutouts is None else cutouts | hex_cutout
 
     return cutouts

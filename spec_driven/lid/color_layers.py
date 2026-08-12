@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from spec_driven import Color
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 @dataclass

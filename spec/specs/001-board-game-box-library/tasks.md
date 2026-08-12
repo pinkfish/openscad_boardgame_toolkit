@@ -317,6 +317,20 @@
 - [x] T121 Create `boxes/1835/1835.py` — hex boxes (3×5 hex grid ×4 stacked), money boxes (8 denominations), share boxes (8 companies), middle box (tokens/trains), first-player box, spacer in `boxes/1835/`
 - [x] T122 [P] Write test: hex grid derives circumradius + rows/cols layout correctly in `tests/test_spec_driven/test_hex_grid.py`
 - [x] T123 [P] Write test: push block + finger hole are mutually offset (never intersect) in `tests/test_spec_driven/test_hex_grid.py`
+- [x] T124 [P] Add `board_thickness` field to `Project` — reserved board space at the box bottom, not a spacer gap — in `spec_driven/project.py`
+- [x] T125 [P] Exclude the board area from spacer generation by using `game_box_height - board_thickness` as the effective container height in `spec_driven/project.py`
+- [x] T126 [P] Implement `_delete_stale_spacers()` — delete orphaned `spacer_*` 3MF files no longer generated — in `spec_driven/project.py`
+- [x] T127 [P] Write test: `board_thickness` excludes the board area from spacer generation (no spacer for reserved board space) in `tests/test_spec_driven/test_packing.py`
+- [x] T128 [P] Write test: `_delete_stale_spacers()` removes orphaned spacer files when re-export produces fewer spacers in `tests/test_spec_driven/test_export.py`
+- [x] T129 [P] Write test: 1835 example produces exactly one spacer (matching the original `SpacerBox`) in `tests/test_spec_driven/test_irish_gauge.py`
+- [x] T130 [P] Create spec_driven render test helper — shell out to the full PythonSCAD binary and report geometry (`render_spec_driven.py` reusing `tests/render_app.py`'s `render_python`/`render_script`) in `tests/test_spec_driven/render/`
+- [x] T131 [P] Create golden-image render tests for box bodies/lids (sliding, cap, hinge, no-lid, stackable, magnetic) using `compare_images` against `tests/test_spec_driven/golden/` in `tests/test_spec_driven/render/test_boxes_golden.py`
+- [x] T132 [P] Create golden-image render tests for lid patterns (hex grid, voronoi, a pentagon tiling, a tessellation) in `tests/test_spec_driven/render/test_patterns_golden.py`
+- [x] T133 [P] Create golden-image render tests for hex-grid compartments (push block + finger hole) in `tests/test_spec_driven/render/test_hex_grid_golden.py`
+- [x] T134 [P] Create golden-image generator script that renders every golden case to `tests/test_spec_driven/golden/` in `tests/test_spec_driven/generate_golden.py`
+- [x] T135 [P] Create GitHub Actions test workflow (fast pytest + pyright) in `.github/workflows/test.yml`
+- [x] T136 [P] Create GitHub Actions render workflow (PythonSCAD golden-image verification) in `.github/workflows/render.yml`
+- [x] T137 [P] Create GitHub Actions docs workflow (dev docs on checkin, release docs on tag) in `.github/workflows/docs.yml`
 
 ---
 

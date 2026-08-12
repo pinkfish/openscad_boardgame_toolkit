@@ -6,12 +6,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 from spec_driven.box.base import Interior
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 class CapBox:
@@ -29,12 +29,12 @@ class CapBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         try:
-            from bosl2 import cylinder
+            from pybosl2 import cylinder
         except ImportError:
             pass
-        from bosl2 import cuboid
+        from pybosl2 import cuboid
         wt = spec.get("wall_thickness", 2.0)
         ft = spec.get("floor_thickness", 1.6)
         outer = cuboid([spec["width"], spec["length"], spec["height"]])
@@ -46,6 +46,7 @@ class CapBox:
         return outer - inner
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
+        from pybosl2 import cuboid
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         cap_h = spec.get("cap_height", 8.0)

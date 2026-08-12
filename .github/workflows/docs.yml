@@ -1,0 +1,57 @@
+name: docs
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pybosl2 pdoc
+
+      - name: Determine docs target
+        id: target
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "dir=release/${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            echo "label=release" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=dev" >> "$GITHUB_OUTPUT"
+            echo "label=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate API docs (from docstrings)
+        run: |
+          pdoc spec_driven -o docs/html --docformat markdown
+
+      - name: Upload docs artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/html
+
+  deploy:
+    if: github.event_name == 'push'
+    needs: docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

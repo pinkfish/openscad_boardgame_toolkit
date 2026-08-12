@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from spec_driven.enums import LabelMode
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 def build_label(
@@ -54,7 +54,7 @@ def build_label(
         return None
 
     try:
-        from bosl2 import cuboid, text as bosl2_text
+        from pybosl2 import cuboid, text as bosl2_text
     except ImportError:
         raise
 
@@ -69,7 +69,7 @@ def build_label(
         # Rotate to corner-to-corner angle
         import math
         angle = math.degrees(math.atan2(length, width))
-        text_solid = text_solid.rotate_z(angle)
+        text_solid = text_solid.rotate([0, 0, angle])
 
     # Center on lid
     text_solid = text_solid.translate([
@@ -97,7 +97,7 @@ def build_label(
         text_solid = text_solid.translate([0, 0, 0.4])
         label = cuboid([label_w, label_l, 0.2])
         label = label.translate([border_margin_mm, border_margin_mm, 0])
-        return frame + hatching + label + text_solid
+        return frame | hatching | label | text_solid
 
     # Frameless: just text
     return text_solid
@@ -116,7 +116,7 @@ def _build_hatching(
     Returns:
         Bosl2Solid with diagonal hatching lines.
     """
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
 
     hatching = None
     line_w = 0.6  # thin enough to bridge without supports
@@ -128,11 +128,11 @@ def _build_hatching(
     for i in range(num_lines):
         pos = i * spacing
         line = cuboid([diagonal, line_w, 0.2])
-        line = line.rotate_z(angle)
+        line = line.rotate([0, 0, angle])
         line = line.translate([pos - diagonal / 2, pos - diagonal / 2, 0])
         if hatching is None:
             hatching = line
         else:
-            hatching = hatching + line
+            hatching = hatching | line
 
     return hatching or cuboid([1, 1, 0.2])

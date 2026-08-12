@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 def build_floor_label(
@@ -39,7 +39,7 @@ def build_floor_label(
         font_size = max(max_size, 2.0)
 
     try:
-        from bosl2 import text as bosl2_text
+        from pybosl2 import text as bosl2_text
     except ImportError:
         return None
 
@@ -52,8 +52,7 @@ def build_floor_label(
 
     if mode == "single":
         # Extrude for engraving: positive solid to subtract from floor
-        from bosl2 import linear_extrude
-        text_solid = linear_extrude(text_solid, height=height + 0.1)
+        text_solid = text_solid.linear_extrude(height=height + 0.1)
     # MMU mode: 2D text sits on floor, color contrast handles visibility
 
     return text_solid

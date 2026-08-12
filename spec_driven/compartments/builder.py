@@ -33,6 +33,8 @@ class CompartmentBuilder:
     """Enable finger scoop cutout."""
     scoop_side: ScoopSide = ScoopSide.FRONT
     """Which side the finger scoop is on."""
+    no_rotate: bool = False
+    """Prevent the layout algorithm from rotating this compartment (e.g. directional card slots)."""
 
     def __post_init__(self) -> None:
         if self.size is None and self.width_ratio is None and self.length_ratio is None:

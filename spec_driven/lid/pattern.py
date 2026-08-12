@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Callable
 from spec_driven.enums import PatternType
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 def build_pattern(
@@ -48,7 +48,7 @@ def build_pattern(
 
 def _grid_fill(width, length, thickness, spacing):
     """Square grid through-holes."""
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
     holes = None
     hole_size = spacing * 0.4
     x_count = int(width / spacing) + 1
@@ -62,13 +62,13 @@ def _grid_fill(width, length, thickness, spacing):
             if cy + hole_size > length:
                 continue
             hole = cuboid([hole_size, hole_size, thickness * 1.2]).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
+            holes = hole if holes is None else holes | hole
     return holes or cuboid([1, 1, 1])
 
 
 def _hex_grid_fill(width, length, thickness, spacing):
     """Hexagonal grid through-holes (cubic approximation)."""
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
     holes = None
     hex_r = spacing / 2
     row_h = hex_r * 1.5
@@ -82,13 +82,13 @@ def _hex_grid_fill(width, length, thickness, spacing):
             if cx < 0 or cx > width or cy < 0 or cy > length:
                 continue
             hole = cuboid([hex_r, hex_r, thickness * 1.2]).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
+            holes = hole if holes is None else holes | hole
     return holes or cuboid([1, 1, 1])
 
 
 def _circle_grid_fill(width, length, thickness, spacing):
     """Circular through-holes."""
-    from bosl2 import cylinder
+    from pybosl2 import cylinder
     holes = None
     r = spacing * 0.35
     x_count = int(width / spacing) + 1
@@ -97,14 +97,14 @@ def _circle_grid_fill(width, length, thickness, spacing):
         cx = xi * spacing
         for yi in range(y_count):
             cy = yi * spacing
-            hole = cylinder(h=thickness * 1.2, r=r).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
-    return holes or cylinder(h=1, r=1)
+            hole = cylinder(height=thickness * 1.2, radius=r).translate([cx, cy, -0.1])
+            holes = hole if holes is None else holes | hole
+    return holes or cylinder(height=1, radius=1)
 
 
 def _triangle_grid_fill(width, length, thickness, spacing, dense=False):
     """Triangular through-holes (cubic approximation)."""
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
     holes = None
     hole_size = spacing * (0.35 if dense else 0.4)
     x_count = int(width / spacing) + 1
@@ -114,13 +114,13 @@ def _triangle_grid_fill(width, length, thickness, spacing, dense=False):
         for yi in range(y_count):
             cy = yi * spacing
             hole = cuboid([hole_size, hole_size, thickness * 1.2]).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
+            holes = hole if holes is None else holes | hole
     return holes or cuboid([1, 1, 1])
 
 
 def _voronoi_fill(width, length, thickness, spacing):
     """Voronoi cell through-holes (deterministic jittered grid)."""
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
     import random
     holes = None
     rng = random.Random(42)
@@ -134,13 +134,13 @@ def _voronoi_fill(width, length, thickness, spacing):
             if cx < 0 or cx + hole_size > width or cy < 0 or cy + hole_size > length:
                 continue
             hole = cuboid([hole_size, hole_size, thickness * 1.2]).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
+            holes = hole if holes is None else holes | hole
     return holes or cuboid([1, 1, 1])
 
 
 def _shape_grid_fill(width, length, thickness, spacing, shape_name):
     """Generic shape-grid fill (octogon, cloud, supershape, hilbert approximations)."""
-    from bosl2 import cuboid
+    from pybosl2 import cuboid
     holes = None
     hole_size = spacing * 0.4
     x_count = int(width / spacing) + 1
@@ -150,7 +150,7 @@ def _shape_grid_fill(width, length, thickness, spacing, shape_name):
         for yi in range(y_count):
             cy = yi * spacing
             hole = cuboid([hole_size, hole_size, thickness * 1.2]).translate([cx, cy, -0.1])
-            holes = hole if holes is None else holes + hole
+            holes = hole if holes is None else holes | hole
     return holes or cuboid([1, 1, 1])
 
 
@@ -160,7 +160,7 @@ def _make_pentagon_fill(pentagon_type: str):
     def fill(width, length, thickness, spacing):
         try:
             from pentagon_tilings import pentagon_tesselation_area
-            from bosl2 import linear_extrude
+            from pybosl2 import linear_extrude
             area = pentagon_tesselation_area(
                 pentagon_type=pentagon_type, pentagon_size=spacing,
                 width=width, length=length, thickness=thickness,

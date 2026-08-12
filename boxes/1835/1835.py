@@ -61,6 +61,7 @@ project = Project(
     floor_thickness=floor_thickness,
     lid_thickness=lid_thickness,
     clearance_slack=0.0,
+    board_thickness=board_thickness,
 )
 
 # ── Hex Boxes (4 stacked, each a 3×5 hex grid) ────────────────────
@@ -93,7 +94,7 @@ for box_idx in range(2):
     )
     for slot in range(4):
         denom = money_names[box_idx * 4 + slot]
-        money.compartment(denom, size=(50, money_length - 4), depth=5.0, finger_scoop=True)
+        money.compartment(denom, size=(50, money_length - 4), depth=5.0, finger_scoop=True, no_rotate=True)
 
 # ── Share Boxes (4, 2 companies each) ─────────────────────────────
 for box_idx in range(4):

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from spec_driven.enums import ScoopSide
 
 if TYPE_CHECKING:
-    from bosl2 import Bosl2Solid
+    from pybosl2.shapes3d import Bosl2Solid
 
 
 def build_wall_scoop(
@@ -30,32 +30,32 @@ def build_wall_scoop(
     Returns:
         Bosl2Solid cutout to subtract from the compartment.
     """
-    from bosl2 import cuboid, cylinder
+    from pybosl2 import cuboid, cylinder
 
     scoop_depth = radius * 0.7  # How deep into the wall
 
     if side == ScoopSide.FRONT:
-        scoop = cylinder(h=comp_width * 0.4, r=radius)
-        scoop = scoop.rotate_x(90)
+        scoop = cylinder(height=comp_width * 0.4, radius=radius)
+        scoop = scoop.rotate([90, 0, 0])
         scoop = scoop.translate([
             comp_width * 0.3, -scoop_depth, comp_depth - radius * 0.8,
         ])
     elif side == ScoopSide.BACK:
-        scoop = cylinder(h=comp_width * 0.4, r=radius)
-        scoop = scoop.rotate_x(90)
+        scoop = cylinder(height=comp_width * 0.4, radius=radius)
+        scoop = scoop.rotate([90, 0, 0])
         scoop = scoop.translate([
             comp_width * 0.3, comp_length + scoop_depth - radius,
             comp_depth - radius * 0.8,
         ])
     elif side == ScoopSide.LEFT:
-        scoop = cylinder(h=comp_length * 0.4, r=radius)
-        scoop = scoop.rotate_y(90)
+        scoop = cylinder(height=comp_length * 0.4, radius=radius)
+        scoop = scoop.rotate([0, 90, 0])
         scoop = scoop.translate([
             -scoop_depth, comp_length * 0.3, comp_depth - radius * 0.8,
         ])
     elif side == ScoopSide.RIGHT:
-        scoop = cylinder(h=comp_length * 0.4, r=radius)
-        scoop = scoop.rotate_y(90)
+        scoop = cylinder(height=comp_length * 0.4, radius=radius)
+        scoop = scoop.rotate([0, 90, 0])
         scoop = scoop.translate([
             comp_width + scoop_depth - radius,
             comp_length * 0.3,
@@ -86,30 +86,30 @@ def build_floor_scoop(
     Returns:
         Bosl2Solid cutout.
     """
-    from bosl2 import cylinder, cuboid
+    from pybosl2 import cylinder, cuboid
 
     depth = 4.0  # Shallow floor scoop
     if side == ScoopSide.FRONT:
-        scoop = cylinder(h=comp_width * 0.3, r=radius)
-        scoop = scoop.rotate_x(90)
+        scoop = cylinder(height=comp_width * 0.3, radius=radius)
+        scoop = scoop.rotate([90, 0, 0])
         scoop = scoop.translate([
             comp_width * 0.35, comp_length * 0.15, -0.1,
         ])
     elif side == ScoopSide.BACK:
-        scoop = cylinder(h=comp_width * 0.3, r=radius)
-        scoop = scoop.rotate_x(90)
+        scoop = cylinder(height=comp_width * 0.3, radius=radius)
+        scoop = scoop.rotate([90, 0, 0])
         scoop = scoop.translate([
             comp_width * 0.35, comp_length * 0.85, -0.1,
         ])
     elif side == ScoopSide.LEFT:
-        scoop = cylinder(h=comp_length * 0.3, r=radius)
-        scoop = scoop.rotate_y(90)
+        scoop = cylinder(height=comp_length * 0.3, radius=radius)
+        scoop = scoop.rotate([0, 90, 0])
         scoop = scoop.translate([
             comp_width * 0.15, comp_length * 0.35, -0.1,
         ])
     else:
-        scoop = cylinder(h=comp_length * 0.3, r=radius)
-        scoop = scoop.rotate_y(90)
+        scoop = cylinder(height=comp_length * 0.3, radius=radius)
+        scoop = scoop.rotate([0, 90, 0])
         scoop = scoop.translate([
             comp_width * 0.85, comp_length * 0.35, -0.1,
         ])

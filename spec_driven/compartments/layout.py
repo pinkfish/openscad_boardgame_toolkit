@@ -32,6 +32,7 @@ def layout_compartments(
     interior: Interior,
     compartments: list[tuple[str, float, float, float]],
     wall_spacing: float = 2.0,
+    no_rotate_labels: set[str] | None = None,
 ) -> CompartmentLayout:
     """Row-based layout of compartments inside the box interior with 90-degree rotation support.
 
@@ -46,6 +47,8 @@ def layout_compartments(
     layout = CompartmentLayout()
     if not compartments:
         return layout
+
+    no_rotate_labels = no_rotate_labels or set()
 
     interior_w = interior.width
     interior_l = interior.length
@@ -62,15 +65,17 @@ def layout_compartments(
     current_row_height = 0.0
 
     for label, comp_w, comp_l, comp_depth in sorted_comps:
+        can_rotate = label not in no_rotate_labels
         # Check both normal and rotated orientations
         fits_normal = (x_cursor + comp_w + wall_spacing <= interior_w) and (y_cursor + comp_l + wall_spacing <= interior_l)
-        fits_rotated = (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
+        fits_rotated = can_rotate and (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
 
         w, l = comp_w, comp_l
         if fits_normal or fits_rotated:
             if fits_normal and fits_rotated:
-                # Both fit: keep the normal orientation (don't rotate)
-                w, l = comp_w, comp_l
+                # Both fit: rotate portrait items to landscape to keep rows short
+                if comp_l > comp_w:
+                    w, l = comp_l, comp_w
             elif fits_rotated:
                 w, l = comp_l, comp_w
         else:
@@ -81,11 +86,12 @@ def layout_compartments(
 
             # Re-evaluate fit in new row
             fits_normal_new = (x_cursor + comp_w + wall_spacing <= interior_w) and (y_cursor + comp_l + wall_spacing <= interior_l)
-            fits_rotated_new = (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
+            fits_rotated_new = can_rotate and (x_cursor + comp_l + wall_spacing <= interior_w) and (y_cursor + comp_w + wall_spacing <= interior_l)
 
             if fits_normal_new or fits_rotated_new:
                 if fits_normal_new and fits_rotated_new:
-                    w, l = comp_w, comp_l
+                    if comp_l > comp_w:
+                        w, l = comp_l, comp_w
                 elif fits_rotated_new:
                     w, l = comp_l, comp_w
             else:

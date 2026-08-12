@@ -38,6 +38,8 @@ class Project:
     """Minimum spacer width/length before absorption."""
     clearance_slack: float = 1.0
     """Clearance slack on each side of the game box in the X/Y directions (mm)."""
+    board_thickness: float = 0.0
+    """Thickness of the game board (mm). Reserved space at the TOP of the box — the board sits on top of the sub-boxes, not a spacer gap."""
 
     _boxes: list[BoxBuilder] = field(default_factory=list, init=False)
     _shared_groups: list = field(default_factory=list, init=False)
@@ -267,7 +269,8 @@ class Project:
 
             if comp_data:
                 from spec_driven.compartments.layout import layout_compartments
-                comp_layout = layout_compartments(interior, comp_data)
+                no_rotate_labels = {cb.label for cb in builder.compartments if cb.no_rotate}
+                comp_layout = layout_compartments(interior, comp_data, no_rotate_labels=no_rotate_labels)
                 if comp_layout.overflow:
                     raise ValueError(
                         f"Compartments do not fit in box '{builder.label}' "
@@ -428,8 +431,18 @@ class Project:
                                 )
             return spacers
 
-        spacer_placements = generate_spacers_for_3d_packing(self.game_box_size, packing.placements)
+        # Effective box container: subtract board thickness from the height so the
+        # board area is reserved (occupied by the game board), not treated as a spacer gap.
+        effective_container = (
+            self.game_box_size[0],
+            self.game_box_size[1],
+            self.game_box_size[2] - self.board_thickness,
+        )
+        spacer_placements = generate_spacers_for_3d_packing(effective_container, packing.placements)
         packing.spacer_placements = spacer_placements
+
+        # Delete stale spacer files from previous runs (no longer-generated spacers)
+        self._delete_stale_spacers(out_dir, spacer_placements)
 
         # Build and write spacer 3MF files
         for spacer in spacer_placements:
@@ -549,6 +562,24 @@ class Project:
             skipped=(),
             total_files=len(written),
         )
+
+    def _delete_stale_spacers(self, out_dir: str | Path, spacer_placements: list) -> None:
+        """Delete orphaned spacer 3MF files that no longer correspond to a generated spacer.
+
+        Args:
+            out_dir: Root output directory.
+            spacer_placements: The current set of spacer placements.
+        """
+        current_labels = {sp.label for sp in spacer_placements}
+        for mode in ("mmu", "single"):
+            spacer_dir = Path(out_dir) / self.name / mode
+            if not spacer_dir.exists():
+                continue
+            suffix = "_body_single.3mf" if mode == "single" else "_body.3mf"
+            for f in spacer_dir.glob("spacer_*"):
+                label = f.name[:-len(suffix)]
+                if label not in current_labels:
+                    f.unlink(missing_ok=True)
 
     def pack_compartments_across_bins(
         self,

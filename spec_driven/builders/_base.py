@@ -72,6 +72,7 @@ class BoxBuilder:
         rounded_corners: float = 0.0,
         finger_scoop: bool = False,
         scoop_side: "ScoopSide" = None,
+        no_rotate: bool = False,
     ) -> CompartmentBuilder:
         """Add a compartment to this box."""
         from spec_driven.compartments.builder import CompartmentBuilder
@@ -86,6 +87,7 @@ class BoxBuilder:
             rounded_corners=rounded_corners,
             finger_scoop=finger_scoop,
             scoop_side=scoop_side or ScoopSide.FRONT,
+            no_rotate=no_rotate,
         )
         object.__setattr__(self, "compartments", self.compartments + (cb,))
         return cb
