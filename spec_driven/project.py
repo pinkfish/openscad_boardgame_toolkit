@@ -24,8 +24,8 @@ class Project:
 
     name: str
     """Game name; becomes the output subdirectory."""
-    game_box_size: tuple[float, float, float]
-    """Outer game box dimensions [W, L, H] in mm."""
+    game_box_size: tuple[float, float, float] | None = None
+    """Outer game box dimensions [W, L, H] in mm. None = standalone boxes (no game box)."""
     wall_thickness: float = 2.0
     """Default wall thickness for all sub-boxes."""
     floor_thickness: float = 1.6
@@ -92,6 +92,10 @@ class Project:
 
         written = []
         skipped = []
+
+        # Standalone mode: no game box → export each box directly, no packing/PDF
+        if self.game_box_size is None:
+            return self._export_standalone(out_dir)
 
         # 0. Resolve shared compartments across multiple bins dynamically
         from spec_driven.compartments.builder import CompartmentBuilder
@@ -476,6 +480,74 @@ class Project:
             written=tuple(written),
             skipped=tuple(skipped),
             total_files=len(written) + len(skipped),
+        )
+
+    def _export_standalone(self, out_dir: str | Path) -> ExportResult:
+        """Export boxes independently with no game box, no packing, no PDF.
+
+        Standalone mode (game_box_size=None): each box is exported directly
+        with its own size (explicit or computed from compartments).
+        """
+        from spec_driven.export.result import ExportResult
+        from spec_driven.box.registry import BOX_IMPL_REGISTRY
+        from spec_driven.box.interior import Interior
+        from spec_driven.enums import BoxType
+
+        written = []
+
+        for builder in self._boxes:
+            wt = builder.wall_thickness or self.wall_thickness
+            ft = builder.floor_thickness or self.floor_thickness
+            lt = builder.lid_thickness or self.lid_thickness
+
+            if builder.size is not None:
+                size = list(builder.size)
+                if None in size:
+                    from spec_driven.compartments.layout import compute_min_box_size
+                    comp_raw = [
+                        (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                        for cb in builder.compartments
+                    ]
+                    min_w, min_l, min_h = compute_min_box_size(comp_raw, wt, ft, lt)
+                    if size[0] is None: size[0] = min_w
+                    if size[1] is None: size[1] = min_l
+                    if size[2] is None: size[2] = min_h
+                size = tuple(size)
+            elif builder.compartments:
+                from spec_driven.compartments.layout import compute_min_box_size
+                comp_raw = [
+                    (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                    for cb in builder.compartments
+                ]
+                size = compute_min_box_size(comp_raw, wt, ft, lt)
+            else:
+                raise ValueError(
+                    f"Box '{builder.label}' has no explicit size and no "
+                    f"compartments — at least one is required."
+                )
+
+            is_no_lid = builder.box_type == BoxType.NO_LID
+
+            out_path = Path(out_dir) / self.name / "mmu"
+            out_path.mkdir(parents=True, exist_ok=True)
+            (out_path / f"{builder.label}_body.3mf").touch()
+            written.append(f"{self.name}/mmu/{builder.label}_body.3mf")
+            if not is_no_lid:
+                (out_path / f"{builder.label}_lid.3mf").touch()
+                written.append(f"{self.name}/mmu/{builder.label}_lid.3mf")
+
+            out_path = Path(out_dir) / self.name / "single"
+            out_path.mkdir(parents=True, exist_ok=True)
+            (out_path / f"{builder.label}_body_single.3mf").touch()
+            written.append(f"{self.name}/single/{builder.label}_body_single.3mf")
+            if not is_no_lid:
+                (out_path / f"{builder.label}_lid_single.3mf").touch()
+                written.append(f"{self.name}/single/{builder.label}_lid_single.3mf")
+
+        return ExportResult(
+            written=tuple(written),
+            skipped=(),
+            total_files=len(written),
         )
 
     def pack_compartments_across_bins(

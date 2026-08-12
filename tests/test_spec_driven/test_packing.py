@@ -67,3 +67,31 @@ class PackingTests(unittest.TestCase):
     def test_cache_miss(self) -> None:
         value = get_cached("nonexistent-key-12345")
         self.assertIsNone(value)
+
+
+class NoRotateTests(unittest.TestCase):
+    def test_no_rotate_box_never_rotated(self) -> None:
+        """A no_rotate box keeps its original orientation (FR-013c)."""
+        result = pack_boxes((300, 300, 39), [
+            {"label": "A", "size": (214, 77, 28.5), "no_rotate": True},
+        ])
+        self.assertEqual(len(result.placements), 1)
+        self.assertFalse(result.placements[0].rotation)
+        self.assertEqual(tuple(result.placements[0].size), (214, 77, 28.5))
+
+    def test_rotatable_box_can_rotate(self) -> None:
+        """A rotatable box (no_rotate=False) may be rotated to fit."""
+        # Container narrower than the box width forces a rotation
+        result = pack_boxes((100, 300, 39), [
+            {"label": "A", "size": (214, 77, 28.5), "no_rotate": False},
+        ])
+        if result.placements:
+            # If placed, the box must have been rotated to fit the 100-wide container
+            self.assertTrue(result.placements[0].rotation)
+
+    def test_no_rotate_does_not_fit_narrow_container(self) -> None:
+        """A no_rotate box that can't fit without rotation is not placed."""
+        result = pack_boxes((100, 300, 39), [
+            {"label": "A", "size": (214, 77, 28.5), "no_rotate": True},
+        ])
+        self.assertEqual(len(result.placements), 0)

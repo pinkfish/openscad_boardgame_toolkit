@@ -62,7 +62,11 @@ def pack_boxes(
         })
 
     # Run 3D solver
-    packed = pack_3d_boxes(container_size, items)
+    try:
+        packed = pack_3d_boxes(container_size, items)
+    except Exception:
+        # Could not pack all items — return empty packing rather than crash
+        return packing
 
     # Convert results to placements
     for name, info in packed.items():

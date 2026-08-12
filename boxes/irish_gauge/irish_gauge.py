@@ -96,10 +96,10 @@ for i, company in enumerate(companies):
         position=position,
         lid=LidBuilder(text=lid_text, label_mode=LabelMode.FRAMED, text_color=Color("white")),
     )
-    # Share cards stacked per company's share count
+    # Share cards stacked per company's share count (sized to fit 47.5mm interior width)
     share_depth = single_card_thickness * company["shares"] + 1
     box.compartment(
-        "Shares", size=(card_width, card_length), depth=share_depth,
+        "Shares", size=(43, card_length), depth=share_depth,
         finger_scoop=True,
     )
     # Trains well (19 trains, ~6x4 grid)
