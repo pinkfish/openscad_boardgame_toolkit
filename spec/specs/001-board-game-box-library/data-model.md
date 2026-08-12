@@ -32,9 +32,9 @@ Project.export()
 | `PatternType` | HEX_GRID, GRID, VORONOI | Lid through-hole pattern |
 | `ScoopSide` | FRONT, BACK, LEFT, RIGHT | Finger scoop placement |
 
-## Color (`spec_driven/color.py`)
+## Color (`pybosl2.Color`, re-exported from `spec_driven`)
 
-Immutable RGBA dataclass. Named presets: `Color.WHITE()`, `Color.BLACK()`, etc. Values 0.0–1.0.
+Use `pybosl2.Color` directly — no custom Color class. Supports webcolor names (`Color("darkgreen")`, `Color("gold")`) and list/tuple construction (`Color([1, 0, 0])`). RGBA values 0.0–1.0.
 
 ## Project (`spec_driven/project.py`)
 

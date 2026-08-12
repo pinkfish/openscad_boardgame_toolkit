@@ -111,14 +111,14 @@ CompartmentBuilder(
 )
 ```
 
-## Color (`spec_driven/color.py`)
+## Color (`pybosl2.Color`, re-exported from `spec_driven`)
 
 ```
-Color(r: float, g: float, b: float, a: float = 1.0)
-Color.WHITE()  → Color(1, 1, 1)
-Color.BLACK()  → Color(0, 0, 0)
-Color.RED()    → Color(1, 0, 0)
-# ... additional presets
+Color([r, g, b])        # list/tuple of floats 0.0–1.0
+Color("white")          # webcolor name
+Color("darkgreen")      # webcolor name
+Color("gold")           # webcolor name
+# no presets — use Color("name") at the call site
 ```
 
 ## File Naming

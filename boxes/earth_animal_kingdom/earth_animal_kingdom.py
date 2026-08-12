@@ -91,7 +91,7 @@ def add_animal_box(label: str):
     return project.box(
         BoxType.FILAMENT_HINGE,
         label,
-        size=(174.0, 156.0, 12.5),
+        size=(174.0, 156.0, 12.1),
         lid=LidBuilder(
             text=label,
             label_mode=LabelMode.FRAMED,

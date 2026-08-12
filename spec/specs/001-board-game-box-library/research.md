@@ -225,13 +225,14 @@ Where bosl2's basic primitives (`cube`, `cylinder`, `sphere`, `linear_extrude`, 
 
 **Rationale**: bosl2's basic pieces are well-tested, fast, and have consistent APIs. Higher-level generators add indirection and potential for drift. The borrowed shape generators from the existing codebase (`shapes.py`) should only be used for complex shapes (e.g., hex grids, voronoi fills) that cannot be trivially expressed as basic booleans.
 
-### Decision: Use pybosl2's built-in Color type — do not reimplement
+### Decision: Use pybosl2's built-in Color type — no reimplementation, no file, no presets
 
-`spec_driven/color.py` must be replaced with a thin re-export of pybosl2's built-in `Color` type. The custom `Color` dataclass (with named presets like `WHITE()`, `BLACK()`, `GOLD()`) is an unnecessary reimplementation. pybosl2's `Color` provides the same RGBA representation and integrates directly with the CSG pipeline without conversion.
+Use `pybosl2.Color` directly via `from pybosl2 import Color`. There is no `spec_driven/color.py` file, no wrapper, no fallback dataclass, and no preset constants. pybosl2's `Color` supports webcolor names (`Color("darkgreen")`, `Color("gold")`) and list/tuple construction (`Color([1, 0, 0])`).
 
-**Rationale**: Maintaining a parallel Color type creates impedance mismatch — every color value must be converted between `spec_driven.Color` and `pybosl2.Color` at geometry construction boundaries. Using pybosl2's Color natively eliminates this conversion layer. The named preset constructors (`Color.WHITE()`, etc.) can be preserved as module-level constants or simple functions that return pybosl2 Color instances.
+**Rationale**: Maintaining any parallel Color type (dataclass, thin re-export, or preset module) creates impedance mismatch — every color value must be converted between `spec_driven` and `pybosl2` at geometry construction boundaries. Using pybosl2's Color natively eliminates this entirely. Webcolor names provide discoverable, readable color specification without hardcoding RGB values.
 
 **Alternatives considered**:
-- Keep custom Color: Adds conversion overhead at every geometry boundary.
-- Use plain tuples: Loses type safety and named semantics.
+- Custom Color dataclass: Reimplements pybosl2; adds conversion overhead.
+- Thin re-export module: Extra indirection for zero benefit.
+- Preset constants (WHITE, BLACK, GOLD): Duplicates pybosl2's webcolor-name support.
 - Use `colorsys` + raw floats: Reimplements what pybosl2 already provides.

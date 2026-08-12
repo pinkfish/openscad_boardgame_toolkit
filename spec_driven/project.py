@@ -398,7 +398,7 @@ class Project:
                             size_l = sorted_ys[j2] - pos_y
                             size_h = sorted_zs[k2] - pos_z
                             
-                            if size_w >= 2.0 and size_l >= 2.0 and size_h >= 2.0:
+                            if size_w >= 5.0 and size_l >= 5.0 and size_h >= 5.0:
                                 spacers.append(
                                     Placement(
                                         label=f"spacer_{len(spacers)+1}",

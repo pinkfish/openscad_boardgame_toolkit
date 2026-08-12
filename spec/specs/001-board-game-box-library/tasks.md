@@ -22,7 +22,7 @@
 
 - [x] T001 Create `spec_driven/` package directory with `__init__.py` and `py.typed` marker
 - [x] T002 [P] Implement enums (`BoxType`, `LabelMode`, `PatternType`, `ScoopSide`) in `spec_driven/enums.py`
-- [x] T003 [P] Implement `Color` dataclass with named presets in `spec_driven/color.py`
+- [x] T003 [P] Implement `Color` dataclass with named presets in `spec_driven/color.py` *(superseded: removed — use `pybosl2.Color` directly, no Color class)*
 - [x] T004 [P] Create `spec_driven.py` root import module re-exporting public surface
 - [x] T005 [P] Write test for enums validation in `tests/test_spec_driven/test_enums.py`
 - [x] T006 [P] Write test for Color in `tests/test_spec_driven/test_color.py`
