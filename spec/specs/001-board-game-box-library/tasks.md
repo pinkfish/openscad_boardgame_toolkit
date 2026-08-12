@@ -40,6 +40,7 @@
 - [ ] T009 [P] Implement `LidBuilder` and `PatternBuilder` frozen dataclasses in `spec_driven/lid/builder.py`
 - [ ] T010 Implement `BoxProtocol` abstract base and `Interior` dataclass in `spec_driven/box/base.py`
 - [ ] T011 Implement `Project` class skeleton (constructor, `box()` factory with `@overload` signatures, empty `export()`) in `spec_driven/project.py`
+- [ ] T011a [P] Implement default clearance gap constant for 3D printing tolerances in `spec_driven/compartments/builder.py`
 - [ ] T012 [P] Write test for BoxBuilder instantiation/validation including `box_id` uniqueness and `final_size` in `tests/test_spec_driven/test_builders.py`
 - [ ] T013 [P] Write test for CompartmentBuilder in `tests/test_spec_driven/test_compartments.py`
 - [ ] T014 [P] Write test for LidBuilder/PatternBuilder in `tests/test_spec_driven/test_lid_builder.py`
@@ -161,8 +162,10 @@
 ### Implementation for User Story 4
 
 - [ ] T052 [US4] Enhance shelf-based 2D bin packing with row-first placement in `spec_driven/compartments/layout.py`
+- [ ] T052a [US4] Implement compartment row-width distribution (size compartments to fill row width) in `spec_driven/compartments/sizing.py`
 - [ ] T053 [US4] Implement compartment grouping (grouped items packed together) in `spec_driven/compartments/layout.py`
 - [ ] T054 [US4] Implement overflow detection with descriptive error messages in `spec_driven/compartments/layout.py`
+- [ ] T054a [US4] Implement compartment clipping to non-rectangular polygon interior regions (FR-018) in `spec_driven/compartments/layout.py`
 
 **Checkpoint**: Compartments auto-laid-out in rows, grouped compartments stay adjacent
 
@@ -209,6 +212,8 @@
 ### Implementation for User Story 8
 
 - [ ] T068 [P] [US8] Implement `ExportResult` frozen dataclass in `spec_driven/export/result.py`
+- [ ] T068a [US8] Implement MMU color-copy logic (positive inserts in different material/color from body) in `spec_driven/export/exporter.py`
+- [ ] T068b [US8] Implement bounding-box reporting for each exported piece (FR-027) in `spec_driven/export/exporter.py`
 - [ ] T069 [P] [US8] Implement two-level layout cache (in-memory dict + disk `spec_driven/.layout_cache.json`, SHA-256 key, version invalidation) to store 3D box packing layouts and bypass solver on subsequent runs in `spec_driven/packing/cache.py`
 - [ ] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py`
 - [ ] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py`

@@ -82,6 +82,7 @@ spec_driven/                    # NEW: Greenfield package
 │   └── interior.py             # Interior frame and hollowing
 ├── compartments/               # NEW: Fresh compartment layout
 │   ├── builder.py              # CompartmentBuilder
+│   ├── finger_hole.py          # Finger scoop/notch geometry
 │   ├── layout.py               # 2D shelf-based auto-layout
 │   └── sizing.py               # Auto-sizing expansion logic
 ├── packing/                    # NEW: Fresh nested box packing

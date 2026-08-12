@@ -230,10 +230,10 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-026**: The library MUST expose a fluent builder API so users chain calls to define a box.
 - **FR-027**: The library MUST report dimensioned requirements for the 3D printer bed: the bounding box of each generated piece.
 - **FR-028**: The library MUST allow boxes to be split/sliced for printing on smaller beds by dividing parts along user-specified cut planes.
-- **FR-025**: The library MUST export each box body and each lid as separate 3MF files containing all material/color assignments (multi-color 3MF), and also export single-color 3MF variants for single-extruder printers.
-- **FR-026**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
-- **FR-027**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
-- **FR-028**: The library MUST report which files were written and which were skipped during export, so the user knows what changed.
+- **FR-029**: The library MUST export each box body and each lid as separate 3MF files containing all material/color assignments (multi-color 3MF), and also export single-color 3MF variants for single-extruder printers.
+- **FR-030**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
+- **FR-031**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
+- **FR-032**: The library MUST report which files were written and which were skipped during export, so the user knows what changed.
 
 ### Key Entities
 
@@ -244,7 +244,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **Lid**: The closure for a box. Includes a decoration specification with: label text (auto-sized, with framed or frameless mode and optional corner-to-corner diagonal orientation), through-hole surface pattern (hex, grid, Voronoi, tessellation), fingernail lift cutout, and three independently settable accent colors (text color, frame top color, pattern top color). Minimum text height threshold (default 4mm) suppresses labels that would print illegibly.
 - **Finger Cutout**: A scoop or notch at a specific location on a box wall or compartment wall/floor, defined by radius, depth, and position offset.
 - **Interior**: The usable volume inside a box, computed from outer dimensions minus wall/floor/lid thicknesses. Bounds all compartment and sub-box placement.
-- **BoxKit**: A collection of multiple related boxes (e.g., an outer game box plus its nested sub-boxes) that orchestrates nesting layout and generates all pieces together.
+- **Project**: The top-level game insert description. A collection of multiple related boxes (e.g., an outer game box plus its nested sub-boxes) that orchestrates nesting layout and generates all pieces together. The public API surface; internally maps to BoxKit during export.
 - **Spacer Box**: A hollow tray auto-generated to fill a gap in the nested layout. Has the same wall/floor construction as regular boxes but no compartments or lid. Minimum dimensions: 15mm width, 15mm length; may be shorter than 5mm in height.
 - **3MF Export**: The output of a box or BoxKit -- a set of 3MF files written to disk, each containing embedded geometry with per-object material/color assignments (multi-color) or a single material (single-color). File naming follows `<label>_body.3mf` / `<label>_lid.3mf` conventions with `_single` suffix for single-color variants. Content-based caching via Hausdorff distance comparison prevents unnecessary file rewrites.
 
