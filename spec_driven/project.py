@@ -94,30 +94,59 @@ class Project:
             ft = builder.floor_thickness or self.floor_thickness
             lt = builder.lid_thickness or self.lid_thickness
 
-            comp_data: list[tuple[str, float, float, float]] = []
-            for cb in builder.compartments:
-                if cb.size is None or cb.width_ratio is not None or cb.length_ratio is not None:
-                    # Use the current computed interior to resolve ratios
-                    resolved = cb.resolve_size(
-                        size[0] - 2 * wt if builder.size else 200,
-                        size[1] - 2 * wt if builder.size else 200,
-                    )
-                    comp_data.append((cb.label, resolved[0], resolved[1], cb.depth or 10))
-                else:
-                    comp_data.append((cb.label, cb.size[0], cb.size[1], cb.depth or 10))
-
-            if builder.size is None:
-                # Compute box size from compartment dimensions
-                if not comp_data:
-                    raise ValueError(
-                        f"Box '{builder.label}' has no explicit size and no "
-                        f"compartments — at least one is required."
-                    )
+            # Determine box size first (needed for ratio resolution)
+            if builder.size is not None:
+                size = builder.size
+            elif builder.compartments:
                 from spec_driven.compartments.layout import compute_min_box_size
-                min_w, min_l, min_h = compute_min_box_size(comp_data, wt, ft, lt)
+                comp_data_raw = [
+                    (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                    for cb in builder.compartments
+                ]
+                min_w, min_l, min_h = compute_min_box_size(comp_data_raw, wt, ft, lt)
                 size = (min_w, min_l, min_h)
             else:
-                size = builder.size
+                raise ValueError(
+                    f"Box '{builder.label}' has no explicit size and no "
+                    f"compartments — at least one is required."
+                )
+
+            # Resolve compartment sizes with ratios
+            comp_data: list[tuple[str, float, float, float]] = []
+            for cb in builder.compartments:
+                resolved = cb.resolve_size(
+                    size[0] - 2 * wt,
+                    size[1] - 2 * wt,
+                )
+                comp_data.append((cb.label, resolved[0], resolved[1], cb.depth or 10))
+
+            # Validate ratio sums
+            ratio_w_sum = sum(
+                cb.width_ratio or 0 for cb in builder.compartments
+            )
+            ratio_l_sum = sum(
+                cb.length_ratio or 0 for cb in builder.compartments
+            )
+            if ratio_w_sum > 1.0:
+                over = [
+                    f"{cb.label}: {cb.width_ratio}"
+                    for cb in builder.compartments
+                    if cb.width_ratio
+                ]
+                raise ValueError(
+                    f"Box '{builder.label}' compartment width ratios sum to "
+                    f"{ratio_w_sum:.2f} (> 1.0): {', '.join(over)}"
+                )
+            if ratio_l_sum > 1.0:
+                over = [
+                    f"{cb.label}: {cb.length_ratio}"
+                    for cb in builder.compartments
+                    if cb.length_ratio
+                ]
+                raise ValueError(
+                    f"Box '{builder.label}' compartment length ratios sum to "
+                    f"{ratio_l_sum:.2f} (> 1.0): {', '.join(over)}"
+                )
 
             box_cls = BOX_IMPL_REGISTRY.get(builder.box_type)
             if box_cls is None:

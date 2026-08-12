@@ -278,6 +278,15 @@
 - [x] T083 Run `python3 tests/run_fast.py test_spec_driven/` — all fast tests pass
 - [x] T084 Run full render suite: `python3 -m unittest discover -s tests/test_spec_driven/render` — all render tests pass
 - [x] T085 Validate quickstart.md scenarios against implemented API
+- [x] T086 [P] Implement ratio-based compartment sizing (`width_ratio`, `length_ratio`, `resolve_size`) in `spec_driven/compartments/builder.py`
+- [x] T087 [P] Validate compartment ratio sums ≤ 1.0 per row at export time in `spec_driven/project.py`
+- [x] T088 [P] Enforce 0.1mm precision floor on all dimensional output (no rounding to whole mm) in `spec_driven/compartments/builder.py`
+- [ ] T089 Wire 3D bin-packing solver from `spec_driven/packing/layout.py` to distribute 37 animal entries across two AnimalBox containers in `boxes/earth_animal_kingdom/earth_animal_kingdom.py`
+- [ ] T090 [P] Generate labeled compartment floors — 0.2mm extruded animal name text per compartment in `spec_driven/compartments/labels.py`
+- [ ] T091 Verify all 7 Earth Animal Kingdom boxes pack within 288×158mm game box interior using auto-sizing solver in `boxes/earth_animal_kingdom/earth_animal_kingdom.py`
+- [x] T092 [P] Write test: ratio-based compartments resolve correctly against interior dimensions in `tests/test_spec_driven/test_compartments.py`
+- [x] T093 [P] Write test: ratio overflow validation rejects sum > 1.0 in `tests/test_spec_driven/test_compartments.py`
+- [x] T094 [P] Write test: 0.1mm precision maintained in compartment resolution in `tests/test_spec_driven/test_compartments.py`
 
 ---
 
