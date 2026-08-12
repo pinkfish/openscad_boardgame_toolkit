@@ -287,47 +287,105 @@ class Project:
             written.extend(box_files)
 
         # 3. Generate and export 3D spacers from gaps in the packed layout
-        def generate_spacers_for_3d_packing(container_size, placements, gap_threshold=10.0):
+        def generate_spacers_for_3d_packing(container_size, placements):
             from spec_driven.packing.layout import Placement
-            spacers = []
-            for p in sorted(placements, key=lambda x: x.position[2], reverse=True):
+            if not placements:
+                return []
+            W, L, H = container_size
+            
+            # Find distinct coordinates
+            xs = {0.0, W}
+            ys = {0.0, L}
+            zs = {0.0, H}
+            for p in placements:
+                x, y, z = p.position
+                w, l, h = p.size
+                xs.add(x)
+                xs.add(x + w)
+                ys.add(y)
+                ys.add(y + l)
+                zs.add(z)
+                zs.add(z + h)
+                
+            sorted_xs = sorted(list(xs))
+            sorted_ys = sorted(list(ys))
+            sorted_zs = sorted(list(zs))
+            
+            nx = len(sorted_xs) - 1
+            ny = len(sorted_ys) - 1
+            nz = len(sorted_zs) - 1
+            
+            occupied = [[[False] * nz for _ in range(ny)] for _ in range(nx)]
+            
+            for p in placements:
                 px, py, pz = p.position
                 pw, pl, ph = p.size
-                if pz <= 0.0:
-                    continue
-                breaks = {px, px + pw}
-                under_boxes = []
-                for other in placements:
-                    ox, oy, oz = other.position
-                    ow, ol, oh = other.size
-                    if oz + oh <= pz and (ox < px + pw and ox + ow > px):
-                        under_boxes.append((ox, ox + ow, oz + oh))
-                        breaks.add(max(px, ox))
-                        breaks.add(min(px + pw, ox + ow))
-                sorted_breaks = sorted(list(breaks))
-                for i in range(len(sorted_breaks) - 1):
-                    x1, x2 = sorted_breaks[i], sorted_breaks[i+1]
-                    sw = x2 - x1
-                    if sw < gap_threshold:
-                        continue
-                    highest_z = 0.0
-                    for ox1, ox2, oh_z in under_boxes:
-                        if ox1 < x2 and ox2 > x1:
-                            highest_z = max(highest_z, oh_z)
-                    if pz - highest_z >= gap_threshold:
-                        spacers.append(
-                            Placement(
-                                label=f"spacer_{len(spacers)+1}",
-                                position=(x1, py, highest_z),
-                                size=(sw, pl, pz - highest_z),
-                                rotation=False
-                            )
-                        )
-            final_spacers = []
-            for sp in spacers:
-                if not any(abs(sp.position[0] - fs.position[0]) < 1.0 and abs(sp.size[0] - fs.size[0]) < 1.0 for fs in final_spacers):
-                    final_spacers.append(sp)
-            return final_spacers
+                for i in range(nx):
+                    if sorted_xs[i] >= px - 0.01 and sorted_xs[i+1] <= px + pw + 0.01:
+                        for j in range(ny):
+                            if sorted_ys[j] >= py - 0.01 and sorted_ys[j+1] <= py + pl + 0.01:
+                                for k in range(nz):
+                                    if sorted_zs[k] >= pz - 0.01 and sorted_zs[k+1] <= pz + ph + 0.01:
+                                        occupied[i][j][k] = True
+            
+            spacers = []
+            visited = [[[False] * nz for _ in range(ny)] for _ in range(nx)]
+            
+            for i in range(nx):
+                for j in range(ny):
+                    for k in range(nz):
+                        if not occupied[i][j][k] and not visited[i][j][k]:
+                            i2 = i
+                            while i2 < nx and not occupied[i2][j][k] and not visited[i2][j][k]:
+                                i2 += 1
+                            
+                            j2 = j
+                            while j2 < ny:
+                                ok = True
+                                for ii in range(i, i2):
+                                    if occupied[ii][j2][k] or visited[ii][j2][k]:
+                                        ok = False
+                                        break
+                                if not ok:
+                                    break
+                                j2 += 1
+                                
+                            k2 = k
+                            while k2 < nz:
+                                ok = True
+                                for ii in range(i, i2):
+                                    for jj in range(j, j2):
+                                        if occupied[ii][jj][k2] or visited[ii][jj][k2]:
+                                            ok = False
+                                            break
+                                    if not ok:
+                                        break
+                                if not ok:
+                                    break
+                                k2 += 1
+                                
+                            for ii in range(i, i2):
+                                for jj in range(j, j2):
+                                    for kk in range(k, k2):
+                                        visited[ii][jj][kk] = True
+                                        
+                            pos_x = sorted_xs[i]
+                            pos_y = sorted_ys[j]
+                            pos_z = sorted_zs[k]
+                            size_w = sorted_xs[i2] - pos_x
+                            size_l = sorted_ys[j2] - pos_y
+                            size_h = sorted_zs[k2] - pos_z
+                            
+                            if size_w >= 2.0 and size_l >= 2.0 and size_h >= 2.0:
+                                spacers.append(
+                                    Placement(
+                                        label=f"spacer_{len(spacers)+1}",
+                                        position=(pos_x, pos_y, pos_z),
+                                        size=(size_w, size_l, size_h),
+                                        rotation=False
+                                    )
+                                )
+            return spacers
 
         spacer_placements = generate_spacers_for_3d_packing(self.game_box_size, packing.placements)
         packing.spacer_placements = spacer_placements

@@ -160,17 +160,65 @@ def generate_layout_pdf(
         pdf.polygon(p_right, style="DF")
 
         # Text labels
-        if label or index_str:
+        if label:
+            lbl = label[:16] + ".." if len(label) > 16 else label
+            pdf.set_font("Helvetica", "B", 7.5)
+            tw = pdf.get_string_width(lbl)
+            th = 4.0
+            
             cx, cy = to_pdf(x + bw / 2, y + bl / 2, z + bh)
-            if index_str:
+            
+            # Determine if label is covered by stacked/upper boxes
+            is_covered = False
+            z_top = z + bh
+            for other in packing.placements:
+                if other.label == label:
+                    continue
+                ox, oy, oz = other.position
+                ow, ol, oh = other.size
+                if oz >= z_top - 0.5 and (ox < x + bw - 1.0 and ox + ow > x + 1.0) and (oy < y + bl - 1.0 and oy + ol > y + 1.0):
+                    is_covered = True
+                    break
+                    
+            if is_covered:
+                # Shift label to the side to avoid stack occlusion
+                shift_dir = -1 if (x + bw/2) < game_box_size[0] / 2 else 1
+                cx_shifted = cx + shift_dir * 25
+                cy_shifted = cy - 5
+                
+                # Draw leader line
+                pdf.set_draw_color(200, 50, 50)
+                pdf.set_line_width(0.2)
+                pdf.set_dash_pattern(dash=1, gap=1)
+                pdf.line(cx, cy, cx_shifted, cy_shifted)
+                pdf.set_dash_pattern(dash=0, gap=0)
+                
+                # Draw text badge at shifted position
+                pdf.set_fill_color(255, 255, 255)
+                pdf.set_draw_color(40, 40, 40)
+                pdf.set_line_width(0.15)
+                pdf.rect(cx_shifted - tw/2 - 1.5, cy_shifted - th/2 - 1, tw + 3, th + 2, style="DF")
+                
                 pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Helvetica", "B", 7)
-                pdf.text(cx - 1.5, cy - 1, index_str)
-            if label:
+                pdf.text(cx_shifted - tw/2, cy_shifted + th/2 - 1.0, lbl)
+            else:
+                # Draw text badge at centered position
+                pdf.set_fill_color(255, 255, 255)
+                pdf.set_draw_color(40, 40, 40)
+                pdf.set_line_width(0.15)
+                pdf.rect(cx - tw/2 - 1.5, cy - th/2 - 1, tw + 3, th + 2, style="DF")
+                
+                pdf.set_text_color(0, 0, 0)
+                pdf.text(cx - tw/2, cy + th/2 - 1.0, lbl)
+                
+            # If present, draw index number on the badge
+            if index_str:
+                pdf.set_fill_color(200, 50, 50)
+                pdf.set_draw_color(40, 40, 40)
+                pdf.rect((cx_shifted if is_covered else cx) - tw/2 - 5.5, (cy_shifted if is_covered else cy) - th/2 - 1, 4.5, th + 2, style="DF")
                 pdf.set_text_color(255, 255, 255)
-                pdf.set_font("Helvetica", "", 4.5)
-                lbl = label[:12] + ".." if len(label) > 12 else label
-                pdf.text(cx - 5, cy + 2.5, f"{lbl} {bw:.0f}x{bl:.0f}")
+                pdf.set_font("Helvetica", "B", 7)
+                pdf.text((cx_shifted if is_covered else cx) - tw/2 - 4.5, (cy_shifted if is_covered else cy) + th/2 - 1.0, index_str)
 
     # Draw Spacers
     for sp in packing.spacer_placements:
