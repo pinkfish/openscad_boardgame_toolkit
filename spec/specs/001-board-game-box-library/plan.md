@@ -437,14 +437,27 @@ The `HexGridWithCutouts` cell is a hexagonal prism cutout. Optional features:
 - **Hex cell geometry**: borrowed `HexGridWithCutouts` / `RegularPolygonGrid` from `components.py` for the hexagonal cutout layout.
 - **Box types**: `HexBox` uses inset-tabbed lid (`BoxType.INSET` with tabbing) — maps to the existing inset box type with tabs.
 
+### Porting `BoxLayout` — the layout is data, not a solver problem
+
+The original `.scad` files end with a `BoxLayout` module that encodes the EXACT
+positions of every box (via `translate([x, y, z])` and `rotate([0, 0, -90])`).
+This is the source of truth for the game-box layout. When porting an example:
+
+1. **Port `BoxLayout` verbatim as manual `position=` values** on each `project.box(...)` call (with `no_rotate=True`, and the 90° rotation baked into the `size` by swapping width/length).
+2. **Do NOT rely on the 3D auto-packer to rediscover the layout** — the original layout is a known-valid packing with specific Z-floating (e.g., 1835's `MiddleBox` floats at `z = money_box_height_1 + money_box_height_2` above the money boxes) that a greedy first-fit solver may not reproduce.
+3. **Spacers are derived from the leftover space** after the manual layout is applied — the auto spacer generation fills any remaining gaps.
+
+This is why the 1835 port uses explicit `position=` for all 12 boxes (MoneyBox1–2, HexBox1–4, ShareBox1–4, MiddleBox, FirstPlayer), reproducing the original `BoxLayout` coordinates. The auto-packer is only a fallback for boxes with no manual position.
+
 ### Migration Checklist
 
-- [ ] Create `boxes/1835/1835.py` with hex box, money boxes, share boxes, middle box, first-player box, spacer
-- [ ] Implement hex-grid compartment layout (`HexGridWithCutouts` port) in `spec_driven/compartments/`
-- [ ] Implement push block (raised central pillar) in hex cells
-- [ ] Implement hex-cell floor finger holes (offset from pillar when both present)
-- [ ] Port the money box (8 denominations), share box (8 companies), middle box (tokens/trains), first-player box
-- [ ] Verify all boxes + 4 stacked hex boxes pack within 216 × 298mm interior
+- [x] Create `boxes/1835/1835.py` with hex box, money boxes, share boxes, middle box, first-player box, spacer
+- [x] Implement hex-grid compartment layout (`HexGridWithCutouts` port) in `spec_driven/compartments/`
+- [x] Implement push block (raised central pillar) in hex cells
+- [x] Implement hex-cell floor finger holes (offset from pillar when both present)
+- [x] Port the money box (8 denominations), share box (8 companies), middle box (tokens/trains), first-player box
+- [x] Port `BoxLayout` as manual `position=` values (all 12 boxes), reproducing the original layout
+- [x] Verify all boxes + spacers pack within 216 × 298mm interior
 
 ## Complexity Tracking
 

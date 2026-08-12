@@ -64,14 +64,16 @@ project = Project(
 )
 
 # ── Hex Boxes (4 stacked, each a 3×5 hex grid) ────────────────────
+# Rotated 90° in the layout: (142.56 × 215) becomes (215 × 142.56)
 for i in range(4):
     hex_box = project.box(
         BoxType.INSET,
         f"HexBox{i + 1}",
-        size=(hex_box_width, hex_box_length, hex_box_height),
+        size=(hex_box_length, hex_box_width, hex_box_height),
+        no_rotate=True,
+        position=(0, money_box_length, i * hex_box_height),
         lid=LidBuilder(text="Tiles", label_mode=LabelMode.FRAMED, text_color=Color("white")),
     )
-    # Hex-grid compartment: 3 rows × 5 cols of hex tile cutouts
     hex_box.compartment(
         "HexGrid",
         size=(tile_width * 5, tile_width * 3),
@@ -85,6 +87,8 @@ for box_idx in range(2):
         f"MoneyBox{box_idx + 1}",
         size=(money_box_width, money_box_length,
               money_box_height_1 if box_idx == 0 else money_box_height_2),
+        no_rotate=True,
+        position=(0, 0, box_idx * money_box_height_1),
         lid=LidBuilder(text="Money", label_mode=LabelMode.FRAMED, text_color=Color("white")),
     )
     for slot in range(4):
@@ -96,7 +100,9 @@ for box_idx in range(4):
     share_box = project.box(
         BoxType.SLIPOVER,
         f"ShareBox{box_idx + 1}",
-        size=(shares_box_width, shares_box_length, shares_height),
+        size=(shares_box_length, shares_box_width, shares_height),
+        no_rotate=True,
+        position=(0, money_box_length + hex_box_width, box_idx * shares_height),
         lid=LidBuilder(text="Shares", label_mode=LabelMode.FRAMED, text_color=Color("white")),
     )
     for slot in range(2):
@@ -108,6 +114,58 @@ for box_idx in range(4):
                 depth=shares_height,
                 finger_scoop=True,
             )
+
+# ── Middle Box (tokens / trains / private company cards) ──────────
+# Rotated 90°: (102 × 215) becomes (215 × 102). Floats above the money boxes.
+middle_width = money_box_length          # 102
+middle_length = money_box_width          # 215
+middle_height = main_height - money_box_height_1 - money_box_height_2  # 17
+
+token_depths = [1, 1, 3, 3, 3, 3, 3, 3, 3, 4, 3, 3, 4, 4]
+token_labels = ["White", "Wheel", "1-3", "4-6", "L", "A", "E", "T", "S", "X", "Y", "Y", "R", "R"]
+token_diameter = 6
+token_thickness = 2
+
+middle = project.box(
+    BoxType.CAP,
+    "MiddleBox",
+    size=(middle_length, middle_width, middle_height),
+    no_rotate=True,
+    position=(0, 0, money_box_height_1 + money_box_height_2),
+    lid=LidBuilder(text="Tokens/Trains", label_mode=LabelMode.FRAMED, text_color=Color("white")),
+)
+for i, depth_count in enumerate(token_depths):
+    middle.compartment(
+        token_labels[i],
+        size=(token_diameter * (depth_count + 1), token_diameter * 2),
+        depth=middle_height - lid_thickness - floor_thickness,
+        finger_scoop=True,
+    )
+middle.compartment("Trains", size=(44, 64), depth=middle_height)
+middle.compartment("Private", size=(44, 64), depth=middle_height)
+
+# ── First Player Box (large markers) ──────────────────────────────
+large_marker_diameter = 20
+large_marker_length = 41
+
+first_player_box_width = shares_box_width      # 52.45
+first_player_box_length = box_width - shares_box_length - 1  # 77
+first_player_box_height = large_marker_diameter + 4  # 24
+
+first_player = project.box(
+    BoxType.SLIPOVER,
+    "FirstPlayer",
+    size=(first_player_box_length, first_player_box_width, first_player_box_height),
+    no_rotate=True,
+    position=(shares_box_length, money_box_length + hex_box_width, 0),
+    lid=LidBuilder(text="First", label_mode=LabelMode.FRAMED, text_color=Color("white")),
+)
+first_player.compartment(
+    "LargeMarkers",
+    size=(large_marker_diameter, large_marker_length - 8),
+    depth=first_player_box_height - lid_thickness - floor_thickness,
+    finger_scoop=True,
+)
 
 # ── Export ────────────────────────────────────────────────────────
 if __name__ == "__main__":
