@@ -58,7 +58,9 @@ Immutable RGBA dataclass. Named presets: `Color.WHITE()`, `Color.BLACK()`, etc. 
 |-------|------|---------|
 | `box_type` | `ClassVar[BoxType]` | Set by subclass |
 | `label` | `str` | required |
+| `box_id` | `str \| None` | None (defaults to label) |
 | `size` | `tuple[float, float, float]` | required |
+| `final_size` | `tuple[float, float, float] \| None` | None (resolved by 3D packer) |
 | `expandable` | `bool` | True |
 | `expandable_width` | `bool` | True |
 | `expandable_length` | `bool` | True |

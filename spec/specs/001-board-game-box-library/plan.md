@@ -132,10 +132,10 @@ tests/
 | Box construction pipeline | **Fresh** | New base class, new builder→geometry mapping |
 | Lid decoration pipeline | **Fresh** | Not constrained by `LidPlate`/`build_lid()` contract |
 | Compartment layout | **Fresh** | New auto-layout with row alignment |
-| Nested box packing | **Fresh** | Fill-to-fit rows, spacer generation |
+| Nested box packing | **Fresh** | Fill-to-fit rows, spacer generation. Integrates dynamic dimension expansion based on 3D packing solvers, and propagates resolved sizes back to builders using a `final_size` attribute. |
 | 3MF export | **Fresh** | New exporter, same pymeshlab backend |
-| Typed builder API | **Fresh** | Enums, typed dataclasses, `@overload` dispatch |
-| Caching strategy | **Fresh** | Same SHA-256 approach, new cache file |
+| Typed builder API | **Fresh** | Enums, typed dataclasses, `@overload` dispatch. Adds a unique `box_id` field to distinguish duplicate instances. |
+| Caching strategy | **Fresh** | Same SHA-256 approach, new cache file. Stores 3D box packing layouts in `.layout_cache.json` to bypass solver on subsequent runs. |
 
 ## Complexity Tracking
 
