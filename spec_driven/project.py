@@ -94,10 +94,17 @@ class Project:
             ft = builder.floor_thickness or self.floor_thickness
             lt = builder.lid_thickness or self.lid_thickness
 
-            comp_data = [
-                (cb.label, cb.size[0], cb.size[1], cb.depth)
-                for cb in builder.compartments
-            ]
+            comp_data: list[tuple[str, float, float, float]] = []
+            for cb in builder.compartments:
+                if cb.size is None or cb.width_ratio is not None or cb.length_ratio is not None:
+                    # Use the current computed interior to resolve ratios
+                    resolved = cb.resolve_size(
+                        size[0] - 2 * wt if builder.size else 200,
+                        size[1] - 2 * wt if builder.size else 200,
+                    )
+                    comp_data.append((cb.label, resolved[0], resolved[1], cb.depth or 10))
+                else:
+                    comp_data.append((cb.label, cb.size[0], cb.size[1], cb.depth or 10))
 
             if builder.size is None:
                 # Compute box size from compartment dimensions

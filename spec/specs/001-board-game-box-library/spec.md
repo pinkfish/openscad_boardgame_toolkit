@@ -218,6 +218,7 @@ The designer wants precise control over compartment placement. They specify exac
 - What happens when a box has no compartments AND no explicit `size`? A `ValueError` is raised — either compartments or an explicit size is required.
 - What happens when a spacer tray's computed height is zero or negative due to a packing error? A `ValueError` is raised during spacer generation.
 - What happens when min text height threshold is set to 0mm? All labels print regardless of computed size — a threshold of 0 disables the size guard.
+- What happens when compartment width ratios sum to > 1.0 (e.g., three compartments each requesting 0.5 width ratio)? The system MUST reject the configuration with a descriptive error listing the over-allocated compartments and their individual ratios.
 - What happens when lid text auto-sizes below 4mm on a large lid but the text string is very short (e.g., "A")? The text is scaled until the character height hits the minimum; if it can't reach 4mm while fitting the lid, the label is skipped.
 - What happens when a through-hole pattern intersects the label frame or text area? Through-holes are clipped to avoid the label area -- the label text and frame take precedence and pattern holes stop at the label boundary.
 - What happens when the box body color and all three accent colors are set to the same value? The multi-color 3MF degenerates to a single material; it is still valid but the user gets a warning that no visible color contrast exists.
@@ -229,7 +230,8 @@ The designer wants precise control over compartment placement. They specify exac
 
 - **FR-001**: The library MUST accept outer box dimensions (width, length, height) and generate a 3D model of a closed box with a user-selected lid type.
 - **FR-002**: The library MUST support at least these lid types: sliding lid, cap lid (friction-fit), hinged lid, and filament-hinge lid, each producing correct mating geometry between lid and body.
-- **FR-003**: The library MUST allow users to define interior compartments by specifying dimensions (width, length, depth), rounded corners, and whether the compartment includes a finger cutout.
+- **FR-003**: The library MUST allow users to define interior compartments by specifying dimensions (width, length, depth) either as absolute values (e.g., `size=(50.5, 70.2)`) or as ratios of the box interior dimensions (e.g., `width_ratio=0.5` takes 50% of the interior width). All dimensions MUST maintain 0.1mm precision — no rounding to whole millimetres.
+- **FR-003a**: When any compartment uses ratio-based sizing, the sum of all compartment width ratios in a row MUST NOT exceed 1.0, and the sum of length ratios MUST NOT exceed the available length per row. The library MUST validate this at specification time and reject configurations where ratios overflow.
 - **FR-004**: The library MUST provide automatic compartment layout that arranges compartments in the interior without overlaps, respecting wall thickness between adjacent compartments and between compartments and box walls.
 - **FR-005**: The library MUST allow manual positioning of compartments by specifying explicit coordinates within the interior frame.
 - **FR-006**: The library MUST support finger cutouts on compartment walls (notches) and compartment floors (scoops), as well as finger holes on box exterior walls.

@@ -109,7 +109,9 @@ Pattern fills are `Callable[[width, length, thickness], Bosl2Solid]` functions t
 | Field | Type | Default |
 |-------|------|---------|
 | `label` | `str` | required |
-| `size` | `tuple[float, float]` | required |
+| `size` | `tuple[float, float] \| None` | None (required if `width_ratio`/`length_ratio` not set) |
+| `width_ratio` | `float \| None` | None |
+| `length_ratio` | `float \| None` | None |
 | `depth` | `float` | required |
 | `rounded_corners` | `float` | 0.0 |
 | `finger_scoop` | `bool` | False |

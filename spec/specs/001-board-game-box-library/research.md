@@ -158,7 +158,26 @@ Box expansion (auto-sizing during `Project.export()`) applies regardless: if a b
 
 The computed minimum from compartments is the floor — the box cannot be smaller. The packing phase determines the ceiling — the box may expand to fill available space. Between them, the packing solver chooses the size.
 
-## 10. Geometry Source Constraint
+## 10. Ratio-Based Compartment Sizing
+
+### Decision: Compartments can be sized by ratio of box interior instead of absolute mm
+
+`CompartmentBuilder` accepts either `size=(w, l)` for absolute dimensions or `width_ratio=X, length_ratio=Y` (0 < X, Y ≤ 1.0) for percentage-of-interior sizing. Both modes resolve at export time once the box interior is known. This is critical for boxes that auto-size from compartments — the compartment says "I need 50% of whatever width this box ends up being."
+
+**Rationale**: When a box's size is auto-computed from compartments, compartment dimensions shouldn't be hardcoded. A card compartment in a sliding box should say "take 100% of available width" rather than "72mm" — the latter ties the compartment to a specific box size and defeats auto-sizing.
+
+**Validation**: The sum of width_ratios across compartments in the same row MUST NOT exceed 1.0. This is validated at export time once row assignment is known. Individual ratios must be in (0.0, 1.0] and are validated at `CompartmentBuilder` construction.
+
+**Alternatives considered**:
+- Only absolute sizing: Forces users to recompute compartment dimensions when box size changes.
+- Only ratio sizing: Can't express fixed-size compartments (e.g., a coin cell slot that must be exactly 20mm).
+- Combined with min/max: Adds complexity; the user can already specify absolute size as a floor and ratios as a ceiling.
+
+### Decision: 0.1mm minimum precision, no rounding to whole mm
+
+All dimensional values maintain 0.1mm precision. The `round()` in `resolve_size` uses 1 decimal place, and `compute_min_box_size` returns `float` values (not `int`). This matches FDM 3D printing tolerances where 0.1mm is the practical minimum layer resolution difference.
+
+## 11. Geometry Source Constraint
 
 ### Decision: Only pybosl2 — never import pythonscad directly
 
