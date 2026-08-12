@@ -265,6 +265,13 @@ To allow compartments to be dynamically partitioned across multiple boxes (like 
 * **Boxes Registration**: Registers a list of box labels (e.g. `["AnimalBox1", "AnimalBox2"]`) and a shared list of compartments.
 * **Auto-Partitioning during Export**: During `Project.export()`, the engine automatically computes the interior sizes of these boxes, runs the multi-bin backtracking shelf-packer solver to partition the shared compartments across the boxes, and populates the compartments of each box builder before geometry generation!
 
+### Main Earth Insert Sizing Rules
+To match the original layout in the main game box:
+* **Card Boxes Footprint**: All card boxes (both Earth and non-Earth/small card boxes) and player boxes MUST have a fixed, identical footprint of `(68.0, 99.0)`.
+* **Full Height Card Boxes**: The primary card boxes (`EarthCardBox1`, `EarthCardBox2`, `EarthCardBox3`, and `EarthCardBox4`/`EarthCardBox` in the second row) MUST have a fixed height of exactly `55.2` mm to sit directly under the player boards (which occupy the remaining `16.8` mm height).
+* **Non-Earth Card Boxes Stack**: The non-Earth card boxes (Ecosystem, Fauna, Island, Climate, Solo, Season, Abundance, and Start) MUST declare their exact minimum heights based on card counts, plus floor and lid thicknesses. The layout engine will stack them into columns that sum to exactly `55.2` mm.
+* **Player Boxes Stack**: The 6 player boxes MUST also have a footprint of `(68.0, 99.0)`. Their heights MUST be flexible (defaulting to `9.2` mm each) so they stack exactly 6-high to sum to the `55.2` mm column height.
+
 ### Height Constraints & Packing Tradeoffs
 Since the game box height is `47.0` mm, raising the sprout box height to `30.0` mm and locking the card box to `29.2` mm makes it impossible to stack the two `12.5` mm animal boxes on top of the sprout box (`12.5 + 12.5 + 34.1 = 59.1` mm). The system must be configured to place these boxes side-by-side or adjust heights/footprints accordingly.
 

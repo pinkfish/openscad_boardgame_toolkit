@@ -33,12 +33,12 @@ abundance_other_cards = 10
 # ── 1. Earth Card Boxes (4 identical columns/bins) ────────────────
 # 3 full-height Earth Card Boxes, 1 smaller Earth Card Box, and 1 Compost Box stacked on top.
 # In the original, card_box_width=68, length=99. Let's make them size=(68, 99, None) and expandable.
-for i in range(3):
+for i in range(4):
     box = project.box(
         BoxType.SLIDING,
         f"EarthCardBox{i+1}",
-        size=(68.0, 99.0, None),
-        expandable=True,
+        size=(68.0, 99.0, 55.2),
+        expandable=False,
         wall_thickness=3.0,
         lid=LidBuilder(
             text="Earth",
@@ -47,13 +47,14 @@ for i in range(3):
             frame_color=Color("darkgreen"),
         ),
     )
-    box.compartment("Cards", size=(CARD_W, CARD_L), depth=35.0, finger_scoop=True)
+    box.compartment("Cards", size=(CARD_W, CARD_L), depth=51.6, finger_scoop=True)
 
 # Small Earth Card Box (height is small, 1/3 of the full column height)
 small_card = project.box(
     BoxType.SLIDING,
     "EarthCardBoxSmall",
     size=(68.0, 99.0, 18.4),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(
         text="Earth",
@@ -62,20 +63,21 @@ small_card = project.box(
         frame_color=Color("darkgreen"),
     ),
 )
-small_card.compartment("Cards", size=(CARD_W, CARD_L), depth=12.4, finger_scoop=True)
+small_card.compartment("Cards", size=(CARD_W, CARD_L), depth=14.8, finger_scoop=True)
 
 # Compost Box (stacked on top of the small Earth box)
 compost = project.box(
     BoxType.FILAMENT_HINGE,
     "CompostBox",
-    size=(68.0, 99.0, 18.4),
+    size=(68.0, 99.0, 36.8),
+    expandable=False,
     lid=LidBuilder(
         text="Compost",
         text_color=Color("white"),
         frame_color=Color("brown"),
     ),
 )
-compost.compartment("Compost", size=(60.0, 91.0), depth=14.4, finger_scoop=True)
+compost.compartment("Compost", size=(60.0, 91.0), depth=33.2, finger_scoop=True)
 
 # ── 2. Small Card Boxes (Ecosystem, Fauna, Island stack) ─────────
 # Ecosystem
@@ -84,6 +86,7 @@ ecosystem = project.box(
     BoxType.SLIDING,
     "EcosystemCardBox",
     size=(68.0, 99.0, ecosystem_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Ecosystem", text_color=Color("white"), frame_color=Color("gold")),
 )
@@ -95,6 +98,7 @@ fauna = project.box(
     BoxType.SLIDING,
     "FaunaCardBox",
     size=(68.0, 99.0, fauna_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Fauna", text_color=Color("white"), frame_color=Color("gold")),
 )
@@ -106,6 +110,7 @@ island = project.box(
     BoxType.SLIDING,
     "IslandCardBox",
     size=(68.0, 99.0, island_h),
+    expandable=False,
     wall_thickness=3.0,
     two_layer=True,
     lid=LidBuilder(text="Island", text_color=Color("white"), frame_color=Color("gold")),
@@ -118,6 +123,7 @@ climate = project.box(
     BoxType.SLIDING,
     "ClimateCardBox",
     size=(68.0, 99.0, climate_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Climate", text_color=Color("white"), frame_color=Color("teal")),
 )
@@ -128,6 +134,7 @@ solo = project.box(
     BoxType.SLIDING,
     "SoloCardBox",
     size=(68.0, 99.0, solo_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Solo", text_color=Color("white"), frame_color=Color("teal")),
 )
@@ -138,6 +145,7 @@ season = project.box(
     BoxType.SLIDING,
     "SeasonCardBox",
     size=(68.0, 99.0, season_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Season", text_color=Color("white"), frame_color=Color("teal")),
 )
@@ -148,6 +156,7 @@ abundance = project.box(
     BoxType.SLIDING,
     "AbundanceOtherCardBox",
     size=(68.0, 99.0, abundance_h),
+    expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Abundance", text_color=Color("white"), frame_color=Color("teal")),
 )
@@ -158,6 +167,7 @@ start_box = project.box(
     BoxType.CAP,
     "StartBox",
     size=(68.0, 99.0, start_h),
+    expandable=False,
     lid=LidBuilder(text="Start", text_color=Color("white"), frame_color=Color("gold")),
 )
 start_box.compartment("Start", size=(60.0, 91.0), depth=start_h - 3.6, finger_scoop=True)
@@ -169,6 +179,7 @@ for col in player_colours:
         BoxType.SLIPOVER,
         f"PlayerBox{col.capitalize()}",
         size=(68.0, 99.0, 9.2),
+        expandable=False,
         lid=LidBuilder(text="Player", text_color=Color("white")),
     )
     pbox.compartment("PlayerComponents", size=(60.0, 91.0), depth=5.6, finger_scoop=True)
@@ -207,6 +218,7 @@ seed = project.box(
     BoxType.FILAMENT_HINGE,
     "SeedBox",
     size=(46.0, 55.2, 16.0),
+    expandable=False,
     lid=LidBuilder(text="Compost", text_color=Color("white"), frame_color=Color("brown")),
 )
 seed.compartment("Seeds", size=(38.0, 47.2), depth=12.0)
