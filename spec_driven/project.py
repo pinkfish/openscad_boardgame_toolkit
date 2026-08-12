@@ -225,6 +225,40 @@ class Project:
 
             written.extend(box_files)
 
+        # Generate packing layout PDF
+        if self._boxes:
+            try:
+                from spec_driven.packing.layout import pack_boxes
+                from spec_driven.export.layout_pdf import (
+                    generate_layout_pdf, should_regenerate_layout,
+                )
+                interior = (
+                    self.game_box_size[0] - 2 * self.wall_thickness,
+                    self.game_box_size[1] - 2 * self.wall_thickness,
+                    self.game_box_size[2] - self.lid_thickness - self.floor_thickness,
+                )
+                box_data = [
+                    {
+                        "label": b.label,
+                        "size": (
+                            b.size[0] if b.size else 100,
+                            b.size[1] if b.size else 100,
+                            b.size[2] if b.size else 50,
+                        ),
+                    }
+                    for b in self._boxes
+                ]
+                packing = pack_boxes(interior, box_data)
+                pdf_path = Path(out_dir) / self.name / "layout.pdf"
+                if should_regenerate_layout(packing, pdf_path):
+                    result = generate_layout_pdf(
+                        packing, pdf_path, self.name, self.game_box_size,
+                    )
+                    if result:
+                        written.append(f"{self.name}/layout.pdf")
+            except Exception:
+                pass  # PDF is best-effort; don't block export
+
         return ExportResult(
             written=tuple(written),
             skipped=tuple(skipped),

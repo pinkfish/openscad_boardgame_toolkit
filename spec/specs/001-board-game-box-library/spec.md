@@ -178,8 +178,9 @@ After generating all box pieces, the designer needs a visual guide showing where
 **Acceptance Scenarios**:
 
 1. **Given** a Project with 4 sub-boxes packed into a 300x200mm game box, **When** `project.export()` runs, **Then** a PDF is produced in `{out_dir}/{project.name}/layout.pdf` showing the game box outline, each sub-box at its packed position with label and dimensions, and spacer trays marked.
-2. **Given** a previously exported layout with no changes, **When** `project.export()` runs again, **Then** the PDF is NOT regenerated — it is skipped along with unchanged 3MF files.
-3. **Given** a layout change (different box sizes or positions), **When** `project.export()` runs, **Then** the PDF IS regenerated to reflect the new layout.
+2. **Given** a multi-row packed layout, **When** the PDF is viewed, **Then** rows are shown as layered steps: the top row of boxes is rendered displaced upward with arrows tracing back to their original positions in the game box, revealing the row beneath.
+3. **Given** a previously exported layout with no changes, **When** `project.export()` runs again, **Then** the PDF is NOT regenerated — it is skipped along with unchanged 3MF files.
+4. **Given** a layout change (different box sizes or positions), **When** `project.export()` runs, **Then** the PDF IS regenerated to reflect the new layout.
 
 ---
 
@@ -261,7 +262,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-030**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
 - **FR-031**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
 - **FR-032**: The library MUST report which files were written and which were skipped during export, so the user knows what changed.
-- **FR-033**: The library MUST generate a PDF packing guide showing the game box interior from a 3D angle view, with each sub-box labeled at its packed position, dimensions shown, spacer trays marked, and boxes numbered in packing order with hidden interior boxes visible through transparency.
+- **FR-033**: The library MUST generate a PDF packing guide showing the game box interior from a 3D angle view, with each sub-box labeled at its packed position, dimensions shown, spacer trays marked, and boxes numbered in packing order with hidden interior boxes visible through transparency. The PDF MUST include a layered exploded breakdown: each row of boxes is rendered as a separate step where the top layer is pulled off vertically to reveal the boxes below, with arrows connecting the displaced box to its original packed position.
 - **FR-034**: The library MUST cache the PDF output — regenerating only when the box layout or library version has changed since the last export (same SHA-256 hash gate as 3MF files).
 
 ### Key Entities
@@ -276,7 +277,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **Project**: The top-level game insert description. A collection of multiple related boxes (e.g., an outer game box plus its nested sub-boxes) that orchestrates nesting layout and generates all pieces together. The public API surface; internally maps to BoxKit during export.
 - **Spacer Box**: A hollow tray auto-generated to fill a gap in the nested layout. Has the same wall/floor construction as regular boxes but no compartments or lid. Minimum dimensions: 15mm width, 15mm length; may be shorter than 5mm in height.
 - **3MF Export**: The output of a box or BoxKit -- a set of 3MF files written to disk, each containing embedded geometry with per-object material/color assignments (multi-color) or a single material (single-color). File naming follows `<label>_body.3mf` / `<label>_lid.3mf` conventions with `_single` suffix for single-color variants. Content-based caching via Hausdorff distance comparison prevents unnecessary file rewrites.
-- **Layout PDF**: A packing guide generated alongside 3MF exports. Shows the game box interior from a 3D angle view with sub-boxes labeled at their packed positions, numbered in packing order, and hidden interior boxes visible through transparency. Regenerated only when layout or library version changes.
+- **Layout PDF**: A packing guide generated alongside 3MF exports. Shows the game box interior from a 3D angle view. Includes layered exploded breakdowns: each row of boxes is rendered as a separate step where the top layer is displaced vertically to reveal boxes underneath, with arrows connecting displaced boxes back to their original positions. Boxes are labeled at their packed positions and numbered in packing order. Regenerated only when layout or library version changes.
 
 ## Success Criteria
 
