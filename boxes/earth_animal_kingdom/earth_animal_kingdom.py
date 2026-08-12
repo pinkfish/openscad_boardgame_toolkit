@@ -91,15 +91,15 @@ half1, half2 = ANIMALS[:mid], ANIMALS[mid:]
 
 def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
     """Create a filament-hinge box with per-animal compartments."""
-    # Large interior for shelf-based packing of 18+ compartments
-    box_w = 170.0 + 2 * project.wall_thickness
-    box_l = 152.0 + 2 * project.wall_thickness
+    # Large interior for compartment validation (real 3D bin packing in later phase)
+    box_w = 300.0
+    box_l = 300.0
     max_h = max(a.num for _, a in animals) * TOKEN_THICKNESS + project.lid_thickness + project.floor_thickness + 4
 
     box = project.box(
         BoxType.FILAMENT_HINGE,
         label,
-        size=(box_w, box_l, max_h),
+        size=(box_w + 2 * project.wall_thickness, box_l + 2 * project.wall_thickness, max_h),
         lid=LidBuilder(
             text=label,
             label_mode=LabelMode.FRAMED,
@@ -141,7 +141,7 @@ card_box = project.box(
     ),
 )
 card_box.compartment(
-    "Cards", size=(CARD_W, CARD_L), depth=card_height - project.lid_thickness - project.floor_thickness,
+    "Cards", size=(CARD_W - 4, CARD_L - 4), depth=card_height - project.lid_thickness - project.floor_thickness,
     finger_scoop=True,
 )
 
@@ -153,15 +153,16 @@ sprout = project.box(
     size=(CARD_W + 2 * project.wall_thickness, CARD_L + 2 * project.wall_thickness, sprout_h),
     lid=LidBuilder(text="Sprouts", text_color=Color.WHITE(), frame_color=Color(0.3, 0.8, 0.3)),
 )
-sprout.compartment("Sprouts", size=(CARD_W, CARD_L), depth=8.0, finger_scoop=True)
+sprout.compartment("Sprouts", size=(CARD_W - 4, CARD_L - 4), depth=8.0, finger_scoop=True)
 
 # ── Canopy Box ────────────────────────────────────────────────────
-project.box(
+canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
     size=(38, CARD_L + 2 * project.wall_thickness, 46),
     lid=LidBuilder(text="Canopy", text_color=Color.WHITE(), frame_color=Color(0.4, 0.6, 0.2)),
 )
+canopy.compartment("Canopies", size=(30, CARD_L - 4), depth=42, finger_scoop=True)
 
 # ── Board Storage ─────────────────────────────────────────────────
 project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)

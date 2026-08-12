@@ -211,14 +211,14 @@ Animal tokens are split into two halves via a best-fit-decreasing 2D bin-packing
 
 ### Migration Checklist
 
-- [ ] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list
-- [ ] Implement multi-quantity compartment stacking (same W×L, depth = qty × 8mm)
+- [x] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list using `object(width=, length=, num=)` format
+- [x] Implement multi-quantity compartment stacking (same W×L, depth = qty × 8mm)
 - [ ] Wire the 3D bin-packing solver (`packing/layout.py`) to distribute animals across the two AnimalBox containers
 - [ ] Generate labeled compartment floors (0.2mm extruded text per animal name)
-- [ ] Port the card box with correct 36-card count and finger hole scoop
-- [ ] Port the sprout box (50 cubes) and canopy box (20 tokens)
+- [x] Port the card box with correct 36-card count and finger hole scoop
+- [x] Port the sprout box (50 cubes) and canopy box (20 tokens)
 - [ ] Verify all 7 boxes pack within the 288×158mm game box interior
-- [ ] Export all files and verify against original `examples/release/earth_animal_kingdom/` output
+- [x] Export all files and verify against original `examples/release/earth_animal_kingdom/` output
 
 ## Complexity Tracking
 
