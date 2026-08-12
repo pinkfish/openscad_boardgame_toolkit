@@ -82,8 +82,8 @@ Each builder extends `BoxBuilder` with type-specific typed fields. See prior dat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `text` | `str \| None` | None | Label text |
-| `label_mode` | `LabelMode` | FRAMED | Framed or frameless |
+| `text` | `str \| None` | None | Label text (default for both modes) |
+| `label_mode` | `LabelMode` | FRAMED | Framed or frameless (default for both modes) |
 | `diagonal` | `bool` | False | Corner-to-corner text orientation |
 | `text_color` | `Color \| None` | None | Auto-contrast default |
 | `frame_color` | `Color \| None` | None | Auto-contrast default |
@@ -91,8 +91,10 @@ Each builder extends `BoxBuilder` with type-specific typed fields. See prior dat
 | `pattern_color` | `Color \| None` | None | Auto-contrast default |
 | `min_text_height_mm` | `float` | 4.0 | Min text height before skip |
 | `border_margin_mm` | `float` | 5.0 | Label border margin |
+| `mmu_label` | `LidBuilder \| None` | None | Override for MMU export mode |
+| `single_label` | `LidBuilder \| None` | None | Override for single-color export mode |
 
-Fresh design — no dependency on `lids_base.py` `LidPlate`/`build_lid()`.
+Per-mode override resolution: when `mmu_label` is set, its fields override the parent for MMU exports. When `single_label` is set, its fields override the parent for single-color exports. Unset modes fall back to the parent fields. Default colors when `None`: `text_color` → `Color.WHITE()`, `frame_color` → contrasting hue from body, `pattern_color` → third contrasting hue.
 
 ## PatternBuilder (`spec_driven/lid/builder.py`)
 

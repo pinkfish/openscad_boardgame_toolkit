@@ -177,7 +177,39 @@ The computed minimum from compartments is the floor — the box cannot be smalle
 
 All dimensional values maintain 0.1mm precision. The `round()` in `resolve_size` uses 1 decimal place, and `compute_min_box_size` returns `float` values (not `int`). This matches FDM 3D printing tolerances where 0.1mm is the practical minimum layer resolution difference.
 
-## 11. Geometry Source Constraint
+## 11. Per-Mode Label Overrides (MMU vs Single-Color)
+
+### Decision: `LidBuilder` supports optional `mmu_label` and `single_label` sub-configurations
+
+When specified, these override the parent label configuration for their respective export mode. If omitted, the parent `LidBuilder` settings apply to both modes.
+
+```python
+lid = LidBuilder(
+    text="Cards",
+    label_mode=LabelMode.FRAMED,  # default for both modes
+    mmu_label=LidBuilder(text="Cards", label_mode=LabelMode.FRAMELESS),
+    # single_color uses parent FRAMED setting since single_label is unset
+)
+```
+
+**Rationale**: Single-color prints rely on recessed/engraved text for visibility, while MMU prints achieve readability through color contrast. A frameless label works well in MMU (white text on dark lid), but a framed label with a recessed frame border is more visible in single-color. The override mechanism avoids requiring the user to create two separate LidBuilders.
+
+**Alternatives considered**:
+- Two completely separate LidBuilder objects: Redundant; 90% of the config (text, colors, pattern) is shared.
+- Boolean toggle "dual_mode": Insufficient — the user may want different text, label modes, or colors per mode.
+- Automatic inference based on mode: Too magical; user intent varies per game and printer setup.
+
+### Decision: Compartment labels switch between engraved cutout (single) and raised MMU text
+
+For single-color export, compartment floor labels render as recessed text engraved 0.2mm into the floor surface — visible as shadows in the print. For MMU export, the same labels render as raised text extruded 0.2mm above the floor in a second material color. The `build_floor_label` function in `spec_driven/compartments/labels.py` accepts a `mode` parameter (`"mmu"` or `"single"`) to switch behavior.
+
+**Rationale**: Single-color prints cannot distinguish text by color; recessed text provides legibility through depth contrast. MMU prints achieve text legibility through color change at a single layer height (0.2mm), matching the "one extra layer" MMU color swap constraint.
+
+### Decision: Per-mode label export at `export()` time
+
+The `Project.export()` method resolves which label configuration to use for each mode when generating 3MF files. For the `mmu/` pass, it checks `builder.lid.mmu_label` and falls back to `builder.lid`. Same for `single/`.
+
+## 12. Geometry Source Constraint
 
 ### Decision: Only pybosl2 — never import pythonscad directly
 

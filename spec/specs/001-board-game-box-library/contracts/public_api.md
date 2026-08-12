@@ -73,12 +73,18 @@ LidBuilder(
     pattern_color: Color | None = None,
     min_text_height_mm: float = 4.0,
     border_margin_mm: float = 5.0,
+    mmu_label: LidBuilder | None = None,      # Override for MMU export mode
+    single_label: LidBuilder | None = None,    # Override for single-color export mode
 )
 ```
+
+**Per-mode overrides**: `mmu_label` and `single_label` allow different label specifications per export mode. When set, their fields override the parent LidBuilder for that mode. The common use case is `label_mode=LabelMode.FRAMED` (default) with `mmu_label=LidBuilder(label_mode=LabelMode.FRAMELESS)` — single-color uses a framed recessed label, MMU uses a frameless text-only label. Unset modes fall back to the parent fields.
 
 **Fresh design** — not constrained by legacy `LidPlate`/`build_lid()`.
 
 Default colors when `None`: `text_color` → `Color.WHITE()`, `frame_color` → contrasting hue from body, `pattern_color` → third contrasting hue.
+
+**Compartment labels per mode**: Single-color exports use engraved 0.2mm recessed cutout text (visible by depth contrast). MMU exports use 0.2mm raised second-color text (visible by material color contrast). This is controlled by a `mode` parameter in `build_floor_label()`.
 
 ## PatternBuilder (`spec_driven/lid/builder.py`)
 
