@@ -185,6 +185,7 @@ class Project:
                     "label": builder.label,
                     "size": size,
                     "expandable": builder.expandable or getattr(builder, "expandable_width", False) or getattr(builder, "expandable_length", False),
+                    "no_rotate": builder.no_rotate,
                 })
 
         # Run 3D packer with clearance slack

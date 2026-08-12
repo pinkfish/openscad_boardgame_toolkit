@@ -51,10 +51,10 @@ Project(
 | `BoxType.SLIPOVER` | `SlipoverBoxBuilder` | ... |
 | `BoxType.SLIPOVER_PATH` | `SlipoverPathBoxBuilder` | ... |
 | `BoxType.CAP_PATH` | `CapPathBoxBuilder` | ... |
-| `BoxType.NO_LID` | `NoLidBoxBuilder` | ... |
+| `BoxType.NO_LID` | `NoLidBoxBuilder` | `stackable` (inside/outside), `stackable_thickness`, `magnet_type` (round/rect), `magnet_size` |
 | `BoxType.CARD_LIBRARY` | `CardLibraryBoxBuilder` | ... |
 
-All builders share these base kwargs: `size: tuple[float, float, float] | None = None` (auto-computed from compartments if omitted), `expandable: bool = True`, `expandable_width: bool = True`, `expandable_length: bool = True`, `wall_thickness: float | None = None`, `floor_thickness: float | None = None`, `lid_thickness: float | None = None`, `lid: LidBuilder | None = None`.
+All builders share these base kwargs: `size: tuple[float, float, float] | None = None` (auto-computed from compartments if omitted), `position: tuple[float, float, float] | None = None` (manual packing position), `expandable: bool = True`, `expandable_width: bool = True`, `expandable_length: bool = True`, `no_rotate: bool = False` (prevent 3D packer rotation, FR-013c), `stackable: str | None = None` (`"inside"`/`"outside"`, no-lid only, FR-038), `stackable_thickness: float | None = None`, `magnet_type: str | None = None` (`"round"`/`"rect"`, FR-039), `magnet_size: tuple[float, float, float] | None = None`, `wall_thickness: float | None = None`, `floor_thickness: float | None = None`, `lid_thickness: float | None = None`, `lid: LidBuilder | None = None`.
 
 ### `.export(out_dir: str | Path) -> ExportResult`
 

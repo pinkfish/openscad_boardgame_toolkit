@@ -905,7 +905,7 @@ def pack_3d_boxes(container_size: list[float], items: list[dict]) -> dict:
             extreme_points = sorted(list(set(extreme_points)), key=lambda p: (p[2], p[1], p[0]))
             
             orientations = [(item["size"], False)]
-            if item["size"][0] != item["size"][1]:
+            if not item.get("no_rotate", False) and item["size"][0] != item["size"][1]:
                 orientations.append(([item["size"][1], item["size"][0], item["size"][2]], True))
                 
             for (w, l, h), rotated in orientations:

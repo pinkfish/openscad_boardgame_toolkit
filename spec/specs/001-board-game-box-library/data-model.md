@@ -60,17 +60,22 @@ Use `pybosl2.Color` directly — no custom Color class. Supports webcolor names 
 | `label` | `str` | required |
 | `box_id` | `str \| None` | None (defaults to label) |
 | `size` | `tuple[float, float, float] \| None` | None (computed from compartments) |
-| `final_size` | `tuple[float, float, float] \| None` | None (resolved by 3D packer) |
+| `position` | `tuple[float, float, float] \| None` | None (manual packing position override) |
+| `final_size` | `tuple[float, float, float] \| None` | None (resolved by 3D packer, set-once frozen after export) |
 | `expandable` | `bool` | True |
 | `expandable_width` | `bool` | True |
 | `expandable_length` | `bool` | True |
+| `no_rotate` | `bool` | False (prevents 3D packer from rotating the box; FR-013c) |
+| `stackable` | `str \| None` | None ('inside' or 'outside' for no-lid boxes; FR-038) |
+| `stackable_thickness` | `float \| None` | None (interlocking rim thickness) |
+| `magnet_type` | `str \| None` | None ('round' or 'rect'; FR-039) |
+| `magnet_size` | `tuple[float, float, float] \| None` | None (magnet slot dimensions) |
 | `wall_thickness` | `float \| None` | None (project default) |
 | `floor_thickness` | `float \| None` | None |
 | `lid_thickness` | `float \| None` | None |
 | `lid` | `LidBuilder \| None` | None |
 | `finger_holes` | `tuple[FingerHoleBuilder, ...]` | () |
 | `compartments` | `tuple[CompartmentBuilder, ...]` | () |
-| `final_size` | `tuple[float, float, float] \| None` | None (resolved by 3D packer, set-once frozen after export) |
 
 **Methods**: `compartment(label, *, size, depth, ...) -> CompartmentBuilder`
 
@@ -138,6 +143,18 @@ class BoxProtocol(Protocol):
 ```
 
 Simpler than legacy `BoxBaseType`. No `Body` return type with `hollowed`/`carved` flags. No `LidPlate` contract. Each type directly builds its geometry.
+
+## Standalone Box (FR-037)
+
+A box exported directly without any enclosing game box. Built from a single `BoxSpec` and exported as body (+ lid if applicable), with no nesting layout, no auto-sizing, no packing phase, no layout PDF, and no spacer generation. Implemented by allowing `Project.box(...)` to be exported without a game box (`position` unset, no container packing).
+
+## Stackable Box (FR-038)
+
+A no-lid box with an interlocking rim. Fields: `stackable` (`"inside"` — recess on the top rim nests into the box above; `"outside"` — ridge around the outside mates with the box below), `stackable_thickness`, `stackable_fit_offset`.
+
+## Magnet Slot (FR-039)
+
+A cavity in a box side wall for an embedded magnet. Fields: `magnet_type` (`"round"` cylindrical cavity, or `"rect"` box cavity), `magnet_size` (diameter_or_width, length, depth), placed on opposing sides so adjacent stacked boxes attract.
 
 ## Internal Cache (`spec_driven/packing/cache.py`)
 

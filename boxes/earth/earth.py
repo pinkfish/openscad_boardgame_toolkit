@@ -38,7 +38,7 @@ for i in range(4):
         BoxType.SLIDING,
         f"EarthCardBox{i+1}",
         size=(68.0, 99.0, 55.2),
-        position=(16.0 + i * 68.0, 0.0, 0.0),
+        position=(i * 68.0, 0.0, 0.0),
         expandable=False,
         wall_thickness=3.0,
         lid=LidBuilder(
@@ -55,7 +55,7 @@ small_card = project.box(
     BoxType.SLIDING,
     "EarthCardBoxSmall",
     size=(68.0, 99.0, 18.4),
-    position=(16.0, 99.0, 0.0),
+    position=(0.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(
@@ -72,7 +72,7 @@ compost = project.box(
     BoxType.FILAMENT_HINGE,
     "CompostBox",
     size=(68.0, 99.0, 36.8),
-    position=(16.0, 99.0, 18.4),
+    position=(0.0, 99.0, 18.4),
     expandable=False,
     lid=LidBuilder(
         text="Compost",
@@ -89,7 +89,7 @@ ecosystem = project.box(
     BoxType.SLIDING,
     "EcosystemCardBox",
     size=(68.0, 99.0, ecosystem_h),
-    position=(84.0, 99.0, 0.0),
+    position=(68.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Ecosystem", text_color=Color("white"), frame_color=Color("gold")),
@@ -102,7 +102,7 @@ fauna = project.box(
     BoxType.SLIDING,
     "FaunaCardBox",
     size=(68.0, 99.0, fauna_h),
-    position=(84.0, 99.0, 23.8),
+    position=(68.0, 99.0, 23.8),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Fauna", text_color=Color("white"), frame_color=Color("gold")),
@@ -115,7 +115,7 @@ island = project.box(
     BoxType.SLIDING,
     "IslandCardBox",
     size=(68.0, 99.0, island_h),
-    position=(84.0, 99.0, 42.2),
+    position=(68.0, 99.0, 42.2),
     expandable=False,
     wall_thickness=3.0,
     two_layer=True,
@@ -129,7 +129,7 @@ climate = project.box(
     BoxType.SLIDING,
     "ClimateCardBox",
     size=(68.0, 99.0, climate_h),
-    position=(152.0, 99.0, 0.0),
+    position=(136.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Climate", text_color=Color("white"), frame_color=Color("teal")),
@@ -141,7 +141,7 @@ solo = project.box(
     BoxType.SLIDING,
     "SoloCardBox",
     size=(68.0, 99.0, solo_h),
-    position=(152.0, 99.0, 10.6),
+    position=(136.0, 99.0, 10.6),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Solo", text_color=Color("white"), frame_color=Color("teal")),
@@ -153,7 +153,7 @@ season = project.box(
     BoxType.SLIDING,
     "SeasonCardBox",
     size=(68.0, 99.0, season_h),
-    position=(152.0, 99.0, 18.8),
+    position=(136.0, 99.0, 18.8),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Season", text_color=Color("white"), frame_color=Color("teal")),
@@ -165,7 +165,7 @@ abundance = project.box(
     BoxType.SLIDING,
     "AbundanceOtherCardBox",
     size=(68.0, 99.0, abundance_h),
-    position=(152.0, 99.0, 30.6),
+    position=(136.0, 99.0, 30.6),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Abundance", text_color=Color("white"), frame_color=Color("teal")),
@@ -177,7 +177,7 @@ start_box = project.box(
     BoxType.CAP,
     "StartBox",
     size=(68.0, 99.0, start_h),
-    position=(152.0, 99.0, 41.2),
+    position=(136.0, 99.0, 41.2),
     expandable=False,
     lid=LidBuilder(text="Start", text_color=Color("white"), frame_color=Color("gold")),
 )
@@ -190,7 +190,7 @@ for idx, col in enumerate(player_colours):
         BoxType.SLIPOVER,
         f"PlayerBox{col.capitalize()}",
         size=(68.0, 99.0, 9.2),
-        position=(220.0, 99.0, idx * 9.2),
+        position=(204.0, 99.0, idx * 9.2),
         expandable=False,
         lid=LidBuilder(text="Player", text_color=Color("white")),
     )
@@ -200,8 +200,8 @@ for idx, col in enumerate(player_colours):
 canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    size=(168.0, 89.0, 49.1),
-    position=(16.0, 198.0, 0.0),
+    size=(168.0, 89.0, 55.2),
+    position=(0.0, 198.0, 0.0),
     expandable=False,
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
@@ -211,21 +211,21 @@ canopy.compartment("Canopies", size=(160.0, 81.0), depth=45.0, finger_scoop=True
 score_pad = project.box(
     BoxType.NO_LID,
     "ScorePadBox",
-    size=(102.0, 89.0, 6.6),
-    position=(184.0, 198.0, 0.0),
+    size=(107.0, 89.0, 6.6),
+    position=(168.0, 198.0, 0.0),
     expandable=False,
 )
-score_pad.compartment("Pad", size=(94.0, 81.0), depth=5.0)
+score_pad.compartment("Pad", size=(99.0, 81.0), depth=5.0)
 
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(102.0, 89.0, 39.1),
-    position=(184.0, 198.0, 6.6),
+    size=(107.0, 89.0, 48.6),
+    position=(168.0, 198.0, 6.6),
     expandable=False,
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("green")),
 )
-sprout.compartment("Sprouts", size=(94.0, 81.0), depth=35.0, finger_scoop=True)
+sprout.compartment("Sprouts", size=(99.0, 81.0), depth=35.0, finger_scoop=True)
 
 # ── 7. Seed Box ───────────────────────────────────────────────────
 # Fits vertically on the side
@@ -233,7 +233,7 @@ seed = project.box(
     BoxType.FILAMENT_HINGE,
     "SeedBox",
     size=(16.0, 46.0, 72.0),
-    position=(0.0, 0.0, 0.0),
+    position=(272.0, 0.0, 0.0),
     expandable=False,
     lid=LidBuilder(text="Seeds", text_color=Color("white"), frame_color=Color("brown")),
 )
@@ -245,7 +245,7 @@ project.box(
     BoxType.NO_LID,
     "PlayerBoards",
     size=(242.0, 288.0, 16.8),
-    position=(16.0, 0.0, 55.2),
+    position=(0.0, 0.0, 55.2),
     expandable=False,
 )
 
@@ -262,7 +262,7 @@ project.box(
 project.box(
     BoxType.NO_LID,
     "TopSpacedBox",
-    size=(33.4, 241.0, 15.0),
+    size=(46.0, 241.0, 15.0),
     position=(242.0, 46.0, 57.0),
     expandable=False,
 )

@@ -295,6 +295,16 @@
 - [x] T099 [P] Write test: LidBuilder per-mode override fallback logic in `tests/test_spec_driven/test_lid_builder.py`
 - [x] T100 [P] Write test: compartment label mode switching (cutout for single, raised for MMU) in `tests/test_spec_driven/test_lid_label.py`
 - [x] T101 [P] Write test: PDF is valid and boxes rendered at correct packed positions (SC-019) in `tests/test_spec_driven/test_export.py`
+- [ ] T102 [P] Implement standalone box export path — `project.box(...)` exported directly with no game box, no packing, no PDF — in `spec_driven/project.py`
+- [ ] T103 [P] Implement stackable inside/outside rim generation for no-lid boxes in `spec_driven/box/types/no_lid.py`
+- [ ] T104 [P] Implement round and rectangular magnet slots on opposing sides in `spec_driven/box/types/no_lid.py`
+- [ ] T105 Create `boxes/irish_gauge/irish_gauge.py` — 5 company boxes, money box, auto-generated spacers, box sizes derived from game box dimensions
+- [ ] T106 [P] Auto-generate spacer boxes (rectangular + polygon-path) from leftover space in `spec_driven/packing/spacer.py`
+- [ ] T107 Write test: Irish Gauge box sizes derived correctly + spacers auto-generated in `tests/test_spec_driven/test_irish_gauge.py`
+- [x] T108 [P] Implement `no_rotate` flag propagation through `pack_boxes` → `pack_3d_boxes` orientation selection (FR-013c) in `spec_driven/packing/layout.py` + `compartments.py`
+- [ ] T109 [P] Implement box-rotation → compartment re-layout: when a placement is `rotated`, re-run `layout_compartments` against the swapped interior dimensions (FR-013b) in `spec_driven/project.py`
+- [ ] T110 Create `boxes/stackable_hexes/stackable_hexes.py` — 8 hex box variants (1–4 divisions × round/rect magnets) with stackable rims in `boxes/stackable_hexes/`
+- [ ] T111 [P] Write test: no_rotate boxes are never rotated + rotated boxes re-lay-out compartments (FR-013b/FR-013c) in `tests/test_spec_driven/test_packing.py`
 
 ---
 

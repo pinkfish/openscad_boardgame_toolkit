@@ -30,6 +30,14 @@ class BoxBuilder:
     """Box dimensions [W, L, H] in mm. None = auto-compute from compartments."""
     position: tuple[float, float, float] | None = None
     """Manual packing position override [X, Y, Z] in mm."""
+    stackable: str | None = None
+    """Stackable mode for no-lid boxes: 'inside', 'outside', or None."""
+    stackable_thickness: float | None = None
+    """Interlocking rim thickness for stackable boxes."""
+    magnet_type: str | None = None
+    """Magnet slot type: 'round', 'rect', or None (no magnets)."""
+    magnet_size: tuple[float, float, float] | None = None
+    """Magnet slot dimensions [diameter_or_width, length, depth]."""
     final_size: tuple[float, float, float] | None = None
     """Resolved size after packing; set-once frozen during export."""
     expandable: bool = True
@@ -38,6 +46,8 @@ class BoxBuilder:
     """Width axis can expand."""
     expandable_length: bool = True
     """Length axis can expand."""
+    no_rotate: bool = False
+    """Prevent 3D packer from rotating the box (keeps compartment layout directional)."""
     wall_thickness: float | None = None
     """Per-box wall thickness override; None uses project default."""
     floor_thickness: float | None = None

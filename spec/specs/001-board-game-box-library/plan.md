@@ -26,9 +26,9 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Performance Goals**: Full bin-packing may take longer on first run (complex layouts). Once cached (SHA-256 hit), regeneration completes in: 20-compartment layout < 1s, 6-sub-box auto-size < 2s, Hausdorff-based 3MF write-if-changed. Cached re-exports with zero geometry changes complete in < 0.5s.
 
-**Constraints**: Enums for all type selections, no bare strings, no dict parameter objects, typed builders per box type, no import of existing `box_base.py`/`lids_base.py` architecture, CSG over SDF, Apache-2.0 header. **Do not reinvent the wheel — use classes that already exist in pybosl2 wherever possible.** ALL geometry MUST use pybosl2 solids (`cuboid`, `cylinder`, `sphere`, `prismoid`, etc.) and pybosl2 2D shapes/paths — never import `pythonscad` or any native OpenSCAD built-in directly. Use bosl2 basic pieces (`cube`, `cylinder`, `sphere`, `linear_extrude`, etc.) wherever possible instead of higher-level shape generators. **Do NOT implement a Color class. Use `pybosl2.Color` directly.** No wrapper, no custom implementation, no fallback. pybosl2's Color supports webcolor names: use names like `Color("darkgreen")`, `Color("gold")` instead of hardcoding RGB values. **Do NOT define preset constants** (no `WHITE`, `BLACK`, etc.) — just use `Color("white")`, `Color("black")` directly at the call site. The `spec_driven/color.py` file must not exist. Minimum dimensional precision is 0.1mm — no rounding to whole millimetres. Compartments support ratio-based sizing (`width_ratio`, `length_ratio`) as an alternative to absolute dimensions; ratios are validated to sum ≤ 1.0 per row. Lid labels support per-export-mode overrides: `mmu_label` and `single_label` sub-configurations enable different label styles per material mode (e.g., frameless for MMU, framed for single). Compartment labels render as single-layer engraved cutouts for single-color and raised MMU second-color text for multi-color.
+**Constraints**: Enums for all type selections, no bare strings, no dict parameter objects, typed builders per box type, no import of existing `box_base.py`/`lids_base.py` architecture, CSG over SDF, Apache-2.0 header. **Do not reinvent the wheel — use classes that already exist in pybosl2 wherever possible.** ALL geometry MUST use pybosl2 solids (`cuboid`, `cylinder`, `sphere`, `prismoid`, etc.) and pybosl2 2D shapes/paths — never import `pythonscad` or any native OpenSCAD built-in directly. Use bosl2 basic pieces (`cube`, `cylinder`, `sphere`, `linear_extrude`, etc.) wherever possible instead of higher-level shape generators. **Do NOT implement a Color class. Use `pybosl2.Color` directly.** No wrapper, no custom implementation, no fallback. pybosl2's Color supports webcolor names: use names like `Color("darkgreen")`, `Color("gold")` instead of hardcoding RGB values. **Do NOT define preset constants** (no `WHITE`, `BLACK`, etc.) — just use `Color("white")`, `Color("black")` directly at the call site. The `spec_driven/color.py` file must not exist. Minimum dimensional precision is 0.1mm — no rounding to whole millimetres. Compartments support ratio-based sizing (`width_ratio`, `length_ratio`) as an alternative to absolute dimensions; ratios are validated to sum ≤ 1.0 per row. Lid labels support per-export-mode overrides: `mmu_label` and `single_label` sub-configurations enable different label styles per material mode (e.g., frameless for MMU, framed for single). Compartment labels render as single-layer engraved cutouts for single-color and raised MMU second-color text for multi-color. Boxes support a `no_rotate` flag (default `False`) so directionally-constrained boxes opt out of packer rotation (FR-013c). When the packer rotates a box, its compartments are re-laid-out in the rotated interior frame (FR-013b). Standalone boxes export without a game box/packing (FR-037). No-lid boxes support stackable rims (inside/outside, FR-038) and round/rectangular side magnet slots (FR-039).
 
-**Scale/Scope**: 14 box types (new implementations), 12 typed builders, 4 public enums, single public import surface
+**Scale/Scope**: 14 box types (new implementations), 12 typed builders, 4 public enums, single public import surface, 3 reference examples (Earth Animal Kingdom, Stackable Hexes, Irish Gauge)
 
 ## Constitution Check
 
@@ -265,6 +265,12 @@ To ensure dense packing of compartments (like the animal compartments in `Animal
 * **Sorting Heuristic**: Compartments are sorted by their maximum dimension (width or length) in descending order to establish a clean starting baseline.
 * **Rotation Evaluation**: For each compartment, the engine evaluates both the original orientation `(w, l)` and the rotated orientation `(l, w)`. It prefers the orientation that fits in the current row while minimizing row height increase. If neither fits in the current row, it wraps to a new row and evaluates both orientations there.
 
+### Box Rotation Propagation to Compartments
+When the 3D box packer rotates a sub-box by 90 degrees (swapping width and length), the compartment layout MUST be re-generated in the rotated interior frame:
+* **Post-Rotation Interior**: `Project.export()` uses the placement's `rotation` flag and final (possibly swapped) `final_size` to compute the interior, then re-runs `layout_compartments` against that rotated interior.
+* **Content Alignment**: Compartments are laid out using the box's post-rotation width/length so contents stay aligned with the actual printed box walls.
+* **`no_rotate` Opt-Out**: A box whose contents are directionally constrained (e.g., the Irish Gauge money box, whose 3 card slots span the width) sets `no_rotate=True`. The packer then only considers the original orientation for that box, and the compartment layout always matches its natural direction.
+
 ### Multi-Bin Compartment Packing API
 To allow compartments to be dynamically partitioned across multiple boxes (like the two animal boxes), the `Project` class implements `project.share_compartments(boxes, compartments)`:
 * **Boxes Registration**: Registers a list of box labels (e.g. `["AnimalBox1", "AnimalBox2"]`) and a shared list of compartments.
@@ -339,6 +345,66 @@ The original design creates hexagonal boxes (`PathBox.regular_polygon(sides=6)`)
 - [ ] Implement stackable inside/outside rim generation for no-lid boxes
 - [ ] Implement round and rectangular magnet slots on opposing sides
 - [ ] Verify hex boxes stack, magnets align, and divisions clip to the hex interior
+
+## Irish Rails (Irish Gauge) Example
+
+The `boxes/irish_gauge/` example ports `examples/irish_gauge.scad` to the new `spec_driven` Project API. This is a game-box insert with mixed box types and hand-placed spacer boxes. The port demonstrates: mixed lid types in one game box, company boxes with shared footprint but different contents, and spacer boxes derived from the leftover space.
+
+### Game Box
+
+- **Retail box**: 214 × 302 × 39mm (W × L × H)
+- **Defaults**: wall_thickness=3, lid_thickness=3, board_thickness=10.5
+
+### Box Sizes (pulled from the original layout, computed from game box dimensions)
+
+| Box | Type | Width | Length | Height | Count | Color |
+|-----|------|-------|--------|--------|-------|-------|
+| CompanyBox | Sliding lid | `box_width / 4` = 53.5 | `card_length * 1.8 + 2*wt` = 133.8 | `(box_height - board_thickness) / 2` = 14.25 | 5 | orange, yellow, red, purple, blue |
+| MoneyBox | Filament hinge | `box_width` = 214 | `card_length + 2*wt` = 77 | `box_height - board_thickness` = 28.5 | 1 | — |
+| SpacerBoxBack | No-lid path | fills back area | fills back area | `box_height - board_thickness` | 1 | — |
+| SpacerBoxCompany | No-lid | `box_width/4` | `company_box_length` | `company_box_height` | 1 | — |
+
+### Company Boxes (5, shared footprint, distinct contents and colors)
+
+Each company box has the same footprint (`53.5 × 133.8 × 14.25`) but different contents driven by its `shares` count:
+
+| Company | Lid label | Color | Shares |
+|---------|-----------|-------|--------|
+| Belfast and County Down Railway | Belfast | orange | 2 |
+| Cork Bandon & South Coast Railway | Cork | yellow | 3 |
+| Midland Great Western Railway | Midland | red | 3 |
+| Waterford Limerick & Western Railway | Waterford | purple | 4 |
+| Great Southern & Western Railway | Great Southern | blue | 4 |
+
+Each company box holds:
+- **Share cards**: 49 × 71mm cards, stacked `shares` high (single card thickness = 14/20 = 0.7mm)
+- **Dividend markers**: 7.5mm diameter × 3mm thick, in a `CylinderWithIndents` slot with finger holes
+- **Trains**: 19 trains per company, each 7.75 × 5.5 × 8mm, in a 6×4 grid well
+- **Company name label**: 3-line text (font size 7.75) extruded 0.2mm on the floor
+
+### Money Box
+
+- Filament-hinge lid, 214 × 77 × 28.5mm
+- Three card slots (49 × 71mm each) labeled "1", "5", "10" for money denominations (25 cards total)
+- "Irish" / "Gauge" text labels extruded on the floor
+
+### Spacer Boxes — automatic definitions (not hand-coded paths)
+
+The original `.scad` hard-codes the `SpacerBoxBack` polygon path and `SpacerBoxCompany` size. In the port, spacer definitions MUST be automatic:
+
+- **SpacerBoxCompany**: generated by the packing solver to fill the vertical gap above the company box columns (a simple rectangular no-lid tray).
+- **SpacerBoxBack**: generated automatically by the packing solver as the remaining free area in the game box after the MoneyBox and CompanyBox columns are placed — no hand-written polygon path. The solver derives the polygonal outline from the game box interior minus the placed boxes.
+
+This means `Project.export()` must emit spacer trays (both rectangular and polygon-path) from the leftover space, matching FR-014/FR-030 (hollow spacer trays) and FR-018 (polygon-path clipping).
+
+### Migration Checklist
+
+- [ ] Create `boxes/irish_gauge/irish_gauge.py` porting the 5 company boxes, money box, and spacers
+- [ ] Derive all box sizes from `box_width`, `box_length`, `box_height`, `board_thickness`, `card_length`, `wall_thickness` — no hardcoded absolute sizes
+- [ ] Implement company box contents: share-card stack, dividend-marker cylinder with indents, 6×4 train grid well, 3-line name label
+- [ ] Implement money box: 3 card slots with "1"/"5"/"10" labels + "Irish Gauge" floor text
+- [ ] Auto-generate SpacerBoxBack (polygon path) and SpacerBoxCompany (rectangular) from leftover space
+- [ ] Verify all boxes + spacers pack within 214 × 302mm interior
 
 ## Complexity Tracking
 

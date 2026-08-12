@@ -58,6 +58,7 @@ def pack_boxes(
             "name": b["label"],
             "size": list(b["size"]),
             "expandable": ["h"] if b.get("expandable") else [],
+            "no_rotate": b.get("no_rotate", False),
         })
 
     # Run 3D solver
