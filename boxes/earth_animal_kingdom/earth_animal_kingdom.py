@@ -100,12 +100,8 @@ def add_animal_box(label: str):
     )
 
 
-add_animal_box("AnimalBox1")
-add_animal_box("AnimalBox2")
-
-# ── Register Shared Animal Compartments ────────────────────────────
-comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
-project.share_compartments(["AnimalBox1", "AnimalBox2"], comps)
+# ── Board Storage ─────────────────────────────────────────────────
+project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
 
 # ── Animal Cards Box ──────────────────────────────────────────────
 CARD_W, CARD_L = 72.0, 123.0
@@ -115,8 +111,8 @@ card_height = (CARD_COUNT / 10) * 6.0 + project.floor_thickness + project.lid_th
 card_box = project.box(
     BoxType.SLIDING,
     "AnimalCardsBox",
-    size=(76, 156, None),
-    expandable=True,
+    size=(76, 156, card_height),
+    expandable=False,
     lid=LidBuilder(
         text="Animal Cards",
         label_mode=LabelMode.FRAMED,
@@ -151,8 +147,13 @@ canopy = project.box(
 )
 canopy.compartment("Canopies", size=(30, CARD_L), depth=8.0, finger_scoop=True)
 
-# ── Board Storage ─────────────────────────────────────────────────
-project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
+# ── Define Animal Token Boxes ─────────────────────────────────────
+add_animal_box("AnimalBox1")
+add_animal_box("AnimalBox2")
+
+# ── Register Shared Animal Compartments ────────────────────────────
+comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
+project.share_compartments(["AnimalBox1", "AnimalBox2"], comps)
 
 # ── Export ────────────────────────────────────────────────────────
 if __name__ == "__main__":
