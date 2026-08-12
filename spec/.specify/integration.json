@@ -1,0 +1,15 @@
+{
+  "version": "0.16.2",
+  "integration_state_schema": 1,
+  "installed_integrations": [
+    "kilocode"
+  ],
+  "integration_settings": {
+    "kilocode": {
+      "script": "py",
+      "invoke_separator": "."
+    }
+  },
+  "integration": "kilocode",
+  "default_integration": "kilocode"
+}
