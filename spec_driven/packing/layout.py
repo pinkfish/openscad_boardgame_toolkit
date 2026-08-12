@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Box packing layout — 3D box packing into game box interior."""
+"""Box packing layout — skyline-based 3D box packing into game box interior."""
 
 from __future__ import annotations
 
@@ -33,9 +33,11 @@ def pack_boxes(
     gap_threshold: float = 10.0,
     min_spacer_dim: float = 15.0,
 ) -> BoxPacking:
-    """Pack sub-boxes into a container using column-first greedy placement.
+    """Pack sub-boxes into a container using skyline-based 2D packing.
 
-    Places boxes in columns (rows of one), tracks row lengths and widths.
+    The skyline algorithm tracks the upper envelope of placed boxes
+    and finds the lowest Y position for each new box, handling
+    variable-length boxes more efficiently than column-first placement.
 
     Args:
         container_size: (width, length, height) of the outer box interior.
@@ -52,61 +54,115 @@ def pack_boxes(
     if not boxes:
         return packing
 
-    # Simple column-first packing: place boxes left-to-right
-    x_cursor = 0.0
-    current_row_height = 0.0
-    row_boxes: list[Placement] = []
-    all_rows: list[list[Placement]] = []
+    # Sort boxes by length descending (best-fit decreasing heuristic)
+    sorted_boxes = sorted(
+        boxes, key=lambda b: b["size"][1], reverse=True
+    )
 
-    for box in boxes:
+    # Skyline: list of (x, y) points describing the upper envelope
+    # Starting with a single segment at y=0 spanning the full width
+    skyline: list[tuple[float, float]] = [(0.0, 0.0), (cw, 0.0)]
+
+    for box in sorted_boxes:
         label = box["label"]
         bw, bl, bh = box["size"]
-        expandable = box.get("expandable", True)
 
-        if x_cursor + bw > cw:
-            # Finish current row
-            if row_boxes:
-                all_rows.append(row_boxes)
-            # Start new row
-            x_cursor = 0.0
-            current_row_height += max(p.size[1] for p in row_boxes) if row_boxes else 0
+        if bw > cw or bl > cl or bh > ch:
+            continue  # Box won't fit at all
 
-            if current_row_height + bl > cl:
-                # Would exceed container length
-                continue
+        # Find the lowest skyline segment wide enough for this box
+        best_x = None
+        best_y = float("inf")
+        for i in range(len(skyline) - 1):
+            x1, y1 = skyline[i]
+            x2, _ = skyline[i + 1]
+            segment_width = x2 - x1
+            if segment_width >= bw:
+                if y1 < best_y:
+                    best_y = y1
+                    best_x = x1
 
-            row_boxes = []
+        if best_x is None or best_y + bl > cl:
+            continue  # No room for this box
 
+        # Place the box
         packing.placements.append(
             Placement(
                 label=label,
-                position=(x_cursor, current_row_height, 0),
+                position=(best_x, best_y, 0),
                 size=(bw, bl, bh),
             )
         )
-        row_boxes.append(packing.placements[-1])
-        x_cursor += bw
-        current_row_height = max(current_row_height, bl)
 
-    # Final row
-    if row_boxes:
-        all_rows.append(row_boxes)
+        # Update the skyline
+        new_y = best_y + bl
+        new_skyline: list[tuple[float, float]] = []
 
-    # Compute row lengths and widths
-    for row in all_rows:
-        row_len = max(p.size[1] for p in row) if row else 0.0
-        row_wid = sum(p.size[0] for p in row)
-        packing.row_lengths.append(row_len)
-        packing.row_widths.append(row_wid)
+        # Copy points strictly before the box's x-start
+        i = 0
+        while i < len(skyline) and skyline[i][0] < best_x - 0.01:
+            new_skyline.append(skyline[i])
+            i += 1
 
-        # Check for gaps after the last box in each row
-        remaining = cw - row_wid
-        if remaining >= gap_threshold and remaining >= min_spacer_dim:
-            spacer = Placement(
-                label=f"spacer_{len(packing.spacer_placements) + 1}",
-                position=(row_wid, 0, 0),
-                size=(remaining, row_len, 5),  # spacer height default 5mm
-            )
-            packing.spacer_placements.append(spacer)
+        # Insert the new raised segment at the box start
+        if new_skyline and abs(new_skyline[-1][0] - best_x) < 0.01:
+            new_skyline[-1] = (best_x, max(new_skyline[-1][1], new_y))
+        else:
+            new_skyline.append((best_x, new_y))
+
+        # Skip points that fall inside the box's x-span
+        while i < len(skyline) and skyline[i][0] < best_x + bw + 0.01:
+            i += 1
+
+        # Drop back to the original skyline height at the box end
+        end_y = 0.0
+        if i > 0:
+            end_y = skyline[i - 1][1]
+        if not new_skyline or abs(new_skyline[-1][0] - (best_x + bw)) < 0.01:
+            if new_skyline:
+                new_skyline[-1] = (new_skyline[-1][0], max(new_skyline[-1][1], end_y))
+        else:
+            new_skyline.append((best_x + bw, end_y))
+
+        # Copy remaining points that are after the box
+        while i < len(skyline):
+            if skyline[i][0] > best_x + bw + 0.01:
+                new_skyline.append(skyline[i])
+            i += 1
+
+        # Merge adjacent points with same height (keep container boundary point)
+        merged: list[tuple[float, float]] = []
+        for i, pt in enumerate(new_skyline):
+            is_last = i == len(new_skyline) - 1
+            if not is_last and merged and abs(merged[-1][1] - pt[1]) < 0.01:
+                continue
+            merged.append(pt)
+        skyline = merged
+
+    # Compute row lengths and widths from the layout
+    if packing.placements:
+        # Find rows by grouping placements by Y position
+        rows: dict[float, list[Placement]] = {}
+        for p in packing.placements:
+            y_key = round(p.position[1], 1)
+            rows.setdefault(y_key, []).append(p)
+
+        for y_pos, row_boxes in sorted(rows.items()):
+            row_len = max(p.size[1] for p in row_boxes)
+            row_wid = sum(p.size[0] for p in row_boxes)
+            packing.row_lengths.append(row_len)
+            packing.row_widths.append(row_wid)
+
+            # Spacer in width direction
+            end_x = max(p.position[0] + p.size[0] for p in row_boxes)
+            remaining_w = cw - end_x
+            if remaining_w >= gap_threshold and remaining_w >= min_spacer_dim:
+                packing.spacer_placements.append(
+                    Placement(
+                        label=f"spacer_{len(packing.spacer_placements) + 1}",
+                        position=(end_x, y_pos, 0),
+                        size=(remaining_w, row_len, 5),
+                    )
+                )
 
     return packing
