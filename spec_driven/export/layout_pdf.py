@@ -24,13 +24,14 @@ def generate_layout_pdf(
 
     Args:
         packing: The computed packed layout.
-        output_path: Path to write the PDF file.
+        output_path: Path to write the PDF file (str or Path).
         project_name: Game name for the title.
         game_box_size: Outer game box dimensions (W, L, H).
 
     Returns:
         The output path, or None if generation failed.
     """
+    output_path = Path(output_path)
     try:
         from fpdf import FPDF
     except ImportError:
@@ -216,7 +217,7 @@ def generate_layout_pdf(
 
         # Page Header
         pdf.set_font("Helvetica", "B", 14)
-        pdf.cell(0, 8, f"Packing Guide: {project_name} — Step {step_idx + 1}: {page['name']}", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 8, f"Packing Guide: {project_name} - Step {step_idx + 1}: {page['name']}", align="C", new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", "", 9)
         pdf.cell(0, 5, f"Game box: {game_box_size[0]:.0f}x{game_box_size[1]:.0f}x{game_box_size[2]:.0f}mm",
                  align="C", new_x="LMARGIN", new_y="NEXT")
