@@ -175,6 +175,10 @@ class Project:
 
             # Build geometry (requires pybosl2)
             try:
+                # Resolve lid configuration for each export mode
+                lid_mmu = builder.lid.resolve_for_mode("mmu") if builder.lid else None
+                lid_single = builder.lid.resolve_for_mode("single") if builder.lid else None
+
                 spec_dict = {
                     "label": builder.label,
                     "width": size[0],

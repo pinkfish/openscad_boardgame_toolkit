@@ -46,3 +46,40 @@ class LidBuilderTests(unittest.TestCase):
         lb = LidBuilder(text="Test", pattern=pb)
         self.assertIsNotNone(lb.pattern)
         self.assertEqual(lb.pattern.type, PatternType.GRID)
+
+    def test_per_mode_override_mmu(self) -> None:
+        """mmu_label overrides parent for MMU mode."""
+        parent = LidBuilder(
+            text="Cards",
+            label_mode=LabelMode.FRAMED,
+            mmu_label=LidBuilder(text="Cards", label_mode=LabelMode.FRAMELESS),
+        )
+        resolved = parent.resolve_for_mode("mmu")
+        self.assertEqual(resolved.label_mode, LabelMode.FRAMELESS)
+        self.assertEqual(resolved.text, "Cards")
+
+    def test_per_mode_override_single(self) -> None:
+        """single_label overrides parent for single mode."""
+        parent = LidBuilder(
+            text="Cards",
+            label_mode=LabelMode.FRAMED,
+            single_label=LidBuilder(text="CARDZ", label_mode=LabelMode.FRAMED),
+        )
+        resolved = parent.resolve_for_mode("single")
+        self.assertEqual(resolved.text, "CARDZ")
+
+    def test_no_override_falls_back(self) -> None:
+        """Unset mode falls back to parent."""
+        lb = LidBuilder(text="Cards", label_mode=LabelMode.FRAMED)
+        self.assertIs(lb.resolve_for_mode("mmu"), lb)
+        self.assertIs(lb.resolve_for_mode("single"), lb)
+
+    def test_override_does_not_affect_other_mode(self) -> None:
+        """MMU override leaves single mode unchanged."""
+        lb = LidBuilder(
+            text="Cards",
+            label_mode=LabelMode.FRAMED,
+            mmu_label=LidBuilder(label_mode=LabelMode.FRAMELESS),
+        )
+        self.assertEqual(lb.resolve_for_mode("mmu").label_mode, LabelMode.FRAMELESS)
+        self.assertEqual(lb.resolve_for_mode("single").label_mode, LabelMode.FRAMED)

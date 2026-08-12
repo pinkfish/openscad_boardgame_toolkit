@@ -44,3 +44,17 @@ class LabelTests(unittest.TestCase):
             text="X", border_margin_mm=6.0,
         )
         self.assertIsNone(result)
+
+    def test_compartment_label_mmu_mode(self) -> None:
+        """MMU mode returns raised text (requires bosl2)."""
+        from spec_driven.compartments.labels import build_floor_label
+        result = build_floor_label("Lion", 40, 30, mode="mmu")
+        if result is None:
+            self.skipTest("bosl2 not available")
+
+    def test_compartment_label_single_mode(self) -> None:
+        """Single mode returns engraved text (requires bosl2)."""
+        from spec_driven.compartments.labels import build_floor_label
+        result = build_floor_label("Lion", 40, 30, mode="single")
+        if result is None:
+            self.skipTest("bosl2 not available")

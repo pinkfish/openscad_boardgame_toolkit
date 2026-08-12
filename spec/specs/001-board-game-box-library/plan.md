@@ -138,7 +138,7 @@ tests/
 | 3MF export | **Fresh** | New exporter, same pymeshlab backend |
 | Typed builder API | **Fresh** | Enums, typed dataclasses, `@overload` dispatch. Adds a unique `box_id` field to distinguish duplicate instances. |
 | Caching strategy | **Fresh** | Same SHA-256 approach, new cache file. Stores 3D box packing layouts in `.layout_cache.json` to bypass solver on subsequent runs. |
-| PDF packing guide | **Fresh** | 3D angle view of packed layout with box labels, dimensions, packing order. Cached regeneration. |
+| PDF packing guide | **Fresh** | Standards-compliant valid PDF with scaled 2D top-down box layout, labels, dimensions, packing order numbers. Layered exploded breakdown with arrow connectors. Cached regeneration via SHA-256 layout hash. |
 
 ## Earth Animal Kingdom Example Migration
 
