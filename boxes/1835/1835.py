@@ -60,6 +60,7 @@ project = Project(
     wall_thickness=wall_thickness,
     floor_thickness=floor_thickness,
     lid_thickness=lid_thickness,
+    clearance_slack=0.0,
 )
 
 # ── Hex Boxes (4 stacked, each a 3×5 hex grid) ────────────────────
