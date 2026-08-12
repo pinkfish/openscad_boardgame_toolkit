@@ -35,12 +35,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Implement `BoxBuilder` base frozen dataclass with common fields in `spec_driven/builders/_base.py`
+- [ ] T007 Implement `BoxBuilder` base frozen dataclass with common fields including `box_id` (unique instance identifier) and `final_size` (resolved by 3D packer) in `spec_driven/builders/_base.py`
 - [ ] T008 [P] Implement `CompartmentBuilder` frozen dataclass in `spec_driven/compartments/builder.py`
 - [ ] T009 [P] Implement `LidBuilder` and `PatternBuilder` frozen dataclasses in `spec_driven/lid/builder.py`
 - [ ] T010 Implement `BoxProtocol` abstract base and `Interior` dataclass in `spec_driven/box/base.py`
 - [ ] T011 Implement `Project` class skeleton (constructor, `box()` factory with `@overload` signatures, empty `export()`) in `spec_driven/project.py`
-- [ ] T012 [P] Write test for BoxBuilder instantiation/validation in `tests/test_spec_driven/test_builders.py`
+- [ ] T012 [P] Write test for BoxBuilder instantiation/validation including `box_id` uniqueness and `final_size` in `tests/test_spec_driven/test_builders.py`
 - [ ] T013 [P] Write test for CompartmentBuilder in `tests/test_spec_driven/test_compartments.py`
 - [ ] T014 [P] Write test for LidBuilder/PatternBuilder in `tests/test_spec_driven/test_lid_builder.py`
 - [ ] T015 [P] Write test for Project constructor and basic box registration in `tests/test_spec_driven/test_project.py`
@@ -178,16 +178,16 @@
 
 - [ ] T055 [P] [US7] Write unit test: auto-sizing expands boxes to fill rows in `tests/test_spec_driven/test_packing.py`
 - [ ] T056 [P] [US7] Write unit test: row lengths match longest box in row in `tests/test_spec_driven/test_packing.py`
-- [ ] T057 [P] [US7] Write unit test: gaps > 10mm produce spacers, gaps < 10mm absorbed in `tests/test_spec_driven/test_packing.py`
+- [ ] T057 [P] [US7] Write unit test: gaps > 10mm produce spacers, gaps < 10mm absorbed, and `final_size` correctly propagated to builders in `tests/test_spec_driven/test_packing.py`
 - [ ] T058 [P] [US7] Write render test: 4-box game with spacers in `tests/test_spec_driven/render/test_box_render.py`
 
 ### Implementation for User Story 7
 
-- [ ] T059 [US7] Implement 3D box packing into game box interior in `spec_driven/packing/layout.py`
-- [ ] T060 [US7] Implement auto-sizing expansion (fill-to-fit rows, common length per row) in `spec_driven/packing/layout.py`
+- [ ] T059 [US7] Implement 3D box packing into game box interior using a 3D packing solver with dynamic dimension expansion in `spec_driven/packing/layout.py`
+- [ ] T060 [US7] Implement auto-sizing expansion (fill-to-fit rows, common length per row) and propagate resolved sizes back to builders via `final_size` attribute in `spec_driven/packing/layout.py`
 - [ ] T061 [US7] Implement spacer tray generation from gap dimensions (NoLidBox hollow trays) in `spec_driven/packing/spacer.py`
 - [ ] T062 [US7] Implement gap threshold logic (absorb < 10mm, spacer if ≥ 15mm, absorb 10-15mm) in `spec_driven/packing/spacer.py`
-- [ ] T063 [US7] Wire `Project.export()` → packing → auto-sizing → spacer generation in `spec_driven/project.py`
+- [ ] T063 [US7] Wire `Project.export()` → packing solver → auto-sizing with `final_size` propagation → spacer generation in `spec_driven/project.py`
 
 **Checkpoint**: Multi-box games with auto-sizing and spacers fully functional
 
@@ -202,18 +202,18 @@
 ### Tests for User Story 8
 
 - [ ] T064 [P] [US8] Write unit test: ExportResult file counts match expectations in `tests/test_spec_driven/test_export.py`
-- [ ] T065 [P] [US8] Write unit test: cache hit/miss based on SHA-256 hash in `tests/test_spec_driven/test_packing.py`
+- [ ] T065 [P] [US8] Write unit test: cache hit/miss based on SHA-256 hash using `.layout_cache.json` in `tests/test_spec_driven/test_packing.py`
 - [ ] T066 [P] [US8] Write render test: second export writes 0 files (Hausdorff skip) in `tests/test_spec_driven/render/test_export_render.py`
 - [ ] T067 [P] [US8] Write render test: partial change exports only modified files in `tests/test_spec_driven/render/test_export_render.py`
 
 ### Implementation for User Story 8
 
 - [ ] T068 [P] [US8] Implement `ExportResult` frozen dataclass in `spec_driven/export/result.py`
-- [ ] T069 [P] [US8] Implement two-level layout cache (memory + disk JSON, SHA-256 key, version invalidation) in `spec_driven/packing/cache.py`
+- [ ] T069 [P] [US8] Implement two-level layout cache (in-memory dict + disk `spec_driven/.layout_cache.json`, SHA-256 key, version invalidation) to store 3D box packing layouts and bypass solver on subsequent runs in `spec_driven/packing/cache.py`
 - [ ] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py`
 - [ ] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py`
 - [ ] T072 [US8] Implement organized output directory structure (`mmu/` + `single/`, `_body.3mf` / `_lid.3mf` naming) in `spec_driven/export/exporter.py`
-- [ ] T073 [US8] Wire full `Project.export()` pipeline: pack → auto-size → spacers → build → export in `spec_driven/project.py`
+- [ ] T073 [US8] Wire full `Project.export()` pipeline: pack with dynamic dimension expansion → auto-size with `final_size` propagation → spacers → build → export in `spec_driven/project.py`
 
 **Checkpoint**: Full export pipeline functional — cached, Hausdorff-gated, organized output
 
