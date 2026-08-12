@@ -136,7 +136,29 @@ Same SHA-256 hash cache and Hausdorff conditional writes; implemented fresh unde
 | 2D shapes (coin, hexagon, rounded rect) | `shapes.py` | Compartment floor shapes, label frame corner rounding |
 | pybosl2 CSG primitives | `pybosl2` | All 3D geometry |
 
-## 9. Geometry Source Constraint
+## 9. Auto-Computed Box Dimensions
+
+### Decision: `size` is optional on BoxBuilder — `None` means compute from compartments
+
+If the user does not specify a box `size`, the system computes the minimum dimensions from the compartment layout. Each compartment contributes its footprint plus wall spacing, and the box dimensions are the bounding rectangle that fits all compartments. The height is derived from the deepest compartment plus floor thickness.
+
+If `size` IS explicitly set, it is used as-is, and compartments must fit within the box interior (validated at spec time).
+
+Box expansion (auto-sizing during `Project.export()`) applies regardless: if a box has `size=None`, the computed minimum is the starting point and the box can expand during packing to fill rows.
+
+**Rationale**: Card boxes and component trays have known minimum content dimensions (card W×L, token diameter). The user should not need to manually compute box dimensions from compartment sizes. The packing phase handles expansion to fill the game box.
+
+**Implementation**: In `Project.export()`, before packing, iterate over boxes with `size=None`. For each, compute bounding box of all compartments + wall/floor thicknesses. Set `final_size` to this computed minimum. The packing solver then treats this as the minimum and may expand it.
+
+**Alternatives considered**:
+- Always require explicit size: Violates Principle I (Developer Experience First) — users retype compartment dimensions as box dimensions.
+- Compute size at BoxBuilder construction time: Compartments may be added after the box() call; computation must happen after all boxes+compartments are defined.
+
+### Decision: Compartment dimensions drive minimum; packing phase drives maximum
+
+The computed minimum from compartments is the floor — the box cannot be smaller. The packing phase determines the ceiling — the box may expand to fill available space. Between them, the packing solver chooses the size.
+
+## 10. Geometry Source Constraint
 
 ### Decision: Only pybosl2 — never import pythonscad directly
 

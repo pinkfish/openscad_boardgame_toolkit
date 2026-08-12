@@ -25,6 +25,7 @@
 - Q: Lid pattern "spaces" for filament saving: holes, recesses, or lattice? → A: Through-holes cut completely through the lid at pattern lines -- maximum filament savings.
 - Q: How many accent colors for lid decorations? → A: Three independently settable colors: one for label text, one for the frame (top layer), one for the pattern top layer. Patterns support multiple colors.
 - Q: How does label auto-sizing determine dimensions? → A: Label fills available lid area minus a configurable border margin. If the computed text size is below a minimum (default 4mm, settable), the label is skipped entirely rather than printed illegibly.
+- Q: How are box minimum dimensions computed from compartments? → A: `size` is auto-computed from compartment dimensions if not explicitly set. If `size` IS set, it is used as-is and compartments must fit within. Box expansion happens during the Project packing phase where sub-boxes are fitted into the main game box.
 
 ## User Scenarios & Testing
 
@@ -213,7 +214,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-009**: The library MUST generate all pieces as output -- box body, lid, and any separate sub-boxes -- with consistent material colouring and the same coordinate frame so they align when assembled.
 - **FR-010**: The library MUST support nested sub-boxes: an outer box specification containing inner sub-box specifications, with the nesting layout automatically packed into the outer box interior.
 - **FR-011**: The library MUST validate that all nested sub-boxes fit within the outer box interior (both footprint and height) before accepting the specification.
-- **FR-012**: The library MUST support declaring minimum dimensions for each nested sub-box, allowing the box to auto-expand to fill available space in its row or column up to the outer box interior bounds.
+- **FR-012**: The library MUST support declaring minimum dimensions for each nested sub-box, allowing the box to auto-expand to fill available space in its row or column up to the outer box interior bounds. If `size` is not explicitly set, the minimum dimensions MUST be auto-computed from the compartment dimensions within that box.
 - **FR-013**: The library MUST align sub-boxes into rows where every box in the same row shares a common length (the length of the longest box in that row), so rows are uniform and boxes are easy to place and remove.
 - **FR-014**: The library MUST generate hollow spacer trays to fill gaps larger than 10mm (default threshold, configurable) between the expanded boxes and the outer box walls. Spacer trays MUST NOT be narrower than 15mm in width or length.
 - **FR-015**: The library MUST absorb gaps smaller than the auto-fill threshold (default 10mm) into adjacent expandable boxes rather than generating spacer trays.
@@ -237,7 +238,7 @@ The designer wants precise control over compartment placement. They specify exac
 
 ### Key Entities
 
-- **BoxSpec**: The complete configuration of a single box -- outer dimensions, wall/floor/lid thicknesses, lid type, compartments, finger holes, labelling decorations, material colours, print positioning (anchor, orient, spin), and auto-expand behaviour (minimum dimensions, expandable axes). Immutable once built.
+- **BoxSpec**: The complete configuration of a single box -- outer dimensions (explicit or auto-computed from compartments), wall/floor/lid thicknesses, lid type, compartments, finger holes, labelling decorations, material colours, print positioning, and auto-expand behaviour (expandable axes). Immutable once built. If `size` is omitted, dimensions are derived from compartment layout during packing.
 - **BoxType**: Abstracts the lid mechanism -- defines how the body is constructed (e.g., with dovetail grooves for sliding, with overhangs for caps) and what lid geometry mates with it.
 - **Compartment**: A single well inside a box interior, defined by its 2D footprint (width x length, or a polygon path), depth, rounding radius, and optional finger cutout specification. Can emit both a negative cavity and a positive insert.
 - **Compartment Group**: A collection of compartments that must stay together during layout, with a packing algorithm directive.

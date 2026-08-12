@@ -119,7 +119,30 @@ result = project.export("output/")
 # Lid exports without text — "A" @ 30x20mm lid = < 4mm text height → skipped
 ```
 
-## Validation Scenario 5: Earth Animal Kingdom
+## Validation Scenario 5: Auto-Computed Box Size from Compartments
+
+```python
+from spec_driven import Project, BoxType, ScoopSide
+
+project = Project("ComputedBox", game_box_size=(200, 150, 60))
+
+# No `size=` specified — computed from compartments
+cards = project.box(BoxType.SLIDING, "CardBox")
+
+# These compartments drive the minimum box size
+cards.compartment("Deck", size=(90, 65), depth=45)
+cards.compartment("SideSlot", size=(55, 45), depth=25)
+
+# The box minimum = 90+55+walls+spacing wide × 65+walls long
+# Depth drives height = 45+floor+lid
+
+result = project.export("output/")
+# Box auto-sized to fit its compartments, then expanded to fill the game box row
+```
+
+**Expected**: CardBox minimum dimensions computed from Deck + SideSlot compartments. Box expands during packing. If `size` were explicitly set, compartments would be validated against it instead.
+
+## Validation Scenario 6: Earth Animal Kingdom
 
 ```python
 from spec_driven import (

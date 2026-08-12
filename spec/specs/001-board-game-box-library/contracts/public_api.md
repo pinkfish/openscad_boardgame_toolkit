@@ -54,7 +54,7 @@ Project(
 | `BoxType.NO_LID` | `NoLidBoxBuilder` | ... |
 | `BoxType.CARD_LIBRARY` | `CardLibraryBoxBuilder` | ... |
 
-All builders share these base kwargs: `expandable: bool = True`, `expandable_width: bool = True`, `expandable_length: bool = True`, `wall_thickness: float | None = None`, `floor_thickness: float | None = None`, `lid_thickness: float | None = None`, `lid: LidBuilder | None = None`.
+All builders share these base kwargs: `size: tuple[float, float, float] | None = None` (auto-computed from compartments if omitted), `expandable: bool = True`, `expandable_width: bool = True`, `expandable_length: bool = True`, `wall_thickness: float | None = None`, `floor_thickness: float | None = None`, `lid_thickness: float | None = None`, `lid: LidBuilder | None = None`.
 
 ### `.export(out_dir: str | Path) -> ExportResult`
 
