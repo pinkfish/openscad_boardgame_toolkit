@@ -84,24 +84,13 @@ ANIMALS: list[tuple[str, A]] = [
 
 TOKEN_THICKNESS = 8.0
 
-# ── Split animals into two halves using multi-bin packing solver ─────
-# We pack using token size + 1.5mm clearance. The solver respects the 170x154 interior of each 174x158 box.
-comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
-bin_sizes = [(170, 154), (170, 154)]
-packed_bins = project.pack_compartments_across_bins(comps, bin_sizes)
-if not packed_bins:
-    raise ValueError("Failed to pack animal compartments across the two boxes!")
-
-half1 = [(name, next(a for n, a in ANIMALS if n == name)) for name, _, _, _ in packed_bins[0]]
-half2 = [(name, next(a for n, a in ANIMALS if n == name)) for name, _, _, _ in packed_bins[1]]
-
-
-def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
-    """Create a filament-hinge box with per-animal compartments."""
-    box = project.box(
+# ── Define Animal Token Boxes ─────────────────────────────────────
+def add_animal_box(label: str):
+    """Create a empty filament-hinge box whose compartments are populated via share_compartments."""
+    return project.box(
         BoxType.FILAMENT_HINGE,
         label,
-        size=(174, 158, 12.5),
+        size=(174.0, 156.0, 12.5),
         lid=LidBuilder(
             text=label,
             label_mode=LabelMode.FRAMED,
@@ -110,19 +99,13 @@ def add_animal_box(box_idx: int, animals: list[tuple[str, A]], label: str):
         ),
     )
 
-    for name, a in animals:
-        depth = a.num * TOKEN_THICKNESS
-        box.compartment(
-            name, size=(a.width + 1.5, a.length + 1.5), depth=depth,
-            finger_scoop=True, scoop_side=ScoopSide.FRONT,
-        )
 
-    return box
+add_animal_box("AnimalBox1")
+add_animal_box("AnimalBox2")
 
-
-# ── Animal Token Boxes ────────────────────────────────────────────
-add_animal_box(1, half1, "AnimalBox1")
-add_animal_box(2, half2, "AnimalBox2")
+# ── Register Shared Animal Compartments ────────────────────────────
+comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
+project.share_compartments(["AnimalBox1", "AnimalBox2"], comps)
 
 # ── Animal Cards Box ──────────────────────────────────────────────
 CARD_W, CARD_L = 72.0, 123.0
@@ -132,7 +115,8 @@ card_height = (CARD_COUNT / 10) * 6.0 + project.floor_thickness + project.lid_th
 card_box = project.box(
     BoxType.SLIDING,
     "AnimalCardsBox",
-    size=(88, 139, 33.2),
+    size=(76, 156, None),
+    expandable=True,
     lid=LidBuilder(
         text="Animal Cards",
         label_mode=LabelMode.FRAMED,
@@ -143,7 +127,7 @@ card_box = project.box(
     ),
 )
 card_box.compartment(
-    "Cards", size=(CARD_W, CARD_L), depth=33.2 - project.lid_thickness - project.floor_thickness,
+    "Cards", size=(CARD_W, CARD_L), depth=card_height - project.lid_thickness - project.floor_thickness,
     finger_scoop=True,
 )
 
@@ -151,19 +135,21 @@ card_box.compartment(
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(72, 158, 12),
+    size=(76, 158, None),
+    expandable=True,
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
 )
-sprout.compartment("Sprouts", size=(64, 150), depth=12 - project.lid_thickness - project.floor_thickness, finger_scoop=True)
+sprout.compartment("Sprouts", size=(64, 150), depth=8.0, finger_scoop=True)
 
 # ── Canopy Box ────────────────────────────────────────────────────
 canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    size=(38, 158, 12),
+    size=(38, 158, None),
+    expandable=True,
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
-canopy.compartment("Canopies", size=(30, CARD_L), depth=12 - project.lid_thickness - project.floor_thickness, finger_scoop=True)
+canopy.compartment("Canopies", size=(30, CARD_L), depth=8.0, finger_scoop=True)
 
 # ── Board Storage ─────────────────────────────────────────────────
 project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)

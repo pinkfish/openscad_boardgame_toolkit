@@ -258,8 +258,9 @@ To ensure dense packing of compartments (like the animal compartments in `Animal
 * **Rotation Evaluation**: For each compartment, the engine evaluates both the original orientation `(w, l)` and the rotated orientation `(l, w)`. It prefers the orientation that fits in the current row while minimizing row height increase. If neither fits in the current row, it wraps to a new row and evaluates both orientations there.
 
 ### Multi-Bin Compartment Packing API
-To allow compartments to be dynamically partitioned across multiple boxes (like the two animal boxes), the `Project` class implements `project.pack_compartments_across_bins(compartments, bin_sizes)`. 
-* **Solver**: Runs a backtracking search over the bin allocations, using the rotation-enabled shelf packer `layout_compartments` as the feasibility check for each bin. This is extremely fast (under 1 second) and distributes the 37 animal compartments optimally across the two `170 x 154` boxes.
+To allow compartments to be dynamically partitioned across multiple boxes (like the two animal boxes), the `Project` class implements `project.share_compartments(boxes, compartments)`:
+* **Boxes Registration**: Registers a list of box labels (e.g. `["AnimalBox1", "AnimalBox2"]`) and a shared list of compartments.
+* **Auto-Partitioning during Export**: During `Project.export()`, the engine automatically computes the interior sizes of these boxes, runs the multi-bin backtracking shelf-packer solver to partition the shared compartments across the boxes, and populates the compartments of each box builder before geometry generation!
 
 ### Migration Checklist
 

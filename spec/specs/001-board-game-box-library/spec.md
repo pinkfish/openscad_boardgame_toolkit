@@ -239,7 +239,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-006**: The library MUST support finger cutouts on compartment walls (notches) and compartment floors (scoops), as well as finger holes on box exterior walls.
 - **FR-007**: The library MUST reject invalid configurations at specification time: compartments deeper than the interior height, compartments that cannot fit in the interior, overlapping manually positioned compartments.
 - **FR-008**: The library MUST support grouping compartments so they are packed together during automatic layout, and support packing bins (best-fit, next-fit, with rotation) for arrangement strategy.
-- **FR-008a**: The library MUST provide a method `project.pack_compartments_across_bins(compartments, bin_sizes)` that distributes a list of compartments across multiple box interior spaces (bins) dynamically using a 2D multi-bin packing solver with rotation support.
+- **FR-008a**: The library MUST support sharing a list of compartments across multiple boxes using `project.share_compartments(boxes, compartments)`. The library MUST automatically partition and bin-pack these compartments across the specified boxes during export.
 - **FR-009**: The library MUST generate all pieces as output -- box body, lid, and any separate sub-boxes -- with consistent material colouring and the same coordinate frame so they align when assembled.
 - **FR-010**: The library MUST support nested sub-boxes: an outer box specification containing inner sub-box specifications, with the nesting layout automatically packed into the outer box interior.
 - **FR-011**: The library MUST validate that all nested sub-boxes fit within the outer box interior (both footprint and height) before accepting the specification.

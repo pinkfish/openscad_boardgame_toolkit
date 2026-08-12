@@ -68,7 +68,7 @@
 - [x] T020 [US1] Implement box type registry (`BoxType` → class mapping) in `spec_driven/box/registry.py`
 - [x] T021 [US1] Implement interior computation and hollowing in `spec_driven/box/interior.py`
 - [x] T022 [US1] Implement compartment auto-layout with 90-degree rotation support (2D shelf-based packing) in `spec_driven/compartments/layout.py`
-- [x] T022a [US1] Implement `project.pack_compartments_across_bins()` multi-bin compartment packing API in `spec_driven/compartments/layout.py` and `spec_driven/project.py`
+- [x] T022a [US1] Implement `project.share_compartments()` shared compartment auto-packing API in `spec_driven/project.py`
 - [x] T023 [US1] Wire `Project.box()` → builder → BoxSpec → box construction in `spec_driven/project.py`
 
 **Checkpoint**: User Story 1 fully functional — one box type with compartments
