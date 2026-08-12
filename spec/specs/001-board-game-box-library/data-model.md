@@ -156,6 +156,34 @@ A no-lid box with an interlocking rim. Fields: `stackable` (`"inside"` — reces
 
 A cavity in a box side wall for an embedded magnet. Fields: `magnet_type` (`"round"` cylindrical cavity, or `"rect"` box cavity), `magnet_size` (diameter_or_width, length, depth), placed on opposing sides so adjacent stacked boxes attract.
 
+## Hex Grid (FR-040)
+
+A rectangular compartment region filled with a `rows × cols` array of hexagonal tile cutouts. Parameters:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `rows` | `int` | required | Number of hex cell rows |
+| `cols` | `int` | required | Number of hex cell columns |
+| `tile_width` | `float` | required | Apothem-to-apothem width of each hex tile (mm) |
+| `height` | `float` | required | Depth of the hex cell cutouts (mm) |
+| `spacing` | `float` | 0.0 | Gap between adjacent hex cells (mm) |
+| `push_block_height` | `float` | 0.0 | Height of the raised central pillar; 0 = flat floor (FR-041) |
+| `push_block_width` | `float` | 15.0 | Width of the raised pillar (mm) |
+| `finger_hole_diameter` | `float` | 0.0 | Diameter of the floor finger hole; 0 = no hole (FR-042) |
+
+**Derived properties**: `apothem = tile_width / 2`, `circumradius = apothem / cos(30°)`.
+
+## Hex Cell (FR-040–042)
+
+A single hexagonal cutout within a Hex Grid, sized to hold one hex tile.
+
+| Feature | Field | Behavior |
+|---------|-------|----------|
+| Push block | `push_block_height` | A smaller hexagon is subtracted from the cell center, leaving a raised central post so the tile rests elevated for easy grasping (FR-041) |
+| Finger hole | `finger_hole_diameter` | A circular cutout through the cell floor so a finger pushes the tile up (FR-042). Offset to the cell edge (`0.4 × circumradius`) when a push block is present so the two never intersect |
+
+**Implementation**: `spec_driven/compartments/hex_grid.py` — `HexGridSpec`, `HexCell`, `compute_hex_layout()`, `hex_grid_bounds()`, `build_hex_grid()`.
+
 ## Internal Cache (`spec_driven/packing/cache.py`)
 
 Two-level: in-memory dict + `spec_driven/.layout_cache.json`. SHA-256 hash key from serialized input. Version-keyed invalidation.

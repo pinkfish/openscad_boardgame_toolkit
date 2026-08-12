@@ -311,12 +311,12 @@
 - [x] T115 [P] Implement tessellation fills (LIZARD, VORONOI, LEAF, LEAF_VEINS, DROP, DELTOID_TRIHEXAGONAL, DELTOID_TRIHEXAGONAL_KITE, HALF_REGULAR_HEXAGON, RHOMBI_TRI_HEXAGONAL, PENROSE_TILING_5, PENROSE_TILING_7, PEGASUS, GOOSE, CHICKEN, SHEEP, BIRD, HEX_TESSELATION, KITE_TESSELATION, QUAD_TESSELATION) by wrapping `tesselations/` modules in `spec_driven/lid/pattern.py`
 - [x] T116 [P] Update `build_pattern` dispatch to cover every `PatternType` member (no fallback-to-grid) in `spec_driven/lid/pattern.py`
 - [x] T117 [P] Write test: every `PatternType` member resolves to a fill function without fallback in `tests/test_spec_driven/test_lid_pattern.py`
-- [ ] T118 [P] Implement hex-grid compartment layout — `HexGridWithCutouts` port (rows × cols hexagonal cutouts from `tile_width`, deriving circumradius as `tile_width/2/cos(30°)`) in `spec_driven/compartments/hex_grid.py`
-- [ ] T119 [P] Implement hex-cell push block — raised central hexagonal pillar via `push_block_height` (FR-041) in `spec_driven/compartments/hex_grid.py`
-- [ ] T120 [P] Implement hex-cell floor finger hole — circular cutout through the cell floor, offset from the pillar when both are enabled (FR-042) in `spec_driven/compartments/hex_grid.py`
-- [ ] T121 Create `boxes/1835/1835.py` — hex boxes (3×5 hex grid ×4 stacked), money boxes (8 denominations), share boxes (8 companies), middle box (tokens/trains), first-player box, spacer in `boxes/1835/`
-- [ ] T122 [P] Write test: hex grid derives circumradius + rows/cols layout correctly in `tests/test_spec_driven/test_hex_grid.py`
-- [ ] T123 [P] Write test: push block + finger hole are mutually offset (never intersect) in `tests/test_spec_driven/test_hex_grid.py`
+- [x] T118 [P] Implement hex-grid compartment layout — `HexGridWithCutouts` port (rows × cols hexagonal cutouts from `tile_width`, deriving circumradius as `tile_width/2/cos(30°)`) in `spec_driven/compartments/hex_grid.py`
+- [x] T119 [P] Implement hex-cell push block — raised central hexagonal pillar via `push_block_height` (FR-041) in `spec_driven/compartments/hex_grid.py`
+- [x] T120 [P] Implement hex-cell floor finger hole — circular cutout through the cell floor, offset from the pillar when both are enabled (FR-042) in `spec_driven/compartments/hex_grid.py`
+- [x] T121 Create `boxes/1835/1835.py` — hex boxes (3×5 hex grid ×4 stacked), money boxes (8 denominations), share boxes (8 companies), middle box (tokens/trains), first-player box, spacer in `boxes/1835/`
+- [x] T122 [P] Write test: hex grid derives circumradius + rows/cols layout correctly in `tests/test_spec_driven/test_hex_grid.py`
+- [x] T123 [P] Write test: push block + finger hole are mutually offset (never intersect) in `tests/test_spec_driven/test_hex_grid.py`
 
 ---
 

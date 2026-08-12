@@ -69,10 +69,8 @@ def layout_compartments(
         w, l = comp_w, comp_l
         if fits_normal or fits_rotated:
             if fits_normal and fits_rotated:
-                # If both fit, choose the orientation that keeps the length (row height) smaller
-                # or maintains normal layout.
-                if comp_l > comp_w:
-                    w, l = comp_l, comp_w
+                # Both fit: keep the normal orientation (don't rotate)
+                w, l = comp_w, comp_l
             elif fits_rotated:
                 w, l = comp_l, comp_w
         else:
@@ -87,8 +85,7 @@ def layout_compartments(
 
             if fits_normal_new or fits_rotated_new:
                 if fits_normal_new and fits_rotated_new:
-                    if comp_l > comp_w:
-                        w, l = comp_l, comp_w
+                    w, l = comp_w, comp_l
                 elif fits_rotated_new:
                     w, l = comp_l, comp_w
             else:
