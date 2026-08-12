@@ -59,7 +59,7 @@ The new lid pipeline under `spec_driven/lid/` is designed around the clarified r
 - Three independent accent colors (text, frame top, pattern top)
 - Minimum text height guard
 
-**Borrowed**: Tessellation generators (penrose, pentagon, voronoi) and 2D shapes for space-filling.
+**Borrowed**: Tessellation generators (penrose, pentagon R1–R15, voronoi, lizard, goose, chicken, kite, hex, quad) and 2D shapes for space-filling. The full `ShapeType` enum (42 members) from the original toolkit is ported to the `PatternType` enum.
 **Fresh**: Label generation, pattern filling, color layer assignment, lid-body mating geometry.
 
 ### Decision: Lid pattern is a `Callable[[width, length, thickness], Bosl2Solid]` fill function

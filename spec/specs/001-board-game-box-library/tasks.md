@@ -305,6 +305,12 @@
 - [x] T109 [P] Implement box-rotation → compartment re-layout: when a placement is `rotated`, re-run `layout_compartments` against the swapped interior dimensions (FR-013b) in `spec_driven/project.py`
 - [x] T110 Create `boxes/stackable_hexes/stackable_hexes.py` — 8 hex box variants (1–4 divisions × round/rect magnets) with stackable rims in `boxes/stackable_hexes/`
 - [x] T111 [P] Write test: no_rotate boxes are never rotated + rotated boxes re-lay-out compartments (FR-013b/FR-013c) in `tests/test_spec_driven/test_packing.py`
+- [ ] T112 [P] Expand `PatternType` enum to the full catalog (42 members) — dense/lattice shapes, pentagon tilings R1–R15, and all tessellations — in `spec_driven/enums.py`
+- [ ] T113 [P] Implement dense/lattice shape fills (DENSE_HEX, DENSE_TRIANGLE, CIRCLE, HEX, OCTOGON, TRIANGLE, SQUARE, SUPERSHAPE, HILBERT, CLOUD) as through-hole functions in `spec_driven/lid/pattern.py`
+- [ ] T114 [P] Implement pentagon tiling fills (PENTAGON_R1–R15) by wrapping `pentagon_tilings.py` in `spec_driven/lid/pattern.py`
+- [ ] T115 [P] Implement tessellation fills (LIZARD, VORONOI, LEAF, LEAF_VEINS, DROP, DELTOID_TRIHEXAGONAL, DELTOID_TRIHEXAGONAL_KITE, HALF_REGULAR_HEXAGON, RHOMBI_TRI_HEXAGONAL, PENROSE_TILING_5, PENROSE_TILING_7, PEGASUS, GOOSE, CHICKEN, SHEEP, BIRD, HEX_TESSELATION, KITE_TESSELATION, QUAD_TESSELATION) by wrapping `tesselations/` modules in `spec_driven/lid/pattern.py`
+- [ ] T116 [P] Update `build_pattern` dispatch to cover every `PatternType` member (no fallback-to-grid) in `spec_driven/lid/pattern.py`
+- [ ] T117 [P] Write test: every `PatternType` member resolves to a fill function without fallback in `tests/test_spec_driven/test_lid_pattern.py`
 
 ---
 

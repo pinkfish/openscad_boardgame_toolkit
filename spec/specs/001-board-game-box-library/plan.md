@@ -71,7 +71,7 @@ spec_driven/                    # NEW: Greenfield package
 ├── lid/                        # NEW: Fresh lid decoration pipeline
 │   ├── builder.py              # LidBuilder, PatternBuilder
 │   ├── label.py                # Label generation (framed, frameless, diagonal)
-│   ├── pattern.py              # Pattern fill: hex grid, grid, voronoi through-holes
+│   ├── pattern.py              # Pattern fill: full ShapeType catalog (dense/lattice shapes, pentagon tilings, tessellations) as through-holes
 │   └── color_layers.py         # Color layer assignment for MMU
 ├── box/                        # NEW: Fresh box construction pipeline
 │   ├── base.py                 # Abstract box type definition
@@ -127,7 +127,7 @@ tests/
 
 | Component | Status | Rationale |
 |-----------|--------|-----------|
-| Tessellations (penrose, pentagon, voronoi) | Borrowed | Pure algorithms, no pipeline coupling |
+| Tessellations (penrose, pentagon R1–R15, voronoi, lizard, goose, chicken, kite, hex, quad) | Borrowed | Pure algorithms, no pipeline coupling. Ported from `tesselations/`, `pentagon_tilings.py`, and `patterns.py` `ShapeType` enum (42 members) |
 | 2D shape generators (coin, hex, rounded rect) | Borrowed | Pure geometry functions |
 | pybosl2 CSG (cuboid, cylinder, boolean ops) | Dependency | External library, not our code |
 | Box construction pipeline | **Fresh** | New base class, new builder→geometry mapping |
