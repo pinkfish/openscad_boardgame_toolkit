@@ -19,12 +19,13 @@
 #    PythonSCAD port of earth_animal_kingdom.scad.
 #    Uses layout_compartments with custom 2D packed solids to fit in 2 boxes.
 
+
 from base_bgtk import FROM_MAKE, MAKE_MMU, InnerObject, LabelType, make_box, ObjectType, document_box
 from box_base import BoxSpec, Label, Lid, pack_boxes
 from components import FingerHoleBase, RoundedBoxAllSides
 from labels import MakeLabelOptions
 from shape_type import ShapeType
-from compartments import Compartment, Group, Shape, Removal, PackingBin, layout_compartments
+from compartments import Compartment, Group, Shape, Removal, PackingBin, layout_compartments, pack_multibin_3d
 import pybosl2 as s3
 
 # ---- Retail box & constants --------------------------------------------------
@@ -251,71 +252,61 @@ ANIMAL_PIECES = [
 _PACKING_SOLUTION = None
 _METADATA = None
 
-# ---- Load & Run Hyperpack ----------------------------------------------------
+# ---- Load & Run Native Packer ------------------------------------------------
 def get_layout(container_id: str):
     global _PACKING_SOLUTION, _METADATA
     
     if _PACKING_SOLUTION is None:
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
+        spacing = 3.0
+        container_w = 170.0
+        container_l = 152.0
+        
+        # Build items and metadata
+        items = []
+        metadata = {}
+        for name, w, l, num in ANIMAL_PIECES:
+            if num > 1:
+                item_w = w + spacing / 2.0
+                item_l = l * num + spacing / 2.0
+                metadata[name] = {"num": num, "w": w, "l": l}
+            else:
+                item_w = w + spacing / 2.0
+                item_l = l + spacing / 2.0
+                metadata[name] = {"num": 1, "w": w, "l": l}
+                
+            items.append({
+                "name": name,
+                "size": [item_w, item_l, 1.0],
+                "expandable": []
+            })
             
-            spacing = 3.0
-            container_w = 170.0
-            container_l = 152.0
+        # Run our custom native multi-bin packer
+        c_w = container_w - spacing
+        c_l = container_l - spacing
+        sol = pack_multibin_3d([c_w, c_l, 1.0], items, 2)
+        if sol is None:
+            raise ValueError("CRITICAL ERROR: Built-in packer failed to pack animal pieces!")
             
-            # Build items and metadata
-            items = {}
-            metadata = {}
-            for name, w, l, num in ANIMAL_PIECES:
-                if num > 1:
-                    items[name] = {
-                        "w": int((w + spacing / 2.0) * 10),
-                        "l": int((l * num + spacing / 2.0) * 10)
-                    }
-                    metadata[name] = {"num": num, "w": w, "l": l, "ltotal": l * num}
-                else:
-                    items[name] = {
-                        "w": int((w + spacing / 2.0) * 10),
-                        "l": int((l + spacing / 2.0) * 10)
-                    }
-                    metadata[name] = {"num": 1, "w": w, "l": l}
-            
-            containers = {
-                "container0": {"W": int((container_w - spacing) * 10), "L": int((container_l - spacing) * 10)},
-                "container1": {"W": int((container_w - spacing) * 10), "L": int((container_l - spacing) * 10)}
-            }
-            
-            from hyperpack import HyperPack
-            problem = HyperPack(containers=containers, items=items, settings={"rotation": True})
-            problem.hypersearch()
-            
-            _PACKING_SOLUTION = problem.solution
-            _METADATA = metadata
+        _PACKING_SOLUTION = {
+            "container0": sol[0],
+            "container1": sol[1]
+        }
+        _METADATA = metadata
 
     spacing = 3.0
     sol = _PACKING_SOLUTION.get(container_id, {})
     layout_objs = []
     
-    for name, rect in sol.items():
-        # rect: [x, y, w_packed, l_packed]
-        x, y, wp, lp = rect
+    for name, info in sol.items():
+        x, y, _ = info["pos"]
+        wp, lp, _ = info["size"]
+        is_rotated = info["rotated"]
+        
         meta = _METADATA[name]
         
-        # Position calculations
-        x_pos = (x + spacing * 5.0 + wp / 2.0) / 10.0
-        y_pos = (y + spacing * 5.0 + lp / 2.0) / 10.0
+        x_pos = x + wp / 2.0
+        y_pos = y + lp / 2.0
         
-        # Rotation detection: if packed width is total length of item
-        is_rotated = False
-        if "ltotal" in meta:
-            if abs(wp - int((meta["ltotal"] + spacing / 2.0) * 10)) <= 2:
-                is_rotated = True
-        else:
-            if abs(wp - int((meta["l"] + spacing / 2.0) * 10)) <= 2:
-                is_rotated = True
-        
-        # Build negative cuboids for the tokens
         num = meta["num"]
         item_w = meta["w"]
         item_l = meta["l"]

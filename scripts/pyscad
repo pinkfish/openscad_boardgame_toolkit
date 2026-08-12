@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026, pinkfish
+#
+# Licensed under the BSD 2-Clause License. See the LICENSE file in the project
+# root for the full license text.
+# SPDX-License-Identifier: BSD-2-Clause
+"""Run a pybosl2 expression in PythonSCAD with the venv's site-packages injected.
+
+Usage:
+    ./scripts/pyscad "cuboid([10,20,30])"
+    ./scripts/pyscad "torus(major_radius=12, minor_radius=4)"
+    ./scripts/pyscad -o part.stl "torus(major_radius=12, minor_radius=4)"
+    ./scripts/pyscad -f examples.py
+    ./scripts/pyscad --list
+
+The script injects the current venv's site-packages so numpy, pybosl2, etc.
+are available inside PythonSCAD's embedded Python.
+"""
+
+import argparse
+import os
+import site
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Re-execute under the virtual environment python interpreter if we are not already running it
+venv_dir = REPO_ROOT / ".venv"
+if venv_dir.exists() and sys.prefix != str(venv_dir.resolve()):
+    venv_python = venv_dir / "bin" / "python"
+    if not venv_python.exists():
+        venv_python = venv_dir / "bin" / "python3"
+    if venv_python.exists():
+        os.execv(str(venv_python), [str(venv_python)] + sys.argv)
+
+
+def find_binary() -> Path | None:
+    """Return the path to the PythonSCAD binary, or None if not found."""
+    candidates = [
+        os.environ.get("PYTHONSCAD_BIN"),
+        "/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD",
+        "/usr/local/bin/pythonscad",
+        "/opt/pythonscad/AppRun",
+    ]
+    for c in candidates:
+        if c and Path(c).exists():
+            return Path(c)
+    return None
+
+
+def _preamble() -> str:
+    """Return sys.path injection code so PythonSCAD sees the venv's packages."""
+    lines = [
+        "import sys",
+        f"sys.path.insert(0, {str(REPO_ROOT)!r})",
+    ]
+    for p in site.getsitepackages():
+        if os.path.isdir(p):
+            lines.append(f"sys.path.append({p!r})")
+    usp = site.getusersitepackages()
+    if os.path.isdir(usp):
+        lines.append(f"sys.path.append({usp!r})")
+    pl = os.environ.get("PYTHONLOCATION", os.environ.get("pythonLocation", ""))  # noqa: SIM112
+    if pl:
+        lib_dir = os.path.join(pl, "lib")
+        if os.path.isdir(lib_dir):
+            for entry in os.listdir(lib_dir):
+                if entry.startswith("python3."):
+                    sp = os.path.join(lib_dir, entry, "site-packages")
+                    if os.path.isdir(sp):
+                        lines.append(f"sys.path.append({sp!r})")
+    lines += [
+        "import pybosl2",
+        "from pybosl2.shapes3d import *",
+        "from pybosl2.shapes2d import *",
+        "from pybosl2 import Path2D, Path3D",
+        "from pybosl2 import rainbow",
+        "from pybosl2 import chain_hull, minkowski_difference",
+        "from pybosl2 import VNF",
+        "from pybosl2 import beziers",
+    ]
+    return "\n".join(lines)
+
+
+def main() -> None:
+    """Parse arguments and run PythonSCAD with the given expression or file."""
+    parser = argparse.ArgumentParser(description="Run pybosl2 in PythonSCAD")
+    parser.add_argument("expr", nargs="?", help="pybosl2 expression to evaluate")
+    parser.add_argument("-r", "--render", action="store_true", help="open the PythonSCAD GUI")
+    parser.add_argument("-o", "--output", type=str, metavar="PATH", help="export STL to PATH")
+    parser.add_argument("-f", "--file", type=str, metavar="PATH", help="run a .py file")
+    parser.add_argument("-b", "--binary", type=str, help="path to pythonscad binary")
+    parser.add_argument("--list", action="store_true", help="list available module imports")
+    args = parser.parse_args()
+
+    binary = Path(args.binary) if args.binary else find_binary()
+    if binary is None:
+        sys.exit("No PythonSCAD binary found.\n  Set PYTHONSCAD_BIN or install to /Applications/PythonSCAD-dev.app/")
+
+    if args.list:
+        print(_preamble())
+        return
+
+    if args.file:
+        script_src = Path(args.file).read_text()
+    elif args.expr:
+        script_src = f"{_preamble()}\n\n{args.expr}\n"
+        if not args.render and not args.output:
+            script_src += ".show()\n"
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        f.write(script_src)
+        script_path = f.name
+
+    cmd = [
+        str(binary),
+        "--trust-python",
+        "--enable",
+        "python-engine",
+    ]
+    if args.output:
+        cmd += ["-o", args.output, "--backend", "Manifold"]
+    cmd.append(script_path)
+
+    try:
+        subprocess.run(cmd, check=False)
+    finally:
+        Path(script_path).unlink(missing_ok=True)
+
+
+if __name__ == "__main__":
+    main()

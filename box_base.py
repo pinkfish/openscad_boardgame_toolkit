@@ -423,6 +423,29 @@ class BoxSpec:
     lid: "Lid | str | None" = None
 
     def __post_init__(self) -> None:
+        # Check if contents is a list of Compartments/Groups, and convert it to layout_compartments automatically
+        if isinstance(self.contents, list) and len(self.contents) > 0:
+            from compartments import Compartment, Group, PackingBin, layout_compartments
+            if any(isinstance(x, (Compartment, Group)) for x in self.contents):
+                groups = []
+                current_items = []
+                for x in self.contents:
+                    if isinstance(x, Group):
+                        if current_items:
+                            groups.append(Group(current_items, packing=PackingBin.BBF))
+                            current_items = []
+                        groups.append(x)
+                    else:
+                        current_items.append(x)
+                if current_items:
+                    groups.append(Group(current_items, packing=PackingBin.BBF))
+                
+                object.__setattr__(
+                    self,
+                    "contents",
+                    layout_compartments(groups)
+                )
+
         bid = self.box_id or self.label
         if bid in _RESOLVED_BOX_SIZES:
             object.__setattr__(self, "final_size", list(_RESOLVED_BOX_SIZES[bid]))

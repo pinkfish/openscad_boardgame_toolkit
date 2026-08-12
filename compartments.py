@@ -947,3 +947,43 @@ def pack_3d_boxes(container_size: list[float], items: list[dict]) -> dict:
             expanded[idx] = (name, x, y, z, new_w, l, h, rotated)
             
     return {name: {"pos": [x, y, z], "size": [w, l, h], "rotated": rotated} for name, x, y, z, w, l, h, rotated in expanded}
+
+
+def pack_multibin_3d(container_size: list[float], items: list[dict], num_containers: int) -> dict | None:
+    """Packs items across multiple containers of the same size.
+
+    Args:
+        container_size: [width, length, height] of each container.
+        items: list of dicts: {"name": str, "size": [w, l, h], ...}
+        num_containers: number of containers available.
+
+    Returns:
+        A dict mapping container index to its placements, or None if not packable.
+    """
+    sorted_items = sorted(items, key=lambda x: x["size"][0] * x["size"][1] * x["size"][2], reverse=True)
+    bins_content = [[] for _ in range(num_containers)]
+    
+    def search(item_idx):
+        if item_idx == len(sorted_items):
+            solution = {}
+            for i, bin_items in enumerate(bins_content):
+                packed = pack_3d_boxes(container_size, bin_items)
+                if len(packed) < len(bin_items):
+                    return None
+                solution[i] = packed
+            return solution
+            
+        item = sorted_items[item_idx]
+        for i in range(num_containers):
+            bins_content[i].append(item)
+            tot_vol = sum(x["size"][0] * x["size"][1] * x["size"][2] for x in bins_content[i])
+            c_vol = container_size[0] * container_size[1] * container_size[2]
+            if tot_vol <= c_vol:
+                res = search(item_idx + 1)
+                if res is not None:
+                    return res
+            bins_content[i].pop()
+            
+        return None
+
+    return search(0)
