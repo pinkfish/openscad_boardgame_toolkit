@@ -31,4 +31,4 @@
 
 ## Notes
 
-- All items pass. Clarifications from 2026-08-11 session integrated: auto-sizing (fill-to-fit rows, variable row widths, 10mm gap threshold, 15mm spacer minimums), spacer boxes as hollow trays, both-dimension expansion with row-length alignment. Spec ready for `/speckit.plan`.
+- All items pass. Clarifications from 2026-08-11 sessions integrated: auto-sizing (fill-to-fit rows, variable row widths, 10mm gap threshold, 15mm spacer minimums), spacer boxes as hollow trays, both-dimension expansion with row-length alignment, 3MF export (body/lid separate, spacers independent, Hausdorff caching, always both multi+single), lid decoration (framed/frameless modes, corner-to-corner diagonal text, through-hole patterns, three independent accent colors, 4mm min text threshold). Spec ready for `/speckit.plan`.

@@ -21,6 +21,10 @@
 - Q: Where do spacer trays go in 3MF exports? → A: Each spacer tray gets its own independent 3MF file.
 - Q: How is "model differs" determined for content-based caching? → A: 3D-Hausdorff-Distance-Calculator comparing exported mesh geometry -- file is only rewritten if the geometric distance exceeds a tolerance.
 - Q: Single-color vs multi-color export: toggle or always both? → A: Always generate both a multi-color 3MF and a single-color 3MF for every box body and every lid.
+- Q: How do the three label layout modes (framed, frameless, diagonal) differ? → A: Diagonal is a text orientation (corner-to-corner of the lid, 45° only for square boxes), available in both framed and frameless modes. Framed mode adds a rectangular frame with diagonal hatching/webbing behind the text for bed adhesion plus a small outer border.
+- Q: Lid pattern "spaces" for filament saving: holes, recesses, or lattice? → A: Through-holes cut completely through the lid at pattern lines -- maximum filament savings.
+- Q: How many accent colors for lid decorations? → A: Three independently settable colors: one for label text, one for the frame (top layer), one for the pattern top layer. Patterns support multiple colors.
+- Q: How does label auto-sizing determine dimensions? → A: Label fills available lid area minus a configurable border margin. If the computed text size is below a minimum (default 4mm, settable), the label is skipped entirely rather than printed illegibly.
 
 ## User Scenarios & Testing
 
@@ -141,6 +145,25 @@ The designer generates a complete board game insert and needs printable 3MF file
 
 ---
 
+### User Story 9 - Decorate Lids with Labels, Patterns, and Print-Optimized Color Layers (Priority: P2)
+
+The designer wants each box lid to look polished and be easy to print. They set a label text that auto-sizes to fill the lid face. The label can be framed (with a rectangular border, diagonal hatching behind the text for bed adhesion, and a color-accented top layer) or frameless (just the text). Text can be oriented corner-to-corner across the lid. A surface pattern (hex grid, grid, Voronoi, or tessellation) cuts through the lid as decorative through-holes, saving filament. Three independently settable accent colors control the label text, the frame top layer, and the pattern top layer. If the computed text height falls below a configurable minimum (default 4mm), the label is skipped.
+
+**Why this priority**: Lids are the most visible part of a board game insert. Decoration makes the output presentable. The color-layer architecture and minimum-text-size guard prevent print failures and wasted filament. Depends on lid geometry generation (P1).
+
+**Independent Test**: Create a box with lid text "Animals", a hex-grid lid pattern with through-holes, a framed label with diagonal hatching, and verify the 3MF contains exactly the expected color assignments and the text auto-sizes to fill the lid.
+
+**Acceptance Scenarios**:
+
+1. **Given** a lid of 100x70mm with label text "Cards", **When** the lid is generated with auto-sizing, **Then** the text is scaled to fill the lid area minus a 5mm border margin, and the computed text height is ≥ 4mm.
+2. **Given** a lid of 40x30mm with label text "Tokens", **When** the auto-sized text height computes to 3mm (below the 4mm minimum), **Then** the label is skipped and the lid prints as a plain decorated lid with no text.
+3. **Given** a framed label with accent frame color set to gold and label text color set to white, **When** the lid is exported as multi-color 3MF, **Then** the frame top layer is assigned the gold material and the text is assigned the white material.
+4. **Given** a lid with a hex-grid pattern, **When** the lid is generated, **Then** hexagonal through-holes are cut through the lid surface following the pattern grid, saving filament in the open areas.
+5. **Given** a lid with corner-to-corner diagonal text orientation on a non-square lid, **When** the text is placed, **Then** the text runs from one corner of the lid to the opposite corner at the natural angle (not forced to 45°).
+6. **Given** a framed diagonal label, **When** the lid is generated, **Then** diagonal hatching lines fill the rectangular frame behind the text to provide bed adhesion support for text islands, and a small outer border surrounds the frame.
+
+---
+
 ### User Story 6 - Custom Compartment Layout (Manual Positioning) (Priority: P3)
 
 The designer wants precise control over compartment placement. They specify exact X, Y coordinates for each compartment within the box interior, overriding automatic layout.
@@ -171,6 +194,9 @@ The designer wants precise control over compartment placement. They specify exac
 - What happens when a 3MF file already exists on disk but the exported mesh is empty (no geometry)? The file is NOT written; a warning is emitted.
 - What happens when the Hausdorff distance tolerance is too tight and floating-point noise triggers unnecessary rewrites? The tolerance defaults to a value large enough to absorb FP jitter (e.g., 0.001mm) but is user-configurable.
 - What happens when exporting a box with no lid (a no-lid box type)? Only a body 3MF is produced; no lid 3MF is generated.
+- What happens when lid text auto-sizes below 4mm on a large lid but the text string is very short (e.g., "A")? The text is scaled until the character height hits the minimum; if it can't reach 4mm while fitting the lid, the label is skipped.
+- What happens when a through-hole pattern intersects the label frame or text area? Through-holes are clipped to avoid the label area -- the label text and frame take precedence and pattern holes stop at the label boundary.
+- What happens when the box body color and all three accent colors are set to the same value? The multi-color 3MF degenerates to a single material; it is still valid but the user gets a warning that no visible color contrast exists.
 
 ## Requirements
 
@@ -195,11 +221,15 @@ The designer wants precise control over compartment placement. They specify exac
 - **FR-017**: The library MUST allow each sub-box to declare which dimensions are expandable (both width and length by default). Non-expandable dimensions stay at their minimum specified value.
 - **FR-018**: The library MUST support non-rectangular box outlines derived from 2D polygon paths, allowing compartments and contents to be clipped to the polygonal interior boundary.
 - **FR-019**: The library MUST apply configurable clearance gaps between nested boxes and between compartments to account for 3D printing tolerances.
-- **FR-020**: The library MUST allow lids to be decorated with text labels, engraved shapes, and surface patterns (hex grid, grid, Voronoi) positioned and sized relative to the lid plate.
-- **FR-021**: The library MUST support multi-material (MMU) printing: positive inserts printed in a different colour/material from the box body.
-- **FR-022**: The library MUST expose a fluent builder API so users chain calls to define a box (e.g., `BoxSpec.builder().size(100,80,40).sliding().contents(...).build()`).
-- **FR-023**: The library MUST report dimensioned requirements for the 3D printer bed: the bounding box of each generated piece.
-- **FR-024**: The library MUST allow boxes to be split/sliced for printing on smaller beds by dividing parts along user-specified cut planes.
+- **FR-020**: The library MUST allow lids to be decorated with text labels that auto-size to fill the lid area minus a configurable border margin. If the computed text height is below a configurable threshold (default 4mm), the label MUST be skipped.
+- **FR-021**: The library MUST support two label layout modes: framed (rectangular frame with diagonal hatching behind text for bed adhesion, plus a small outer border) and frameless (text only). Both modes SHALL support corner-to-corner diagonal text orientation.
+- **FR-022**: The library MUST support three independently settable accent colors on lids: label text color, frame top layer color, and pattern top layer color. Each defaults to a distinct color from the box body.
+- **FR-023**: The library MUST support through-hole surface patterns (hex grid, grid, Voronoi, tessellations) that cut completely through the lid, saving filament in non-structural areas.
+- **FR-024**: The library MUST support patterns with multiple colors, where different pattern elements can be assigned different accent colors.
+- **FR-025**: The library MUST support multi-material (MMU) printing: positive inserts printed in a different colour/material from the box body.
+- **FR-026**: The library MUST expose a fluent builder API so users chain calls to define a box.
+- **FR-027**: The library MUST report dimensioned requirements for the 3D printer bed: the bounding box of each generated piece.
+- **FR-028**: The library MUST allow boxes to be split/sliced for printing on smaller beds by dividing parts along user-specified cut planes.
 - **FR-025**: The library MUST export each box body and each lid as separate 3MF files containing all material/color assignments (multi-color 3MF), and also export single-color 3MF variants for single-extruder printers.
 - **FR-026**: The library MUST export a BoxKit by producing 3MF files for the outer box (body + lid), every nested sub-box (body + lid), and every spacer tray (one file each) -- all in both multi-color and single-color variants.
 - **FR-027**: The library MUST use a 3D Hausdorff distance comparison to determine whether an exported mesh differs from the file already on disk; if the distance is below the tolerance threshold, the file MUST NOT be rewritten.
@@ -211,7 +241,7 @@ The designer wants precise control over compartment placement. They specify exac
 - **BoxType**: Abstracts the lid mechanism -- defines how the body is constructed (e.g., with dovetail grooves for sliding, with overhangs for caps) and what lid geometry mates with it.
 - **Compartment**: A single well inside a box interior, defined by its 2D footprint (width x length, or a polygon path), depth, rounding radius, and optional finger cutout specification. Can emit both a negative cavity and a positive insert.
 - **Compartment Group**: A collection of compartments that must stay together during layout, with a packing algorithm directive.
-- **Lid**: The closure for a box -- includes a decoration specification (text label, shape image, surface pattern), a fingernail lift cutout, and material colour.
+- **Lid**: The closure for a box. Includes a decoration specification with: label text (auto-sized, with framed or frameless mode and optional corner-to-corner diagonal orientation), through-hole surface pattern (hex, grid, Voronoi, tessellation), fingernail lift cutout, and three independently settable accent colors (text color, frame top color, pattern top color). Minimum text height threshold (default 4mm) suppresses labels that would print illegibly.
 - **Finger Cutout**: A scoop or notch at a specific location on a box wall or compartment wall/floor, defined by radius, depth, and position offset.
 - **Interior**: The usable volume inside a box, computed from outer dimensions minus wall/floor/lid thicknesses. Bounds all compartment and sub-box placement.
 - **BoxKit**: A collection of multiple related boxes (e.g., an outer game box plus its nested sub-boxes) that orchestrates nesting layout and generates all pieces together.
@@ -235,6 +265,9 @@ The designer wants precise control over compartment placement. They specify exac
 - **SC-011**: Exporting a BoxKit with 3 sub-boxes and 2 spacer trays produces the correct number of 3MF files: (1 outer + 3 sub-boxes) x 2 (body + lid) x 2 (multi + single) + 2 spacers x 2 = 20 files total.
 - **SC-012**: Re-exporting a BoxKit with zero geometry changes writes zero files to disk -- all files are skipped via Hausdorff distance comparison.
 - **SC-013**: Changing one sub-box in a BoxKit and re-exporting rewrites only the affected files (that sub-box's body + lid 3MFs, multi and single color = 4 files) while all other files are skipped.
+- **SC-014**: A lid with label text "Cards" auto-sized on a 100x70mm lid produces text with height ≥ 4mm and fills the lid area minus a 5mm border margin.
+- **SC-015**: A lid with label text "A" on a 30x20mm lid produces zero label geometry (skipped because text height < 4mm) and no 3MF color assignments for the label.
+- **SC-016**: A framed label exported as multi-color 3MF produces exactly the expected material assignments: body color for the lid slab, text color for the label text, frame top color for the frame border top layer.
 
 ## Assumptions
 
@@ -252,3 +285,8 @@ The designer wants precise control over compartment placement. They specify exac
 - Spacer boxes are hollow trays (walls + floor, no compartments, no lid) with a minimum footprint of 15mm x 15mm; they may be shorter than 5mm in height.
 - 3MF files are written to a user-specified output directory. File naming follows `<label>_body.3mf` / `<label>_lid.3mf` for multi-color, with `_single` suffix for single-color variants. Box types without lids (no-lid, path-box) only produce body files.
 - The Hausdorff distance tolerance for content-based caching defaults to 0.001mm to absorb floating-point jitter while detecting real geometric changes.
+- Label text auto-sizes to fill the available lid area minus a configurable border margin (default 5mm per side). The minimum text height threshold defaults to 4mm -- labels that cannot render at this size are skipped.
+- Lid decoration accent colors default to distinct values from the body color: label text defaults to white, frame top layer defaults to a contrasting hue, and pattern top layer defaults to a third contrasting hue.
+- Through-hole patterns stop at the label boundary -- the label text and frame take visual precedence over decorative holes.
+- Diagonal text orientation follows the lid's natural corner-to-corner angle (not forced to 45°) for non-square lids.
+- Framed labels include diagonal hatching lines behind the text at a spacing that allows the text to bridge without supports.
