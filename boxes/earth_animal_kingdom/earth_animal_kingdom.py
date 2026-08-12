@@ -103,7 +103,7 @@ def add_animal_box(label: str):
 # ── Animal Cards Box ──────────────────────────────────────────────
 CARD_W, CARD_L = 72.0, 123.0
 CARD_COUNT = 36
-card_height = (CARD_COUNT / 10) * 6.0 + project.floor_thickness + project.lid_thickness + 4
+card_height = 25.6
 
 card_box = project.box(
     BoxType.SLIDING,
@@ -120,7 +120,7 @@ card_box = project.box(
     ),
 )
 card_box.compartment(
-    "Cards", size=(CARD_W, CARD_L), depth=card_height - project.lid_thickness - project.floor_thickness,
+    "Cards", size=(CARD_W, CARD_L), depth=22.0,
     finger_scoop=True,
 )
 
@@ -128,21 +128,21 @@ card_box.compartment(
 sprout = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(76, 156, None),
-    expandable=True,
+    size=(76, 156, 20.4),
+    expandable=False,
     lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
 )
-sprout.compartment("Sprouts", size=(64, 150), depth=8.0, finger_scoop=True)
+sprout.compartment("Sprouts", size=(64, 150), depth=16.8, finger_scoop=True)
 
 # ── Canopy Box ────────────────────────────────────────────────────
 canopy = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    size=(38, 158, None),
-    expandable=True,
+    size=(38, 158, 46.0),
+    expandable=False,
     lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
 )
-canopy.compartment("Canopies", size=(30, CARD_L), depth=8.0, finger_scoop=True)
+canopy.compartment("Canopies", size=(30, CARD_L), depth=42.4, finger_scoop=True)
 
 # ── Board Storage ─────────────────────────────────────────────────
 project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
