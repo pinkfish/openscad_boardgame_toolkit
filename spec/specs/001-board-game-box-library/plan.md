@@ -406,6 +406,46 @@ This means `Project.export()` must emit spacer trays (both rectangular and polyg
 - [ ] Auto-generate SpacerBoxBack (polygon path) and SpacerBoxCompany (rectangular) from leftover space
 - [ ] Verify all boxes + spacers pack within 214 × 302mm interior
 
+## 1835 Example (Hex Tiles)
+
+The `boxes/1835/` example ports `examples/1835.scad` to the new `spec_driven` Project API. This is the reference for hex-grid tile compartments with finger holes and raised pillars.
+
+### Game Box
+
+- **Retail box**: 216 × 298 × 50mm (W × L × H)
+- **Defaults**: wall_thickness=2, lid_thickness=2, floor_thickness=2, board_thickness=15
+- `main_height = box_height - board_thickness` = 35mm
+
+### Hex Box
+
+The `HexBox` is a box with an inset tabbed lid holding hexagonal train tiles:
+
+- **Tile**: `tile_width = 40` (apothem-to-apothem), `tile_radius = tile_width / 2 / cos(30°)` ≈ 23.09
+- **Hex box size**: `hex_box_width = tile_radius * 6 + 2*wt`, `hex_box_length = box_width - 1`, `hex_box_height = main_height / 4`
+- **Hex grid**: `HexGridWithCutouts(rows=3, cols=5, height=hex_box_height, spacing=0, push_block_height=0, tile_width=40)` — a 3×5 array of 15 hexagonal cutouts per box
+- **Four stacked HexBoxes**: placed at `z = hex_box_height * 0..3`, giving 60 hex tiles total
+
+### Hex Cell Features (FR-040/041/042)
+
+The `HexGridWithCutouts` cell is a hexagonal prism cutout. Optional features:
+- **Push block (raised pillar)**: when `push_block_height > 0`, a smaller hexagon (`width=15`) is subtracted from the cell center, leaving a raised central post so the tile rests elevated for easy grasping.
+- **Finger hole in the floor**: a circular cutout through the cell floor (configurable diameter) so a finger can push the tile up from underneath. When combined with a push block, the finger hole is offset to the cell edge.
+
+### spec_driven Migration
+
+- **Hex grid compartment**: `box.compartment(...)` gains a `hex_grid` mode with `rows`, `cols`, `tile_width`, `spacing`, `push_block_height`, and `finger_hole_diameter` parameters (FR-040–FR-042).
+- **Hex cell geometry**: borrowed `HexGridWithCutouts` / `RegularPolygonGrid` from `components.py` for the hexagonal cutout layout.
+- **Box types**: `HexBox` uses inset-tabbed lid (`BoxType.INSET` with tabbing) — maps to the existing inset box type with tabs.
+
+### Migration Checklist
+
+- [ ] Create `boxes/1835/1835.py` with hex box, money boxes, share boxes, middle box, first-player box, spacer
+- [ ] Implement hex-grid compartment layout (`HexGridWithCutouts` port) in `spec_driven/compartments/`
+- [ ] Implement push block (raised central pillar) in hex cells
+- [ ] Implement hex-cell floor finger holes (offset from pillar when both present)
+- [ ] Port the money box (8 denominations), share box (8 companies), middle box (tokens/trains), first-player box
+- [ ] Verify all boxes + 4 stacked hex boxes pack within 216 × 298mm interior
+
 ## Complexity Tracking
 
 > No violations.
