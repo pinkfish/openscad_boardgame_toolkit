@@ -287,13 +287,13 @@
 - [x] T092 [P] Write test: ratio-based compartments resolve correctly against interior dimensions in `tests/test_spec_driven/test_compartments.py`
 - [x] T093 [P] Write test: ratio overflow validation rejects sum > 1.0 in `tests/test_spec_driven/test_compartments.py`
 - [x] T094 [P] Write test: 0.1mm precision maintained in compartment resolution in `tests/test_spec_driven/test_compartments.py`
-- [ ] T095 [P] Add `mmu_label` and `single_label` optional LidBuilder fields for per-export-mode label overrides in `spec_driven/lid/builder.py`
-- [ ] T096 [P] Implement per-mode label resolution — `mmu_label`/`single_label` override parent when set, fall back otherwise — in `spec_driven/lid/builder.py`
-- [ ] T097 Implement compartment label mode switching: engraved 0.2mm cutout for single-color, raised 0.2mm second-color text for MMU via `mode` parameter in `spec_driven/compartments/labels.py`
-- [ ] T098 Wire per-mode label resolution into `Project.export()` — resolve MMU label for `mmu/` pass, single label for `single/` pass — in `spec_driven/project.py`
-- [ ] T099 [P] Write test: LidBuilder per-mode override fallback logic in `tests/test_spec_driven/test_lid_builder.py`
-- [ ] T100 [P] Write test: compartment label mode switching (cutout for single, raised for MMU) in `tests/test_spec_driven/test_lid_label.py`
-- [ ] T101 [P] Write test: PDF is valid and boxes rendered at correct packed positions (SC-019) in `tests/test_spec_driven/test_export.py`
+- [x] T095 [P] Add `mmu_label` and `single_label` optional LidBuilder fields for per-export-mode label overrides in `spec_driven/lid/builder.py`
+- [x] T096 [P] Implement per-mode label resolution — `mmu_label`/`single_label` override parent when set, fall back otherwise — in `spec_driven/lid/builder.py`
+- [x] T097 Implement compartment label mode switching: engraved 0.2mm cutout for single-color, raised 0.2mm second-color text for MMU via `mode` parameter in `spec_driven/compartments/labels.py`
+- [x] T098 Wire per-mode label resolution into `Project.export()` — resolve MMU label for `mmu/` pass, single label for `single/` pass — in `spec_driven/project.py`
+- [x] T099 [P] Write test: LidBuilder per-mode override fallback logic in `tests/test_spec_driven/test_lid_builder.py`
+- [x] T100 [P] Write test: compartment label mode switching (cutout for single, raised for MMU) in `tests/test_spec_driven/test_lid_label.py`
+- [x] T101 [P] Write test: PDF is valid and boxes rendered at correct packed positions (SC-019) in `tests/test_spec_driven/test_export.py`
 
 ---
 
