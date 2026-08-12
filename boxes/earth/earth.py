@@ -8,6 +8,7 @@ project = Project(
     wall_thickness=2.0,
     floor_thickness=1.6,
     lid_thickness=2.0,
+    clearance_slack=0.0,
 )
 
 # ── Card Size Constants ───────────────────────────────────────────

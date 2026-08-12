@@ -30,6 +30,7 @@ project = Project(
     lid_thickness=2.0,
     gap_threshold=10.0,
     min_spacer_dim=15.0,
+    clearance_slack=0.0,
 )
 
 # ── Animal Token Definitions (37 entries from original design) ────

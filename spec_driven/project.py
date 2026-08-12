@@ -36,6 +36,8 @@ class Project:
     """Gaps <= this are absorbed by adjacent boxes."""
     min_spacer_dim: float = 15.0
     """Minimum spacer width/length before absorption."""
+    clearance_slack: float = 1.0
+    """Clearance slack on each side of the game box in the X/Y directions (mm)."""
 
     _boxes: list[BoxBuilder] = field(default_factory=list, init=False)
     _shared_groups: list = field(default_factory=list, init=False)
@@ -172,9 +174,29 @@ class Project:
                 "expandable": builder.expandable or getattr(builder, "expandable_width", False) or getattr(builder, "expandable_length", False),
             })
 
-        # Run 3D packer
+        # Run 3D packer with clearance slack
+        slack = getattr(self, "clearance_slack", 1.0)
+        packing_container = (
+            self.game_box_size[0] - 2 * slack,
+            self.game_box_size[1] - 2 * slack,
+            self.game_box_size[2],
+        )
         from spec_driven.packing.layout import pack_boxes
-        packing = pack_boxes(self.game_box_size, box_data)
+        packing = pack_boxes(packing_container, box_data)
+
+        # Shift placements to center them within the outer game box
+        from spec_driven.packing.layout import Placement
+        shifted_placements = []
+        for p in packing.placements:
+            shifted_placements.append(
+                Placement(
+                    label=p.label,
+                    position=(p.position[0] + slack, p.position[1] + slack, p.position[2]),
+                    size=p.size,
+                    rotation=p.rotation,
+                )
+            )
+        packing.placements = shifted_placements
 
         # Map placements to resolved final_size using object.__setattr__ to bypass FrozenInstanceError
         resolved_sizes = {p.label: p.size for p in packing.placements}
