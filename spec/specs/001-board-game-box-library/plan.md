@@ -286,6 +286,55 @@ Since the game box height is `47.0` mm, raising the sprout box height to `30.0` 
 - [ ] Verify all 7 boxes pack within the 288×158mm game box interior
 - [x] Export all files and verify against original `examples/release/earth_animal_kingdom/` output
 
+## Stackable Hexes Example
+
+The `boxes/stackable_hexes/` example ports `examples/stackable_hexes.py` to the new `spec_driven` Project API. It demonstrates three new features: standalone boxes, stackable no-lid boxes, and side magnets.
+
+### Reference (from `examples/stackable_hexes.py`)
+
+The original design creates hexagonal boxes (`PathBox.regular_polygon(sides=6)`) that are:
+- **Standalone** — each box is a single `PathBox` generated independently via `@make_box`, with no game box and no packing phase.
+- **Stackable** — `stackable=STACKABLE_TYPE_INSIDE` (recess on the top rim nests into the box above; outside-fit `STACKABLE_TYPE_OUTSIDE` also available).
+- **Magnetic** — round magnets (default 6×3mm) or rectangular magnets (default 10×5×2mm) in the side walls via `magnet=SimpleNamespace(type=..., size=[...])`.
+- **Divisible** — `HexBoxDivisions` partitions the interior into 1–4 equal hex-sectors with a configurable `bottom_radius`.
+- **Hollow or divided** — `hollow(divisions <= 1)`: a single-compartment hex is hollow; multi-compartment hexes use divisions.
+
+### Box Configuration Matrix
+
+| Box | Divisions | Magnet Type | Magnet Size | bottom_radius |
+|-----|-----------|-------------|-------------|---------------|
+| HexBoxSingle6x3RoundMagnet | 1 | round | [h/2-1, 7, 2.9] | — |
+| HexBoxSingle6x3RoundMagnetWithTwoPartitions | 2 | round | [h/2-1, 7, 2.9] | 5 |
+| HexBoxSingle6x3RoundMagnetWithThreePartitions | 3 | round | [h/2-1, 7, 2.9] | — |
+| HexBoxSingle6x3RoundMagnetWithFourPartitions | 4 | round | [h/2-1, 7, 2.9] | — |
+| HexBoxSingle10x5x2RectMagnet | 1 | rect | [12, 6, 1.65] | — |
+| HexBoxSingle10x5x2RectMagnetWithTwoPartitions | 2 | rect | [12, 6, 1.65] | 10 |
+| HexBoxSingle10x5x2RectMagnetWithThreePartitions | 3 | rect | [12, 6, 1.65] | 10 |
+| HexBoxSingle10x5x2RectMagnetWithFourPartitions | 4 | rect | [12, 6, 1.65] | 10 |
+
+### Key Parameters
+
+- `stackable_width = 100`, `stackable_height = 24`, `wall_thickness = 4`
+- Hexagon: `regular_polygon(sides=6)`, no finger cutouts (`make_finger_x=False`, `make_finger_y=False`)
+- Hollow radius: top=2, bottom=stackable_height × 3/4, radius=2
+- Magnet slot types: `MAGNET_SLOT_TYPE_ROUND`, `MAGNET_SLOT_TYPE_RECT` (plus `MAGNET_SLOT_TYPE_NONE`)
+
+### spec_driven Migration
+
+- **Standalone boxes**: `Project` must allow a standalone mode where `project.box(...)` is exported directly without a game box. A standalone box skips packing, auto-sizing, layout PDF, and spacer generation (FR-037).
+- **Stackable no-lid boxes**: `BoxType.NO_LID` (or a path-box variant) gains `stackable` (inside/outside) with configurable `stackable_thickness` and `stackable_fit_offset` (FR-038).
+- **Magnets**: builders gain a `magnet` sub-configuration with `type` (round/rect), `size`, and `count`, placed on opposing sides (FR-039).
+- **Hex/polygon path boxes**: `BoxType.SLIPOVER_PATH` / `BoxType.CAP_PATH` / path-box support `regular_polygon(sides=N)` — this is already covered by the non-rectangular box outline support (FR-018).
+- **Divisions**: `HexBoxDivisions` maps to `box.compartment(...)` × N where N partitions divide the hexagon into equal sectors.
+
+### Migration Checklist
+
+- [ ] Create `boxes/stackable_hexes/stackable_hexes.py` with all 8 hex box variants from the matrix
+- [ ] Implement standalone box export path (no game box, no packing) in `spec_driven/project.py`
+- [ ] Implement stackable inside/outside rim generation for no-lid boxes
+- [ ] Implement round and rectangular magnet slots on opposing sides
+- [ ] Verify hex boxes stack, magnets align, and divisions clip to the hex interior
+
 ## Complexity Tracking
 
 > No violations.

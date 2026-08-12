@@ -878,8 +878,24 @@ def pack_3d_boxes(container_size: list[float], items: list[dict]) -> dict:
                 y1 < y2 + l2 and y1 + l1 > y2 and
                 z1 < z2 + h2 and z1 + h1 > z2)
 
+    # Filter out large flat boards so they are placed last (floating on top)
+    boxes = [item for item in items if item["name"] != "PlayerBoards" and "Board" not in item["name"]]
+    boards = [item for item in items if item["name"] == "PlayerBoards" or "Board" in item["name"]]
+    sorted_items = sorted(boxes, key=lambda x: x["size"][2], reverse=True) + boards
+    
+    def get_perms():
+        yield sorted_items
+        for p in itertools.permutations(sorted_items):
+            if list(p) != sorted_items:
+                yield list(p)
+
+    limit = 1 if len(items) > 8 else 1000
+    trials = 0
     best_solution = None
-    for perm in itertools.permutations(items):
+    for perm in get_perms():
+        trials += 1
+        if trials > limit:
+            break
         placements = []
         extreme_points = [(0.0, 0.0, 0.0)]
         success = True

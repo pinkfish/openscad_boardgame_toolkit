@@ -28,6 +28,8 @@ class BoxBuilder:
     """Unique instance identifier; defaults to label."""
     size: tuple[float, float, float] | None = None
     """Box dimensions [W, L, H] in mm. None = auto-compute from compartments."""
+    position: tuple[float, float, float] | None = None
+    """Manual packing position override [X, Y, Z] in mm."""
     final_size: tuple[float, float, float] | None = None
     """Resolved size after packing; set-once frozen during export."""
     expandable: bool = True

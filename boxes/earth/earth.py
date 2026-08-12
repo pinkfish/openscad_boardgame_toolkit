@@ -38,6 +38,7 @@ for i in range(4):
         BoxType.SLIDING,
         f"EarthCardBox{i+1}",
         size=(68.0, 99.0, 55.2),
+        position=(16.0 + i * 68.0, 0.0, 0.0),
         expandable=False,
         wall_thickness=3.0,
         lid=LidBuilder(
@@ -54,6 +55,7 @@ small_card = project.box(
     BoxType.SLIDING,
     "EarthCardBoxSmall",
     size=(68.0, 99.0, 18.4),
+    position=(16.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(
@@ -70,6 +72,7 @@ compost = project.box(
     BoxType.FILAMENT_HINGE,
     "CompostBox",
     size=(68.0, 99.0, 36.8),
+    position=(16.0, 99.0, 18.4),
     expandable=False,
     lid=LidBuilder(
         text="Compost",
@@ -86,6 +89,7 @@ ecosystem = project.box(
     BoxType.SLIDING,
     "EcosystemCardBox",
     size=(68.0, 99.0, ecosystem_h),
+    position=(84.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Ecosystem", text_color=Color("white"), frame_color=Color("gold")),
@@ -98,6 +102,7 @@ fauna = project.box(
     BoxType.SLIDING,
     "FaunaCardBox",
     size=(68.0, 99.0, fauna_h),
+    position=(84.0, 99.0, 23.8),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Fauna", text_color=Color("white"), frame_color=Color("gold")),
@@ -110,6 +115,7 @@ island = project.box(
     BoxType.SLIDING,
     "IslandCardBox",
     size=(68.0, 99.0, island_h),
+    position=(84.0, 99.0, 42.2),
     expandable=False,
     wall_thickness=3.0,
     two_layer=True,
@@ -123,6 +129,7 @@ climate = project.box(
     BoxType.SLIDING,
     "ClimateCardBox",
     size=(68.0, 99.0, climate_h),
+    position=(152.0, 99.0, 0.0),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Climate", text_color=Color("white"), frame_color=Color("teal")),
@@ -134,6 +141,7 @@ solo = project.box(
     BoxType.SLIDING,
     "SoloCardBox",
     size=(68.0, 99.0, solo_h),
+    position=(152.0, 99.0, 10.6),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Solo", text_color=Color("white"), frame_color=Color("teal")),
@@ -145,6 +153,7 @@ season = project.box(
     BoxType.SLIDING,
     "SeasonCardBox",
     size=(68.0, 99.0, season_h),
+    position=(152.0, 99.0, 18.8),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Season", text_color=Color("white"), frame_color=Color("teal")),
@@ -156,6 +165,7 @@ abundance = project.box(
     BoxType.SLIDING,
     "AbundanceOtherCardBox",
     size=(68.0, 99.0, abundance_h),
+    position=(152.0, 99.0, 30.6),
     expandable=False,
     wall_thickness=3.0,
     lid=LidBuilder(text="Abundance", text_color=Color("white"), frame_color=Color("teal")),
@@ -167,6 +177,7 @@ start_box = project.box(
     BoxType.CAP,
     "StartBox",
     size=(68.0, 99.0, start_h),
+    position=(152.0, 99.0, 41.2),
     expandable=False,
     lid=LidBuilder(text="Start", text_color=Color("white"), frame_color=Color("gold")),
 )
@@ -174,11 +185,12 @@ start_box.compartment("Start", size=(60.0, 91.0), depth=start_h - 3.6, finger_sc
 
 # ── 4. Player Boxes (6 color slipover lids) ───────────────────────
 player_colours = ["red", "green", "yellow", "blue", "purple", "pink"]
-for col in player_colours:
+for idx, col in enumerate(player_colours):
     pbox = project.box(
         BoxType.SLIPOVER,
         f"PlayerBox{col.capitalize()}",
         size=(68.0, 99.0, 9.2),
+        position=(220.0, 99.0, idx * 9.2),
         expandable=False,
         lid=LidBuilder(text="Player", text_color=Color("white")),
     )
@@ -217,11 +229,11 @@ sprout.compartment("Sprouts", size=(99.0, 81.0), depth=35.0, finger_scoop=True)
 seed = project.box(
     BoxType.FILAMENT_HINGE,
     "SeedBox",
-    size=(46.0, 55.2, 16.0),
+    size=(16.0, 46.0, 72.0),
     expandable=False,
-    lid=LidBuilder(text="Compost", text_color=Color("white"), frame_color=Color("brown")),
+    lid=LidBuilder(text="Seeds", text_color=Color("white"), frame_color=Color("brown")),
 )
-seed.compartment("Seeds", size=(38.0, 47.2), depth=12.0)
+seed.compartment("Seeds", size=(8.0, 38.0), depth=68.4)
 
 # ── 8. Player Boards (Flat addition to pack alongside boxes) ──────
 # Player boards block: width 242, length 288, height 14.7 (6 boards + 1 middle board + 1 abundance board)

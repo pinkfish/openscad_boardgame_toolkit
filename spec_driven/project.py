@@ -78,6 +78,7 @@ class Project:
             expandable_width=kwargs.pop("expandable_width", True),
             expandable_length=kwargs.pop("expandable_length", True),
             lid=kwargs.pop("lid", None),
+            position=kwargs.pop("position", None),
             **kwargs,
         )
         self._boxes.append(builder)
@@ -128,6 +129,7 @@ class Project:
         # 1. Resolve minimum sizes and run 3D packer first to propagate final sizes
         box_data = []
         resolved_min_sizes = {}
+        manual_placements = []
         for builder in self._boxes:
             wt = builder.wall_thickness or self.wall_thickness
             ft = builder.floor_thickness or self.floor_thickness
@@ -168,11 +170,22 @@ class Project:
                     f"compartments — at least one is required."
                 )
             resolved_min_sizes[builder.label] = size
-            box_data.append({
-                "label": builder.label,
-                "size": size,
-                "expandable": builder.expandable or getattr(builder, "expandable_width", False) or getattr(builder, "expandable_length", False),
-            })
+            if builder.position is not None:
+                from spec_driven.packing.layout import Placement
+                manual_placements.append(
+                    Placement(
+                        label=builder.label,
+                        position=builder.position,
+                        size=size,
+                        rotation=False
+                    )
+                )
+            else:
+                box_data.append({
+                    "label": builder.label,
+                    "size": size,
+                    "expandable": builder.expandable or getattr(builder, "expandable_width", False) or getattr(builder, "expandable_length", False),
+                })
 
         # Run 3D packer with clearance slack
         slack = getattr(self, "clearance_slack", 1.0)
@@ -196,6 +209,7 @@ class Project:
                     rotation=p.rotation,
                 )
             )
+        shifted_placements.extend(manual_placements)
         packing.placements = shifted_placements
 
         # Map placements to resolved final_size using object.__setattr__ to bypass FrozenInstanceError
