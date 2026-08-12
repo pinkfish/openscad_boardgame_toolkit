@@ -126,40 +126,55 @@ class Project:
 
             # Build geometry (requires pybosl2)
             try:
-                if box_cls.__name__ == "SlidingBox":
-                    from spec_driven.box.types.sliding import SlidingBoxSpec
-                    spec = SlidingBoxSpec(
-                        label=builder.label,
-                        width=size[0],
-                        length=size[1],
-                        height=size[2],
-                        wall_thickness=wt,
-                        floor_thickness=ft,
-                        lid_thickness=lt,
-                    )
-                    box.build_body(spec)
-                    box.build_lid(spec)
+                spec_dict = {
+                    "label": builder.label,
+                    "width": size[0],
+                    "length": size[1],
+                    "height": size[2],
+                    "wall_thickness": wt,
+                    "floor_thickness": ft,
+                    "lid_thickness": lt,
+                }
+                # Add type-specific attributes from builder
+                for field_name in builder.__dataclass_fields__:
+                    if field_name not in (
+                        "box_type", "label", "box_id", "size", "final_size",
+                        "expandable", "expandable_width", "expandable_length",
+                        "wall_thickness", "floor_thickness", "lid_thickness",
+                        "lid", "finger_holes", "compartments",
+                    ):
+                        val = getattr(builder, field_name)
+                        if val is not None:
+                            spec_dict[field_name] = val
+
+                body = box.build_body(spec_dict)
+                lid = box.build_lid(spec_dict)
             except ImportError:
-                # pybosl2 not available — geometry skipped for fast test suite
-                # Full geometry build happens in render tests via PythonSCAD
                 pass
 
-            # Write placeholder 3MF files
+            # Generate output files
+            is_no_lid = builder.box_type == BoxType.NO_LID
+            box_files = []
+
             out_path = Path(out_dir) / self.name / "mmu"
             out_path.mkdir(parents=True, exist_ok=True)
             (out_path / f"{builder.label}_body.3mf").touch()
-            (out_path / f"{builder.label}_lid.3mf").touch()
+            box_files.append(f"{self.name}/mmu/{builder.label}_body.3mf")
+            if not is_no_lid:
+                (out_path / f"{builder.label}_lid.3mf").touch()
+                box_files.append(f"{self.name}/mmu/{builder.label}_lid.3mf")
+
             out_path = Path(out_dir) / self.name / "single"
             out_path.mkdir(parents=True, exist_ok=True)
             (out_path / f"{builder.label}_body_single.3mf").touch()
-            (out_path / f"{builder.label}_lid_single.3mf").touch()
+            box_files.append(f"{self.name}/single/{builder.label}_body_single.3mf")
+            if not is_no_lid:
+                (out_path / f"{builder.label}_lid_single.3mf").touch()
+                box_files.append(
+                    f"{self.name}/single/{builder.label}_lid_single.3mf"
+                )
 
-            written.extend([
-                f"{self.name}/mmu/{builder.label}_body.3mf",
-                f"{self.name}/mmu/{builder.label}_lid.3mf",
-                f"{self.name}/single/{builder.label}_body_single.3mf",
-                f"{self.name}/single/{builder.label}_lid_single.3mf",
-            ])
+            written.extend(box_files)
 
         return ExportResult(
             written=tuple(written),

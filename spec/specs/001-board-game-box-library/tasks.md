@@ -82,19 +82,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Write render test: all 14 box types produce valid geometry in `tests/test_spec_driven/render/test_box_render.py`
-- [ ] T025 [P] [US2] Write unit test: registry returns correct class per BoxType in `tests/test_spec_driven/test_builders.py`
+- [x] T024 [P] [US2] Write render test: all 14 box types produce valid geometry in `tests/test_spec_driven/render/test_box_render.py`
+- [x] T025 [P] [US2] Write unit test: registry returns correct class per BoxType in `tests/test_spec_driven/test_builders.py`
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Implement remaining box type builders (cap, hinge, filament_hinge, magnetic) in `spec_driven/builders/`
-- [ ] T027 [P] [US2] Implement remaining box type builders (inset, sliding_catch, slipover, slipover_path) in `spec_driven/builders/`
-- [ ] T028 [P] [US2] Implement remaining box type builders (cap_path, no_lid, path, card_library) in `spec_driven/builders/`
-- [ ] T029 [P] [US2] Implement box types: CapBox, HingeBox, FilamentHingeBox in `spec_driven/box/types/`
-- [ ] T030 [P] [US2] Implement box types: MagneticBox, InsetBox, SlidingCatchBox in `spec_driven/box/types/`
-- [ ] T031 [P] [US2] Implement box types: SlipoverBox, SlipoverPathBox, CapPathBox in `spec_driven/box/types/`
-- [ ] T032 [P] [US2] Implement box types: NoLidBox, PathBox, CardLibraryBox in `spec_driven/box/types/`
-- [ ] T033 [US2] Wire all box types into registry and verify `Project.box(BoxType.X, ...)` dispatches correctly in `spec_driven/box/registry.py`
+- [x] T026 [P] [US2] Implement remaining box type builders (cap, hinge, filament_hinge, magnetic) in `spec_driven/builders/`
+- [x] T027 [P] [US2] Implement remaining box type builders (inset, sliding_catch, slipover, slipover_path) in `spec_driven/builders/`
+- [x] T028 [P] [US2] Implement remaining box type builders (cap_path, no_lid, path, card_library) in `spec_driven/builders/`
+- [x] T029 [P] [US2] Implement box types: CapBox, HingeBox, FilamentHingeBox in `spec_driven/box/types/`
+- [x] T030 [P] [US2] Implement box types: MagneticBox, InsetBox, SlidingCatchBox in `spec_driven/box/types/`
+- [x] T031 [P] [US2] Implement box types: SlipoverBox, SlipoverPathBox, CapPathBox in `spec_driven/box/types/`
+- [x] T032 [P] [US2] Implement box types: NoLidBox, PathBox, CardLibraryBox in `spec_driven/box/types/`
+- [x] T033 [US2] Wire all box types into registry and verify `Project.box(BoxType.X, ...)` dispatches correctly in `spec_driven/box/registry.py`
 
 **Checkpoint**: All 14 box types functional — any type selectable via enum
 
@@ -108,20 +108,20 @@
 
 ### Tests for User Story 9
 
-- [ ] T034 [P] [US9] Write unit test: label auto-sizing fills lid minus margin in `tests/test_spec_driven/test_lid_label.py`
-- [ ] T035 [P] [US9] Write unit test: min text height guard skips labels < 4mm in `tests/test_spec_driven/test_lid_label.py`
-- [ ] T036 [P] [US9] Write render test: lid with framed label + hex pattern + colors in `tests/test_spec_driven/render/test_lid_render.py`
+- [x] T034 [P] [US9] Write unit test: label auto-sizing fills lid minus margin in `tests/test_spec_driven/test_lid_label.py`
+- [x] T035 [P] [US9] Write unit test: min text height guard skips labels < 4mm in `tests/test_spec_driven/test_lid_label.py`
+- [x] T036 [P] [US9] Write render test: lid with framed label + hex pattern + colors in `tests/test_spec_driven/render/test_lid_render.py`
 
 ### Implementation for User Story 9
 
-- [ ] T037 [US9] Implement label generation: framed (rect frame + diagonal hatching + outer border) in `spec_driven/lid/label.py`
-- [ ] T038 [US9] Implement label generation: frameless (text only) in `spec_driven/lid/label.py`
-- [ ] T039 [US9] Implement corner-to-corner diagonal text orientation in `spec_driven/lid/label.py`
-- [ ] T040 [US9] Implement min text height guard (default 4mm, settable) in `spec_driven/lid/label.py`
-- [ ] T041 [US9] Implement pattern fill functions (hex grid, grid) as through-holes in `spec_driven/lid/pattern.py`
-- [ ] T042 [US9] Implement pattern fill function (voronoi) — borrow tessellation from existing codebase in `spec_driven/lid/pattern.py`
-- [ ] T043 [US9] Implement color layer assignment (3 independent accent colors, per-material 3MF mapping) in `spec_driven/lid/color_layers.py`
-- [ ] T044 [US9] Wire `LidBuilder` → label + pattern + color layers → lid geometry in `spec_driven/lid/builder.py`
+- [x] T037 [US9] Implement label generation: framed (rect frame + diagonal hatching + outer border) in `spec_driven/lid/label.py`
+- [x] T038 [US9] Implement label generation: frameless (text only) in `spec_driven/lid/label.py`
+- [x] T039 [US9] Implement corner-to-corner diagonal text orientation in `spec_driven/lid/label.py`
+- [x] T040 [US9] Implement min text height guard (default 4mm, settable) in `spec_driven/lid/label.py`
+- [x] T041 [US9] Implement pattern fill functions (hex grid, grid) as through-holes in `spec_driven/lid/pattern.py`
+- [x] T042 [US9] Implement pattern fill function (voronoi) — borrow tessellation from existing codebase in `spec_driven/lid/pattern.py`
+- [x] T043 [US9] Implement color layer assignment (3 independent accent colors, per-material 3MF mapping) in `spec_driven/lid/color_layers.py`
+- [x] T044 [US9] Wire `LidBuilder` → label + pattern + color layers → lid geometry in `spec_driven/lid/builder.py`
 
 **Checkpoint**: Lid decoration fully functional — labels, patterns, colors
 
@@ -135,14 +135,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T045 [P] [US3] Write unit test: scoop dimensions match specification in `tests/test_spec_driven/test_compartments.py`
-- [ ] T046 [P] [US3] Write render test: compartment with scoop on all 4 sides in `tests/test_spec_driven/render/test_box_render.py`
+- [x] T045 [P] [US3] Write unit test: scoop dimensions match specification in `tests/test_spec_driven/test_compartments.py`
+- [x] T046 [P] [US3] Write render test: compartment with scoop on all 4 sides in `tests/test_spec_driven/render/test_box_render.py`
 
 ### Implementation for User Story 3
 
-- [ ] T047 [US3] Implement wall finger scoop (notch) geometry in `spec_driven/compartments/finger_hole.py`
-- [ ] T048 [US3] Implement floor finger scoop geometry with shallow-depth fallback to wall notch in `spec_driven/compartments/finger_hole.py`
-- [ ] T049 [US3] Wire `CompartmentBuilder.finger_scoop` and `ScoopSide` to compartment construction in `spec_driven/compartments/builder.py`
+- [x] T047 [US3] Implement wall finger scoop (notch) geometry in `spec_driven/compartments/finger_hole.py`
+- [x] T048 [US3] Implement floor finger scoop geometry with shallow-depth fallback to wall notch in `spec_driven/compartments/finger_hole.py`
+- [x] T049 [US3] Wire `CompartmentBuilder.finger_scoop` and `ScoopSide` to compartment construction in `spec_driven/compartments/builder.py`
 
 **Checkpoint**: Finger scoops functional on all 4 sides, auto-fallback for shallow compartments
 
@@ -156,16 +156,16 @@
 
 ### Tests for User Story 4
 
-- [ ] T050 [P] [US4] Write unit test: auto-layout places 10 compartments without overlap in `tests/test_spec_driven/test_compartments.py`
-- [ ] T051 [P] [US4] Write unit test: grouped compartments stay adjacent in `tests/test_spec_driven/test_compartments.py`
+- [x] T050 [P] [US4] Write unit test: auto-layout places 10 compartments without overlap in `tests/test_spec_driven/test_compartments.py`
+- [x] T051 [P] [US4] Write unit test: grouped compartments stay adjacent in `tests/test_spec_driven/test_compartments.py`
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Enhance shelf-based 2D bin packing with row-first placement in `spec_driven/compartments/layout.py`
-- [ ] T052a [US4] Implement compartment row-width distribution (size compartments to fill row width) in `spec_driven/compartments/sizing.py`
-- [ ] T053 [US4] Implement compartment grouping (grouped items packed together) in `spec_driven/compartments/layout.py`
-- [ ] T054 [US4] Implement overflow detection with descriptive error messages in `spec_driven/compartments/layout.py`
-- [ ] T054a [US4] Implement compartment clipping to non-rectangular polygon interior regions (FR-018) in `spec_driven/compartments/layout.py`
+- [x] T052 [US4] Enhance shelf-based 2D bin packing with row-first placement in `spec_driven/compartments/layout.py`
+- [x] T052a [US4] Implement compartment row-width distribution (size compartments to fill row width) in `spec_driven/compartments/sizing.py`
+- [x] T053 [US4] Implement compartment grouping (grouped items packed together) in `spec_driven/compartments/layout.py`
+- [x] T054 [US4] Implement overflow detection with descriptive error messages in `spec_driven/compartments/layout.py`
+- [x] T054a [US4] Implement compartment clipping to non-rectangular polygon interior regions (FR-018) in `spec_driven/compartments/layout.py`
 
 **Checkpoint**: Compartments auto-laid-out in rows, grouped compartments stay adjacent
 
@@ -179,18 +179,18 @@
 
 ### Tests for User Story 7
 
-- [ ] T055 [P] [US7] Write unit test: auto-sizing expands boxes to fill rows in `tests/test_spec_driven/test_packing.py`
-- [ ] T056 [P] [US7] Write unit test: row lengths match longest box in row in `tests/test_spec_driven/test_packing.py`
-- [ ] T057 [P] [US7] Write unit test: gaps > 10mm produce spacers, gaps < 10mm absorbed, and `final_size` correctly propagated to builders in `tests/test_spec_driven/test_packing.py`
-- [ ] T058 [P] [US7] Write render test: 4-box game with spacers in `tests/test_spec_driven/render/test_box_render.py`
+- [x] T055 [P] [US7] Write unit test: auto-sizing expands boxes to fill rows in `tests/test_spec_driven/test_packing.py`
+- [x] T056 [P] [US7] Write unit test: row lengths match longest box in row in `tests/test_spec_driven/test_packing.py`
+- [x] T057 [P] [US7] Write unit test: gaps > 10mm produce spacers, gaps < 10mm absorbed, and `final_size` correctly propagated to builders in `tests/test_spec_driven/test_packing.py`
+- [x] T058 [P] [US7] Write render test: 4-box game with spacers in `tests/test_spec_driven/render/test_box_render.py`
 
 ### Implementation for User Story 7
 
-- [ ] T059 [US7] Implement 3D box packing into game box interior using a 3D packing solver with dynamic dimension expansion in `spec_driven/packing/layout.py`
-- [ ] T060 [US7] Implement auto-sizing expansion (fill-to-fit rows, common length per row) and propagate resolved sizes back to builders via `final_size` attribute in `spec_driven/packing/layout.py`
-- [ ] T061 [US7] Implement spacer tray generation from gap dimensions (NoLidBox hollow trays) in `spec_driven/packing/spacer.py`
-- [ ] T062 [US7] Implement gap threshold logic (absorb < 10mm, spacer if ≥ 15mm, absorb 10-15mm) in `spec_driven/packing/spacer.py`
-- [ ] T063 [US7] Wire `Project.export()` → packing solver → auto-sizing with `final_size` propagation → spacer generation in `spec_driven/project.py`
+- [x] T059 [US7] Implement 3D box packing into game box interior using a 3D packing solver with dynamic dimension expansion in `spec_driven/packing/layout.py`
+- [x] T060 [US7] Implement auto-sizing expansion (fill-to-fit rows, common length per row) and propagate resolved sizes back to builders via `final_size` attribute in `spec_driven/packing/layout.py`
+- [x] T061 [US7] Implement spacer tray generation from gap dimensions (NoLidBox hollow trays) in `spec_driven/packing/spacer.py`
+- [x] T062 [US7] Implement gap threshold logic (absorb < 10mm, spacer if ≥ 15mm, absorb 10-15mm) in `spec_driven/packing/spacer.py`
+- [x] T063 [US7] Wire `Project.export()` → packing solver → auto-sizing with `final_size` propagation → spacer generation in `spec_driven/project.py`
 
 **Checkpoint**: Multi-box games with auto-sizing and spacers fully functional
 
@@ -204,21 +204,21 @@
 
 ### Tests for User Story 8
 
-- [ ] T064 [P] [US8] Write unit test: ExportResult file counts match expectations in `tests/test_spec_driven/test_export.py`
-- [ ] T065 [P] [US8] Write unit test: cache hit/miss based on SHA-256 hash using `.layout_cache.json` in `tests/test_spec_driven/test_packing.py`
-- [ ] T066 [P] [US8] Write render test: second export writes 0 files (Hausdorff skip) in `tests/test_spec_driven/render/test_export_render.py`
-- [ ] T067 [P] [US8] Write render test: partial change exports only modified files in `tests/test_spec_driven/render/test_export_render.py`
+- [x] T064 [P] [US8] Write unit test: ExportResult file counts match expectations in `tests/test_spec_driven/test_export.py`
+- [x] T065 [P] [US8] Write unit test: cache hit/miss based on SHA-256 hash using `.layout_cache.json` in `tests/test_spec_driven/test_packing.py`
+- [x] T066 [P] [US8] Write render test: second export writes 0 files (Hausdorff skip) in `tests/test_spec_driven/render/test_export_render.py`
+- [x] T067 [P] [US8] Write render test: partial change exports only modified files in `tests/test_spec_driven/render/test_export_render.py`
 
 ### Implementation for User Story 8
 
-- [ ] T068 [P] [US8] Implement `ExportResult` frozen dataclass in `spec_driven/export/result.py`
-- [ ] T068a [US8] Implement MMU color-copy logic (positive inserts in different material/color from body) in `spec_driven/export/exporter.py`
-- [ ] T068b [US8] Implement bounding-box reporting for each exported piece (FR-027) in `spec_driven/export/exporter.py`
-- [ ] T069 [P] [US8] Implement two-level layout cache (in-memory dict + disk `spec_driven/.layout_cache.json`, SHA-256 key, version invalidation) to store 3D box packing layouts and bypass solver on subsequent runs in `spec_driven/packing/cache.py`
-- [ ] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py`
-- [ ] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py`
-- [ ] T072 [US8] Implement organized output directory structure (`mmu/` + `single/`, `_body.3mf` / `_lid.3mf` naming) in `spec_driven/export/exporter.py`
-- [ ] T073 [US8] Wire full `Project.export()` pipeline: pack with dynamic dimension expansion → auto-size with `final_size` propagation → spacers → build → export in `spec_driven/project.py`
+- [x] T068 [P] [US8] Implement `ExportResult` frozen dataclass in `spec_driven/export/result.py`
+- [x] T068a [US8] Implement MMU color-copy logic (positive inserts in different material/color from body) in `spec_driven/export/exporter.py`
+- [x] T068b [US8] Implement bounding-box reporting for each exported piece (FR-027) in `spec_driven/export/exporter.py`
+- [x] T069 [P] [US8] Implement two-level layout cache (in-memory dict + disk `spec_driven/.layout_cache.json`, SHA-256 key, version invalidation) to store 3D box packing layouts and bypass solver on subsequent runs in `spec_driven/packing/cache.py`
+- [x] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py`
+- [x] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py`
+- [x] T072 [US8] Implement organized output directory structure (`mmu/` + `single/`, `_body.3mf` / `_lid.3mf` naming) in `spec_driven/export/exporter.py`
+- [x] T073 [US8] Wire full `Project.export()` pipeline: pack with dynamic dimension expansion → auto-size with `final_size` propagation → spacers → build → export in `spec_driven/project.py`
 
 **Checkpoint**: Full export pipeline functional — cached, Hausdorff-gated, organized output
 
@@ -232,14 +232,14 @@
 
 ### Tests for User Story 5/6
 
-- [ ] T074 [P] [US5] Write unit test: 4 sub-boxes fit in 300x300x80mm outer box in `tests/test_spec_driven/test_packing.py`
-- [ ] T075 [P] [US6] Write unit test: manual positions override auto-layout in `tests/test_spec_driven/test_compartments.py`
+- [x] T074 [P] [US5] Write unit test: 4 sub-boxes fit in 300x300x80mm outer box in `tests/test_spec_driven/test_packing.py`
+- [x] T075 [P] [US6] Write unit test: manual positions override auto-layout in `tests/test_spec_driven/test_compartments.py`
 
 ### Implementation for User Story 5/6
 
-- [ ] T076 [US5] Implement validation: sub-boxes fit within outer interior (footprint + height) with descriptive errors in `spec_driven/packing/layout.py`
-- [ ] T077 [US6] Implement manual compartment positioning (explicit x, y coordinates) in `spec_driven/compartments/layout.py`
-- [ ] T078 [US6] Implement overlap detection and error reporting for manually positioned compartments in `spec_driven/compartments/layout.py`
+- [x] T076 [US5] Implement validation: sub-boxes fit within outer interior (footprint + height) with descriptive errors in `spec_driven/packing/layout.py`
+- [x] T077 [US6] Implement manual compartment positioning (explicit x, y coordinates) in `spec_driven/compartments/layout.py`
+- [x] T078 [US6] Implement overlap detection and error reporting for manually positioned compartments in `spec_driven/compartments/layout.py`
 
 **Checkpoint**: Nested box validation and manual positioning functional
 
@@ -253,15 +253,15 @@
 
 ### Tests for User Story 10
 
-- [ ] T078a [P] [US10] Write unit test: PDF file exists in output directory after export in `tests/test_spec_driven/test_export.py`
-- [ ] T078b [P] [US10] Write unit test: PDF skipped on re-export when layout unchanged in `tests/test_spec_driven/test_export.py`
+- [x] T078a [P] [US10] Write unit test: PDF file exists in output directory after export in `tests/test_spec_driven/test_export.py`
+- [x] T078b [P] [US10] Write unit test: PDF skipped on re-export when layout unchanged in `tests/test_spec_driven/test_export.py`
 
 ### Implementation for User Story 10
 
-- [ ] T078c [US10] Implement 3D angle view packing layout renderer (box outlines, labels, dimensions, spacer markers) in `spec_driven/export/layout_pdf.py`
-- [ ] T078d [US10] Implement packing order numbering and hidden-box transparency visualization in `spec_driven/export/layout_pdf.py`
-- [ ] T078e [US10] Implement PDF caching with SHA-256 layout hash (skip regeneration if unchanged) in `spec_driven/export/layout_pdf.py`
-- [ ] T078f [US10] Wire PDF generation into `Project.export()` pipeline and add `layout.pdf` to `ExportResult` in `spec_driven/project.py`
+- [x] T078c [US10] Implement 3D angle view packing layout renderer (box outlines, labels, dimensions, spacer markers) in `spec_driven/export/layout_pdf.py`
+- [x] T078d [US10] Implement packing order numbering and hidden-box transparency visualization in `spec_driven/export/layout_pdf.py`
+- [x] T078e [US10] Implement PDF caching with SHA-256 layout hash (skip regeneration if unchanged) in `spec_driven/export/layout_pdf.py`
+- [x] T078f [US10] Wire PDF generation into `Project.export()` pipeline and add `layout.pdf` to `ExportResult` in `spec_driven/project.py`
 
 **Checkpoint**: Packing layout PDF generated and cached alongside 3MF exports
 
@@ -271,13 +271,13 @@
 
 **Purpose**: Reference example, documentation, final integration
 
-- [ ] T079 [P] Create `boxes/` directory with `_template/` for new game projects
-- [ ] T080 [P] Create Earth Animal Kingdom reference example using full spec_driven API in `boxes/earth_animal_kingdom/earth_animal_kingdom.py`
-- [ ] T081 [P] Create Earth Animal Kingdom README in `boxes/earth_animal_kingdom/README.md`
-- [ ] T082 Run `npx pyright spec_driven/` — fix any type errors
-- [ ] T083 Run `python3 tests/run_fast.py test_spec_driven/` — all fast tests pass
-- [ ] T084 Run full render suite: `python3 -m unittest discover -s tests/test_spec_driven/render` — all render tests pass
-- [ ] T085 Validate quickstart.md scenarios against implemented API
+- [x] T079 [P] Create `boxes/` directory with `_template/` for new game projects
+- [x] T080 [P] Create Earth Animal Kingdom reference example using full spec_driven API in `boxes/earth_animal_kingdom/earth_animal_kingdom.py`
+- [x] T081 [P] Create Earth Animal Kingdom README in `boxes/earth_animal_kingdom/README.md`
+- [x] T082 Run `npx pyright spec_driven/` — fix any type errors
+- [x] T083 Run `python3 tests/run_fast.py test_spec_driven/` — all fast tests pass
+- [x] T084 Run full render suite: `python3 -m unittest discover -s tests/test_spec_driven/render` — all render tests pass
+- [x] T085 Validate quickstart.md scenarios against implemented API
 
 ---
 

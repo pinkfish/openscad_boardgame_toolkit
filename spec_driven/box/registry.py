@@ -42,6 +42,40 @@ def register_box(
 
 # Register available box types
 from spec_driven.builders.sliding import SlidingBoxBuilder  # noqa: E402
+from spec_driven.builders.cap import CapBoxBuilder  # noqa: E402
+from spec_driven.builders.hinge import HingeBoxBuilder  # noqa: E402
+from spec_driven.builders.filament_hinge import FilamentHingeBoxBuilder  # noqa: E402
+from spec_driven.builders.magnetic import MagneticBoxBuilder  # noqa: E402
+from spec_driven.builders.inset import InsetBoxBuilder  # noqa: E402
+from spec_driven.builders.sliding_catch import SlidingCatchBoxBuilder  # noqa: E402
+from spec_driven.builders.slipover import SlipoverBoxBuilder  # noqa: E402
+from spec_driven.builders.slipover_path import SlipoverPathBoxBuilder  # noqa: E402
+from spec_driven.builders.cap_path import CapPathBoxBuilder  # noqa: E402
+from spec_driven.builders.no_lid import NoLidBoxBuilder  # noqa: E402
+from spec_driven.builders.card_library import CardLibraryBoxBuilder  # noqa: E402
+
 from spec_driven.box.types.sliding import SlidingBox  # noqa: E402
+from spec_driven.box.types.cap import CapBox  # noqa: E402
+from spec_driven.box.types.hinge import HingeBox  # noqa: E402
+from spec_driven.box.types.filament_hinge import FilamentHingeBox  # noqa: E402
+from spec_driven.box.types.magnetic import MagneticBox  # noqa: E402
+from spec_driven.box.types.inset import InsetBox  # noqa: E402
+from spec_driven.box.types.sliding_catch import SlidingCatchBox  # noqa: E402
+from spec_driven.box.types.slipover import SlipoverBox  # noqa: E402
+from spec_driven.box.types.slipover_path import SlipoverPathBox  # noqa: E402
+from spec_driven.box.types.cap_path import CapPathBox  # noqa: E402
+from spec_driven.box.types.no_lid import NoLidBox  # noqa: E402
+from spec_driven.box.types.card_library import CardLibraryBox  # noqa: E402
 
 register_box(BoxType.SLIDING, SlidingBoxBuilder, SlidingBox)
+register_box(BoxType.CAP, CapBoxBuilder, CapBox)
+register_box(BoxType.HINGE, HingeBoxBuilder, HingeBox)
+register_box(BoxType.FILAMENT_HINGE, FilamentHingeBoxBuilder, FilamentHingeBox)
+register_box(BoxType.MAGNETIC, MagneticBoxBuilder, MagneticBox)
+register_box(BoxType.INSET, InsetBoxBuilder, InsetBox)
+register_box(BoxType.SLIDING_CATCH, SlidingCatchBoxBuilder, SlidingCatchBox)
+register_box(BoxType.SLIPOVER, SlipoverBoxBuilder, SlipoverBox)
+register_box(BoxType.SLIPOVER_PATH, SlipoverPathBoxBuilder, SlipoverPathBox)
+register_box(BoxType.CAP_PATH, CapPathBoxBuilder, CapPathBox)
+register_box(BoxType.NO_LID, NoLidBoxBuilder, NoLidBox)
+register_box(BoxType.CARD_LIBRARY, CardLibraryBoxBuilder, CardLibraryBox)

@@ -3,8 +3,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bosl2 import Bosl2Solid
+
+
+from dataclasses import dataclass
 
 from spec_driven.box.base import Interior
 
