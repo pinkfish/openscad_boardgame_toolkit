@@ -64,11 +64,19 @@ class PathBox:
 def _inset_path(
     path: tuple[tuple[float, float], ...], distance: float
 ) -> tuple[tuple[float, float], ...]:
-    """Shrink a polygon toward its centroid by `distance`.
+    """Shrink a footprint by `distance` to get the tray's inner cavity.
 
-    A centroid scale is enough for the convex leftover regions the spacer
-    generator produces, and it never self-intersects the way a true offset can.
+    Leftover regions from the packer are rectilinear, and those get an exact
+    edge-wise inset — a centroid scale would pull an L's reflex corner the wrong
+    way and thin one arm while fattening the other. Anything else falls back to
+    the centroid scale, which is fine for the convex outlines a caller is likely
+    to hand-write and never self-intersects.
     """
+    from spec_driven.paths import inset_rectilinear, is_rectilinear
+
+    if is_rectilinear(path):
+        return inset_rectilinear(path, distance)
+
     cx = sum(p[0] for p in path) / len(path)
     cy = sum(p[1] for p in path) / len(path)
     out = []

@@ -14,6 +14,12 @@ class Placement:
     position: tuple[float, float, float]
     size: tuple[float, float, float]
     rotation: bool = False
+    path: tuple[tuple[float, float], ...] | None = None
+    """Footprint outline relative to `position`, when it is not a rectangle.
+
+    Set on spacers whose leftover region is L-, T- or U-shaped (FR-018); such a
+    spacer is built as a `PathBox` rather than a plain tray. None means the
+    footprint is just `size`."""
 
 
 @dataclass

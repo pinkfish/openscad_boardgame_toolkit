@@ -143,9 +143,13 @@ project = Project(
     wall_thickness=WALL,
     floor_thickness=FLOOR,
     lid_thickness=LID,
-    clearance_slack=0.0,
+    # Every box below is hand-positioned, so nothing goes through the packer and
+    # the slack only reaches the spacers — where it is what makes them liftable.
+    clearance_slack=0.5,
     board_thickness=BOARD_THICKNESS,
-    generate_spacers=False,  # the three spacers below are declared explicitly
+    # The original names three spacers by hand. We let the packer find them:
+    # the leftover space is the same, and it stays right if a box ever moves.
+    generate_spacers=True,
 )
 
 LEAF_LID = PatternBuilder(type=PatternType.LEAF, spacing=10.0)
@@ -495,29 +499,10 @@ common_box.compartment(
 )
 
 # ── 6. Spacers ────────────────────────────────────────────────────────────
-project.box(
-    BoxType.NO_LID,
-    "SpacerPlayer",
-    size=(PLAYER_BOX_WIDTH, PLAYER_BOX_LENGTH, PLAYER_BOX_HEIGHT),
-    position=(0.0, MATERIAL_BOX_LENGTH * 2, PLAYER_BOX_HEIGHT * 3),
-    expandable=False,
-)
-
-project.box(
-    BoxType.NO_LID,
-    "SpacerSide",
-    size=(CARD_BOX_WIDTH, SPACER_SIDE_LENGTH, CARD_BOX_HEIGHT),
-    position=(PLAYER_BOX_WIDTH, CARD_BOX_LENGTH * 3, 0.0),
-    expandable=False,
-)
-
-project.box(
-    BoxType.NO_LID,
-    "SpacerFront",
-    size=(PLAYER_CARD_BOX_WIDTH, COMMON_BOX_LENGTH, SPACER_FRONT_HEIGHT),
-    position=(PLAYER_BOX_WIDTH * 2, PLAYER_CARD_BOX_LENGTH, COMMON_BOX_HEIGHT),
-    expandable=False,
-)
+# Not declared. `generate_spacers=True` sweeps the leftover volume, merges the
+# pieces that fuse into one box, and emits three trays at the same corners as
+# the original's SpacerPlayer, SpacerSide and SpacerFront — see the expected
+# footprints asserted in tests/test_spec_driven/test_emberleaf.py.
 
 
 if __name__ == "__main__":

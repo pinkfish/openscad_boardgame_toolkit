@@ -378,13 +378,48 @@
 - [x] T159 [P] Write test: BoxExporter, mesh-equivalence gating, row sizing and PathBox in `tests/test_spec_driven/test_exporter.py`
 - [x] T160 Fix `should_regenerate_layout` writing its hash only on the second run, which rebuilt an already-current PDF, in `spec_driven/export/layout_pdf.py`
 
-**Checkpoint**: Element packs functional; Emberleaf exports 78 real 3MF files plus a layout PDF, and a re-export rewrites nothing.
+**Checkpoint**: Element packs functional; Emberleaf exports real 3MF files plus a layout PDF, and a re-export rewrites nothing.
+
+---
+
+## Phase 13: Fewest-Possible Spacers (FR-014a/b/c)
+
+**Purpose**: The leftover space should produce as few trays as it can, and they should be liftable.
+
+**Goal**: Spacer count depends only on the shape of the empty space, not on how many boxes the layout contains. Emberleaf gets its three spacers from the packer instead of declaring them.
+
+**Independent Test**: Export Emberleaf and verify exactly three spacers, at the corners of the original's `SpacerPlayer`, `SpacerSide` and `SpacerFront`.
+
+- [x] T164 Move the 3D sweep out of `Project.export` into `spec_driven/packing/spacer.py` as `sweep_free_space`
+- [x] T165 Take the largest available box at each sweep step instead of scanning in index order, so a sliver cannot claim cells out of a big void and fragment it (FR-014a)
+- [x] T166 Implement `merge_voids` — fuse any two voids whose union is a box, to a fixed point, in canonical order (FR-014b)
+- [x] T167 Implement `apply_clearance` — inset a tray's footprint by the project's `clearance_slack` so it can be lifted out (FR-014c)
+- [x] T168 Add `Project.min_spacer_height` and wire `Project.export` to `generate_spacer_placements` (sweep → merge → shrink → filter)
+- [x] T169 Turn on `generate_spacers` for Emberleaf and delete its three hand-declared spacers in `boxes/emberleaf/emberleaf.py`
+- [x] T170 [P] Write test: merge fuses on every axis, is idempotent, is order-independent, and leaves an L-shape at two (SC-010b) in `tests/test_spec_driven/test_spacer_merge.py`
+- [x] T171 [P] Write test: swept voids never overlap each other or a placed box, and a sliver does not fragment its neighbour (FR-014a) in `tests/test_spec_driven/test_spacer_merge.py`
+- [x] T172 [P] Write test: Emberleaf produces exactly three spacers at the original's corners (SC-010a) in `tests/test_spec_driven/test_emberleaf.py`
+
+**Checkpoint**: Emberleaf's spacers are derived, not declared — three trays, down from the four the un-merged sweep produced. 1835 still produces exactly one.
+
+### Rectilinear merge — L/T/U leftovers as one polygon tray (FR-014d/e)
+
+- [x] T174 Add `spec_driven/paths.py` — rectilinear polygon helpers (`polygon_area`, `is_rectilinear`, `inset_rectilinear`, `bounds`) shared by the spacer pass and `PathBox`
+- [x] T175 Implement `union_outline` — trace the boundary of a union of footprints by edge cancellation, collapsing collinear runs, in `spec_driven/packing/spacer.py`
+- [x] T176 Implement `merge_rectilinear` — group coplanar voids into connected clusters and emit one polygon-footprint `Void` per cluster (FR-014d)
+- [x] T177 Refuse to fuse voids at different heights, which would replace two flat trays with one overhanging part (FR-014e)
+- [x] T178 Add `Placement.path` and build polygon spacers through `BoxType.PATH` in `Project.export`
+- [x] T179 Replace `PathBox._inset_path`'s centroid scale with the exact rectilinear inset, which a centroid scale gets wrong on any reflex corner
+- [x] T180 [P] Write test: L/T/U/plus outlines trace correctly, polygon area is preserved, stacked voids stay apart, and an inset L stays rectilinear on all six sides in `tests/test_spec_driven/test_spacer_merge.py`
+
+**Checkpoint**: A corner box in an otherwise empty layer yields one six-point L tray instead of two rectangles, and it builds as a real hollow `PathBox`.
 
 ### Known gaps
 
 - [ ] T161 Lid decoration (`LidBuilder` text, patterns, colours) is resolved and validated but not yet applied to the generated lid geometry — `build_lid` ignores its `decoration` argument in every box type.
 - [ ] T162 `InsetBox`, `SlidingCatchBox`, `CapPathBox`, `SlipoverPathBox`, `CardLibraryBox` and `FilamentHingeBox` still return a plain plate from `build_lid`; only sliding, cap and slipover produce their real mating geometry.
 - [ ] T163 `HingeBox` knuckles are a placeholder — no matching lid knuckles and no pin channel, so the hinge does not yet articulate.
+- [x] T173 *(resolved, and the original diagnosis was wrong.)* Irish Gauge yields four spacers where the plan calls for two, and I recorded the extra pair as a footprint L that polygon-path spacers would close. It is not: `spacer_3` and `spacer_4` share a Y span and form an L in the **x-z** plane — a vertical step above `CompanyBox2`. Fusing it would give one part whose upper arm floats, replacing two trays that each sit flat with a single overhanging one. Rectilinear merging now handles genuine footprint L/T/U shapes (T174–T180), and vertical steps stay separate by design (FR-014e), so Irish Gauge stays at four spacers and that is the correct answer.
 
 ---
 

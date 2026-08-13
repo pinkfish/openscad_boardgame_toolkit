@@ -36,6 +36,8 @@ class Project:
     """Gaps <= this are absorbed by adjacent boxes."""
     min_spacer_dim: float = 15.0
     """Minimum spacer width/length before absorption."""
+    min_spacer_height: float = 5.0
+    """A spacer tray thinner than this on any axis is dropped as unprintable (FR-014)."""
     clearance_slack: float = 1.0
     """Clearance slack on each side of the game box in the X/Y directions (mm)."""
     board_thickness: float = 0.0
@@ -339,106 +341,9 @@ class Project:
                 builder.label, body=body, lid=lid, size=size, has_lid=has_lid,
             )
 
-        # 3. Generate and export 3D spacers from gaps in the packed layout
-        def generate_spacers_for_3d_packing(container_size, placements):
-            from spec_driven.packing.layout import Placement
-            if not placements:
-                return []
-            W, L, H = container_size
-            
-            # Find distinct coordinates
-            xs = {0.0, W}
-            ys = {0.0, L}
-            zs = {0.0, H}
-            for p in placements:
-                x, y, z = p.position
-                w, l, h = p.size
-                xs.add(x)
-                xs.add(x + w)
-                ys.add(y)
-                ys.add(y + l)
-                zs.add(z)
-                zs.add(z + h)
-                
-            sorted_xs = sorted(list(xs))
-            sorted_ys = sorted(list(ys))
-            sorted_zs = sorted(list(zs))
-            
-            nx = len(sorted_xs) - 1
-            ny = len(sorted_ys) - 1
-            nz = len(sorted_zs) - 1
-            
-            occupied = [[[False] * nz for _ in range(ny)] for _ in range(nx)]
-            
-            for p in placements:
-                px, py, pz = p.position
-                pw, pl, ph = p.size
-                for i in range(nx):
-                    if sorted_xs[i] >= px - 0.01 and sorted_xs[i+1] <= px + pw + 0.01:
-                        for j in range(ny):
-                            if sorted_ys[j] >= py - 0.01 and sorted_ys[j+1] <= py + pl + 0.01:
-                                for k in range(nz):
-                                    if sorted_zs[k] >= pz - 0.01 and sorted_zs[k+1] <= pz + ph + 0.01:
-                                        occupied[i][j][k] = True
-            
-            spacers = []
-            visited = [[[False] * nz for _ in range(ny)] for _ in range(nx)]
-            
-            for i in range(nx):
-                for j in range(ny):
-                    for k in range(nz):
-                        if not occupied[i][j][k] and not visited[i][j][k]:
-                            i2 = i
-                            while i2 < nx and not occupied[i2][j][k] and not visited[i2][j][k]:
-                                i2 += 1
-                            
-                            j2 = j
-                            while j2 < ny:
-                                ok = True
-                                for ii in range(i, i2):
-                                    if occupied[ii][j2][k] or visited[ii][j2][k]:
-                                        ok = False
-                                        break
-                                if not ok:
-                                    break
-                                j2 += 1
-                                
-                            k2 = k
-                            while k2 < nz:
-                                ok = True
-                                for ii in range(i, i2):
-                                    for jj in range(j, j2):
-                                        if occupied[ii][jj][k2] or visited[ii][jj][k2]:
-                                            ok = False
-                                            break
-                                    if not ok:
-                                        break
-                                if not ok:
-                                    break
-                                k2 += 1
-                                
-                            for ii in range(i, i2):
-                                for jj in range(j, j2):
-                                    for kk in range(k, k2):
-                                        visited[ii][jj][kk] = True
-                                        
-                            pos_x = sorted_xs[i]
-                            pos_y = sorted_ys[j]
-                            pos_z = sorted_zs[k]
-                            size_w = sorted_xs[i2] - pos_x
-                            size_l = sorted_ys[j2] - pos_y
-                            size_h = sorted_zs[k2] - pos_z
-                            
-                            if size_w >= 5.0 and size_l >= 5.0 and size_h >= 5.0:
-                                spacers.append(
-                                    Placement(
-                                        label=f"spacer_{len(spacers)+1}",
-                                        position=(pos_x, pos_y, pos_z),
-                                        size=(size_w, size_l, size_h),
-                                        rotation=False
-                                    )
-                                )
-            return spacers
+        # 3. Generate and export 3D spacers from gaps in the packed layout.
+        # The sweep-merge-shrink pass lives in packing/spacer.py (FR-014a/b/c).
+        from spec_driven.packing.spacer import generate_spacer_placements
 
         # Effective box container: subtract board thickness from the height so the
         # board area is reserved (occupied by the game board), not treated as a spacer gap.
@@ -448,7 +353,12 @@ class Project:
             self.game_box_size[2] - self.board_thickness,
         )
         if self.generate_spacers:
-            spacer_placements = generate_spacers_for_3d_packing(effective_container, packing.placements)
+            spacer_placements = generate_spacer_placements(
+                effective_container,
+                packing.placements,
+                clearance=self.clearance_slack,
+                min_dim=self.min_spacer_height,
+            )
         else:
             spacer_placements = []
         packing.spacer_placements = spacer_placements
@@ -460,8 +370,11 @@ class Project:
         for spacer in spacer_placements:
             body = None
             try:
-                no_lid_cls = BOX_IMPL_REGISTRY.get(BoxType.NO_LID)
-                if no_lid_cls is not None:
+                # An L/T/U-shaped leftover is a PathBox; a plain rectangle is a
+                # NoLidBox tray.
+                spacer_type = BoxType.PATH if spacer.path else BoxType.NO_LID
+                spacer_cls = BOX_IMPL_REGISTRY.get(spacer_type)
+                if spacer_cls is not None:
                     spec_dict = {
                         "label": spacer.label,
                         "width": spacer.size[0],
@@ -470,8 +383,9 @@ class Project:
                         "wall_thickness": self.wall_thickness,
                         "floor_thickness": self.floor_thickness,
                         "lid_thickness": 0.0,
+                        "path": spacer.path or (),
                     }
-                    body = no_lid_cls().build_body(spec_dict)
+                    body = spacer_cls().build_body(spec_dict)
             except Exception:
                 body = None
 

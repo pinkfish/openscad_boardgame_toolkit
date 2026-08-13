@@ -73,8 +73,9 @@ class LayoutTests(unittest.TestCase):
         cls.boxes = {b.label: b for b in cls.mod["project"]._boxes}
 
     def test_box_inventory(self) -> None:
-        """5 player + 4 material + 3 card + 5 player-card + common + 3 spacers."""
-        self.assertEqual(len(self.boxes), 21)
+        """5 player + 4 material + 3 card + 5 player-card + common. No spacers —
+        the original's three are found by the packer, not declared."""
+        self.assertEqual(len(self.boxes), 18)
         for colour in ("Black", "Red", "Yellow", "Blue", "Grey"):
             self.assertIn(f"PlayerBox{colour}", self.boxes)
             self.assertIn(f"CardBoxPlayer{colour}", self.boxes)
@@ -82,8 +83,8 @@ class LayoutTests(unittest.TestCase):
             self.assertIn(f"MaterialBox{material}", self.boxes)
         for card in ("Favor", "Hero", "Solo"):
             self.assertIn(f"CardBox{card}", self.boxes)
-        for spacer in ("SpacerPlayer", "SpacerSide", "SpacerFront"):
-            self.assertIn(spacer, self.boxes)
+        self.assertIn("CommonBox", self.boxes)
+        self.assertEqual([b for b in self.boxes if "Spacer" in b], [])
 
     def test_box_types_match_the_original_modules(self) -> None:
         self.assertEqual(self.boxes["PlayerBoxBlack"].box_type, BoxType.CAP)
@@ -91,7 +92,6 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(self.boxes["CommonBox"].box_type, BoxType.CAP)
         self.assertEqual(self.boxes["CardBoxFavor"].box_type, BoxType.SLIDING)
         self.assertEqual(self.boxes["CardBoxPlayerRed"].box_type, BoxType.SLIDING)
-        self.assertEqual(self.boxes["SpacerSide"].box_type, BoxType.NO_LID)
 
     def test_every_box_is_manually_positioned(self) -> None:
         for label, builder in self.boxes.items():
@@ -111,7 +111,7 @@ class LayoutTests(unittest.TestCase):
         self.assertEqual(self.boxes["CardBoxFavor"].position, (pbw, 0.0, 0.0))
         self.assertEqual(self.boxes["CardBoxHero"].position, (pbw, cbl, 0.0))
         self.assertEqual(self.boxes["CardBoxSolo"].position, (pbw, cbl * 2, 0.0))
-        self.assertEqual(self.boxes["SpacerSide"].position, (pbw, cbl * 3, 0.0))
+        # y = cbl * 3 onwards is left empty; SpacerTests checks the packer fills it.
 
     def test_player_card_boxes_stack_five_high(self) -> None:
         pbw, pcbh = self.mod["PLAYER_BOX_WIDTH"], self.mod["PLAYER_CARD_BOX_HEIGHT"]
@@ -274,6 +274,85 @@ class CommonBoxContentsTests(unittest.TestCase):
         self.assertLessEqual(max_y, self.mod["COMMON_INNER_L"])
 
 
+class SpacerTests(unittest.TestCase):
+    """The original's three hand-named spacers must fall out of the packer.
+
+    `SpacerPlayer`, `SpacerSide` and `SpacerFront` in emberleaf.scad are the
+    three voids the 18 boxes leave behind. Nothing declares them here — the
+    sweep finds them and the merge pass fuses the fragments (FR-014a/b).
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        import tempfile
+
+        import spec_driven.export.layout_pdf as layout_pdf
+
+        cls.mod = load_example()
+        project = cls.mod["project"]
+
+        captured = {}
+        original = layout_pdf.should_regenerate_layout
+
+        def spy(packing, *args, **kwargs):
+            captured["packing"] = packing
+            return original(packing, *args, **kwargs)
+
+        layout_pdf.should_regenerate_layout = spy
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                project.export(tmp)
+        finally:
+            layout_pdf.should_regenerate_layout = original
+
+        cls.spacers = sorted(
+            captured["packing"].spacer_placements, key=lambda s: s.position
+        )
+
+    def test_exactly_three_spacers(self) -> None:
+        """One per void — not one per grid fragment (FR-014a, SC-010a)."""
+        self.assertEqual(
+            len(self.spacers), 3,
+            f"expected 3 spacers, got {[s.label for s in self.spacers]}",
+        )
+
+    def test_each_spacer_sits_where_the_original_puts_one(self) -> None:
+        slack = self.mod["project"].clearance_slack
+        # (origin, footprint) of SpacerPlayer / SpacerSide / SpacerFront, inset
+        # by the clearance slack that makes the tray liftable (FR-014c).
+        expected = [
+            ((0.5, 143.0, 39.375), (97.0, 143.5)),
+            ((98.5, 219.5, 0.0), (97.0, 67.0)),
+            ((196.5, 98.5, 25.0), (90.0, 188.0)),
+        ]
+        for spacer, (origin, footprint) in zip(self.spacers, expected):
+            for got, want in zip(spacer.position, origin):
+                self.assertAlmostEqual(got, want, places=3, msg=spacer.label)
+            for got, want in zip(spacer.size[:2], footprint):
+                self.assertAlmostEqual(got, want, places=3, msg=spacer.label)
+        self.assertGreater(slack, 0.0, "spacers need slack to be liftable")
+
+    def test_spacers_clear_the_board_space(self) -> None:
+        usable = self.mod["BOX_HEIGHT"] - self.mod["BOARD_THICKNESS"]
+        for spacer in self.spacers:
+            self.assertLessEqual(spacer.position[2] + spacer.size[2], usable + 1e-6)
+
+    def test_no_spacer_is_too_thin_to_print(self) -> None:
+        for spacer in self.spacers:
+            self.assertGreaterEqual(min(spacer.size), 5.0, spacer.label)
+
+    def test_no_spacer_collides_with_a_box(self) -> None:
+        boxes = [(b.label, b.position, b.size) for b in self.mod["project"]._boxes]
+        for spacer in self.spacers:
+            for label, position, size in boxes:
+                overlaps = all(
+                    spacer.position[axis] + 1e-6 < position[axis] + size[axis]
+                    and position[axis] + 1e-6 < spacer.position[axis] + spacer.size[axis]
+                    for axis in range(3)
+                )
+                self.assertFalse(overlaps, f"{spacer.label} overlaps {label}")
+
+
 class ExportTests(unittest.TestCase):
     def test_export_writes_a_body_per_box_and_a_lid_per_lidded_box(self) -> None:
         import tempfile
@@ -293,6 +372,10 @@ class ExportTests(unittest.TestCase):
                     has_lid,
                     f"{builder.label} lid presence is wrong",
                 )
+            for n in (1, 2, 3):
+                self.assertTrue((root / "mmu" / f"spacer_{n}_body.3mf").exists())
+                self.assertFalse((root / "mmu" / f"spacer_{n}_lid.3mf").exists())
+            self.assertFalse((root / "mmu" / "spacer_4_body.3mf").exists())
             self.assertEqual(len(result.skipped), 0)
 
     def test_re_export_rewrites_nothing(self) -> None:

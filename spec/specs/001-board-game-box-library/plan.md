@@ -294,6 +294,32 @@ To satisfy the layout guide requirements, `layout_pdf.py` renders the game box a
   * The text labels on the boxes in the layout PDF must be visible, larger, and highly readable. If a label is blocked/hidden because another box is stacked on top of it, the label text must be shifted to the side. The text label must only display the box's label, and not display its size/dimensions.
   * Hollow spacer boxes (which can be non-rectangular using 2D polygon paths) are generated to fill all open spaces/gaps, making the insert layout complete to the full extent of the game box. Spacer boxes/trays cannot be thinner than 5mm in any dimension (width, length, or height) to prevent printing extremely fragile slivers. For vertical gaps along the Z-axis, a spacer box is generated if the gap height is >= 3mm (subject to the 5mm minimum thickness rule). If the gap height is < 3mm, the adjacent box's height expands to absorb the gap, prioritizing expansion on the X and Y axes over the Z-axis.
 
+### Spacer Generation: Sweep, then Merge (FR-014a/b/c)
+
+Spacers come out of a three-stage pass in `spec_driven/packing/spacer.py`, driven from `Project.export()`.
+
+**1. Sweep.** Every placed box contributes its six face planes to a global X/Y/Z grid. The grid is swept for cells no box occupies, and the free cells are grown greedily into maximal boxes.
+
+**2. Merge.** The sweep alone does not satisfy FR-014a, and the reason is worth stating because it is not obvious: the plane grid is *global*, so a box in one corner of the game box contributes cut planes that slice free space everywhere else. In the Emberleaf layout the player-box column at `x = 0..98` puts a plane at `z = 39.375`, and that plane cuts the unrelated void at `x = 196` clean in half — two spacers where the space wants one. The number of pieces therefore depends on how many boxes the layout happens to contain, which is exactly what FR-014a forbids.
+
+The fix is a merge pass rather than a smarter sweep. Two spacers are **mergeable** when their union is itself a box: they are flush along one axis (one's max face equals the other's min face) and identical on the other two (same origin, same extent). Fusing such a pair is always safe — the union covers exactly the two originals and nothing more, so it cannot swallow an occupied cell.
+
+The pass fuses repeatedly until a full sweep over the list finds no mergeable pair. Since every merge reduces the count by one, it terminates in at most N rounds. Voids are visited in a canonical (position, size) order, which is what makes the output depend only on the geometry and not on the order the sweep found them in (FR-014b, SC-010b).
+
+Note that this is *determinism*, not *uniqueness*. Three voids in an L can fuse two different ways, and both leave two boxes behind — an L is not a box, so two is the true minimum there and the choice of which pair fuses is arbitrary. Canonical ordering makes that arbitrary choice a stable one.
+
+Merging runs *before* the minimum-dimension filter, so two slivers that are individually too thin to print can combine into one tray that is not.
+
+**2b. Rectilinear merge.** Rectangle fusion cannot reduce an L, T or U, because none of those is a box — but they still want to be one part. `merge_rectilinear` groups the survivors by identical Z span, finds the connected clusters within each group by footprint adjacency, and traces the union outline. The result is a single tray with a polygon footprint, built as a `PathBox` (FR-014d, FR-018).
+
+Outline tracing works by edge cancellation: walk each grid cell's border counter-clockwise, drop any edge that also appears reversed — those are the seams between two filled cells — and chain what survives into a loop, collapsing collinear runs so an L comes back as six points. One subtlety: a reflex corner is the start of *two* boundary edges, so the edge table has to be a multimap. Keying it by start vertex alone silently drops one of them, and the trace then never closes.
+
+Only regions at the **same height** are combined. Two leftovers at different heights can also form an L — in the vertical plane — and fusing those is a mistake: each tray currently rests on whatever is beneath it, and the fused part's upper arm would have nothing under it at all. Irish Gauge has exactly this shape above `CompanyBox2`, and it stays as two trays on purpose (FR-014e).
+
+**3. Clearance and filtering.** Surviving spacers are shrunk by the project's `clearance_slack` (FR-014c) — the sweep measures the true void, but a tray milled to that exact size is an interference fit — and then dropped if any dimension falls below the minimum.
+
+Insetting a polygon footprint is exact rather than approximate, because every edge the packer produces is axis-aligned: a corner's new position is the old one moved by the slack along each incident edge's inward normal (`spec_driven/paths.inset_rectilinear`). A reflex corner correctly moves *out* into its notch, which is what keeps an L's arm the right width — a centroid scale, the obvious shortcut, thins one arm while fattening the other. The normals come from the *directed* edges, since which side is inward depends on the direction the ring is traversed, not on where a corner's neighbours happen to sit.
+
 ### Compartment Auto-Layout with Rotation
 To ensure dense packing of compartments (like the animal compartments in `AnimalBox1` and `AnimalBox2`), `layout_compartments` implements a shelf-packing algorithm with 90-degree rotation support:
 * **Sorting Heuristic**: Compartments are sorted by their maximum dimension (width or length) in descending order to establish a clean starting baseline.
