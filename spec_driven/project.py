@@ -40,6 +40,8 @@ class Project:
     """Clearance slack on each side of the game box in the X/Y directions (mm)."""
     board_thickness: float = 0.0
     """Thickness of the game board (mm). Reserved space at the TOP of the box — the board sits on top of the sub-boxes, not a spacer gap."""
+    generate_spacers: bool = True
+    """Whether to automatically generate spacer boxes/trays to fill layout gaps."""
 
     _boxes: list[BoxBuilder] = field(default_factory=list, init=False)
     _shared_groups: list = field(default_factory=list, init=False)
@@ -438,7 +440,10 @@ class Project:
             self.game_box_size[1],
             self.game_box_size[2] - self.board_thickness,
         )
-        spacer_placements = generate_spacers_for_3d_packing(effective_container, packing.placements)
+        if self.generate_spacers:
+            spacer_placements = generate_spacers_for_3d_packing(effective_container, packing.placements)
+        else:
+            spacer_placements = []
         packing.spacer_placements = spacer_placements
 
         # Delete stale spacer files from previous runs (no longer-generated spacers)
