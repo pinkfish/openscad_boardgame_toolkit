@@ -2,11 +2,11 @@
 
 **Date**: 2026-08-11 | **Feature**: specs/001-board-game-box-library
 
-## 1. Package Location: `spec_driven/`
+## 1. Package Location: `pyboxbuilder/`
 
-### Decision: New `spec_driven/` package at repo root, additive to existing code
+### Decision: New `pyboxbuilder/` package at repo root, additive to existing code
 
-The new library lives under `spec_driven/` as a greenfield package. It does NOT import from or wrap the existing `box_base.py` pipeline. It does NOT replace the existing code — both coexist. A single `spec_driven.py` at the repo root is the public import.
+The new library lives under `pyboxbuilder/` as a greenfield, installable package. It does NOT import from or wrap the existing `box_base.py` pipeline. It does NOT replace the existing code — both coexist. The single public import is `from pyboxbuilder import ...`, served by `pyboxbuilder/__init__.py` (no separate root shim module).
 
 **Rationale**: The existing pipeline has hard-won constraints (frep handle reuse segfaults, the `LidPlate` contract, `Body` return type, MMU colour copy logic) that were designed around a different architecture. Starting fresh under a separate package avoids inheriting these constraints while still being able to borrow pure algorithm code (tessellations, shapes).
 
@@ -15,23 +15,23 @@ The new library lives under `spec_driven/` as a greenfield package. It does NOT 
 - Subpackage under existing root: Still inherits import coupling and naming conflicts.
 - Separate repository: Overkill for a codebase that shares tessellation and shape libraries.
 
-### Decision: `spec_driven.py` root module for single import
+### Decision: Installable `pyboxbuilder` package with `py.typed` for single import
+
+The package is declared in `pyproject.toml` under `[tool.setuptools.packages.find] include = ["pyboxbuilder*"]`, ships a `py.typed` marker (PEP 561), and is installed with `pip install -e .`. The single import surface is `pyboxbuilder/__init__.py`:
 
 ```python
-# spec_driven.py at repo root:
-from spec_driven.project import Project
-from spec_driven.enums import BoxType, LabelMode, PatternType, ScoopSide
-from spec_driven.color import Color
-from spec_driven.lid.builder import LidBuilder, PatternBuilder
-from spec_driven.export.result import ExportResult
+# pyboxbuilder/__init__.py:
+from pybosl2 import Color
+from pyboxbuilder.enums import BoxType, ElementShape, LabelMode, PatternType, ScoopSide
+from pyboxbuilder.project import Project
+from pyboxbuilder.lid.builder import LidBuilder, PatternBuilder
+from pyboxbuilder.export.result import ExportResult
 
-__all__ = [
-    "Project", "BoxType", "LabelMode", "PatternType", "ScoopSide",
-    "Color", "LidBuilder", "PatternBuilder", "ExportResult",
-]
+__all__ = ["Project", "BoxType", "LabelMode", "PatternType", "ScoopSide",
+           "ElementShape", "Color", "LidBuilder", "PatternBuilder", "ExportResult"]
 ```
 
-Users write: `from spec_driven import Project, BoxType, LabelMode, Color, LidBuilder`
+Users write: `from pyboxbuilder import Project, BoxType, LabelMode, Color, LidBuilder`
 
 **Rationale**: One import, discoverable at the repo root, follows the pattern of major Python libraries (`from flask import Flask`, `from fastapi import FastAPI`).
 
@@ -41,18 +41,18 @@ Users write: `from spec_driven import Project, BoxType, LabelMode, Color, LidBui
 
 ## 3. Typed Per-Box Builders (unchanged core decision, updated paths)
 
-One frozen dataclass builder per box type in `spec_driven/builders/`. See prior research.md for full design.
+One frozen dataclass builder per box type in `pyboxbuilder/builders/`. See prior research.md for full design.
 
 ## 4. Fresh Lid Decoration Pipeline
 
-### Decision: New lid pipeline under `spec_driven/lid/`, not wrapping `lids_base.py`
+### Decision: New lid pipeline under `pyboxbuilder/lid/`, not wrapping `lids_base.py`
 
 The existing `lids_base.py` uses a `LidPlate` contract where a box type hands a flat slab + shell + overlays, and `build_lid()` stacks decorations onto it. This contract constrains:
 - The plate must be a flat slab at z=0..thickness
 - Overlays are assembled at origin then translated
 - The label/pipeline/fingernail all go through one stack
 
-The new lid pipeline under `spec_driven/lid/` is designed around the clarified requirements directly:
+The new lid pipeline under `pyboxbuilder/lid/` is designed around the clarified requirements directly:
 - Through-hole patterns that cut completely through the lid
 - Framed labels with diagonal hatching
 - Corner-to-corner diagonal text orientation
@@ -92,7 +92,7 @@ The label (text + frame + hatching) is built independently and placed on the lid
 
 ## 5. Fresh Box Construction Pipeline
 
-### Decision: New box types under `spec_driven/box/types/`, not wrapping existing classes
+### Decision: New box types under `pyboxbuilder/box/types/`, not wrapping existing classes
 
 Each box type implements a simple protocol:
 ```python
@@ -120,11 +120,11 @@ Constructed by `Project.export()` internally.
 
 ## 6. Fresh Compartment Layout (unchanged algorithm, new implementation)
 
-Same shelf-based 2D bin packing algorithm; implemented fresh under `spec_driven/compartments/` with the row-alignment and common-length features.
+Same shelf-based 2D bin packing algorithm; implemented fresh under `pyboxbuilder/compartments/` with the row-alignment and common-length features.
 
 ## 7. Fresh Export & Caching (unchanged approach, new implementation)
 
-Same SHA-256 hash cache and Hausdorff conditional writes; implemented fresh under `spec_driven/export/` and `spec_driven/packing/`.
+Same SHA-256 hash cache and Hausdorff conditional writes; implemented fresh under `pyboxbuilder/export/` and `pyboxbuilder/packing/`.
 
 ## 8. Borrowed Components
 
@@ -201,7 +201,7 @@ lid = LidBuilder(
 
 ### Decision: Compartment labels switch between engraved cutout (single) and raised MMU text
 
-For single-color export, compartment floor labels render as recessed text engraved 0.2mm into the floor surface — visible as shadows in the print. For MMU export, the same labels render as raised text extruded 0.2mm above the floor in a second material color. The `build_floor_label` function in `spec_driven/compartments/labels.py` accepts a `mode` parameter (`"mmu"` or `"single"`) to switch behavior.
+For single-color export, compartment floor labels render as recessed text engraved 0.2mm into the floor surface — visible as shadows in the print. For MMU export, the same labels render as raised text extruded 0.2mm above the floor in a second material color. The `build_floor_label` function in `pyboxbuilder/compartments/labels.py` accepts a `mode` parameter (`"mmu"` or `"single"`) to switch behavior.
 
 **Rationale**: Single-color prints cannot distinguish text by color; recessed text provides legibility through depth contrast. MMU prints achieve text legibility through color change at a single layer height (0.2mm), matching the "one extra layer" MMU color swap constraint.
 
@@ -213,11 +213,11 @@ The `Project.export()` method resolves which label configuration to use for each
 
 ### Decision: Only pybosl2 — never import pythonscad directly
 
-Every geometric solid and 2D shape/path in `spec_driven/` MUST be constructed through pybosl2. The `pythonscad` module and native OpenSCAD built-ins (`cube`, `sphere`, `cylinder`, `polygon`, `square`, `circle`, `text`, `minkowski`, `textmetrics`) are NEVER imported directly in library code.
+Every geometric solid and 2D shape/path in `pyboxbuilder/` MUST be constructed through pybosl2. The `pythonscad` module and native OpenSCAD built-ins (`cube`, `sphere`, `cylinder`, `polygon`, `square`, `circle`, `text`, `minkowski`, `textmetrics`) are NEVER imported directly in library code.
 
-**Rationale**: pybosl2 provides a pure-Python, numpy-backed API that wraps the native solids with additional metadata (bounds, anchor points, size tracking) and avoids the native handle reuse segfault. The existing codebase has already eliminated wildcard imports of native built-ins (only 8 native functions remain at 16 sites across the legacy code). `spec_driven/` goes further: zero native imports.
+**Rationale**: pybosl2 provides a pure-Python, numpy-backed API that wraps the native solids with additional metadata (bounds, anchor points, size tracking) and avoids the native handle reuse segfault. The existing codebase has already eliminated wildcard imports of native built-ins (only 8 native functions remain at 16 sites across the legacy code). `pyboxbuilder/` goes further: zero native imports.
 
-**Enforcement**: Code review rule — any `import pythonscad` or `from pythonscad import ...` in `spec_driven/` is rejected. All geometry comes from `pybosl2.shapes3d` (solids) and `pybosl2.shapes2d` (paths). Transforms use `pybosl2.transforms`. Measurement uses `pybosl2`'s bounding box support.
+**Enforcement**: Code review rule — any `import pythonscad` or `from pythonscad import ...` in `pyboxbuilder/` is rejected. All geometry comes from `pybosl2.shapes3d` (solids) and `pybosl2.shapes2d` (paths). Transforms use `pybosl2.transforms`. Measurement uses `pybosl2`'s bounding box support.
 
 ### Decision: Prefer bosl2 basic pieces over higher-level generators
 
@@ -227,9 +227,9 @@ Where bosl2's basic primitives (`cube`, `cylinder`, `sphere`, `linear_extrude`, 
 
 ### Decision: Use pybosl2's built-in Color type — no reimplementation, no file, no presets
 
-Use `pybosl2.Color` directly via `from pybosl2 import Color`. There is no `spec_driven/color.py` file, no wrapper, no fallback dataclass, and no preset constants. pybosl2's `Color` supports webcolor names (`Color("darkgreen")`, `Color("gold")`) and list/tuple construction (`Color([1, 0, 0])`).
+Use `pybosl2.Color` directly via `from pybosl2 import Color`. There is no `pyboxbuilder/color.py` file, no wrapper, no fallback dataclass, and no preset constants. pybosl2's `Color` supports webcolor names (`Color("darkgreen")`, `Color("gold")`) and list/tuple construction (`Color([1, 0, 0])`).
 
-**Rationale**: Maintaining any parallel Color type (dataclass, thin re-export, or preset module) creates impedance mismatch — every color value must be converted between `spec_driven` and `pybosl2` at geometry construction boundaries. Using pybosl2's Color natively eliminates this entirely. Webcolor names provide discoverable, readable color specification without hardcoding RGB values.
+**Rationale**: Maintaining any parallel Color type (dataclass, thin re-export, or preset module) creates impedance mismatch — every color value must be converted between `pyboxbuilder` and `pybosl2` at geometry construction boundaries. Using pybosl2's Color natively eliminates this entirely. Webcolor names provide discoverable, readable color specification without hardcoding RGB values.
 
 **Alternatives considered**:
 - Custom Color dataclass: Reimplements pybosl2; adds conversion overhead.

@@ -2,18 +2,29 @@
 # SPDX-License-Identifier: Apache-2.0
 """1835 board game insert.
 
-Ports examples/1835.scad to the spec_driven Project API. Hex tile boxes use
+Ports examples/1835.scad to the pyboxbuilder Project API. Hex tile boxes use
 hex-grid compartments with push blocks and floor finger holes.
 """
 
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+if "__file__" in globals():
+    ROOT = Path(__file__).resolve().parents[2]
+else:
+    ROOT = Path.cwd()
+sys.path.insert(0, str(ROOT))
+# Venv site-packages (any Python version) so compiled extensions like shapely
+# and pybosl2 load inside the PythonSCAD UI's embedded Python — relative to
+# ROOT, no absolute paths, no hardcoded version.
+for _sp in ROOT.glob(".venv/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+for _sp in ROOT.glob("venv/*/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
 
 from pybosl2 import Color
 
-from spec_driven import Project, BoxType, LabelMode, LidBuilder
+from pyboxbuilder import Project, BoxType, LabelMode, LidBuilder
 
 # ── Game Box Dimensions ───────────────────────────────────────────
 box_width = 216

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single-import API. The design is fresh — not wrapping the existing box pipeline. Borrowed from the existing codebase: tessellation algorithms (penrose, pentagon families, voronoi), 2D shape generators (coin, hexagon, rounded rects), and pybosl2 CSG primitives. Everything else — the box construction pipeline, lid decoration pipeline, builder API, compartment layout, export, and caching — is designed from scratch to avoid constraints inherited from the legacy codebase.
+Build a new strictly-typed PythonSCAD library under `pyboxbuilder/` with a single-import API. The design is fresh — not wrapping the existing box pipeline. Borrowed from the existing codebase: tessellation algorithms (penrose, pentagon families, voronoi), 2D shape generators (coin, hexagon, rounded rects), and pybosl2 CSG primitives. Everything else — the box construction pipeline, lid decoration pipeline, builder API, compartment layout, export, and caching — is designed from scratch to avoid constraints inherited from the legacy codebase.
 
 ## Technical Context
 
@@ -16,17 +16,17 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 **Borrowed from existing code**: Tessellation generators (`penrose_tiling.py`, `pentagon_tilings.py`, `tesselations/`), shape generators (`shapes.py` coin/hex/etc.), and pybosl2's `cuboid()`/`cylinder()`/boolean CSG. These are algorithm libraries, not architecture constraints.
 
-**Storage**: Disk JSON cache (`spec_driven/.layout_cache.json`), 3MF files + `layout.pdf` in `{out_dir}/{game}/mmu/`, `{out_dir}/{game}/single/`, and `{out_dir}/{game}/layout.pdf`
+**Storage**: Disk JSON cache (`pyboxbuilder/.layout_cache.json`), 3MF files + `layout.pdf` in `{out_dir}/{game}/mmu/`, `{out_dir}/{game}/single/`, and `{out_dir}/{game}/layout.pdf`
 
 **Testing**: `unittest` two-tier: fast pure-Python and full PythonSCAD render with golden-image comparison. `pyright` strict mode for type checking.
 
 **Target Platform**: macOS (PythonSCAD.app), cross-platform Python
 
-**Project Type**: Greenfield Python library inside `spec_driven/`, single-import strictly-typed API
+**Project Type**: Greenfield Python library inside `pyboxbuilder/`, single-import strictly-typed API
 
 **Performance Goals**: Full bin-packing may take longer on first run (complex layouts). Once cached (SHA-256 hit), regeneration completes in: 20-compartment layout < 1s, 6-sub-box auto-size < 2s, Hausdorff-based 3MF write-if-changed. Cached re-exports with zero geometry changes complete in < 0.5s.
 
-**Constraints**: Enums for all type selections, no bare strings, no dict parameter objects, typed builders per box type, no import of existing `box_base.py`/`lids_base.py` architecture, CSG over SDF, Apache-2.0 header. **Do not reinvent the wheel — use classes that already exist in pybosl2 wherever possible.** ALL geometry MUST use pybosl2 solids (`cuboid`, `cylinder`, `sphere`, `prismoid`, etc.) and pybosl2 2D shapes/paths — never import `pythonscad` or any native OpenSCAD built-in directly. Use bosl2 basic pieces (`cube`, `cylinder`, `sphere`, `linear_extrude`, etc.) wherever possible instead of higher-level shape generators. **Do NOT implement a Color class. Use `pybosl2.Color` directly.** No wrapper, no custom implementation, no fallback. pybosl2's Color supports webcolor names: use names like `Color("darkgreen")`, `Color("gold")` instead of hardcoding RGB values. **Do NOT define preset constants** (no `WHITE`, `BLACK`, etc.) — just use `Color("white")`, `Color("black")` directly at the call site. The `spec_driven/color.py` file must not exist. Minimum dimensional precision is 0.1mm — no rounding to whole millimetres. Compartments support ratio-based sizing (`width_ratio`, `length_ratio`) as an alternative to absolute dimensions; ratios are validated to sum ≤ 1.0 per row. Lid labels support per-export-mode overrides: `mmu_label` and `single_label` sub-configurations enable different label styles per material mode (e.g., frameless for MMU, framed for single). Compartment labels render as single-layer engraved cutouts for single-color and raised MMU second-color text for multi-color. Boxes support a `no_rotate` flag (default `False`) so directionally-constrained boxes opt out of packer rotation (FR-013c). When the packer rotates a box, its compartments are re-laid-out in the rotated interior frame (FR-013b). Standalone boxes export without a game box/packing (FR-037). No-lid boxes support stackable rims (inside/outside, FR-038) and round/rectangular side magnet slots (FR-039).
+**Constraints**: Enums for all type selections, no bare strings, no dict parameter objects, typed builders per box type, no import of existing `box_base.py`/`lids_base.py` architecture, CSG over SDF, Apache-2.0 header. **Do not reinvent the wheel — use classes that already exist in pybosl2 wherever possible.** ALL geometry MUST use pybosl2 solids (`cuboid`, `cylinder`, `sphere`, `prismoid`, etc.) and pybosl2 2D shapes/paths — never import `pythonscad` or any native OpenSCAD built-in directly. Use bosl2 basic pieces (`cube`, `cylinder`, `sphere`, `linear_extrude`, etc.) wherever possible instead of higher-level shape generators. **Do NOT implement a Color class. Use `pybosl2.Color` directly.** No wrapper, no custom implementation, no fallback. pybosl2's Color supports webcolor names: use names like `Color("darkgreen")`, `Color("gold")` instead of hardcoding RGB values. **Do NOT define preset constants** (no `WHITE`, `BLACK`, etc.) — just use `Color("white")`, `Color("black")` directly at the call site. The `pyboxbuilder/color.py` file must not exist. Minimum dimensional precision is 0.1mm — no rounding to whole millimetres. Compartments support ratio-based sizing (`width_ratio`, `length_ratio`) as an alternative to absolute dimensions; ratios are validated to sum ≤ 1.0 per row. Lid labels support per-export-mode overrides: `mmu_label` and `single_label` sub-configurations enable different label styles per material mode (e.g., frameless for MMU, framed for single). Compartment labels render as single-layer engraved cutouts for single-color and raised MMU second-color text for multi-color. Boxes support a `no_rotate` flag (default `False`) so directionally-constrained boxes opt out of packer rotation (FR-013c). When the packer rotates a box, its compartments are re-laid-out in the rotated interior frame (FR-013b). Standalone boxes export without a game box/packing (FR-037). No-lid boxes support stackable rims (inside/outside, FR-038) and round/rectangular side magnet slots (FR-039).
 
 **Scale/Scope**: 14 box types (new implementations), 12 typed builders, 4 public enums, single public import surface, 3 reference examples (Earth Animal Kingdom, Stackable Hexes, Irish Gauge)
 
@@ -36,7 +36,7 @@ Build a new strictly-typed PythonSCAD library under `spec_driven/` with a single
 
 | Principle | Status | Evidence |
 |-----------|--------|----------|
-| I. Developer Experience First | PASS | Single `from spec_driven import Project, BoxType, ...`; enums prevent typos; typed builders give IDE autocomplete; fresh lid design not constrained by legacy |
+| I. Developer Experience First | PASS | Single `from pyboxbuilder import Project, BoxType, ...`; enums prevent typos; typed builders give IDE autocomplete; fresh lid design not constrained by legacy |
 | II. Single Source of Truth | PASS | Each box type's config lives on its typed builder; `BoxSpec` equivalent is frozen; lid decoration is one `LidBuilder` |
 | III. Performance by Design | PASS | Layout cache with SHA-256 hash, Hausdorff skip-if-unchanged, CSG over SDF |
 | IV. Test-First | PASS | All new code tested; measurement-based geometry assertions; regression tests |
@@ -50,14 +50,14 @@ Every change to the codebase MUST be accompanied by full, detailed unit tests. T
 
 1. **Every code change has a test**: no module, function, class, or builder is added or modified without a corresponding unit test. A code change without a test is incomplete and MUST NOT be marked done.
 2. **Detailed, not smoke tests**: tests MUST assert specific behaviour — exact dimensions (to 0.1mm), exact placements, exact enum values, exact error messages — not merely that "a solid was returned" or "no exception was raised".
-3. **Fast pure-Python tests first**: logic that does not require pybosl2/PythonSCAD MUST be covered by fast tests runnable via `python3 -m pytest tests/test_spec_driven/` (no render binary). Geometry-layout math, packing, builders, enums, and validation all belong here.
+3. **Fast pure-Python tests first**: logic that does not require pybosl2/PythonSCAD MUST be covered by fast tests runnable via `python3 -m pytest tests/test_pyboxbuilder/` (no render binary). Geometry-layout math, packing, builders, enums, and validation all belong here.
 4. **Render tests for geometry**: any change that produces CSG geometry MUST also include a render test (or be marked `bosl2`-skipped) that verifies real faceted output when the PythonSCAD binary is available.
 5. **Edge cases and negative paths**: tests MUST cover error/validation paths (e.g., ratio sums > 1.0, zero rows/cols, oversized compartments, no-lid + lid conflict) in addition to happy paths.
 6. **Test task per change**: every implementation task in `tasks.md` is paired with a test task (or the task description explicitly states the test it adds). The `[P]` test tasks run before their implementation counterpart (TDD where practical).
 7. **pybosl2/PythonSCAD render tests MUST run — not just be skipped**: the pieces that cannot be tested in pure Python (CSG geometry — `build_body`/`build_lid`, pattern fills, hex-grid cutouts, tessellation wraps, stackable rims, magnet slots, lid labels) MUST be exercised under the real pybosl2 inside PythonSCAD.app. These tests run via the PythonSCAD binary (`/Applications/PythonSCAD-dev.app/Contents/MacOS/PythonSCAD`) and MUST NOT silently `skipTest` in CI when the binary is present. A `skip` is only acceptable when the binary is genuinely unavailable.
-8. **Golden-image render tests**: every render test that produces a mesh MUST render it to an image and compare against a committed **golden image** (PNG) using a pixel-difference threshold. This catches visual regressions (wrong orientation, missing cutout, mis-sized feature) that mesh-count or bounding-box assertions miss. Golden images live under `tests/test_spec_driven/golden/` and are regenerated intentionally (not automatically) when the reference geometry changes.
+8. **Golden-image render tests**: every render test that produces a mesh MUST render it to an image and compare against a committed **golden image** (PNG) using a pixel-difference threshold. This catches visual regressions (wrong orientation, missing cutout, mis-sized feature) that mesh-count or bounding-box assertions miss. Golden images live under `tests/test_pyboxbuilder/golden/` and are regenerated intentionally (not automatically) when the reference geometry changes.
 
-Rationale: the spec-driven library is geometry-heavy and correctness-critical (a wrong 0.1mm offset produces an unprintable box). Detailed unit tests are the only reliable guard against silent regression.
+Rationale: the pyboxbuilder library is geometry-heavy and correctness-critical (a wrong 0.1mm offset produces an unprintable box). Detailed unit tests are the only reliable guard against silent regression.
 
 ## Documentation Policy — Detailed Python Docs for All Public Methods
 
@@ -73,7 +73,7 @@ Every public method, class, function, enum, and dataclass field MUST carry a det
 
 The repository MUST have GitHub Actions workflows that run on every push:
 
-1. **Test verification** (`.github/workflows/test.yml`): runs the fast pure-Python suite (`pytest tests/test_spec_driven/`) and `pyright` type checking on every push and PR.
+1. **Test verification** (`.github/workflows/test.yml`): runs the fast pure-Python suite (`pytest tests/test_pyboxbuilder/`) and `pyright` type checking on every push and PR.
 2. **Rendering verification** (`.github/workflows/render.yml`): runs the pybosl2/PythonSCAD render tests (golden-image comparison) on push — these exercise the CSG geometry (`build_body`/`build_lid`, pattern fills, hex-grid cutouts, tessellation wraps, stackable rims, magnet slots, lid labels) that pure Python cannot validate. The workflow provisions the PythonSCAD binary and fails on any render regression.
 3. **Docs generation** (`.github/workflows/docs.yml`):
    - **Dev docs on checkin**: every push to a non-release branch regenerates and publishes the API docs under a `dev/` prefix (development documentation).
@@ -83,10 +83,23 @@ The repository MUST have GitHub Actions workflows that run on every push:
 
 ## Project Structure
 
+### Examples Must Run In Both Plain Python and Jupyter
+
+Every example under `boxes/` MUST work identically when run two ways:
+
+1. **Plain Python**: `python3 boxes/<game>/<game>.py` — the script guards its entry point with `if __name__ == "__main__":` and only calls `project.export(...)` there.
+2. **Jupyter notebook**: `%run boxes/<game>/<game>.py` or `import boxes.<game>.<game>` — the module must import and build the `Project` cleanly without forcing an export, and without requiring `__file__` to exist.
+
+Concretely:
+
+- **No bare `__file__`**: example scripts MUST NOT assume `__file__` is defined (it is `NameError`-undefined in Jupyter cells and `exec()`/PythonSCAD script runners). Path setup for the repo root MUST be guarded — e.g. `ROOT = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()` — so `import pyboxbuilder` resolves in both environments.
+- **Export only under `__main__`**: the `project.export(...)` call lives inside `if __name__ == "__main__":`, so importing the example (from Jupyter) builds the project but does not write files; running it as a script exports.
+- **Same `Project` object**: whether imported or run, the module produces the same `Project` (same boxes, same sizes) — the environment must not change the geometry.
+
 ### Source Code (repository root)
 
 ```text
-spec_driven/                    # NEW: Greenfield package
+pyboxbuilder/                    # NEW: Greenfield package
 ├── __init__.py                 # Re-exports public surface
 ├── py.typed                    # PEP 561 marker for downstream type checking
 ├── enums.py                    # BoxType, LabelMode, PatternType, ScoopSide
@@ -135,15 +148,15 @@ spec_driven/                    # NEW: Greenfield package
 └── tesselations/               # BORROWED: Existing tessellation generators
     └── (penrose, pentagon, voronoi, etc.)
 
-spec_driven.py                  # SINGLE IMPORT at repo root:
-                                #   from spec_driven import Project, BoxType, ...
+pyboxbuilder/__init__.py         # SINGLE IMPORT entry point (the package itself):
+                                 #   from pyboxbuilder import Project, BoxType, ...
 
 boxes/                          # Per-game insert projects
 ├── earth_animal_kingdom/
 │   └── earth_animal_kingdom.py
 
 tests/
-├── test_spec_driven/           # NEW: Tests for spec_driven
+├── test_pyboxbuilder/           # NEW: Tests for pyboxbuilder
 │   ├── test_enums.py
 │   ├── test_builders.py
 │   ├── test_project.py
@@ -158,7 +171,7 @@ tests/
 │       └── test_export_render.py
 ```
 
-**Structure Decision**: `spec_driven/` is a greenfield package sharing the repo with the existing codebase. It borrows tessellation and shape algorithms but defines its own box pipeline, lid pipeline, builders, packing, and export. `spec_driven.py` at the repo root is the single public import. The existing root `.py` files remain untouched — they continue to work for existing users. This is an additive package, not a replacement.
+**Structure Decision**: `pyboxbuilder/` is a greenfield, **installable mypy-typed Python package** sharing the repo with the existing codebase. It borrows tessellation and shape algorithms but defines its own box pipeline, lid pipeline, builders, packing, and export. The single public import is `from pyboxbuilder import Project, ...` (served by `pyboxbuilder/__init__.py`). The package ships a `py.typed` marker (PEP 561) so downstream users get full mypy type checking, is declared under `[tool.setuptools.packages.find]` in `pyproject.toml`, and is installed with `pip install -e .` so examples and tests import it as a regular site-packages dependency. The existing root `.py` files remain untouched — they continue to work for existing users. This is an additive package, not a replacement.
 
 ## Borrowed vs. Fresh
 
@@ -178,7 +191,7 @@ tests/
 
 ## Earth Animal Kingdom Example Migration
 
-The reference example under `boxes/earth_animal_kingdom/` must faithfully port the original design (`examples/earth_animal_kingdom.py` / `.scad`) to the new `spec_driven` Project API. The original design is more complex than the initial simplified port and must include all components.
+The reference example under `boxes/earth_animal_kingdom/` must faithfully port the original design (`examples/earth_animal_kingdom.py` / `.scad`) to the new `pyboxbuilder` Project API. The original design is more complex than the initial simplified port and must include all components.
 
 ### Game Box
 
@@ -296,7 +309,7 @@ To satisfy the layout guide requirements, `layout_pdf.py` renders the game box a
 
 ### Spacer Generation: Sweep, then Merge (FR-014a/b/c)
 
-Spacers come out of a three-stage pass in `spec_driven/packing/spacer.py`, driven from `Project.export()`.
+Spacers come out of a three-stage pass in `pyboxbuilder/packing/spacer.py`, driven from `Project.export()`.
 
 **1. Sweep.** Every placed box contributes its six face planes to a global X/Y/Z grid. The grid is swept for cells no box occupies, and the free cells are grown greedily into maximal boxes.
 
@@ -318,7 +331,7 @@ Only regions at the **same height** are combined. Two leftovers at different hei
 
 **3. Clearance and filtering.** Surviving spacers are shrunk by the project's `clearance_slack` (FR-014c) — the sweep measures the true void, but a tray milled to that exact size is an interference fit — and then dropped if any dimension falls below the minimum.
 
-Insetting a polygon footprint is exact rather than approximate, because every edge the packer produces is axis-aligned: a corner's new position is the old one moved by the slack along each incident edge's inward normal (`spec_driven/paths.inset_rectilinear`). A reflex corner correctly moves *out* into its notch, which is what keeps an L's arm the right width — a centroid scale, the obvious shortcut, thins one arm while fattening the other. The normals come from the *directed* edges, since which side is inward depends on the direction the ring is traversed, not on where a corner's neighbours happen to sit.
+Insetting a polygon footprint is exact rather than approximate, because every edge the packer produces is axis-aligned: a corner's new position is the old one moved by the slack along each incident edge's inward normal (`pyboxbuilder/paths.inset_rectilinear`). A reflex corner correctly moves *out* into its notch, which is what keeps an L's arm the right width — a centroid scale, the obvious shortcut, thins one arm while fattening the other. The normals come from the *directed* edges, since which side is inward depends on the direction the ring is traversed, not on where a corner's neighbours happen to sit.
 
 ### When Auto-Packing Works, and When It Does Not
 
@@ -375,7 +388,7 @@ Since the game box height is `47.0` mm, raising the sprout box height to `30.0` 
 
 ## Stackable Hexes Example
 
-The `boxes/stackable_hexes/` example ports `examples/stackable_hexes.py` to the new `spec_driven` Project API. It demonstrates three new features: standalone boxes, stackable no-lid boxes, and side magnets.
+The `boxes/stackable_hexes/` example ports `examples/stackable_hexes.py` to the new `pyboxbuilder` Project API. It demonstrates three new features: standalone boxes, stackable no-lid boxes, and side magnets.
 
 ### Reference (from `examples/stackable_hexes.py`)
 
@@ -406,7 +419,7 @@ The original design creates hexagonal boxes (`PathBox.regular_polygon(sides=6)`)
 - Hollow radius: top=2, bottom=stackable_height × 3/4, radius=2
 - Magnet slot types: `MAGNET_SLOT_TYPE_ROUND`, `MAGNET_SLOT_TYPE_RECT` (plus `MAGNET_SLOT_TYPE_NONE`)
 
-### spec_driven Migration
+### pyboxbuilder Migration
 
 - **Standalone boxes**: `Project` must allow a standalone mode where `project.box(...)` is exported directly without a game box. A standalone box skips packing, auto-sizing, layout PDF, and spacer generation (FR-037).
 - **Stackable no-lid boxes**: `BoxType.NO_LID` (or a path-box variant) gains `stackable` (inside/outside) with configurable `stackable_thickness` and `stackable_fit_offset` (FR-038).
@@ -417,14 +430,14 @@ The original design creates hexagonal boxes (`PathBox.regular_polygon(sides=6)`)
 ### Migration Checklist
 
 - [ ] Create `boxes/stackable_hexes/stackable_hexes.py` with all 8 hex box variants from the matrix
-- [ ] Implement standalone box export path (no game box, no packing) in `spec_driven/project.py`
+- [ ] Implement standalone box export path (no game box, no packing) in `pyboxbuilder/project.py`
 - [ ] Implement stackable inside/outside rim generation for no-lid boxes
 - [ ] Implement round and rectangular magnet slots on opposing sides
 - [ ] Verify hex boxes stack, magnets align, and divisions clip to the hex interior
 
 ## Irish Rails (Irish Gauge) Example
 
-The `boxes/irish_gauge/` example ports `examples/irish_gauge.scad` to the new `spec_driven` Project API. This is a game-box insert with mixed box types and hand-placed spacer boxes. The port demonstrates: mixed lid types in one game box, company boxes with shared footprint but different contents, and spacer boxes derived from the leftover space.
+The `boxes/irish_gauge/` example ports `examples/irish_gauge.scad` to the new `pyboxbuilder` Project API. This is a game-box insert with mixed box types and hand-placed spacer boxes. The port demonstrates: mixed lid types in one game box, company boxes with shared footprint but different contents, and spacer boxes derived from the leftover space.
 
 ### Game Box
 
@@ -484,7 +497,7 @@ This means `Project.export()` must emit spacer trays (both rectangular and polyg
 
 ## 1835 Example (Hex Tiles)
 
-The `boxes/1835/` example ports `examples/1835.scad` to the new `spec_driven` Project API. This is the reference for hex-grid tile compartments with finger holes and raised pillars.
+The `boxes/1835/` example ports `examples/1835.scad` to the new `pyboxbuilder` Project API. This is the reference for hex-grid tile compartments with finger holes and raised pillars.
 
 ### Game Box
 
@@ -507,7 +520,7 @@ The `HexGridWithCutouts` cell is a hexagonal prism cutout. Optional features:
 - **Push block (raised pillar)**: when `push_block_height > 0`, a smaller hexagon (`width=15`) is subtracted from the cell center, leaving a raised central post so the tile rests elevated for easy grasping.
 - **Finger hole in the floor**: a circular cutout through the cell floor (configurable diameter) so a finger can push the tile up from underneath. When combined with a push block, the finger hole is offset to the cell edge.
 
-### spec_driven Migration
+### pyboxbuilder Migration
 
 - **Hex grid compartment**: `box.compartment(...)` gains a `hex_grid` mode with `rows`, `cols`, `tile_width`, `spacing`, `push_block_height`, and `finger_hole_diameter` parameters (FR-040–FR-042).
 - **Hex cell geometry**: borrowed `HexGridWithCutouts` / `RegularPolygonGrid` from `components.py` for the hexagonal cutout layout.
@@ -536,7 +549,7 @@ Generated box output (boxes, spacers, lids) MUST always accurately reflect the c
 ### Migration Checklist
 
 - [x] Create `boxes/1835/1835.py` with hex box, money boxes, share boxes, middle box, first-player box, spacer
-- [x] Implement hex-grid compartment layout (`HexGridWithCutouts` port) in `spec_driven/compartments/`
+- [x] Implement hex-grid compartment layout (`HexGridWithCutouts` port) in `pyboxbuilder/compartments/`
 - [x] Implement push block (raised central pillar) in hex cells
 - [x] Implement hex-cell floor finger holes (offset from pillar when both present)
 - [x] Port the money box (8 denominations), share box (8 companies), middle box (tokens/trains), first-player box

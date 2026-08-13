@@ -18,10 +18,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pybosl2 numpy pymeshlab fpdf2
+          pip install -e .
 
       - name: Run fast pure-Python tests
-        run: python -m pytest tests/test_spec_driven/ -q
+        run: python -m pytest tests/test_pyboxbuilder/ -q
 
       - name: Type check with pyright
         run: |
-          npx --yes pyright spec_driven/ --outputjson || true
+          npx --yes pyright pyboxbuilder/ --outputjson || true
+
+      - name: Type check with mypy
+        run: |
+          python -m pip install mypy
+          mypy pyboxbuilder/ || true

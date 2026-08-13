@@ -1,13 +1,13 @@
 # Contracts: Board Game Box Library
 
-**Hard constraint**: All geometry uses `pybosl2.shapes3d` / `pybosl2.shapes2d`. Native `pythonscad` or OpenSCAD built-ins MUST NOT be imported in `spec_driven/`.
+**Hard constraint**: All geometry uses `pybosl2.shapes3d` / `pybosl2.shapes2d`. Native `pythonscad` or OpenSCAD built-ins MUST NOT be imported in `pyboxbuilder/`.
 
-Package: `spec_driven/` | Import: `from spec_driven import Project, BoxType, ...`
+Package: `pyboxbuilder/` | Import: `from pyboxbuilder import Project, BoxType, ...`
 
 ## Import Contract
 
 ```python
-from spec_driven import (
+from pyboxbuilder import (
     Project,                        # Top-level entry point
     BoxType,                        # Enum: SLIDING, CAP, HINGE, ...
     LabelMode,                      # Enum: FRAMED, FRAMELESS
@@ -20,7 +20,7 @@ from spec_driven import (
 )
 ```
 
-## Project (`spec_driven/project.py`)
+## Project (`pyboxbuilder/project.py`)
 
 ```
 Project(
@@ -60,7 +60,7 @@ All builders share these base kwargs: `size: tuple[float, float, float] | None =
 
 Builds all geometry, packs boxes, generates spacers, writes 3MF files. Cached layout (SHA-256 hash). Hausdorff-gated file writes.
 
-## LidBuilder (`spec_driven/lid/builder.py`) — Fresh Design
+## LidBuilder (`pyboxbuilder/lid/builder.py`) — Fresh Design
 
 ```
 LidBuilder(
@@ -86,7 +86,7 @@ Default colors when `None`: `text_color` → `Color.WHITE()`, `frame_color` → 
 
 **Compartment labels per mode**: Single-color exports use engraved 0.2mm recessed cutout text (visible by depth contrast). MMU exports use 0.2mm raised second-color text (visible by material color contrast). This is controlled by a `mode` parameter in `build_floor_label()`.
 
-## PatternBuilder (`spec_driven/lid/builder.py`)
+## PatternBuilder (`pyboxbuilder/lid/builder.py`)
 
 ```
 PatternBuilder(
@@ -98,7 +98,7 @@ PatternBuilder(
 
 Pattern fills are `Callable[[float, float, float], Bosl2Solid]` — functions from (width, length, thickness) to through-hole cutout solid. Tessellation generators (penrose, pentagon, voronoi) are borrowed from the existing codebase. Multiple `colors` assign different elements within the pattern.
 
-## CompartmentBuilder (`spec_driven/compartments/builder.py`)
+## CompartmentBuilder (`pyboxbuilder/compartments/builder.py`)
 
 ```
 CompartmentBuilder(
@@ -111,7 +111,7 @@ CompartmentBuilder(
 )
 ```
 
-## Color (`pybosl2.Color`, re-exported from `spec_driven`)
+## Color (`pybosl2.Color`, re-exported from `pyboxbuilder`)
 
 ```
 Color([r, g, b])        # list/tuple of floats 0.0–1.0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Earth Animal Kingdom insert — spec_driven port of `examples/earth_animal_kingdom.scad`.
+"""Earth Animal Kingdom insert — pyboxbuilder port of `examples/earth_animal_kingdom.scad`.
 
 Every dimension is derived with the same formula as the original, and every box
 sits where `BoxLayout()` puts it, so the two inserts describe the same object.
@@ -19,9 +19,24 @@ Usage:
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+# Repo root on sys.path, robust to __file__ being undefined (Jupyter / exec).
+if "__file__" in globals():
+    ROOT = Path(__file__).resolve().parents[2]
+else:
+    ROOT = Path.cwd()
+sys.path.insert(0, str(ROOT))
+# Venv site-packages (any Python version) so compiled extensions like shapely
+# and pybosl2 load inside the PythonSCAD UI's embedded Python — relative to
+# ROOT, no absolute paths, no hardcoded version.
+for _sp in ROOT.glob(".venv/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+for _sp in ROOT.glob("venv/*/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
 
-from spec_driven import BoxType, Color, LabelMode, LidBuilder, PatternBuilder, PatternType, Project  # noqa: E402
+from pyboxbuilder import (  # noqa: E402
+    BoxType, Color, LabelMode, LidBuilder, PatternBuilder, PatternType, Project,
+    columns, stack,
+)
 
 # ── Game box and material constants (examples/earth_animal_kingdom.scad) ──
 BOX_WIDTH = 288.0
@@ -151,7 +166,6 @@ card_box = project.box(
     BoxType.SLIDING,
     "AnimalCardsBox",
     size=(CARD_BOX_WIDTH, CARD_BOX_LENGTH, CARD_BOX_HEIGHT),
-    position=(0.0, 0.0, 0.0),
     expandable=False,
     lid=LidBuilder(
         text="Animal Cards",
@@ -177,7 +191,6 @@ sprout_box = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
     size=(SPROUT_BOX_WIDTH, SPROUT_BOX_LENGTH, SPROUT_BOX_HEIGHT),
-    position=(0.0, 0.0, CARD_BOX_HEIGHT),
     expandable=False,
     lid=LidBuilder(
         text="Sprouts",
@@ -204,7 +217,6 @@ canopy_box = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
     size=(CANOPY_BOX_WIDTH, CANOPY_BOX_LENGTH, CANOPY_BOX_HEIGHT),
-    position=(CARD_BOX_WIDTH + ANIMAL_BOX_WIDTH, 0.0, 0.0),
     expandable=False,
     lid=LidBuilder(
         text="Canopies",
@@ -223,13 +235,12 @@ canopy_box.compartment(
 )
 
 # ── 4. Animal boxes ───────────────────────────────────────────────────────
-def add_animal_box(label: str, slots, z: float):
+def add_animal_box(label: str, slots):
     """One slipover box holding one container's worth of animal tokens."""
     box = project.box(
         BoxType.SLIPOVER,
         label,
         size=(ANIMAL_BOX_WIDTH, ANIMAL_BOX_LENGTH, ANIMAL_BOX_HEIGHT),
-        position=(CARD_BOX_WIDTH, 0.0, z),
         expandable=False,
         wall_thickness=ANIMAL_WALL,
         foot=ANIMAL_FOOT,
@@ -262,17 +273,26 @@ def add_animal_box(label: str, slots, z: float):
     return box
 
 
-add_animal_box("AnimalBox1", ANIMAL_LAYOUT_1, 0.0)
-add_animal_box("AnimalBox2", ANIMAL_LAYOUT_2, ANIMAL_BOX_HEIGHT)
+add_animal_box("AnimalBox1", ANIMAL_LAYOUT_1)
+add_animal_box("AnimalBox2", ANIMAL_LAYOUT_2)
 
 # ── 5. Spacer ─────────────────────────────────────────────────────────────
 project.box(
     BoxType.NO_LID,
     "SpacerBox",
     size=(SPACER_BOX_WIDTH, SPACER_BOX_LENGTH, SPACER_BOX_HEIGHT),
-    position=(CARD_BOX_WIDTH, 0.0, ANIMAL_BOX_HEIGHT * 2),
     expandable=False,
 )
+
+# ── 6. Arrangement ────────────────────────────────────────────────────────
+# Three columns across the game box, as BoxLayout() lays them out: the cards
+# and sprouts on the left, the animal trays stacked in the middle with the
+# spacer on top, and the canopies down the right-hand side.
+project.arrange(columns(
+    stack("AnimalCardsBox", "SproutBox"),
+    stack("AnimalBox1", "AnimalBox2", "SpacerBox"),
+    "CanopyBox",
+))
 
 
 # ── Export ────────────────────────────────────────────────────────────────

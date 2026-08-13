@@ -2,7 +2,7 @@
 
 **Date**: 2026-08-11 | **Feature**: specs/001-board-game-box-library
 
-**Package**: `spec_driven/` (greenfield, additive to existing codebase)
+**Package**: `pyboxbuilder/` (greenfield, additive to existing codebase)
 
 ## Entity Relationship
 
@@ -23,7 +23,7 @@ Project.export()
   └─> BoxExporter → 3MF files
 ```
 
-## Public Enums (`spec_driven/enums.py`)
+## Public Enums (`pyboxbuilder/enums.py`)
 
 | Enum | Members | Purpose |
 |------|---------|---------|
@@ -32,11 +32,11 @@ Project.export()
 | `PatternType` | HEX_GRID, GRID, VORONOI | Lid through-hole pattern |
 | `ScoopSide` | FRONT, BACK, LEFT, RIGHT | Finger scoop placement |
 
-## Color (`pybosl2.Color`, re-exported from `spec_driven`)
+## Color (`pybosl2.Color`, re-exported from `pyboxbuilder`)
 
 Use `pybosl2.Color` directly — no custom Color class. Supports webcolor names (`Color("darkgreen")`, `Color("gold")`) and list/tuple construction (`Color([1, 0, 0])`). RGBA values 0.0–1.0.
 
-## Project (`spec_driven/project.py`)
+## Project (`pyboxbuilder/project.py`)
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -52,7 +52,7 @@ Use `pybosl2.Color` directly — no custom Color class. Supports webcolor names 
 - `box(box_type: BoxType, label: str, *, size: ..., **type_opts) -> <TypedBuilder>` — Factory with `@overload` per BoxType
 - `export(out_dir: str | Path) -> ExportResult`
 
-## BoxBuilder Base (`spec_driven/builders/_base.py`)
+## BoxBuilder Base (`pyboxbuilder/builders/_base.py`)
 
 | Field | Type | Default |
 |-------|------|---------|
@@ -79,11 +79,11 @@ Use `pybosl2.Color` directly — no custom Color class. Supports webcolor names 
 
 **Methods**: `compartment(label, *, size, depth, ...) -> CompartmentBuilder`
 
-## Per-Type Builders (`spec_driven/builders/`)
+## Per-Type Builders (`pyboxbuilder/builders/`)
 
 Each builder extends `BoxBuilder` with type-specific typed fields. See prior data-model.md for the full field list per type. All frozen dataclasses.
 
-## LidBuilder (`spec_driven/lid/builder.py`) — Fresh Design
+## LidBuilder (`pyboxbuilder/lid/builder.py`) — Fresh Design
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -101,7 +101,7 @@ Each builder extends `BoxBuilder` with type-specific typed fields. See prior dat
 
 Per-mode override resolution: when `mmu_label` is set, its fields override the parent for MMU exports. When `single_label` is set, its fields override the parent for single-color exports. Unset modes fall back to the parent fields. Default colors when `None`: `text_color` → `Color.WHITE()`, `frame_color` → contrasting hue from body, `pattern_color` → third contrasting hue.
 
-## PatternBuilder (`spec_driven/lid/builder.py`)
+## PatternBuilder (`pyboxbuilder/lid/builder.py`)
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -111,7 +111,7 @@ Per-mode override resolution: when `mmu_label` is set, its fields override the p
 
 Pattern fills are `Callable[[width, length, thickness], Bosl2Solid]` functions that produce through-hole cutouts. Borrowed tessellation generators provide the fill geometry.
 
-## CompartmentBuilder (`spec_driven/compartments/builder.py`)
+## CompartmentBuilder (`pyboxbuilder/compartments/builder.py`)
 
 | Field | Type | Default |
 |-------|------|---------|
@@ -124,7 +124,7 @@ Pattern fills are `Callable[[width, length, thickness], Bosl2Solid]` functions t
 | `finger_scoop` | `bool` | False |
 | `scoop_side` | `ScoopSide` | FRONT |
 
-## ExportResult (`spec_driven/export/result.py`)
+## ExportResult (`pyboxbuilder/export/result.py`)
 
 | Field | Type |
 |-------|------|
@@ -133,7 +133,7 @@ Pattern fills are `Callable[[width, length, thickness], Bosl2Solid]` functions t
 | `total_files` | `int` |
 | `cached_from` | `str \| None` |
 
-## Box Protocol (`spec_driven/box/base.py`) — Fresh Design
+## Box Protocol (`pyboxbuilder/box/base.py`) — Fresh Design
 
 ```python
 class BoxProtocol(Protocol):
@@ -182,11 +182,11 @@ A single hexagonal cutout within a Hex Grid, sized to hold one hex tile.
 | Push block | `push_block_height` | A smaller hexagon is subtracted from the cell center, leaving a raised central post so the tile rests elevated for easy grasping (FR-041) |
 | Finger hole | `finger_hole_diameter` | A circular cutout through the cell floor so a finger pushes the tile up (FR-042). Offset to the cell edge (`0.4 × circumradius`) when a push block is present so the two never intersect |
 
-**Implementation**: `spec_driven/compartments/hex_grid.py` — `HexGridSpec`, `HexCell`, `compute_hex_layout()`, `hex_grid_bounds()`, `build_hex_grid()`.
+**Implementation**: `pyboxbuilder/compartments/hex_grid.py` — `HexGridSpec`, `HexCell`, `compute_hex_layout()`, `hex_grid_bounds()`, `build_hex_grid()`.
 
-## Internal Cache (`spec_driven/packing/cache.py`)
+## Internal Cache (`pyboxbuilder/packing/cache.py`)
 
-Two-level: in-memory dict + `spec_driven/.layout_cache.json`. SHA-256 hash key from serialized input. Version-keyed invalidation.
+Two-level: in-memory dict + `pyboxbuilder/.layout_cache.json`. SHA-256 hash key from serialized input. Version-keyed invalidation.
 
 ## File Output
 

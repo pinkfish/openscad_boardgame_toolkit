@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Emberleaf insert — spec_driven port of `examples/emberleaf.scad`.
+"""Emberleaf insert — pyboxbuilder port of `examples/emberleaf.scad`.
 
 Every dimension below is derived with the same formula the original OpenSCAD
 file uses, and every box sits at the position `BoxLayout()` puts it at, so the
@@ -16,14 +16,26 @@ rounded depressions run over the top so the pieces can be lifted out.
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+# Repo root on sys.path, robust to __file__ being undefined (Jupyter / exec).
+if "__file__" in globals():
+    REPO_ROOT = Path(__file__).resolve().parents[2]
+else:
+    REPO_ROOT = Path.cwd()
 sys.path.insert(0, str(REPO_ROOT))
+# Venv site-packages (any Python version) so compiled extensions like shapely
+# and pybosl2 load inside the PythonSCAD UI's embedded Python — relative to
+# REPO_ROOT, no absolute paths, no hardcoded version.
+for _sp in REPO_ROOT.glob(".venv/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+for _sp in REPO_ROOT.glob("venv/*/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
 
-from spec_driven import (  # noqa: E402
+from pyboxbuilder import (  # noqa: E402
     BoxType, Color, LabelMode, LidBuilder, PatternBuilder, PatternType, Project,
+    columns, rows, stack,
 )
-from spec_driven.compartments import CompartmentElement, grid_pack  # noqa: E402
-from spec_driven.enums import ElementShape  # noqa: E402
+from pyboxbuilder.compartments import CompartmentElement, grid_pack  # noqa: E402
+from pyboxbuilder.enums import ElementShape  # noqa: E402
 
 #: SVG silhouettes are referenced from the repo root, so the example builds the
 #: same way whichever directory it is run from.
@@ -271,20 +283,13 @@ HERO_PLACEMENT: dict[str, tuple[tuple[float, float], tuple[float, float], float]
 }
 
 # ── 1. Player boxes ───────────────────────────────────────────────────────
-PLAYER_POSITIONS = [
-    ("Black", (0.0, 0.0, 0.0)),
-    ("Red", (0.0, PLAYER_BOX_LENGTH, 0.0)),
-    ("Yellow", (0.0, 0.0, PLAYER_BOX_HEIGHT)),
-    ("Blue", (0.0, PLAYER_BOX_LENGTH, PLAYER_BOX_HEIGHT)),
-    ("Grey", (0.0, 0.0, PLAYER_BOX_HEIGHT * 2)),
-]
+PLAYER_COLOURS = ["Black", "Red", "Yellow", "Blue", "Grey"]
 
-for colour, position in PLAYER_POSITIONS:
+for colour in PLAYER_COLOURS:
     player_box = project.box(
         BoxType.CAP,
         f"PlayerBox{colour}",
         size=(PLAYER_BOX_WIDTH, PLAYER_BOX_LENGTH, PLAYER_BOX_HEIGHT),
-        position=position,
         expandable=False,
         lid=LidBuilder(
             text="Player",
@@ -307,22 +312,21 @@ for colour, position in PLAYER_POSITIONS:
 # The layout places four material boxes by colour; the original prints one lid
 # per material, so each box is named for the material it holds.
 MATERIAL_BOXES = [
-    ("Food", "red", (0.0, PLAYER_BOX_LENGTH, PLAYER_BOX_HEIGHT * 2)),
-    ("Stone", "grey", (0.0, PLAYER_BOX_LENGTH + MATERIAL_BOX_LENGTH, PLAYER_BOX_HEIGHT * 2)),
-    ("Honey", "yellow", (0.0, 0.0, PLAYER_BOX_HEIGHT * 3)),
-    ("Wood", "brown", (0.0, MATERIAL_BOX_LENGTH, PLAYER_BOX_HEIGHT * 3)),
+    ("Food", "red"),
+    ("Stone", "grey"),
+    ("Honey", "yellow"),
+    ("Wood", "brown"),
 ]
 
 MATERIAL_INNER_W = MATERIAL_BOX_WIDTH - 2 * WALL
 MATERIAL_INNER_L = MATERIAL_BOX_LENGTH - 2 * WALL
 MATERIAL_INNER_H = MATERIAL_BOX_HEIGHT - LID - FLOOR
 
-for material, colour, position in MATERIAL_BOXES:
+for material, colour in MATERIAL_BOXES:
     material_box = project.box(
         BoxType.CAP,
         f"MaterialBox{material}",
         size=(MATERIAL_BOX_WIDTH, MATERIAL_BOX_LENGTH, MATERIAL_BOX_HEIGHT),
-        position=position,
         expandable=False,
         lid=LidBuilder(
             text=material,
@@ -349,17 +353,16 @@ CARD_INNER_L = CARD_BOX_LENGTH - 2 * WALL
 CARD_INNER_H = CARD_BOX_HEIGHT - LID - FLOOR
 
 CARD_BOXES = [
-    ("Favor", "Favors", (PLAYER_BOX_WIDTH, 0.0, 0.0)),
-    ("Hero", "Heros", (PLAYER_BOX_WIDTH, CARD_BOX_LENGTH, 0.0)),
-    ("Solo", "Solo", (PLAYER_BOX_WIDTH, CARD_BOX_LENGTH * 2, 0.0)),
+    ("Favor", "Favors"),
+    ("Hero", "Heros"),
+    ("Solo", "Solo"),
 ]
 
-for card_type, lid_text, position in CARD_BOXES:
+for card_type, lid_text in CARD_BOXES:
     card_box = project.box(
         BoxType.SLIDING,
         f"CardBox{card_type}",
         size=(CARD_BOX_WIDTH, CARD_BOX_LENGTH, CARD_BOX_HEIGHT),
-        position=position,
         expandable=False,
         no_rotate=True,
         lid=LidBuilder(
@@ -383,12 +386,13 @@ PLAYER_CARD_INNER_W = PLAYER_CARD_BOX_WIDTH - 2 * WALL
 PLAYER_CARD_INNER_L = PLAYER_CARD_BOX_LENGTH - 2 * WALL
 PLAYER_CARD_INNER_H = PLAYER_CARD_BOX_HEIGHT - LID - FLOOR
 
-for index, colour in enumerate(["Black", "Blue", "Yellow", "Grey", "Red"]):
+PLAYER_CARD_COLOURS = ["Black", "Blue", "Yellow", "Grey", "Red"]
+
+for colour in PLAYER_CARD_COLOURS:
     player_card_box = project.box(
         BoxType.SLIDING,
         f"CardBoxPlayer{colour}",
         size=(PLAYER_CARD_BOX_WIDTH, PLAYER_CARD_BOX_LENGTH, PLAYER_CARD_BOX_HEIGHT),
-        position=(PLAYER_BOX_WIDTH * 2, 0.0, index * PLAYER_CARD_BOX_HEIGHT),
         expandable=False,
         no_rotate=True,
         lid=LidBuilder(
@@ -412,7 +416,6 @@ common_box = project.box(
     BoxType.CAP,
     "CommonBox",
     size=(COMMON_BOX_WIDTH, COMMON_BOX_LENGTH, COMMON_BOX_HEIGHT),
-    position=(PLAYER_BOX_WIDTH * 2, PLAYER_CARD_BOX_LENGTH, 0.0),
     expandable=False,
     lid=LidBuilder(
         text="Trophy",
@@ -498,11 +501,34 @@ common_box.compartment(
     elements=common_box_elements(),
 )
 
-# ── 6. Spacers ────────────────────────────────────────────────────────────
+# ── 6. Arrangement ────────────────────────────────────────────────────────
+# The original hand-types 21 sets of coordinates. Here the structure is written
+# down instead and the positions fall out of the box sizes: three columns, each
+# a set of rows, each row a stack. Change a box's size and everything downstream
+# of it moves on its own.
+project.arrange(columns(
+    # Left column — player boxes two deep, with the material boxes on top.
+    rows(
+        stack("PlayerBoxBlack", "PlayerBoxYellow", "PlayerBoxGrey",
+              rows("MaterialBoxHoney", "MaterialBoxWood")),
+        stack("PlayerBoxRed", "PlayerBoxBlue",
+              rows("MaterialBoxFood", "MaterialBoxStone")),
+    ),
+    # Middle column — the three shared card decks, full height.
+    rows("CardBoxFavor", "CardBoxHero", "CardBoxSolo"),
+    # Right column — the player card decks stacked five high, then the
+    # common box behind them.
+    rows(
+        stack(*(f"CardBoxPlayer{colour}" for colour in PLAYER_CARD_COLOURS)),
+        "CommonBox",
+    ),
+))
+
+# ── 7. Spacers ────────────────────────────────────────────────────────────
 # Not declared. `generate_spacers=True` sweeps the leftover volume, merges the
 # pieces that fuse into one box, and emits three trays at the same corners as
 # the original's SpacerPlayer, SpacerSide and SpacerFront — see the expected
-# footprints asserted in tests/test_spec_driven/test_emberleaf.py.
+# footprints asserted in tests/test_pyboxbuilder/test_emberleaf.py.
 
 
 if __name__ == "__main__":

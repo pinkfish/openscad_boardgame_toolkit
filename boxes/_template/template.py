@@ -4,7 +4,22 @@
 Copy this file to boxes/your_game/your_game.py and customize.
 """
 
-from spec_driven import (
+import sys
+from pathlib import Path
+
+# Repo root + venv site-packages on sys.path, robust to __file__ being
+# undefined (Jupyter / exec). Relative to the repo root, no absolute paths.
+if "__file__" in globals():
+    ROOT = Path(__file__).resolve().parents[2]
+else:
+    ROOT = Path.cwd()
+sys.path.insert(0, str(ROOT))
+for _sp in ROOT.glob(".venv/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+for _sp in ROOT.glob("venv/*/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+
+from pyboxbuilder import (
     Project, BoxType, LabelMode, Color,
     LidBuilder, PatternBuilder, PatternType, ScoopSide,
 )

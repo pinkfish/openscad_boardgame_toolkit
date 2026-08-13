@@ -18,6 +18,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pybosl2 numpy pymeshlab fpdf2 pillow
+          pip install -e .
 
       - name: Locate PythonSCAD binary
         id: pythonscad
@@ -35,7 +36,7 @@ jobs:
         if: steps.pythonscad.outputs.found == 'yes'
         env:
           PYTHONSCAD_BIN: ${{ env.PYTHONSCAD_BIN }}
-        run: python -m pytest tests/test_spec_driven/render/ -q
+        run: python -m pytest tests/test_pyboxbuilder/render/ -q
 
       - name: Report missing binary
         if: steps.pythonscad.outputs.found != 'yes'

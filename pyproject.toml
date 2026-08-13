@@ -3,9 +3,9 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "openscad-boardgame-toolkit"
+name = "pyboxbuilder"
 version = "0.1.0"
-description = "Board game insert toolkit for OpenSCAD / PythonSCAD"
+description = "Board game box/insert design library for PythonSCAD"
 requires-python = ">=3.10"
 dependencies = [
     # 0.7.7 or newer: path fixes, the Color class, Region.even_odd, and the SVG loader speed fix
@@ -23,15 +23,36 @@ scripts = [
     "pybosl2>=0.7.7",
     "pymeshlab",
     "lark",
-    "hyperpack",
     "inkex",
     "numpy",
     "svgelements",
     "simplepath",
 ]
+dev = [
+    "pytest",
+    "mypy",
+    "pymeshlab",
+    "fpdf2",
+    "pillow",
+    "shapely",
+]
 
 [tool.setuptools.packages.find]
-include = []
+include = ["pyboxbuilder*"]
+
+[tool.setuptools.package-data]
+pyboxbuilder = ["py.typed"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+exclude = [
+    "^tests/",
+    "^boxes/",
+    "^\\.venv/",
+]
 
 [tool.ruff]
 target-version = "py311"

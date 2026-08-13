@@ -2,7 +2,7 @@
 
 **Date**: 2026-08-11 | **Feature**: specs/001-board-game-box-library
 
-**Package**: `spec_driven/` | **Import**: `from spec_driven import ...`
+**Package**: `pyboxbuilder/` | **Import**: `from pyboxbuilder import ...`
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ pip install pybosl2 numpy pymeshlab
 ## The Single Import
 
 ```python
-from spec_driven import (
+from pyboxbuilder import (
     Project,
     BoxType, LabelMode, PatternType, ScoopSide,
     Color, LidBuilder, PatternBuilder,
@@ -30,7 +30,7 @@ from spec_driven import (
 ## Validation Scenario 1: Type-Safe Box with Lid Decoration
 
 ```python
-from spec_driven import Project, BoxType, LabelMode, Color, LidBuilder
+from pyboxbuilder import Project, BoxType, LabelMode, Color, LidBuilder
 
 project = Project("CardGame", game_box_size=(200, 150, 60))
 
@@ -57,7 +57,7 @@ project.export("output/")
 ## Validation Scenario 2: Lid with Through-Hole Pattern + Diagonal Text
 
 ```python
-from spec_driven import Project, BoxType, LabelMode, PatternType, Color, LidBuilder, PatternBuilder
+from pyboxbuilder import Project, BoxType, LabelMode, PatternType, Color, LidBuilder, PatternBuilder
 
 project = Project("FancyGame", game_box_size=(200, 150, 60))
 
@@ -86,7 +86,7 @@ project.export("output/")
 ## Validation Scenario 3: Multi-Box Game with Auto-Sizing
 
 ```python
-from spec_driven import Project, BoxType, LidBuilder
+from pyboxbuilder import Project, BoxType, LidBuilder
 
 project = Project("BigGame", game_box_size=(300, 200, 80))
 
@@ -106,7 +106,7 @@ assert len(result2.written) == 0
 ## Validation Scenario 4: Min Text Height Guard
 
 ```python
-from spec_driven import Project, BoxType, LabelMode, Color, LidBuilder
+from pyboxbuilder import Project, BoxType, LabelMode, Color, LidBuilder
 
 project = Project("TinyGame", game_box_size=(100, 80, 30))
 box = project.box(
@@ -122,7 +122,7 @@ result = project.export("output/")
 ## Validation Scenario 5: Auto-Computed Box Size from Compartments
 
 ```python
-from spec_driven import Project, BoxType, ScoopSide
+from pyboxbuilder import Project, BoxType, ScoopSide
 
 project = Project("ComputedBox", game_box_size=(200, 150, 60))
 
@@ -145,7 +145,7 @@ result = project.export("output/")
 ## Validation Scenario 6: Earth Animal Kingdom
 
 ```python
-from spec_driven import (
+from pyboxbuilder import (
     Project, BoxType, LabelMode, Color,
     LidBuilder, PatternBuilder, PatternType, ScoopSide,
 )
@@ -179,13 +179,13 @@ project.export("output/")
 ## Type Checking
 
 ```sh
-npx pyright spec_driven/enums.py spec_driven/builders/
+npx pyright pyboxbuilder/enums.py pyboxbuilder/builders/
 npx pyright boxes/earth_animal_kingdom/earth_animal_kingdom.py
 ```
 
 ## Running Tests
 
 ```sh
-python3 tests/run_fast.py test_spec_driven
+python3 tests/run_fast.py test_pyboxbuilder
 python3 -m unittest discover -s tests -p "test_*.py"
 ```

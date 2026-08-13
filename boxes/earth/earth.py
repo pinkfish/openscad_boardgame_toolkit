@@ -1,5 +1,5 @@
 import math
-from spec_driven import Project, BoxType, ScoopSide, LabelMode, PatternType, LidBuilder, PatternBuilder, Color
+from pyboxbuilder import Project, BoxType, ScoopSide, LabelMode, PatternType, LidBuilder, PatternBuilder, Color
 
 # Create project with 288 x 288 x 72 game box size
 project = Project(
