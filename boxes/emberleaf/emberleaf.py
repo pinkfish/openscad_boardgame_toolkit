@@ -37,9 +37,9 @@ from pyboxbuilder import (  # noqa: E402
 from pyboxbuilder.compartments import CompartmentElement, grid_pack  # noqa: E402
 from pyboxbuilder.enums import ElementShape  # noqa: E402
 
-#: SVG silhouettes are referenced from the repo root, so the example builds the
-#: same way whichever directory it is run from.
-SVG = str(REPO_ROOT / "examples" / "svg" / "emberleaf")
+#: SVG silhouettes live beside this example (boxes/emberleaf/svg), so the
+#: example is self-contained and builds the same from any directory.
+SVG = str(REPO_ROOT / "boxes" / "emberleaf" / "svg")
 
 # ── Game box and material constants (examples/emberleaf.scad) ─────────────
 BOX_WIDTH = 287.0
