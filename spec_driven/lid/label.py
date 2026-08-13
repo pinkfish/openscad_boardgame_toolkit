@@ -1,14 +1,92 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Label generation — framed, frameless, and diagonal text."""
+"""Label generation — framed, frameless, and diagonal text.
+
+Everything here is built in the lid's own frame: (0, 0) is the lid's lower-left
+corner and z = 0 is the face the label sits on, so a caller only has to move the
+result onto the lid's top.
+"""
 
 from __future__ import annotations
 
+import math
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from spec_driven.enums import LabelMode
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid
+
+TEXT_HEIGHT_MM = 0.6
+"""How far the text stands off the face it is written on."""
+
+BACKING_HEIGHT_MM = 0.4
+"""Thickness of the framed backing plate the text sits on."""
+
+HATCH_WIDTH_MM = 0.6
+"""Width of a hatching line — thin enough to bridge without support."""
+
+FRAME_PADDING_MM = 3.0
+"""How far a framed label's backing plate extends past its text."""
+
+
+@dataclass(frozen=True)
+class Label:
+    """A built label, split by the colour it wants to print in.
+
+    Keeping the parts separate is what lets the MMU pass assign each its own
+    material while the single-colour pass fuses them.
+    """
+
+    text: "Bosl2Solid"
+    backing: "Bosl2Solid | None" = None
+    """Framed mode only: the plate and hatching behind the text."""
+
+    def combined(self) -> "Bosl2Solid":
+        return self.text if self.backing is None else self.backing | self.text
+
+
+NOMINAL_SIZE_MM = 10.0
+"""Cap height the text is first set at, before being measured and scaled."""
+
+FONT = "Liberation Sans:style=Bold"
+
+
+def _set_text(text: str, diagonal: bool, width: float, length: float):
+    """Extrude the label text at the nominal size, rotated if diagonal."""
+    from pybosl2 import text as bosl2_text
+
+    solid = bosl2_text(text=text, size=NOMINAL_SIZE_MM, font=FONT).linear_extrude(
+        height=TEXT_HEIGHT_MM
+    )
+    if diagonal:
+        solid = solid.rotate([0.0, 0.0, math.degrees(math.atan2(length, width))])
+    return solid
+
+
+def text_height_for(
+    width: float,
+    length: float,
+    text: str,
+    border_margin_mm: float = 5.0,
+    diagonal: bool = False,
+) -> float:
+    """Cap height the label text will be set at, in mm.
+
+    Measured rather than estimated. Guessing the width from the character count
+    is off by enough to matter — "Cards" at the guessed size came out 102mm wide
+    on a 100mm lid — because the advance per glyph depends on the font and on
+    which letters they are.
+    """
+    label_w = width - 2 * border_margin_mm
+    label_l = length - 2 * border_margin_mm
+    if label_w <= 0 or label_l <= 0 or not text:
+        return 0.0
+
+    (_, _, _), (set_w, set_l, _) = _set_text(text, diagonal, width, length).bounds()
+    if set_w <= 0 or set_l <= 0:
+        return 0.0
+    return NOMINAL_SIZE_MM * min(label_w / set_w, label_l / set_l)
 
 
 def build_label(
@@ -20,119 +98,95 @@ def build_label(
     diagonal: bool = False,
     min_text_height_mm: float = 4.0,
     border_margin_mm: float = 5.0,
-) -> "Bosl2Solid | None":
-    """Build a label decoration solid for a lid.
-
-    Returns None if the label text would be below the minimum size threshold.
+) -> "Label | None":
+    """Build a label for a lid face, or None if it would be illegible.
 
     Args:
-        width: Lid interior width in mm.
-        length: Lid interior length in mm.
-        thickness: Lid thickness in mm.
-        text: The label text string.
-        label_mode: Framed or frameless.
-        diagonal: Corner-to-corner text orientation.
-        min_text_height_mm: Skip label if computed text height < this.
-        border_margin_mm: Margin from lid edges for label placement.
+        width: Lid width in mm.
+        length: Lid length in mm.
+        thickness: Lid thickness in mm — unused for the geometry, kept so
+            callers can pass the whole lid spec through.
+        text: The label text.
+        label_mode: Framed adds a backing plate and hatching; frameless is
+            text alone.
+        diagonal: Run the text corner to corner instead of along the width.
+        min_text_height_mm: Skip the label below this cap height (FR-023).
+        border_margin_mm: Margin kept clear at the lid edges.
 
     Returns:
-        A Bosl2Solid for the label, or None if skipped.
+        A `Label`, or None when the text would come out under the minimum.
     """
+    from spec_driven.box.shell import block, corner
+
     label_w = width - 2 * border_margin_mm
     label_l = length - 2 * border_margin_mm
-
-    if label_w <= 0 or label_l <= 0:
+    if label_w <= 0 or label_l <= 0 or not text:
         return None
 
-    # Approximate text height from character count and available width
-    char_count = len(text)
-    if char_count == 0:
+    size = text_height_for(width, length, text, border_margin_mm, diagonal)
+    if size < min_text_height_mm:
         return None
 
-    text_h = min(label_w / max(char_count, 1) * 1.5, label_l * 0.9)
-    if text_h < min_text_height_mm:
-        return None
+    # Set at the nominal size and scale to fit, so the result is exactly as
+    # large as the label area allows whatever the font does.
+    solid = _set_text(text, diagonal, width, length)
+    scale = size / NOMINAL_SIZE_MM
+    solid = solid.scale([scale, scale, 1.0])
 
-    try:
-        from pybosl2 import cuboid, text as bosl2_text
-    except ImportError:
-        raise
+    # `text` sets its own origin from the baseline, so centre it by measurement
+    # rather than assuming where it landed.
+    (cx, cy, _), (tw, tl, _) = solid.bounds()
+    solid = solid.translate([width / 2 - cx, length / 2 - cy, 0.0])
 
-    # Build the label geometry
-    text_solid = bosl2_text(
-        text=text,
-        size=text_h,
-        font="Arial:style=Bold",
+    if label_mode is LabelMode.FRAMELESS:
+        return Label(text=solid)
+
+    # Framed: a hatched backing plate behind the text. It hugs the text rather
+    # than filling the label area, so a lid can carry both a frame and a
+    # through-hole pattern — a plate the size of the whole area would simply
+    # cover the pattern up.
+    (tcx, tcy, _), (tw, tl, _) = solid.bounds()
+    pad = FRAME_PADDING_MM
+    plate_w = min(tw + 2 * pad, label_w)
+    plate_l = min(tl + 2 * pad, label_l)
+    plate_x = tcx - plate_w / 2
+    plate_y = tcy - plate_l / 2
+
+    plate = block([plate_w, plate_l, BACKING_HEIGHT_MM], at=(plate_x, plate_y, 0.0))
+    hatching = corner(
+        _build_hatching(plate_w, plate_l),
+        [plate_w, plate_l, BACKING_HEIGHT_MM],
+        at=(plate_x, plate_y, 0.0),
     )
-
-    if diagonal:
-        # Rotate to corner-to-corner angle
-        import math
-        angle = math.degrees(math.atan2(length, width))
-        text_solid = text_solid.rotate([0, 0, angle])
-
-    # Center on lid
-    text_solid = text_solid.translate([
-        width / 2, length / 2, 0,
-    ])
-
-    if label_mode == LabelMode.FRAMED:
-        # Add rectangular frame + diagonal hatching + outer border
-        frame_margin = 2.0
-        frame = cuboid([
-            label_w + frame_margin * 2,
-            label_l + frame_margin * 2,
-            0.4,  # thin frame layer for color accent
-        ])
-        frame = frame.translate([
-            border_margin_mm - frame_margin,
-            border_margin_mm - frame_margin,
-            0,
-        ])
-
-        # Diagonal hatching behind text for bed adhesion
-        hatching = _build_hatching(label_w, label_l, spacing=3.0)
-        hatching = hatching.translate([border_margin_mm, border_margin_mm, 0])
-
-        text_solid = text_solid.translate([0, 0, 0.4])
-        label = cuboid([label_w, label_l, 0.2])
-        label = label.translate([border_margin_mm, border_margin_mm, 0])
-        return frame | hatching | label | text_solid
-
-    # Frameless: just text
-    return text_solid
+    return Label(
+        text=solid.translate([0.0, 0.0, BACKING_HEIGHT_MM]),
+        backing=plate | hatching,
+    )
 
 
 def _build_hatching(
     width: float, length: float, spacing: float = 3.0
 ) -> "Bosl2Solid":
-    """Build diagonal hatching lines for bed adhesion behind text.
+    """Diagonal hatching lines, centred on the origin and clipped to the area.
 
-    Args:
-        width: Hatching area width.
-        length: Hatching area length.
-        spacing: Distance between hatching lines.
-
-    Returns:
-        Bosl2Solid with diagonal hatching lines.
+    The lines are cropped to the label rectangle so the hatching cannot spill
+    past the backing plate it decorates.
     """
     from pybosl2 import cuboid
 
-    hatching = None
-    line_w = 0.6  # thin enough to bridge without supports
-    diagonal = (width ** 2 + length ** 2) ** 0.5
-    num_lines = int(diagonal / spacing) + 1
-    import math
+    diagonal = math.hypot(width, length)
     angle = math.degrees(math.atan2(length, width))
+    count = max(int(diagonal / spacing), 1)
 
-    for i in range(num_lines):
-        pos = i * spacing
-        line = cuboid([diagonal, line_w, 0.2])
-        line = line.rotate([0, 0, angle])
-        line = line.translate([pos - diagonal / 2, pos - diagonal / 2, 0])
-        if hatching is None:
-            hatching = line
-        else:
-            hatching = hatching | line
+    lines = []
+    for i in range(count + 1):
+        offset = i * spacing - diagonal / 2
+        line = cuboid([diagonal, HATCH_WIDTH_MM, BACKING_HEIGHT_MM])
+        line = line.rotate([0.0, 0.0, angle])
+        lines.append(line.translate([0.0, offset, 0.0]))
 
-    return hatching or cuboid([1, 1, 0.2])
+    from spec_driven.compartments.element import union_all
+
+    hatching = union_all(lines)
+    assert hatching is not None
+    return hatching & cuboid([width, length, BACKING_HEIGHT_MM])

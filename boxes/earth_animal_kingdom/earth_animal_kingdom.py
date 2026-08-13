@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Earth Animal Kingdom board game insert.
+"""Earth Animal Kingdom insert — spec_driven port of `examples/earth_animal_kingdom.scad`.
 
-Ports the original design from examples/earth_animal_kingdom.py to the
-spec_driven Project API. All 37 animal token entries, card box, sprout box,
-canopy box, board storage, and spacer tray.
+Every dimension is derived with the same formula as the original, and every box
+sits where `BoxLayout()` puts it, so the two inserts describe the same object.
+
+The animal slots are not solved for here. The original ships a precomputed
+partition of the 37 animals across two boxes in `lib/animal_kingdom_items_layout.scad`,
+and that partition is reproduced verbatim below — slot for slot, position for
+position. Re-deriving it with the packer would give a different (and no better)
+answer, and the point of this example is to match the original.
 
 Usage:
     cd /path/to/openscad_boardgame_toolkit
@@ -16,154 +21,265 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from spec_driven import (
-    Project, BoxType, LabelMode, Color,
-    LidBuilder, PatternBuilder, PatternType, ScoopSide,
+from spec_driven import BoxType, Color, LabelMode, LidBuilder, PatternBuilder, PatternType, Project  # noqa: E402
+
+# ── Game box and material constants (examples/earth_animal_kingdom.scad) ──
+BOX_WIDTH = 288.0
+BOX_LENGTH = 158.0
+BOX_HEIGHT = 47.0
+
+WALL = 2.0
+FLOOR = 2.0
+LID = 2.0
+
+ANIMAL_TOKEN_THICKNESS = 8.0
+ANIMAL_CARD_WIDTH = 72.0
+ANIMAL_CARD_LENGTH = 123.0
+ANIMAL_CARD_NUM = 36
+SINGLE_CARD_THICKNESS = 6.0 / 10
+
+# ── Derived box dimensions ────────────────────────────────────────────────
+CARD_BOX_WIDTH = WALL * 2 + ANIMAL_CARD_WIDTH                       # 76.0
+CARD_BOX_LENGTH = BOX_LENGTH - 2                                    # 156.0
+CARD_BOX_HEIGHT = SINGLE_CARD_THICKNESS * ANIMAL_CARD_NUM + 2       # 23.6
+
+SPROUT_BOX_WIDTH = CARD_BOX_WIDTH                                   # 76.0
+SPROUT_BOX_LENGTH = BOX_LENGTH                                      # 158.0
+SPROUT_BOX_HEIGHT = BOX_HEIGHT - CARD_BOX_HEIGHT - 1                # 22.4
+
+CANOPY_BOX_WIDTH = 38.0
+CANOPY_BOX_LENGTH = BOX_LENGTH                                      # 158.0
+CANOPY_BOX_HEIGHT = BOX_HEIGHT - 1                                  # 46.0
+
+ANIMAL_BOX_WIDTH = BOX_WIDTH - CARD_BOX_WIDTH - CANOPY_BOX_WIDTH    # 174.0
+ANIMAL_BOX_LENGTH = BOX_LENGTH                                      # 158.0
+ANIMAL_BOX_HEIGHT = FLOOR + LID + ANIMAL_TOKEN_THICKNESS + 0.5      # 12.5
+ANIMAL_WALL = 1.5
+ANIMAL_FOOT = 4.0
+
+SPACER_BOX_WIDTH = ANIMAL_BOX_WIDTH                                 # 174.0
+SPACER_BOX_LENGTH = ANIMAL_BOX_LENGTH                               # 158.0
+SPACER_BOX_HEIGHT = BOX_HEIGHT - ANIMAL_BOX_HEIGHT * 2 - 1          # 21.0
+
+# Interiors
+ANIMAL_INNER_W = ANIMAL_BOX_WIDTH - 2 * ANIMAL_WALL                 # 171.0
+ANIMAL_INNER_L = ANIMAL_BOX_LENGTH - 2 * ANIMAL_WALL                # 155.0
+ANIMAL_INNER_H = ANIMAL_BOX_HEIGHT - FLOOR - LID                    # 8.5
+
+#: AnimalBox1 — 26 slots from Layout_container0.
+ANIMAL_LAYOUT_1: tuple[tuple[str, float, float, float, float], ...] = (
+    ("capybara_2_1", 40.75, 22.5, 16.5, 32.0),
+    ("capybara_2_2", 40.75, 57.5, 16.5, 32.0),
+    ("capybara_2_3", 40.75, 92.5, 16.5, 32.0),
+    ("cow", 58.75, 85.25, 47.5, 36.5),
+    ("crocodile", 21.25, 39.75, 16.0, 85.0),
+    ("deer", 58.75, 123.25, 47.0, 25.5),
+    ("elephant", 58.75, 2.25, 54.0, 43.5),
+    ("fly", 151.75, 138.75, 11.0, 11.0),
+    ("fox", 114.25, 67.75, 35.0, 16.0),
+    ("goat", 2.25, 2.25, 37.0, 36.0),
+    ("gopher_1", 2.25, 45.75, 17.5, 17.0),
+    ("gopher_2", 2.25, 65.75, 17.5, 17.0),
+    ("gopher_3", 2.25, 85.75, 17.5, 17.0),
+    ("gopher_4", 2.25, 105.75, 17.5, 17.0),
+    ("gopher_5", 2.25, 125.75, 17.5, 17.0),
+    ("hoopoe", 21.25, 126.25, 17.0, 16.0),
+    ("jay", 138.25, 125.75, 12.0, 12.5),
+    ("monkey", 107.75, 125.75, 29.0, 24.0),
+    ("ornyx", 107.75, 85.25, 40.0, 39.0),
+    ("pangolin_1", 151.75, 11.25, 16.0, 21.0),
+    ("pangolin_2", 151.75, 35.25, 16.0, 21.0),
+    ("pangolin_3", 151.75, 59.25, 16.0, 21.0),
+    ("pangolin_4", 151.75, 83.25, 16.0, 21.0),
+    ("pangolin_5", 151.75, 107.25, 16.0, 21.0),
+    ("polar_bear", 58.75, 47.25, 53.0, 36.5),
+    ("rhino", 114.25, 2.25, 36.0, 64.0),
 )
 
-# ── Game Box & Defaults ───────────────────────────────────────────
+#: AnimalBox2 — 30 slots from Layout_container1.
+ANIMAL_LAYOUT_2: tuple[tuple[str, float, float, float, float], ...] = (
+    ("beaver", 54.25, 131.75, 35.0, 15.5),
+    ("capybara_1", 129.75, 49.5, 16.5, 32.0),
+    ("capybara_2", 129.75, 84.5, 16.5, 32.0),
+    ("chipmunk", 61.75, 112.75, 15.0, 14.0),
+    ("eagle", 85.25, 27.75, 43.0, 31.0),
+    ("gazelle", 42.75, 27.75, 41.0, 35.0),
+    ("goanna", 33.75, 79.75, 30.0, 25.0),
+    ("goose", 80.25, 90.25, 25.0, 21.0),
+    ("jaguar", 147.75, 27.75, 20.0, 49.0),
+    ("kangaroo", 2.25, 27.75, 39.0, 37.0),
+    ("lemur", 30.25, 108.25, 30.0, 22.0),
+    ("loon", 106.75, 90.25, 13.0, 26.5),
+    ("peacock", 2.25, 79.75, 30.0, 27.0),
+    ("pig", 80.25, 64.25, 35.0, 24.5),
+    ("platypus", 2.25, 134.75, 25.0, 14.5),
+    ("quokka", 28.75, 134.75, 24.0, 15.0),
+    ("rabbit", 147.75, 121.25, 18.5, 21.0),
+    ("snake", 147.75, 78.25, 14.0, 41.5),
+    ("spider_monkey", 2.25, 108.25, 26.5, 25.0),
+    ("tarsier", 65.25, 79.75, 12.5, 29.0),
+    ("termite_1", 4.5, 66.25, 12.0, 12.0),
+    ("termite_2", 19.5, 66.25, 12.0, 12.0),
+    ("termite_3", 34.5, 66.25, 12.0, 12.0),
+    ("termite_4", 49.5, 66.25, 12.0, 12.0),
+    ("termite_5", 64.5, 66.25, 12.0, 12.0),
+    ("turkey_1", 14.25, 2.25, 25.0, 24.0),
+    ("turkey_2", 42.25, 2.25, 25.0, 24.0),
+    ("turkey_3", 70.25, 2.25, 25.0, 24.0),
+    ("turkey_4", 98.25, 2.25, 25.0, 24.0),
+    ("turkey_5", 126.25, 2.25, 25.0, 24.0),
+)
+
+# ── Project ───────────────────────────────────────────────────────────────
 project = Project(
     "EarthAnimalKingdom",
-    game_box_size=(288, 158, 47),
-    wall_thickness=2.0,
-    floor_thickness=1.6,
-    lid_thickness=2.0,
-    gap_threshold=10.0,
-    min_spacer_dim=15.0,
+    game_box_size=(BOX_WIDTH, BOX_LENGTH, BOX_HEIGHT),
+    wall_thickness=WALL,
+    floor_thickness=FLOOR,
+    lid_thickness=LID,
     clearance_slack=0.0,
+    # Every box below is hand-positioned to match BoxLayout(), so there is no
+    # leftover volume for the packer to find — the original's SpacerBox is
+    # declared explicitly, exactly as the .scad does.
+    generate_spacers=False,
 )
 
-# ── Animal Token Definitions (37 entries from original design) ────
-# Each: object(width=W, length=L[, num=N])
-# Token thickness: 8mm. Multi-quantity stacked in one compartment.
+BIRD_LID = PatternBuilder(type=PatternType.BIRD, spacing=20.0)
 
-class A:
-    def __init__(self, width, length, num=1):
-        self.width = width
-        self.length = length
-        self.num = num
-
-ANIMALS: list[tuple[str, A]] = [
-    ("elephant",       A(width=43.5, length=54)),
-    ("polar_bear",     A(width=36.5, length=53)),
-    ("cow",            A(width=36.5, length=47.5)),
-    ("pig",            A(width=24.5, length=35)),
-    ("gazelle",        A(width=41,   length=35)),
-    ("turkey",         A(width=24,   length=25, num=5)),
-    ("fly",            A(width=11,   length=11)),
-    ("capybara",       A(width=16.5, length=32, num=2)),
-    ("capybara_2",     A(width=16.5, length=32, num=3)),
-    ("monkey",         A(width=29,   length=24)),
-    ("pangolin",       A(width=16,   length=21, num=5)),
-    ("deer",           A(width=47,   length=25.5)),
-    ("goanna",         A(width=25,   length=30)),
-    ("fox",            A(width=16,   length=35)),
-    ("snake",          A(width=14,   length=41.5)),
-    ("rabbit",         A(width=18.5, length=21)),
-    ("termite",        A(width=12,   length=12, num=5)),
-    ("ornyx",          A(width=39,   length=40)),
-    ("platypus",       A(width=14.5, length=25)),
-    ("lemur",          A(width=22,   length=30)),
-    ("peacock",        A(width=30,   length=27)),
-    ("gopher",         A(width=17.5, length=17, num=5)),
-    ("crocodile",      A(width=16,   length=85)),
-    ("goat",           A(width=37,   length=36)),
-    ("jaguar",         A(width=20,   length=49)),
-    ("rhino",          A(width=36,   length=64)),
-    ("goose",          A(width=25,   length=21)),
-    ("eagle",          A(width=31,   length=43)),
-    ("spider_monkey",  A(width=26.5, length=25)),
-    ("hoopoe",         A(width=17,   length=16)),
-    ("kangaroo",       A(width=37,   length=39)),
-    ("loon",           A(width=26.5, length=13)),
-    ("tarsier",        A(width=29,   length=12.5)),
-    ("jay",            A(width=12.5, length=12)),
-    ("chipmunk",       A(width=15,   length=14)),
-    ("quokka",         A(width=24,   length=15)),
-    ("beaver",         A(width=15.5, length=35)),
-]
-
-TOKEN_THICKNESS = 8.0
-
-# ── Define Animal Token Boxes ─────────────────────────────────────
-def add_animal_box(label: str):
-    """Create a empty filament-hinge box whose compartments are populated via share_compartments."""
-    return project.box(
-        BoxType.FILAMENT_HINGE,
-        label,
-        size=(174.0, 156.0, 12.1),
-        lid=LidBuilder(
-            text=label,
-            label_mode=LabelMode.FRAMED,
-            text_color=Color("white"),
-            frame_color=Color("gold"),
-        ),
-    )
-
-
-# ── Animal Cards Box ──────────────────────────────────────────────
-CARD_W, CARD_L = 72.0, 123.0
-CARD_COUNT = 36
-card_height = 25.6
-
+# ── 1. Animal cards box ───────────────────────────────────────────────────
 card_box = project.box(
     BoxType.SLIDING,
     "AnimalCardsBox",
-    size=(76, 156, card_height),
+    size=(CARD_BOX_WIDTH, CARD_BOX_LENGTH, CARD_BOX_HEIGHT),
+    position=(0.0, 0.0, 0.0),
     expandable=False,
     lid=LidBuilder(
         text="Animal Cards",
         label_mode=LabelMode.FRAMED,
+        pattern=BIRD_LID,
         text_color=Color("white"),
-        frame_color=Color("darkgreen"),
-        pattern=PatternBuilder(type=PatternType.HEX_GRID),
-        pattern_color=Color([0.3, 0.7, 0.4]),
+        frame_color=Color("maroon"),
     ),
 )
 card_box.compartment(
-    "Cards", size=(CARD_W, CARD_L), depth=22.0,
+    "Cards",
+    size=(ANIMAL_CARD_WIDTH, ANIMAL_CARD_LENGTH),
+    depth=CARD_BOX_HEIGHT - FLOOR - LID,
+    position=(0.0, 0.0),
     finger_scoop=True,
 )
 
-# ── Sprout Box ────────────────────────────────────────────────────
-sprout = project.box(
+# ── 2. Sprout box ─────────────────────────────────────────────────────────
+SPROUT_INNER_W = SPROUT_BOX_WIDTH - 2 * WALL
+SPROUT_INNER_L = SPROUT_BOX_LENGTH - 2 * WALL
+
+sprout_box = project.box(
     BoxType.FILAMENT_HINGE,
     "SproutBox",
-    size=(76, 156, 20.4),
+    size=(SPROUT_BOX_WIDTH, SPROUT_BOX_LENGTH, SPROUT_BOX_HEIGHT),
+    position=(0.0, 0.0, CARD_BOX_HEIGHT),
     expandable=False,
-    lid=LidBuilder(text="Sprouts", text_color=Color("white"), frame_color=Color("lightgreen")),
+    lid=LidBuilder(
+        text="Sprouts",
+        label_mode=LabelMode.FRAMED,
+        pattern=BIRD_LID,
+        text_color=Color("white"),
+        frame_color=Color("green"),
+    ),
 )
-sprout.compartment("Sprouts", size=(64, 150), depth=16.8, finger_scoop=True)
+# RoundedBoxAllSides inset 1mm from the interior walls, radius 5.
+sprout_box.compartment(
+    "Sprouts",
+    size=(SPROUT_INNER_W - 2, SPROUT_INNER_L - 2),
+    depth=SPROUT_BOX_HEIGHT - FLOOR - LID,
+    position=(1.0, 1.0),
+    rounded_corners=5.0,
+)
 
-# ── Canopy Box ────────────────────────────────────────────────────
-canopy = project.box(
+# ── 3. Canopy box ─────────────────────────────────────────────────────────
+CANOPY_INNER_W = CANOPY_BOX_WIDTH - 2 * WALL
+CANOPY_INNER_L = CANOPY_BOX_LENGTH - 2 * WALL
+
+canopy_box = project.box(
     BoxType.FILAMENT_HINGE,
     "CanopyBox",
-    size=(38, 158, 46.0),
+    size=(CANOPY_BOX_WIDTH, CANOPY_BOX_LENGTH, CANOPY_BOX_HEIGHT),
+    position=(CARD_BOX_WIDTH + ANIMAL_BOX_WIDTH, 0.0, 0.0),
     expandable=False,
-    lid=LidBuilder(text="Canopy", text_color=Color("white"), frame_color=Color("olive")),
+    lid=LidBuilder(
+        text="Canopies",
+        label_mode=LabelMode.FRAMED,
+        pattern=BIRD_LID,
+        text_color=Color("black"),
+        frame_color=Color("cornsilk"),
+    ),
 )
-canopy.compartment("Canopies", size=(30, CARD_L), depth=42.4, finger_scoop=True)
+canopy_box.compartment(
+    "Canopies",
+    size=(CANOPY_INNER_W - 2, CANOPY_INNER_L - 2),
+    depth=CANOPY_BOX_HEIGHT - FLOOR - LID,
+    position=(1.0, 1.0),
+    rounded_corners=5.0,
+)
 
-# ── Board Storage ─────────────────────────────────────────────────
-project.box(BoxType.NO_LID, "Boards", size=(174, 150, 6), expandable=False)
+# ── 4. Animal boxes ───────────────────────────────────────────────────────
+def add_animal_box(label: str, slots, z: float):
+    """One slipover box holding one container's worth of animal tokens."""
+    box = project.box(
+        BoxType.SLIPOVER,
+        label,
+        size=(ANIMAL_BOX_WIDTH, ANIMAL_BOX_LENGTH, ANIMAL_BOX_HEIGHT),
+        position=(CARD_BOX_WIDTH, 0.0, z),
+        expandable=False,
+        wall_thickness=ANIMAL_WALL,
+        foot=ANIMAL_FOOT,
+        lid=LidBuilder(
+            text="Animals",
+            label_mode=LabelMode.FRAMED,
+            pattern=BIRD_LID,
+            text_color=Color("white"),
+            frame_color=Color("saddlebrown"),
+        ),
+    )
+    # A shallow pan over the whole interior, so a fingertip can get under the
+    # tokens — the original's RoundedBoxAllSides at $inner_height - thickness/2.
+    box.compartment(
+        "Access",
+        size=(ANIMAL_INNER_W - 2, ANIMAL_INNER_L - 2),
+        depth=ANIMAL_TOKEN_THICKNESS / 2,
+        position=(1.0, 1.0),
+        rounded_corners=3.0,
+    )
+    # One slot per token, at the position the precomputed layout gives it.
+    for name, x, y, width, length in slots:
+        box.compartment(
+            name,
+            size=(width, length),
+            depth=ANIMAL_TOKEN_THICKNESS + 0.5,
+            position=(x, y),
+            rounded_corners=1.0,
+        )
+    return box
 
-# ── Define Animal Token Boxes ─────────────────────────────────────
-add_animal_box("AnimalBox1")
-add_animal_box("AnimalBox2")
 
-# ── Register Shared Animal Compartments ────────────────────────────
-comps = [(name, a.width + 1.5, a.length + 1.5, a.num * TOKEN_THICKNESS) for name, a in ANIMALS]
-project.share_compartments(["AnimalBox1", "AnimalBox2"], comps)
+add_animal_box("AnimalBox1", ANIMAL_LAYOUT_1, 0.0)
+add_animal_box("AnimalBox2", ANIMAL_LAYOUT_2, ANIMAL_BOX_HEIGHT)
 
-# ── Export ────────────────────────────────────────────────────────
+# ── 5. Spacer ─────────────────────────────────────────────────────────────
+project.box(
+    BoxType.NO_LID,
+    "SpacerBox",
+    size=(SPACER_BOX_WIDTH, SPACER_BOX_LENGTH, SPACER_BOX_HEIGHT),
+    position=(CARD_BOX_WIDTH, 0.0, ANIMAL_BOX_HEIGHT * 2),
+    expandable=False,
+)
+
+
+# ── Export ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     result = project.export("output/")
-    print(f"Exported {result.total_files} files:")
-    print(f"  Written: {len(result.written)}")
-    for f in result.written:
-        print(f"    ✓ {f}")
-    if result.skipped:
-        print(f"  Skipped: {len(result.skipped)}")
-    if result.cached_from:
-        print(f"  Cache: {result.cached_from[:12]}...")
+    print(f"Exported {result.total_files} files ({len(result.written)} written, "
+          f"{len(result.skipped)} unchanged)")
+    for bounds in project.piece_bounds:
+        if bounds.mode == "mmu":
+            print(f"    {bounds}")

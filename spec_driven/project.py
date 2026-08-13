@@ -342,9 +342,7 @@ class Project:
                 pass
 
             has_lid = builder.box_type not in LIDLESS_BOX_TYPES
-            exporter.write_box(
-                builder.label, body=body, lid=lid, size=size, has_lid=has_lid,
-            )
+            self._write_box(exporter, builder, body, lid, size, lt, has_lid)
 
         # 3. Generate and export 3D spacers from gaps in the packed layout.
         # The sweep-merge-shrink pass lives in packing/spacer.py (FR-014a/b/c).
@@ -420,6 +418,32 @@ class Project:
             skipped=tuple(exporter.state.skipped),
             total_files=len(exporter.state.written) + len(exporter.state.skipped),
         )
+
+    def _write_box(
+        self, exporter, builder, body, lid, size, lid_thickness, has_lid: bool
+    ) -> None:
+        """Decorate the lid per colour mode and hand both pieces to the exporter.
+
+        The label has to be resolved per mode — raised and coloured for mmu,
+        engraved for single — so the lid is decorated twice rather than once.
+        """
+        from spec_driven.lid.decorate import decorate_lid
+
+        for mode in ("mmu", "single"):
+            mode_lid, inserts = lid, None
+            if has_lid and lid is not None and builder.lid is not None:
+                try:
+                    decorated = decorate_lid(lid, builder.lid, lid_thickness, mode)
+                    mode_lid = decorated.solid
+                    inserts = decorated.inserts or None
+                except ImportError:
+                    pass
+
+            exporter.write_piece(builder.label, "body", mode, body, size=size)
+            if has_lid:
+                exporter.write_piece(
+                    builder.label, "lid", mode, mode_lid, inserts, size=size,
+                )
 
     def _export_standalone(self, out_dir: str | Path) -> ExportResult:
         """Export boxes independently with no game box, no packing, no PDF.

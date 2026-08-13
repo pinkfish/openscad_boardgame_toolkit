@@ -33,20 +33,28 @@ class SlipoverBox:
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        """A sleeve that slips down over the whole box."""
+        """A sleeve that slips down over the box, stopping at the foot.
+
+        `foot` leaves the bottom of the body exposed so the sleeve has something
+        to seat against, which is how the original toolkit's slipover boxes are
+        built. `foot=0` covers the whole body.
+        """
         from spec_driven.box.shell import block
 
         lt = spec.get("lid_thickness", 2.0)
         slip = spec.get("slip", 1.6)
-        lid_h = lt + spec.get("cap_height", 8.0)
+        foot = spec.get("foot", 0.0)
+
+        skirt = spec["height"] - foot
+        lid_h = lt + skirt
         origin = -slip
 
         outer = block(
             [spec["width"] + 2 * slip, spec["length"] + 2 * slip, lid_h],
-            at=(origin, origin, spec["height"] - lid_h + lt),
+            at=(origin, origin, foot),
         )
         cavity = block(
-            [spec["width"], spec["length"], lid_h - lt],
-            at=(0, 0, spec["height"] - lid_h + lt),
+            [spec["width"] + 0.4, spec["length"] + 0.4, skirt],
+            at=(-0.2, -0.2, foot),
         )
         return outer - cavity

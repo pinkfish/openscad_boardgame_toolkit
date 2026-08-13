@@ -435,9 +435,37 @@ Emberleaf therefore keeps explicit positions. Note this is not a statement that 
 - [ ] T186 Declarative column/stack layout — let a project express "these boxes form a column at this x, stacked in this order" and have the library compute the coordinates. This is the missing middle ground between hand-typed positions and free-form packing: it keeps the structure that makes a 77%-fill layout possible while removing the hand-typed numbers, and would let Emberleaf, 1835 and Irish Gauge drop their explicit positions.
 - [ ] T187 Stronger 3D packing for high-fill layouts (guillotine/skyline with column alignment, or a proper exact solver on the axis-aligned tiling sub-problem), so free-form auto-packing can handle inserts above roughly 70% fill.
 
-### Known gaps
+---
 
-- [ ] T161 Lid decoration (`LidBuilder` text, patterns, colours) is resolved and validated but not yet applied to the generated lid geometry — `build_lid` ignores its `decoration` argument in every box type.
+## Phase 14: Earth Animal Kingdom fidelity, and lid decoration
+
+### Earth Animal Kingdom — matched to the original
+
+The port had drifted from `examples/earth_animal_kingdom.scad` on nearly every dimension.
+
+- [x] T188 Derive every dimension with the original's formula. Corrected: card box height 25.6 → **23.6** (36 cards at 0.6mm + 2), sprout box (76, 156, 20.4) → **(76, 158, 22.4)**, animal boxes (174, 156, 12.1) → **(174, 158, 12.5)**.
+- [x] T189 Correct the animal box type: `MakeBoxWithSlipoverLid` is `BoxType.SLIPOVER`, not `FILAMENT_HINGE`, with its own 1.5mm wall and a 4mm foot.
+- [x] T190 Add `foot` and `slip` to `SlipoverBoxBuilder` and build a sleeve that stops at the foot in `spec_driven/box/types/slipover.py`.
+- [x] T191 Replace the invented `Boards` box with the original's `SpacerBox` (174 × 158 × 21).
+- [x] T192 Position all six boxes to match `BoxLayout()`, which the port had left to the packer.
+- [x] T193 Reproduce the precomputed animal partition from `lib/animal_kingdom_items_layout.scad` verbatim — 26 slots in AnimalBox1, 30 in AnimalBox2, 56 in total across 37 species — replacing the `share_compartments` solver, which produced a different split.
+- [x] T194 Add the access pan each animal box carries over its slots (`RoundedBoxAllSides` at half the token thickness).
+- [x] T195 [P] Write test: dimensions, box types, layout positions, and that every slot fits its interior with no two overlapping, in `tests/test_spec_driven/test_earth_animal_kingdom.py`
+
+### Lid decoration (T161)
+
+- [x] T196 Implement `spec_driven/lid/decorate.py` — apply a `LidBuilder`'s pattern and label to any box type's lid, deriving the decoratable face from the lid's own bounding box so no type has to declare one.
+- [x] T197 Wire decoration into `Project.export` per colour mode: mmu keeps the label as separate coloured inserts, single engraves it into the lid.
+- [x] T198 Fix `build_label` never extruding its text (`pybosl2.text` returns a 2-D shape) and mis-anchoring its frame and hatching.
+- [x] T199 Size label text by measurement instead of by character count. The old estimate put **102mm of text on a 100mm lid**; text is now set at a nominal size, measured, and scaled to the label area.
+- [x] T200 Shrink a framed label's backing plate to hug its text, so a lid can carry both a frame and a through-hole pattern — a plate the size of the label area covered the pattern entirely.
+- [x] T201 Fix the pattern leaving a skin: it was placed by assumption rather than by its bounding box, so the holes stopped 0.7mm short of the top face and nothing showed. Also trimmed to the label area so it cannot eat the border.
+- [x] T202 Degrade a framed label to engraved text in single-colour mode. A frame is a colour feature, and keeping it lifted the text 0.4mm clear of the face so the engraving cut nothing at all.
+- [x] T203 [P] Write test: label sizing stays inside the margin, mmu yields separate inserts, single engraves, patterns cut through, and a decorated lid differs between the two modes, in `tests/test_spec_driven/test_lid_decorate.py`
+
+**Checkpoint**: Lids carry their labels and patterns. A plain sliding lid goes from 8 vertices to 1631 with a framed label and hex pattern; the single-colour variant is engraved instead of raised.
+
+### Known gaps
 - [ ] T162 `InsetBox`, `SlidingCatchBox`, `CapPathBox`, `SlipoverPathBox`, `CardLibraryBox` and `FilamentHingeBox` still return a plain plate from `build_lid`; only sliding, cap and slipover produce their real mating geometry.
 - [ ] T163 `HingeBox` knuckles are a placeholder — no matching lid knuckles and no pin channel, so the hinge does not yet articulate.
 - [x] T173 *(resolved, and the original diagnosis was wrong.)* Irish Gauge yields four spacers where the plan calls for two, and I recorded the extra pair as a footprint L that polygon-path spacers would close. It is not: `spacer_3` and `spacer_4` share a Y span and form an L in the **x-z** plane — a vertical step above `CompanyBox2`. Fusing it would give one part whose upper arm floats, replacing two trays that each sit flat with a single overhanging one. Rectilinear merging now handles genuine footprint L/T/U shapes (T174–T180), and vertical steps stay separate by design (FR-014e), so Irish Gauge stays at four spacers and that is the correct answer.
