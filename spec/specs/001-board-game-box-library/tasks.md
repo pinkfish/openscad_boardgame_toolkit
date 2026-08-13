@@ -414,6 +414,27 @@
 
 **Checkpoint**: A corner box in an otherwise empty layer yields one six-point L tray instead of two rectangles, and it builds as a real hollow `PathBox`.
 
+### Packing correctness — found while evaluating auto-packing for Emberleaf
+
+- [x] T181 Fix `expandable=False` not disabling expansion. `Project.export` OR'd the master switch with `expandable_width`/`expandable_length`, which default to `True`, so every box was expandable and boxes declared fixed were silently stretched — Earth Animal Kingdom's `CanopyBox` was being grown 46 → 47mm and `SproutBox` 20.4 → 21.4mm against their declared sizes.
+- [x] T182 Wire the per-axis expansion flags through to the solver: `expandable` alone gives the sub-3mm height absorb (FR-012), `expandable_width` adds the fill-to-fit width growth, in `spec_driven/packing/layout.py`.
+- [x] T183 Stop the packer from using the board's space. `Project.export` passed the full `game_box_size[2]` as the container height while the spacer pass used `height - board_thickness`, so auto-placed boxes could climb into the region reserved for the game board (FR-012, board-on-top).
+- [x] T184 Raise `PackingError` instead of returning an empty packing. A solver failure was swallowed, so `export()` reported success having written no boxes at all. The message now names boxes taller than the container, or reports the fill ratio.
+- [x] T185 [P] Write test: expansion respects the master switch, packing failures raise and explain themselves, in `tests/test_spec_driven/test_packing.py` and `test_project_coverage.py`
+
+**Checkpoint**: Declared-fixed boxes keep their size, nothing intrudes on the board space, and a layout that cannot be packed says so.
+
+### Auto-packing Emberleaf — evaluated, not adopted
+
+Emberleaf's 18 boxes fill **77%** of the usable volume (3296 cm³ of 4264 cm³ in 285 × 285 × 52.5mm). The original `.scad` layout achieves this because the box sizes were designed to tile exactly in three columns — 98 + 98 + 90 = 286 across, 142.5 × 2 = 285 deep, 13.125 × 4 = 52.5 tall.
+
+The extreme-point First-Fit-Decreasing solver cannot find that arrangement. Measured: five sort strategies (footprint area, height, volume, height-then-volume, max dimension) all fail; twelve variants crossing those with three extreme-point orderings, best-fit selection and corner extreme-point generation all fail; 266,000 random permutations of the plain solver and 60,000 of the strongest variant produce no successful packing. The failure is in the placement rule, not the ordering — greedy extreme-point placement fragments the space rather than aligning columns.
+
+Emberleaf therefore keeps explicit positions. Note this is not a statement that a better solver could not do it — a layout demonstrably exists.
+
+- [ ] T186 Declarative column/stack layout — let a project express "these boxes form a column at this x, stacked in this order" and have the library compute the coordinates. This is the missing middle ground between hand-typed positions and free-form packing: it keeps the structure that makes a 77%-fill layout possible while removing the hand-typed numbers, and would let Emberleaf, 1835 and Irish Gauge drop their explicit positions.
+- [ ] T187 Stronger 3D packing for high-fill layouts (guillotine/skyline with column alignment, or a proper exact solver on the axis-aligned tiling sub-problem), so free-form auto-packing can handle inserts above roughly 70% fill.
+
 ### Known gaps
 
 - [ ] T161 Lid decoration (`LidBuilder` text, patterns, colours) is resolved and validated but not yet applied to the generated lid geometry — `build_lid` ignores its `decoration` argument in every box type.

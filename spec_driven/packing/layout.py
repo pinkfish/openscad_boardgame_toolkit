@@ -6,6 +6,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
+class PackingError(ValueError):
+    """Raised when the sub-boxes cannot be arranged inside the game box.
+
+    Note that the packer is a greedy heuristic, so this does not prove the
+    layout is impossible — only that this solver could not find it.
+    """
+
+
 @dataclass
 class Placement:
     """Position and size of one box in the nested layout."""
@@ -57,22 +65,47 @@ def pack_boxes(
 
     from compartments import pack_3d_boxes
 
-    # Prepare items for 3D packer
+    # Prepare items for 3D packer. The axis codes it understands are "w" (grow
+    # right to the next neighbour) and "h" (close a sub-3mm gap above, FR-012);
+    # a box that is not expandable at all gets neither and keeps its size.
     items = []
     for b in boxes:
+        axes: list[str] = []
+        if b.get("expandable"):
+            axes.append("h")
+            if b.get("expandable_width", True):
+                axes.append("w")
         items.append({
             "name": b["label"],
             "size": list(b["size"]),
-            "expandable": ["h"] if b.get("expandable") else [],
+            "expandable": axes,
             "no_rotate": b.get("no_rotate", False),
         })
 
-    # Run 3D solver
+    # Run 3D solver. A failure here used to be swallowed and returned as an
+    # empty packing, so the export "succeeded" while writing no boxes at all —
+    # say what went wrong instead.
     try:
         packed = pack_3d_boxes(container_size, items)
-    except Exception:
-        # Could not pack all items — return empty packing rather than crash
-        return packing
+    except Exception as exc:
+        box_volume = sum(b["size"][0] * b["size"][1] * b["size"][2] for b in boxes)
+        container_volume = container_size[0] * container_size[1] * container_size[2]
+        fill = 100 * box_volume / container_volume if container_volume else 0.0
+        too_tall = [
+            b["label"] for b in boxes if b["size"][2] > container_size[2] + 1e-6
+        ]
+        detail = (
+            f" Boxes taller than the container: {', '.join(too_tall)}."
+            if too_tall
+            else f" At {fill:.0f}% fill the packer's greedy placement may simply "
+            f"not find an arrangement even though one exists — give the boxes "
+            f"explicit positions, or make them smaller or expandable."
+        )
+        raise PackingError(
+            f"Could not pack {len(boxes)} boxes into "
+            f"{container_size[0]:.1f} x {container_size[1]:.1f} x "
+            f"{container_size[2]:.1f} mm.{detail}"
+        ) from exc
 
     # Convert results to placements
     for name, info in packed.items():

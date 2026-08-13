@@ -3,7 +3,7 @@
 
 import unittest
 
-from spec_driven.packing.layout import pack_boxes, BoxPacking
+from spec_driven.packing.layout import pack_boxes, BoxPacking, PackingError
 from spec_driven.packing.spacer import generate_spacers
 from spec_driven.packing.cache import cache_key, set_cached, get_cached
 
@@ -90,8 +90,27 @@ class NoRotateTests(unittest.TestCase):
             self.assertTrue(result.placements[0].rotation)
 
     def test_no_rotate_does_not_fit_narrow_container(self) -> None:
-        """A no_rotate box that can't fit without rotation is not placed."""
-        result = pack_boxes((100, 300, 39), [
-            {"label": "A", "size": (214, 77, 28.5), "no_rotate": True},
-        ])
-        self.assertEqual(len(result.placements), 0)
+        """A no_rotate box that cannot fit without rotation is an error.
+
+        This used to come back as an empty packing, so an export would quietly
+        write no boxes at all and still report success.
+        """
+        with self.assertRaises(PackingError) as ctx:
+            pack_boxes((100, 300, 39), [
+                {"label": "A", "size": (214, 77, 28.5), "no_rotate": True},
+            ])
+        self.assertIn("Could not pack", str(ctx.exception))
+
+    def test_packing_error_names_boxes_taller_than_the_container(self) -> None:
+        with self.assertRaises(PackingError) as ctx:
+            pack_boxes((300, 300, 20), [{"label": "Tall", "size": (50, 50, 40)}])
+        self.assertIn("Tall", str(ctx.exception))
+
+    def test_packing_error_reports_the_fill_ratio(self) -> None:
+        """When nothing is oversized, the message says how full the box is."""
+        with self.assertRaises(PackingError) as ctx:
+            pack_boxes((100, 100, 100), [
+                {"label": f"B{n}", "size": (60, 60, 60), "no_rotate": True}
+                for n in range(4)
+            ])
+        self.assertIn("fill", str(ctx.exception))

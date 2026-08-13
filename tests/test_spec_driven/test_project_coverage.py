@@ -87,7 +87,7 @@ class FinalSizePropagationTests(unittest.TestCase):
     def test_final_size_set_after_export(self) -> None:
         """final_size is set on builders during export."""
         p = Project("FinalSize", game_box_size=(300, 200, 80), clearance_slack=0.0)
-        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40))
+        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40), expandable=False)
 
         self.assertIsNone(b.final_size)
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -100,10 +100,27 @@ class ClearanceSlackTests(unittest.TestCase):
     def test_clearance_slack_centers_placements(self) -> None:
         """Placements are shifted by clearance_slack to center them."""
         p = Project("Slack", game_box_size=(300, 200, 80), clearance_slack=5.0)
-        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40))
+        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40), expandable=False)
         with tempfile.TemporaryDirectory() as tmpdir:
             p.export(tmpdir)
         # final_size is the box's own size; the position shift is internal.
+        self.assertEqual(b.final_size, (100, 80, 40))
+
+    def test_expandable_box_grows_to_fill_its_row(self) -> None:
+        """FR-012 — an expandable box fills the width available to it."""
+        p = Project("Grow", game_box_size=(300, 200, 80), clearance_slack=5.0)
+        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            p.export(tmpdir)
+        self.assertEqual(b.final_size[0], 290.0)
+
+    def test_non_expandable_box_keeps_its_size(self) -> None:
+        """`expandable=False` is the master switch; the per-axis flags default
+        to True and must not re-enable it behind the caller's back."""
+        p = Project("Fixed", game_box_size=(300, 200, 80), clearance_slack=0.0)
+        b = p.box(BoxType.SLIDING, "A", size=(100, 80, 40), expandable=False)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            p.export(tmpdir)
         self.assertEqual(b.final_size, (100, 80, 40))
 
 

@@ -320,6 +320,20 @@ Only regions at the **same height** are combined. Two leftovers at different hei
 
 Insetting a polygon footprint is exact rather than approximate, because every edge the packer produces is axis-aligned: a corner's new position is the old one moved by the slack along each incident edge's inward normal (`spec_driven/paths.inset_rectilinear`). A reflex corner correctly moves *out* into its notch, which is what keeps an L's arm the right width — a centroid scale, the obvious shortcut, thins one arm while fattening the other. The normals come from the *directed* edges, since which side is inward depends on the direction the ring is traversed, not on where a corner's neighbours happen to sit.
 
+### When Auto-Packing Works, and When It Does Not
+
+`pack_3d_boxes` is an extreme-point First-Fit-Decreasing heuristic: sort by footprint area descending, and drop each box at the lowest-then-nearest free corner. That is a good fit for loosely-filled inserts, and it is what Earth Animal Kingdom uses.
+
+It has a ceiling. Emberleaf's 18 boxes fill **77%** of the usable volume, and the original layout only achieves that because the box sizes were designed to tile exactly in three columns. Measured against that layout, the solver fails on all five sort strategies, on all twelve variants crossing them with different extreme-point orderings, best-fit selection and corner extreme-point generation, and on 266,000 random permutations. Greedy extreme-point placement fragments the space instead of aligning columns, so the ordering is not the problem.
+
+The practical rules:
+
+* Below roughly 70% fill, hand the boxes to the packer and let it place them.
+* Above that, the arrangement is load-bearing and needs to be expressed, not searched for. Give the boxes explicit positions, or make them expandable so the solver has slack to work with.
+* A failure is reported as `PackingError` with the fill ratio and any oversized boxes named — never as an empty layout, which is how it used to surface and made an export silently write nothing.
+
+Two things would raise the ceiling: a declarative column/stack layout (the structure is the part worth writing down, not the coordinates), and a stronger solver for the axis-aligned tiling sub-problem. Both are open.
+
 ### Compartment Auto-Layout with Rotation
 To ensure dense packing of compartments (like the animal compartments in `AnimalBox1` and `AnimalBox2`), `layout_compartments` implements a shelf-packing algorithm with 90-degree rotation support:
 * **Sorting Heuristic**: Compartments are sorted by their maximum dimension (width or length) in descending order to establish a clean starting baseline.

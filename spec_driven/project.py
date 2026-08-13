@@ -196,16 +196,21 @@ class Project:
                 box_data.append({
                     "label": builder.label,
                     "size": size,
-                    "expandable": builder.expandable or getattr(builder, "expandable_width", False) or getattr(builder, "expandable_length", False),
+                    # `expandable` is the master switch: off means the box keeps
+                    # the size it was given. The per-axis flags only narrow it.
+                    "expandable": builder.expandable,
+                    "expandable_width": builder.expandable and builder.expandable_width,
                     "no_rotate": builder.no_rotate,
                 })
 
-        # Run 3D packer with clearance slack
+        # Run 3D packer with clearance slack. The board sits on top of the
+        # sub-boxes, so the packer only gets the height below it — otherwise
+        # auto-placed boxes climb into the space the board needs.
         slack = getattr(self, "clearance_slack", 1.0)
         packing_container = (
             self.game_box_size[0] - 2 * slack,
             self.game_box_size[1] - 2 * slack,
-            self.game_box_size[2],
+            self.game_box_size[2] - self.board_thickness,
         )
         from spec_driven.packing.layout import pack_boxes
         packing = pack_boxes(packing_container, box_data)
