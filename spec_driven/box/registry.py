@@ -52,6 +52,7 @@ from spec_driven.builders.slipover import SlipoverBoxBuilder  # noqa: E402
 from spec_driven.builders.slipover_path import SlipoverPathBoxBuilder  # noqa: E402
 from spec_driven.builders.cap_path import CapPathBoxBuilder  # noqa: E402
 from spec_driven.builders.no_lid import NoLidBoxBuilder  # noqa: E402
+from spec_driven.builders.path import PathBoxBuilder  # noqa: E402
 from spec_driven.builders.card_library import CardLibraryBoxBuilder  # noqa: E402
 
 from spec_driven.box.types.sliding import SlidingBox  # noqa: E402
@@ -65,6 +66,7 @@ from spec_driven.box.types.slipover import SlipoverBox  # noqa: E402
 from spec_driven.box.types.slipover_path import SlipoverPathBox  # noqa: E402
 from spec_driven.box.types.cap_path import CapPathBox  # noqa: E402
 from spec_driven.box.types.no_lid import NoLidBox  # noqa: E402
+from spec_driven.box.types.path import PathBox  # noqa: E402
 from spec_driven.box.types.card_library import CardLibraryBox  # noqa: E402
 
 register_box(BoxType.SLIDING, SlidingBoxBuilder, SlidingBox)
@@ -78,4 +80,9 @@ register_box(BoxType.SLIPOVER, SlipoverBoxBuilder, SlipoverBox)
 register_box(BoxType.SLIPOVER_PATH, SlipoverPathBoxBuilder, SlipoverPathBox)
 register_box(BoxType.CAP_PATH, CapPathBoxBuilder, CapPathBox)
 register_box(BoxType.NO_LID, NoLidBoxBuilder, NoLidBox)
+register_box(BoxType.PATH, PathBoxBuilder, PathBox)
 register_box(BoxType.CARD_LIBRARY, CardLibraryBoxBuilder, CardLibraryBox)
+
+
+LIDLESS_BOX_TYPES: frozenset[BoxType] = frozenset({BoxType.NO_LID, BoxType.PATH})
+"""Box types that produce a body file only — no lid geometry, no `_lid.3mf`."""

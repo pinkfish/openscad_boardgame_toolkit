@@ -33,40 +33,30 @@ class SlidingBox:
 
     def _build_shell(self, spec: dict) -> "Bosl2Solid":
         """Build the hollow box body shell."""
-        from pybosl2 import cuboid
+        from spec_driven.box.shell import build_shell
 
-        wt = spec.get("wall_thickness", 2.0)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner_w = spec["width"] - 2 * wt
-        inner_l = spec["length"] - 2 * wt
-        inner_h = spec["height"] - spec.get("floor_thickness", 1.6)
-        inner = cuboid([inner_w, inner_l, inner_h])
-        inner = inner.translate([wt, wt, spec.get("floor_thickness", 1.6)])
-        body = outer - inner
-        return body
+        return build_shell(spec)
 
     def _add_dovetail_grooves(
         self, body: "Bosl2Solid", spec: dict
     ) -> "Bosl2Solid":
-        """Cut dovetail grooves into the two non-sliding walls for lid track."""
-        from pybosl2 import cuboid
+        """Cut grooves into the two side walls for the lid to slide along."""
+        from spec_driven.box.shell import block
 
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         groove_w = spec["width"] - 2 * wt
-        groove_l = lt + 0.4  # tolerance for sliding fit
+        groove_depth = min(wt - 0.6, lt)  # bite into the wall, never through it
         groove_h = lt + 0.2
+        groove_z = spec["height"] - lt - 0.1
 
-        groove_left = cuboid([groove_w, groove_l, groove_h])
-        groove_left = groove_left.translate([
-            wt, wt - groove_l, spec["height"] - lt - groove_l,
-        ])
-
-        groove_right = cuboid([groove_w, groove_l, groove_h])
-        groove_right = groove_right.translate([
-            wt, spec["length"] - wt, spec["height"] - lt - groove_l,
-        ])
-
+        groove_left = block(
+            [groove_w, groove_depth, groove_h], at=(wt, wt - groove_depth, groove_z)
+        )
+        groove_right = block(
+            [groove_w, groove_depth, groove_h],
+            at=(wt, spec["length"] - wt, groove_z),
+        )
         return body - groove_left - groove_right
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
@@ -77,13 +67,16 @@ class SlidingBox:
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        """Build the sliding lid that fits into the dovetail grooves."""
-        from pybosl2 import cuboid
+        """Build the sliding lid — a plate wide enough to reach into the grooves."""
+        from spec_driven.box.shell import block
 
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
-        lid_w = spec["width"] - 2 * wt
-        lid_l = spec["length"] - 2 * wt
-        lid = cuboid([lid_w, lid_l, lt])
-        lid = lid.translate([wt, wt, spec["height"] - lt])
-        return lid
+        groove_depth = min(wt - 0.6, lt)
+        slack = 0.2
+
+        lid_l = spec["length"] - 2 * wt + 2 * groove_depth - slack
+        return block(
+            [spec["width"] - 2 * wt, lid_l, lt],
+            at=(wt, wt - groove_depth + slack / 2, spec["height"] - lt),
+        )

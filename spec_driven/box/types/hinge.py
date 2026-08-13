@@ -27,42 +27,33 @@ class HingeBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
+        from spec_driven.box.shell import build_shell
+        from pybosl2 import cylinder
         wt = spec.get("wall_thickness", 2.0)
-        ft = spec.get("floor_thickness", 1.6)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner = cuboid([
-            spec["width"] - 2 * wt,
-            spec["length"] - 2 * wt,
-            spec["height"] - ft,
-        ]).translate([wt, wt, ft])
 
-        # Hinge knuckles on back wall
+        body = build_shell(spec)
+
+        # Hinge knuckles along the back wall, lying on the wall's top edge.
         hinge_d = spec.get("hinge_diameter", 6.0)
         hinge_count = spec.get("hinge_count", 3)
-        body = outer - inner
+        knuckle_len = spec["width"] / (hinge_count * 2 + 1)
         spacing = spec["width"] / (hinge_count + 1)
         for i in range(hinge_count):
-            x = spacing * (i + 1)
-            knuckle = cylinder(height=spec["length"] * 0.1 + wt, radius=hinge_d / 2)
-            knuckle = knuckle.rotate([90, 0, 0])
-            knuckle = knuckle.translate([x, spec["length"], spec["height"]])
+            # A cylinder is centre-anchored and stands on Z; lay it along X and
+            # centre it on the wall so it straddles the outside face.
+            knuckle = cylinder(height=knuckle_len, radius=hinge_d / 2)
+            knuckle = knuckle.rotate([0, 90, 0])
+            knuckle = knuckle.translate([
+                spacing * (i + 1),
+                spec["length"] - wt / 2,
+                spec["height"] - hinge_d / 2,
+            ])
             body = body | knuckle
 
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        from pybosl2 import cuboid
+        from spec_driven.box.shell import block
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
-        lid = cuboid([spec["width"], spec["length"], lt])
-        return lid.translate([0, 0, spec["height"]])
+        return block([spec["width"], spec["length"], lt], at=(0, 0, spec["height"]))

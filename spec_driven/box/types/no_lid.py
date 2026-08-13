@@ -26,16 +26,10 @@ class NoLidBox:
         )
 
     def _build_shell(self, spec: dict) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        wt = spec.get("wall_thickness", 2.0)
-        ft = spec.get("floor_thickness", 1.6)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner = cuboid([
-            spec["width"] - 2 * wt,
-            spec["length"] - 2 * wt,
-            spec["height"] - ft,
-        ]).translate([wt, wt, ft])
-        return outer - inner
+        from spec_driven.box.shell import build_shell
+
+        body = build_shell(spec)
+        return body
 
     def _add_stackable_rim(self, body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         """Add an interlocking ring for stackable boxes.
@@ -43,74 +37,66 @@ class NoLidBox:
         inside  → a recess carved into the top rim (box nests inside the box above)
         outside → a ridge added around the outside (box fits around the box below)
         """
-        from pybosl2 import cuboid
+        from spec_driven.box.shell import block
+
         wt = spec.get("wall_thickness", 2.0)
         stack = spec.get("stackable_thickness") or wt
         fit = spec.get("stackable_fit_offset", 0.1)
         mode = spec.get("stackable", "inside")
 
         if mode == "inside":
-            # Carve a recess around the top inner rim
+            # Carve a recess around the top rim, so the box above nests into it.
             recess_w = spec["width"] - 2 * (wt - fit)
             recess_l = spec["length"] - 2 * (wt - fit)
-            recess = cuboid([recess_w, recess_l, stack + 0.5])
-            recess = recess.translate([
-                (spec["width"] - recess_w) / 2,
-                (spec["length"] - recess_l) / 2,
-                spec["height"] - stack,
-            ])
+            recess = block(
+                [recess_w, recess_l, stack + 0.5],
+                at=(
+                    (spec["width"] - recess_w) / 2,
+                    (spec["length"] - recess_l) / 2,
+                    spec["height"] - stack,
+                ),
+            )
             return body - recess
         elif mode == "outside":
-            # Add a ridge around the bottom outside
+            # Add a ridge around the bottom outside, so it grips the box below.
             ridge_w = spec["width"] + 2 * (stack - fit)
             ridge_l = spec["length"] + 2 * (stack - fit)
-            ridge = cuboid([ridge_w, ridge_l, stack])
-            ridge = ridge.translate([
-                (spec["width"] - ridge_w) / 2,
-                (spec["length"] - ridge_l) / 2,
-                0,
-            ])
+            ridge = block(
+                [ridge_w, ridge_l, stack],
+                at=(
+                    (spec["width"] - ridge_w) / 2,
+                    (spec["length"] - ridge_l) / 2,
+                    0,
+                ),
+            )
             return body | ridge
         return body
 
     def _add_magnet_slots(self, body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         """Carve magnet cavities into opposing side walls."""
         from pybosl2 import cuboid, cylinder
+
         magnet_type = spec.get("magnet_type")
         if not magnet_type:
             return body
 
         size = spec.get("magnet_size")
-        if magnet_type == "round":
-            diameter = size[0] if size else 6.0
-            depth = size[2] if size and len(size) > 2 else 3.0
-            slot = cylinder(height=depth + 0.2, radius=diameter / 2 + 0.1)
-        else:  # rect
+        depth = size[2] if size and len(size) > 2 else (3.0 if magnet_type == "round" else 2.0)
+
+        def slot():
+            """A fresh solid per side — one handle must not span two branches."""
+            if magnet_type == "round":
+                diameter = size[0] if size else 6.0
+                # Lay the cylinder along Y so it sinks into a front/back wall.
+                return cylinder(height=depth, radius=diameter / 2 + 0.1).rotate([90, 0, 0])
             w = size[0] if size else 10.0
             l = size[1] if size and len(size) > 1 else 5.0
-            depth = size[2] if size and len(size) > 2 else 2.0
-            slot = cuboid([w, l, depth + 0.2])
+            return cuboid([w + 0.2, depth, l + 0.2])
 
-        wt = spec.get("wall_thickness", 2.0)
         mid_h = spec["height"] / 2
-
-        # Opposing sides (front/back walls): place slots at the wall midpoint
-        if magnet_type == "round":
-            slot_a = slot.rotate([90, 0, 0]).translate([spec["width"] / 2, -0.1, mid_h])
-            slot_b = slot.rotate([90, 0, 0]).translate([
-                spec["width"] / 2, spec["length"] + 0.1, mid_h,
-            ])
-        else:
-            slot_a = slot.translate([
-                (spec["width"] - (size[0] if size else 10)) / 2,
-                -0.1,
-                mid_h - (size[2] if size and len(size) > 2 else 2) / 2,
-            ])
-            slot_b = slot.translate([
-                (spec["width"] - (size[0] if size else 10)) / 2,
-                spec["length"] + 0.1,
-                mid_h - (size[2] if size and len(size) > 2 else 2) / 2,
-            ])
+        # Blind pockets in the middle of the two opposing walls, open outward.
+        slot_a = slot().translate([spec["width"] / 2, depth / 2, mid_h])
+        slot_b = slot().translate([spec["width"] / 2, spec["length"] - depth / 2, mid_h])
 
         return body - slot_a - slot_b
 

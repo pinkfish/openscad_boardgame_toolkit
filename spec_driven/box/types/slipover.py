@@ -27,35 +27,26 @@ class SlipoverBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        wt = spec.get("wall_thickness", 2.0)
-        ft = spec.get("floor_thickness", 1.6)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner = cuboid([
-            spec["width"] - 2 * wt,
-            spec["length"] - 2 * wt,
-            spec["height"] - ft,
-        ]).translate([wt, wt, ft])
-        return outer - inner
+        from spec_driven.box.shell import build_shell
+
+        body = build_shell(spec)
+        return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        wt = spec.get("wall_thickness", 2.0)
+        """A sleeve that slips down over the whole box."""
+        from spec_driven.box.shell import block
+
         lt = spec.get("lid_thickness", 2.0)
         slip = spec.get("slip", 1.6)
-        lid_w = spec["width"] + 2 * slip
-        lid_l = spec["length"] + 2 * slip
         lid_h = lt + spec.get("cap_height", 8.0)
-        outer = cuboid([lid_w, lid_l, lid_h])
-        inner = cuboid([spec["width"], spec["length"], lid_h - lt])
-        inner = inner.translate([slip, slip, lt])
-        return (outer - inner).translate([-slip, -slip, 0])
+        origin = -slip
+
+        outer = block(
+            [spec["width"] + 2 * slip, spec["length"] + 2 * slip, lid_h],
+            at=(origin, origin, spec["height"] - lid_h + lt),
+        )
+        cavity = block(
+            [spec["width"], spec["length"], lid_h - lt],
+            at=(0, 0, spec["height"] - lid_h + lt),
+        )
+        return outer - cavity

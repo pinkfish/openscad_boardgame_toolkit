@@ -45,6 +45,8 @@ class Project:
 
     _boxes: list[BoxBuilder] = field(default_factory=list, init=False)
     _shared_groups: list = field(default_factory=list, init=False)
+    piece_bounds: tuple = field(default_factory=tuple, init=False)
+    """Bounding box of every exported piece, populated by `export()` (FR-027)."""
 
     @overload
     def box(
@@ -91,15 +93,15 @@ class Project:
     def export(self, out_dir: str | Path) -> ExportResult:
         """Build, pack, and export all 3MF files + layout PDF."""
         from spec_driven.export.result import ExportResult
-        from spec_driven.box.registry import BOX_IMPL_REGISTRY
+        from spec_driven.box.registry import BOX_IMPL_REGISTRY, LIDLESS_BOX_TYPES
         from spec_driven.box.interior import Interior
-
-        written = []
-        skipped = []
+        from spec_driven.export.exporter import BoxExporter
 
         # Standalone mode: no game box → export each box directly, no packing/PDF
         if self.game_box_size is None:
             return self._export_standalone(out_dir)
+
+        exporter = BoxExporter(out_dir, self.name)
 
         # 0. Resolve shared compartments across multiple bins dynamically
         from spec_driven.compartments.builder import CompartmentBuilder
@@ -235,13 +237,21 @@ class Project:
             size = builder.final_size
 
             # Resolve compartment sizes with ratios
-            comp_data: list[tuple[str, float, float, float]] = []
+            comp_data = []
             for cb in builder.compartments:
                 resolved = cb.resolve_size(
                     size[0] - 2 * wt,
                     size[1] - 2 * wt,
                 )
-                comp_data.append((cb.label, resolved[0], resolved[1], cb.depth or 10))
+                comp_data.append((
+                    cb.label,
+                    resolved[0],
+                    resolved[1],
+                    cb.depth or 10,
+                    getattr(cb, "shape_file", None),
+                    cb.position,
+                    getattr(cb, "elements", ()),
+                ))
 
             # Validate ratio sums
             ratio_w_sum = sum(cb.width_ratio or 0 for cb in builder.compartments)
@@ -269,6 +279,7 @@ class Project:
                 origin_z=ft,
             )
 
+            comp_layout = None
             if comp_data:
                 from spec_driven.compartments.layout import layout_compartments
                 no_rotate_labels = {cb.label for cb in builder.compartments if cb.no_rotate}
@@ -280,10 +291,8 @@ class Project:
                     )
 
             # Build geometry (requires pybosl2)
+            body = lid = None
             try:
-                lid_mmu = builder.lid.resolve_for_mode("mmu") if builder.lid else None
-                lid_single = builder.lid.resolve_for_mode("single") if builder.lid else None
-
                 spec_dict = {
                     "label": builder.label,
                     "width": size[0],
@@ -292,6 +301,9 @@ class Project:
                     "wall_thickness": wt,
                     "floor_thickness": ft,
                     "lid_thickness": lt,
+                    # Hollow the whole interior only when nothing else defines
+                    # the cavities; with compartments, they are the cavities.
+                    "hollow": not comp_data,
                 }
                 # Add type-specific attributes from builder
                 for field_name in builder.__dataclass_fields__:
@@ -307,30 +319,25 @@ class Project:
 
                 body = box.build_body(spec_dict)
                 lid = box.build_lid(spec_dict)
+
+                # Carve the compartments (and any element packs) out of the body
+                if comp_layout is not None and body is not None:
+                    from spec_driven.compartments.carve import build_contents
+
+                    contents = build_contents(
+                        comp_layout.placements,
+                        interior,
+                        {cb.label: cb for cb in builder.compartments},
+                    )
+                    if contents is not None:
+                        body = body - contents
             except ImportError:
                 pass
 
-            # Generate output files
-            is_no_lid = builder.box_type == BoxType.NO_LID
-            box_files = []
-
-            out_path = Path(out_dir) / self.name / "mmu"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{builder.label}_body.3mf").touch()
-            box_files.append(f"{self.name}/mmu/{builder.label}_body.3mf")
-            if not is_no_lid:
-                (out_path / f"{builder.label}_lid.3mf").touch()
-                box_files.append(f"{self.name}/mmu/{builder.label}_lid.3mf")
-
-            out_path = Path(out_dir) / self.name / "single"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{builder.label}_body_single.3mf").touch()
-            box_files.append(f"{self.name}/single/{builder.label}_body_single.3mf")
-            if not is_no_lid:
-                (out_path / f"{builder.label}_lid_single.3mf").touch()
-                box_files.append(f"{self.name}/single/{builder.label}_lid_single.3mf")
-
-            written.extend(box_files)
+            has_lid = builder.box_type not in LIDLESS_BOX_TYPES
+            exporter.write_box(
+                builder.label, body=body, lid=lid, size=size, has_lid=has_lid,
+            )
 
         # 3. Generate and export 3D spacers from gaps in the packed layout
         def generate_spacers_for_3d_packing(container_size, placements):
@@ -447,10 +454,11 @@ class Project:
         packing.spacer_placements = spacer_placements
 
         # Delete stale spacer files from previous runs (no longer-generated spacers)
-        self._delete_stale_spacers(out_dir, spacer_placements)
+        exporter.delete_stale("spacer_", {sp.label for sp in spacer_placements})
 
         # Build and write spacer 3MF files
         for spacer in spacer_placements:
+            body = None
             try:
                 no_lid_cls = BOX_IMPL_REGISTRY.get(BoxType.NO_LID)
                 if no_lid_cls is not None:
@@ -463,20 +471,13 @@ class Project:
                         "floor_thickness": self.floor_thickness,
                         "lid_thickness": 0.0,
                     }
-                    box_inst = no_lid_cls()
-                    body = box_inst.build_body(spec_dict)
+                    body = no_lid_cls().build_body(spec_dict)
             except Exception:
-                pass
+                body = None
 
-            out_path = Path(out_dir) / self.name / "mmu"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{spacer.label}_body.3mf").touch()
-            written.append(f"{self.name}/mmu/{spacer.label}_body.3mf")
-
-            out_path = Path(out_dir) / self.name / "single"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{spacer.label}_body_single.3mf").touch()
-            written.append(f"{self.name}/single/{spacer.label}_body_single.3mf")
+            exporter.write_box(
+                spacer.label, body=body, size=spacer.size, has_lid=False,
+            )
 
         # 4. Generate packing layout PDF
         if self._boxes:
@@ -487,17 +488,18 @@ class Project:
                 pdf_path = Path(out_dir) / self.name / "layout.pdf"
                 if should_regenerate_layout(packing, pdf_path):
                     result = generate_layout_pdf(
-                        packing, pdf_path, self.name, self.game_box_size,
+                        packing, pdf_path, self.name, self.game_box_size, box_builders=self._boxes,
                     )
                     if result:
-                        written.append(f"{self.name}/layout.pdf")
+                        exporter.state.written.append(f"{self.name}/layout.pdf")
             except Exception:
                 pass  # PDF is best-effort; don't block export
 
+        self.piece_bounds = tuple(exporter.state.bounds)
         return ExportResult(
-            written=tuple(written),
-            skipped=tuple(skipped),
-            total_files=len(written) + len(skipped),
+            written=tuple(exporter.state.written),
+            skipped=tuple(exporter.state.skipped),
+            total_files=len(exporter.state.written) + len(exporter.state.skipped),
         )
 
     def _export_standalone(self, out_dir: str | Path) -> ExportResult:
@@ -507,11 +509,11 @@ class Project:
         with its own size (explicit or computed from compartments).
         """
         from spec_driven.export.result import ExportResult
-        from spec_driven.box.registry import BOX_IMPL_REGISTRY
+        from spec_driven.box.registry import BOX_IMPL_REGISTRY, LIDLESS_BOX_TYPES
         from spec_driven.box.interior import Interior
-        from spec_driven.enums import BoxType
+        from spec_driven.export.exporter import BoxExporter
 
-        written = []
+        exporter = BoxExporter(out_dir, self.name)
 
         for builder in self._boxes:
             wt = builder.wall_thickness or self.wall_thickness
@@ -544,28 +546,40 @@ class Project:
                     f"compartments — at least one is required."
                 )
 
-            is_no_lid = builder.box_type == BoxType.NO_LID
+            object.__setattr__(builder, "final_size", size)
 
-            out_path = Path(out_dir) / self.name / "mmu"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{builder.label}_body.3mf").touch()
-            written.append(f"{self.name}/mmu/{builder.label}_body.3mf")
-            if not is_no_lid:
-                (out_path / f"{builder.label}_lid.3mf").touch()
-                written.append(f"{self.name}/mmu/{builder.label}_lid.3mf")
+            body = lid = None
+            box_cls = BOX_IMPL_REGISTRY.get(builder.box_type)
+            if box_cls is not None:
+                try:
+                    spec_dict = {
+                        "label": builder.label,
+                        "width": size[0],
+                        "length": size[1],
+                        "height": size[2],
+                        "wall_thickness": wt,
+                        "floor_thickness": ft,
+                        "lid_thickness": lt,
+                    }
+                    box_inst = box_cls()
+                    body = box_inst.build_body(spec_dict)
+                    lid = box_inst.build_lid(spec_dict)
+                except ImportError:
+                    body = lid = None
 
-            out_path = Path(out_dir) / self.name / "single"
-            out_path.mkdir(parents=True, exist_ok=True)
-            (out_path / f"{builder.label}_body_single.3mf").touch()
-            written.append(f"{self.name}/single/{builder.label}_body_single.3mf")
-            if not is_no_lid:
-                (out_path / f"{builder.label}_lid_single.3mf").touch()
-                written.append(f"{self.name}/single/{builder.label}_lid_single.3mf")
+            exporter.write_box(
+                builder.label,
+                body=body,
+                lid=lid,
+                size=size,
+                has_lid=builder.box_type not in LIDLESS_BOX_TYPES,
+            )
 
+        self.piece_bounds = tuple(exporter.state.bounds)
         return ExportResult(
-            written=tuple(written),
-            skipped=(),
-            total_files=len(written),
+            written=tuple(exporter.state.written),
+            skipped=tuple(exporter.state.skipped),
+            total_files=len(exporter.state.written) + len(exporter.state.skipped),
         )
 
     def _delete_stale_spacers(self, out_dir: str | Path, spacer_placements: list) -> None:
@@ -575,16 +589,11 @@ class Project:
             out_dir: Root output directory.
             spacer_placements: The current set of spacer placements.
         """
-        current_labels = {sp.label for sp in spacer_placements}
-        for mode in ("mmu", "single"):
-            spacer_dir = Path(out_dir) / self.name / mode
-            if not spacer_dir.exists():
-                continue
-            suffix = "_body_single.3mf" if mode == "single" else "_body.3mf"
-            for f in spacer_dir.glob("spacer_*"):
-                label = f.name[:-len(suffix)]
-                if label not in current_labels:
-                    f.unlink(missing_ok=True)
+        from spec_driven.export.exporter import BoxExporter
+
+        BoxExporter(out_dir, self.name).delete_stale(
+            "spacer_", {sp.label for sp in spacer_placements}
+        )
 
     def pack_compartments_across_bins(
         self,

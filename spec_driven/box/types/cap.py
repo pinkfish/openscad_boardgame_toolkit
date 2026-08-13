@@ -29,28 +29,27 @@ class CapBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        from pybosl2 import cuboid
-        wt = spec.get("wall_thickness", 2.0)
-        ft = spec.get("floor_thickness", 1.6)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner = cuboid([
-            spec["width"] - 2 * wt,
-            spec["length"] - 2 * wt,
-            spec["height"] - ft,
-        ]).translate([wt, wt, ft])
-        return outer - inner
+        from spec_driven.box.shell import build_shell
+
+        body = build_shell(spec)
+        return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        from pybosl2 import cuboid
+        """A cap: a top plate with a skirt that grips the outside of the walls."""
+        from spec_driven.box.shell import block
+
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         cap_h = spec.get("cap_height", 8.0)
-        lid_w = spec["width"] + 2 * wt
-        lid_l = spec["length"] + 2 * wt
-        lid = cuboid([lid_w, lid_l, lt])
-        return lid.translate([-wt, -wt, spec["height"]])
+        slack = spec.get("cap_slack", 0.2)
+
+        lid_w = spec["width"] + 2 * (wt + slack)
+        lid_l = spec["length"] + 2 * (wt + slack)
+        origin = -(wt + slack)
+
+        cap = block([lid_w, lid_l, lt + cap_h], at=(origin, origin, spec["height"] - cap_h))
+        cavity = block(
+            [spec["width"] + 2 * slack, spec["length"] + 2 * slack, cap_h],
+            at=(-slack, -slack, spec["height"] - cap_h),
+        )
+        return cap - cavity

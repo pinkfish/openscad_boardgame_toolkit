@@ -17,6 +17,7 @@ def generate_layout_pdf(
     output_path: Path,
     project_name: str,
     game_box_size: tuple[float, float, float],
+    box_builders: list | None = None,
 ) -> Path | None:
     """Generate a PDF packing guide with layered step-by-step breakdown.
 
@@ -39,6 +40,11 @@ def generate_layout_pdf(
 
     pdf = FPDF(orientation="L", unit="mm", format="A4")
     pdf.set_auto_page_break(auto=False)
+
+    # Build a lookup map for box configurations
+    box_map = {}
+    if box_builders:
+        box_map = {b.label: b for b in box_builders}
 
     # Page dimensions
     page_w = 297  # A4 landscape
@@ -269,9 +275,113 @@ def generate_layout_pdf(
             
             draw_box_3d(x, y, z, bw, bl, bh, color, p.label, str(orig_idx + 1), page["active_placements"])
 
+        # 5. Draw 2D Blueprint inset for Box if it has compartments
+        active_compartment_boxes = [p for p in page["active_placements"] if box_map.get(p.label) and box_map[p.label].compartments]
+        if active_compartment_boxes:
+            draw_box_blueprint(pdf, box_map[active_compartment_boxes[0].label], 230, 25, scale=0.45)
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     pdf.output(str(output_path))
     return output_path
+
+
+def draw_box_blueprint(pdf, builder, x_bp: float, y_bp: float, scale: float = 0.45) -> None:
+    """Draw a detailed 2D blueprint of the box containing its compartments and shapes."""
+    wt = builder.wall_thickness or 3.0
+    ft = builder.floor_thickness or 1.6
+    lt = builder.lid_thickness or 2.0
+    
+    # Outer box boundary
+    pdf.set_draw_color(50, 50, 50)
+    pdf.set_line_width(0.3)
+    pdf.set_fill_color(248, 248, 248)
+    pdf.rect(x_bp, y_bp, builder.final_size[0] * scale, builder.final_size[1] * scale, style="DF")
+    
+    # Interior border
+    interior_w = builder.final_size[0] - 2 * wt
+    interior_l = builder.final_size[1] - 2 * wt
+    pdf.set_draw_color(120, 120, 120)
+    pdf.set_line_width(0.15)
+    pdf.rect(x_bp + wt * scale, y_bp + wt * scale, interior_w * scale, interior_l * scale, style="D")
+    
+    # Title
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.set_text_color(50, 50, 50)
+    pdf.text(x_bp + 4.0 * scale, y_bp + 10.0 * scale, f"{builder.label} Layout")
+    
+    # Draw compartments
+    from spec_driven.box.interior import Interior as BoxInterior
+    from spec_driven.compartments.layout import layout_compartments
+    
+    interior = BoxInterior(
+        width=interior_w,
+        length=interior_l,
+        height=builder.final_size[2] - lt - ft,
+        origin_x=wt,
+        origin_y=wt,
+        origin_z=ft,
+    )
+    
+    comp_data = []
+    for cb in builder.compartments:
+        resolved = cb.resolve_size(interior_w, interior_l)
+        comp_data.append((
+            cb.label,
+            resolved[0],
+            resolved[1],
+            cb.depth or 10.0,
+            getattr(cb, "shape_file", None),
+            cb.position,
+            getattr(cb, "elements", ()),
+        ))
+        
+    no_rotate_labels = {cb.label for cb in builder.compartments if cb.no_rotate}
+    comp_layout = layout_compartments(interior, comp_data, no_rotate_labels=no_rotate_labels)
+    
+    pdf.set_font("Helvetica", "", 5)
+    for placement in comp_layout.placements:
+        # Coordinates relative to the blueprint origin
+        cx = x_bp + placement.position[0] * scale
+        cy = y_bp + placement.position[1] * scale
+        cw = placement.size[0] * scale
+        ch = placement.size[1] * scale
+        
+        # Draw compartment border
+        pdf.set_draw_color(180, 180, 180)
+        pdf.rect(cx, cy, cw, ch, style="D")
+        
+        # Draw label
+        pdf.text(cx + 1.0 * scale, cy + 4.0 * scale, placement.label)
+        
+        # Draw shape/SVG if present
+        if placement.shape_file:
+            svg_path = Path(placement.shape_file)
+            if svg_path.exists():
+                pdf.image(str(svg_path), cx + 1.0 * scale, cy + 5.0 * scale, w=cw - 2.0 * scale, h=ch - 6.0 * scale)
+
+        # Draw nested elements if present
+        if placement.elements:
+            for elem in placement.elements:
+                elem_x = cx + elem.offset[0] * scale
+                elem_y = cy + elem.offset[1] * scale
+                ew = (elem.size[0] if elem.size else 15.0) * scale
+                eh = (elem.size[1] if elem.size else 15.0) * scale
+
+                if not elem.shape_file:
+                    # Parametric element (circle, hexagon, scoop) — outline only.
+                    pdf.set_draw_color(200, 200, 200)
+                    pdf.rect(elem_x, elem_y, ew, eh, style="D")
+                    continue
+
+                svg_path = Path(elem.shape_file)
+                if svg_path.exists():
+                    if elem.rotation != 0.0:
+                        rot_cx = elem_x + ew / 2
+                        rot_cy = elem_y + eh / 2
+                        with pdf.rotation(elem.rotation, rot_cx, rot_cy):
+                            pdf.image(str(svg_path), elem_x, elem_y, w=ew, h=eh)
+                    else:
+                        pdf.image(str(svg_path), elem_x, elem_y, w=ew, h=eh)
 
 
 def should_regenerate_layout(
@@ -292,9 +402,6 @@ def should_regenerate_layout(
     Returns:
         True if PDF should be regenerated, False if existing is current.
     """
-    if not pdf_path.exists():
-        return True
-
     layout_data = {
         "placements": [
             {
@@ -315,10 +422,15 @@ def should_regenerate_layout(
     ).hexdigest()
 
     hash_file = pdf_path.with_suffix(".sha256")
-    if hash_file.exists():
-        stored_hash = hash_file.read_text().strip()
-        if stored_hash == current_hash:
-            return False
+    if (
+        pdf_path.exists()
+        and hash_file.exists()
+        and hash_file.read_text().strip() == current_hash
+    ):
+        return False
 
+    # Record the hash now, including on the first run — otherwise the very next
+    # export sees no stored hash and rebuilds an already-current PDF.
+    hash_file.parent.mkdir(parents=True, exist_ok=True)
     hash_file.write_text(current_hash)
     return True

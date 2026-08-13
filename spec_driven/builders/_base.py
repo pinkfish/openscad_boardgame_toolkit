@@ -11,6 +11,8 @@ from spec_driven.enums import BoxType
 if TYPE_CHECKING:
     from spec_driven.lid.builder import LidBuilder
     from spec_driven.compartments.builder import CompartmentBuilder
+    from spec_driven.compartments.element import CompartmentElement
+
 
 
 @dataclass(frozen=True)
@@ -73,6 +75,10 @@ class BoxBuilder:
         finger_scoop: bool = False,
         scoop_side: "ScoopSide" = None,
         no_rotate: bool = False,
+        shape_file: str | None = None,
+        position: tuple[float, float] | None = None,
+        elements: tuple[CompartmentElement, ...] = (),
+        element_margin: float = 0.0,
     ) -> CompartmentBuilder:
         """Add a compartment to this box."""
         from spec_driven.compartments.builder import CompartmentBuilder
@@ -88,6 +94,10 @@ class BoxBuilder:
             finger_scoop=finger_scoop,
             scoop_side=scoop_side or ScoopSide.FRONT,
             no_rotate=no_rotate,
+            shape_file=shape_file,
+            position=position,
+            elements=elements,
+            element_margin=element_margin,
         )
         object.__setattr__(self, "compartments", self.compartments + (cb,))
         return cb

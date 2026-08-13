@@ -90,11 +90,11 @@
 
 - [x] T026 [P] [US2] Implement remaining box type builders (cap, hinge, filament_hinge, magnetic) in `spec_driven/builders/`
 - [x] T027 [P] [US2] Implement remaining box type builders (inset, sliding_catch, slipover, slipover_path) in `spec_driven/builders/`
-- [x] T028 [P] [US2] Implement remaining box type builders (cap_path, no_lid, path, card_library) in `spec_driven/builders/`
+- [x] T028 [P] [US2] Implement remaining box type builders (cap_path, no_lid, path, card_library) in `spec_driven/builders/` *(path builder added 2026-08-13 — `spec_driven/builders/path.py` had never been written)*
 - [x] T029 [P] [US2] Implement box types: CapBox, HingeBox, FilamentHingeBox in `spec_driven/box/types/`
 - [x] T030 [P] [US2] Implement box types: MagneticBox, InsetBox, SlidingCatchBox in `spec_driven/box/types/`
 - [x] T031 [P] [US2] Implement box types: SlipoverBox, SlipoverPathBox, CapPathBox in `spec_driven/box/types/`
-- [x] T032 [P] [US2] Implement box types: NoLidBox, PathBox, CardLibraryBox in `spec_driven/box/types/`
+- [x] T032 [P] [US2] Implement box types: NoLidBox, PathBox, CardLibraryBox in `spec_driven/box/types/` *(PathBox added 2026-08-13 — polygon footprint, lidless, `LIDLESS_BOX_TYPES` in the registry)*
 - [x] T033 [US2] Wire all box types into registry and verify `Project.box(BoxType.X, ...)` dispatches correctly in `spec_driven/box/registry.py`
 
 **Checkpoint**: All 14 box types functional — any type selectable via enum
@@ -163,10 +163,11 @@
 ### Implementation for User Story 4
 
 - [x] T052 [US4] Enhance shelf-based 2D bin packing with row-first placement in `spec_driven/compartments/layout.py`
-- [x] T052a [US4] Implement compartment row-width distribution (size compartments to fill row width) in `spec_driven/compartments/sizing.py`
+- [x] T052a [US4] Implement compartment row-width distribution (size compartments to fill row width) in `spec_driven/compartments/sizing.py` *(written 2026-08-13 — the module had never been created)*
 - [x] T053 [US4] Implement compartment grouping (grouped items packed together) in `spec_driven/compartments/layout.py`
 - [x] T054 [US4] Implement overflow detection with descriptive error messages in `spec_driven/compartments/layout.py`
 - [x] T054a [US4] Implement compartment clipping to non-rectangular polygon interior regions (FR-018) in `spec_driven/compartments/layout.py`
+- [x] T054b [US4] Support bin-packing for non-rectangular compartments (hexagons, circular slots, custom shapes like Emberleaf species) using their rectangular bounding boxes in `spec_driven/compartments/layout.py`
 
 **Checkpoint**: Compartments auto-laid-out in rows, grouped compartments stay adjacent
 
@@ -213,12 +214,12 @@
 ### Implementation for User Story 8
 
 - [x] T068 [P] [US8] Implement `ExportResult` frozen dataclass in `spec_driven/export/result.py`
-- [x] T068a [US8] Implement MMU color-copy logic (positive inserts in different material/color from body) in `spec_driven/export/exporter.py`
-- [x] T068b [US8] Implement bounding-box reporting for each exported piece (FR-027) in `spec_driven/export/exporter.py`
+- [x] T068a [US8] Implement MMU color-copy logic (positive inserts in different material/color from body) in `spec_driven/export/exporter.py` *(written 2026-08-13 — `BoxExporter._compose` keeps inserts as distinct objects in mmu, fuses them in single)*
+- [x] T068b [US8] Implement bounding-box reporting for each exported piece (FR-027) in `spec_driven/export/exporter.py` *(written 2026-08-13 — `PieceBounds`, surfaced as `Project.piece_bounds`)*
 - [x] T069 [P] [US8] Implement two-level layout cache (in-memory dict + disk `spec_driven/.layout_cache.json`, SHA-256 key, version invalidation) to store 3D box packing layouts and bypass solver on subsequent runs in `spec_driven/packing/cache.py`
-- [x] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py`
-- [x] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py`
-- [x] T072 [US8] Implement organized output directory structure (`mmu/` + `single/`, `_body.3mf` / `_lid.3mf` naming) in `spec_driven/export/exporter.py`
+- [x] T070 [US8] Implement `BoxExporter` with per-box/per-spacer 3MF file writing in `spec_driven/export/exporter.py` *(written 2026-08-13 — `Project.export` used to `touch()` empty files; it now exports real 3MF geometry through the `openscad` module)*
+- [x] T071 [US8] Implement Hausdorff conditional write (pymeshlab compare, skip if distance < 0.001mm) in `spec_driven/export/hausdorff.py` *(written 2026-08-13 — falls back to a `<mesh>`-only digest when pymeshlab is absent, because 3MF stamps a timestamp and fresh UUIDs on every write and so never matches byte for byte)*
+- [x] T072 [US8] Implement organized output directory structure (`mmu/` + `single/`, `_body.3mf` / `_lid.3mf` naming) in `spec_driven/export/exporter.py` *(moved out of `project.py` into `BoxExporter` 2026-08-13)*
 - [x] T073 [US8] Wire full `Project.export()` pipeline: pack with dynamic dimension expansion → auto-size with `final_size` propagation → spacers → build → export in `spec_driven/project.py`
 
 **Checkpoint**: Full export pipeline functional — cached, Hausdorff-gated, organized output
@@ -319,7 +320,7 @@
 - [x] T123 [P] Write test: push block + finger hole are mutually offset (never intersect) in `tests/test_spec_driven/test_hex_grid.py`
 - [x] T124 [P] Add `board_thickness` field to `Project` — reserved board space at the box bottom, not a spacer gap — in `spec_driven/project.py`
 - [x] T125 [P] Exclude the board area from spacer generation by using `game_box_height - board_thickness` as the effective container height in `spec_driven/project.py`
-- [x] T126 [P] Implement `_delete_stale_spacers()` — delete orphaned `spacer_*` 3MF files no longer generated — in `spec_driven/project.py`
+- [x] T126 [P] Implement `_delete_stale_spacers()` — delete orphaned `spacer_*` 3MF files no longer generated — in `spec_driven/project.py` *(now delegates to `BoxExporter.delete_stale`)*
 - [x] T127 [P] Write test: `board_thickness` excludes the board area from spacer generation (no spacer for reserved board space) in `tests/test_spec_driven/test_packing.py`
 - [x] T128 [P] Write test: `_delete_stale_spacers()` removes orphaned spacer files when re-export produces fewer spacers in `tests/test_spec_driven/test_export.py`
 - [x] T129 [P] Write test: 1835 example produces exactly one spacer (matching the original `SpacerBox`) in `tests/test_spec_driven/test_irish_gauge.py`
@@ -331,6 +332,59 @@
 - [x] T135 [P] Create GitHub Actions test workflow (fast pytest + pyright) in `.github/workflows/test.yml`
 - [x] T136 [P] Create GitHub Actions render workflow (PythonSCAD golden-image verification) in `.github/workflows/render.yml`
 - [x] T137 [P] Create GitHub Actions docs workflow (dev docs on checkin, release docs on tag) in `.github/workflows/docs.yml`
+
+---
+
+## Phase 12: Element Packing & Emberleaf (FR-004a / FR-004b)
+
+**Purpose**: Individual per-piece slots inside a compartment, and the Emberleaf reference example that exercises them.
+
+**Goal**: A compartment can hold many individually-placed silhouettes — a slot per worker meeple, per hero standee, per hex tile — each at its own offset, rotation and depth, with the pack's bounding box packing like an ordinary rectangle. `boxes/emberleaf/emberleaf.py` reproduces `examples/emberleaf.scad`.
+
+**Independent Test**: Load the Emberleaf example and verify five separate slots exist per worker species, each with its own SVG silhouette, none overlapping the hero or breaking a wall.
+
+### Element packing
+
+- [x] T138 [P] Implement `CompartmentElement` with per-element shape, offset, rotation, depth and z-offset in `spec_driven/compartments/element.py`
+- [x] T139 [P] Implement `ElementShape` enum (SVG, RECT, ROUNDED_RECT, CIRCLE, HEXAGON, SPHERE_SCOOP) in `spec_driven/enums.py`
+- [x] T140 [P] Implement shape-aware footprints — exact rotated hexagon extent, rotation-invariant discs — in `spec_driven/compartments/element.py`
+- [x] T141 [P] Implement element-pack helpers (`grid_pack`, `normalize_elements`, `elements_footprint`, `elements_overlap`) in `spec_driven/compartments/element.py`
+- [x] T142 [US4] Derive a compartment's size from its element pack's bounding box (FR-004b) in `spec_driven/compartments/builder.py`
+- [x] T143 [P] Implement SVG silhouette extrusion with a parse cache (`svg_solid`) in `spec_driven/compartments/element.py`
+- [x] T144 [P] Write test: element footprints, packs, overlap detection and pack-derived sizing in `tests/test_spec_driven/test_elements.py`
+
+### Carving compartments into bodies
+
+- [x] T145 [US1] Implement `build_contents` — turn compartment placements into the solid subtracted from a body — in `spec_driven/compartments/carve.py`
+- [x] T146 [US1] Hollow a box wholesale only when it has no compartments; otherwise the compartments are the cavities. `spec_driven/box/shell.py` + `Project.export`
+- [x] T147 [US1] Clip compartment wells to the interior footprint so none breaks through a side wall (FR-018), while finger scoops stay unclipped because piercing a wall is their job, in `spec_driven/compartments/carve.py`
+- [x] T148 [US3] Rewrite the finger scoops for correct anchoring, with an automatic wall-notch → floor-bowl fallback for shallow compartments, in `spec_driven/compartments/finger_hole.py`
+
+### Geometry anchoring correction
+
+- [x] T149 Extract the shared `build_shell` / `block` / `corner` placement helpers in `spec_driven/box/shell.py`, replacing the copy of `outer - inner` in all 13 box types
+- [x] T150 Correct every box type for pybosl2's **centre**-anchored primitives — bodies were being cut off-centre, leaving boxes with two walls instead of four — in `spec_driven/box/types/`
+- [x] T151 Rebuild the CapBox and SlipoverBox lids as real skirted caps rather than flat plates in `spec_driven/box/types/`
+- [x] T152 Regenerate the golden images, which had captured the off-centre bodies, and align `generate_golden.py`'s dimensions with the test's in `tests/test_spec_driven/`
+
+### Emberleaf reference example
+
+- [x] T153 Rewrite `boxes/emberleaf/emberleaf.py` to derive every dimension with the same formula as `examples/emberleaf.scad`
+- [x] T154 Place all 21 boxes at the positions `BoxLayout()` uses, with no overlaps and nothing overhanging the game box
+- [x] T155 Give each of the five owl / rabbit / frog / rat workers its own silhouette slot at the original's pitch, plus the per-colour hero, in `boxes/emberleaf/emberleaf.py`
+- [x] T156 Reproduce the marker pockets, victory-token stack, hex tiles and pull-out depressions at their individual depths in `boxes/emberleaf/emberleaf.py`
+- [x] T157 Reproduce the CommonBox hex grid, trophy well and trophy marker in `boxes/emberleaf/emberleaf.py`
+- [x] T158 [P] Write test: Emberleaf dimensions, layout, per-worker slots and export match the original in `tests/test_spec_driven/test_emberleaf.py`
+- [x] T159 [P] Write test: BoxExporter, mesh-equivalence gating, row sizing and PathBox in `tests/test_spec_driven/test_exporter.py`
+- [x] T160 Fix `should_regenerate_layout` writing its hash only on the second run, which rebuilt an already-current PDF, in `spec_driven/export/layout_pdf.py`
+
+**Checkpoint**: Element packs functional; Emberleaf exports 78 real 3MF files plus a layout PDF, and a re-export rewrites nothing.
+
+### Known gaps
+
+- [ ] T161 Lid decoration (`LidBuilder` text, patterns, colours) is resolved and validated but not yet applied to the generated lid geometry — `build_lid` ignores its `decoration` argument in every box type.
+- [ ] T162 `InsetBox`, `SlidingCatchBox`, `CapPathBox`, `SlipoverPathBox`, `CardLibraryBox` and `FilamentHingeBox` still return a plain plate from `build_lid`; only sliding, cap and slipover produce their real mating geometry.
+- [ ] T163 `HingeBox` knuckles are a placeholder — no matching lid knuckles and no pin channel, so the hinge does not yet articulate.
 
 ---
 

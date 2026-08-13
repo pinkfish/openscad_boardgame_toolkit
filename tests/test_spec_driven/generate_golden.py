@@ -20,7 +20,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "render"))
 from render_app import find_pythonscad_binary  # noqa: E402
 from render_spec_driven import GOLDEN_DIR, OUT_DIR, build_box_body_expr, render_solid  # noqa: E402
 
-BOX_TYPES = ["SLIDING", "CAP", "HINGE", "FILAMENT_HINGE", "MAGNETIC", "INSET", "NO_LID"]
+#: Box type → the dimensions its test renders at. These MUST match
+#: tests/test_spec_driven/render/test_boxes_golden.py, or the golden is of a
+#: different box than the one being compared against it.
+BOX_TYPES = {
+    "SLIDING": (100, 80, 50),
+    "CAP": (100, 80, 50),
+    "HINGE": (100, 80, 50),
+    "FILAMENT_HINGE": (100, 80, 50),
+    "MAGNETIC": (100, 80, 50),
+    "INSET": (100, 80, 50),
+    "NO_LID": (100, 80, 30),
+}
 
 PATTERNS = {
     "pattern_hex_grid": (
@@ -59,8 +70,8 @@ def main() -> None:
     GOLDEN_DIR.mkdir(parents=True, exist_ok=True)
 
     cases: dict[str, str] = {}
-    for bt in BOX_TYPES:
-        cases[f"{bt.lower()}_body"] = build_box_body_expr(bt, 100, 80, 50)
+    for bt, (w, l, h) in BOX_TYPES.items():
+        cases[f"{bt.lower()}_body"] = build_box_body_expr(bt, w, l, h)
     cases.update(PATTERNS)
 
     for name, expr in cases.items():

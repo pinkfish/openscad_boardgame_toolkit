@@ -27,28 +27,12 @@ class InsetBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        from pybosl2 import cuboid
-        try:
-            from pybosl2 import cylinder
-        except ImportError:
-            pass
-        wt = spec.get("wall_thickness", 2.0)
-        ft = spec.get("floor_thickness", 1.6)
-        outer = cuboid([spec["width"], spec["length"], spec["height"]])
-        inner = cuboid([
-            spec["width"] - 2 * wt,
-            spec["length"] - 2 * wt,
-            spec["height"] - ft,
-        ]).translate([wt, wt, ft])
-        return outer - inner
+        from spec_driven.box.shell import build_shell
+
+        body = build_shell(spec)
+        return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        from pybosl2 import cuboid
+        from spec_driven.box.shell import block
         lt = spec.get("lid_thickness", 2.0)
-        lid = cuboid([spec["width"], spec["length"], lt])
-        return lid.translate([0, 0, spec["height"]])
+        return block([spec["width"], spec["length"], lt], at=(0, 0, spec["height"]))

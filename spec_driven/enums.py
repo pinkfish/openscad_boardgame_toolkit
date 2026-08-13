@@ -18,6 +18,7 @@ class BoxType(Enum):
     SLIPOVER_PATH = "slipover_path"
     CAP_PATH = "cap_path"
     NO_LID = "no_lid"
+    PATH = "path"
     CARD_LIBRARY = "card_library"
 
 
@@ -94,3 +95,18 @@ class ScoopSide(Enum):
     BACK = "back"
     LEFT = "left"
     RIGHT = "right"
+
+
+class ElementShape(Enum):
+    """Silhouette kind for a `CompartmentElement` (FR-004a/FR-004b).
+
+    SVG elements take their outline from `shape_file`; the rest are
+    parametric and need only the element's bounding size.
+    """
+
+    SVG = "svg"
+    RECT = "rect"
+    ROUNDED_RECT = "rounded_rect"
+    CIRCLE = "circle"
+    HEXAGON = "hexagon"
+    SPHERE_SCOOP = "sphere_scoop"

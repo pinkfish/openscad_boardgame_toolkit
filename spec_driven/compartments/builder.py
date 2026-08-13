@@ -6,6 +6,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from spec_driven.enums import ScoopSide
+from spec_driven.compartments.element import CompartmentElement
+
 
 
 @dataclass(frozen=True)
@@ -35,12 +37,30 @@ class CompartmentBuilder:
     """Which side the finger scoop is on."""
     no_rotate: bool = False
     """Prevent the layout algorithm from rotating this compartment (e.g. directional card slots)."""
+    shape_file: str | None = None
+    """Path to an SVG file defining the custom shape of the compartment cutout."""
+    position: tuple[float, float] | None = None
+    """Manual coordinate override (x, y) in mm within the interior frame."""
+    elements: tuple[CompartmentElement, ...] = ()
+    """Physical game components nested inside this compartment (FR-004b).
+
+    A compartment carrying elements is an *element pack*: the elements are laid
+    out in the compartment's local frame and the pack's bounding box is what the
+    box-level layout engine sees, so it packs like any other rectangle."""
+    element_margin: float = 0.0
+    """Clearance added around an element pack's bounding box when `size` is
+    derived from the elements."""
 
     def __post_init__(self) -> None:
-        if self.size is None and self.width_ratio is None and self.length_ratio is None:
+        if (
+            self.size is None
+            and self.width_ratio is None
+            and self.length_ratio is None
+            and not self.elements
+        ):
             raise ValueError(
                 f"Compartment '{self.label}' must specify either "
-                f"size=(w, l) or width_ratio/length_ratio."
+                f"size=(w, l), width_ratio/length_ratio, or elements=(...)."
             )
         for name, val in [("width_ratio", self.width_ratio), ("length_ratio", self.length_ratio)]:
             if val is not None and not (0.0 < val <= 1.0):
@@ -61,6 +81,11 @@ class CompartmentBuilder:
         """
         if self.size is not None:
             w, l = self.size
+        elif self.elements:
+            # Element pack: the bounding box of the pack IS the compartment (FR-004b).
+            from spec_driven.compartments.element import elements_footprint
+
+            w, l = elements_footprint(self.elements, margin=self.element_margin)
         else:
             w = interior_w
             l = interior_l

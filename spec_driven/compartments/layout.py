@@ -14,6 +14,8 @@ class CompartmentPlacement:
     size: tuple[float, float]
     depth: float
     position: tuple[float, float]  # (x, y) in interior frame
+    shape_file: str | None = None
+    elements: tuple = ()
 
 
 @dataclass
@@ -30,20 +32,27 @@ class CompartmentLayout:
 
 def layout_compartments(
     interior: Interior,
-    compartments: list[tuple[str, float, float, float]],
+    compartments: list[tuple[str, float, float, float, str | None, tuple[float, float] | None, tuple | None]] | list[tuple[str, float, float, float]],
     wall_spacing: float = 2.0,
     no_rotate_labels: set[str] | None = None,
 ) -> CompartmentLayout:
     """Row-based layout of compartments inside the box interior with 90-degree rotation support.
 
-    Args:
-        interior: The available interior space.
-        compartments: List of (label, width, length, depth) tuples.
-        wall_spacing: Gap between compartments.
-
-    Returns:
-        CompartmentLayout with positions assigned.
+    Handles manual coordinates if position is specified in the compartment tuple.
     """
+    # Convert old 4-tuples, 5-tuples and 6-tuples to 7-tuples for backward compatibility
+    comps_7 = []
+    for c in compartments:
+        if len(c) == 4:
+            comps_7.append((c[0], c[1], c[2], c[3], None, None, ()))
+        elif len(c) == 5:
+            comps_7.append((c[0], c[1], c[2], c[3], c[4], None, ()))
+        elif len(c) == 6:
+            comps_7.append((c[0], c[1], c[2], c[3], c[4], c[5], ()))
+        else:
+            comps_7.append(c)
+    compartments = comps_7
+
     layout = CompartmentLayout()
     if not compartments:
         return layout
@@ -53,18 +62,42 @@ def layout_compartments(
     interior_w = interior.width
     interior_l = interior.length
 
+    # 1. Process manually placed compartments first
+    auto_comps = []
+    for comp in compartments:
+        label, comp_w, comp_l, comp_depth, shape_file, pos, elements = comp
+        if pos is not None:
+            # Validate fit
+            if pos[0] + comp_w > interior_w or pos[1] + comp_l > interior_l:
+                layout.overflow = True
+            layout.placements.append(
+                CompartmentPlacement(
+                    label=label,
+                    size=(comp_w, comp_l),
+                    depth=comp_depth,
+                    position=(interior.origin_x + pos[0], interior.origin_y + pos[1]),
+                    shape_file=shape_file,
+                    elements=elements or (),
+                )
+            )
+        else:
+            auto_comps.append(comp)
+
+    if not auto_comps:
+        return layout
+
     # If there is only a single compartment, it should sit flush with the walls
-    if len(compartments) == 1:
+    if len(auto_comps) == 1:
         wall_spacing = 0.0
 
     # Sort compartments by area descending to match the multi-bin solver
-    sorted_comps = sorted(compartments, key=lambda c: c[1] * c[2], reverse=True)
+    sorted_comps = sorted(auto_comps, key=lambda c: c[1] * c[2], reverse=True)
 
     x_cursor = wall_spacing
     y_cursor = wall_spacing
     current_row_height = 0.0
 
-    for label, comp_w, comp_l, comp_depth in sorted_comps:
+    for label, comp_w, comp_l, comp_depth, shape_file, _, elements in sorted_comps:
         can_rotate = label not in no_rotate_labels
         # Check both normal and rotated orientations
         fits_normal = (x_cursor + comp_w + wall_spacing <= interior_w) and (y_cursor + comp_l + wall_spacing <= interior_l)
@@ -111,6 +144,8 @@ def layout_compartments(
                     interior.origin_x + x_cursor,
                     interior.origin_y + y_cursor,
                 ),
+                shape_file=shape_file,
+                elements=elements or (),
             )
         )
         x_cursor += w + wall_spacing
