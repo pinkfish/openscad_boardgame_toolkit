@@ -790,3 +790,85 @@ class SlidingScoopAndLidEdgeTests(unittest.TestCase):
         self.assertEqual(lid_rounding({"wall_thickness": 4.0, "lid_thickness": 2.0}), 1.0)
         # A thick lid is not the constraint, so the body radius stands.
         self.assertEqual(lid_rounding({"wall_thickness": 2.0, "lid_thickness": 8.0}), 1.0)
+
+
+class WallTopTests(unittest.TestCase):
+    """FR-043b7/b8: each wall's top is its own, not the box's."""
+
+    def box(self, box_type):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        return BOX_IMPL_REGISTRY[box_type]()
+
+    def spec(self, **kwargs):
+        base = dict(width=98.0, length=73.0, height=52.5,
+                    wall_thickness=2.0, lid_thickness=2.0, floor_thickness=2.0)
+        base.update(kwargs)
+        return base
+
+    def test_a_lidless_box_ends_at_its_own_top(self) -> None:
+        from pyboxbuilder.box.base import wall_tops
+        from pyboxbuilder.enums import BoxType
+
+        tops = wall_tops(self.box(BoxType.NO_LID), self.spec(rim_free=True))
+        for side, z in tops.items():
+            with self.subTest(side=side.value):
+                self.assertAlmostEqual(z, 52.5)
+
+    def test_a_sliding_box_stops_at_its_channel(self) -> None:
+        """Its exit wall's material ends there, and cutting the others above
+        that line would break into the channel the lid rides in."""
+        from pyboxbuilder.box.base import wall_tops
+        from pyboxbuilder.enums import BoxType
+
+        tops = wall_tops(self.box(BoxType.SLIDING), self.spec())
+        for side, z in tops.items():
+            with self.subTest(side=side.value):
+                self.assertAlmostEqual(z, 50.5)
+
+    def test_every_side_is_covered(self) -> None:
+        from pyboxbuilder.box.base import wall_tops
+        from pyboxbuilder.enums import BoxType
+
+        tops = wall_tops(self.box(BoxType.CAP), self.spec())
+        self.assertEqual(set(tops), set(ScoopSide))
+
+    def test_a_spec_carrying_the_map_is_read_per_side(self) -> None:
+        from pyboxbuilder.box.base import wall_top
+
+        spec = self.spec(wall_tops={ScoopSide.BACK: 40.0})
+        self.assertAlmostEqual(wall_top(spec, ScoopSide.BACK), 40.0)
+        # A side the map does not mention falls back to the generic rule.
+        self.assertAlmostEqual(wall_top(spec, ScoopSide.FRONT), 50.5)
+
+    def test_without_a_map_it_still_allows_for_the_lid(self) -> None:
+        from pyboxbuilder.box.base import default_wall_top
+
+        self.assertAlmostEqual(default_wall_top(self.spec()), 50.5)
+        self.assertAlmostEqual(default_wall_top(self.spec(rim_free=True)), 52.5)
+        # An explicit interior_top wins, for bodies already shortened.
+        self.assertAlmostEqual(default_wall_top(self.spec(interior_top=30.0)), 30.0)
+
+
+class PullOutRollTests(unittest.TestCase):
+    """FR-043c1: the roll spans the scoop's depth, not a token radius."""
+
+    def test_the_roll_is_the_scoops_depth(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import _fit_radii
+
+        depth = 20.0
+        r1, r2 = _fit_radii(radius=12.0, height=depth, top_rounding=depth,
+                            bottom_rounding=None)
+        # r1 and r2 share the height when together they ask for more than it.
+        self.assertGreater(r1, 0.0)
+        self.assertAlmostEqual(r1 + r2, depth, places=6)
+        self.assertGreater(r1, r2, "the roll should dominate a pull-out scoop")
+
+    def test_it_leaves_no_straight_run(self) -> None:
+        """With the arcs filling the height there is no vertical throat left,
+        which is the point: the edge curves the whole way down."""
+        from pyboxbuilder.compartments.finger_hole import _fit_radii
+
+        r1, r2 = _fit_radii(radius=12.0, height=18.0, top_rounding=18.0,
+                            bottom_rounding=None)
+        self.assertAlmostEqual(r1 + r2, 18.0, places=6)
