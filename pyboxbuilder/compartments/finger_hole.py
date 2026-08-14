@@ -71,6 +71,43 @@ _SIDE_SPIN = {
 }
 
 
+S_CURVE_SAMPLES = 24
+"""Points per side of the mouth's S-curve. 24 is smooth at print scale."""
+
+
+def s_curve_offsets(flare: float, rise: float, samples: int = S_CURVE_SAMPLES) -> list:
+    """Sample the mouth's S-curve as ``(dx, dy)`` offsets from the throat.
+
+    A **smoothstep**, not a circular arc, because the two have different ends.
+    A quarter-arc is tangent to the top face and to the throat, so it is G1
+    continuous — but its curvature jumps from ``1/r`` to zero at both ends,
+    which leaves a visible crease line where the flat top starts to fall away
+    and another where the flare meets the throat. ``3t² - 2t³`` has zero
+    curvature at both ends as well as matching tangents, so the surface rolls
+    out of the top face, inflects, and settles into the throat with no crease
+    anywhere: the top of the box flows into the scoop and back out again.
+
+    Args:
+        flare: How far the mouth widens outward, in mm.
+        rise: How tall the transition is, in mm.
+        samples: Points along the curve. More is smoother and costs facets.
+
+    Returns:
+        ``[(dx, dy), ...]`` from ``(0, 0)`` at the throat to
+        ``(flare, rise)`` at the top face, ordered bottom to top.
+
+    Raises:
+        ValueError: If ``samples`` is below 2 — one point is not a curve.
+    """
+    if samples < 2:
+        raise ValueError(f"s_curve_offsets needs samples >= 2; got {samples}")
+    points = []
+    for index in range(samples + 1):
+        t = index / samples
+        points.append((flare * (3 * t * t - 2 * t * t * t), rise * t))
+    return points
+
+
 def scoop_profile(
     radius: float,
     height: float,
@@ -78,17 +115,24 @@ def scoop_profile(
 ) -> "Bosl2Shape2D":
     """Build the 2-D side profile of a finger scoop, in the X-Z plane.
 
-    A semicircular bottom of ``radius``, a straight throat up to ``height``,
-    and a mouth that flares out by ``rounding_radius`` at the rim. Ported from
-    ``FingerHoleWall``, including its two cases: when the scoop is too shallow
-    for a straight throat, the mouth's fillet is blended into the bottom circle
-    along their **common tangent**, which keeps the profile smooth instead of
-    letting the two arcs cross at a corner.
+    A semicircular bottom of ``radius``, a straight throat, and a mouth that
+    **S-curves** out to the rim over ``rounding_radius``. The bore is tangent to
+    the floor plane, so the bottom of the scoop curves into the floor rather
+    than meeting it at a corner, and the S-curve does the same at the top: the
+    box's top face rolls down into the scoop and back out without a crease. See
+    :func:`s_curve_offsets` for why it is a smoothstep and not an arc.
+
+    This replaces the original's two-branch construction (a quarter-arc mouth,
+    plus a ``circle_circle_tangents`` blend for scoops too shallow to fit one).
+    A sampled S needs no such special case: where there is less room the
+    transition simply gets shorter, and nothing can cross.
 
     Args:
         radius: Radius of the finger bore — the widest part of the throat.
         height: Height from the floor to the rim.
-        rounding_radius: Flare at the mouth. ``0`` gives a square-topped slot.
+        rounding_radius: How far the mouth flares out at the rim. ``0`` gives a
+            square-topped slot. Capped at half the height, so a shallow scoop
+            keeps some throat.
 
     Returns:
         The profile as 2-D geometry, with the floor at ``y=0`` and the rim at
@@ -98,7 +142,9 @@ def scoop_profile(
         ValueError: If ``radius`` or ``height`` is not positive, or
             ``rounding_radius`` is negative.
     """
-    from pybosl2 import geometry, shapes2d
+    import math
+
+    from pybosl2 import shapes2d
 
     if radius <= 0:
         raise ValueError(f"scoop radius must be > 0; got {radius}")
@@ -113,61 +159,37 @@ def scoop_profile(
         throat = shapes2d.square([radius * 2, height], center=True).translate([0.0, height / 2])
         return bore | throat
 
-    if height >= radius + rounding_radius:
-        # Room for a straight throat: bore, throat, and a flared mouth built as
-        # a band the full flared width minus a fillet circle at each shoulder.
-        throat_height = height - radius
-        throat = shapes2d.square([radius * 2, throat_height], center=True).translate(
-            [0.0, radius + throat_height / 2]
+    # The mouth may not eat the whole scoop: leave at least half the height as
+    # throat so a finger still has a straight section to hook into.
+    rise = min(rounding_radius, height / 2)
+    throat_top = height - rise
+
+    # Where the S starts: the throat's half-width at throat_top. Above the
+    # bore's equator the circle narrows again, so the throat rectangle holds the
+    # width at `radius`; below it the bore itself is narrower and the S has to
+    # start from the bore's own edge or it would leave a step.
+    if throat_top >= radius:
+        start_x = radius
+        throat = shapes2d.square([radius * 2, throat_top - radius], center=True).translate(
+            [0.0, radius + (throat_top - radius) / 2]
         )
-        band = shapes2d.square(
-            [radius * 2 + rounding_radius * 2, rounding_radius], center=True
-        ).translate([0.0, height - rounding_radius / 2])
-        mouth = band
-        for direction in (1, -1):
-            mouth = mouth - shapes2d.circle(
-                radius=rounding_radius, **precision_kwargs()
-            ).translate([direction * (radius + rounding_radius), height - rounding_radius])
-        return bore | throat | mouth
+    else:
+        start_x = math.sqrt(max(0.0, radius * radius - (throat_top - radius) ** 2))
+        throat = None
 
-    # Too shallow for a throat. Blend the shoulder fillet into the bore along
-    # their common tangent (the original's circle_circle_tangents call), so the
-    # two arcs meet smoothly rather than crossing.
-    tangents = geometry.circle_circle_tangents(
-        radius1=rounding_radius,
-        center1=[radius + rounding_radius, height - rounding_radius],
-        radius2=radius,
-        center2=[0.0, radius],
-    )
-    if not tangents:
-        # Circles too close for a common tangent — fall back to the square
-        # mouth rather than emitting a broken profile.
-        throat = shapes2d.square([radius * 2, height], center=True).translate([0.0, height / 2])
-        return bore | throat
+    # One closed half of the mouth: up the throat line, out along the S, then
+    # back along the top face to the centre.
+    offsets = s_curve_offsets(rounding_radius, rise)
+    half_points = [(0.0, throat_top)]
+    half_points += [(start_x + dx, throat_top + dy) for dx, dy in offsets]
+    half_points += [(0.0, height)]
+    half = shapes2d.polygon([[float(x), float(y)] for x, y in half_points])
 
-    start, end = tangents[-1]
-    wedge = shapes2d.polygon([
-        [float(start[0]), float(start[1])],
-        [float(end[0]), float(end[1])],
-        [float(radius + rounding_radius), float(height)],
-        [0.0, float(height)],
-        [0.0, float(start[1])],
-    ])
-    shoulder = shapes2d.square(
-        [rounding_radius, rounding_radius], center=True
-    ).translate([
-        radius + rounding_radius / 2, height - rounding_radius / 2,
-    ]) - shapes2d.circle(radius=rounding_radius, **precision_kwargs()).translate(
-        [radius + rounding_radius, height - rounding_radius]
-    )
-
-    half = wedge | shoulder
-    profile = bore | half | half.mirror([1, 0])
-    # Clip to the flared envelope so no fillet construction pokes out.
-    envelope = shapes2d.square(
-        [radius * 2 + rounding_radius * 2, height], center=True
-    ).translate([0.0, height / 2])
-    return profile & envelope
+    mouth = half | half.mirror([1, 0])
+    profile = bore | mouth
+    if throat is not None:
+        profile = profile | throat
+    return profile
 
 
 def build_wall_scoop(

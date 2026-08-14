@@ -94,8 +94,15 @@ def cap_body(spec: dict) -> "Bosl2Solid":
         return shell  # the cap is taller than the body; nothing to step in
 
     # Keep everything below the band at full size, and only the band above it.
-    keep = block([spec["width"], spec["length"], m.band_z]) | block(
+    # The band is what the skirt grips, so its corners take the smaller mating
+    # radius — matched by the lid's cavity in `cap_lid` — while everything below
+    # it keeps the body's own outer rounding.
+    from pyboxbuilder.rounding import mating_rounding, rounded_block, vertical_edges
+
+    keep = block([spec["width"], spec["length"], m.band_z]) | rounded_block(
         [m.band_width, m.band_length, m.body_height - m.band_z],
+        mating_rounding(spec),
+        vertical_edges(),
         at=(m.inset, m.inset, m.band_z),
     )
     return shell & keep
@@ -113,11 +120,17 @@ def cap_lid(spec: dict) -> "Bosl2Solid":
     lt = spec.get("lid_thickness", 2.0)
     slack = spec.get("cap_slack", WIGGLE_MM)
 
+    from pyboxbuilder.rounding import mating_rounding, rounded_block, vertical_edges
+
     outer = block(
         [spec["width"], spec["length"], m.cap_height], at=(0.0, 0.0, m.band_z)
     )
-    cavity = block(
+    # The cavity's corners are rounded to the same radius as the band they slide
+    # over, so the two nest instead of meeting at a gap.
+    cavity = rounded_block(
         [m.band_width + 2 * slack, m.band_length + 2 * slack, m.cap_height - lt],
+        mating_rounding(spec),
+        vertical_edges(),
         at=(m.inset - slack, m.inset - slack, m.band_z),
     )
     return outer - cavity

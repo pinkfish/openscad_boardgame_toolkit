@@ -58,6 +58,10 @@ class BoxBuilder:
     """Per-box floor thickness override."""
     lid_thickness: float | None = None
     """Per-box lid thickness override."""
+    rounding: float | None = None
+    """Edge radius for this box's exposed edges; None uses the project default."""
+    inner_rounding: float | None = None
+    """Edge radius where a partial lid grips this body; None uses half the outer radius."""
     lid: LidBuilder | None = None
     """Lid decoration configuration."""
     color: Color | None = None

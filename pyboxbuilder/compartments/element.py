@@ -15,6 +15,7 @@ actually built, so the layout maths stays importable without PythonSCAD.
 from __future__ import annotations
 
 from pyboxbuilder.precision import kwargs as precision_kwargs
+from pyboxbuilder.rounding import vertical_edges
 
 import math
 from dataclasses import dataclass, replace
@@ -279,7 +280,7 @@ def build_element(
     elif element.shape is ElementShape.SPHERE_SCOOP:
         solid = sphere(radius=base_w / 2, **precision_kwargs())
     elif element.shape is ElementShape.ROUNDED_RECT:
-        solid = cuboid([w, l, depth], rounding=element.corner_radius, edges=Anchor.Z,
+        solid = cuboid([w, l, depth], rounding=element.corner_radius, edges=vertical_edges(),
                        **precision_kwargs())
     else:
         solid = cuboid([w, l, depth])

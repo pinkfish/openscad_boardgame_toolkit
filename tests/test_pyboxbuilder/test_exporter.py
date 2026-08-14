@@ -257,9 +257,11 @@ class PathBoxTests(unittest.TestCase):
         spec = {"width": 60.0, "length": 40.0, "height": 20.0,
                 "wall_thickness": 2.0, "floor_thickness": 1.6}
         _, size = box.build_body(spec).bounds()
-        self.assertAlmostEqual(size[0], 60.0, places=3)
-        self.assertAlmostEqual(size[1], 40.0, places=3)
-        self.assertAlmostEqual(size[2], 20.0, places=3)
+        # Sizes carry the rounding's 0.002mm faceting tolerance: a fillet is
+        # an inscribed polygon, so it pulls its faces in by the sagitta.
+        self.assertAlmostEqual(size[0], 60.0, delta=0.01)
+        self.assertAlmostEqual(size[1], 40.0, delta=0.01)
+        self.assertAlmostEqual(size[2], 20.0, delta=0.01)
 
     def test_a_polygon_footprint_is_extruded_from_the_bed_up(self) -> None:
         box = BOX_IMPL_REGISTRY[BoxType.PATH]()

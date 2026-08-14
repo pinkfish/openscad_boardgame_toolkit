@@ -23,6 +23,12 @@ from pyboxbuilder.compartments.finger_hole import (
     DEFAULT_MOUTH_ROUNDING_MM as DEFAULT_MOUTH_ROUNDING,
 )
 from pyboxbuilder.enums import ScoopSide
+from pyboxbuilder.precision import kwargs as precision_kwargs
+from pyboxbuilder.rounding import (
+    default_rounding,
+    round_edges,
+    vertical_and_bottom_edges,
+)
 
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid
@@ -66,10 +72,45 @@ def build_shell(spec: dict) -> "Bosl2Solid":
     Returns:
         The box body before any type-specific lid features are added.
     """
-    outer = block([spec["width"], spec["length"], spec["height"]])
+    size = [spec["width"], spec["length"], spec["height"]]
+    outer = block(size)
+
+    # Round what a hand grips: the vertical corners and the base always, and the
+    # top rim too when nothing has to mate with it. On a lidded box the rim is a
+    # sealing surface, so its rounding lives on the lid instead — the closed box
+    # still reads as rounded top, sides and bottom (FR-043/FR-044).
+    radius = body_rounding(spec)
+    if radius > 0:
+        edges = vertical_and_bottom_edges()
+        if spec.get("rim_free"):
+            edges = edges + [_top_anchor()]
+        outer = round_edges(outer, size, radius, edges)
+
     if spec.get("hollow", True):
         outer = outer - interior_block(spec)
     return apply_finger_holes(outer, spec)
+
+
+def body_rounding(spec: dict) -> float:
+    """The edge radius for this box body.
+
+    Args:
+        spec: Reads `rounding`; falls back to half the wall thickness.
+
+    Returns:
+        The radius in mm. ``0`` disables rounding entirely.
+    """
+    explicit = spec.get("rounding")
+    if explicit is not None:
+        return max(0.0, float(explicit))
+    return default_rounding(spec.get("wall_thickness", 2.0))
+
+
+def _top_anchor():
+    """The TOP anchor, imported lazily so this module has no import-time pybosl2."""
+    from pybosl2 import Anchor
+
+    return Anchor.TOP
 
 
 def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
@@ -129,10 +170,39 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
 
 
 def interior_block(spec: dict) -> "Bosl2Solid":
-    """The solid that `build_shell` removes — the box's full interior volume."""
+    """The solid that `build_shell` removes — the box's full interior volume.
+
+    The void's **bottom edges are rounded**, which is what leaves a fillet
+    inside the box: a void slightly smaller where it meets the floor means the
+    wall rises from the floor on a curve rather than a right angle, so nothing
+    snags and nothing has to be dug out of a square internal corner (FR-043).
+
+    The void's vertical corners deliberately stay square. Rounding them too is
+    tempting — it is one more `edges=` entry — but the resulting fillets run the
+    **full height** of the box, including the band where a sliding lid seats,
+    and they add material exactly where the plate needs to pass: measured, it
+    put 0.59mm³ of body into the lid on all three sliding types, which is a lid
+    that jams. The top likewise stays square: it is the opening.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
+            `floor_thickness` and `rounding`.
+
+    Returns:
+        The interior volume, positioned in the box frame.
+    """
+    from pybosl2 import Anchor, cuboid
+
     wt = spec.get("wall_thickness", 2.0)
     ft = spec.get("floor_thickness", 1.6)
-    return block(
-        [spec["width"] - 2 * wt, spec["length"] - 2 * wt, spec["height"] - ft],
-        at=(wt, wt, ft),
+    size = [spec["width"] - 2 * wt, spec["length"] - 2 * wt, spec["height"] - ft]
+
+    radius = body_rounding(spec)
+    if radius <= 0 or radius >= min(size) / 2:
+        return block(size, at=(wt, wt, ft))
+
+    return corner(
+        cuboid(size, rounding=radius, edges=Anchor.BOTTOM, **precision_kwargs()),
+        size,
+        (wt, wt, ft),
     )

@@ -40,15 +40,30 @@ class ShellTests(unittest.TestCase):
         self.assertEqual(tuple(round(v, 6) for v in size), (10.0, 20.0, 5.0))
 
     def test_a_hollow_shell_leaves_walls_on_all_four_sides(self) -> None:
-        """The centre-anchoring bug used to cut the interior off to one side."""
+        """The centre-anchoring bug used to cut the interior off to one side.
+
+        Sizes carry the rounding's 0.002mm faceting tolerance — see
+        `test_hollow_false_keeps_a_solid_block`.
+        """
         low, size = bbox(build_shell({**SPEC, "hollow": True}))
-        self.assertEqual(tuple(round(v, 6) for v in low), (0.0, 0.0, 0.0))
-        self.assertEqual(tuple(round(v, 6) for v in size), (100.0, 80.0, 30.0))
+        for got in low:
+            self.assertAlmostEqual(got, 0.0, delta=0.01)
+        for got, want in zip(size, (100.0, 80.0, 30.0)):
+            self.assertAlmostEqual(got, want, delta=0.01)
 
     def test_hollow_false_keeps_a_solid_block(self) -> None:
+        """The block keeps its declared size, bar the rounding's faceting.
+
+        A rounded edge is an inscribed polygon, so it pulls the face it
+        blends into inwards by the sagitta — 0.002mm at the 48-facet
+        floor. That is 50x below the 0.1mm precision the library
+        promises, but it is not zero, and no faceted representation of a
+        fillet can make it zero.
+        """
         solid = build_shell(SPEC)
         _, size = bbox(solid)
-        self.assertEqual(tuple(round(v, 6) for v in size), (100.0, 80.0, 30.0))
+        for got, want in zip(size, (100.0, 80.0, 30.0)):
+            self.assertAlmostEqual(got, want, delta=0.01)
 
 
 class MouthTests(unittest.TestCase):

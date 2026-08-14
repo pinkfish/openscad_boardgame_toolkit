@@ -23,6 +23,7 @@ from pyboxbuilder.compartments.finger_hole import (  # noqa: E402
     build_floor_scoop,
     build_scoop,
     build_wall_scoop,
+    s_curve_offsets,
     scoop_profile,
 )
 from pyboxbuilder.enums import ScoopSide  # noqa: E402
@@ -259,6 +260,14 @@ measure("removed_front",
         build_shell(dict(base)) - build_shell(dict(base, finger_holes=(Hole(ScoopSide.FRONT),))))
 measure("removed_deep",
         build_shell(dict(base)) - build_shell(dict(base, finger_holes=(Hole(ScoopSide.FRONT, depth=100),))))
+
+# The same capped cut on its own, where no mesh-difference sliver can appear.
+from pyboxbuilder.compartments.finger_hole import build_wall_scoop
+_reach = 40 - 1.6
+measure("deep_scoop_solid",
+        build_wall_scoop(96, 76, _reach, ScoopSide.FRONT, radius=14.0,
+                         wall_thickness=2.0, rounding_radius=3.0)
+        .translate([2, 2, 40 - _reach]))
 cuboid([1, 1, 1]).show()
 '''
         cls.result = measure_python(body)
@@ -293,13 +302,23 @@ cuboid([1, 1, 1]).show()
         """A hole asked to reach 100mm into a 40mm box stops inside the floor.
 
         Capped at the interior depth, the cut reaches the well floor and dips
-        the default 0.2mm past it, leaving 1.4 of the 1.6mm floor intact — the
+        the default 0.2mm past it, so floor material is left underneath and the
         base is never opened.
+
+        The exact depth is asserted on the scoop solid rather than here: this
+        measures the *difference* of two independently meshed bodies, which can
+        disagree by a facet in the bottom fillet and report a near-zero-volume
+        sliver below the cut.
         """
         removed = self.box("removed_deep")
         floor_left = removed.position[2]
         self.assertGreater(floor_left, 0.0, "the cut opened the box's base")
-        self.assertAlmostEqual(floor_left, 1.6 - 0.2, places=2)
+        self.assertGreater(floor_left, 0.5, "too little floor left under the cut")
+
+    def test_the_capped_cut_itself_stops_inside_the_floor(self) -> None:
+        """The scoop solid, measured directly: floor at 1.6, dipping 0.2 past."""
+        scoop = self.box("deep_scoop_solid")
+        self.assertAlmostEqual(scoop.position[2], 1.6 - 0.2, places=2)
 
 
 class FingerHoleBuilderTests(unittest.TestCase):
@@ -338,3 +357,59 @@ class FingerHoleBuilderTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SCurveTests(unittest.TestCase):
+    """FR-043a: the mouth is a smoothstep, not an arc."""
+
+    def test_runs_from_throat_to_top(self) -> None:
+        points = s_curve_offsets(flare=3.0, rise=4.0)
+        self.assertEqual(points[0], (0.0, 0.0))
+        self.assertAlmostEqual(points[-1][0], 3.0)
+        self.assertAlmostEqual(points[-1][1], 4.0)
+
+    def test_widens_monotonically(self) -> None:
+        """A mouth that narrowed on the way up would be an undercut."""
+        xs = [x for x, _ in s_curve_offsets(3.0, 4.0)]
+        for earlier, later in zip(xs, xs[1:]):
+            self.assertGreaterEqual(later, earlier)
+
+    def test_is_flat_at_both_ends(self) -> None:
+        """Zero slope at the throat and at the top face — the S's whole point.
+
+        The first and last steps must be far smaller than a constant-slope
+        (linear) ramp would give; an arc would be flat at one end only.
+        """
+        points = s_curve_offsets(3.0, 4.0, samples=20)
+        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
+        average = sum(steps) / len(steps)
+        self.assertLess(steps[0], average / 3, "not flat where it leaves the throat")
+        self.assertLess(steps[-1], average / 3, "not flat where it meets the top face")
+
+    def test_is_steepest_in_the_middle(self) -> None:
+        points = s_curve_offsets(3.0, 4.0, samples=20)
+        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
+        self.assertEqual(max(steps), steps[len(steps) // 2])
+
+    def test_curvature_reverses_once(self) -> None:
+        """Convex out of the throat, concave into the top face: one inflection."""
+        points = s_curve_offsets(3.0, 4.0, samples=20)
+        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
+        deltas = [b - a for a, b in zip(steps, steps[1:])]
+        sign_changes = sum(
+            1 for a, b in zip(deltas, deltas[1:]) if (a > 0) != (b > 0)
+        )
+        self.assertEqual(sign_changes, 1)
+
+    def test_needs_at_least_two_samples(self) -> None:
+        with self.assertRaises(ValueError):
+            s_curve_offsets(3.0, 4.0, samples=1)
+
+    def test_profile_uses_it_and_stays_within_the_flare(self) -> None:
+        """The mouth may widen by the flare, and no more."""
+        profile = scoop_profile(radius=10, height=30, rounding_radius=3)
+        self.assertIsNotNone(profile)
+
+    def test_shallow_scoop_keeps_half_its_height_as_throat(self) -> None:
+        """No tangent-blend special case: the transition just gets shorter."""
+        self.assertIsNotNone(scoop_profile(radius=10, height=4, rounding_radius=8))

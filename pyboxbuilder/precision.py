@@ -18,7 +18,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Iterator
+from typing import Any, Iterator
 
 #: Default minimum angle per fragment, in degrees (OpenSCAD's ``$fa``).
 DEFAULT_FA = 12.0
@@ -57,7 +57,7 @@ class Precision:
         if self.fs <= 0:
             raise ValueError(f"fs must be > 0; got {self.fs}")
 
-    def kwargs(self) -> dict[str, float | int]:
+    def kwargs(self) -> dict[str, Any]:
         """Return the settings as keyword arguments for a pybosl2 call.
 
         Returns:
@@ -65,7 +65,10 @@ class Precision:
             it into any curve-producing constructor:
             ``cylinder(height=h, radius=r, **precision().kwargs())``.
         """
-        values: dict[str, float | int] = {"fa": self.fa, "fs": self.fs}
+        # Deliberately Any-valued: it is splatted into constructors whose
+        # fn/fa/fs parameters have different types, and a narrower value type
+        # makes a type checker complain at every one of those call sites.
+        values: dict[str, Any] = {"fa": self.fa, "fs": self.fs}
         if self.fn is not None:
             values["fn"] = self.fn
         return values
@@ -84,7 +87,7 @@ def precision() -> Precision:
     return _CURRENT.get()
 
 
-def kwargs() -> dict[str, float | int]:
+def kwargs() -> dict[str, Any]:
     """Shorthand for ``precision().kwargs()`` at a geometry call site.
 
     Returns:

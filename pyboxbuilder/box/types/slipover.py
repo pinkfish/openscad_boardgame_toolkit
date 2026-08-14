@@ -40,15 +40,28 @@ class SlipoverBox:
         inset, body_height = slipover_metrics(spec)
         foot = spec.get("foot", 0.0)
 
+        # The whole body is what the sleeve grips, so its corners take the
+        # smaller mating radius — matched by the sleeve's cavity in build_lid.
+        # Only the foot below the sleeve stays a fully-rounded exposed edge.
+        from pyboxbuilder.rounding import mating_rounding
+
         body = build_shell({
             **spec,
             "width": spec["width"] - 2 * inset,
             "length": spec["length"] - 2 * inset,
             "height": body_height,
+            "rounding": mating_rounding(spec),
         }).translate([inset, inset, 0.0])
 
         if foot > 0:
-            body = body | block([spec["width"], spec["length"], foot])
+            from pyboxbuilder.box.shell import body_rounding
+            from pyboxbuilder.rounding import rounded_block, vertical_edges
+
+            body = body | rounded_block(
+                [spec["width"], spec["length"], foot],
+                body_rounding(spec),
+                vertical_edges(),
+            )
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
@@ -65,12 +78,17 @@ class SlipoverBox:
             [spec["width"], spec["length"], spec["height"] - foot],
             at=(0.0, 0.0, foot),
         )
-        cavity = block(
+        from pyboxbuilder.rounding import mating_rounding, rounded_block, vertical_edges
+
+        # Matched to the body's corners so the sleeve nests over them.
+        cavity = rounded_block(
             [
                 spec["width"] - 2 * inset + 2 * slack,
                 spec["length"] - 2 * inset + 2 * slack,
                 spec["height"] - foot - lt,
             ],
+            mating_rounding(spec),
+            vertical_edges(),
             at=(inset - slack, inset - slack, foot),
         )
         return outer - cavity

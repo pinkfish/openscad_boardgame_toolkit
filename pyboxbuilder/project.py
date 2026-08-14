@@ -32,6 +32,19 @@ class Project:
     """Default floor thickness."""
     lid_thickness: float = 2.0
     """Default lid thickness."""
+    rounding: float | None = None
+    """Edge radius for every box's exposed edges (FR-043/FR-044).
+
+    ``None`` derives it per box as ``wall_thickness / 2``. ``0`` leaves
+    every edge square.
+    """
+    inner_rounding: float | None = None
+    """Edge radius where a partial lid grips the body (FR-044b).
+
+    Applies to a cap's band and skirt cavity, and a slipover's body and sleeve
+    cavity — both halves of the grip, so they nest. ``None`` derives it as half
+    the outer radius.
+    """
     gap_threshold: float = 10.0
     """Gaps <= this are absorbed by adjacent boxes."""
     min_spacer_dim: float = 15.0
@@ -373,8 +386,9 @@ class Project:
         Returns ``(body, lid, size)``; ``body``/``lid`` are ``None`` when the
         box type produced no geometry (or pybosl2 is unavailable).
         """
-        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY, LIDLESS_BOX_TYPES
         from pyboxbuilder.box.interior import Interior
+        from pyboxbuilder.rounding import default_rounding
 
         wt = builder.wall_thickness or self.wall_thickness
         ft = builder.floor_thickness or self.floor_thickness
@@ -412,13 +426,28 @@ class Project:
                 "width": size[0], "length": size[1], "height": size[2],
                 "wall_thickness": wt, "floor_thickness": ft, "lid_thickness": lt,
                 "hollow": not comp_data,
+                # Per-box override beats the project default, which in turn
+                # falls back to half the wall (FR-044).
+                "rounding": (
+                    builder.rounding if builder.rounding is not None
+                    else self.rounding if self.rounding is not None
+                    else default_rounding(wt)
+                ),
+                # A lidless box's rim is exposed, so it gets rounded too.
+                "rim_free": builder.box_type in LIDLESS_BOX_TYPES,
+                # Smaller radius for a partial lid's grip; None lets
+                # `mating_rounding` derive it from the body radius.
+                "inner_rounding": (
+                    builder.inner_rounding if builder.inner_rounding is not None
+                    else self.inner_rounding
+                ),
             }
             for field_name in builder.__dataclass_fields__:
                 if field_name in (
                     "box_type", "label", "box_id", "size", "final_size",
                     "expandable", "expandable_width", "expandable_length",
                     "wall_thickness", "floor_thickness", "lid_thickness",
-                    "lid", "compartments", "color",
+                    "lid", "compartments", "color", "rounding", "inner_rounding",
                 ):
                     continue
                 val = getattr(builder, field_name)
@@ -427,6 +456,16 @@ class Project:
 
             body = box.build_body(spec_dict)
             lid = box.build_lid(spec_dict)
+
+            # A lidded box leaves its rim square so the lid can seal against
+            # it; the lid carries the rounding for the closed box's top and
+            # upper corners instead (FR-043).
+            if lid is not None:
+                from pyboxbuilder.rounding import round_edges, vertical_and_top_edges
+
+                lid = round_edges(
+                    lid, list(size), spec_dict["rounding"], vertical_and_top_edges(),
+                )
 
             if comp_layout is not None and body is not None:
                 from pyboxbuilder.compartments.carve import build_contents
