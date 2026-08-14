@@ -71,124 +71,183 @@ _SIDE_SPIN = {
 }
 
 
-S_CURVE_SAMPLES = 24
-"""Points per side of the mouth's S-curve. 24 is smooth at print scale."""
+ARC_SAMPLES = 16
+"""Points per quarter-arc in the scoop profile. 16 is smooth at print scale."""
+
+DEFAULT_BOTTOM_ROUNDING_RATIO = 0.5
+"""``r2`` as a fraction of the throat half-width, when the caller names none."""
 
 
-def s_curve_offsets(flare: float, rise: float, samples: int = S_CURVE_SAMPLES) -> list:
-    """Sample the mouth's S-curve as ``(dx, dy)`` offsets from the throat.
-
-    A **smoothstep**, not a circular arc, because the two have different ends.
-    A quarter-arc is tangent to the top face and to the throat, so it is G1
-    continuous — but its curvature jumps from ``1/r`` to zero at both ends,
-    which leaves a visible crease line where the flat top starts to fall away
-    and another where the flare meets the throat. ``3t² - 2t³`` has zero
-    curvature at both ends as well as matching tangents, so the surface rolls
-    out of the top face, inflects, and settles into the throat with no crease
-    anywhere: the top of the box flows into the scoop and back out again.
+def _quarter_arc(
+    centre: tuple[float, float],
+    radius: float,
+    start_angle: float,
+    end_angle: float,
+    samples: int = ARC_SAMPLES,
+) -> list[tuple[float, float]]:
+    """Sample an arc, endpoints included.
 
     Args:
-        flare: How far the mouth widens outward, in mm.
-        rise: How tall the transition is, in mm.
-        samples: Points along the curve. More is smoother and costs facets.
+        centre: The arc's centre in the profile plane.
+        radius: Arc radius; ``0`` collapses to the single centre point.
+        start_angle: Start angle in degrees.
+        end_angle: End angle in degrees.
+        samples: Segments along the arc.
 
     Returns:
-        ``[(dx, dy), ...]`` from ``(0, 0)`` at the throat to
-        ``(flare, rise)`` at the top face, ordered bottom to top.
-
-    Raises:
-        ValueError: If ``samples`` is below 2 — one point is not a curve.
+        ``[(x, y), ...]`` from start to end.
     """
-    if samples < 2:
-        raise ValueError(f"s_curve_offsets needs samples >= 2; got {samples}")
+    if radius <= 0:
+        return [centre]
     points = []
     for index in range(samples + 1):
-        t = index / samples
-        points.append((flare * (3 * t * t - 2 * t * t * t), rise * t))
+        angle = math.radians(
+            start_angle + (end_angle - start_angle) * index / samples
+        )
+        points.append(
+            (centre[0] + radius * math.cos(angle), centre[1] + radius * math.sin(angle))
+        )
     return points
 
 
 def scoop_profile(
     radius: float,
     height: float,
-    rounding_radius: float = DEFAULT_MOUTH_ROUNDING_MM,
+    top_rounding: float = DEFAULT_MOUTH_ROUNDING_MM,
+    bottom_rounding: float | None = None,
 ) -> "Bosl2Shape2D":
-    """Build the 2-D side profile of a finger scoop, in the X-Z plane.
+    r"""Build the 2-D side profile of an **edge** scoop, in the X-Z plane.
 
-    A semicircular bottom of ``radius``, a straight throat, and a mouth that
-    **S-curves** out to the rim over ``rounding_radius``. The bore is tangent to
-    the floor plane, so the bottom of the scoop curves into the floor rather
-    than meeting it at a corner, and the S-curve does the same at the top: the
-    box's top face rolls down into the scoop and back out without a crease. See
-    :func:`s_curve_offsets` for why it is a smoothstep and not an arc.
+    Two radii and three straight runs, read from the top down::
 
-    This replaces the original's two-branch construction (a quarter-arc mouth,
-    plus a ``circle_circle_tangents`` blend for scoops too shallow to fit one).
-    A sampled S needs no such special case: where there is less room the
-    transition simply gets shorter, and nothing can cross.
+        ===========...                      ...===========   flat top surface
+                     ''..                ..''                r1: rolls the top
+                         \              /                    over into the wall
+                          |            |                     straight throat
+                          '..      ..''                      r2: wall into floor
+                             ''--''                          flat bottom
+
+    **r1** (``top_rounding``) turns the flat top surface into the scoop wall:
+    the arc leaves the top face horizontally, so the surface rolls over the rim
+    instead of meeting the cut at an edge, and arrives vertical at the throat.
+    **r2** (``bottom_rounding``) turns the wall into the floor, leaving a flat
+    bottom for a piece to sit on rather than a semicircular trough.
+
+    Both arcs are tangent at both ends, so the whole outline is smooth without
+    needing a parametric blend: the tangency is what makes it so, and two radii
+    say it more directly than any curve fitted between them.
 
     Args:
-        radius: Radius of the finger bore — the widest part of the throat.
+        radius: Half-width of the straight throat — the narrowest part.
         height: Height from the floor to the rim.
-        rounding_radius: How far the mouth flares out at the rim. ``0`` gives a
-            square-topped slot. Capped at half the height, so a shallow scoop
-            keeps some throat.
+        top_rounding: r1, how far the mouth rolls out at the rim. ``0`` gives a
+            square-topped slot.
+        bottom_rounding: r2, the fillet into the floor. ``None`` derives it as
+            half the throat width; ``0`` gives a square floor.
 
     Returns:
-        The profile as 2-D geometry, with the floor at ``y=0`` and the rim at
-        ``y=height``, centred on ``x=0``.
+        The profile as 2-D geometry, floor at ``y=0``, rim at ``y=height``,
+        centred on ``x=0``.
 
     Raises:
-        ValueError: If ``radius`` or ``height`` is not positive, or
-            ``rounding_radius`` is negative.
+        ValueError: If ``radius`` or ``height`` is not positive, or either
+            radius is negative.
     """
-    import math
-
     from pybosl2 import shapes2d
 
     if radius <= 0:
         raise ValueError(f"scoop radius must be > 0; got {radius}")
     if height <= 0:
         raise ValueError(f"scoop height must be > 0; got {height}")
-    if rounding_radius < 0:
-        raise ValueError(f"rounding_radius must be >= 0; got {rounding_radius}")
+    if top_rounding < 0:
+        raise ValueError(f"top_rounding must be >= 0; got {top_rounding}")
 
+    if bottom_rounding is None:
+        bottom_rounding = radius * DEFAULT_BOTTOM_ROUNDING_RATIO
+    if bottom_rounding < 0:
+        raise ValueError(f"bottom_rounding must be >= 0; got {bottom_rounding}")
+
+    # r2 cannot exceed the half-width it has to curve across, and the two arcs
+    # have to share the height between them without overlapping.
+    r2 = min(bottom_rounding, radius)
+    r1 = top_rounding
+    if r1 + r2 > height:
+        scale = height / (r1 + r2)
+        r1, r2 = r1 * scale, r2 * scale
+
+    # Right-hand half, walked from the centre of the floor up and outwards.
+    points: list[tuple[float, float]] = [(0.0, 0.0)]
+    # r2: floor into wall — centre inside the material, sweeping 270° to 360°.
+    points += _quarter_arc((radius - r2, r2), r2, -90.0, 0.0)
+    # The straight throat, then r1: wall into the top face, centre outside the
+    # cut so the arc is concave and the top surface rolls into it.
+    points.append((radius, height - r1))
+    points += _quarter_arc((radius + r1, height - r1), r1, 180.0, 90.0)
+    points.append((0.0, height))
+
+    half = shapes2d.polygon([[float(x), float(y)] for x, y in points])
+    return half | half.mirror([1, 0])
+
+
+def floor_bore_profile(
+    radius: float,
+    height: float,
+    top_rounding: float = DEFAULT_MOUTH_ROUNDING_MM,
+) -> "Bosl2Shape2D":
+    """Build the 2-D profile of a **floor** finger hole, in the X-Z plane.
+
+    Deliberately not the edge profile. An edge scoop is a shape you sweep a
+    finger *along* — flat floor, straight throat, rolled rim — while a floor
+    finger hole is a bore you push a piece *up* through, so its bottom is a
+    bowl tangent to the floor rather than a flat pan. Sharing one profile
+    between them was convenient and produced a flat-bottomed pit where a bowl
+    belongs.
+
+    Args:
+        radius: Bore radius — the widest part of the bowl.
+        height: Height from the floor to the rim.
+        top_rounding: How far the mouth rolls out at the rim, as ``r1`` on an
+            edge scoop. ``0`` gives a square-topped bore.
+
+    Returns:
+        The profile as 2-D geometry, floor at ``y=0``, rim at ``y=height``,
+        centred on ``x=0``.
+
+    Raises:
+        ValueError: If ``radius`` or ``height`` is not positive, or
+            ``top_rounding`` is negative.
+    """
+    from pybosl2 import shapes2d
+
+    if radius <= 0:
+        raise ValueError(f"bore radius must be > 0; got {radius}")
+    if height <= 0:
+        raise ValueError(f"bore height must be > 0; got {height}")
+    if top_rounding < 0:
+        raise ValueError(f"top_rounding must be >= 0; got {top_rounding}")
+
+    # A full circle sitting on the floor: its lower half is the bowl, tangent
+    # to the floor plane, so the bottom of the cut curves into the floor.
     bore = shapes2d.circle(radius=radius, **precision_kwargs()).translate([0.0, radius])
+    profile = bore
 
-    if rounding_radius == 0:
-        throat = shapes2d.square([radius * 2, height], center=True).translate([0.0, height / 2])
-        return bore | throat
+    throat_top = height - top_rounding
+    if throat_top > radius:
+        profile = profile | shapes2d.square(
+            [radius * 2, throat_top - radius], center=True
+        ).translate([0.0, radius + (throat_top - radius) / 2])
 
-    # The mouth may not eat the whole scoop: leave at least half the height as
-    # throat so a finger still has a straight section to hook into.
-    rise = min(rounding_radius, height / 2)
-    throat_top = height - rise
-
-    # Where the S starts: the throat's half-width at throat_top. Above the
-    # bore's equator the circle narrows again, so the throat rectangle holds the
-    # width at `radius`; below it the bore itself is narrower and the S has to
-    # start from the bore's own edge or it would leave a step.
-    if throat_top >= radius:
-        start_x = radius
-        throat = shapes2d.square([radius * 2, throat_top - radius], center=True).translate(
-            [0.0, radius + (throat_top - radius) / 2]
+    if top_rounding > 0:
+        # The same r1 roll as an edge scoop: horizontal at the top face,
+        # vertical where it meets the throat.
+        points = [(0.0, max(0.0, throat_top))]
+        points += _quarter_arc(
+            (radius + top_rounding, throat_top), top_rounding, 180.0, 90.0
         )
-    else:
-        start_x = math.sqrt(max(0.0, radius * radius - (throat_top - radius) ** 2))
-        throat = None
+        points.append((0.0, height))
+        mouth = shapes2d.polygon([[float(x), float(y)] for x, y in points])
+        profile = profile | mouth | mouth.mirror([1, 0])
 
-    # One closed half of the mouth: up the throat line, out along the S, then
-    # back along the top face to the centre.
-    offsets = s_curve_offsets(rounding_radius, rise)
-    half_points = [(0.0, throat_top)]
-    half_points += [(start_x + dx, throat_top + dy) for dx, dy in offsets]
-    half_points += [(0.0, height)]
-    half = shapes2d.polygon([[float(x), float(y)] for x, y in half_points])
-
-    mouth = half | half.mirror([1, 0])
-    profile = bore | mouth
-    if throat is not None:
-        profile = profile | throat
     return profile
 
 
@@ -200,6 +259,7 @@ def build_wall_scoop(
     radius: float = 12.0,
     wall_thickness: float = 2.0,
     rounding_radius: float = DEFAULT_MOUTH_ROUNDING_MM,
+    bottom_rounding: float | None = None,
     rounding_edge: float | None = None,
     round_inner: bool = True,
     round_outer: bool = True,
@@ -209,7 +269,8 @@ def build_wall_scoop(
 ) -> "Bosl2Solid":
     """Build a finger notch through a compartment wall.
 
-    The profile from :func:`scoop_profile` swept through the wall, with a
+    The **edge** profile from :func:`scoop_profile` — flat bottom, straight
+    throat, rolled rim — swept through the wall, with a
     concave rim on each end so the cut flows onto the wall's faces instead of
     ending in a sharp line (``FingerHoleWall``'s ``rounding_edge``).
 
@@ -234,7 +295,9 @@ def build_wall_scoop(
         radius: Notch radius in mm, capped so it cannot swallow the compartment.
         wall_thickness: Wall the cut passes through. Sets the sweep depth and,
             by default, the face fillet.
-        rounding_radius: Flare at the mouth where the cut meets the rim.
+        rounding_radius: ``r1`` — how far the mouth rolls out at the rim.
+        bottom_rounding: ``r2`` — the fillet from the throat into the flat
+            bottom. ``None`` derives it as half the throat width.
         rounding_edge: Fillet where the cut emerges on a face. Defaults to
             ``wall_thickness / 2``, the largest fillet the wall has room for
             (and what the original uses). ``0`` squares the edge.
@@ -275,7 +338,74 @@ def build_wall_scoop(
     depth = wall_thickness + fudge
     rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
 
-    profile = scoop_profile(radius, comp_depth, rounding_radius)
+    profile = scoop_profile(radius, comp_depth, rounding_radius, bottom_rounding)
+    return _sweep_through_wall(
+        profile, comp_width, comp_length, side,
+        comp_depth=comp_depth,
+        wall_thickness=wall_thickness,
+        rounding_radius=rounding_radius,
+        rounding_edge=rounding_edge,
+        round_inner=round_inner,
+        round_outer=round_outer,
+        breach_floor=breach_floor,
+        floor_thickness=floor_thickness,
+        floor_clearance=floor_clearance,
+        span=span,
+        radius=radius,
+    )
+
+
+def _sweep_through_wall(
+    profile: "Bosl2Shape2D",
+    comp_width: float,
+    comp_length: float,
+    side: ScoopSide,
+    *,
+    comp_depth: float,
+    wall_thickness: float,
+    rounding_radius: float,
+    rounding_edge: float | None,
+    span: float,
+    radius: float,
+    round_inner: bool = True,
+    round_outer: bool = True,
+    breach_floor: bool = False,
+    floor_thickness: float | None = None,
+    floor_clearance: float | None = None,
+) -> "Bosl2Solid":
+    """Sweep a 2-D scoop profile through a wall and place it on a side.
+
+    Shared by the edge scoop and the floor finger hole: the *profiles* differ
+    (that is the point — one is a channel, the other a bore), but everything
+    around them is the same, and duplicating it is how the two drift apart.
+
+    Args:
+        profile: The scoop's 2-D side profile, floor at ``y=0``.
+        comp_width: Compartment footprint width.
+        comp_length: Compartment footprint length.
+        side: Which wall to cut through.
+        comp_depth: Compartment depth, used to size the floor clip.
+        wall_thickness: The wall being crossed; sets the sweep depth.
+        rounding_radius: r1, used to size the floor clip.
+        rounding_edge: Face fillet; ``None`` uses half the wall.
+        span: The compartment span along the cut wall.
+        radius: The scoop's half-width, used to size the floor clip.
+        round_inner: Fillet the compartment-side face.
+        round_outer: Fillet the outward face.
+        breach_floor: Skip the floor clip entirely.
+        floor_thickness: Box floor, sizing the permitted dip below it.
+        floor_clearance: Explicit dip below the well floor.
+
+    Returns:
+        The cutout, positioned in the compartment frame.
+    """
+    if rounding_edge is None:
+        rounding_edge = wall_thickness / 2
+
+    fudge = 0.03
+    depth = wall_thickness + fudge
+    rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
+
     swept = offset_sweep(
         profile,
         height=depth,
@@ -369,16 +499,20 @@ def build_floor_scoop(
     radius = min(radius, span / 2)
     depth = comp_depth if comp_depth and comp_depth > 0 else radius
 
-    # Parts 1 and 2: the same swept, face-filleted, flare-mouthed cut a wall
-    # scoop uses. A shallow compartment reaches scoop_profile's tangent-blend
-    # branch, which is exactly the case that branch exists for.
-    cut = build_wall_scoop(
-        comp_width, comp_length, depth, side,
-        radius=radius,
+    # Parts 1 and 2: the bore, swept through the wall with the same face
+    # fillets an edge scoop gets. The *profile* is the floor one — a bowl
+    # tangent to the floor — because this is a hole you push a piece up
+    # through, not a channel you sweep a finger along.
+    cut = _sweep_through_wall(
+        floor_bore_profile(min(radius, span / 2), depth, rounding_radius),
+        comp_width, comp_length, side,
+        comp_depth=depth,
         wall_thickness=wall_thickness,
         rounding_radius=rounding_radius,
         rounding_edge=rounding_edge,
         floor_thickness=floor_thickness,
+        span=span,
+        radius=min(radius, span / 2),
     )
 
     # Part 3: blend the cut into the floor. A cuboid whose top edges carry a

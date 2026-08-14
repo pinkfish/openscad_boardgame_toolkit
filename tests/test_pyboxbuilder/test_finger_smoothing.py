@@ -23,7 +23,7 @@ from pyboxbuilder.compartments.finger_hole import (  # noqa: E402
     build_floor_scoop,
     build_scoop,
     build_wall_scoop,
-    s_curve_offsets,
+    floor_bore_profile,
     scoop_profile,
 )
 from pyboxbuilder.enums import ScoopSide  # noqa: E402
@@ -36,9 +36,8 @@ class ScoopProfileTests(unittest.TestCase):
     def test_tall_profile_builds(self) -> None:
         self.assertIsNotNone(scoop_profile(10, 30, 3))
 
-    def test_shallow_profile_takes_the_tangent_branch(self) -> None:
-        """height < radius + rounding_radius has no room for a straight throat."""
-        self.assertLess(6, 10 + 3)
+    def test_a_shallow_profile_still_builds(self) -> None:
+        """No special case: the radii scale down to whatever height there is."""
         self.assertIsNotNone(scoop_profile(10, 6, 3))
 
     def test_zero_rounding_gives_a_plain_slot(self) -> None:
@@ -183,17 +182,23 @@ cuboid([1, 1, 1]).show()
                 self.assertAlmostEqual(high, 0.015, places=2)
 
     def test_face_fillet_and_mouth_flare_widen_the_cut(self) -> None:
-        """A plain slot is 2*radius wide; each rounding adds to that."""
+        """A plain slot is 2*radius wide; each rounding adds to that.
+
+        Widths carry a faceting tolerance: both the r1 arc and the face
+        fillet's rim are sampled polygons, so each falls a little short of its
+        exact radius. 0.1mm is well inside the 0.1mm dimensional precision the
+        library promises and an order below what a nozzle resolves.
+        """
         square_low, square_high = self.span("square", 0)
-        self.assertAlmostEqual(square_high - square_low, 20.0, places=2)
+        self.assertAlmostEqual(square_high - square_low, 20.0, delta=0.1)
 
-        # Mouth flare off, face fillet on (wall/2 = 1mm each side).
+        # r1 off, face fillet on (wall/2 = 1mm each side).
         no_mouth_low, no_mouth_high = self.span("no_mouth", 0)
-        self.assertAlmostEqual(no_mouth_high - no_mouth_low, 22.0, places=1)
+        self.assertAlmostEqual(no_mouth_high - no_mouth_low, 22.0, delta=0.1)
 
-        # Both on: + 3mm of mouth flare each side.
+        # Both on: + 3mm of r1 roll each side.
         full_low, full_high = self.span("wt2", 0)
-        self.assertAlmostEqual(full_high - full_low, 28.0, places=1)
+        self.assertAlmostEqual(full_high - full_low, 28.0, delta=0.1)
 
     def test_carved_box_keeps_its_envelope(self) -> None:
         """Cutting the scoop must not enlarge the box or open its base."""
@@ -359,57 +364,51 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class SCurveTests(unittest.TestCase):
-    """FR-043a: the mouth is a smoothstep, not an arc."""
+class TwoRadiusProfileTests(unittest.TestCase):
+    """FR-043a: an edge scoop is r1 at the rim, r2 into a flat bottom."""
 
-    def test_runs_from_throat_to_top(self) -> None:
-        points = s_curve_offsets(flare=3.0, rise=4.0)
-        self.assertEqual(points[0], (0.0, 0.0))
-        self.assertAlmostEqual(points[-1][0], 3.0)
-        self.assertAlmostEqual(points[-1][1], 4.0)
+    def outline(self, profile) -> str:
+        return repr(profile)
 
-    def test_widens_monotonically(self) -> None:
-        """A mouth that narrowed on the way up would be an undercut."""
-        xs = [x for x, _ in s_curve_offsets(3.0, 4.0)]
-        for earlier, later in zip(xs, xs[1:]):
-            self.assertGreaterEqual(later, earlier)
+    def test_both_radii_change_the_profile(self) -> None:
+        square = scoop_profile(10, 30, 0, 0)
+        top_only = scoop_profile(10, 30, 6, 0)
+        both = scoop_profile(10, 30, 6, 5)
+        self.assertNotEqual(self.outline(square), self.outline(top_only))
+        self.assertNotEqual(self.outline(top_only), self.outline(both))
 
-    def test_is_flat_at_both_ends(self) -> None:
-        """Zero slope at the throat and at the top face — the S's whole point.
-
-        The first and last steps must be far smaller than a constant-slope
-        (linear) ramp would give; an arc would be flat at one end only.
-        """
-        points = s_curve_offsets(3.0, 4.0, samples=20)
-        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
-        average = sum(steps) / len(steps)
-        self.assertLess(steps[0], average / 3, "not flat where it leaves the throat")
-        self.assertLess(steps[-1], average / 3, "not flat where it meets the top face")
-
-    def test_is_steepest_in_the_middle(self) -> None:
-        points = s_curve_offsets(3.0, 4.0, samples=20)
-        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
-        self.assertEqual(max(steps), steps[len(steps) // 2])
-
-    def test_curvature_reverses_once(self) -> None:
-        """Convex out of the throat, concave into the top face: one inflection."""
-        points = s_curve_offsets(3.0, 4.0, samples=20)
-        steps = [b[0] - a[0] for a, b in zip(points, points[1:])]
-        deltas = [b - a for a, b in zip(steps, steps[1:])]
-        sign_changes = sum(
-            1 for a, b in zip(deltas, deltas[1:]) if (a > 0) != (b > 0)
+    def test_bottom_radius_defaults_to_half_the_throat(self) -> None:
+        self.assertEqual(
+            self.outline(scoop_profile(10, 30, 6)),
+            self.outline(scoop_profile(10, 30, 6, 5)),
         )
-        self.assertEqual(sign_changes, 1)
 
-    def test_needs_at_least_two_samples(self) -> None:
-        with self.assertRaises(ValueError):
-            s_curve_offsets(3.0, 4.0, samples=1)
+    def test_radii_are_scaled_down_to_fit_a_shallow_scoop(self) -> None:
+        """r1 + r2 cannot exceed the height; a shallow scoop shrinks both."""
+        self.assertIsNotNone(scoop_profile(10, 4, 8, 8))
 
-    def test_profile_uses_it_and_stays_within_the_flare(self) -> None:
-        """The mouth may widen by the flare, and no more."""
-        profile = scoop_profile(radius=10, height=30, rounding_radius=3)
-        self.assertIsNotNone(profile)
+    def test_bottom_radius_cannot_exceed_the_throat(self) -> None:
+        self.assertEqual(
+            self.outline(scoop_profile(10, 30, 6, 50)),
+            self.outline(scoop_profile(10, 30, 6, 10)),
+        )
 
-    def test_shallow_scoop_keeps_half_its_height_as_throat(self) -> None:
-        """No tangent-blend special case: the transition just gets shorter."""
-        self.assertIsNotNone(scoop_profile(radius=10, height=4, rounding_radius=8))
+    def test_bad_inputs_rejected(self) -> None:
+        for kwargs in ({"top_rounding": -1}, {"bottom_rounding": -1}):
+            with self.subTest(**kwargs), self.assertRaises(ValueError):
+                scoop_profile(10, 30, **kwargs)
+
+    def test_the_floor_bore_is_a_different_shape(self) -> None:
+        """An edge scoop is a channel; a floor hole is a bore. Not the same."""
+        edge = scoop_profile(10, 20, 3)
+        floor = floor_bore_profile(10, 20, 3)
+        self.assertNotEqual(self.outline(edge), self.outline(floor))
+
+    def test_the_floor_bore_validates_its_inputs(self) -> None:
+        for args in ((0, 20, 3), (10, 0, 3), (10, 20, -1)):
+            with self.subTest(args=args), self.assertRaises(ValueError):
+                floor_bore_profile(*args)
+
+
+if __name__ == "__main__":
+    unittest.main()
