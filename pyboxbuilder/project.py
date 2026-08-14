@@ -460,6 +460,12 @@ class Project:
                 if val is not None:
                     spec_dict[field_name] = val
 
+            # Each wall's top, so anything aligning to "the top" — an
+            # exterior finger hole, a compartment scoop's roll — asks per side.
+            from pyboxbuilder.box.base import wall_tops as resolve_wall_tops
+
+            spec_dict["wall_tops"] = resolve_wall_tops(box, spec_dict)
+
             body = box.build_body(spec_dict)
             lid = box.build_lid(spec_dict)
 
@@ -487,6 +493,7 @@ class Project:
                     {cb.label: cb for cb in builder.compartments},
                     top_z=size[2],
                     default_side=preferred_scoop_side(box, spec_dict),
+                    wall_tops=spec_dict["wall_tops"],
                 )
                 if contents is not None:
                     body = body - contents

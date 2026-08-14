@@ -225,6 +225,7 @@ def build_contents(
     clip: bool = True,
     top_z: float | None = None,
     default_side: ScoopSide | None = None,
+    wall_tops: dict | None = None,
 ) -> "Bosl2Solid | None":
     """Union the cutouts for every placed compartment. None when there are none.
 
@@ -240,8 +241,11 @@ def build_contents(
         clip: Trim the wells to the interior footprint so none can break through
             a side wall (FR-018). Each well's own rounding comes from its depth
             and its builder — see :func:`tray_rounding`.
-        top_z: The box's top face, so a finger scoop's roll merges into the rim
-            rather than stopping at the interior ceiling.
+        top_z: Fallback top for a scoop's roll when `wall_tops` has no entry
+            for the side it lands on.
+        wall_tops: ``{ScoopSide: z}`` giving each wall's top. The four walls do
+            not have to end level — a sliding box's exit wall stops a lid
+            thickness below the rest — so the roll aligns per side.
         default_side: The box type's preferred scoop wall, used when the
             compartment names none. A sliding box insists on the wall its lid
             leaves by; most types have no opinion and leave it to the shape.
@@ -265,8 +269,9 @@ def build_contents(
                 or default_side
                 or default_scoop_side(placement)
             )
+            side_top = (wall_tops or {}).get(side, top_z)
             scoops.append(
-                build_compartment_scoop(placement, interior, side, top_z=top_z)
+                build_compartment_scoop(placement, interior, side, top_z=side_top)
             )
 
     contents = union_all(wells)

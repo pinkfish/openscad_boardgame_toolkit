@@ -146,13 +146,13 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
     # from the rim starts inside solid material and reads as a nick in the top
     # edge rather than as a cut into the well. A type whose body is already
     # shortened for its lid — cap, slipover — says so with `interior_top`.
-    interior_top = spec.get("interior_top")
-    if interior_top is None:
-        lid_band = 0.0 if spec.get("rim_free") else spec.get("lid_thickness", 0.0)
-        interior_top = spec["height"] - lid_band
-    interior_height = interior_top - ft
+    from pyboxbuilder.box.base import wall_top
 
     for hole in holes:
+        # Per side: the four walls need not end level, and a hole aligned to
+        # the wrong one either floats above its wall or cuts into a lid feature.
+        interior_top = wall_top(spec, hole.side)
+        interior_height = interior_top - ft
         radius = getattr(hole, "radius", 14.0)
         # The cut's height follows the finger unless told otherwise, and never
         # reaches deeper than the interior.
