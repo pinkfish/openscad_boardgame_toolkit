@@ -57,11 +57,37 @@ def mesh_digest(path: Path) -> str | None:
         return file_digest(path)
 
 
+SAMPLE_COUNT = 10_000
+"""Surface samples per direction. The default of 8 is the vertex count."""
+
+_SAMPLING = {
+    "samplevert": True,
+    "sampleedge": True,
+    "samplefauxedge": True,
+    "sampleface": True,
+    "samplenum": SAMPLE_COUNT,
+}
+
+
 def hausdorff_distance(mesh_a: Path, mesh_b: Path) -> float | None:
-    """Max Hausdorff distance between two mesh files, in mm.
+    """Hausdorff distance between two mesh files, in mm.
+
+    Two details matter here, and getting either wrong reports "identical" for
+    meshes that plainly are not — which would make the exporter skip writing
+    geometry the user actually changed.
+
+    **Sample the surfaces, not the vertices.** pymeshlab defaults to
+    `samplevert` alone at `samplenum=8`. Compare a 10x10x5 box against a
+    10x10x6 one and every vertex of the smaller lands exactly on a side face of
+    the larger, so the measured distance is zero. Sampling faces and edges as
+    well, densely, sees the 0.5mm the top face moved.
+
+    **Measure both ways.** The distance is the larger of the two one-sided
+    distances, and they are not equal: in the example above A to B is 0.0 while
+    B to A is 0.5.
 
     Returns None when pymeshlab is unavailable or either mesh cannot be read,
-    which tells the caller to fall back to a byte comparison.
+    which tells the caller to fall back to comparing mesh digests.
     """
     try:
         import pymeshlab  # type: ignore[import-not-found]
@@ -72,8 +98,9 @@ def hausdorff_distance(mesh_a: Path, mesh_b: Path) -> float | None:
         ms = pymeshlab.MeshSet()
         ms.load_new_mesh(str(mesh_a))
         ms.load_new_mesh(str(mesh_b))
-        res = ms.get_hausdorff_distance(sampledmesh=0, targetmesh=1)
-        return float(res["max"])
+        forward = ms.get_hausdorff_distance(sampledmesh=0, targetmesh=1, **_SAMPLING)
+        reverse = ms.get_hausdorff_distance(sampledmesh=1, targetmesh=0, **_SAMPLING)
+        return max(float(forward["max"]), float(reverse["max"]))
     except Exception:
         return None
 

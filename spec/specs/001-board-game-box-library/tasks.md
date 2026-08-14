@@ -432,7 +432,7 @@ The extreme-point First-Fit-Decreasing solver cannot find that arrangement. Meas
 
 Emberleaf therefore keeps explicit positions. Note this is not a statement that a better solver could not do it — a layout demonstrably exists.
 
-- [ ] T186 Declarative column/stack layout — let a project express "these boxes form a column at this x, stacked in this order" and have the library compute the coordinates. This is the missing middle ground between hand-typed positions and free-form packing: it keeps the structure that makes a 77%-fill layout possible while removing the hand-typed numbers, and would let Emberleaf, 1835 and Irish Gauge drop their explicit positions.
+- [x] T186 Declarative column/stack layout — see Phase 15.
 - [ ] T187 Stronger 3D packing for high-fill layouts (guillotine/skyline with column alignment, or a proper exact solver on the axis-aligned tiling sub-problem), so free-form auto-packing can handle inserts above roughly 70% fill.
 
 ---
@@ -574,6 +574,33 @@ With multiple developers:
    - Developer A: US7 (auto-sizing)
    - Developer B: US8 (export)
 5. Finally: US5+6 (nested + manual), then Polish
+
+---
+
+## Phase 15: Declarative Layout (T186)
+
+**Purpose**: Close the gap between hand-typed coordinates and free-form packing.
+
+**Goal**: An insert states its *structure* — three columns, each a set of rows, each row a stack — and the coordinates fall out of the box sizes. Densely packed inserts (above the ~70% fill where the packer gives up) stop needing hand-maintained numbers.
+
+**Independent Test**: Convert an example that had explicit positions and verify every derived position equals the coordinate it used to be given.
+
+- [x] T204 Implement `pyboxbuilder/layout.py` — `columns`/`rows`/`stack` groups that nest freely, `measure` (sum along the group's axis, max on the others), and `arrange` (each child starts where the previous ended)
+- [x] T205 Add `Project.arrange(layout, origin=...)` — resolve the tree, set every builder's position, and reject an arrangement that does not fit the game box
+- [x] T206 Export `columns`/`rows`/`stack` from the package's public surface
+- [x] T207 Convert `boxes/emberleaf/emberleaf.py` — 21 hand-typed coordinates replaced by one nested `columns(...)` expression
+- [x] T208 Convert `boxes/earth_animal_kingdom/earth_animal_kingdom.py` to `columns(stack(...), stack(...), "CanopyBox")`
+- [x] T209 [P] Write test: measurement and placement on each axis, nesting, gaps, duplicate and unknown-box errors, container-fit rejection, in `tests/test_pyboxbuilder/test_layout.py`
+- [x] T210 [P] Write test: Emberleaf's derived positions equal the original's hand-typed coordinates
+
+**Checkpoint**: Both converted examples pass their existing position assertions unchanged — the derived coordinates are identical to the ones they replaced, including the three spacers the packer finds in the leftover space.
+
+### Hausdorff comparison — found while running the converted examples
+
+- [x] T211 Fix `hausdorff_distance` reporting 0.0 for meshes that differ. Two causes, both of which alone make the exporter skip writing changed geometry:
+  1. **Vertex-only sampling.** pymeshlab defaults to `samplevert` at `samplenum=8`. Every vertex of a 10x10x5 box lies exactly on a side face of a 10x10x6 one, so the measured distance was zero for boxes differing by 0.5mm. Now samples faces and edges too, at 10,000 samples.
+  2. **One-sided measurement.** Hausdorff is the larger of the two directions and they are not equal — in that example A→B is 0.0 while B→A is 0.5. Both directions are now measured.
+- [x] T212 [P] Write a deterministic test for the Hausdorff branch. It had been exercised only by accident: pymeshlab lives in the project venv, which reaches `sys.path` only once some unrelated test module imports `tests/venv_path.py`, so whether the branch ran at all depended on test ordering. The test now loads pymeshlab from the venv itself and skips only if it is genuinely absent.
 
 ---
 

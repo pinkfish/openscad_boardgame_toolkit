@@ -90,6 +90,38 @@ class PieceBoundsTests(unittest.TestCase):
         )
 
 
+def _load_pymeshlab():
+    """Import pymeshlab, reaching into the project venv if it is not on the path.
+
+    Without this the Hausdorff branch is exercised or not depending on whether
+    some unrelated test module happened to run first and put the venv on
+    sys.path — which is how a broken comparison went unnoticed.
+    """
+    try:
+        import pymeshlab  # type: ignore[import-not-found]
+
+        return pymeshlab
+    except ImportError:
+        pass
+
+    import sys
+    from pathlib import Path as _Path
+
+    root = _Path(__file__).resolve().parents[2]
+    for candidate in sorted(root.glob("venv/*/lib/*/site-packages")) + sorted(
+        root.glob(".venv/lib/*/site-packages")
+    ):
+        if (candidate / "pymeshlab").is_dir():
+            sys.path.insert(0, str(candidate))
+            try:
+                import pymeshlab  # type: ignore[import-not-found]
+
+                return pymeshlab
+            except ImportError:
+                return None
+    return None
+
+
 class MeshEquivalenceTests(unittest.TestCase):
     """A 3MF re-export must not count as a change (T071 / FR-026)."""
 
@@ -118,6 +150,43 @@ class MeshEquivalenceTests(unittest.TestCase):
             self._export(a, (10.0, 10.0, 5.0))
             self._export(b, (10.0, 10.0, 6.0))
             self.assertTrue(should_write(a, b))
+
+    def test_hausdorff_sees_a_moved_face(self) -> None:
+        """The comparison must not be fooled by where the vertices happen to be.
+
+        Every vertex of a 10x10x5 box lies exactly on a side face of a 10x10x6
+        one, so sampling vertices alone — pymeshlab's default, at 8 samples —
+        measures zero for two boxes that differ by 0.5mm. This is the case that
+        made the exporter skip writing changed geometry.
+        """
+        pymeshlab = _load_pymeshlab()
+        if pymeshlab is None:
+            self.skipTest("pymeshlab is not importable")
+
+        from pyboxbuilder.export.hausdorff import hausdorff_distance
+
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = Path(tmp) / "a.3mf", Path(tmp) / "b.3mf"
+            self._export(a, (10.0, 10.0, 5.0))
+            self._export(b, (10.0, 10.0, 6.0))
+
+            distance = hausdorff_distance(a, b)
+            self.assertIsNotNone(distance)
+            assert distance is not None
+            self.assertAlmostEqual(distance, 0.5, places=2)
+
+    def test_hausdorff_reports_zero_for_the_same_geometry(self) -> None:
+        pymeshlab = _load_pymeshlab()
+        if pymeshlab is None:
+            self.skipTest("pymeshlab is not importable")
+
+        from pyboxbuilder.export.hausdorff import hausdorff_distance
+
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = Path(tmp) / "a.3mf", Path(tmp) / "b.3mf"
+            self._export(a, (10.0, 10.0, 5.0))
+            self._export(b, (10.0, 10.0, 5.0))
+            self.assertEqual(hausdorff_distance(a, b), 0.0)
 
     def test_a_missing_file_always_needs_writing(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
