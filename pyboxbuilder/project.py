@@ -134,6 +134,218 @@ class Project:
             object.__setattr__(by_label[label], "position", position)
         return arrangement
 
+    def show(self, show_lids: bool = False) -> None:
+        """Preview the packed box layout interactively.
+
+        Builds every box body at its final packed position and shows the
+        combined solid. Lids are hidden by default (they obscure the layout);
+        pass ``show_lids=True`` to place each lid in its seated position on
+        its body. Used when NOT running inside make (``FROM_MAKE`` unset) — in
+        the PythonSCAD GUI or a Jupyter notebook this renders the layout; the
+        make/export flow instead writes 3MF files via ``export()``.
+        """
+        if self.game_box_size is None:
+            # Standalone: line each box up side by side.
+            solids = []
+            x = 0.0
+            for builder in self._boxes:
+                body, lid, size = self._build_box_solids(builder)
+                if body is None:
+                    continue
+                # The lid is already at its correct local Z (inside/on the box),
+                # so it gets the same translation as the body.
+                solids.append(body.translate([x, 0.0, 0.0]))
+                if show_lids and lid is not None:
+                    solids.append(lid.translate([x, 0.0, 0.0]))
+                x += size[0] + 10.0
+        else:
+            packing = self._resolve_final_layout()
+            pos_by_label = {p.label: p.position for p in packing.placements}
+            solids = []
+            for builder in self._boxes:
+                body, lid, size = self._build_box_solids(builder)
+                if body is None:
+                    continue
+                pos = pos_by_label.get(builder.label, builder.position or (0.0, 0.0, 0.0))
+                solids.append(body.translate(list(pos)))
+                if show_lids and lid is not None:
+                    solids.append(lid.translate(list(pos)))
+
+        if not solids:
+            return
+        combined = solids[0]
+        for s in solids[1:]:
+            combined = combined | s
+        combined.show()
+
+    def _resolve_final_layout(self):
+        """Resolve each box's final size and packed position.
+
+        Computes minimum sizes (from an explicit size or the compartments),
+        runs the 3D packer, and sets ``final_size`` on every builder. Returns
+        the :class:`BoxPacking`, whose placements carry the final positions.
+        """
+        from pyboxbuilder.packing.layout import Placement, pack_boxes
+
+        box_data = []
+        resolved_min_sizes = {}
+        manual_placements = []
+        for builder in self._boxes:
+            wt = builder.wall_thickness or self.wall_thickness
+            ft = builder.floor_thickness or self.floor_thickness
+            lt = builder.lid_thickness or self.lid_thickness
+
+            if builder.size is not None:
+                size = list(builder.size)
+                if None in size:
+                    from pyboxbuilder.compartments.layout import compute_min_box_size
+                    comp_data_raw = [
+                        (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                        for cb in builder.compartments
+                    ]
+                    min_w, min_l, min_h = compute_min_box_size(
+                        comp_data_raw, wt, ft, lt,
+                        max_w=self.game_box_size[0] - 2 * wt,
+                        max_l=self.game_box_size[1] - 2 * wt,
+                    )
+                    if size[0] is None: size[0] = min_w
+                    if size[1] is None: size[1] = min_l
+                    if size[2] is None: size[2] = min_h
+                size = tuple(size)
+            elif builder.compartments:
+                from pyboxbuilder.compartments.layout import compute_min_box_size
+                comp_data_raw = [
+                    (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                    for cb in builder.compartments
+                ]
+                min_w, min_l, min_h = compute_min_box_size(
+                    comp_data_raw, wt, ft, lt,
+                    max_w=self.game_box_size[0] - 2 * wt,
+                    max_l=self.game_box_size[1] - 2 * wt,
+                )
+                size = (min_w, min_l, min_h)
+            else:
+                raise ValueError(
+                    f"Box '{builder.label}' has no explicit size and no "
+                    f"compartments — at least one is required."
+                )
+            resolved_min_sizes[builder.label] = size
+            if builder.position is not None:
+                manual_placements.append(
+                    Placement(label=builder.label, position=builder.position, size=size, rotation=False)
+                )
+            else:
+                box_data.append({
+                    "label": builder.label,
+                    "size": size,
+                    "expandable": builder.expandable,
+                    "expandable_width": builder.expandable and builder.expandable_width,
+                    "no_rotate": builder.no_rotate,
+                })
+
+        slack = getattr(self, "clearance_slack", 1.0)
+        packing_container = (
+            self.game_box_size[0] - 2 * slack,
+            self.game_box_size[1] - 2 * slack,
+            self.game_box_size[2] - self.board_thickness,
+        )
+        packing = pack_boxes(packing_container, box_data)
+
+        shifted_placements = []
+        for p in packing.placements:
+            shifted_placements.append(
+                Placement(
+                    label=p.label,
+                    position=(p.position[0] + slack, p.position[1] + slack, p.position[2]),
+                    size=p.size,
+                    rotation=p.rotation,
+                )
+            )
+        shifted_placements.extend(manual_placements)
+        packing.placements = shifted_placements
+
+        resolved_sizes = {p.label: p.size for p in packing.placements}
+        for builder in self._boxes:
+            val = resolved_sizes[builder.label] if builder.label in resolved_sizes else resolved_min_sizes[builder.label]
+            object.__setattr__(builder, "final_size", val)
+
+        self._packing = packing
+        return packing
+
+    def _build_box_solids(self, builder):
+        """Build a box's body and lid solids from its resolved final size.
+
+        Returns ``(body, lid, size)``; ``body``/``lid`` are ``None`` when the
+        box type produced no geometry (or pybosl2 is unavailable).
+        """
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+        from pyboxbuilder.box.interior import Interior
+
+        wt = builder.wall_thickness or self.wall_thickness
+        ft = builder.floor_thickness or self.floor_thickness
+        lt = builder.lid_thickness or self.lid_thickness
+        size = builder.final_size
+
+        comp_data = []
+        for cb in builder.compartments:
+            resolved = cb.resolve_size(size[0] - 2 * wt, size[1] - 2 * wt)
+            comp_data.append((
+                cb.label, resolved[0], resolved[1], cb.depth or 10,
+                getattr(cb, "shape_file", None), cb.position, getattr(cb, "elements", ()),
+            ))
+
+        box_cls = BOX_IMPL_REGISTRY.get(builder.box_type)
+        if box_cls is None:
+            return None, None, size
+
+        box = box_cls()
+        interior = Interior(
+            width=size[0] - 2 * wt, length=size[1] - 2 * wt, height=size[2] - lt - ft,
+            origin_x=wt, origin_y=wt, origin_z=ft,
+        )
+
+        comp_layout = None
+        if comp_data:
+            from pyboxbuilder.compartments.layout import layout_compartments
+            no_rotate_labels = {cb.label for cb in builder.compartments if cb.no_rotate}
+            comp_layout = layout_compartments(interior, comp_data, no_rotate_labels=no_rotate_labels)
+
+        body = lid = None
+        try:
+            spec_dict = {
+                "label": builder.label,
+                "width": size[0], "length": size[1], "height": size[2],
+                "wall_thickness": wt, "floor_thickness": ft, "lid_thickness": lt,
+                "hollow": not comp_data,
+            }
+            for field_name in builder.__dataclass_fields__:
+                if field_name in (
+                    "box_type", "label", "box_id", "size", "final_size",
+                    "expandable", "expandable_width", "expandable_length",
+                    "wall_thickness", "floor_thickness", "lid_thickness",
+                    "lid", "finger_holes", "compartments",
+                ):
+                    continue
+                val = getattr(builder, field_name)
+                if val is not None:
+                    spec_dict[field_name] = val
+
+            body = box.build_body(spec_dict)
+            lid = box.build_lid(spec_dict)
+
+            if comp_layout is not None and body is not None:
+                from pyboxbuilder.compartments.carve import build_contents
+                contents = build_contents(
+                    comp_layout.placements, interior,
+                    {cb.label: cb for cb in builder.compartments},
+                )
+                if contents is not None:
+                    body = body - contents
+        except ImportError:
+            pass
+
+        return body, lid, size
+
     def export(self, out_dir: str | Path) -> ExportResult:
         """Build, pack, and export all 3MF files + layout PDF."""
         from pyboxbuilder.export.result import ExportResult

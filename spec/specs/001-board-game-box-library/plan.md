@@ -96,6 +96,26 @@ Concretely:
 - **Export only under `__main__`**: the `project.export(...)` call lives inside `if __name__ == "__main__":`, so importing the example (from Jupyter) builds the project but does not write files; running it as a script exports.
 - **Same `Project` object**: whether imported or run, the module produces the same `Project` (same boxes, same sizes) — the environment must not change the geometry.
 
+### Make vs. Interactive: `FROM_MAKE` selects export vs. `show()`
+
+The `__main__` guard branches on the `FROM_MAKE` environment variable so the same
+file does the right thing in both contexts:
+
+```python
+if __name__ == "__main__":
+    import os
+    if os.environ.get("FROM_MAKE") == "1":
+        result = project.export("output/")   # batch build: writes 3MF + PDF
+        # ... report written/skipped pieces ...
+    else:
+        project.show()                        # interactive: renders the layout
+```
+
+- **Inside make** (`FROM_MAKE=1`): the example runs the export flow — `project.export("output/")` writes the 3MF files and layout PDF. The make build sets `FROM_MAKE=1` (as `tests/render_app.py` does) so the dependency-driven build regenerates box output without popping up a render window.
+- **Not inside make** (PythonSCAD GUI, Jupyter, or a plain `python3` shell): `FROM_MAKE` is unset, so the example calls `project.show()`, which builds every box body at its final packed position and `.show()`s the combined solid for interactive preview.
+- **`Project.show(show_lids=False)`** is a read-only preview: it resolves the layout (reusing the same `_resolve_final_layout()` packing as `export()`), builds each body, places them at their packed positions, unions them, and calls `.show()`. It does NOT write files, generate spacers, or produce a PDF. `export()` is unchanged and remains the batch path.
+- **Lids are hidden by default** — lids obscure the layout (they cover the compartments and neighbouring boxes), so `show()` renders bodies only. Pass `project.show(show_lids=True)` to also place each lid in its seated position (inside/on its body — `build_lid()` already positions it relative to the box origin, so the lid uses the same translation as the body; no extra Z offset).
+
 ### Source Code (repository root)
 
 ```text

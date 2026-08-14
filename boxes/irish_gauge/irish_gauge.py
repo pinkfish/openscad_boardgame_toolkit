@@ -126,8 +126,13 @@ for i, company in enumerate(companies):
 
 # ── Export ────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    result = project.export("output/")
-    print(f"Exported {result.total_files} files:")
-    print(f"  Written: {len(result.written)}")
-    for f in result.written:
-        print(f"    ✓ {f}")
+    import os
+    if os.environ.get("FROM_MAKE") == "1":
+        result = project.export("output/")
+        print(f"Exported {result.total_files} files:")
+        print(f"  Written: {len(result.written)}")
+        for f in result.written:
+            print(f"    ✓ {f}")
+
+    else:
+        project.show()
