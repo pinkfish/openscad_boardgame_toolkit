@@ -693,6 +693,106 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ---
 
+## Phase 19: Interactive preview — `Project.show()` (plan §Make vs. Interactive)
+
+**Purpose**: `show()` exists but only unions bodies at their packed positions. The plan asks it to be a readable preview.
+
+**Goal**: A viewer can tell one box from another, see through a lid, look under a layer, and see the spacers that fill the dead space.
+
+**Independent Test**: Show a 4-box project with `remove_layers=1` and verify the top layer's boxes are absent from the rendered solid while every lower box is present.
+
+- [ ] T239 Add `remove_layers: int = 0` to `Project.show()` — omit the top N vertical layers of the packed layout (a box is in a removed layer when its top surface sits above the N-th slice), revealing what is underneath, in `pyboxbuilder/project.py`
+- [ ] T240 [P] Assign each box a stable colour for preview: its own body colour when set, otherwise a deterministic pseudo-random hue hashed from its label. View-time only — it must not reach the exported geometry or its material, in `pyboxbuilder/project.py`
+- [ ] T241 [P] Render spacer placements in `show()` too, always in a variant of grey drawn from outside the per-box palette, so dead fill is instantly distinguishable from a real box
+- [ ] T242 [P] Render a shown lid semi-transparent (50% alpha) in a slightly lighter shade of its box's colour, so the lid reads as a separate piece and the box stays visible through it
+- [ ] T243 [P] Write test: `remove_layers` drops exactly the boxes above each slice (0 → all, N → none of the top layer), colours are stable across runs and unique per label, spacers are grey and lids lighter-and-transparent, and `show()` writes no files, in `tests/test_pyboxbuilder/test_show.py`
+
+**Checkpoint**: `project.show()` is a usable layout preview, not a monolithic union.
+
+---
+
+## Phase 20: Curve precision — `fn` / `fa` / `fs` (plan §Curve precision)
+
+**Purpose**: Every curve currently renders at whatever default the call site happened to get; nothing is overridable.
+
+**Goal**: One precision setting on `export()`/`show()` reaches every curved feature, and no geometry call hardcodes a facet count the caller cannot override.
+
+**Independent Test**: Export the same box at `fn=8` and `fn=64` and verify the cylinder-derived features change facet count while the box's measured bounding box does not.
+
+- [ ] T244 Add optional `fn`, `fa`, `fs` parameters to `Project.export()` and `Project.show()` and thread them through a single render-context object rather than a parameter on every call, in `pyboxbuilder/project.py`
+- [ ] T245 Consume the context in every geometry call that renders a curve — cylinders/spheres, `cuboid(rounding=)`, fillets and chamfers, finger-scoop and finger-hole profiles, hex and tessellation edges, and lid-pattern curves — in `pyboxbuilder/box/`, `pyboxbuilder/compartments/`, `pyboxbuilder/lid/`
+- [ ] T246 [P] Write test: defaults are `fa=12, fs=2`; an explicit `fn` reaches a scoop, a hex cell and a lid pattern; and no module hardcodes a facet count (grep-style assertion over `pyboxbuilder/`), in `tests/test_pyboxbuilder/test_precision.py`
+
+**Checkpoint**: Precision is one knob, from fast preview to print quality.
+
+---
+
+## Phase 21: Edge smoothing and silhouette fidelity (FR-043, FR-044, FR-045)
+
+**Purpose**: The plan requires that nothing a finger or a card touches be a sharp 90° edge — but no box body is rounded today and `rounding` exists only inside `compartments/carve.py`.
+
+**Goal**: Structural edges are filleted at a configurable small radius; piece silhouettes are untouched.
+
+**Independent Test**: Slice a box body at its top rim and at the wall/floor junction and verify a filleted profile at both, then verify an SVG element's outline is vertex-for-vertex what was parsed.
+
+- [ ] T247 Add a configurable `rounding` (default 1.0mm) to `Project` and `BoxBuilder`, and round the box body's outer vertical corners, top rim and bottom base edge via `cuboid(rounding=)` in `pyboxbuilder/box/shell.py` (FR-044)
+- [ ] T248 Rebuild the card finger scoop as one continuous filleted profile running top rim → floor: the top opening curves into the wall, the bottom blends into the floor, deep enough to reach below the lowest card without breaching the floor from outside, in `pyboxbuilder/compartments/finger_hole.py` (FR-043)
+- [ ] T249 Sliding boxes: apply the chamfer/rounding to the **lower** lid-track wall, not the higher one, so it cannot foul the dovetail. Rotate the lid section to the opposite side when that puts the smooth edge on the non-track side, and skip the rotation when the box's length/width ratio makes it wasteful (a long narrow card box), in `pyboxbuilder/box/types/sliding.py` + `box/features.py`
+- [ ] T250 [P] Fillet the remaining touched edges — compartment top rim, wall/floor junction, and finger-hole walls — at the same configurable radius, in `pyboxbuilder/compartments/carve.py`
+- [ ] T251 [P] Enforce silhouette fidelity (FR-045): no smoothing/rounding pass may run over `CompartmentElement` shape geometry or a parsed SVG path, even where the outline is hard to print, in `pyboxbuilder/compartments/element.py`
+- [ ] T252 [P] Write test: body rim/corner/base edges are filleted at the configured radius and the radius is overridable; the card scoop is continuous from rim to floor and does not breach the floor; the sliding chamfer lands on the low track wall; an SVG element's outline is unchanged by any smoothing setting — in `tests/test_pyboxbuilder/test_smoothing.py`
+- [ ] T253 Regenerate the golden images the rounded bodies change, in `tests/test_pyboxbuilder/golden/`
+
+**Checkpoint**: Nothing a hand touches is a sharp edge, and nothing a piece defines has been softened.
+
+---
+
+## Phase 22: Validation, errors and warnings (plan §Validation)
+
+**Purpose**: `pyboxbuilder` raises 16 `ValueError`s and emits **zero** warnings; the spec's edge-case table asks for both.
+
+**Goal**: Every rejected configuration names its offender, and every degraded-but-legal configuration says so without stopping the export.
+
+**Independent Test**: Run the table — each error row raises with the offender named, each warning row completes the export and emits exactly one warning.
+
+- [ ] T254 Add `pyboxbuilder/errors.py` — `PackingError` plus a single `warn()` helper (stdlib `warnings`, project-specific category) so warnings are filterable and testable with `assertWarns`
+- [ ] T255 Implement the missing rejections: hex grid `rows`/`cols` ≤ 0; a hex tile leaving zero cells fitting the interior; a magnet slot count exceeding the available straight-wall length (slots must never cross a corner, FR-039); a spacer whose computed height is ≤ 0; a box with neither compartments nor an explicit `size` — each naming the box/compartment and the offending value
+- [ ] T256 Implement the missing warnings: `LidBuilder` set on a lidless box type (warn + drop the decoration); an empty exported mesh (warn + do **not** write the file); body colour equal to all three accent colours (warn — degenerates to one material); overlapping finger cutouts; and an empty project returning an empty `ExportResult` with no PDF and no error
+- [ ] T257 Confirm the documented non-errors stay non-errors: `expandable=True` on a standalone box is ignored silently, a corrupt `.layout_cache.json` is a cache miss, and zero-thickness walls between adjacent compartments merge into one cavity
+- [ ] T258 [P] Write test: one case per row of both tables in the plan's *Validation, Errors and Warnings*, asserting the exact message for errors and `assertWarns` for warnings, in `tests/test_pyboxbuilder/test_validation.py`
+
+**Checkpoint**: Invalid input is rejected with an explanation; degraded input is flagged and still builds.
+
+---
+
+## Phase 23: Typed options — no bare strings (plan §Typed Options)
+
+**Purpose**: `BoxBuilder.stackable` and `.magnet_type` are `str | None`, which the constitution's "enums for all type selections, no bare strings" forbids.
+
+**Independent Test**: A bare string in either field is a type error under pyright and a `TypeError` at runtime.
+
+- [ ] T259 Add `StackableMode` (`INSIDE`, `OUTSIDE`) and `MagnetType` (`ROUND`, `RECT`, `NONE`) to `pyboxbuilder/enums.py`, and give `ScoopSide` a real default member instead of `None`
+- [ ] T260 Migrate `BoxBuilder`, `box/types/no_lid.py`, the registry and all six example projects that set them; reject a bare string at construction rather than coercing it
+- [ ] T261 [P] Write test: enum members round-trip through builder → box type → geometry, a bare string raises, and `boxes/stackable_hexes` still produces its 8 variants unchanged, in `tests/test_pyboxbuilder/test_enums.py`
+
+---
+
+## Phase 24: Documentation, dual-run examples, and traceability
+
+**Purpose**: Three standing policies in the plan have no task: the docstring rules, the run-in-both-environments rule for examples, and the coverage map.
+
+**Independent Test**: Every `boxes/*` project both imports cleanly (building its `Project`, writing nothing) and exports when run as `__main__` with `FROM_MAKE=1`.
+
+- [ ] T262 Audit every public class/method/function/enum/dataclass field in `pyboxbuilder/` against the plan's *Documentation Policy* — mandatory `Args:`/`Returns:` sections, documented dataclass fields, no one-liners on public API — and fill the gaps
+- [ ] T263 [P] Add a docs check to `.github/workflows/docs.yml` that fails the build on a public symbol with no docstring or a missing `Args:`/`Returns:` section, so `pdoc pyboxbuilder` cannot silently drift from the policy
+- [ ] T264 [P] Write test: every project under `boxes/` imports without `__file__`, builds its `Project` without exporting, and exports under `FROM_MAKE=1` — parameterised over the directory listing so a new example is covered the day it lands, in `tests/test_pyboxbuilder/test_examples_dual_run.py`
+- [ ] T265 [P] Give the five undocumented examples (`arkham_horror`, `dominion`, `first_class`, `magical_athlete`, `nippon`) a README each stating the game box size and what the port demonstrates, matching `boxes/earth_animal_kingdom/README.md`
+- [ ] T266 [P] Write test: the plan's *Requirements Coverage Map* stays honest — every SC row names a test module that exists, in `tests/test_pyboxbuilder/test_coverage_map.py`
+
+**Checkpoint**: The policies the plan states are enforced by CI rather than by memory.
+
+---
+
 ## Notes
 
 - [P] tasks = different files, no dependencies

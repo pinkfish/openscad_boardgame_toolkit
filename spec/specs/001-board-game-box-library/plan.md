@@ -422,11 +422,11 @@ Since the game box height is `47.0` mm, raising the sprout box height to `30.0` 
 
 - [x] Port all 37 animal entries from `ANIMAL_PIECES` into the `earth_animal_kingdom.py` data list using `object(width=, length=, num=)` format
 - [x] Implement multi-quantity compartment stacking (same W×L, depth = qty × 8mm)
-- [ ] Wire the 3D bin-packing solver (`packing/layout.py`) to distribute animals across the two AnimalBox containers
-- [ ] Generate labeled compartment floors (0.2mm extruded text per animal name)
+- [x] ~~Wire the 3D bin-packing solver to distribute animals across the two AnimalBox containers~~ *(superseded by T193: the solver's split differed from the original, so the precomputed partition from `lib/animal_kingdom_items_layout.scad` is reproduced verbatim — 26 slots in AnimalBox1, 30 in AnimalBox2, 56 across 37 species)*
+- [x] Generate labeled compartment floors (0.2mm extruded text per animal name) — `pyboxbuilder/compartments/labels.py` (T090)
 - [x] Port the card box with correct 36-card count and finger hole scoop
 - [x] Port the sprout box (50 cubes) and canopy box (20 tokens)
-- [ ] Verify all 7 boxes pack within the 288×158mm game box interior
+- [x] Verify all boxes pack within the 288×158mm game box interior *(six boxes, not seven — T191 replaced the invented `Boards` box with the original's `SpacerBox` 174 × 158 × 21; positions come from `columns(stack(...), stack(...), "CanopyBox")` per T208)*
 - [x] Export all files and verify against original `examples/release/earth_animal_kingdom/` output
 
 ## Stackable Hexes Example
@@ -472,11 +472,13 @@ The original design creates hexagonal boxes (`PathBox.regular_polygon(sides=6)`)
 
 ### Migration Checklist
 
-- [ ] Create `boxes/stackable_hexes/stackable_hexes.py` with all 8 hex box variants from the matrix
-- [ ] Implement standalone box export path (no game box, no packing) in `pyboxbuilder/project.py`
-- [ ] Implement stackable inside/outside rim generation for no-lid boxes
-- [ ] Implement round and rectangular magnet slots on opposing sides
-- [ ] Verify hex boxes stack, magnets align, and divisions clip to the hex interior
+- [x] Create `boxes/stackable_hexes/stackable_hexes.py` with all 8 hex box variants from the matrix (T110)
+- [x] Implement standalone box export path (no game box, no packing) in `pyboxbuilder/project.py` (T102)
+- [x] Implement stackable inside/outside rim generation for no-lid boxes (T103)
+- [x] Implement round and rectangular magnet slots on opposing sides (T104)
+- [x] Verify hex boxes stack, magnets align, and divisions clip to the hex interior
+- [ ] Replace the `stackable` / `magnet_type` bare strings on `BoxBuilder` with `StackableMode` / `MagnetType` enums (the "no bare strings" constraint above) — see *Typed Options*
+- [ ] Reject a magnet configuration whose slot count exceeds the available straight-wall length, rather than placing a slot across a corner — see *Validation, Errors and Warnings*
 
 ## Irish Rails (Irish Gauge) Example
 
@@ -531,12 +533,12 @@ This means `Project.export()` must emit spacer trays (both rectangular and polyg
 
 ### Migration Checklist
 
-- [ ] Create `boxes/irish_gauge/irish_gauge.py` porting the 5 company boxes, money box, and spacers
-- [ ] Derive all box sizes from `box_width`, `box_length`, `box_height`, `board_thickness`, `card_length`, `wall_thickness` — no hardcoded absolute sizes
-- [ ] Implement company box contents: share-card stack, dividend-marker cylinder with indents, 6×4 train grid well, 3-line name label
-- [ ] Implement money box: 3 card slots with "1"/"5"/"10" labels + "Irish Gauge" floor text
-- [ ] Auto-generate SpacerBoxBack (polygon path) and SpacerBoxCompany (rectangular) from leftover space
-- [ ] Verify all boxes + spacers pack within 214 × 302mm interior
+- [x] Create `boxes/irish_gauge/irish_gauge.py` porting the 5 company boxes, money box, and spacers (T105)
+- [x] Derive all box sizes from `box_width`, `box_length`, `box_height`, `board_thickness`, `card_length`, `wall_thickness` — no hardcoded absolute sizes
+- [x] Implement company box contents: share-card stack, dividend-marker cylinder with indents, 6×4 train grid well, 3-line name label
+- [x] Implement money box: 3 card slots with "1"/"5"/"10" labels + "Irish Gauge" floor text
+- [x] Auto-generate SpacerBoxBack (polygon path) and SpacerBoxCompany (rectangular) from leftover space (T106, T174–T180)
+- [x] Verify all boxes + spacers pack within 214 × 302mm interior — the port yields **four** spacers, not two: the extra pair is a vertical step above `CompanyBox2`, which FR-014e keeps separate on purpose (T173)
 
 ## 1835 Example (Hex Tiles)
 
@@ -598,6 +600,207 @@ Generated box output (boxes, spacers, lids) MUST always accurately reflect the c
 - [x] Port the money box (8 denominations), share box (8 companies), middle box (tokens/trains), first-player box
 - [x] Port `BoxLayout` as manual `position=` values (all 12 boxes), reproducing the original layout
 - [x] Verify all boxes + spacers pack within 216 × 298mm interior
+
+## Box Type Catalogue and Closure Features (FR-001, FR-002)
+
+A box type is nothing but a pair — how the body's rim is shaped, and what mates with it — so the two halves come out of **one** function per closure in `pyboxbuilder/box/features.py` and cannot drift apart. The 14 types:
+
+| Type | Closure feature | Lid | Notes |
+|---|---|---|---|
+| `SLIDING` | `sliding_track` | slides out along the length | asymmetric track walls — see the chamfer rule in *Finger Holes & Box Edge Smoothing* |
+| `SLIDING_CATCH` | `sliding_track` + `sliding_catch` | slides, clicks | bump on the lid drops into a slightly larger dimple |
+| `CARD_LIBRARY` | `sliding_track` + heavier latch | slides | catch bump trimmed to the box envelope (T234) |
+| `CAP` / `CAP_PATH` | `cap_metrics`/`cap_body`/`cap_lid` | friction-fit cap over the rim | body stops a lid thickness short; `_PATH` follows a polygon footprint |
+| `SLIPOVER` / `SLIPOVER_PATH` | `slipover_metrics` | sleeve down over the body | body inset all round, `foot` keeps the full footprint to seat on |
+| `INSET` | `rabbet` | plate drops flush into a ledge in the rim | keeps stacking flat |
+| `HINGE` | `knuckle_hinge` (printed pin) | pivots at the back | barrel may stand proud **behind** the footprint, nothing else may |
+| `FILAMENT_HINGE` | `filament_hinge` | pivots on a filament pin | interleaved knuckles, each leaf webbed to its own half |
+| `MAGNETIC` | magnet slots + flush plate | lifts off | body stops a lid thickness short so it closes flush |
+| `NO_LID` | none | — | stackable rim + side magnets live here (FR-038/039) |
+| `PATH` | none | — | polygon footprint, lidless; also the carrier for polygon spacers (FR-014d) |
+
+**A closed box is exactly the size it declares** — over its declared footprint, at its declared height. That is the invariant the packer, `arrange()` and the spacer pass all depend on; it is stated here because seven types once broke it (Phase 18) and the "lid does not overlap body" test cannot catch it.
+
+## Compartment Sizing and Placement (FR-003, FR-005, FR-008)
+
+- **Absolute or ratio.** A compartment takes either `size=(w, l)` or `width_ratio`/`length_ratio`, resolved against the interior at layout time (`CompartmentBuilder.resolve_size`). Mixing the two in one box is legal; a ratio always resolves against the *post-rotation* interior (FR-013b).
+- **0.1mm is the floor.** No dimension is ever rounded to a whole millimetre — not on resolve, not on placement, not on export. Precision is asserted, not assumed (T088, T094).
+- **Manual beats automatic.** A compartment with an explicit `position=(x, y)` is placed there verbatim and excluded from the shelf packer; the remaining compartments pack around it. Overlaps among manual placements are an error, not a warning (FR-007).
+- **Groups.** Compartments sharing a group are packed as one unit — placed adjacently before free compartments fill what is left — so "card slot + token well stay together" is expressible without coordinates.
+- **Element packs.** A compartment whose contents are individual `CompartmentElement` slots derives its own size from the pack's bounding box (FR-004b) and then packs as an ordinary rectangle.
+
+## Box Expansion and Gap Absorption (FR-012, FR-015, FR-016, FR-017)
+
+Expansion is per-axis and off by default at the master switch:
+
+- `expandable=False` disables **all** growth. `expandable_width` / `expandable_length` add fill-to-fit growth on their axis; `expandable` alone still permits the sub-3mm height absorb. (These were once OR'd together, which silently stretched every box declared fixed — T181/T182.)
+- **X and Y first.** Height is the last axis to grow: a Z gap ≥ 3mm becomes a spacer, a gap < 3mm is absorbed into the adjacent box's height.
+- **Rows share a length.** Every box in a row takes the row's longest length; row *widths* are variable, set by the widest box in that row, never equalised across rows (FR-013, FR-016).
+- **Gap thresholds.** A horizontal gap below `gap_threshold` (10mm) is absorbed by an adjacent expandable box. At or above it, a spacer is emitted — unless the tray would fall below `min_spacer_dim` (15mm W/L), in which case the minimum wins and the gap is absorbed anyway. Height has no such floor beyond `min_spacer_height`.
+- **Standalone boxes ignore expansion entirely** — there is no container to fill, so `expandable=True` is a no-op rather than an error.
+
+## Clearance and Fit Model (FR-019, FR-014c)
+
+One number, `Project.clearance_slack` (default 1.0mm, sane range 1–2mm), applied in one direction: **shrink the part, never grow the hole**.
+
+- A sub-box's footprint is reduced by the slack against the game box walls and its neighbours, so it lifts in and out instead of being an interference fit.
+- A spacer's footprint is inset by the same slack after merging (`apply_clearance`), so a tray is liftable too.
+- Polygon footprints inset **exactly**, per-edge along the inward normals of the *directed* edges (`paths.inset_rectilinear`) — a centroid scale thins one arm of an L while fattening the other.
+- Compartment-to-compartment and compartment-to-wall clearance is a separate, smaller constant in `compartments/builder.py`; it is a print tolerance, not a handling allowance.
+
+## Lid Decoration Design (FR-020, FR-021, FR-022, FR-023, FR-024, FR-035, FR-036)
+
+`pyboxbuilder/lid/decorate.py` applies a `LidBuilder` to **any** type's lid, deriving the decoratable face from the lid's own bounding box so no box type declares one.
+
+**Label sizing is measured, never estimated.** Text is set at a nominal size, measured with `textmetrics`, and scaled to the label area (the lid face minus `border_margin`, default 5mm per side). A character-count estimate once put 102mm of text on a 100mm lid (T199). If the scaled character height lands below `min_text_height` (default 4mm, `0` disables the guard) the label is **skipped entirely** — no geometry, no colour assignment — rather than printed illegibly.
+
+**Two layout modes, one orientation switch.**
+- *Frameless*: text only.
+- *Framed*: a rectangular frame with diagonal hatching behind the text (bed adhesion for text islands, spaced so the text bridges without supports) plus a small outer border. The backing plate hugs the text rather than filling the label area, so a lid can carry a frame **and** a pattern (T200).
+- *Diagonal* is an orientation available in both modes: corner-to-corner at the lid's natural angle, which is 45° only when the lid is square.
+
+**Patterns cut through.** A pattern is a through-hole fill over the lid face — maximum filament saving — clipped twice: at the lid outline, and at the label area, which takes precedence (FR-023 note, and the reason a framed label does not lose its border). The catalogue is the full ported `ShapeType` set: dense/lattice shapes, `PENTAGON_R1`–`R15`, and the tessellation families; `build_pattern` dispatches every member with **no fallback to grid** (T116/T117).
+
+**Three accent colours, independently settable**: label text, frame top layer, pattern top layer — each defaulting to a value distinct from the body colour. Patterns may assign different colours to different elements (FR-024).
+
+**Per-mode overrides (FR-035, FR-036).** `mmu_label` and `single_label` override the parent `LidBuilder` when set and fall back to it when not; specifying one does not require the other. Beyond that, the two modes differ structurally:
+- *MMU*: the label is a separate raised insert in its own material; compartment floor labels are raised 0.2mm in a second colour.
+- *Single*: the label is **engraved** into the face, and a framed label degrades to engraved text — a frame is a colour feature, and keeping it lifted the text 0.4mm clear so the engraving cut nothing (T202). Compartment floor labels are 0.2mm recessed cutouts.
+
+## Material and Colour Model (FR-009, FR-024, FR-025)
+
+- **`pybosl2.Color` only.** No `Color` class, no presets, no RGB literals in project files — webcolor names at the call site (`Color("darkgreen")`). `pyboxbuilder/color.py` must not exist.
+- **One coordinate frame.** Every piece of a box — body, lid, inserts, spacers — is built in the box's own frame with its origin at the packed position, so parts align when assembled and a lid needs no extra Z offset to sit on its body.
+- **MMU is object separation, not painting.** `BoxExporter._compose` keeps positive inserts as distinct objects with their own material in the `mmu/` pass and fuses them into the body for the `single/` pass. The 3MF carries the material assignment; nothing is baked into the mesh.
+- A body colour equal to all three accent colours is legal but pointless — it degenerates to one material and warrants a warning (see *Validation*).
+
+## Builder API Shape (FR-026)
+
+`project.box(BoxType.X, "Label", ...)` returns a **type-specific** builder — `SlidingBoxBuilder`, `CapBoxBuilder`, … — chosen by the registry and narrowed by `@overload` so an IDE offers only the options that type actually has. Chaining happens on the returned builder (`.compartment(...)`, `.finger_hole(...)`), each call registering into the builder rather than returning a new one; builders are frozen for their declared fields and mutated only by the packer through `final_size` / `position`. A `box_id` distinguishes duplicate instances of the same label-less box. The whole public surface is the package: `from pyboxbuilder import Project, BoxType, LidBuilder, columns, rows, stack, …`.
+
+## Typed Options — No Bare Strings
+
+The constraint above says enums for all type selections. Two fields on `BoxBuilder` still hold `str | None` and must be converted: `stackable` (→ `StackableMode.INSIDE` / `OUTSIDE`) and `magnet_type` (→ `MagnetType.ROUND` / `RECT` / `NONE`). `ScoopSide` exists but defaults to `None` where it should default to a member. These are public API, so the conversion is a breaking change for the six example projects that set them, and is done in one pass.
+
+## Export Pipeline and Caching (FR-029, FR-030, FR-031, FR-032)
+
+`Project.export(out_dir)` runs: resolve layout (pack → expand → propagate `final_size`) → generate spacers → build each piece per colour mode → write conditionally → delete stale → PDF.
+
+- **Files.** `{out_dir}/{game}/mmu/` and `{out_dir}/{game}/single/`, named `<label>_body.3mf` / `<label>_lid.3mf`. A lidless type produces a body only. Each spacer gets its own file. So a kit of 1 outer + 3 sub-boxes + 2 spacers is (4 × 2 + 2) × 2 = 20 files (SC-011).
+- **Write-if-different.** A 3MF stamps a fresh timestamp and UUIDs on every write, so byte comparison never matches. The gate is a 3D Hausdorff distance against the mesh already on disk (tolerance 0.001mm, user-settable), measured **in both directions** and sampled over faces and edges, not vertices — one-sided vertex sampling reported 0.0 for boxes differing by 0.5mm (T211). Without pymeshlab the exporter falls back to a `<mesh>`-only digest.
+- **Reporting.** `ExportResult` lists written and skipped paths; `Project.piece_bounds` carries every piece's measured bounding box (below).
+- **Stale files.** `BoxExporter.delete_stale` removes `spacer_*` files a run no longer produces, so a layout that drops from four spacers to three leaves no orphan.
+- **A corrupt cache is a miss**, silently regenerated — never an error.
+
+## Print-Bed Reporting (FR-027)
+
+Every exported piece's bounding box is measured (not computed from the declared size — the hinge barrel stands outside the footprint) and surfaced as `Project.piece_bounds`, so a user can check a piece against their bed before slicing.
+
+## Silhouette Fidelity (FR-045)
+
+Smoothing and silhouette fidelity are in direct tension, so the rule is explicit: **the outline of a piece shape is never modified.** SVG silhouettes, animal outlines, token cutouts and engraved shapes are reproduced exactly as authored, even where the result is awkward to print — thin features, overhangs, sharp interior corners all stand. The fillets and chamfers of FR-043/FR-044 apply only to structural edges the toolkit itself creates: box rims and corners, compartment wall/floor junctions, finger scoops and finger holes. No global smoothing pass may run over element geometry, and the SVG parse cache stores the path as parsed.
+
+## Validation, Errors and Warnings
+
+Rejected at specification/export time with a descriptive `ValueError` (or `PackingError`) naming the offender:
+
+| Condition | Behaviour |
+|---|---|
+| Compartment deeper than the interior, or overflowing it | error naming the compartment/group and the overflow amount |
+| Compartment width ratios summing > 1.0 in a row | error listing each over-allocated compartment and its ratio |
+| Manually positioned compartments overlapping | error, never silent geometry |
+| Sub-boxes not fitting the outer interior (footprint or height, lid thickness included) | error naming each box and by how much |
+| Packing failure | `PackingError` with the fill ratio and any oversized boxes — never an empty layout |
+| Box with neither compartments nor an explicit `size` | error |
+| Hex grid with `rows` or `cols` ≤ 0 | error |
+| Hex tile larger than the interior, zero cells fitting | error (cells that merely overhang are clipped) |
+| Magnet slot count exceeding the available straight-wall length | error — slots may not cross a corner |
+| Spacer whose computed height is ≤ 0 | error |
+| Rotated box whose compartments no longer fit the rotated interior | re-layout, then error if still overflowing (or set `no_rotate`) |
+
+Emitted as a **warning**, with the run continuing:
+
+| Condition | Behaviour |
+|---|---|
+| `LidBuilder` set on a lidless box type | warn, drop the decoration |
+| Exported mesh empty (no geometry) | warn, do **not** write the file |
+| Body colour equal to all three accent colours | warn — the multi-colour 3MF degenerates to one material |
+| Overlapping finger cutouts | warn |
+| Empty project (no sub-boxes) | no files, no PDF, empty `ExportResult` — not an error |
+| `expandable=True` on a standalone box | ignored silently (documented, not warned) |
+
+Zero-thickness walls between adjacent compartments are **not** an error: the compartments merge into a single cavity, which is a legitimate way to express an L-shaped well.
+
+## Example Inventory
+
+Twelve projects live under `boxes/`. The five documented in detail above are the reference ports; the rest exercise the same API and are ported from their `examples/*.scad` originals.
+
+| Project | Demonstrates |
+|---|---|
+| `earth_animal_kingdom` | auto-sized card/sprout/canopy boxes, 56 animal slots from a precomputed partition, `columns`/`stack` layout |
+| `emberleaf` | element packs (per-worker silhouette slots), 21 boxes at 77% fill, derived spacers |
+| `irish_gauge` | mixed lid types in one game box, shared-footprint company boxes, polygon spacers |
+| `1835` | hex-grid compartments, push blocks, floor finger holes, `BoxLayout` ported as manual positions |
+| `stackable_hexes` | standalone boxes, stackable rims, round/rect magnets, hex divisions |
+| `earth` | the FR-013a fixed 68 × 99 footprint and 55.2mm column rules |
+| `arkham_horror`, `dominion`, `first_class`, `magical_athlete`, `nippon` | additional ports; each must satisfy the dual-run rule below |
+| `_template` | the starting point for a new game |
+
+Every one of them obeys *Examples Must Run In Both Plain Python and Jupyter* and the `FROM_MAKE` branch, and that is verified by test, not by inspection.
+
+## Requirements Coverage Map
+
+Where each requirement is designed, and where it is verified. Sections named below are in this document unless prefixed `spec:`.
+
+| FR | Plan section | Module |
+|---|---|---|
+| FR-001, FR-002 | Box Type Catalogue | `box/types/*`, `box/features.py` |
+| FR-003, FR-005 | Compartment Sizing and Placement | `compartments/builder.py`, `compartments/layout.py` |
+| FR-003a | Validation | `project.py` |
+| FR-004, FR-004a | Compartment Auto-Layout with Rotation | `compartments/layout.py` |
+| FR-004b | Compartment Auto-Layout (Element Pack Bounding Boxes) | `compartments/element.py` |
+| FR-006 | Finger Holes & Box Edge Smoothing | `compartments/finger_hole.py` |
+| FR-007, FR-011 | Validation | `compartments/layout.py`, `packing/layout.py` |
+| FR-008 | Compartment Sizing and Placement (Groups) | `compartments/layout.py` |
+| FR-008a | Multi-Bin Compartment Packing API | `project.py` |
+| FR-009 | Material and Colour Model | `export/exporter.py` |
+| FR-010 | When Auto-Packing Works | `packing/layout.py`, `packing/guillotine.py` |
+| FR-012, FR-015–FR-017 | Box Expansion and Gap Absorption | `packing/layout.py` |
+| FR-013, FR-013a | Box Expansion; Main Earth Insert Sizing Rules | `packing/layout.py`, `boxes/earth/` |
+| FR-013b, FR-013c | Box Rotation Propagation to Compartments | `project.py`, `packing/layout.py` |
+| FR-014, FR-014a–e | Spacer Generation: Sweep, then Merge | `packing/spacer.py`, `paths.py` |
+| FR-018 | Spacer Generation (rectilinear merge) | `paths.py`, `box/types/path.py` |
+| FR-019 | Clearance and Fit Model | `packing/spacer.py`, `compartments/builder.py` |
+| FR-020–FR-024 | Lid Decoration Design | `lid/label.py`, `lid/pattern.py`, `lid/decorate.py`, `lid/color_layers.py` |
+| FR-025 | Material and Colour Model | `export/exporter.py` |
+| FR-026 | Builder API Shape | `project.py`, `builders/*` |
+| FR-027 | Print-Bed Reporting | `export/exporter.py` |
+| FR-028 | *deferred, not in v1* | — |
+| FR-029–FR-032 | Export Pipeline and Caching | `export/exporter.py`, `export/hausdorff.py`, `export/result.py` |
+| FR-033, FR-034 | 3D Oblique Exploded PDF Guide Layout | `export/layout_pdf.py` |
+| FR-035, FR-036 | Lid Decoration Design (per-mode overrides) | `lid/builder.py`, `compartments/labels.py` |
+| FR-037 | Stackable Hexes Example (standalone) | `project.py` |
+| FR-038, FR-039 | Stackable Hexes Example; Typed Options | `box/types/no_lid.py` |
+| FR-040–FR-042 | 1835 Example (Hex Tiles) | `compartments/hex_grid.py` |
+| FR-043, FR-044 | Finger Holes & Box Edge Smoothing | `box/shell.py`, `compartments/finger_hole.py` |
+| FR-045 | Silhouette Fidelity | `compartments/element.py` |
+
+| SC | Verified by |
+|---|---|
+| SC-001 | `quickstart.md` scenarios (T085) |
+| SC-002, SC-008 | timed layout/auto-size tests in `test_compartments.py`, `test_packing.py` |
+| SC-003 | `test_closures.py` — zero body/lid intersection for all 11 lidded types |
+| SC-004, SC-007 | `test_compartments.py` validation cases |
+| SC-005 | `test_packing.py`, `test_guillotine.py` |
+| SC-006 | `test_carve.py`, render tests |
+| SC-009, SC-010 | `test_packing.py` gap-threshold cases |
+| SC-010a/b/c | `test_spacer_merge.py`, `test_emberleaf.py` |
+| SC-011–SC-013 | `test_export.py`, `test_exporter.py`, render export tests |
+| SC-014–SC-016 | `test_lid_label.py`, `test_lid_decorate.py` |
+| SC-017–SC-019 | `test_export.py` PDF cases |
+| SC-020 | `test_project.py` standalone path |
+| SC-021, SC-022 | `test_all_box_types.py`, golden renders |
+| SC-023 | `boxes/stackable_hexes` + `test_hex_grid.py` |
 
 ## Complexity Tracking
 
