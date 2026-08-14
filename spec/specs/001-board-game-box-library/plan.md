@@ -128,6 +128,38 @@ A slipover sleeve is a smooth box with nothing to hold: four covered sides, flus
 
 The notch itself is not a new shape, and that is the part worth copying: the original's `CornerCatch` is **two `FingerHoleWall` scoops meeting at the corner**, one through each wall. `features.corner_catch` does the same with the same `build_wall_scoop`, so the notch arrives with the r1 roll, the floor fillet and the face fillets already correct and cannot drift from the finger cuts elsewhere in the box. Sizing follows the original too: half the skirt's height capped at 20mm, and a radius of at least 7mm so a shallow sleeve still admits a fingertip.
 
+### Getting A Cap Lid Off (FR-002i–FR-002n)
+
+A cap lid is a friction fit over a smooth body. Nothing projects, the faces are flush, and the only purchase is the seam — so the lid comes off by being prised, or it does not come off. The original toolkit solves this by cutting the body's band away **at the four corners** below the skirt, leaving the middle of each side to carry the grip. That is what is ported.
+
+Corners rather than side-centres, and it is not arbitrary: a finger pushing up in a corner recess loads the skirt along **both** adjoining faces at once, so the lid lifts square instead of cocking. Cutting the side-centres instead would take the bearing out of the middle of each wall, which is the part with the least support behind it.
+
+**The cutout is not a new shape.** It is two wall scoops meeting at the corner — the same `corner_catch` the slipover sleeve uses, which is itself the original's `CornerCatch` — so the roll, the floor fillet and the face fillets arrive already correct and cannot drift from the finger cuts elsewhere in the box.
+
+**The profile, in elevation along each side:**
+
+```
+════════════════════  Line A — flat top (the band the skirt grips)
+                    ╲
+                     )  first radius   ≥ 4mm
+                     │
+                     │  perpendicular flat middle
+                     │
+                     (  second radius  ≥ 4mm
+                      ╲_________________  Line B — flat exit
+                                          2mm foot of body below
+```
+
+The two radii come to **4mm between them** — 2mm rolling in at the top, 2mm rolling out at the bottom — which is why the straight middle is whatever height is left over rather than a size of its own. Stating it as a total rather than per-radius matters, because the total is what competes with the box's height: at 4mm each the profile needed 10mm below the skirt and refused thirteen boxes across three of the examples; at 4mm the pair it refuses two. Below Line B a **2mm foot** of full-thickness body remains: the cut is a recess in the side, not a through-slot, and the corner it is cut into is the corner the box gets stacked and dropped on.
+
+**Along the side, each cutout runs between 10mm and a sixth of that side.** Ten is a fingertip. A sixth keeps the band the skirt actually grips — two cutouts per side leaves two thirds of it. Where a sixth is under 10mm the minimum wins, because 10mm is a physical requirement and a sixth is a preference.
+
+**The smallest cap box, read down the box:** the lid plate, a **3mm skirt** for it to grip by, **4mm of curve**, and a **2mm foot**. On a 2mm lid that is 11mm, and it is exact — 11.0mm builds and 10.9mm raises.
+
+Making it exact took capping the skirt as well as checking it. The skirt defaults to half the box height (up to 10mm), which is a good skirt on a tall box and swallows a short one whole: at 11mm it takes 5.5mm and leaves the cut 5.5mm to fit 4mm of curve and a 2mm foot into, so the real floor came out at 12mm while the stack says 11mm. The default is now additionally capped so the cutout below it still fits, floored at the lid plus the 3mm minimum. **A tall box's skirt is untouched** — the cap only bites under about 16mm, which is the only place it was wrong.
+
+**Below that minimum the library raises**, naming the box's height, the minimum, each term of it, and recommending a **slipover** of the same size, which opens by its own corner notches. The alternative — quietly shrinking the radii until they fit — produces a cap box whose lid cannot be removed, and a part that looks finished and cannot be used is worse than one that refused to build.
+
 ### The Hinge Goes Inside The Box (FR-002c, FR-002d, FR-002e)
 
 The hinge used to stand off the back of the box — `axis_y = length + radius + gap` — and Phase 18 recorded that as the one bounded exception to "a closed box is the size it declares". It is not a good exception: a box with a barrel hanging off it cannot be packed against its neighbours, and nothing tells the packer to reserve the room. The pin axis now sits **inside** the back wall (`axis_y = length - radius`), and is sunk far enough (`height + leaf_thickness - radius`) that the barrel's crown is flush with the closed box's top rather than standing 1mm proud of it. Measured: both hinged types are now exactly their declared size in all three axes, and nothing anywhere reaches outside the footprint.
@@ -971,6 +1003,7 @@ Where each requirement is designed, and where it is verified. Sections named bel
 | SC-046, SC-047 | `test_closures.py` — `HingeInsideTests` (a well is clipped clear of the hinge), `SlipoverFingerNotchTests` |
 | SC-048 | `test_closures.py` — the stop wall is dovetailed like the sides and the lid seats in it; the closed lid slides all the way out with zero shared volume at every point, and jams within half a mm if lifted; clearance configurable |
 | SC-050 | `test_closures.py` — corners rounded and both leading edges chamfered, each measured against the same lid with the feature off |
+| SC-051, SC-052 | `test_closures.py` — `CapFingerCutoutTests`: material gone at all four corners and present at all four side midpoints, cutout length bounded, 2mm foot survives, and a too-short box raises naming the slipover |
 | SC-049 | `test_closures.py` — the bump and dimple sit at the outlet, follow the slide axis, straddle the lid's flank, and are absent unless asked for |
 | SC-004, SC-007 | `test_compartments.py` validation cases |
 | SC-005 | `test_packing.py`, `test_guillotine.py` |

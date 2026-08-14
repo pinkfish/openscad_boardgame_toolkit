@@ -35,7 +35,10 @@ class Test1835Layout(unittest.TestCase):
                   no_rotate=True, position=(0, money_box_length, i * hex_box_height),
                   lid=LidBuilder(text="Tiles"))
         for i in range(2):
-            p.box(BoxType.CAP, f"MoneyBox{i+1}",
+            # Slipover: at 9.5mm and 8.5mm these are under the smallest cap box
+            # that can carry a corner finger cutout, so a cap lid would have
+            # nothing to push it off by.
+            p.box(BoxType.SLIPOVER, f"MoneyBox{i+1}",
                   size=(215, money_box_length, 9.5 if i == 0 else 8.5),
                   no_rotate=True, position=(0, 0, i * 9.5),
                   lid=LidBuilder(text="Money"))

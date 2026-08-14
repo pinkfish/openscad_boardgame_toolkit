@@ -919,6 +919,26 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ---
 
+## Phase 28: Corner finger cutouts on a cap box (FR-002i–FR-002n)
+
+**Purpose**: A cap lid is a friction fit over a smooth body, so there is nothing to get a fingertip behind and the only way off is to prise at the seam. The original toolkit cuts the body's band away at the four corners below the skirt; that was never ported.
+
+**Goal**: Every cap box body carries a smooth cutout at each of its four corners, built from the same scoop as every other finger cut, and a box too short for the profile refuses to build rather than shipping a lid that cannot be removed.
+
+**Independent Test**: Material is gone at all four corners and present at all four side midpoints; a short box raises naming the slipover alternative.
+
+- [x] T286 [US2] Add `cap_finger_metrics` / `cap_finger_cutouts` to `pyboxbuilder/box/features.py` and subtract them in `cap_body`, composing four `corner_catch`es (FR-002i, FR-002j) — the same two-scoops-at-a-corner the slipover sleeve and the original's `CornerCatch` use.
+- [x] T287 [US2] Size them (FR-002k–FR-002m): the two radii **4mm between them** (2mm rolling in, 2mm rolling out), a 2mm foot of body below the cut, and a run along each side of at least 10mm and at most a sixth of that side. Where a sixth is under 10mm the minimum wins — 10mm is a fingertip, a sixth is a preference.
+- [x] T288 [US2] Raise below the smallest cap box the stack allows — `lid + 3mm skirt + 4mm curve + 2mm foot` (FR-002n) — naming the height, the minimum, each of its terms, and the slipover alternative. Shrinking the radii instead yields a cap box whose lid cannot be got off.
+- [x] T291 [US2] Cap the skirt default so the cutout below it still fits (FR-002n1). Half the box height is a good skirt on a tall box and swallows a short one: at 11mm it took 5.5 and left the cut 5.5 for 4mm of curve and a 2mm foot, so the real floor was 12mm while the stack says 11mm. Floored at lid + 3mm; a tall box's skirt is untouched.
+- [x] T292 [US2] Pass `top_rounding` / `bottom_rounding` through `corner_catch` to the scoop. Without them the cap box's radii were whatever the scoop derived from the half-width (~6.7mm), not the 2mm budget the spec sets — the numbers were checked and then not used.
+- [x] T289 [US2] Offset each corner's cutter inward by half the band inset. `corner_catch` centres each arm's sweep **on** the wall it is given, so at a box corner half of it lay outside the box — 16mm³ came off four corners instead of 648mm³.
+- [x] T290 [P] [US2] Write test: all four corners are cut and no side midpoint is (SC-051), the run is bounded both ways, a short side takes the fingertip minimum, a foot survives, both radii meet the minimum even when a smaller one is asked for, a too-short box raises naming the slipover, the minimum is **exactly** `lid + 3 + 4 + 2` (11.0 builds, 10.9 raises), a tall box's skirt is unchanged (SC-052), and the cut does not open into the closed lid — in `tests/test_pyboxbuilder/test_closures.py`
+
+**Checkpoint**: Cap boxes open by their corners; short ones say so.
+
+---
+
 ## Notes
 
 - [P] tasks = different files, no dependencies

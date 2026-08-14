@@ -805,3 +805,135 @@ class SlipoverFingerNotchTests(unittest.TestCase):
         small = self.sleeve(slipover_finger_height=3.0)
         large = self.sleeve(slipover_finger_height=12.0)
         self.assertGreater(volume(small), volume(large))
+
+
+class CapFingerCutoutTests(unittest.TestCase):
+    """FR-002i–FR-002n: a cap lid you can actually push off."""
+
+    def body(self, **overrides):
+        from pyboxbuilder.box.features import cap_body
+
+        return cap_body({**SPEC, "hollow": True, **overrides})
+
+    def metrics(self, **overrides):
+        from pyboxbuilder.box.features import cap_finger_metrics
+
+        return cap_finger_metrics({**SPEC, "hollow": True, **overrides})
+
+    def probe(self, solid, x: float, y: float) -> float:
+        """How much body material sits in a 3mm cube at mid-cut height."""
+        from pyboxbuilder.box.shell import block
+
+        f = self.metrics()
+        z = f.base_z + f.height / 2
+        return volume(solid & block([3, 3, 2], at=(x - 1.5, y - 1.5, z - 1)))
+
+    def test_all_four_corners_are_cut_and_no_side_midpoint_is(self) -> None:
+        """SC-051. The corners are where a finger loads both faces at once;
+        the side midpoints are the bearing the skirt actually grips."""
+        plain = self.body(cap_finger_cutouts=False)
+        cut = self.body()
+        w, l = SPEC["width"], SPEC["length"]
+        for x, y in ((0.6, 5.0), (w - 0.6, 5.0), (0.6, l - 5.0), (w - 0.6, l - 5.0)):
+            with self.subTest(corner=(x, y)):
+                self.assertLess(
+                    self.probe(cut, x, y), self.probe(plain, x, y) - 0.5,
+                    "every corner must be cut",
+                )
+        for x, y in ((w / 2, 0.6), (w / 2, l - 0.6), (0.6, l / 2), (w - 0.6, l / 2)):
+            with self.subTest(midpoint=(x, y)):
+                self.assertAlmostEqual(
+                    self.probe(cut, x, y), self.probe(plain, x, y), delta=0.01,
+                    msg="the middle of each side must keep its bearing",
+                )
+
+    def test_the_run_along_each_side_is_bounded(self) -> None:
+        """FR-002m: at least a fingertip, at most a sixth of the side."""
+        from pyboxbuilder.box.features import (
+            CAP_FINGER_MAX_LENGTH_SHARE, CAP_FINGER_MIN_LENGTH_MM,
+        )
+
+        f = self.metrics()
+        for run, side in ((f.length_x, SPEC["width"]), (f.length_y, SPEC["length"])):
+            with self.subTest(side=side):
+                self.assertGreaterEqual(run, CAP_FINGER_MIN_LENGTH_MM)
+                self.assertAlmostEqual(
+                    run, side * CAP_FINGER_MAX_LENGTH_SHARE, delta=0.01
+                )
+
+    def test_a_short_side_gets_the_fingertip_minimum(self) -> None:
+        """Where a sixth is under 10mm the minimum wins — 10mm is what a finger
+        needs, a sixth is only what the skirt would prefer."""
+        from pyboxbuilder.box.features import CAP_FINGER_MIN_LENGTH_MM
+
+        f = self.metrics(width=42.0)
+        self.assertEqual(f.length_x, CAP_FINGER_MIN_LENGTH_MM)
+
+    def test_a_foot_of_body_survives_below_the_cut(self) -> None:
+        """FR-002l: a recess in the side, not a through-slot."""
+        from pyboxbuilder.box.features import CAP_FINGER_FOOT_MM
+
+        f = self.metrics()
+        self.assertGreaterEqual(
+            f.base_z - SPEC["floor_thickness"], CAP_FINGER_FOOT_MM
+        )
+
+    def test_both_radii_meet_the_minimum(self) -> None:
+        """FR-002k: below 4mm a fingertip catches on the edge instead of
+        rolling into the cut."""
+        from pyboxbuilder.box.features import CAP_FINGER_MIN_RADIUS_MM
+
+        self.assertGreaterEqual(self.metrics().radius, CAP_FINGER_MIN_RADIUS_MM)
+        # Asking for less does not get it.
+        self.assertGreaterEqual(
+            self.metrics(cap_finger_radius=0.5).radius, CAP_FINGER_MIN_RADIUS_MM
+        )
+
+    def test_a_box_too_short_raises_and_names_the_alternative(self) -> None:
+        """SC-052/FR-002n: quietly shrinking the radii yields a cap box whose
+        lid cannot be got off, which is worse than refusing to build it."""
+        with self.assertRaises(ValueError) as caught:
+            self.metrics(height=10.0)
+        message = str(caught.exception)
+        self.assertIn("slipover", message.lower())
+        self.assertIn("mm", message)
+
+    def test_the_minimum_height_is_lid_plus_skirt_plus_curves_plus_foot(self) -> None:
+        """SC-052: the stack read down the box, and nothing more.
+
+        The skirt is capped so it cannot swallow a short box: half the height
+        would take 5.5mm of an 11mm box and leave the cut 5.5mm to fit 4mm of
+        curve and a 2mm foot in, so the smallest cap box came out at 12mm
+        rather than the 11mm the stack actually needs.
+        """
+        from pyboxbuilder.box.features import (
+            CAP_FINGER_CURVE_TOTAL_MM, CAP_FINGER_FOOT_MM,
+            CAP_FINGER_MIN_SKIRT_MM,
+        )
+
+        smallest = (
+            SPEC["lid_thickness"] + CAP_FINGER_MIN_SKIRT_MM
+            + CAP_FINGER_CURVE_TOTAL_MM + CAP_FINGER_FOOT_MM
+        )
+        self.metrics(height=smallest)  # must not raise
+        with self.assertRaises(ValueError):
+            self.metrics(height=smallest - 0.1)
+
+    def test_a_tall_box_keeps_the_skirt_it_had(self) -> None:
+        """The skirt cap only bites where it has to — a tall cap box is
+        unchanged by any of this."""
+        from pyboxbuilder.box.features import cap_metrics
+
+        for height in (17.0, 40.0):
+            with self.subTest(height=height):
+                self.assertEqual(
+                    cap_metrics({**SPEC, "height": height}).cap_height,
+                    min(10.0, height / 2),
+                )
+
+    def test_the_cut_does_not_reach_the_lid(self) -> None:
+        """The cutout is in the body, below the skirt — it must not open a gap
+        through the closed box."""
+        from pyboxbuilder.box.features import cap_lid
+
+        self.assertLess(volume(self.body() & cap_lid(dict(SPEC))), 0.01)

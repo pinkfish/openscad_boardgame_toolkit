@@ -94,8 +94,12 @@ for i in range(4):
 
 # ── Money Boxes (2, 4 denominations each) ─────────────────────────
 for box_idx in range(2):
+    # Slipover, not cap: at 8.5mm and 9.5mm these are below the smallest cap
+    # box that can carry a corner finger cutout (lid + 3mm skirt + 4mm of curve
+    # + 2mm foot), so a cap lid here would have nothing to push it off by. A
+    # sleeve opens by its own corner notches at any depth.
     money = project.box(
-        BoxType.CAP,
+        BoxType.SLIPOVER,
         f"MoneyBox{box_idx + 1}",
         size=(money_box_width, money_box_length,
               money_box_height_1 if box_idx == 0 else money_box_height_2),

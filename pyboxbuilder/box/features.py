@@ -77,8 +77,19 @@ def cap_metrics(spec: dict) -> CapMetrics:
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
     wiggle = spec.get("size_spacing", WIGGLE_MM)
-    # The original's CapBoxDefaultCapHeight / CapBoxDefaultLidWallThickness.
-    cap_h = spec.get("cap_height") or min(10.0, spec["height"] / 2)
+    # The original's CapBoxDefaultCapHeight / CapBoxDefaultLidWallThickness,
+    # then capped so the corner finger cutout below it still has somewhere to
+    # go. Half the height is a fine skirt on a tall box and swallows a short one
+    # whole: at 11mm it would take 5.5, leaving 5.5 for a cut that needs 4 and a
+    # 2mm foot. The floor is the lid plate plus the shortest usable skirt, so
+    # the smallest cap box is exactly `lid + 3 + 4 + 2` (FR-002n).
+    cap_h = spec.get("cap_height")
+    if cap_h is None:
+        room = spec["height"] - CAP_FINGER_CURVE_TOTAL_MM - CAP_FINGER_FOOT_MM
+        cap_h = min(
+            min(10.0, spec["height"] / 2),
+            max(lt + CAP_FINGER_MIN_SKIRT_MM, room),
+        )
     lid_wall = wt / 2
 
     inset = lid_wall + 0.75 * wiggle
@@ -90,6 +101,187 @@ def cap_metrics(spec: dict) -> CapMetrics:
         band_length=spec["length"] - 2 * inset,
         inset=inset,
     )
+
+
+CAP_FINGER_MIN_RADIUS_MM = 2.0
+"""Smallest either profile radius may be on a cap box's corner cutout (FR-002k).
+
+The **pair** is the budget: 2mm rolling in at the top and 2mm rolling out at the
+bottom, :data:`CAP_FINGER_CURVE_TOTAL_MM` between them.
+"""
+
+CAP_FINGER_CURVE_TOTAL_MM = 2 * CAP_FINGER_MIN_RADIUS_MM
+"""Height the two rolls need between them, with no straight run at all (FR-002k).
+
+This is what sets the smallest cap box that can be built: a lid thickness, this,
+and a foot. Sized as a total rather than per-radius because it is the total that
+competes with the box's height — a 4mm budget fits boxes an 8mm one refuses.
+"""
+
+CAP_FINGER_FOOT_MM = 2.0
+"""Full-thickness body left below the cutout (FR-002l).
+
+The cut is a recess in the side, not a through-slot; the corner it is cut into
+is the corner the box is stacked and dropped on.
+"""
+
+CAP_FINGER_MIN_SKIRT_MM = 3.0
+"""Shortest skirt a cap lid may have when the body is cut for finger holds.
+
+The skirt has to grip *something* at the corner being pushed at. Below 3mm there
+is not enough of it to hold the lid square, and the lid rocks off that corner
+rather than lifting.
+"""
+
+CAP_FINGER_MIN_LENGTH_MM = 10.0
+"""Shortest run along each side — a fingertip's width (FR-002m)."""
+
+CAP_FINGER_MAX_LENGTH_SHARE = 1 / 6
+"""Longest run along each side, as a share of it (FR-002m).
+
+Two cutouts per side then leave two thirds of the band for the skirt to grip.
+"""
+
+
+@dataclass(frozen=True)
+class CapFingerMetrics:
+    """The numbers a cap box's four corner cutouts are cut from."""
+
+    length_x: float
+    """How far each cutout runs along the width."""
+    length_y: float
+    """How far each cutout runs along the length."""
+    height: float
+    """How far down from the skirt the cut reaches."""
+    radius: float
+    """Both profile radii — the first and second roll."""
+    base_z: float
+    """Where the cut bottoms out. A foot of body survives below it."""
+
+
+def cap_finger_metrics(spec: dict) -> CapFingerMetrics:
+    """Size a cap box's corner finger cutouts, or explain why it cannot have any.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `floor_thickness` and
+            optionally `cap_finger_length`, `cap_finger_height` and
+            `cap_finger_radius`.
+
+    Returns:
+        The cutout geometry (FR-002i–FR-002m).
+
+    Raises:
+        ValueError: If the box cannot stack a lid, a 3mm skirt, both rolls and
+            the foot (FR-002n) — the smallest cap box is
+            ``lid + 3 + 4 + 2``. A cap box built without the cutouts has no way
+            to be opened, so this refuses rather than shrinking them.
+    """
+    m = cap_metrics(spec)
+    lt = spec.get("lid_thickness", 2.0)
+
+    radius = spec.get("cap_finger_radius")
+    if radius is None:
+        radius = CAP_FINGER_MIN_RADIUS_MM
+    radius = max(radius, CAP_FINGER_MIN_RADIUS_MM)
+
+    # Read down the box: the lid plate, then the skirt it grips by, then the two
+    # rolls, then the foot. That stack is the smallest cap box there can be.
+    curves = max(2 * radius, CAP_FINGER_CURVE_TOTAL_MM)
+    minimum = lt + CAP_FINGER_MIN_SKIRT_MM + curves + CAP_FINGER_FOOT_MM
+    # The cut hangs below the skirt, so what it has to spend is everything from
+    # there down to the foot.
+    available = m.band_z - CAP_FINGER_FOOT_MM
+    if m.cap_height - lt < CAP_FINGER_MIN_SKIRT_MM or available < curves - 1e-9:
+        raise ValueError(
+            f"cap box {spec.get('label', '')!r} is {spec['height']:.1f}mm tall "
+            f"and cannot carry a corner finger cutout: it needs at least "
+            f"{minimum:.1f}mm — a {lt:.1f}mm lid, a "
+            f"{CAP_FINGER_MIN_SKIRT_MM:.1f}mm skirt, {curves:.1f}mm of curve "
+            f"(two {radius:.1f}mm rolls) and a {CAP_FINGER_FOOT_MM:.1f}mm foot "
+            f"— and has a {m.cap_height:.1f}mm skirt with {available:.1f}mm "
+            f"below it. Use a slipover box at this size: its corner notches "
+            f"open a shallow box that a cap lid cannot."
+        )
+
+    height = spec.get("cap_finger_height")
+    if height is None:
+        height = curves
+    height = min(max(height, curves), available)
+
+    def _run(dimension: float) -> float:
+        # A sixth of the side, but never less than a fingertip: 10mm is what a
+        # finger needs, a sixth is what the skirt would prefer.
+        return max(
+            CAP_FINGER_MIN_LENGTH_MM, dimension * CAP_FINGER_MAX_LENGTH_SHARE
+        )
+
+    override = spec.get("cap_finger_length")
+    return CapFingerMetrics(
+        length_x=override if override is not None else _run(spec["width"]),
+        length_y=override if override is not None else _run(spec["length"]),
+        height=height,
+        radius=radius,
+        base_z=m.band_z - height,
+    )
+
+
+def cap_finger_cutouts(spec: dict) -> "Bosl2Solid":
+    """The four corner cutouts that let a cap lid be pushed off (FR-002i).
+
+    Two wall scoops meeting at each corner — the same :func:`corner_catch` a
+    slipover sleeve uses, and the original toolkit's ``CornerCatch`` before
+    that — so the cut arrives with the roll and the fillets already right.
+
+    Corners rather than side-centres: a finger pushing up in a corner recess
+    loads the skirt along **both** adjoining faces at once, so the lid lifts
+    square instead of cocking, and the bearing stays in the middle of each wall
+    where there is material behind it.
+
+    Args:
+        spec: As :func:`cap_finger_metrics`.
+
+    Returns:
+        The solid to subtract from the body.
+
+    Raises:
+        ValueError: Via :func:`cap_finger_metrics`, when the box is too short.
+    """
+    from pyboxbuilder.compartments.element import union_all
+
+    m = cap_metrics(spec)
+    f = cap_finger_metrics(spec)
+    width, length = spec["width"], spec["length"]
+
+    parts = []
+    for at, towards, run in (
+        ((0.0, 0.0), (1, 1), (f.length_x, f.length_y)),
+        ((width, 0.0), (-1, 1), (f.length_x, f.length_y)),
+        ((0.0, length), (1, -1), (f.length_x, f.length_y)),
+        ((width, length), (-1, -1), (f.length_x, f.length_y)),
+    ):
+        # `corner_catch` takes one half-width for both arms, so the shorter run
+        # governs: a cutout that overran its own side would eat into the next
+        # corner's.
+        # `corner_catch` centres each arm's sweep **on** the wall it is given,
+        # so at a box corner half of it lies outside the box. What is wanted
+        # here is the body's outer skin — the same step the band above is inset
+        # by — so each corner's cutter moves inward by half that skin.
+        parts.append(
+            corner_catch(
+                at, towards,
+                radius=min(run),
+                height=f.height,
+                wall_thickness=m.inset,
+                rounding_edge=m.inset / 2,
+                top_rounding=f.radius,
+                bottom_rounding=f.radius,
+            ).translate([
+                towards[0] * m.inset / 2, towards[1] * m.inset / 2, f.base_z,
+            ])
+        )
+    cutouts = union_all(parts)
+    assert cutouts is not None, "four corners always produce a solid"
+    return cutouts
 
 
 def cap_body(spec: dict) -> "Bosl2Solid":
@@ -118,7 +310,12 @@ def cap_body(spec: dict) -> "Bosl2Solid":
         vertical_edges(),
         at=(m.inset, m.inset, m.band_z),
     )
-    return shell & keep
+    body = shell & keep
+    # Somewhere to push the lid off from. Without this a cap box is a smooth
+    # friction fit with no purchase but the seam (FR-002i).
+    if spec.get("cap_finger_cutouts", True):
+        body = body - cap_finger_cutouts(spec)
+    return body
 
 
 def cap_lid(spec: dict) -> "Bosl2Solid":
@@ -149,16 +346,35 @@ def cap_lid(spec: dict) -> "Bosl2Solid":
     return outer - cavity
 
 
+SLIPOVER_SLEEVE_WALL_SHARE = 0.5
+"""How thick the sleeve's wall is, as a share of the box's wall (FR-002o).
+
+A **half** wall. The sleeve is a skin over a box that already has a full wall
+behind it everywhere the sleeve touches, so a full-thickness sleeve is a second
+wall carrying nothing — it costs the interior two full walls of width across
+every axis, and prints a part twice as heavy as the job needs. The same
+reasoning the cap box's skirt already uses.
+"""
+
+
 def slipover_metrics(spec: dict) -> tuple[float, float]:
     """(inset per side, body height) for a slipover box.
 
     The sleeve's outer face is the declared footprint, so the body is set in by
-    a wall thickness all round and stops a lid thickness short.
+    the sleeve's own wall thickness all round — **half** the box's wall
+    (FR-002o) — and stops a lid thickness short.
+
+    Args:
+        spec: Needs `height`; reads `wall_thickness`, `lid_thickness` and
+            `size_spacing`.
+
+    Returns:
+        ``(inset per side, body height)``.
     """
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
     wiggle = spec.get("size_spacing", WIGGLE_MM)
-    return wt + wiggle, spec["height"] - lt - wiggle
+    return wt * SLIPOVER_SLEEVE_WALL_SHARE + wiggle, spec["height"] - lt - wiggle
 
 
 @dataclass(frozen=True)
@@ -608,6 +824,8 @@ def corner_catch(
     height: float,
     wall_thickness: float,
     rounding_edge: float | None = None,
+    top_rounding: float | None = None,
+    bottom_rounding: float | None = None,
 ) -> "Bosl2Solid":
     """A finger notch wrapping a corner, as the original's ``CornerCatch``.
 
@@ -626,6 +844,11 @@ def corner_catch(
         wall_thickness: The wall each scoop cuts through.
         rounding_edge: Fillet where the cut meets each face; ``None`` uses the
             scoop default.
+        top_rounding: ``r1`` — how far the mouth rolls in at the top. ``None``
+            lets the scoop derive it from the half-width, which is what a
+            sleeve notch wants; a cap box sets it, because there the pair of
+            rolls is a fixed height budget rather than a proportion.
+        bottom_rounding: ``r2`` — the roll out at the bottom of the cut.
 
     Returns:
         The solid to subtract from the piece.
@@ -644,6 +867,8 @@ def corner_catch(
             radius=radius,
             wall_thickness=wall_thickness,
             rounding_edge=rounding_edge,
+            rounding_radius=top_rounding,
+            bottom_rounding=bottom_rounding,
             breach_floor=True,
             # There is material above a corner notch — the lid plate — so the
             # outline's rim overshoot is trimmed off rather than carving
