@@ -77,6 +77,16 @@ ARC_SAMPLES = 16
 DEFAULT_BOTTOM_ROUNDING_RATIO = 0.5
 """``r2`` as a fraction of the throat half-width, when the caller names none."""
 
+MIN_FLAT_BOTTOM_RATIO = 0.25
+"""How much of the throat's half-width stays flat, however large ``r2`` is.
+
+The base of an edge scoop is a **flat run**, not just the meeting point of two
+fillets. A piece rests on it, and a finger slides along it to get under the
+piece; let r2 grow to the full half-width and the flat vanishes into a U, which
+is the trough shape the flat bottom exists to avoid. r2 is therefore capped so
+at least this fraction of each half stays straight.
+"""
+
 
 def _quarter_arc(
     centre: tuple[float, float],
@@ -142,8 +152,10 @@ def scoop_profile(
         height: Height from the floor to the rim.
         top_rounding: r1, how far the mouth rolls out at the rim. ``0`` gives a
             square-topped slot.
-        bottom_rounding: r2, the fillet into the floor. ``None`` derives it as
-            half the throat width; ``0`` gives a square floor.
+        bottom_rounding: r2, the fillet from the throat into the flat bottom.
+            ``None`` derives it as half the throat half-width; ``0`` gives a
+            square floor. Capped so part of the base stays flat whatever is
+            asked for.
 
     Returns:
         The profile as 2-D geometry, floor at ``y=0``, rim at ``y=height``,
@@ -167,9 +179,10 @@ def scoop_profile(
     if bottom_rounding < 0:
         raise ValueError(f"bottom_rounding must be >= 0; got {bottom_rounding}")
 
-    # r2 cannot exceed the half-width it has to curve across, and the two arcs
-    # have to share the height between them without overlapping.
-    r2 = min(bottom_rounding, radius)
+    # r2 cannot eat the whole half-width: some of the base stays flat so a
+    # piece has something to sit on (see MIN_FLAT_BOTTOM_RATIO). The two arcs
+    # also have to share the height between them without overlapping.
+    r2 = min(bottom_rounding, radius * (1.0 - MIN_FLAT_BOTTOM_RATIO))
     r1 = top_rounding
     if r1 + r2 > height:
         scale = height / (r1 + r2)

@@ -152,7 +152,22 @@ All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch 
    - The bottom **curves into the floor**, blending the wall cutout into the box bottom without a sharp corner.
    - The entire profile is **filleted** — no sharp edges anywhere along the scoop.
 
-1a. **The mouth is an S-curve, not a fillet (FR-043a).** Where the scoop meets the top of the box, the surface leaves the flat top face, rolls over, inflects, and settles into the throat — the top of the box flows down into the scoop and back out the other side. This is a `3t² - 2t³` smoothstep, sampled as a polygon, and the reason it is not a quarter-round arc is worth stating because "tangent" sounds like it should be enough: an arc matches tangents at both ends but its curvature jumps from `1/r` to zero at each, and a curvature discontinuity is visible as a crease. The smoothstep has zero curvature at both ends as well as matching tangents, so there is no line anywhere along the transition. It also removes a special case — the original needs a `circle_circle_tangents` blend when a scoop is too shallow to fit an arc, whereas a sampled S simply gets shorter and can never cross itself.
+1a. **An edge scoop is two radii and three straight runs (FR-043a).** Read from the top down::
+
+        ===========...                      ...===========   flat top surface
+                     ''..                ..''                r1: top face into wall
+                         \              /
+                          |            |                     straight throat
+                          '..      ..''                      r2: wall into floor
+                             ''--''                          flat bottom
+
+   **r1** leaves the top face *horizontally* and arrives at the wall *vertically*, so the top surface rolls over the rim instead of meeting the cut at an edge. **r2** turns the wall into the floor. Each arc is tangent at both of its ends, which is what makes the whole outline smooth — two radii state that more directly than a curve fitted between them, and each is a number a designer can set.
+
+   The bottom is a **flat run**, not the meeting point of two fillets: a piece rests on it and a finger slides along it to get underneath. r2 is capped so at least a quarter of each half-width stays straight, because a fillet grown to the full half-width closes the flat into the U-shaped trough the flat bottom exists to avoid.
+
+   An earlier attempt used a `3t² - 2t³` smoothstep for the mouth. It is worth recording why that was wrong, since it looked right on paper: the smoothstep is vertical at *both* ends, so while it matched the throat perfectly it arrived at the rim vertical too — leaving exactly the hard edge against the flat top face that the transition was supposed to remove.
+
+1b. **A floor finger hole is not an edge scoop (FR-043a1).** They were briefly built from one profile, which put a flat-bottomed pan where a bowl belongs. An edge scoop is a channel you sweep a finger *along*; a floor hole is a bore you push a piece *up* through, so its bottom is tangent to the floor. The two share `_sweep_through_wall` — the depth matching, face fillets, floor clip and side placement are genuinely common — and differ only where they should, in the profile.
 
 2. **Main box edges are smooth (FR-043d).** Every exposed edge of every printed piece is rounded over at `wall_thickness / 2` by default (FR-044):
    - The vertical corners of the box, and the bottom base edges.

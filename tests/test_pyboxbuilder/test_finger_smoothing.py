@@ -412,3 +412,29 @@ class TwoRadiusProfileTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FlatBottomTests(unittest.TestCase):
+    """The base of an edge scoop keeps a flat run for a piece to sit on."""
+
+    def test_r2_is_capped_so_the_flat_survives(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import MIN_FLAT_BOTTOM_RATIO
+
+        radius = 10.0
+        cap = radius * (1.0 - MIN_FLAT_BOTTOM_RATIO)
+        # Anything at or past the cap gives the same profile as the cap itself.
+        self.assertEqual(
+            repr(scoop_profile(radius, 30, 6, 1000)),
+            repr(scoop_profile(radius, 30, 6, cap)),
+        )
+
+    def test_the_cap_leaves_a_real_flat_run(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import MIN_FLAT_BOTTOM_RATIO
+
+        self.assertGreater(MIN_FLAT_BOTTOM_RATIO, 0.0)
+        self.assertLess(MIN_FLAT_BOTTOM_RATIO, 1.0)
+
+    def test_default_r2_leaves_half_the_half_width_flat(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import DEFAULT_BOTTOM_ROUNDING_RATIO
+
+        self.assertEqual(DEFAULT_BOTTOM_ROUNDING_RATIO, 0.5)
