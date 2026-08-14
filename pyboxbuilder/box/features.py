@@ -452,6 +452,68 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
 # ------------------------------------------------------------ filament hinge
 
 
+def corner_catch(
+    at: tuple[float, float],
+    towards: tuple[float, float],
+    radius: float,
+    height: float,
+    wall_thickness: float,
+    rounding_edge: float | None = None,
+) -> "Bosl2Solid":
+    """A finger notch wrapping a corner, as the original's ``CornerCatch``.
+
+    Not a new shape: the original builds it as **two `FingerHoleWall` scoops
+    meeting at the corner**, one through each of the two walls, and this does
+    the same with the same scoop builder. So the notch arrives with the roll,
+    the floor fillet and the face fillets already right, and it cannot drift
+    from the finger cuts elsewhere in the box.
+
+    Args:
+        at: The corner, in the piece's own frame.
+        towards: Unit direction into the piece from that corner — ``(1, 1)``
+            for the origin corner, ``(-1, -1)`` for the far one.
+        radius: Half-width of each scoop.
+        height: How far down from the top of the piece the notch reaches.
+        wall_thickness: The wall each scoop cuts through.
+        rounding_edge: Fillet where the cut meets each face; ``None`` uses the
+            scoop default.
+
+    Returns:
+        The solid to subtract from the piece.
+    """
+    from pyboxbuilder.compartments.finger_hole import build_wall_scoop
+    from pyboxbuilder.compartments.element import union_all
+    from pyboxbuilder.enums import ScoopSide
+
+    # A span wide enough that the scoop is never capped by it; the scoop is
+    # then slid from that span's midpoint onto the corner.
+    span = max(4 * radius, 4 * wall_thickness)
+    parts = []
+    for side in (ScoopSide.FRONT, ScoopSide.LEFT):
+        scoop = build_wall_scoop(
+            span, span, height, side,
+            radius=radius,
+            wall_thickness=wall_thickness,
+            rounding_edge=rounding_edge,
+            breach_floor=True,
+            # There is material above a corner notch — the lid plate — so the
+            # outline's rim overshoot is trimmed off rather than carving
+            # through it.
+            top_limit=height,
+        )
+        if side is ScoopSide.FRONT:
+            scoop = scoop.translate([-span / 2, 0.0, 0.0])
+        else:
+            scoop = scoop.translate([0.0, -span / 2, 0.0])
+        if towards[0] < 0:
+            scoop = scoop.mirror([1, 0, 0])
+        if towards[1] < 0:
+            scoop = scoop.mirror([0, 1, 0])
+        parts.append(scoop.translate([at[0], at[1], 0.0]))
+
+    return union_all(parts)
+
+
 def hinge_intrusion(spec: dict, filament_diameter: float = 1.75) -> "Bosl2Solid":
     """The volume a hinge occupies inside the box, as a solid to subtract.
 

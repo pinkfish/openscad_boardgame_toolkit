@@ -582,3 +582,76 @@ class HingeInsideTests(unittest.TestCase):
             volume(masked), volume(unmasked),
             "the well was not clipped clear of the hinge",
         )
+
+
+class SlipoverFingerNotchTests(unittest.TestCase):
+    """FR-002f/g/h: a sleeve you can actually get off."""
+
+    def sleeve(self, **overrides):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        spec = dict(SPEC)
+        spec.update(overrides)
+        return BOX_IMPL_REGISTRY[BoxType.SLIPOVER]().build_lid(spec)
+
+    def test_the_notches_remove_material(self) -> None:
+        plain = self.sleeve(slipover_finger_height=0.0)
+        notched = self.sleeve()
+        self.assertLess(
+            volume(notched), volume(plain),
+            "the sleeve has nothing to grip",
+        )
+
+    def test_they_do_not_change_the_declared_footprint(self) -> None:
+        low, size = bbox(self.sleeve())
+        self.assertAlmostEqual(size[0], SPEC["width"], places=2)
+        self.assertAlmostEqual(size[1], SPEC["length"], places=2)
+        self.assertAlmostEqual(low[0], 0.0, places=2)
+        self.assertAlmostEqual(low[1], 0.0, places=2)
+
+    def test_they_sit_at_diagonally_opposite_corners(self) -> None:
+        """Diagonal so two fingers pull along the sleeve, not twist it."""
+        from pyboxbuilder.box.shell import block
+
+        plain = self.sleeve(slipover_finger_height=0.0)
+        removed = plain - self.sleeve()
+
+        half = 0.4  # a corner column, generously sized
+        corners = {
+            "near": (0.0, 0.0),
+            "far": (SPEC["width"], SPEC["length"]),
+            "left": (0.0, SPEC["length"]),
+            "right": (SPEC["width"], 0.0),
+        }
+        for name, (x, y) in corners.items():
+            column = block(
+                [SPEC["width"] * half, SPEC["length"] * half, SPEC["height"] * 2],
+                at=(x - SPEC["width"] * half / 2, y - SPEC["length"] * half / 2, -1),
+            )
+            taken = volume(removed & column)
+            with self.subTest(corner=name):
+                if name in ("near", "far"):
+                    self.assertGreater(taken, 1.0, "no notch at this corner")
+                else:
+                    self.assertLess(taken, 0.01, "a notch where there should be none")
+
+    def test_the_notch_is_below_the_lid_plate(self) -> None:
+        plain = self.sleeve(slipover_finger_height=0.0)
+        (_, _, z0), (_, _, dz) = bbox(plain - self.sleeve())
+        self.assertLessEqual(
+            z0 + dz, SPEC["height"] - SPEC["lid_thickness"] + 0.01,
+            "the notch cut into the lid plate",
+        )
+
+    def test_a_shallow_sleeve_still_gets_a_usable_notch(self) -> None:
+        from pyboxbuilder.box.types.slipover import SLIPOVER_FINGER_MIN_RADIUS_MM
+
+        shallow = self.sleeve(height=12.0)
+        plain = self.sleeve(height=12.0, slipover_finger_height=0.0)
+        self.assertLess(volume(shallow), volume(plain))
+        self.assertGreaterEqual(SLIPOVER_FINGER_MIN_RADIUS_MM, 5.0)
+
+    def test_the_height_is_settable(self) -> None:
+        small = self.sleeve(slipover_finger_height=3.0)
+        large = self.sleeve(slipover_finger_height=12.0)
+        self.assertGreater(volume(small), volume(large))

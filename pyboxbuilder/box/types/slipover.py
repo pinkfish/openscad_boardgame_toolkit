@@ -5,6 +5,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+SLIPOVER_FINGER_MAX_MM = 20.0
+"""Tallest a sleeve's corner notch gets, however deep the box."""
+
+SLIPOVER_FINGER_MIN_RADIUS_MM = 7.0
+"""Smallest notch radius that still admits a fingertip."""
+
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid
 
@@ -93,4 +99,58 @@ class SlipoverBox:
             vertical_edges(),
             at=(inset - slack, inset - slack, foot),
         )
-        return outer - cavity
+        sleeve = outer - cavity
+        return sleeve - self._finger_notches(spec)
+
+    def _finger_notches(self, spec: dict) -> "Bosl2Solid":
+        """Corner notches so the sleeve can be pulled off.
+
+        A slipover sleeve is a smooth box with nothing to grip: it covers the
+        body on four sides and its own faces are flush, so there is nowhere to
+        get a fingertip. The original cuts a notch into two **diagonally
+        opposite** corners — diagonal so the two hands pull along the sleeve's
+        axis rather than twisting it — sized at half the skirt's height and
+        placed just under the lid plate, where the notch exposes the body's
+        corner and a thumb can push it out.
+
+        Args:
+            spec: Box dimensions; reads `wall_thickness`, `lid_thickness`,
+                `foot` and `slipover_finger_height`.
+
+        Returns:
+            The solid to subtract from the sleeve.
+        """
+        from pyboxbuilder.box.features import corner_catch
+        from pyboxbuilder.compartments.element import union_all
+
+        wt = spec.get("wall_thickness", 2.0)
+        lt = spec.get("lid_thickness", 2.0)
+        foot = spec.get("foot", 0.0)
+
+        skirt = spec["height"] - foot - lt
+        # The original's sizing: half the skirt, capped, and a radius that stays
+        # usable on a shallow box.
+        # An explicit None check, not `or`: `slipover_finger_height=0` means
+        # "no notch", and `or` reads zero as "unset" and hands back the default.
+        requested = spec.get("slipover_finger_height")
+        height = (
+            min(SLIPOVER_FINGER_MAX_MM, skirt / 2) if requested is None
+            else float(requested)
+        )
+        height = max(0.0, min(height, skirt))
+        if height <= 0:
+            return None
+        radius = max(height, SLIPOVER_FINGER_MIN_RADIUS_MM)
+
+        top = spec["height"] - lt
+        notches = [
+            corner_catch(
+                (0.0, 0.0), (1, 1), radius=radius, height=height,
+                wall_thickness=wt, rounding_edge=wt / 4,
+            ),
+            corner_catch(
+                (spec["width"], spec["length"]), (-1, -1), radius=radius,
+                height=height, wall_thickness=wt, rounding_edge=wt / 4,
+            ),
+        ]
+        return union_all([n.translate([0.0, 0.0, top - height]) for n in notches])
