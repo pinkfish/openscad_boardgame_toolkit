@@ -77,10 +77,16 @@ class CompartmentBuilderTests(unittest.TestCase):
         self.assertIn("1.20", str(ctx.exception))
 
     def test_default_scoop_side(self) -> None:
+        """Unset until carve time, where the *shorter* wall is chosen.
+
+        Pinning FRONT here would have hidden the shape from the decision, and
+        that is how Emberleaf's card boxes ended up with their finger cut in
+        the long wall.
+        """
         cb = CompartmentBuilder(
             label="Well", size=(50, 50), depth=30, finger_scoop=True,
         )
-        self.assertEqual(cb.scoop_side, ScoopSide.FRONT)
+        self.assertIsNone(cb.scoop_side)
 
     def test_explicit_scoop_side(self) -> None:
         cb = CompartmentBuilder(

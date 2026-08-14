@@ -124,7 +124,16 @@ if __name__ == "__main__":
 
 ### A Sliding Box Needs Somewhere For The Lid To Go In (FR-002a)
 
+**The lid leaves through the shorter face (FR-002b)** — it slides along the longer horizontal axis. This applies to `SlidingBox`; `SlidingCatchBox` and `CardLibraryBox` share the `sliding_track` feature, which currently always slides along X. Their channel was opened at the same time (they had the same blocked-end defect, so FR-002a was only half implemented) but the axis choice has not been carried across — a known limitation, not a decision. That puts the grooves in the long walls, which have the most material to carry them, and the opening at the narrow end, which is the end a card box is opened from. The channel geometry is computed once as though the slide were along X and the two axes swapped when it is not, so there is one set of numbers rather than two chances to get them wrong.
+
 The sliding box cut two grooves into its side walls and left both end walls solid, which makes a box whose lid can be dropped in but never slid — the one thing the type exists to do. The grooves and the opening are the same slot, so one subtraction now makes both: it bites `groove_depth` into each side wall and runs out through the **+X end wall**. The far end keeps its wall, because that is the stop the closed lid seats against, and the lid is sized to fill the channel from that stop to the open end so it finishes flush rather than short.
+
+### Rounding a Lid Without Rounding Away Its Support (FR-044h, FR-044i)
+
+A lid's outer edges are rounded because they are the outside of the closed box — but a lid is thin, and its edges are also what hold it. Two limits keep the second from being sacrificed to the first:
+
+- **The radius is capped at half the lid's thickness.** A body's radius is sized off the *wall*, which on a 2mm lid can be most of the plate; what it removes is exactly the material doing the bearing. Half leaves the other half square.
+- **Only the edges that finish outside get rounded**, decided by the type through a `lid_rounded_edges` hook. A cap or magnetic lid sits on top, so its four vertical corners and top face all qualify. A **sliding** lid does not: three of its four sides live inside the channel — two in the grooves, one against the stop — so only the end it slides out through is rounded, along with its top edge and the two vertical corners there (FR-044i).
 
 ### Tray Wells, and Where Rounding Stops (FR-044f, FR-044g)
 
@@ -174,6 +183,16 @@ All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch 
 1a1. **Every radius has a derived default (FR-043a2).** Nothing here should need an override to look right: `r1` and `r2` are each half the throat's half-width, the cut's height follows its radius, and the face fillet follows the wall. Fixed constants were the previous approach and they do not survive contact with scale — a 3mm roll is invisible on a 14mm finger hole and overwhelming on a 4mm one, and a 6mm default height (inherited from the original's *wall depth* parameter, which is a different quantity) made every hole a shallow nick whatever finger it was cut for.
 
    When the throat and its roll cannot both fit the span, they shrink **together** (FR-043a3). Capping the throat first and handing `r1` the remainder reads as the obvious order and is a trap: a throat already at half the span leaves `r1` exactly zero, so the top roll — the most visible part of the scoop — disappears on precisely the narrow compartments that most need the smoothing.
+
+1a4. **The straight run between the arcs is a solved common tangent (FR-043a4).** Both circles are placed tangent to the throat line, so the tangent solver returns that vertical and the geometry is unchanged today — the point is that it no longer *depends* on that placement. Move either centre and the profile stays tangent at both joins instead of stepping, and a step in a scoop's wall is exactly what a non-tangent join looks like.
+
+   Selecting the right tangent matters: it is an **internal** one. The cut's boundary wraps the *outside* of the floor circle and the *inside* of the rim circle — the arcs curve opposite ways — so the run touches the floor circle on its right and the rim circle on its left. Filtering for "outside both", which is the natural first guess, picks an external tangent and throws the profile 12mm wide.
+
+1a5. **A compartment scoop runs to the box's top face, not the interior ceiling (FR-043b3).** The ceiling is where the *well* stops, not where the wall does: a lidded box carries a lid band above the interior, and a scoop that stops at the ceiling leaves that band standing over the cut as a step, with the r1 roll buried inside the wall where nothing can reach it. Running to the top face puts the roll on the box's own edge, which is where it is meant to merge.
+
+1a7. **A sliding box overrides that: the scoop goes in the wall the lid leaves by (FR-043b6).** The cards come out the same way the lid does, and only that wall will do — the other three carry the lid, two of them holding the grooves it rides in, so a scoop cut into a groove takes away the bearing that keeps the lid straight. The type states this through a `preferred_scoop_side` hook rather than the compartment guessing from its own proportions; the shape cannot know what the lid needs.
+
+1a6. **A scoop defaults to the shorter wall (FR-043b4).** A card stack is lifted out across its narrow dimension. In the long wall the cut is in the wrong place and the user reaches across the whole box for the cards, which is what Emberleaf's card boxes were doing. Overridable per compartment, since a box that holds something other than cards may want otherwise.
 
 1a2. **An exterior finger hole hangs from the top of the *interior* (FR-043b1).** Not from the rim: on a lidded box the lid or its track occupies the band above the interior, so a hole aligned to the rim starts inside solid material and comes out as a nick in the top edge instead of a cut into the well. The generic rule is `height - lid_thickness`, and the types whose body is *already* shortened for their lid — cap, slipover — pass their own `interior_top` so the allowance is not taken twice. That is what makes the same one-line `finger_hole(side)` land correctly on no-lid, sliding, cap and slipover alike (FR-043b2).
 

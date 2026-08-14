@@ -43,7 +43,12 @@ class CompartmentBuilder:
     """Corner radius in mm."""
     finger_scoop: bool = False
     """Enable finger scoop cutout."""
-    scoop_side: ScoopSide = ScoopSide.FRONT
+    scoop_side: ScoopSide | None = None
+    """Which wall the finger scoop pierces.
+
+    ``None`` puts it in the **shorter** wall, which is where a card stack is
+    lifted out from — see `carve.default_scoop_side`.
+    """
     """Which side the finger scoop is on."""
     no_rotate: bool = False
     """Prevent the layout algorithm from rotating this compartment (e.g. directional card slots)."""

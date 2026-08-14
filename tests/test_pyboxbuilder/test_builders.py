@@ -50,7 +50,8 @@ class BoxBuilderTests(unittest.TestCase):
         self.assertEqual(cb.size, (90, 65))
         self.assertEqual(cb.depth, 45)
         self.assertFalse(cb.finger_scoop)
-        self.assertEqual(cb.scoop_side, ScoopSide.FRONT)
+        # Unset until carve time, which picks the shorter wall.
+        self.assertIsNone(cb.scoop_side)
         self.assertEqual(len(b.compartments), 1)
 
     def test_add_compartment_with_scoop(self) -> None:

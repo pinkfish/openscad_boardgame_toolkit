@@ -169,19 +169,24 @@ cuboid([1, 1, 1]).show()
         low, _ = self.span("square", 2)
         self.assertAlmostEqual(low, 0.0, places=3)
 
-    def test_floor_thickness_raises_the_dip_limit(self) -> None:
-        """A known floor permits a deeper dip — up to half of it, capped at 1mm.
+    def test_the_dip_stays_small_whatever_the_floor(self) -> None:
+        """The dip only has to break a coincident face, so it is a small
+        constant — not a share of the floor.
 
-        It is a ceiling, not a target: here the flare only reaches 0.95mm, so
-        that is where the cut stops. The default 0.2mm limit would have clipped
-        it, which is what makes the two cases differ.
+        Scaling it with thickness (up to 1mm) spent half a 2mm floor on a
+        cosmetic detail and showed as the cut visibly eating into the floor.
+        A thin floor still reduces it further; a thick one does not licence
+        more.
         """
-        limited, _ = self.span("wt2", 2)
-        allowed, _ = self.span("thick_floor", 2)
+        default, _ = self.span("wt2", 2)
+        thick, _ = self.span("thick_floor", 2)
+        self.assertAlmostEqual(default, -0.2, places=2)
+        self.assertAlmostEqual(thick, -0.2, places=2)
+
+    def test_breaching_still_differs_from_the_clipped_cut(self) -> None:
+        clipped, _ = self.span("wt2", 2)
         unclipped, _ = self.span("breaching", 2)
-        self.assertAlmostEqual(limited, -0.2, places=2)
-        self.assertLess(allowed, -0.9)
-        self.assertAlmostEqual(allowed, unclipped, places=3)
+        self.assertLess(unclipped, clipped)
 
     def test_breach_floor_opt_in_dips_much_further(self) -> None:
         """The opt-out removes the clip entirely, so the flare runs free."""
@@ -630,3 +635,158 @@ cuboid([1, 1, 1]).show()
         self.assertAlmostEqual(
             self.width("square_at_face"), self.width("square_mid_wall"), delta=0.1,
         )
+
+
+class TangentJoinTests(unittest.TestCase):
+    """FR-043a4: the run between the arcs is a solved common tangent."""
+
+    def test_it_finds_the_throat_for_the_usual_placement(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import _tangent_join
+
+        radius, r1, r2, height = 10.0, 7.0, 5.0, 30.0
+        low, high = _tangent_join(
+            (radius - r2, r2), r2, (radius + r1, height - r1), r1, radius,
+        )
+        # Both circles are placed tangent to x = radius, so that is the answer.
+        self.assertAlmostEqual(low[0], radius, places=6)
+        self.assertAlmostEqual(high[0], radius, places=6)
+        self.assertAlmostEqual(low[1], r2, places=6)
+        self.assertAlmostEqual(high[1], height - r1, places=6)
+
+    def test_it_picks_the_internal_tangent(self) -> None:
+        """An external tangent touches both circles on the same side and
+        throws the profile wide — the natural filter picks one."""
+        from pyboxbuilder.compartments.finger_hole import _tangent_join
+
+        low, high = _tangent_join((5.0, 5.0), 5.0, (17.0, 23.0), 7.0, 10.0)
+        self.assertLess(high[0], 17.0, "touched the rim circle on its far side")
+        self.assertGreater(low[0], 5.0, "touched the floor circle on its far side")
+
+    def test_it_falls_back_when_a_radius_is_zero(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import _tangent_join
+
+        low, high = _tangent_join((10.0, 0.0), 0.0, (17.0, 23.0), 7.0, 10.0)
+        self.assertAlmostEqual(low[0], 10.0)
+        self.assertAlmostEqual(high[0], 10.0)
+
+
+class ScoopSideDefaultTests(unittest.TestCase):
+    """FR-043b4: the cut goes in the short wall unless told otherwise."""
+
+    def placement(self, size):
+        from pyboxbuilder.compartments.layout import CompartmentPlacement
+
+        return CompartmentPlacement("c", size, 20.0, (0.0, 0.0))
+
+    def test_wide_compartment_cuts_the_short_wall(self) -> None:
+        from pyboxbuilder.compartments.carve import default_scoop_side
+
+        self.assertIs(default_scoop_side(self.placement((92.0, 67.0))), ScoopSide.LEFT)
+
+    def test_deep_compartment_cuts_the_short_wall(self) -> None:
+        from pyboxbuilder.compartments.carve import default_scoop_side
+
+        self.assertIs(default_scoop_side(self.placement((67.0, 92.0))), ScoopSide.FRONT)
+
+    def test_an_explicit_side_still_wins(self) -> None:
+        from pyboxbuilder.compartments.builder import CompartmentBuilder
+
+        explicit = CompartmentBuilder(label="c", size=(92.0, 67.0),
+                                      finger_scoop=True, scoop_side=ScoopSide.BACK)
+        self.assertIs(explicit.scoop_side, ScoopSide.BACK)
+        # Unspecified stays None so the short-wall rule can apply.
+        self.assertIsNone(CompartmentBuilder(label="c", size=(92.0, 67.0)).scoop_side)
+
+
+class SlidingLidAxisTests(unittest.TestCase):
+    """FR-002b: the lid leaves through the shorter face."""
+
+    def box(self):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+        from pyboxbuilder.enums import BoxType
+
+        return BOX_IMPL_REGISTRY[BoxType.SLIDING]()
+
+    def test_a_long_box_slides_along_its_length(self) -> None:
+        self.assertTrue(self.box().slides_along_length(
+            {"width": 90.0, "length": 98.0}))
+
+    def test_a_wide_box_slides_along_its_width(self) -> None:
+        self.assertFalse(self.box().slides_along_length(
+            {"width": 120.0, "length": 60.0}))
+
+
+class SlidingScoopAndLidEdgeTests(unittest.TestCase):
+    """FR-043b6 / FR-044h / FR-044i: the lid dictates both."""
+
+    def box(self, box_type):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        return BOX_IMPL_REGISTRY[box_type]()
+
+    def test_a_sliding_scoop_goes_in_the_exit_wall(self) -> None:
+        from pyboxbuilder.box.base import preferred_scoop_side
+        from pyboxbuilder.enums import BoxType
+
+        box = self.box(BoxType.SLIDING)
+        # Longer than wide: slides along Y, so it exits the BACK wall.
+        self.assertIs(
+            preferred_scoop_side(box, {"width": 90.0, "length": 98.0}), ScoopSide.BACK
+        )
+        # Wider than long: slides along X, so it exits the RIGHT wall.
+        self.assertIs(
+            preferred_scoop_side(box, {"width": 120.0, "length": 60.0}), ScoopSide.RIGHT
+        )
+
+    def test_the_type_beats_the_compartment_shape(self) -> None:
+        """A wide compartment would otherwise take the LEFT wall, which on a
+        sliding box is a groove wall."""
+        from pyboxbuilder.box.base import preferred_scoop_side
+        from pyboxbuilder.compartments.carve import default_scoop_side
+        from pyboxbuilder.compartments.layout import CompartmentPlacement
+        from pyboxbuilder.enums import BoxType
+
+        wide = CompartmentPlacement("c", (92.0, 67.0), 20.0, (0.0, 0.0))
+        self.assertIs(default_scoop_side(wide), ScoopSide.LEFT)
+        self.assertIs(
+            preferred_scoop_side(self.box(BoxType.SLIDING), {"width": 90.0, "length": 98.0}),
+            ScoopSide.BACK,
+        )
+
+    def test_types_without_an_opinion_leave_it_to_the_shape(self) -> None:
+        from pyboxbuilder.box.base import preferred_scoop_side
+        from pyboxbuilder.enums import BoxType
+
+        for box_type in (BoxType.CAP, BoxType.NO_LID, BoxType.SLIPOVER):
+            with self.subTest(box_type=box_type.value):
+                self.assertIsNone(
+                    preferred_scoop_side(self.box(box_type), {"width": 90.0, "length": 98.0})
+                )
+
+    def test_a_sliding_lid_rounds_only_its_exit_end(self) -> None:
+        from pybosl2._edges_lang import edges
+
+        from pyboxbuilder.box.base import lid_rounded_edges
+        from pyboxbuilder.enums import BoxType
+
+        spec = {"width": 90.0, "length": 98.0}
+        sliding = edges(lid_rounded_edges(self.box(BoxType.SLIDING), spec))
+        self.assertEqual(sum(sum(row) for row in sliding), 3,
+                         "a sliding lid must not round its groove edges")
+
+    def test_a_cap_lid_rounds_all_its_outside_edges(self) -> None:
+        from pybosl2._edges_lang import edges
+
+        from pyboxbuilder.box.base import lid_rounded_edges
+        from pyboxbuilder.enums import BoxType
+
+        cap = edges(lid_rounded_edges(self.box(BoxType.CAP), {"width": 90.0, "length": 98.0}))
+        self.assertEqual(sum(sum(row) for row in cap), 8)
+
+    def test_the_lid_radius_is_capped_by_its_thickness(self) -> None:
+        from pyboxbuilder.rounding import lid_rounding
+
+        # A 4mm wall would give a 2mm body radius; a 2mm lid may take 1mm.
+        self.assertEqual(lid_rounding({"wall_thickness": 4.0, "lid_thickness": 2.0}), 1.0)
+        # A thick lid is not the constraint, so the body radius stands.
+        self.assertEqual(lid_rounding({"wall_thickness": 2.0, "lid_thickness": 8.0}), 1.0)

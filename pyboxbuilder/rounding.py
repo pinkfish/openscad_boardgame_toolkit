@@ -71,6 +71,37 @@ def mating_rounding(spec: dict) -> float:
     return body_rounding(spec) * MATING_ROUNDING_RATIO
 
 
+LID_ROUNDING_SHARE = 0.5
+"""How much of a lid's thickness its edge rounding may consume.
+
+A lid is thin, and its edges are what hold it: the part in a groove, the part
+bearing on a rim. Rounding sized off the *wall* — which is what a body uses —
+can be most of a lid's thickness, and what it removes is exactly the material
+doing the holding. Half the lid thickness leaves the other half as square
+bearing surface.
+"""
+
+
+def lid_rounding(spec: dict) -> float:
+    """The edge radius for a lid, capped so it keeps enough support.
+
+    Args:
+        spec: Reads `rounding` (or derives the body default) and
+            `lid_thickness`.
+
+    Returns:
+        The radius in mm — the body radius, but never more than half the lid's
+        thickness.
+    """
+    from pyboxbuilder.box.shell import body_rounding
+
+    lid_thickness = spec.get("lid_thickness", 0.0) or 0.0
+    radius = body_rounding(spec)
+    if lid_thickness <= 0:
+        return radius
+    return min(radius, lid_thickness * LID_ROUNDING_SHARE)
+
+
 def rounded_block(
     size: Sequence[float],
     rounding: float,

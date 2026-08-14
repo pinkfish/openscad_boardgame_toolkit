@@ -214,25 +214,41 @@ def groove_depth(spec: dict) -> float:
 
 
 def sliding_track(spec: dict) -> Closure:
-    """Grooves down the two side walls, and the plate that slides in them."""
+    """The channel a lid slides in, and the plate that fills it.
+
+    One slot does both halves of the job, because they are the same slot: it
+    bites `groove_depth` into each side wall to make the grooves, and it runs
+    out through the **+X end wall** so the lid has somewhere to enter. Cutting
+    only the grooves leaves a box with a solid wall across the front of its own
+    track — a lid that can be dropped in but never slid.
+
+    The far (-X) end keeps its wall as the stop the closed lid seats against.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `wall_thickness` and
+            `lid_thickness`.
+
+    Returns:
+        The channel to subtract from the body, and the lid that fills it.
+    """
     from pyboxbuilder.box.shell import block
 
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
     depth = groove_depth(spec)
-    groove_w = spec["width"] - 2 * wt
     groove_h = lt + 0.2
     groove_z = spec["height"] - lt - 0.1
+    y0 = wt - depth
+    across = spec["length"] - 2 * y0
 
-    left = block([groove_w, depth, groove_h], at=(wt, wt - depth, groove_z))
-    right = block([groove_w, depth, groove_h], at=(wt, spec["length"] - wt, groove_z))
-
-    lid_l = spec["length"] - 2 * wt + 2 * depth - FIT_SLACK_MM
-    lid = block(
-        [groove_w, lid_l, lt],
-        at=(wt, wt - depth + FIT_SLACK_MM / 2, spec["height"] - lt),
+    channel = block(
+        [spec["width"] - wt + 0.1, across, groove_h], at=(wt, y0, groove_z)
     )
-    return Closure(body=left | right, lid=lid)
+    lid = block(
+        [spec["width"] - wt - FIT_SLACK_MM, across - FIT_SLACK_MM, lt],
+        at=(wt + FIT_SLACK_MM / 2, y0 + FIT_SLACK_MM / 2, spec["height"] - lt),
+    )
+    return Closure(body=channel, lid=lid)
 
 
 def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:

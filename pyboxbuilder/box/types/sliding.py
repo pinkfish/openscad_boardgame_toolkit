@@ -37,22 +37,115 @@ class SlidingBox:
 
         return build_shell(spec)
 
-    def _lid_channel(self, spec: dict) -> tuple[float, float, float, float]:
-        """Geometry of the slot the lid lives in: (depth, y0, y_extent, z0).
+    def slides_along_length(self, spec: dict) -> bool:
+        """Whether the lid slides along Y rather than X.
+
+        The lid leaves through the **shorter** face, which means sliding along
+        the longer axis. That is what a card box wants: the opening is the
+        narrow end, the lid is supported along its long run by the grooves, and
+        the box reads the right way round. Sliding along the short axis instead
+        puts the opening on the wide face and the grooves on the short walls,
+        where they have least material to bite into.
 
         Args:
-            spec: Needs `length`, `height`; reads `wall_thickness`,
+            spec: Needs `width` and `length`.
+
+        Returns:
+            True when the box is longer than it is wide.
+        """
+        return spec["length"] > spec["width"]
+
+    def open_end_side(self, spec: dict) -> "ScoopSide":
+        """The wall the lid slides out through.
+
+        Args:
+            spec: Needs `width` and `length`.
+
+        Returns:
+            `BACK` when the lid slides along the length, else `RIGHT`.
+        """
+        from pyboxbuilder.enums import ScoopSide
+
+        return ScoopSide.BACK if self.slides_along_length(spec) else ScoopSide.RIGHT
+
+    def wall_tops(self, spec: dict) -> dict:
+        """Where each wall ends, which is not the same height all round.
+
+        The channel is cut out of the top band across the whole box and runs
+        out through the exit wall, so **every** wall effectively stops a lid
+        thickness below the box's top: the exit wall because its material is
+        gone, the other three because anything cut above that line breaks into
+        the channel the lid slides in.
+
+        Args:
+            spec: Needs `height`; reads `lid_thickness`.
+
+        Returns:
+            ``{ScoopSide: z}`` for all four sides.
+        """
+        from pyboxbuilder.enums import ScoopSide
+
+        top = spec["height"] - (spec.get("lid_thickness", 2.0) or 0.0)
+        return {side: top for side in ScoopSide}
+
+    def preferred_scoop_side(self, spec: dict) -> "ScoopSide":
+        """Put a finger scoop in the wall the lid comes out of.
+
+        On a sliding box the cards leave the same way the lid does, so the cut
+        belongs in that wall — and only that wall will do. The other three
+        carry the lid: two hold the grooves it rides in, and cutting a scoop
+        into a groove takes away the bearing that keeps the lid straight.
+
+        Args:
+            spec: Needs `width` and `length`.
+
+        Returns:
+            The open end's side.
+        """
+        return self.open_end_side(spec)
+
+    def lid_rounded_edges(self, spec: dict) -> list:
+        """Which of the lid's edges may be rounded.
+
+        Only the end that ends up **outside** the box: its top edge and its two
+        vertical corners. The other three sides of the plate live in the
+        channel — two in the grooves, one against the stop — and rounding them
+        would round away the very surfaces that support and locate the lid.
+
+        Args:
+            spec: Needs `width` and `length`.
+
+        Returns:
+            A pybosl2 ``edges=`` selector for the exposed end.
+        """
+        from pybosl2 import Anchor
+
+        if self.slides_along_length(spec):
+            return [Anchor.TOP_BACK, Anchor.BACK_LEFT, Anchor.BACK_RIGHT]
+        return [Anchor.TOP_RIGHT, Anchor.FRONT_RIGHT, Anchor.BACK_RIGHT]
+
+    def _lid_channel(self, spec: dict) -> tuple[float, float, float, float]:
+        """Geometry of the slot the lid lives in, in the sliding frame.
+
+        Everything is computed as though the lid slid along X; when it does
+        not, the caller swaps the two axes. One set of numbers, one place to
+        get them wrong.
+
+        Args:
+            spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
                 `lid_thickness`.
 
         Returns:
-            The groove depth into each side wall, where the channel starts in
-            Y, how far it runs in Y, and the Z it starts at.
+            ``(groove_depth, across0, across_extent, z0)`` — how deep the
+            channel bites into each side wall, where it starts and how far it
+            runs across the slide direction, and the Z it starts at.
         """
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         groove_depth = min(wt - 0.6, lt)  # bite into the wall, never through it
-        y0 = wt - groove_depth
-        return groove_depth, y0, spec["length"] - 2 * y0, spec["height"] - lt
+        across = spec["width"] if self.slides_along_length(spec) else spec["length"]
+        across0 = wt - groove_depth
+        return groove_depth, across0, across - 2 * across0, spec["height"] - lt
 
     def _cut_lid_channel(
         self, body: "Bosl2Solid", spec: dict
@@ -81,13 +174,16 @@ class SlidingBox:
 
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
-        _, y0, y_extent, z0 = self._lid_channel(spec)
+        _, across0, across_extent, z0 = self._lid_channel(spec)
+        along = spec["length"] if self.slides_along_length(spec) else spec["width"]
 
         # From the inside face of the stop wall, out through the open end.
-        return body - block(
-            [spec["width"] - wt + 0.1, y_extent, lt + 0.1],
-            at=(wt, y0, z0 - 0.05),
-        )
+        size = [along - wt + 0.1, across_extent, lt + 0.1]
+        at = [wt, across0, z0 - 0.05]
+        if self.slides_along_length(spec):
+            size[0], size[1] = size[1], size[0]
+            at[0], at[1] = at[1], at[0]
+        return body - block(size, at=at)
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """Build the complete box body with dovetail grooves."""
@@ -103,11 +199,14 @@ class SlidingBox:
         wt = spec.get("wall_thickness", 2.0)
         lt = spec.get("lid_thickness", 2.0)
         slack = 0.2
-        _, y0, y_extent, z0 = self._lid_channel(spec)
+        _, across0, across_extent, z0 = self._lid_channel(spec)
+        along = spec["length"] if self.slides_along_length(spec) else spec["width"]
 
         # Fills the channel from the stop wall to the open end, so the closed
         # lid finishes flush with the box rather than sitting short of it.
-        return block(
-            [spec["width"] - wt - slack, y_extent - slack, lt],
-            at=(wt + slack / 2, y0 + slack / 2, z0),
-        )
+        size = [along - wt - slack, across_extent - slack, lt]
+        at = [wt + slack / 2, across0 + slack / 2, z0]
+        if self.slides_along_length(spec):
+            size[0], size[1] = size[1], size[0]
+            at[0], at[1] = at[1], at[0]
+        return block(size, at=at)

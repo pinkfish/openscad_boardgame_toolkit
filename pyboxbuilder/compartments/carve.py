@@ -102,10 +102,28 @@ def build_compartment_well(
     return _place(well.translate([width / 2, length / 2, depth / 2]), placement, interior)
 
 
+def default_scoop_side(placement: "CompartmentPlacement") -> ScoopSide:
+    """Which wall a scoop goes in when the compartment does not say.
+
+    The **shorter** wall. A card stack is lifted out across its narrow
+    dimension, so the cut belongs in the short face; put it in the long one and
+    you are reaching along the whole width of the box to get at the cards.
+
+    Args:
+        placement: The compartment the scoop belongs to.
+
+    Returns:
+        `LEFT` when the footprint is wider than it is long, else `FRONT`.
+    """
+    width, length = placement.size
+    return ScoopSide.LEFT if width > length else ScoopSide.FRONT
+
+
 def build_compartment_scoop(
     placement: "CompartmentPlacement",
     interior: Interior,
     scoop_side: ScoopSide = ScoopSide.FRONT,
+    top_z: float | None = None,
 ) -> "Bosl2Solid":
     """Build a compartment's finger scoop — the part that pierces a wall.
 
@@ -117,6 +135,8 @@ def build_compartment_scoop(
         placement: The compartment the scoop belongs to.
         interior: The box interior frame the compartment sits in.
         scoop_side: Which wall the scoop pierces.
+        top_z: The box's top face. The cut reaches it so its roll merges into
+            the rim; ``None`` falls back to the interior ceiling.
 
     Returns:
         The scoop cutout, positioned in the box frame.
@@ -124,7 +144,14 @@ def build_compartment_scoop(
     from pyboxbuilder.compartments.finger_hole import build_scoop
 
     width, length = placement.size
-    depth = min(placement.depth, interior.height)
+    floor_z = compartment_floor_z(placement, interior)
+    # The scoop runs from the compartment floor to the **top of the box**, not
+    # to the interior ceiling. Stopping at the ceiling leaves the lid band
+    # standing above the cut as a step, and buries the r1 roll inside the wall
+    # where it can neither be seen nor felt — the roll is meant to merge the
+    # cut into the box's top edge.
+    top = top_z if top_z is not None else interior.origin_z + interior.height
+    depth = max(0.1, top - floor_z)
     wall_thickness = interior.origin_x if interior.origin_x > 0 else 2.0
     # origin_z is the box floor: the scoop dips a fraction of it so its bottom
     # face is not coplanar with the well floor (which renders as speckle).
@@ -196,6 +223,8 @@ def build_contents(
     interior: Interior,
     builders: dict | None = None,
     clip: bool = True,
+    top_z: float | None = None,
+    default_side: ScoopSide | None = None,
 ) -> "Bosl2Solid | None":
     """Union the cutouts for every placed compartment. None when there are none.
 
@@ -211,6 +240,11 @@ def build_contents(
         clip: Trim the wells to the interior footprint so none can break through
             a side wall (FR-018). Each well's own rounding comes from its depth
             and its builder — see :func:`tray_rounding`.
+        top_z: The box's top face, so a finger scoop's roll merges into the rim
+            rather than stopping at the interior ceiling.
+        default_side: The box type's preferred scoop wall, used when the
+            compartment names none. A sliding box insists on the wall its lid
+            leaves by; most types have no opinion and leave it to the shape.
     """
     from pyboxbuilder.compartments.element import union_all
 
@@ -226,12 +260,13 @@ def build_contents(
             )
         )
         if getattr(builder, "finger_scoop", False):
+            side = (
+                getattr(builder, "scoop_side", None)
+                or default_side
+                or default_scoop_side(placement)
+            )
             scoops.append(
-                build_compartment_scoop(
-                    placement,
-                    interior,
-                    getattr(builder, "scoop_side", ScoopSide.FRONT),
-                )
+                build_compartment_scoop(placement, interior, side, top_z=top_z)
             )
 
     contents = union_all(wells)

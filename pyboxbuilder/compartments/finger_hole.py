@@ -36,6 +36,16 @@ if TYPE_CHECKING:
     from pybosl2.shapes2d import Bosl2Shape2D
     from pybosl2.shapes3d import Bosl2Solid
 
+DEFAULT_FLOOR_DIP_MM = 0.2
+"""How far a cut passes below the well floor, by default.
+
+Its only job is to keep the cut's bottom face off the floor plane, since a
+coincident face renders as speckle and is how a boolean leaves a zero-thickness
+skin. 0.2mm does that. Scaling it with the floor thickness — which an earlier
+version did, up to a full millimetre — spends half a 2mm floor on a cosmetic
+detail, and it showed as the cut visibly eating into the floor.
+"""
+
 MIN_WALL_SCOOP_DEPTH_MM = 8.0
 """Below this a wall notch has nothing to grip, so the floor scoop is used."""
 
@@ -281,6 +291,83 @@ def floor_bore_outline(
     return left + right
 
 
+def _angle_at(centre: tuple[float, float], point: tuple[float, float]) -> float:
+    """The angle, in degrees, from ``centre`` to ``point``."""
+    return math.degrees(math.atan2(point[1] - centre[1], point[0] - centre[0]))
+
+
+def _tangent_join(
+    bottom_centre: tuple[float, float],
+    bottom_radius: float,
+    top_centre: tuple[float, float],
+    top_radius: float,
+    fallback_x: float,
+) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Where the two arcs meet the straight run between them.
+
+    Solved as the circles' **common tangent** rather than assumed to be the
+    vertical line ``x = fallback_x``. For the usual placement the answer *is*
+    that vertical — both circles are constructed tangent to it — so this
+    changes no geometry today. It earns its place by not depending on that
+    placement: move either centre and the profile stays tangent at both joins
+    instead of stepping, which is what a step in a scoop's wall looks like.
+
+    Args:
+        bottom_centre: Centre of the r2 (floor) circle.
+        bottom_radius: r2.
+        top_centre: Centre of the r1 (rim) circle.
+        top_radius: r1.
+        fallback_x: The vertical to fall back to when no usable tangent exists
+            — coincident or overlapping circles, or a degenerate radius.
+
+    Returns:
+        ``(point_on_bottom_circle, point_on_top_circle)``.
+    """
+    if bottom_radius <= 0 or top_radius <= 0:
+        return (
+            (fallback_x, bottom_centre[1]),
+            (fallback_x, top_centre[1]),
+        )
+
+    from pybosl2 import geometry
+
+    try:
+        tangents = geometry.circle_circle_tangents(
+            radius1=bottom_radius, center1=list(bottom_centre),
+            radius2=top_radius, center2=list(top_centre),
+        )
+    except Exception:
+        tangents = []
+
+    # The wanted tangent is an **internal** one. The cut's boundary wraps
+    # around the *outside* of the floor circle and the *inside* of the rim
+    # circle — the two arcs curve opposite ways — so the run touches the floor
+    # circle on its right and the rim circle on its left, and the external
+    # tangents (which touch both on the same side) belong to a different shape
+    # entirely. Filtering for "outside both" picked one of those and threw the
+    # profile 12mm wide.
+    best = None
+    for low, high in tangents:
+        low_pt = (float(low[0]), float(low[1]))
+        high_pt = (float(high[0]), float(high[1]))
+        if high_pt[1] <= low_pt[1]:
+            continue  # runs downward: that is the mirrored half's tangent
+        if low_pt[0] < bottom_centre[0] - 1e-9:
+            continue  # touches the floor circle on its buried side
+        if high_pt[0] > top_centre[0] + 1e-9:
+            continue  # touches the rim circle on its buried side
+        skew = abs(high_pt[0] - low_pt[0])
+        if best is None or skew < best[0]:
+            best = (skew, low_pt, high_pt)
+
+    if best is None:
+        return (
+            (fallback_x, bottom_centre[1]),
+            (fallback_x, top_centre[1]),
+        )
+    return best[1], best[2]
+
+
 def scoop_outline(
     radius: float,
     height: float,
@@ -306,12 +393,18 @@ def scoop_outline(
         ``[(x, y), ...]`` closed counter-clockwise, floor at ``y=0``.
     """
     r1, r2 = top_rounding, bottom_rounding
+    bottom_centre = (radius - r2, r2)
+    top_centre = (radius + r1, height - r1)
+    join_low, join_high = _tangent_join(bottom_centre, r2, top_centre, r1, radius)
+
     right: list[tuple[float, float]] = []
-    # r2: floor into wall, then the straight throat, then r1 rolling out to the
-    # top face.
-    right += _quarter_arc((radius - r2, r2), r2, -90.0, 0.0)
-    right.append((radius, height - r1))
-    right += _quarter_arc((radius + r1, height - r1), r1, 180.0, 90.0)
+    # r2 rolls the floor into the wall, a straight run carries up to r1, and r1
+    # rolls the wall into the top face. The straight run is the two circles'
+    # **common tangent**, so both joins are tangent by construction rather than
+    # by assuming the run is vertical.
+    right += _quarter_arc(bottom_centre, r2, -90.0, _angle_at(bottom_centre, join_low))
+    right.append(join_high)
+    right += _quarter_arc(top_centre, r1, _angle_at(top_centre, join_high), 90.0)
     # Carry on straight up past the rim. Closing the ring along the top instead
     # would put a **cusp** at each end of the r1 arc: the arc arrives there
     # travelling horizontally outward and the closing edge leaves horizontally
@@ -648,8 +741,9 @@ def _sweep_through_wall(
         # floor so the box's base is still solid underneath.
         from pybosl2 import cuboid
 
-        dip = floor_clearance if floor_clearance is not None else (
-            min(1.0, floor_thickness / 2) if floor_thickness else 0.2
+        dip = floor_clearance if floor_clearance is not None else min(
+            DEFAULT_FLOOR_DIP_MM,
+            (floor_thickness / 4) if floor_thickness else DEFAULT_FLOOR_DIP_MM,
         )
         dip = max(0.0, dip)
         reach = comp_depth + rounding_radius + rim + 1.0

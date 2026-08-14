@@ -467,17 +467,26 @@ class Project:
             # it; the lid carries the rounding for the closed box's top and
             # upper corners instead (FR-043).
             if lid is not None:
-                from pyboxbuilder.rounding import round_edges, vertical_and_top_edges
+                from pyboxbuilder.box.base import lid_rounded_edges
+                from pyboxbuilder.rounding import lid_rounding, round_edges
 
+                # Only the edges this type leaves on the outside, and never
+                # more than half the lid's thickness — the rest is what the
+                # lid is supported and located by.
                 lid = round_edges(
-                    lid, list(size), spec_dict["rounding"], vertical_and_top_edges(),
+                    lid, list(size), lid_rounding(spec_dict),
+                    lid_rounded_edges(box, spec_dict),
                 )
 
             if comp_layout is not None and body is not None:
                 from pyboxbuilder.compartments.carve import build_contents
+                from pyboxbuilder.box.base import preferred_scoop_side
+
                 contents = build_contents(
                     comp_layout.placements, interior,
                     {cb.label: cb for cb in builder.compartments},
+                    top_z=size[2],
+                    default_side=preferred_scoop_side(box, spec_dict),
                 )
                 if contents is not None:
                     body = body - contents
