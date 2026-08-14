@@ -486,7 +486,7 @@ class Project:
 
             if comp_layout is not None and body is not None:
                 from pyboxbuilder.compartments.carve import build_contents
-                from pyboxbuilder.box.base import preferred_scoop_side
+                from pyboxbuilder.box.base import interior_mask, preferred_scoop_side
 
                 contents = build_contents(
                     comp_layout.placements, interior,
@@ -494,6 +494,7 @@ class Project:
                     top_z=size[2],
                     default_side=preferred_scoop_side(box, spec_dict),
                     wall_tops=spec_dict["wall_tops"],
+                    mask=interior_mask(box, spec_dict),
                 )
                 if contents is not None:
                     body = body - contents

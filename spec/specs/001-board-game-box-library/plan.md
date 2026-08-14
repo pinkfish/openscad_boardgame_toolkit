@@ -122,11 +122,43 @@ if __name__ == "__main__":
 - **Spacers are shown, always grey.** `show()` MUST also render the spacer boxes at their generated positions so the preview shows the complete filled layout (not just the real boxes). Spacers MUST always use a **variant of grey** for their colour — never the same palette as the real boxes — so a viewer can instantly tell a spacer (dead fill) from a box (holds pieces). The spacer colour is fixed and is not drawn from the per-box pseudo-random palette.
 - **Curve precision (`fn`/`fa`/`fs`).** `export()` (and `show()`) MUST accept optional `fn`, `fa`, and `fs` parameters — the OpenSCAD/BOSL2 tessellation controls — and thread them into **every** geometry call that renders a curve: cylinder/sphere facets (`fn`/`fa`/`fs`), `cuboid(..., rounding=...)`, fillets/chamfers, the finger-scoop and finger-hole profiles, hex/tessellation edges, and lid-pattern curves. Defaults are a sensible balance (e.g. `fa=12, fs=2`, or an explicit `fn` for small radii) but must be overridable so a user can raise precision for print-quality curves or lower it for a fast preview. No geometry call hardcodes its own facet count in a way the caller cannot override.
 
+### The Hinge Goes Inside The Box (FR-002c, FR-002d, FR-002e)
+
+The hinge used to stand off the back of the box — `axis_y = length + radius + gap` — and Phase 18 recorded that as the one bounded exception to "a closed box is the size it declares". It is not a good exception: a box with a barrel hanging off it cannot be packed against its neighbours, and nothing tells the packer to reserve the room. The pin axis now sits **inside** the back wall (`axis_y = length - radius`), and is sunk far enough (`height + leaf_thickness - radius`) that the barrel's crown is flush with the closed box's top rather than standing 1mm proud of it. Measured: both hinged types are now exactly their declared size in all three axes, and nothing anywhere reaches outside the footprint.
+
+Two consequences follow, and neither is optional:
+
+- **Each half must be relieved out of the other (FR-002e).** Inside the box, the lid's knuckles occupy space the body's wall fills, and the body's knuckles occupy space the lid's plate fills. `Closure` carries `body_cut` and `lid_cut` for this. Relieving one side only is worse than a trap — it looks fixed, because the obvious symptom (the lid fused to the wall) disappears while the other half stays welded.
+- **The interior loses that room, so the contents mask has to know (FR-002d).** The barrel and webs stand in the back of the interior, right where a compartment would go. `interior_mask` is a per-type hook — `None` for every type whose interior is simply its interior — and the hinge types return the interior less the hinge's intrusion. `build_contents` clips the **wells** to it and leaves the finger scoops alone, since breaching a wall is a scoop's whole job. This is what the original does through `FilamentBoxInsideMask`, which subtracts the barrel's clearance cylinder and a chamfered support web from the interior cuboid.
+
 ### A Sliding Box Needs Somewhere For The Lid To Go In (FR-002a)
 
 **The lid leaves through the shorter face (FR-002b)** — it slides along the longer horizontal axis. This applies to `SlidingBox`; `SlidingCatchBox` and `CardLibraryBox` share the `sliding_track` feature, which currently always slides along X. Their channel was opened at the same time (they had the same blocked-end defect, so FR-002a was only half implemented) but the axis choice has not been carried across — a known limitation, not a decision. That puts the grooves in the long walls, which have the most material to carry them, and the opening at the narrow end, which is the end a card box is opened from. The channel geometry is computed once as though the slide were along X and the two axes swapped when it is not, so there is one set of numbers rather than two chances to get them wrong.
 
 The sliding box cut two grooves into its side walls and left both end walls solid, which makes a box whose lid can be dropped in but never slid — the one thing the type exists to do. The grooves and the opening are the same slot, so one subtraction now makes both: it bites `groove_depth` into each side wall and runs out through the **+X end wall**. The far end keeps its wall, because that is the stop the closed lid seats against, and the lid is sized to fill the channel from that stop to the open end so it finishes flush rather than short.
+
+### The Dovetail Profile: Angled, Interior Over Half Wall Width (FR-002c–FR-002f)
+
+The grooves and the lid edge are not square slots — they are an **angled dovetail**, so the lid is trapped in its grooves rather than riding on two square tongues. In cross-section, perpendicular to the slide axis, the lid is a trapezoid that is **the box interior at the top and reaches half a wall width into each wall at the bottom**:
+
+```
+     ┌──────────────────┐   top face: the box interior (width − 2 × wall)
+    /                    \
+   /                      \  straight angled flanks
+  └────────────────────────┘  bottom face: half a wall into each side
+```
+
+- **Top = the box interior.** The lid's top face is the box width minus **twice** the wall thickness — no key at the top.
+- **Bottom = half the wall width.** The lid reaches `wall_thickness / 2` into each wall at its underside.
+- **Straight angled flanks** join the two, so the profile is a trapezoid, not a square rib.
+
+The flanks angle *outward* from the interior top to the half-wall bottom, which is the whole point of a dovetail: the groove's floor is wider than its opening, so the lid **can slide along the axis but cannot be lifted straight out** — and the groove never reaches the outer face, so half the wall always stays behind it for support. The first pass got the taper the wrong way round — wide at the top, narrow at the bottom — which made a lid the box could not hold: it lifted straight off. The next pass cut the key through to the outer face (full wall width at the bottom), which left no wall behind the groove; and a later pass made the flank too steep. The settled profile is interior at the top, half a wall width at the bottom.
+
+Both long edges of the lid carry this profile for their whole sliding length, and the two long walls carry the **mirror-image groove**. The lid is the **same shape** as the groove it runs in — one set of numbers describes both halves, and there is no room for the two to drift apart. The same geometry is emitted by the `sliding_track` closure feature, which returns the body groove and the lid edge from one function.
+
+The lid's **leading end** — the end that enters the open end first — carries a slight **chamfer** across its underside and dovetail flanks, so the lid starts into the grooves instead of catching on their mouths. The flanks themselves stay square: the chamfer is a lead-in, not a roundover, and it must not shorten the lid's bearing length (FR-044i's square-edges rule is untouched — the chamfer lives only on the face that is first to enter).
+
+The back of the channel is dovetailed **exactly like the two sides** (FR-002e): the stop wall keeps its full thickness at the top and **half of it** at the bottom, so the lid's leading end seats in a matching back groove and the lid is trapped on all three closed sides. The lid and channel are therefore full **frustums** — rectangular top and bottom faces with the top offset toward the open end — dovetailed on both flanks and the back, straight at the front so the lid finishes flush with the opening. The lid is cut smaller than the channel by `sliding_slack` on every mating face — default **0.1mm per side** — so it slides freely rather than binding (FR-002f); a caller can open the gap up for a loose slide or tighten it for a close one without touching the geometry.
 
 ### Rounding a Lid Without Rounding Away Its Support (FR-044h, FR-044i)
 
@@ -720,7 +752,7 @@ A box type is nothing but a pair — how the body's rim is shaped, and what mate
 
 | Type | Closure feature | Lid | Notes |
 |---|---|---|---|
-| `SLIDING` | `sliding_track` | slides out along the length | asymmetric track walls — see the chamfer rule in *Finger Holes & Box Edge Smoothing* |
+| `SLIDING` | `sliding_track` | slides out along the length | angled dovetail (top = interior width, bottom = half wall width), see *The Dovetail Profile*; asymmetric track walls — see the chamfer rule in *Finger Holes & Box Edge Smoothing* |
 | `SLIDING_CATCH` | `sliding_track` + `sliding_catch` | slides, clicks | bump on the lid drops into a slightly larger dimple |
 | `CARD_LIBRARY` | `sliding_track` + heavier latch | slides | catch bump trimmed to the box envelope (T234) |
 | `CAP` / `CAP_PATH` | `cap_metrics`/`cap_body`/`cap_lid` | friction-fit cap over the rim | body stops a lid thickness short; `_PATH` follows a polygon footprint |
@@ -867,7 +899,7 @@ Where each requirement is designed, and where it is verified. Sections named bel
 
 | FR | Plan section | Module |
 |---|---|---|
-| FR-001, FR-002 | Box Type Catalogue | `box/types/*`, `box/features.py` |
+| FR-001, FR-002, FR-002a–FR-002f | Box Type Catalogue; The Dovetail Profile | `box/types/*`, `box/features.py` |
 | FR-003, FR-005 | Compartment Sizing and Placement | `compartments/builder.py`, `compartments/layout.py` |
 | FR-003a | Validation | `project.py` |
 | FR-004, FR-004a | Compartment Auto-Layout with Rotation | `compartments/layout.py` |
@@ -903,6 +935,8 @@ Where each requirement is designed, and where it is verified. Sections named bel
 | SC-001 | `quickstart.md` scenarios (T085) |
 | SC-002, SC-008 | timed layout/auto-size tests in `test_compartments.py`, `test_packing.py` |
 | SC-003 | `test_closures.py` — zero body/lid intersection for all 11 lidded types |
+| SC-045 | `test_closures.py` — dovetail measures interior over half the wall width, grooves mirror, wall stays behind the groove, leading chamfer, stop end square |
+| SC-046 | `test_closures.py` — the back is dovetailed like the sides, and the clearance is configurable |
 | SC-004, SC-007 | `test_compartments.py` validation cases |
 | SC-005 | `test_packing.py`, `test_guillotine.py` |
 | SC-006 | `test_carve.py`, render tests |

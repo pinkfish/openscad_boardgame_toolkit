@@ -144,3 +144,24 @@ def wall_top(spec: dict, side) -> float:
     if tops and side in tops:
         return float(tops[side])
     return default_wall_top(spec)
+
+
+def interior_mask(box: object, spec: dict):
+    """The volume inside the box that contents may actually occupy.
+
+    Usually the whole interior, and a type only says otherwise when something
+    of its own stands in there. A hinge box is the case that needs it: keeping
+    the hinge inside the box's outline puts the barrel and its leaf webs in the
+    back of the interior, exactly where a compartment would go. The original
+    toolkit does the same thing through `FilamentBoxInsideMask`.
+
+    Args:
+        box: The box type instance, which may supply an `interior_mask` hook.
+        spec: The box's spec dict.
+
+    Returns:
+        A solid the contents must stay within, or ``None`` when the whole
+        interior is available.
+    """
+    hook = getattr(box, "interior_mask", None)
+    return hook(spec) if hook is not None else None

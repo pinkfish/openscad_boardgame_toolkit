@@ -226,6 +226,7 @@ def build_contents(
     top_z: float | None = None,
     default_side: ScoopSide | None = None,
     wall_tops: dict | None = None,
+    mask: "Bosl2Solid | None" = None,
 ) -> "Bosl2Solid | None":
     """Union the cutouts for every placed compartment. None when there are none.
 
@@ -246,6 +247,10 @@ def build_contents(
         wall_tops: ``{ScoopSide: z}`` giving each wall's top. The four walls do
             not have to end level — a sliding box's exit wall stops a lid
             thickness below the rest — so the roll aligns per side.
+        mask: The volume contents may occupy, when the box type has something
+            of its own standing in the interior. A hinge box's barrel is the
+            case: it sits inside the outline, so the wells are clipped clear
+            of it rather than left to collide.
         default_side: The box type's preferred scoop wall, used when the
             compartment names none. A sliding box insists on the wall its lid
             leaves by; most types have no opinion and leave it to the shape.
@@ -277,6 +282,10 @@ def build_contents(
     contents = union_all(wells)
     if contents is not None and clip:
         contents = contents & interior_column(interior)
+    if contents is not None and mask is not None:
+        # Wells only: a finger scoop's whole job is to breach a wall, so it is
+        # added after this and is not masked.
+        contents = contents & mask
     if contents is not None:
         # Open the box. A compartmented box is carved out of a solid block, so
         # without this the material above the interior ceiling — the lid recess

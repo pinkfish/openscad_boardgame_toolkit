@@ -164,6 +164,15 @@ class Closure:
 
     body: "Bosl2Solid | None" = None
     lid: "Bosl2Solid | None" = None
+    body_cut: "Bosl2Solid | None" = None
+    """Volume the **body** must give up for the lid's half to move."""
+    lid_cut: "Bosl2Solid | None" = None
+    """Volume the **lid** must give up for the body's half.
+
+    Both directions are needed once a hinge sits inside the box: each half's
+    knuckles then stand in space the other half would otherwise fill. Relieving
+    only one side leaves the two fused just as surely as relieving neither.
+    """
 
 
 # ------------------------------------------------------------------- rabbet
@@ -202,53 +211,211 @@ def rabbet(spec: dict, inset: float = 1.0) -> Closure:
 # ------------------------------------------------------------ sliding track
 
 
-def groove_depth(spec: dict) -> float:
-    """How far a sliding groove bites into the side wall.
+def sliding_dovetail(spec: dict) -> tuple[float, float]:
+    """The dovetail depths that hold a sliding lid in its grooves.
 
-    Capped so it always leaves material behind it — a groove as deep as the
-    wall is a slot straight through the side of the box.
-    """
-    wt = spec.get("wall_thickness", 2.0)
-    lt = spec.get("lid_thickness", 2.0)
-    return min(wt - 0.6, lt)
-
-
-def sliding_track(spec: dict) -> Closure:
-    """The channel a lid slides in, and the plate that fills it.
-
-    One slot does both halves of the job, because they are the same slot: it
-    bites `groove_depth` into each side wall to make the grooves, and it runs
-    out through the **+X end wall** so the lid has somewhere to enter. Cutting
-    only the grooves leaves a box with a solid wall across the front of its own
-    track — a lid that can be dropped in but never slid.
-
-    The far (-X) end keeps its wall as the stop the closed lid seats against.
+    The lid's two long edges are angled — a dovetail — so the lid is trapped in
+    its grooves. In cross-section, perpendicular to the slide axis, the lid is a
+    trapezoid whose **top** face is the box interior (no key — the top sits
+    flush with the inner walls) and whose **bottom** face reaches **half** the
+    wall width into each wall. The groove never reaches the outer face, so
+    there is always wall material behind it to support the lid (FR-002c).
 
     Args:
-        spec: Needs `width`, `length`, `height`; reads `wall_thickness` and
-            `lid_thickness`.
+        spec: Reads `wall_thickness`.
+
+    Returns:
+        ``(top, bottom)`` — how far the key reaches into each side wall at the
+        lid's top face and at its underside, in mm. The top is ``0`` (the lid's
+        top face is the interior width); the bottom is half the wall width.
+    """
+    wt = spec.get("wall_thickness", 2.0)
+    return 0.0, wt / 2
+
+
+def lead_chamfer_size(spec: dict) -> float:
+    """The slight chamfer that lets a lid start into its grooves (FR-002d).
+
+    Args:
+        spec: Reads `lid_thickness`; an explicit `lead_chamfer` wins.
+
+    Returns:
+        The chamfer depth in mm — half the lid thickness by default.
+    """
+    lt = spec.get("lid_thickness", 2.0)
+    return spec.get("lead_chamfer", lt / 2)
+
+
+def _dovetail_frustum(
+    along_axis: str,
+    bottom_center: tuple[float, float],
+    bottom_size: tuple[float, float],
+    top_center: tuple[float, float],
+    top_size: tuple[float, float],
+    height: float,
+    z0: float,
+) -> "Bosl2Solid":
+    """A frustum dovetailed on both sides and the back, straight at the front.
+
+    The bottom and top faces are rectangles described by their ``(along,
+    across)`` centre and size in the slide frame. The top centre is offset
+    toward the open end relative to the bottom centre, which is what keeps the
+    front face vertical while the back and both flanks taper.
+    """
+    from pybosl2.shapes3d import prismoid
+
+    shift_along = top_center[0] - bottom_center[0]
+    shift_across = top_center[1] - bottom_center[1]
+
+    if along_axis == "x":
+        solid = prismoid(
+            [bottom_size[0], bottom_size[1]],
+            [top_size[0], top_size[1]],
+            height=height,
+            shift=[shift_along, shift_across],
+            **precision_kwargs(),
+        )
+        return solid.translate([bottom_center[0], bottom_center[1], z0])
+    solid = prismoid(
+        [bottom_size[1], bottom_size[0]],
+        [top_size[1], top_size[0]],
+        height=height,
+        shift=[shift_across, shift_along],
+        **precision_kwargs(),
+    )
+    return solid.translate([bottom_center[1], bottom_center[0], z0])
+
+
+def _lead_chamfer(
+    along_axis: str,
+    lead: float,
+    across_min: float,
+    across_max: float,
+    z_bottom: float,
+    size: float,
+) -> "Bosl2Solid":
+    """A 45° wedge beveling the lid's leading bottom edge.
+
+    ``lead`` is the leading end's coordinate along the slide axis — the face
+    that enters the box first. The wedge is full height ``size`` at that face
+    and tapers to nothing ``size`` further in, across the lid's full width, so
+    the lid starts into the grooves instead of catching on their mouths.
+    """
+    from pybosl2.shapes3d import prismoid
+
+    span = across_max - across_min
+    across_center = (across_min + across_max) / 2
+    if along_axis == "x":
+        solid = prismoid(
+            [size, span], [0.0, span], height=size, shift=[-size / 2, 0.0],
+            **precision_kwargs(),
+        )
+        return solid.translate([lead + size / 2, across_center, z_bottom])
+    solid = prismoid(
+        [span, size], [span, 0.0], height=size, shift=[0.0, -size / 2],
+        **precision_kwargs(),
+    )
+    return solid.translate([across_center, lead + size / 2, z_bottom])
+
+
+def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
+    """The dovetailed channel a lid slides in, and the lid that fills it.
+
+    One slot does both halves of the job, because they are the same slot: it
+    leaves the interior clear at the top and bites half the wall width into
+    each side wall at the bottom, to make the dovetail grooves, and it runs out
+    through the far end wall so the lid has somewhere to enter. The groove is
+    therefore wider at its floor than at its opening, which is what traps the
+    lid: it can be slid along the axis but never lifted straight out. The
+    groove never reaches the outer face — half the wall always remains behind
+    it — so the walls still support the lid. Cutting only the grooves leaves a
+    box with a solid wall across the front of its own track — a lid that can be
+    dropped in but never slid.
+
+    The back of the channel is dovetailed exactly like the two sides: the stop
+    wall keeps its full thickness at the top and half of it at the bottom, so
+    the lid's leading end seats in a matching back groove instead of butting
+    against a flat wall.
+
+    The lid is the matching frustum — dovetailed on both sides and the back,
+    straight at the front — cut short by `sliding_slack` on every mating face
+    so it slides freely, with a slight chamfer on its leading end (FR-002c,
+    FR-002d). The lid fills the channel flush with the open end.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
+            `lid_thickness`, and optionally `lead_chamfer` and `sliding_slack`
+            (per-side clearance, default 0.1mm).
+        along_axis: ``"x"`` to slide along the width, ``"y"`` along the length.
 
     Returns:
         The channel to subtract from the body, and the lid that fills it.
     """
-    from pyboxbuilder.box.shell import block
-
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
-    depth = groove_depth(spec)
-    groove_h = lt + 0.2
-    groove_z = spec["height"] - lt - 0.1
-    y0 = wt - depth
-    across = spec["length"] - 2 * y0
+    s = spec.get("sliding_slack", 0.1)
+    chamfer = lead_chamfer_size(spec)
+    top_key, bottom_key = sliding_dovetail(spec)
 
-    channel = block(
-        [spec["width"] - wt + 0.1, across, groove_h], at=(wt, y0, groove_z)
+    if along_axis == "x":
+        along = spec["width"]
+        across = spec["length"]
+    else:
+        along = spec["length"]
+        across = spec["width"]
+
+    z0 = spec["height"] - lt
+    interior_along = along - 2 * wt
+    interior_across = across - 2 * wt
+
+    # The lid: a frustum dovetailed on both sides and the back, straight at the
+    # front. Its top face is the interior (no key) and its underside reaches
+    # `bottom_key` into each wall, cut short by the clearance on every face.
+    lid = _dovetail_frustum(
+        along_axis,
+        ((along + wt - bottom_key) / 2, across / 2),
+        (interior_along + wt + bottom_key - 2 * s,
+         interior_across + 2 * bottom_key - 2 * s),
+        ((along + wt - top_key) / 2, across / 2),
+        (interior_along + wt + top_key - 2 * s,
+         interior_across + 2 * top_key - 2 * s),
+        lt,
+        z0,
     )
-    lid = block(
-        [spec["width"] - wt - FIT_SLACK_MM, across - FIT_SLACK_MM, lt],
-        at=(wt + FIT_SLACK_MM / 2, y0 + FIT_SLACK_MM / 2, spec["height"] - lt),
+
+    # The channel: the same frustum, larger by the clearance and a hair. Its
+    # floor reaches `bottom_key` into each wall, its opening `top_key`, and its
+    # front runs out through the open end wall.
+    channel = _dovetail_frustum(
+        along_axis,
+        ((along + wt - bottom_key) / 2, across / 2),
+        (interior_along + wt + bottom_key + 0.1,
+         interior_across + 2 * bottom_key + 0.1),
+        ((along + wt - top_key) / 2, across / 2),
+        (interior_along + wt + top_key + 0.1,
+         interior_across + 2 * top_key + 0.1),
+        lt + 0.1,
+        z0 - 0.05,
     )
+
+    # A slight chamfer on the leading (back) end's bottom edge eases the lid
+    # into the grooves.
+    if chamfer > 0:
+        lead = wt - bottom_key + s
+        lid = lid - _lead_chamfer(
+            along_axis, lead, lead, across - wt + bottom_key - s, z0, chamfer
+        )
+
     return Closure(body=channel, lid=lid)
+
+
+def sliding_track(spec: dict) -> Closure:
+    """The sliding channel and lid, in the slide-along-X frame.
+
+    A thin wrapper over :func:`dovetail_track` for the types that always slide
+    along X (``SlidingCatchBox``, ``CardLibraryBox``).
+    """
+    return dovetail_track(spec, "x")
 
 
 def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
@@ -285,6 +452,39 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
 # ------------------------------------------------------------ filament hinge
 
 
+def hinge_intrusion(spec: dict, filament_diameter: float = 1.75) -> "Bosl2Solid":
+    """The volume a hinge occupies inside the box, as a solid to subtract.
+
+    A hinge that sits inside the box's outline has to take that room from
+    somewhere, and it takes it from the interior: the barrel and the leaf webs
+    stand in the back of the box, right where a compartment would otherwise
+    go. Rather than leave a compartment to collide with them, a hinge box
+    subtracts this from its contents mask (following the original's
+    `FilamentBoxInsideMask`, which does the same for the filament hinge).
+
+    Args:
+        spec: Box dimensions; reads `wall_thickness` and `lid_thickness`.
+        filament_diameter: The pin stock, which sets the barrel radius.
+
+    Returns:
+        The solid the contents must keep clear of.
+    """
+    from pyboxbuilder.box.shell import block
+
+    wt = spec.get("wall_thickness", 2.0)
+    radius = max(wt, filament_diameter)
+    reach = radius + 0.5 + PRINT_IN_PLACE_GAP_MM
+
+    # A full-height slab is deliberate rather than a tight fit to the barrel:
+    # a compartment that stops short of the hinge is what is wanted, and a
+    # cavity that noses under a barrel it cannot quite reach is a place for a
+    # piece to fall into and stay.
+    return block(
+        [spec["width"], reach, spec["height"] + 1.0],
+        at=(0.0, spec["length"] - reach, -0.5),
+    )
+
+
 def filament_hinge(
     spec: dict,
     filament_diameter: float = 1.75,
@@ -317,18 +517,26 @@ def filament_hinge(
         spec.get("lid_thickness", 2.0) if lid_thickness is None else lid_thickness
     )
 
-    # The pin runs along X, clear of the back wall and level with the joint
-    # between body and lid. Keeping it fully outside matters: an axis sunk into
-    # the wall buries the *lid's* knuckles in the body, fusing the two parts.
-    axis_y = spec["length"] + radius + gap
-    axis_z = spec["height"]
+    # The pin runs along X, level with the joint between body and lid and set
+    # **inside** the back wall: the barrel's outer face is flush with the box,
+    # so the closed box is exactly its declared size with nothing hanging off
+    # the back. The price is that the barrel intrudes into the interior, which
+    # is why a hinge box carves that volume out of its contents mask.
+    axis_y = spec["length"] - radius
+    # Sunk far enough that the barrel's crown is flush with the *closed* box's
+    # top, not just inside its footprint. `spec["height"]` here is the body's
+    # height — the joint plane — and the lid adds its own thickness above it,
+    # so a barrel wider than that thickness has to drop by the difference.
+    axis_z = min(spec["height"], spec["height"] + leaf_thickness - radius)
 
     span = spec["width"] - 2 * wt
     pitch = span / knuckles
-    web_y = spec["length"] - 0.5
-    web_depth = axis_y - web_y
+    # Each leaf webs inward from the barrel to its own half.
+    web_y = axis_y
+    web_depth = radius + 0.5
 
     body_parts, lid_parts = [], []
+    body_relief, lid_relief = [], []
     for index in range(knuckles):
         length = pitch - gap
         if length <= 0:
@@ -341,25 +549,46 @@ def filament_hinge(
         # lid's above it — so neither reaches across into the other.
         if index % 2:
             # Sized to the lid's own thickness — a taller web would stand proud
-            # of the closed lid.
+            # of the closed lid. It reaches *inward* now that the barrel is
+            # inside the box.
             web = block(
                 [length, web_depth, leaf_thickness - gap / 2],
-                at=(centre_x - length / 2, web_y, axis_z + gap / 2),
+                at=(centre_x - length / 2, web_y - web_depth, axis_z + gap / 2),
             )
             lid_parts += [knuckle, web]
+            # The same knuckle and web, grown by the print gap: this is what
+            # the body has to give up so the lid's leaf is a separate part.
+            relief = cylinder(
+                height=length + 2 * gap, radius=radius + gap, **precision_kwargs()
+            ).rotate([0, 90, 0]).translate([centre_x, axis_y, axis_z])
+            relief_web = block(
+                [length + 2 * gap, web_depth + gap, leaf_thickness + gap],
+                at=(
+                    centre_x - length / 2 - gap,
+                    web_y - web_depth - gap,
+                    axis_z,
+                ),
+            )
+            body_relief += [relief, relief_web]
         else:
             web = block(
                 [length, web_depth, radius],
-                at=(centre_x - length / 2, web_y, axis_z - radius - gap / 2),
+                at=(centre_x - length / 2, web_y - web_depth, axis_z - radius - gap / 2),
             )
             body_parts += [knuckle, web]
+            # And the mirror image: what the lid gives up for this knuckle.
+            lid_relief.append(
+                cylinder(
+                    height=length + 2 * gap, radius=radius + gap, **precision_kwargs()
+                ).rotate([0, 90, 0]).translate([centre_x, axis_y, axis_z])
+            )
 
     pin = cylinder(height=spec["width"] + 2, radius=bore, **precision_kwargs()).rotate([0, 90, 0])
     pin = pin.translate([spec["width"] / 2, axis_y, axis_z])
     # Split the barrel at the joint line so the two leaves cannot touch.
     parting = block(
         [spec["width"] + 2, web_depth + 2 * radius + 2, gap],
-        at=(-1.0, web_y - 1.0, axis_z - gap / 2),
+        at=(-1.0, web_y - web_depth - 1.0, axis_z - gap / 2),
     )
 
     body = union_all(body_parts)
@@ -367,6 +596,8 @@ def filament_hinge(
     return Closure(
         body=None if body is None else body - pin - parting,
         lid=None if lid is None else lid - pin - parting,
+        body_cut=union_all(body_relief),
+        lid_cut=union_all(lid_relief),
     )
 
 

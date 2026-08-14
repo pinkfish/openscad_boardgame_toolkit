@@ -429,10 +429,12 @@ class TwoRadiusProfileTests(unittest.TestCase):
         self.assertNotEqual(self.outline(square), self.outline(top_only))
         self.assertNotEqual(self.outline(top_only), self.outline(both))
 
-    def test_bottom_radius_defaults_to_half_the_throat(self) -> None:
+    def test_bottom_radius_defaults_to_a_share_of_the_throat(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import DEFAULT_BOTTOM_ROUNDING_RATIO
+
         self.assertEqual(
             self.outline(scoop_profile(10, 30, 6)),
-            self.outline(scoop_profile(10, 30, 6, 5)),
+            self.outline(scoop_profile(10, 30, 6, 10 * DEFAULT_BOTTOM_ROUNDING_RATIO)),
         )
 
     def test_radii_are_scaled_down_to_fit_a_shallow_scoop(self) -> None:
@@ -486,10 +488,18 @@ class FlatBottomTests(unittest.TestCase):
         self.assertGreater(MIN_FLAT_BOTTOM_RATIO, 0.0)
         self.assertLess(MIN_FLAT_BOTTOM_RATIO, 1.0)
 
-    def test_default_r2_leaves_half_the_half_width_flat(self) -> None:
-        from pyboxbuilder.compartments.finger_hole import DEFAULT_BOTTOM_ROUNDING_RATIO
+    def test_the_floor_fillet_is_generous_but_leaves_a_flat(self) -> None:
+        """It lives inside the throat, so it costs no mouth width and can
+        afford a wide curve — but not the whole base."""
+        from pyboxbuilder.compartments.finger_hole import (
+            DEFAULT_BOTTOM_ROUNDING_RATIO,
+            MIN_FLAT_BOTTOM_RATIO,
+        )
 
-        self.assertEqual(DEFAULT_BOTTOM_ROUNDING_RATIO, 0.5)
+        self.assertGreater(DEFAULT_BOTTOM_ROUNDING_RATIO, 0.5)
+        self.assertLessEqual(
+            DEFAULT_BOTTOM_ROUNDING_RATIO, 1.0 - MIN_FLAT_BOTTOM_RATIO
+        )
 
 
 class DerivedDefaultTests(unittest.TestCase):
@@ -853,22 +863,36 @@ class WallTopTests(unittest.TestCase):
 class PullOutRollTests(unittest.TestCase):
     """FR-043c1: the roll spans the scoop's depth, not a token radius."""
 
-    def test_the_roll_is_the_scoops_depth(self) -> None:
+    def test_only_the_vertical_extents_compete_for_the_height(self) -> None:
+        """A shallow wall shortens the roll's rise and leaves the width alone.
+
+        Tying the two together is what lost the player card box its top curve:
+        the wall had height to spare for a curve and none to spare for a wider
+        mouth, and one number was deciding both.
+        """
         from pyboxbuilder.compartments.finger_hole import _fit_radii
 
-        depth = 20.0
-        r1, r2 = _fit_radii(radius=12.0, height=depth, top_rounding=depth,
-                            bottom_rounding=None)
-        # r1 and r2 share the height when together they ask for more than it.
-        self.assertGreater(r1, 0.0)
-        self.assertAlmostEqual(r1 + r2, depth, places=6)
-        self.assertGreater(r1, r2, "the roll should dominate a pull-out scoop")
+        deep_flare, deep_rise, _ = _fit_radii(12.0, 26.0, 6.0, None)
+        shallow_flare, shallow_rise, _ = _fit_radii(12.0, 6.5, 6.0, None)
+        self.assertAlmostEqual(deep_flare, shallow_flare,
+                               msg="the mouth narrowed on the shallow wall")
+        self.assertLess(shallow_rise, deep_rise)
+        self.assertGreater(shallow_rise, 0.0, "the shallow wall lost its curve")
 
-    def test_it_leaves_no_straight_run(self) -> None:
-        """With the arcs filling the height there is no vertical throat left,
-        which is the point: the edge curves the whole way down."""
+    def test_the_rise_is_a_multiple_of_the_flare(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import (
+            TOP_ROLL_RISE_RATIO,
+            _fit_radii,
+        )
+
+        flare, rise, _ = _fit_radii(12.0, 100.0, 6.0, None)
+        self.assertAlmostEqual(rise, flare * TOP_ROLL_RISE_RATIO)
+
+    def test_the_vertical_extents_fit_the_height(self) -> None:
+        _, rise, r2 = self.fit(12.0, 18.0)
+        self.assertLessEqual(rise + r2, 18.0 + 1e-9)
+
+    def fit(self, radius, height):
         from pyboxbuilder.compartments.finger_hole import _fit_radii
 
-        r1, r2 = _fit_radii(radius=12.0, height=18.0, top_rounding=18.0,
-                            bottom_rounding=None)
-        self.assertAlmostEqual(r1 + r2, 18.0, places=6)
+        return _fit_radii(radius, height, radius * 0.5, None)

@@ -43,12 +43,42 @@ class HingeBox:
             lid_thickness=spec.get("lid_thickness", 2.0),
         )
 
+    def interior_mask(self, spec: dict):
+        """The interior, less the room the hinge takes up inside it.
+
+        The hinge sits within the box's outline, so its barrel and webs stand
+        in the back of the interior. Compartments are clipped to what is left
+        rather than being allowed to collide with it.
+
+        Args:
+            spec: The box's spec dict.
+
+        Returns:
+            The usable interior volume.
+        """
+        from pyboxbuilder.box.features import hinge_intrusion
+        from pyboxbuilder.box.shell import block
+
+        wt = spec.get("wall_thickness", 2.0)
+        ft = spec.get("floor_thickness", 1.6)
+        available = block(
+            [spec["width"] - 2 * wt, spec["length"] - 2 * wt, spec["height"]],
+            at=(wt, wt, ft),
+        )
+        return available - hinge_intrusion(
+            self._body_spec(spec), spec.get("hinge_pin_diameter", 3.0)
+        )
+
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """The shell carrying every other knuckle of the hinge."""
         from pyboxbuilder.box.shell import build_shell
 
         body = build_shell(self._body_spec(spec))
         closure = self._closure(spec)
+        # The relief comes off before the body's own knuckles go on, so the
+        # cut cannot eat into them.
+        if closure.body_cut is not None:
+            body = body - closure.body_cut
         return body if closure.body is None else body | closure.body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
@@ -66,4 +96,6 @@ class HingeBox:
             at=(0, 0, self._body_spec(spec)["height"]),
         )
         closure = self._closure(spec)
+        if closure.lid_cut is not None:
+            lid = lid - closure.lid_cut
         return lid if closure.lid is None else lid | closure.lid

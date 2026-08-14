@@ -124,43 +124,30 @@ class SlidingBox:
             return [Anchor.TOP_BACK, Anchor.BACK_LEFT, Anchor.BACK_RIGHT]
         return [Anchor.TOP_RIGHT, Anchor.FRONT_RIGHT, Anchor.BACK_RIGHT]
 
-    def _lid_channel(self, spec: dict) -> tuple[float, float, float, float]:
-        """Geometry of the slot the lid lives in, in the sliding frame.
-
-        Everything is computed as though the lid slid along X; when it does
-        not, the caller swaps the two axes. One set of numbers, one place to
-        get them wrong.
+    def _along_axis(self, spec: dict) -> str:
+        """Which axis the lid slides along, for the dovetail geometry.
 
         Args:
-            spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
-                `lid_thickness`.
+            spec: Needs `width` and `length`.
 
         Returns:
-            ``(groove_depth, across0, across_extent, z0)`` — how deep the
-            channel bites into each side wall, where it starts and how far it
-            runs across the slide direction, and the Z it starts at.
+            ``"y"`` when the lid slides along the length, else ``"x"``.
         """
-        wt = spec.get("wall_thickness", 2.0)
-        lt = spec.get("lid_thickness", 2.0)
-        groove_depth = min(wt - 0.6, lt)  # bite into the wall, never through it
-        across = spec["width"] if self.slides_along_length(spec) else spec["length"]
-        across0 = wt - groove_depth
-        return groove_depth, across0, across - 2 * across0, spec["height"] - lt
+        return "y" if self.slides_along_length(spec) else "x"
 
     def _cut_lid_channel(
         self, body: "Bosl2Solid", spec: dict
     ) -> "Bosl2Solid":
-        """Cut the slot the lid slides along, open at one end.
+        """Cut the dovetailed slot the lid slides along, open at one end.
 
         One subtraction does both halves of the job, because they are the same
-        slot: it bites `groove_depth` into each side wall to make the grooves,
-        and it runs out through the **+X end wall** so the lid has somewhere to
+        slot: it bites the dovetail into each side wall to make the grooves,
+        and it runs out through the far end wall so the lid has somewhere to
         enter. Cutting only the grooves leaves a box with a solid wall across
         the front of its own track — a lid that can be dropped in but never
         slid, which is the entire point of the type.
 
-        The far (-X) end keeps its wall: that is the stop the lid closes
-        against.
+        The near end keeps its wall: that is the stop the lid closes against.
 
         Args:
             body: The box body to cut.
@@ -168,22 +155,11 @@ class SlidingBox:
                 `lid_thickness`.
 
         Returns:
-            The body with the channel cut.
+            The body with the dovetail channel cut.
         """
-        from pyboxbuilder.box.shell import block
+        from pyboxbuilder.box.features import dovetail_track
 
-        wt = spec.get("wall_thickness", 2.0)
-        lt = spec.get("lid_thickness", 2.0)
-        _, across0, across_extent, z0 = self._lid_channel(spec)
-        along = spec["length"] if self.slides_along_length(spec) else spec["width"]
-
-        # From the inside face of the stop wall, out through the open end.
-        size = [along - wt + 0.1, across_extent, lt + 0.1]
-        at = [wt, across0, z0 - 0.05]
-        if self.slides_along_length(spec):
-            size[0], size[1] = size[1], size[0]
-            at[0], at[1] = at[1], at[0]
-        return body - block(size, at=at)
+        return body - dovetail_track(spec, self._along_axis(spec)).body
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """Build the complete box body with dovetail grooves."""
@@ -193,20 +169,9 @@ class SlidingBox:
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        """Build the sliding lid — a plate wide enough to reach into the grooves."""
-        from pyboxbuilder.box.shell import block
+        """Build the sliding lid — a dovetailed plate, chamfered at its leading end."""
+        from pyboxbuilder.box.features import dovetail_track
 
-        wt = spec.get("wall_thickness", 2.0)
-        lt = spec.get("lid_thickness", 2.0)
-        slack = 0.2
-        _, across0, across_extent, z0 = self._lid_channel(spec)
-        along = spec["length"] if self.slides_along_length(spec) else spec["width"]
-
-        # Fills the channel from the stop wall to the open end, so the closed
-        # lid finishes flush with the box rather than sitting short of it.
-        size = [along - wt - slack, across_extent - slack, lt]
-        at = [wt + slack / 2, across0 + slack / 2, z0]
-        if self.slides_along_length(spec):
-            size[0], size[1] = size[1], size[0]
-            at[0], at[1] = at[1], at[0]
-        return block(size, at=at)
+        closure = dovetail_track(spec, self._along_axis(spec))
+        assert closure.lid is not None
+        return closure.lid

@@ -18,9 +18,10 @@ import zipfile
 from pyboxbuilder.box.features import (
     FIT_SLACK_MM,
     filament_hinge,
-    groove_depth,
+    lead_chamfer_size,
     rabbet,
     sliding_catch,
+    sliding_dovetail,
     sliding_track,
 )
 from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY, LIDLESS_BOX_TYPES
@@ -157,33 +158,33 @@ class DeclaredSizeTests(unittest.TestCase):
                             f"not the {want[axis]:.2f}mm it declared",
                     )
 
-    def test_only_a_hinge_reaches_outside_its_footprint(self) -> None:
-        """Everything else must fit the declared footprint exactly."""
+    def test_nothing_reaches_outside_its_footprint(self) -> None:
+        """Every type fits the declared footprint exactly — hinges included.
+
+        A hinge barrel used to be the one allowed exception, standing off the
+        back of the box. It now sits inside the outline instead, which is what
+        lets a hinged box be packed against its neighbours like any other.
+        """
         keep = self.footprint()
         for box_type in BoxType:
             with self.subTest(box_type=box_type.value):
                 outside = sum(volume(p - keep) for p in self.parts(box_type))
-                if box_type in self.HINGED:
-                    self.assertGreater(outside, 1.0, "no barrel at all?")
-                else:
-                    self.assertLess(
-                        outside, 0.01,
-                        f"{box_type.value} has {outside:.1f}mm3 of material "
-                        f"outside the size it declared",
-                    )
+                self.assertLess(
+                    outside, 0.01,
+                    f"{box_type.value} has {outside:.1f}mm3 of material "
+                    f"outside the size it declared",
+                )
 
-    def test_a_hinge_barrel_protrudes_backwards_and_not_far(self) -> None:
+    def test_a_hinged_box_keeps_its_declared_envelope(self) -> None:
         for box_type in self.HINGED:
             with self.subTest(box_type=box_type.value):
-                (x0, x1), (y0, y1), _ = self.extent(self.parts(box_type))
+                (x0, x1), (y0, y1), (z0, z1) = self.extent(self.parts(box_type))
                 self.assertAlmostEqual(x0, 0.0, places=2)
                 self.assertAlmostEqual(x1, SPEC["width"], places=2)
                 self.assertAlmostEqual(y0, 0.0, places=2)
-                self.assertGreater(y1, SPEC["length"], "no barrel at all?")
-                self.assertLess(
-                    y1, SPEC["length"] + 10.0,
-                    "the barrel is standing much too far off the back",
-                )
+                self.assertAlmostEqual(y1, SPEC["length"], places=2)
+                self.assertAlmostEqual(z0, 0.0, places=2)
+                self.assertAlmostEqual(z1, SPEC["height"], places=2)
 
     def test_the_cap_body_leaves_room_for_its_lid(self) -> None:
         """The body stops short and steps in; the lid fills back out to size."""
@@ -234,17 +235,95 @@ class RabbetTests(unittest.TestCase):
 
 
 class SlidingTests(unittest.TestCase):
-    def test_a_groove_never_cuts_through_the_wall(self) -> None:
+    def test_the_dovetail_is_interior_over_half_wall(self) -> None:
+        """FR-002c: no key at the top (interior), half the wall at the bottom."""
         for wall in (1.0, 1.5, 2.0, 3.0, 6.0):
-            spec = {**SPEC, "wall_thickness": wall}
-            self.assertLess(groove_depth(spec), wall, f"wall={wall}")
+            with self.subTest(wall=wall):
+                top, bottom = sliding_dovetail({**SPEC, "wall_thickness": wall})
+                self.assertEqual(top, 0.0)
+                self.assertEqual(bottom, wall / 2)
 
-    def test_the_lid_reaches_into_both_grooves(self) -> None:
-        closure = sliding_track(SPEC)
-        (_, lid_y, _), (_, lid_l, _) = bbox(closure.lid)
-        interior_l = SPEC["length"] - 2 * SPEC["wall_thickness"]
-        self.assertGreater(lid_l, interior_l, "lid must overlap the grooves")
-        self.assertLess(lid_l, interior_l + 2 * groove_depth(SPEC))
+    def test_the_lead_chamfer_is_half_the_lid_thickness(self) -> None:
+        """FR-002d: the chamfer is slight, and overridable."""
+        self.assertEqual(lead_chamfer_size(SPEC), SPEC["lid_thickness"] / 2)
+        self.assertEqual(
+            lead_chamfer_size({**SPEC, "lead_chamfer": 0.5}), 0.5
+        )
+
+    def test_the_lid_flares_from_interior_to_half_wall(self) -> None:
+        """The top face is the interior; the underside reaches half a wall into each side."""
+        from pyboxbuilder.box.shell import block
+
+        lid = sliding_track(SPEC).lid
+        wt = SPEC["wall_thickness"]
+        interior = SPEC["length"] - 2 * wt
+        (_, _, _), (_, bottom_w, _) = bbox(lid)  # widest face is the underside
+        top = lid & block(
+            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
+        )
+        (_, _, _), (_, top_w, _) = bbox(top)
+        self.assertAlmostEqual(top_w, interior - FIT_SLACK_MM, delta=0.05)
+        self.assertAlmostEqual(bottom_w - top_w, wt, delta=0.05)
+
+    def test_the_leading_end_is_chamfered(self) -> None:
+        """FR-002d: the chamfer removes material from the lid's leading bottom edge."""
+        lid = sliding_track(SPEC).lid
+        plain = sliding_track({**SPEC, "lead_chamfer": 0.0}).lid
+        self.assertLess(volume(lid), volume(plain), "the chamfer must remove material")
+
+    def test_the_groove_keeps_wall_behind_it(self) -> None:
+        """The groove never reaches the outer face — half the wall stays as support."""
+        from pyboxbuilder.box.shell import block
+
+        channel = sliding_track(SPEC).body
+        wt = SPEC["wall_thickness"]
+        (_, _, _), (_, floor_w, _) = bbox(channel)
+        opening = channel & block(
+            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
+        )
+        (_, _, _), (_, opening_w, _) = bbox(opening)
+        # Floor is half a wall in from each side; opening is the interior.
+        self.assertAlmostEqual(floor_w, SPEC["length"] - wt + 0.1, places=2)
+        self.assertAlmostEqual(opening_w, SPEC["length"] - 2 * wt, delta=0.3)
+        self.assertLess(opening_w, floor_w)
+
+    def test_the_back_is_dovetailed_like_the_sides(self) -> None:
+        """The stop wall keeps its thickness at the top and half of it at the bottom."""
+        from pyboxbuilder.box.shell import block
+
+        channel = sliding_track(SPEC).body
+        wt = SPEC["wall_thickness"]
+        lt = SPEC["lid_thickness"]
+        top = channel & block(
+            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
+        )
+        bottom = channel & block(
+            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - lt)
+        )
+        (top_x, _, _), _ = bbox(top)
+        (bottom_x, _, _), _ = bbox(bottom)
+        # The back tapers by half a wall width from the opening to the floor.
+        self.assertAlmostEqual(top_x - bottom_x, wt / 2, delta=0.1)
+        self.assertGreater(bottom_x, 0.0, "the floor must leave wall behind it")
+
+    def test_the_lid_tucks_into_the_back_groove(self) -> None:
+        """The lid's leading end sits inside the back wall, not in front of it."""
+        (x, _, _), _ = bbox(sliding_track(SPEC).lid)
+        self.assertLess(x, SPEC["wall_thickness"], "the lid must reach into the back wall")
+
+    def test_the_sliding_clearance_is_configurable(self) -> None:
+        """`sliding_slack` widens the gap between the lid and the groove."""
+        default = sliding_track(SPEC).lid
+        roomy = sliding_track({**SPEC, "sliding_slack": 0.5}).lid
+        (_, _, _), (_, default_w, _) = bbox(default)
+        (_, _, _), (_, roomy_w, _) = bbox(roomy)
+        self.assertAlmostEqual(
+            default_w, SPEC["length"] - SPEC["wall_thickness"] - 0.2, places=2
+        )
+        self.assertAlmostEqual(
+            roomy_w, SPEC["length"] - SPEC["wall_thickness"] - 1.0, places=2
+        )
+        self.assertLess(roomy_w, default_w)
 
     def test_the_catch_dimple_is_larger_than_its_bump(self) -> None:
         """They should click together, not jam."""
@@ -261,11 +340,23 @@ class FilamentHingeTests(unittest.TestCase):
         self.assertIsNotNone(closure.lid)
         self.assertLess(volume(closure.body & closure.lid), 0.01)
 
-    def test_the_pin_axis_is_clear_of_the_back_wall(self) -> None:
-        """A pin sunk into the wall buries the lid's knuckles in the body."""
+    def test_the_pin_axis_sits_inside_the_back_wall(self) -> None:
+        """The hinge lives in the box, not behind it.
+
+        Keeping it inside is what costs interior room, and is why a hinge box
+        carves that volume out of its contents mask: the alternative is a
+        barrel a packer has to reserve space for outside the box.
+        """
         closure = filament_hinge(SPEC)
-        (_, knuckle_y, _), (_, _, _) = bbox(closure.lid)
-        self.assertGreaterEqual(knuckle_y, SPEC["length"] - 1.0)
+        (_, knuckle_y, _), (_, knuckle_length, _) = bbox(closure.lid)
+        self.assertLessEqual(
+            knuckle_y + knuckle_length, SPEC["length"] + 0.01,
+            "the hinge is standing outside the box",
+        )
+        self.assertGreater(
+            knuckle_y, SPEC["length"] * 0.5,
+            "the hinge should be at the back, not adrift in the middle",
+        )
 
     def test_both_leaves_share_one_pin_axis(self) -> None:
         closure = filament_hinge(SPEC)
@@ -300,12 +391,18 @@ class HingeArticulationTests(unittest.TestCase):
         return box.build_body(dict(SPEC)), box.build_lid(dict(SPEC))
 
     def test_the_lid_carries_knuckles_too(self) -> None:
-        """A plain plate cannot hinge; the lid must reach past the back wall."""
+        """A plain plate cannot hinge, so the lid must reach down to the pin.
+
+        Measured by depth rather than by overhang now that the hinge is inside
+        the box: a bare plate would start at the joint and go up, while a lid
+        with knuckles reaches below it to meet the axis.
+        """
         _, lid = self.hinge_parts()
-        (_, lid_y, _), (_, lid_l, _) = bbox(lid)
-        self.assertGreater(
-            lid_y + lid_l, SPEC["length"] + 1.0,
-            "the lid has no knuckles behind the box",
+        (_, _, lid_z), (_, _, lid_h) = bbox(lid)
+        joint = SPEC["height"] - SPEC["lid_thickness"]
+        self.assertLess(
+            lid_z, joint - 0.5,
+            "the lid has no knuckles reaching down to the pin",
         )
 
     def test_both_halves_reach_the_same_pin_axis(self) -> None:
@@ -394,3 +491,94 @@ class PathClosureTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HingeInsideTests(unittest.TestCase):
+    """FR-002c/d/e: the hinge lives in the box, and the interior knows it."""
+
+    HINGED = (BoxType.HINGE, BoxType.FILAMENT_HINGE)
+
+    def parts(self, box_type):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        impl = BOX_IMPL_REGISTRY[box_type]()
+        return impl.build_body(dict(SPEC)), impl.build_lid(dict(SPEC))
+
+    def test_the_closed_box_is_its_declared_size_in_every_axis(self) -> None:
+        for box_type in self.HINGED:
+            with self.subTest(box_type=box_type.value):
+                body, lid = self.parts(box_type)
+                low, size = bbox(body | lid)
+                for axis, name in enumerate(("width", "length", "height")):
+                    self.assertAlmostEqual(low[axis], 0.0, places=2)
+                    self.assertAlmostEqual(size[axis], SPEC[name], places=2)
+
+    def test_the_two_halves_are_still_separate(self) -> None:
+        """Relieving one side only looks fixed and is not: the obvious symptom
+        goes away while the other half stays welded."""
+        for box_type in self.HINGED:
+            with self.subTest(box_type=box_type.value):
+                body, lid = self.parts(box_type)
+                self.assertLess(volume(body & lid), 0.01)
+
+    def test_both_reliefs_exist(self) -> None:
+        from pyboxbuilder.box.features import filament_hinge
+
+        closure = filament_hinge(SPEC)
+        self.assertIsNotNone(closure.body_cut, "the body gives up nothing")
+        self.assertIsNotNone(closure.lid_cut, "the lid gives up nothing")
+
+    def test_the_interior_mask_carves_out_the_hinge(self) -> None:
+        from pyboxbuilder.box.base import interior_mask
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+        from pyboxbuilder.box.shell import block
+
+        wt, ft = SPEC["wall_thickness"], SPEC["floor_thickness"]
+        whole = block(
+            [SPEC["width"] - 2 * wt, SPEC["length"] - 2 * wt, SPEC["height"]],
+            at=(wt, wt, ft),
+        )
+        for box_type in self.HINGED:
+            with self.subTest(box_type=box_type.value):
+                mask = interior_mask(BOX_IMPL_REGISTRY[box_type](), dict(SPEC))
+                self.assertIsNotNone(mask, "a hinge box must mask its interior")
+                self.assertLess(
+                    volume(mask), volume(whole),
+                    "the mask kept the whole interior, hinge and all",
+                )
+
+    def test_types_without_something_in_the_way_mask_nothing(self) -> None:
+        from pyboxbuilder.box.base import interior_mask
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        for box_type in (BoxType.CAP, BoxType.SLIDING, BoxType.NO_LID):
+            with self.subTest(box_type=box_type.value):
+                self.assertIsNone(
+                    interior_mask(BOX_IMPL_REGISTRY[box_type](), dict(SPEC))
+                )
+
+    def test_a_compartment_is_clipped_clear_of_the_hinge(self) -> None:
+        from pyboxbuilder.box.base import interior_mask
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+        from pyboxbuilder.box.interior import Interior
+        from pyboxbuilder.compartments.carve import build_contents
+        from pyboxbuilder.compartments.layout import CompartmentPlacement
+
+        wt, ft = SPEC["wall_thickness"], SPEC["floor_thickness"]
+        interior = Interior(
+            width=SPEC["width"] - 2 * wt, length=SPEC["length"] - 2 * wt,
+            height=SPEC["height"] - SPEC["lid_thickness"] - ft,
+            origin_x=wt, origin_y=wt, origin_z=ft,
+        )
+        placement = CompartmentPlacement(
+            "Big", (SPEC["width"] - 2 * wt, SPEC["length"] - 2 * wt), 20.0, (wt, wt)
+        )
+        impl = BOX_IMPL_REGISTRY[BoxType.HINGE]()
+        mask = interior_mask(impl, dict(SPEC))
+
+        unmasked = build_contents([placement], interior)
+        masked = build_contents([placement], interior, mask=mask)
+        self.assertLess(
+            volume(masked), volume(unmasked),
+            "the well was not clipped clear of the hinge",
+        )
