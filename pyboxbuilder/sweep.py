@@ -103,12 +103,21 @@ def offset_sweep(
             return
 
         def offset_at(distance: float) -> float:
-            """The profile offset at ``distance`` along the arc from the end face."""
-            if radius > 0:
-                # Convex: fully inset at the end face, tangent to the wall at depth r.
-                return -(radius - math.sqrt(max(0.0, radius * radius - (radius - distance) ** 2)))
-            # Concave: fully outset at the end face, tangent to the wall at depth |r|.
-            return math.sqrt(max(0.0, extent * extent - distance * distance))
+            """The profile offset at ``distance`` along the arc from the end face.
+
+            Both directions use the **same arc**, mirrored: full offset at the
+            end face, zero at depth ``|r|``, and *tangent to the end face*.
+
+            Which surface the arc is tangent to is the whole point, and it is
+            easy to get backwards because both candidate profiles run from
+            ``r`` to ``0`` over the same depth. ``sqrt(r² - d²)`` is tangent to
+            the *wall* and meets the end face at 90°, which on a cutting solid
+            scoops a **cove** — a groove gouged into the face — instead of
+            rolling the face into the cut. Tangency must be at the face.
+            """
+            span = math.sqrt(max(0.0, extent * extent - (extent - distance) ** 2))
+            rolled = extent - span
+            return -rolled if radius > 0 else rolled
 
         leaf = 1e-3  # A slice needs some thickness to be a solid at all.
         slices = []

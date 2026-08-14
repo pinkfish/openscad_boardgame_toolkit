@@ -74,7 +74,7 @@ Every public method, class, function, enum, and dataclass field MUST carry a det
 
 The repository MUST have GitHub Actions workflows that run on every push:
 
-1. **Test verification** (`.github/workflows/test.yml`): runs the fast pure-Python suite (`pytest tests/test_pyboxbuilder/`) and `pyright` type checking on every push and PR.
+1. **Test verification** (`.github/workflows/test.yml`): runs the fast pure-Python suite (`pytest tests/test_pyboxbuilder/`) and `pyright` type checking on every push and PR. It runs at **draft curve precision** and produces no printable output — see *Curve Precision: Export vs Preview*.
 2. **Rendering verification** (`.github/workflows/render.yml`): runs the pybosl2/PythonSCAD render tests (golden-image comparison) on push — these exercise the CSG geometry (`build_body`/`build_lid`, pattern fills, hex-grid cutouts, tessellation wraps, stackable rims, magnet slots, lid labels) that pure Python cannot validate. The workflow provisions the PythonSCAD binary and fails on any render regression.
 3. **Docs generation** (`.github/workflows/docs.yml`):
    - **Dev docs on checkin**: every push to a non-release branch regenerates and publishes the API docs under a `dev/` prefix (development documentation).
@@ -122,6 +122,25 @@ if __name__ == "__main__":
 - **Spacers are shown, always grey.** `show()` MUST also render the spacer boxes at their generated positions so the preview shows the complete filled layout (not just the real boxes). Spacers MUST always use a **variant of grey** for their colour — never the same palette as the real boxes — so a viewer can instantly tell a spacer (dead fill) from a box (holds pieces). The spacer colour is fixed and is not drawn from the per-box pseudo-random palette.
 - **Curve precision (`fn`/`fa`/`fs`).** `export()` (and `show()`) MUST accept optional `fn`, `fa`, and `fs` parameters — the OpenSCAD/BOSL2 tessellation controls — and thread them into **every** geometry call that renders a curve: cylinder/sphere facets (`fn`/`fa`/`fs`), `cuboid(..., rounding=...)`, fillets/chamfers, the finger-scoop and finger-hole profiles, hex/tessellation edges, and lid-pattern curves. Defaults are a sensible balance (e.g. `fa=12, fs=2`, or an explicit `fn` for small radii) but must be overridable so a user can raise precision for print-quality curves or lower it for a fast preview. No geometry call hardcodes its own facet count in a way the caller cannot override.
 
+### Tray Wells, and Where Rounding Stops (FR-044f, FR-044g)
+
+A compartment well that holds **loose pieces** is a tray, and both its vertical corners and its floor edges are rounded so a finger sweeps a piece up the curve and out. The radius comes from the **well's own depth — `depth × 2/3`** — not from the box: what makes a piece retrievable is the curve the finger follows, so a deep well wants a big sweep and a shallow token tray a small one, and a box-wide constant gets both wrong. It is capped so it can exceed neither the footprint nor the depth.
+
+Rounding is **zero** for any well whose shape is dictated by what it holds: card slots (`holds_cards`), SVG silhouettes (`shape_file`) and element packs. A card stack needs a flat floor and square corners to sit in, and a piece silhouette is reproduced exactly as authored (FR-045). This is the same principle as the mating surfaces: rounding is for the generic geometry the toolkit invents, never for geometry the game dictates.
+
+One trap sits underneath this. The obvious guard on "is this radius buildable" is `radius < min(size) / 2`, and it is wrong often enough to matter: it rejects an 8mm floor fillet in a 12mm-deep tray — perfectly buildable — because the *depth* is the smallest dimension. What actually constrains a fillet is the dimensions **perpendicular** to the edge it runs along, halved only where the opposite edge is rounded too (two fillets growing towards each other meet at half the gap; one growing alone can use all of it). `rounding.max_radius` computes that from the resolved edge matrix.
+
+### Curve Precision: Export vs Preview (FR-046)
+
+`export()` and `show()` deliberately default differently:
+
+- **`export()` → 256 facets per circle.** This is the geometry that gets printed, so it is worth paying for, and the cost is paid once per build.
+- **`show()` → no fixed facet count**, deferring to `fa`/`fs` so each curve is faceted according to its actual size. That is what keeps an interactive preview responsive.
+
+Both accept an explicit `fn`/`fa`/`fs` override. The cost is real and worth knowing: Irish Gauge's 32 files take about **90 seconds** at 256 facets against a few seconds at the `fa`/`fs` default, so a quick throwaway build should pass a smaller `fn` rather than take the default.
+
+**Print quality is for the 3MFs, not for CI (FR-046a).** A CI pass is not a build. What the export tests actually check is which files get written, skipped, cached and deleted — decisions that do not depend on how finely a cylinder is tessellated — so CI sets `PYBOXBUILDER_EXPORT_FN` coarse, writes only to temporary directories, and produces no printable output. Left at the shipped default the suite went from about a minute to over five, all of it spent tessellating geometry no one was going to print. The override is external so the library's own default is unaffected by how it is tested.
+
 ### Finger Holes & Box Edge Smoothing
 
 All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch a finger or a card.
@@ -152,6 +171,8 @@ All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch 
 
    - **The mouth** (`rounding_radius`, default 3mm) — the top of the swept profile flares outward into the rim with a concave fillet on each shoulder, so the opening curves into the wall instead of ending in a right-angle lip. This is the part a fingertip rides over.
    - **The faces** (`rounding_edge`, default `wall_thickness / 2`) — the sweep's two ends get a *negative* `os_circle` rim, which flares the cut outward tangent to each face so it flows onto the side of the box rather than leaving a sharp shadow line. Independently switchable per face (`round_inner` / `round_outer`).
+
+     **Which surface the arc is tangent to is the whole feature** (FR-044e), and it is easy to get backwards, because the two candidates are indistinguishable in a parameter list: both run from the full radius at the face to zero at depth `r`. `sqrt(r² - d²)` is tangent to the *cut's own wall* and meets the face at 90°, which on a subtractive solid scoops a **cove** — a groove gouged in a ring around the opening, material taken out of the box rather than an edge softened. `r - sqrt(r² - (r - d)²)` is tangent to the *face*, and that is the roundover: the face rolls into the cut. The two are mirror images, so picking the wrong one yields geometry that is smooth, symmetric, plausible — and a defect.
    - **The base** — the bore is a circle tangent to the floor plane, so a card scoop's bottom curves into the floor rather than meeting it at a corner; a shallow floor scoop adds a `-fillet` cuboid pad blending the cut into the floor surface.
 
    Two constraints on this are load-bearing rather than incidental, and both were found by measuring rather than by looking:

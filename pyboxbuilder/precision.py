@@ -15,6 +15,8 @@ precision argument on functions that have nothing else to do with it.
 
 from __future__ import annotations
 
+import os
+
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -25,6 +27,50 @@ DEFAULT_FA = 12.0
 
 #: Default minimum fragment size, in mm (OpenSCAD's ``$fs``).
 DEFAULT_FS = 2.0
+
+EXPORT_FN = 256
+"""Facets per circle for a final export, when the caller names no precision.
+
+An export is the geometry that gets **printed**, so it is worth paying for:
+at 256 facets a curve is smooth well past the resolution of any FDM nozzle,
+and the cost is paid once per build rather than on every interaction.
+
+A preview deliberately does **not** use this. :meth:`Project.show` leaves
+``fn`` unset so ``fa``/``fs`` size the facets by how big the curve actually
+is, which is what keeps an interactive render responsive. Pass an explicit
+``fn`` to either one to override.
+"""
+
+EXPORT_FN_ENV = "PYBOXBUILDER_EXPORT_FN"
+"""Environment variable overriding :data:`EXPORT_FN`, for draft builds.
+
+Print quality is for the 3MFs you actually send to a slicer, and it costs real
+time: Irish Gauge's 32 files take about 90 seconds at 256 facets against a few
+seconds at the fa/fs default. **A CI pass is not a build** — it checks that the
+pipeline names, counts, caches and deletes the right files, and none of that
+depends on how finely a cylinder is tessellated — so CI sets this coarse and
+never produces printable output. Application code should pass ``fn`` to
+:meth:`Project.export` explicitly rather than set this.
+"""
+
+
+def export_facets() -> int:
+    """The facet count a final export uses when the caller names none.
+
+    Returns:
+        :data:`EXPORT_FN`, or the value of :data:`EXPORT_FN_ENV` when that is
+        set to a valid facet count (>= 3). A malformed value is ignored rather
+        than raising, since it comes from the environment.
+    """
+    raw = os.environ.get(EXPORT_FN_ENV)
+    if raw:
+        try:
+            value = int(raw)
+        except ValueError:
+            return EXPORT_FN
+        if value >= 3:
+            return value
+    return EXPORT_FN
 
 
 @dataclass(frozen=True)

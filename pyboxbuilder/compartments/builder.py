@@ -30,6 +30,14 @@ class CompartmentBuilder:
     depth: float | None = None
     """Well depth in mm."""
     rounded_corners: float = 0.0
+    holds_cards: bool = False
+    """Whether this well holds cards rather than loose pieces.
+
+    A tray (the default) gets **rounded bottom edges** so a finger can
+    sweep pieces up the curve and out; a card slot keeps square bottom
+    edges, because a fillet under a card stack lifts the bottom card off
+    the floor and stops the stack sitting flat.
+    """
     """Corner radius in mm."""
     finger_scoop: bool = False
     """Enable finger scoop cutout."""

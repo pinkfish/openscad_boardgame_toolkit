@@ -94,7 +94,7 @@ def rounded_block(
 
     from pyboxbuilder.box.shell import block, corner
 
-    if rounding <= 0 or rounding >= min(size) / 2:
+    if rounding <= 0 or rounding > max_radius(size, edges):
         return block(list(size), at)
     return corner(
         cuboid(list(size), rounding=rounding, edges=list(edges), **rounding_facets()),
@@ -144,6 +144,41 @@ def vertical_and_top_edges() -> list:
     return vertical_edges() + [Anchor.TOP]
 
 
+def max_radius(size: Sequence[float], edges: Sequence) -> float:
+    """The largest radius these edges can carry on a block of ``size``.
+
+    A blanket ``min(size) / 2`` is the tempting guard and it is wrong often
+    enough to matter: it rejects an 8mm fillet on the floor of a 12mm-deep
+    tray, which is perfectly buildable, because the *depth* is the smallest
+    dimension. What actually constrains a fillet is the dimensions
+    perpendicular to the edge it runs along, and then only halved where the
+    edge on the **opposite** side is being rounded too — two fillets growing
+    towards each other meet at half the gap, but one growing alone can use all
+    of it.
+
+    Args:
+        size: The block's ``(width, length, height)``.
+        edges: pybosl2 ``edges=`` selector.
+
+    Returns:
+        The maximum radius in mm, or ``inf`` when no edge is selected.
+    """
+    from pybosl2._edges_lang import EDGE_OFFSETS, edges as resolve
+
+    matrix = resolve(list(edges) if isinstance(edges, (list, tuple)) else edges)
+    limits: list[float] = []
+    for axis, row in enumerate(matrix):
+        active = [EDGE_OFFSETS[axis][i] for i, on in enumerate(row) if on]
+        if not active:
+            continue
+        for other in range(3):
+            if other == axis:
+                continue  # the edge runs along this one; it is not a constraint
+            signs = {offset[other] for offset in active}
+            limits.append(size[other] / 2 if len(signs) > 1 else size[other])
+    return min(limits) if limits else float("inf")
+
+
 def edge_slivers(
     size: Sequence[float],
     rounding: float,
@@ -172,11 +207,11 @@ def edge_slivers(
 
     if rounding <= 0:
         raise ValueError(f"rounding must be > 0; got {rounding}")
-    if rounding >= min(size) / 2:
+    limit = max_radius(size, edges)
+    if rounding > limit:
         raise ValueError(
-            f"rounding {rounding} is too large for size {tuple(size)}; "
-            f"it must stay below half the smallest dimension "
-            f"({min(size) / 2})"
+            f"rounding {rounding} is too large for size {tuple(size)} on these "
+            f"edges; the limit is {limit}"
         )
 
     square = block(list(size), at)
@@ -242,10 +277,8 @@ def round_edges(
         The solid with those edges rounded. Material outside the envelope —
         a hinge barrel, say — is untouched.
     """
-    if rounding <= 0:
-        return solid
-    if rounding >= min(size) / 2:
-        # Too large to be meaningful on this piece; leave it square rather than
+    if rounding <= 0 or rounding > max_radius(size, edges):
+        # Too large to be buildable on this piece; leave it square rather than
         # raising, since the caller is applying a project-wide default.
         return solid
     return solid - edge_slivers(size, rounding, edges, at)

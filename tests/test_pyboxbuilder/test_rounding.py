@@ -135,21 +135,29 @@ class RoundingPlumbingTests(unittest.TestCase):
         self.assertEqual(override.rounding, 2.0)
 
     def test_slivers_reject_an_oversized_radius(self) -> None:
-        """A fillet at least half the smallest dimension has nothing to blend into."""
-        from pybosl2 import Anchor
+        """Oversized is judged per edge, not against the smallest dimension.
 
+        5mm on the vertical edges of a 20 x 15 x 10 block is fine (the limit is
+        7.5mm, half the footprint) even though it exceeds half the height — the
+        height does not constrain a vertical edge at all.
+        """
+        from pyboxbuilder.rounding import vertical_edges
+
+        edge_slivers([20, 15, 10], 5.0, vertical_edges())  # buildable
         with self.assertRaises(ValueError):
-            edge_slivers([20, 15, 10], 5.0, [Anchor.Z])
+            edge_slivers([20, 15, 10], 9.0, vertical_edges())
         with self.assertRaises(ValueError):
-            edge_slivers([20, 15, 10], 0.0, [Anchor.Z])
+            edge_slivers([20, 15, 10], 0.0, vertical_edges())
 
     def test_round_edges_is_a_no_op_when_disabled_or_absurd(self) -> None:
         """A project-wide default must not blow up on a small piece."""
         from pybosl2 import Anchor, cuboid
 
+        from pyboxbuilder.rounding import vertical_edges
+
         solid = cuboid([20, 15, 10])
-        self.assertIs(round_edges(solid, [20, 15, 10], 0.0, [Anchor.Z]), solid)
-        self.assertIs(round_edges(solid, [20, 15, 10], 99.0, [Anchor.Z]), solid)
+        self.assertIs(round_edges(solid, [20, 15, 10], 0.0, vertical_edges()), solid)
+        self.assertIs(round_edges(solid, [20, 15, 10], 99.0, vertical_edges()), solid)
 
 
 @unittest.skipUnless(render_available(), "PythonSCAD binary not available")
@@ -252,3 +260,163 @@ cuboid([1, 1, 1]).show()
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TrayRoundingTests(unittest.TestCase):
+    """FR-044f/g: trays round off their own depth; game-specific wells do not."""
+
+    def placement(self, size=(50.0, 40.0), depth=20.0):
+        from pyboxbuilder.compartments.layout import CompartmentPlacement
+
+        return CompartmentPlacement("W", size, depth, (2.0, 2.0))
+
+    def builder(self, **kwargs):
+        from pyboxbuilder.compartments.builder import CompartmentBuilder
+
+        return CompartmentBuilder(label="W", size=(50.0, 40.0), **kwargs)
+
+    def test_default_is_two_thirds_of_the_depth(self) -> None:
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        self.assertAlmostEqual(tray_rounding(self.placement(depth=20.0), self.builder()), 40 / 3)
+        self.assertAlmostEqual(tray_rounding(self.placement(depth=6.0), self.builder()), 4.0)
+
+    def test_scales_with_the_well_not_the_box(self) -> None:
+        """A deep well gets a bigger sweep than a shallow one, same box."""
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        deep = tray_rounding(self.placement(depth=24.0), self.builder())
+        shallow = tray_rounding(self.placement(depth=3.0), self.builder())
+        self.assertGreater(deep, shallow)
+
+    def test_capped_by_the_footprint(self) -> None:
+        """A narrow slot cannot round more than half its width."""
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        radius = tray_rounding(self.placement(size=(10.0, 40.0), depth=30.0), self.builder())
+        self.assertLessEqual(radius, 5.0)
+
+    def test_cards_are_square(self) -> None:
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        self.assertEqual(tray_rounding(self.placement(), self.builder(holds_cards=True)), 0.0)
+
+    def test_silhouettes_and_element_packs_are_square(self) -> None:
+        """FR-045: a piece's outline is reproduced as authored, never softened."""
+        from pyboxbuilder.compartments.carve import tray_rounding
+        from pyboxbuilder.compartments.element import CompartmentElement
+        from pyboxbuilder.enums import ElementShape
+
+        self.assertEqual(
+            tray_rounding(self.placement(), self.builder(shape_file="wolf.svg")), 0.0
+        )
+        pack = self.builder(
+            elements=(CompartmentElement(shape=ElementShape.CIRCLE, size=(10.0, 10.0)),)
+        )
+        self.assertEqual(tray_rounding(self.placement(), pack), 0.0)
+
+    def test_an_explicit_radius_wins(self) -> None:
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        self.assertEqual(
+            tray_rounding(self.placement(), self.builder(rounded_corners=2.0)), 2.0
+        )
+
+    def test_a_tray_and_a_card_slot_build_differently(self) -> None:
+        from pyboxbuilder.box.interior import Interior
+        from pyboxbuilder.compartments.carve import build_contents
+
+        interior = Interior(width=96, length=76, height=26,
+                            origin_x=2, origin_y=2, origin_z=2)
+        placement = self.placement()
+        tray = build_contents([placement], interior, {"W": self.builder()})
+        cards = build_contents([placement], interior, {"W": self.builder(holds_cards=True)})
+        self.assertNotEqual(repr(tray), repr(cards))
+
+
+class MaxRadiusTests(unittest.TestCase):
+    """The guard that decides whether a radius is buildable at all."""
+
+    SIZE = [44.0, 52.0, 12.0]
+
+    def test_vertical_edges_are_limited_by_the_footprint(self) -> None:
+        from pyboxbuilder.rounding import max_radius, vertical_edges
+
+        self.assertAlmostEqual(max_radius(self.SIZE, vertical_edges()), 22.0)
+
+    def test_a_lone_bottom_may_use_the_whole_depth(self) -> None:
+        """The naive min(size)/2 guard rejects this, and it is buildable."""
+        from pybosl2 import Anchor
+
+        from pyboxbuilder.rounding import max_radius
+
+        self.assertAlmostEqual(max_radius(self.SIZE, Anchor.BOTTOM), 12.0)
+        self.assertGreater(max_radius(self.SIZE, Anchor.BOTTOM), min(self.SIZE) / 2)
+
+    def test_opposing_faces_halve_the_dimension_between_them(self) -> None:
+        from pybosl2 import Anchor
+
+        from pyboxbuilder.rounding import max_radius
+
+        self.assertAlmostEqual(max_radius(self.SIZE, [Anchor.TOP, Anchor.BOTTOM]), 6.0)
+
+
+class ExportPrecisionTests(unittest.TestCase):
+    """FR-046: an export is built at print quality, a preview is not."""
+
+    def test_export_default_is_high(self) -> None:
+        from pyboxbuilder.precision import EXPORT_FN
+
+        self.assertGreaterEqual(EXPORT_FN, 256)
+
+    def test_the_env_override_only_lowers_the_default_for_tests(self) -> None:
+        """The suite runs coarse exports; the shipped default is unaffected."""
+        import os
+
+        from pyboxbuilder.precision import EXPORT_FN, EXPORT_FN_ENV, export_facets
+
+        saved = os.environ.pop(EXPORT_FN_ENV, None)
+        try:
+            self.assertEqual(export_facets(), EXPORT_FN)
+            os.environ[EXPORT_FN_ENV] = "12"
+            self.assertEqual(export_facets(), 12)
+            os.environ[EXPORT_FN_ENV] = "not a number"
+            self.assertEqual(export_facets(), EXPORT_FN, "a bad value must not raise")
+        finally:
+            os.environ.pop(EXPORT_FN_ENV, None)
+            if saved is not None:
+                os.environ[EXPORT_FN_ENV] = saved
+
+    def test_export_uses_it_and_show_does_not(self) -> None:
+        import tempfile
+
+        from pyboxbuilder.precision import EXPORT_FN, precision
+
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        seen = []
+        impl = BOX_IMPL_REGISTRY[BoxType.NO_LID]
+        original = impl.build_body
+
+        def spy(self, spec):
+            seen.append(precision().fn)
+            return original(self, spec)
+
+        project = Project("P", game_box_size=(200, 150, 60), generate_spacers=False)
+        project.box(BoxType.NO_LID, "A", size=(100, 80, 40), position=(0, 0, 0))
+
+        impl.build_body = spy  # type: ignore[method-assign]
+        try:
+            with tempfile.TemporaryDirectory() as out:
+                project.export(out)
+            self.assertTrue(seen, "no geometry was built during export")
+            from pyboxbuilder.precision import export_facets
+
+            self.assertEqual(seen[0], export_facets())
+
+            seen.clear()
+            project._preview_pieces()
+            self.assertTrue(seen, "no geometry was built during preview")
+            self.assertIsNone(seen[0], "a preview must not jump to export precision")
+        finally:
+            impl.build_body = original  # type: ignore[method-assign]

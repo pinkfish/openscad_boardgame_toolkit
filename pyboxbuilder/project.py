@@ -176,8 +176,11 @@ class Project:
                 layout, revealing what sits underneath — the live equivalent
                 of the exploded PDF view. A box is removed when its top
                 surface rises above the cut.
-            fn: Fixed facets per circle for every curve in the preview. Drop
-                it low for a fast preview; ``None`` defers to fa/fs.
+            fn: Fixed facets per circle for every curve in the preview.
+                ``None`` (the default) defers to fa/fs, which sizes facets by
+                how large each curve actually is — that is what keeps a preview
+                responsive. Unlike :meth:`export`, this does *not* jump to
+                export precision.
             fa: Minimum angle per fragment, in degrees (default 12).
             fs: Minimum fragment size, in mm (default 2).
 
@@ -605,8 +608,10 @@ class Project:
             out_dir: Directory to write into; files land under
                 ``{out_dir}/{project name}/mmu/`` and ``.../single/``.
             fn: Fixed facets per circle for every curve in the exported
-                geometry. ``None`` (the default) defers to fa/fs. Raise it for
-                print-quality curves.
+                geometry. ``None`` (the default) uses
+                :data:`~pyboxbuilder.precision.EXPORT_FN` — an export is what
+                gets printed, so it is built at full precision. Pass a smaller
+                value for a quick throwaway build.
             fa: Minimum angle per fragment, in degrees (default 12).
             fs: Minimum fragment size, in mm (default 2).
 
@@ -618,9 +623,9 @@ class Project:
                 out of range.
             PackingError: If the boxes cannot be packed into the game box.
         """
-        from pyboxbuilder.precision import use
+        from pyboxbuilder.precision import export_facets, use
 
-        with use(fn=fn, fa=fa, fs=fs):
+        with use(fn=export_facets() if fn is None else fn, fa=fa, fs=fs):
             # Standalone mode: no game box → export each box directly, no packing/PDF
             if self.game_box_size is None:
                 return self._export_standalone(out_dir)

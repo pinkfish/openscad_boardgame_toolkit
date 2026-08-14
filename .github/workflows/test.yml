@@ -20,7 +20,14 @@ jobs:
           pip install pytest pybosl2 numpy pymeshlab fpdf2
           pip install -e .
 
-      - name: Run fast pure-Python tests
+      # A CI pass is not a build. It verifies the pipeline's decisions — which
+      # files get written, skipped, cached and deleted — none of which depend on
+      # curve tessellation, so exports run at a draft facet count and write only
+      # to temporary directories. The print-quality 3MFs are produced by an
+      # actual `project.export(...)` run, not here.
+      - name: Run fast pure-Python tests (draft precision, no printable output)
+        env:
+          PYBOXBUILDER_EXPORT_FN: "12"
         run: python -m pytest tests/test_pyboxbuilder/ -q
 
       - name: Type check with pyright

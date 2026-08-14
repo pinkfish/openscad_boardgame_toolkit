@@ -16,7 +16,7 @@ to subtract it from the body.
 from __future__ import annotations
 
 from pyboxbuilder.precision import kwargs as precision_kwargs
-from pyboxbuilder.rounding import vertical_edges
+from pyboxbuilder.rounding import round_edges, rounding_facets, vertical_edges
 
 from typing import TYPE_CHECKING, Sequence
 
@@ -45,8 +45,22 @@ def build_compartment_well(
     interior: Interior,
     *,
     rounded_corners: float = 0.0,
+    bottom_rounding: float = 0.0,
 ) -> "Bosl2Solid":
-    """Build a compartment's well — the part that stays inside the walls."""
+    """Build a compartment's well — the part that stays inside the walls.
+
+    Args:
+        placement: Where and how big the well is.
+        interior: The box interior it sits in.
+        rounded_corners: Radius for the well's vertical corners.
+        bottom_rounding: Radius where the well's walls meet its floor. A tray
+            wants this — pieces ride up the curve instead of having to be
+            picked out of a square corner — while a card slot wants ``0``, so
+            the stack sits flat on the floor.
+
+    Returns:
+        The cutout, positioned in the box frame.
+    """
     from pybosl2 import Anchor, cuboid
 
     from pyboxbuilder.compartments.element import build_element_pack, svg_solid
@@ -62,11 +76,20 @@ def build_compartment_well(
 
     if placement.shape_file:
         well = svg_solid(placement.shape_file, width, length, depth)
-    elif rounded_corners > 0:
-        well = cuboid([width, length, depth], rounding=rounded_corners, edges=vertical_edges(),
-                      **precision_kwargs())
     else:
-        well = cuboid([width, length, depth])
+        # The two radii differ, and a cuboid carries one, so the floor fillet is
+        # built in and the vertical corners are taken off afterwards. Both make
+        # the *void* smaller, which is what leaves material as a fillet.
+        if bottom_rounding > 0 and bottom_rounding < min(width, length, depth) / 2:
+            well = cuboid([width, length, depth], rounding=bottom_rounding,
+                          edges=Anchor.BOTTOM, **rounding_facets())
+        else:
+            well = cuboid([width, length, depth])
+        if rounded_corners > 0:
+            well = round_edges(
+                well, [width, length, depth], rounded_corners, vertical_edges(),
+                at=(-width / 2, -length / 2, -depth / 2),
+            )
 
     # pybosl2 primitives are centre-anchored; shift so the well's lower-left
     # corner and floor land on the placement.
@@ -118,6 +141,47 @@ def _place(
     ])
 
 
+TRAY_ROUNDING_RATIO = 2.0 / 3.0
+"""A tray well's default radius, as a fraction of its own depth.
+
+Sized off the *cutout*, not off the box: what makes a piece easy to get out is
+the curve your finger follows up the wall, so a deep well wants a big sweep and
+a shallow token tray a small one. A box-wide constant gets both wrong.
+"""
+
+
+def tray_rounding(placement: "CompartmentPlacement", builder: object) -> float:
+    """The radius for a tray well's vertical corners and its floor.
+
+    Returns ``0`` for anything whose shape is dictated by what it holds — a
+    card slot, an SVG silhouette, an element pack. Those are game-specific
+    geometry: a card stack needs a flat floor and square corners to sit in,
+    and a silhouette's outline is reproduced as authored (FR-045). Rounding is
+    for the generic wells that hold loose pieces.
+
+    Args:
+        placement: The well being carved.
+        builder: Its :class:`CompartmentBuilder`, if it has one. ``None`` (a
+            bare placement) is treated as a tray.
+
+    Returns:
+        The radius in mm: ``depth × 2/3``, capped so it can neither swallow the
+        well's footprint nor exceed its depth.
+    """
+    if getattr(builder, "holds_cards", False):
+        return 0.0
+    if getattr(builder, "shape_file", None) or getattr(builder, "elements", ()):
+        return 0.0
+
+    explicit = getattr(builder, "rounded_corners", 0.0) or 0.0
+    radius = explicit if explicit > 0 else placement.depth * TRAY_ROUNDING_RATIO
+
+    width, length = placement.size
+    # A radius at least half the footprint has no straight side left to blend
+    # into, and one deeper than the well would cut through its own floor.
+    return max(0.0, min(radius, min(width, length) / 2 - 0.01, placement.depth))
+
+
 def build_contents(
     placements: Sequence["CompartmentPlacement"],
     interior: Interior,
@@ -136,7 +200,8 @@ def build_contents(
         builders: Optional {label: CompartmentBuilder} so per-compartment
             options (rounded corners, finger scoops) are honoured.
         clip: Trim the wells to the interior footprint so none can break through
-            a side wall (FR-018).
+            a side wall (FR-018). Each well's own rounding comes from its depth
+            and its builder — see :func:`tray_rounding`.
     """
     from pyboxbuilder.compartments.element import union_all
 
@@ -145,11 +210,10 @@ def build_contents(
     scoops = []
     for placement in placements:
         builder = builders.get(placement.label)
+        radius = tray_rounding(placement, builder)
         wells.append(
             build_compartment_well(
-                placement,
-                interior,
-                rounded_corners=getattr(builder, "rounded_corners", 0.0) or 0.0,
+                placement, interior, rounded_corners=radius, bottom_rounding=radius,
             )
         )
         if getattr(builder, "finger_scoop", False):
