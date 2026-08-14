@@ -1,5 +1,26 @@
 import math
-from pyboxbuilder import Project, BoxType, ScoopSide, LabelMode, PatternType, LidBuilder, PatternBuilder, Color
+import sys
+from pathlib import Path
+
+# Repo root on sys.path, robust to __file__ being undefined (Jupyter / exec).
+if "__file__" in globals():
+    ROOT = Path(__file__).resolve().parents[2]
+else:
+    ROOT = Path.cwd()
+sys.path.insert(0, str(ROOT))
+# Venv site-packages (any Python version) so compiled extensions like shapely
+# and pybosl2 load inside the PythonSCAD UI's embedded Python — relative to
+# ROOT, no absolute paths, no hardcoded version. Every other example carries
+# this; without it this one only builds when the caller has already set the
+# path up, and fails with a bare "No module named 'pybosl2'" when run directly.
+for _sp in ROOT.glob(".venv/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+for _sp in ROOT.glob("venv/*/lib/*/site-packages"):
+    sys.path.insert(0, str(_sp))
+
+from pyboxbuilder import (  # noqa: E402
+    Project, BoxType, ScoopSide, LabelMode, PatternType, LidBuilder, PatternBuilder, Color,
+)
 
 # Create project with 288 x 288 x 72 game box size
 project = Project(

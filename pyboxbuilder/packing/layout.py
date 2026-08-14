@@ -41,6 +41,109 @@ class BoxPacking:
     spacer_placements: list[Placement] = field(default_factory=list)
 
 
+HEIGHT_ABSORB_MM = 3.0
+"""A gap above an expandable box no deeper than this is absorbed into it (FR-012).
+
+Anything deeper is real space that a spacer should claim, not slack to grow into.
+"""
+
+
+def _pack_guillotine(
+    container_size: tuple[float, float, float], boxes: list[dict]
+) -> list[Placement] | None:
+    """Try the guillotine solver, returning None if it finds nothing."""
+    from pyboxbuilder.packing.guillotine import Item, pack_guillotine
+
+    placed = pack_guillotine(
+        container_size,
+        [
+            Item(
+                label=b["label"],
+                size=tuple(float(v) for v in b["size"]),  # type: ignore[arg-type]
+                no_rotate=bool(b.get("no_rotate", False)),
+            )
+            for b in boxes
+        ],
+    )
+    if placed is None:
+        return None
+    return [
+        Placement(
+            label=p.label,
+            position=p.position,
+            size=p.size,
+            rotation=p.rotated,
+        )
+        for p in placed
+    ]
+
+
+def _expand_in_place(
+    placements: list[Placement],
+    container_size: tuple[float, float, float],
+    boxes: list[dict],
+) -> None:
+    """Grow expandable boxes into the slack around them (FR-012).
+
+    Two independent passes, matching what the corner-point solver has always
+    done: close a shallow gap above a box, then run a box right up to whatever
+    is beside it. Height first, because growing a box taller can bring it
+    alongside a neighbour it did not previously touch.
+    """
+    container_w, _container_l, container_h = container_size
+    axes = {}
+    for b in boxes:
+        expandable = bool(b.get("expandable"))
+        axes[b["label"]] = (
+            expandable,
+            expandable and bool(b.get("expandable_width", True)),
+        )
+
+    def sized(placement, width=None, height=None):
+        w, l, h = placement.size
+        return Placement(
+            label=placement.label,
+            position=placement.position,
+            size=(width if width is not None else w, l,
+                  height if height is not None else h),
+            rotation=placement.rotation,
+            path=placement.path,
+        )
+
+    for index, p in enumerate(placements):
+        if not axes.get(p.label, (False, False))[0]:
+            continue
+        x, y, z = p.position
+        w, l, h = p.size
+        ceiling = float(container_h)
+        for other in placements:
+            if other is p:
+                continue
+            ox, oy, oz = other.position
+            ow, ol, oh = other.size
+            if x < ox + ow and x + w > ox and y < oy + ol and y + l > oy:
+                if oz >= z + h:
+                    ceiling = min(ceiling, oz)
+        if (ceiling - z) - h < HEIGHT_ABSORB_MM:
+            placements[index] = sized(p, height=ceiling - z)
+
+    for index, p in enumerate(placements):
+        if not axes.get(p.label, (False, False))[1]:
+            continue
+        x, y, z = p.position
+        w, l, h = p.size
+        wall = float(container_w)
+        for other in placements:
+            if other is p:
+                continue
+            ox, oy, oz = other.position
+            ow, ol, oh = other.size
+            if y < oy + ol and y + l > oy and z < oz + oh and z + h > oz:
+                if ox >= x + w:
+                    wall = min(wall, ox)
+        placements[index] = sized(p, width=wall - x)
+
+
 def pack_boxes(
     container_size: tuple[float, float, float],
     boxes: list[dict],
@@ -63,7 +166,25 @@ def pack_boxes(
     if not boxes:
         return packing
 
-    from compartments import pack_3d_boxes
+    # The guillotine solver goes first: it handles densely-filled layouts the
+    # corner-point one cannot, and it cannot float a box (see guillotine.py).
+    # The corner-point solver stays as a fallback because it searches a
+    # different, non-guillotine space, so it can still place the odd layout the
+    # other rules out.
+    placed = _pack_guillotine(container_size, boxes)
+    if placed is not None:
+        packing.placements = placed
+        _expand_in_place(packing.placements, container_size, boxes)
+        return packing
+
+    # Only the fallback needs the legacy root-level module, so import it only
+    # when the fallback is actually reached — and treat its absence as "no
+    # fallback available" rather than letting an ImportError escape in place of
+    # the PackingError callers handle.
+    try:
+        from compartments import pack_3d_boxes
+    except ImportError:
+        pack_3d_boxes = None  # type: ignore[assignment]
 
     # Prepare items for 3D packer. The axis codes it understands are "w" (grow
     # right to the next neighbour) and "h" (close a sub-3mm gap above, FR-012);
@@ -86,6 +207,8 @@ def pack_boxes(
     # empty packing, so the export "succeeded" while writing no boxes at all —
     # say what went wrong instead.
     try:
+        if pack_3d_boxes is None:
+            raise PackingError("no fallback solver available")
         packed = pack_3d_boxes(container_size, items)
     except Exception as exc:
         box_volume = sum(b["size"][0] * b["size"][1] * b["size"][2] for b in boxes)

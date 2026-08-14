@@ -97,6 +97,119 @@ class MatingTests(unittest.TestCase):
             self.assertIsNone(BOX_IMPL_REGISTRY[box_type]().build_lid(dict(SPEC)))
 
 
+class DeclaredSizeTests(unittest.TestCase):
+    """A closed box must be exactly the size it was asked for.
+
+    The declared size is the outside of the box with its lid on — that is the
+    space the packer reserves for it. A lid that hangs off the outside of a
+    full-size body makes the box bigger than planned, and every layout built on
+    it wrong. Emberleaf showed what that costs: each cap-lid player box declared
+    98 x 142.5 x 13.125 actually measured 104.4 x 148.9 x 15.125, so five of
+    them needed 75.6mm of a 52.5mm column and were 6mm too wide for it.
+    """
+
+    HINGED = {BoxType.HINGE, BoxType.FILAMENT_HINGE}
+    """A hinge barrel legitimately stands proud BEHIND the box, as a real hinge
+    does. That is outside the footprint, so it does not affect what the box
+    needs on the shelf — but it is the only thing allowed out there."""
+
+    def parts(self, box_type: BoxType):
+        box = BOX_IMPL_REGISTRY[box_type]()
+        out = [box.build_body(dict(SPEC))]
+        if box_type not in LIDLESS_BOX_TYPES:
+            out.append(box.build_lid(dict(SPEC)))
+        return [p for p in out if p is not None]
+
+    @staticmethod
+    def extent(solids):
+        boxes = [bbox(s) for s in solids]
+        return [
+            (min(b[0][i] for b in boxes), max(b[0][i] + b[1][i] for b in boxes))
+            for i in range(3)
+        ]
+
+    def footprint(self):
+        """The declared footprint, running well above and below the box."""
+        from pyboxbuilder.box.shell import block
+
+        return block(
+            [SPEC["width"], SPEC["length"], SPEC["height"] * 4],
+            at=(0.0, 0.0, -SPEC["height"]),
+        )
+
+    def test_a_closed_box_is_the_size_it_was_asked_for(self) -> None:
+        """Measured over the declared footprint, which is what packing reserves."""
+        want = (SPEC["width"], SPEC["length"], SPEC["height"])
+        axis_name = ("width", "length", "height")
+        keep = self.footprint()
+        for box_type in BoxType:
+            extent = self.extent([p & keep for p in self.parts(box_type)])
+            for axis in range(3):
+                with self.subTest(box_type=box_type.value, axis=axis_name[axis]):
+                    low, high = extent[axis]
+                    self.assertAlmostEqual(
+                        low, 0.0, places=2,
+                        msg=f"{box_type.value} starts before the origin",
+                    )
+                    self.assertAlmostEqual(
+                        high - low, want[axis], places=2,
+                        msg=f"{box_type.value} is {high - low:.2f}mm across, "
+                            f"not the {want[axis]:.2f}mm it declared",
+                    )
+
+    def test_only_a_hinge_reaches_outside_its_footprint(self) -> None:
+        """Everything else must fit the declared footprint exactly."""
+        keep = self.footprint()
+        for box_type in BoxType:
+            with self.subTest(box_type=box_type.value):
+                outside = sum(volume(p - keep) for p in self.parts(box_type))
+                if box_type in self.HINGED:
+                    self.assertGreater(outside, 1.0, "no barrel at all?")
+                else:
+                    self.assertLess(
+                        outside, 0.01,
+                        f"{box_type.value} has {outside:.1f}mm3 of material "
+                        f"outside the size it declared",
+                    )
+
+    def test_a_hinge_barrel_protrudes_backwards_and_not_far(self) -> None:
+        for box_type in self.HINGED:
+            with self.subTest(box_type=box_type.value):
+                (x0, x1), (y0, y1), _ = self.extent(self.parts(box_type))
+                self.assertAlmostEqual(x0, 0.0, places=2)
+                self.assertAlmostEqual(x1, SPEC["width"], places=2)
+                self.assertAlmostEqual(y0, 0.0, places=2)
+                self.assertGreater(y1, SPEC["length"], "no barrel at all?")
+                self.assertLess(
+                    y1, SPEC["length"] + 10.0,
+                    "the barrel is standing much too far off the back",
+                )
+
+    def test_the_cap_body_leaves_room_for_its_lid(self) -> None:
+        """The body stops short and steps in; the lid fills back out to size."""
+        box = BOX_IMPL_REGISTRY[BoxType.CAP]()
+        (_, _, _), (body_w, _, body_h) = bbox(box.build_body(dict(SPEC)))
+        self.assertLess(body_h, SPEC["height"])
+        self.assertAlmostEqual(body_w, SPEC["width"], places=2)  # full at the base
+
+        (_, _, lid_z), (lid_w, _, _) = bbox(box.build_lid(dict(SPEC)))
+        self.assertAlmostEqual(lid_w, SPEC["width"], places=2)
+        self.assertLess(lid_z, body_h, "the skirt must reach down over the body")
+
+    def test_the_slipover_body_sits_inside_its_sleeve(self) -> None:
+        box = BOX_IMPL_REGISTRY[BoxType.SLIPOVER]()
+        (bx, by, _), (body_w, body_l, body_h) = bbox(box.build_body(dict(SPEC)))
+        self.assertGreater(bx, 0.0)
+        self.assertGreater(by, 0.0)
+        self.assertLess(body_w, SPEC["width"])
+        self.assertLess(body_l, SPEC["length"])
+        self.assertLess(body_h, SPEC["height"])
+
+        (_, _, _), (lid_w, lid_l, _) = bbox(box.build_lid(dict(SPEC)))
+        self.assertAlmostEqual(lid_w, SPEC["width"], places=2)
+        self.assertAlmostEqual(lid_l, SPEC["length"], places=2)
+
+
 class RabbetTests(unittest.TestCase):
     def test_the_lid_drops_into_the_ledge(self) -> None:
         closure = rabbet(SPEC, inset=1.0)
@@ -261,13 +374,22 @@ class PathClosureTests(unittest.TestCase):
         self.assertLess(hollow, solid)
 
     def test_no_path_falls_back_to_the_rectangular_closure(self) -> None:
-        for box_type in (BoxType.CAP_PATH, BoxType.SLIPOVER_PATH):
+        """With no path these behave exactly like their rectangular twins —
+        including putting the declared size on the *closed* box, so the body is
+        inset or stepped in rather than being the full footprint itself."""
+        for box_type, plain in (
+            (BoxType.CAP_PATH, BoxType.CAP),
+            (BoxType.SLIPOVER_PATH, BoxType.SLIPOVER),
+        ):
             with self.subTest(box_type=box_type.value):
                 box = BOX_IMPL_REGISTRY[box_type]()
                 body = box.build_body(dict(SPEC))
                 lid = box.build_lid(dict(SPEC))
                 self.assertLess(volume(body & lid), 0.01)
-                self.assertAlmostEqual(bbox(body)[1][0], SPEC["width"], places=3)
+
+                twin = BOX_IMPL_REGISTRY[plain]()
+                self.assertEqual(bbox(body), bbox(twin.build_body(dict(SPEC))))
+                self.assertEqual(bbox(lid), bbox(twin.build_lid(dict(SPEC))))
 
 
 if __name__ == "__main__":

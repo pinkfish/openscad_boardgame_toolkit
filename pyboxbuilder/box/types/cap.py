@@ -29,27 +29,18 @@ class CapBox:
         )
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        from pyboxbuilder.box.shell import build_shell
+        """The tray, stepped in at the top so the cap's skirt finishes flush.
 
-        body = build_shell(spec)
-        return body
+        The body stops short of the declared height and its top band is set in
+        by the lid's wall thickness: the declared size is the outside of the
+        *closed* box, which is the size the packer reserved for it.
+        """
+        from pyboxbuilder.box.features import cap_body
+
+        return cap_body(spec)
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
-        """A cap: a top plate with a skirt that grips the outside of the walls."""
-        from pyboxbuilder.box.shell import block
+        """A cap: a top plate with a skirt that grips the body's stepped-in band."""
+        from pyboxbuilder.box.features import cap_lid
 
-        wt = spec.get("wall_thickness", 2.0)
-        lt = spec.get("lid_thickness", 2.0)
-        cap_h = spec.get("cap_height", 8.0)
-        slack = spec.get("cap_slack", 0.2)
-
-        lid_w = spec["width"] + 2 * (wt + slack)
-        lid_l = spec["length"] + 2 * (wt + slack)
-        origin = -(wt + slack)
-
-        cap = block([lid_w, lid_l, lt + cap_h], at=(origin, origin, spec["height"] - cap_h))
-        cavity = block(
-            [spec["width"] + 2 * slack, spec["length"] + 2 * slack, cap_h],
-            at=(-slack, -slack, spec["height"] - cap_h),
-        )
-        return cap - cavity
+        return cap_lid(spec)

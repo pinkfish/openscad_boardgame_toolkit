@@ -25,6 +25,113 @@ FIT_SLACK_MM = 0.2
 PRINT_IN_PLACE_GAP_MM = 0.4
 """Gap between two parts printed as one piece, so they separate."""
 
+WIGGLE_MM = 0.2
+"""Clearance between two printed parts that have to come apart again.
+
+`m_piece_wiggle_room` in the original toolkit, and used the same way here.
+"""
+
+
+# --------------------------------------------------------- declared size
+
+# A box's declared size is the outside of the CLOSED box -- lid on. That is the
+# size the packer reserves space for, so a lid that adds to any dimension makes
+# every layout wrong: it is not the box that was planned for. Both closures
+# below therefore shrink the body to make room for the lid, rather than hanging
+# the lid off the outside of a full-size body.
+
+
+@dataclass(frozen=True)
+class CapMetrics:
+    """The numbers a cap box's body and lid must agree on.
+
+    Derived once so the two halves cannot drift apart: the body's stepped-in top
+    band is exactly what the lid's skirt wraps, and the lid's outer face is
+    exactly the box's declared footprint.
+    """
+
+    body_height: float
+    """Top of the body. The lid's plate sits above it, coming to `height`."""
+    cap_height: float
+    """How far the lid's skirt reaches down the outside of the body."""
+    band_z: float
+    """Where the body steps in to make room for that skirt."""
+    band_width: float
+    band_length: float
+    inset: float
+    """How far the band is set in from the declared footprint, per side."""
+
+
+def cap_metrics(spec: dict) -> CapMetrics:
+    """Work out a cap box's shared geometry from its declared size."""
+    wt = spec.get("wall_thickness", 2.0)
+    lt = spec.get("lid_thickness", 2.0)
+    wiggle = spec.get("size_spacing", WIGGLE_MM)
+    # The original's CapBoxDefaultCapHeight / CapBoxDefaultLidWallThickness.
+    cap_h = spec.get("cap_height") or min(10.0, spec["height"] / 2)
+    lid_wall = wt / 2
+
+    inset = lid_wall + 0.75 * wiggle
+    return CapMetrics(
+        body_height=spec["height"] - lt - wiggle,
+        cap_height=cap_h,
+        band_z=spec["height"] - cap_h,
+        band_width=spec["width"] - 2 * inset,
+        band_length=spec["length"] - 2 * inset,
+        inset=inset,
+    )
+
+
+def cap_body(spec: dict) -> "Bosl2Solid":
+    """A cap box's body: full footprint below, stepped in for the skirt above."""
+    from pyboxbuilder.box.shell import block, build_shell
+
+    m = cap_metrics(spec)
+    shell = build_shell({**spec, "height": m.body_height})
+    if m.band_z >= m.body_height:
+        return shell  # the cap is taller than the body; nothing to step in
+
+    # Keep everything below the band at full size, and only the band above it.
+    keep = block([spec["width"], spec["length"], m.band_z]) | block(
+        [m.band_width, m.band_length, m.body_height - m.band_z],
+        at=(m.inset, m.inset, m.band_z),
+    )
+    return shell & keep
+
+
+def cap_lid(spec: dict) -> "Bosl2Solid":
+    """A cap box's lid: a plate whose skirt grips the body's stepped-in band.
+
+    Its outer face is the declared footprint and its top is the declared height,
+    so a closed cap box measures exactly what it was asked for.
+    """
+    from pyboxbuilder.box.shell import block
+
+    m = cap_metrics(spec)
+    lt = spec.get("lid_thickness", 2.0)
+    slack = spec.get("cap_slack", WIGGLE_MM)
+
+    outer = block(
+        [spec["width"], spec["length"], m.cap_height], at=(0.0, 0.0, m.band_z)
+    )
+    cavity = block(
+        [m.band_width + 2 * slack, m.band_length + 2 * slack, m.cap_height - lt],
+        at=(m.inset - slack, m.inset - slack, m.band_z),
+    )
+    return outer - cavity
+
+
+def slipover_metrics(spec: dict) -> tuple[float, float]:
+    """(inset per side, body height) for a slipover box.
+
+    The sleeve's outer face is the declared footprint, so the body is set in by
+    a wall thickness all round and stops a lid thickness short.
+    """
+    wt = spec.get("wall_thickness", 2.0)
+    lt = spec.get("lid_thickness", 2.0)
+    wiggle = spec.get("size_spacing", WIGGLE_MM)
+    return wt + wiggle, spec["height"] - lt - wiggle
+
 
 @dataclass(frozen=True)
 class Closure:
@@ -117,6 +224,8 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
     """
     from pybosl2 import sphere
 
+    from pyboxbuilder.box.shell import block
+
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
 
@@ -125,9 +234,15 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
 
     dimple = sphere(radius=radius + FIT_SLACK_MM / 2)
     bump = sphere(radius=radius)
+    bumps = bump.translate([x, wt, z]) | bump.translate([x, spec["length"] - wt, z])
+    # The bump engages sideways in the groove, so trimming its crown at the box's
+    # top face costs nothing — and leaving it proud would make the closed box
+    # taller than its declared height. The dimple is left untrimmed: it is cut
+    # from the body, and opening it slightly at the rim is harmless.
+    envelope = block([spec["width"], spec["length"], spec["height"]])
     return Closure(
         body=dimple.translate([x, wt, z]) | dimple.translate([x, spec["length"] - wt, z]),
-        lid=bump.translate([x, wt, z]) | bump.translate([x, spec["length"] - wt, z]),
+        lid=bumps & envelope,
     )
 
 
@@ -162,8 +277,9 @@ def filament_hinge(
     radius = max(wt, filament_diameter)
     bore = filament_diameter / 2 + 0.2
     gap = PRINT_IN_PLACE_GAP_MM
-    if lid_thickness is None:
-        lid_thickness = spec.get("lid_thickness", 2.0)
+    leaf_thickness = (
+        spec.get("lid_thickness", 2.0) if lid_thickness is None else lid_thickness
+    )
 
     # The pin runs along X, clear of the back wall and level with the joint
     # between body and lid. Keeping it fully outside matters: an axis sunk into
@@ -191,7 +307,7 @@ def filament_hinge(
             # Sized to the lid's own thickness — a taller web would stand proud
             # of the closed lid.
             web = block(
-                [length, web_depth, lid_thickness - gap / 2],
+                [length, web_depth, leaf_thickness - gap / 2],
                 at=(centre_x - length / 2, web_y, axis_z + gap / 2),
             )
             lid_parts += [knuckle, web]
@@ -252,25 +368,46 @@ def extrude_footprint(path, height: float, base_z: float = 0.0) -> "Bosl2Solid":
     return solid if base_z == 0.0 else solid.translate([0.0, 0.0, base_z])
 
 
-def path_cap(spec: dict, path, cap_height: float) -> "Bosl2Solid":
-    """A cap whose skirt follows a polygon footprint instead of a rectangle."""
-    lt = spec.get("lid_thickness", 2.0)
-    slack = FIT_SLACK_MM
+def path_body_metrics(spec: dict) -> tuple[float, float]:
+    """(inset per side, body height) for a polygon-footprint body.
 
-    outer_path = offset_footprint(path, -(spec.get("wall_thickness", 2.0) + slack))
-    cavity_path = offset_footprint(path, -slack)
+    Same rule as the rectangular closures: the declared outline and height are
+    the outside of the closed box, so the body is set in and stops short, and
+    the cap or sleeve fills the difference back out to the declared size.
+    """
+    wt = spec.get("wall_thickness", 2.0)
+    lt = spec.get("lid_thickness", 2.0)
+    wiggle = spec.get("size_spacing", WIGGLE_MM)
+    return wt / 2 + wiggle, spec["height"] - lt - wiggle
+
+
+def path_cap(spec: dict, path, cap_height: float) -> "Bosl2Solid":
+    """A cap whose skirt follows a polygon footprint instead of a rectangle.
+
+    Its outer face is the declared outline, so a closed box measures exactly
+    what it was asked for.
+    """
+    lt = spec.get("lid_thickness", 2.0)
+    slack = spec.get("cap_slack", WIGGLE_MM)
+    inset, _ = path_body_metrics(spec)
 
     base = spec["height"] - cap_height
-    cap = extrude_footprint(outer_path, lt + cap_height, base)
-    cavity = extrude_footprint(cavity_path, cap_height, base)
+    cap = extrude_footprint(path, cap_height, base)
+    cavity = extrude_footprint(
+        offset_footprint(path, inset - slack), cap_height - lt, base
+    )
     return cap - cavity
 
 
 def path_sleeve(spec: dict, path, slip: float, foot: float = 0.0) -> "Bosl2Solid":
     """A sleeve that slips over a polygon-footprint body, stopping at the foot."""
     lt = spec.get("lid_thickness", 2.0)
+    slack = spec.get("slip_slack", WIGGLE_MM)
+    inset, _ = path_body_metrics(spec)
     skirt = spec["height"] - foot
 
-    outer = extrude_footprint(offset_footprint(path, -slip), lt + skirt, foot)
-    cavity = extrude_footprint(offset_footprint(path, -FIT_SLACK_MM), skirt, foot)
+    outer = extrude_footprint(path, skirt, foot)
+    cavity = extrude_footprint(
+        offset_footprint(path, inset - slack), skirt - lt, foot
+    )
     return outer - cavity

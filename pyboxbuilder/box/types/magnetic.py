@@ -26,10 +26,21 @@ class MagneticBox:
             origin_x=wt, origin_y=wt, origin_z=ft,
         )
 
+    @staticmethod
+    def _body_height(spec: dict) -> float:
+        """The body stops a lid's thickness short of the declared height.
+
+        The lid closes onto the rim, so the two together come to `height` — the
+        size the packer reserved. Building the walls full height would make the
+        closed box a lid thicker than it was asked to be.
+        """
+        return spec["height"] - spec.get("lid_thickness", 2.0)
+
     def build_body(self, spec: dict) -> "Bosl2Solid":
         from pyboxbuilder.box.shell import build_shell
         from pybosl2 import cylinder
 
+        spec = {**spec, "height": self._body_height(spec)}
         body = build_shell(spec)
 
         # Magnet cavities in walls
@@ -51,6 +62,11 @@ class MagneticBox:
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
+        """A plate that closes onto the rim, finishing at the declared height."""
         from pyboxbuilder.box.shell import block
+
         lt = spec.get("lid_thickness", 2.0)
-        return block([spec["width"], spec["length"], lt], at=(0, 0, spec["height"]))
+        return block(
+            [spec["width"], spec["length"], lt],
+            at=(0, 0, self._body_height(spec)),
+        )

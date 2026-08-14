@@ -432,8 +432,10 @@ The extreme-point First-Fit-Decreasing solver cannot find that arrangement. Meas
 
 Emberleaf therefore keeps explicit positions. Note this is not a statement that a better solver could not do it — a layout demonstrably exists.
 
+**Update (T187): a better solver does do it.** The guillotine packer finds a valid Emberleaf arrangement in 3,237 nodes, about 30ms. Emberleaf still keeps its declarative `arrange()` — that expresses intent, which a solver cannot — but auto-packing is no longer the reason.
+
 - [x] T186 Declarative column/stack layout — see Phase 15.
-- [ ] T187 Stronger 3D packing for high-fill layouts (guillotine/skyline with column alignment, or a proper exact solver on the axis-aligned tiling sub-problem), so free-form auto-packing can handle inserts above roughly 70% fill.
+- [x] T187 Stronger 3D packing for high-fill layouts — see Phase 17.
 
 ---
 
@@ -625,6 +627,69 @@ With multiple developers:
 - [x] T223 Regenerate the golden images for the changed inset, hinge and filament-hinge bodies
 
 **Checkpoint**: All eleven lidded types close with **0.00mm³** of body/lid intersection, measured.
+
+---
+
+## Phase 17: A packer for densely-filled inserts (T187)
+
+The extreme-point solver places boxes at corner points, which fragments the free space. Above roughly 70% fill it cannot find arrangements that demonstrably exist, and it has a second, quieter fault: it floats boxes. A box resting one corner on another counted as placed, so a "successful" packing could contain a tray suspended in mid-air.
+
+Adding a support check to that solver is not the fix — measured, it made the Emberleaf search 3000x more expensive (132 nodes to 300,000+, 0.08s to 306s) and it still found nothing. The corner-point space is the wrong space to search.
+
+`pyboxbuilder/packing/guillotine.py` searches free *regions* instead, and gets three properties the corner-point search cannot have:
+
+- **Support is structural.** Space is only ever opened above a box's own top face, or above a layer flagged `full` — one that must be filled solid. No overhang is representable, so none has to be checked for.
+- **Feasibility depends on region sizes alone.** Regions are disjoint, so their positions cannot affect what fits. The memo key is therefore position-free, which is what keeps the state count searchable.
+- **Smallest region first.** Fail-first: the most constrained region has the fewest options. This is the single biggest lever — measured on Emberleaf, largest-region-first finds nothing in 1,000,000 nodes; smallest-region-first solves it in 3,237.
+
+- [x] T224 Implement `pyboxbuilder/packing/guillotine.py` — region-based guillotine search with class deduplication (five identical player boxes cost no more than one), volume bounds, and a memo keyed on region sizes
+- [x] T225 Add the layer cut. Cutting only at a placed box's own faces cannot express a box bridging two boxes below it, which is how real inserts stack; on random instances built by cutting a container up — so a packing is known to exist — that gap cost 6 of 20. The layer cut spans the whole region and marks the rest of that layer `full`, so a bridge always spans solid material. 20 of 20 after.
+- [x] T226 Prefer the unrotated orientation on ties. A lone 100×80×40 box in a 300×200×80 container came back turned to 80×100×40 — legal, but it changes the printed part's orientation for nothing.
+- [x] T227 Make the guillotine solver primary in `pack_boxes`, keeping the extreme-point solver as a fallback (it searches a different, non-guillotine space) and porting the FR-012 expansion passes across
+- [x] T228 Make the fallback's legacy `compartments` import lazy and optional, so its absence raises `PackingError` like any other packing failure instead of an `ImportError`
+- [x] T229 [P] Write test: every reported packing is validated as buildable — inside the container, no two boxes overlapping, every box fully supported — plus Emberleaf packs, 285mm is correctly refused, no-rotate is honoured, bridging works over a solid layer and not over a gap, and 20 instances known to tile exactly all solve, in `tests/test_pyboxbuilder/test_guillotine.py`
+
+**Checkpoint**: Emberleaf's 18 boxes at 77% fill pack in **0.05s** through `pack_boxes`, fully supported and validated. Emberleaf keeps its declarative `arrange()`, which states intent a solver cannot infer.
+
+---
+
+## Phase 18: A closed box is the size it says it is
+
+Found by comparing the Emberleaf player box against `examples/emberleaf.scad` directly — slicing both at matched heights and measuring, rather than eyeballing renders.
+
+**A box's declared size is the outside of the CLOSED box.** That is the space the packer reserves, the space `arrange()` allots, and the space the spacers fill around. Seven of the eleven lidded types broke it, by building a full-size body and hanging the lid off the outside of it:
+
+| type | declared | actually built |
+|---|---|---|
+| `cap`, `cap_path` | 100 × 80 × 40 | 104.4 × 84.4 × 42 |
+| `slipover`, `slipover_path` | 100 × 80 × 40 | 103.2 × 83.2 × 42 |
+| `magnetic` | 100 × 80 × 40 | 100 × 80 × 42 |
+| `card_library` | 100 × 80 × 40 | 100 × 80 × 40.04 |
+| `hinge` | 100 × 80 × 40 | 100 × 86.25 × 41 |
+
+For Emberleaf this is not cosmetic. Each cap-lid player box declared 98 × 142.5 × 13.125 and actually measured **104.4 × 148.9 × 15.125**: five of them need 75.6mm of a 52.5mm column and are 6.4mm too wide for it. The insert could not have been assembled. The original's body measures 10.93mm tall against the port's 13.125 — `body_height = height - lid_thickness - m_piece_wiggle_room`, which is where the convention was read from.
+
+The T220 tests missed it because "no lid overlaps its body" is satisfied perfectly by a lid sitting entirely outside the box.
+
+- [x] T230 Add the shared closure metrics to `pyboxbuilder/box/features.py` — `cap_metrics`/`cap_body`/`cap_lid`, `slipover_metrics`, `path_body_metrics` — so a body and the lid that wraps it derive from one set of numbers and cannot drift
+- [x] T231 `CapBox` / `CapPathBox`: body stops a lid thickness short and steps its top band in by the lid's wall thickness; the cap's outer face is the declared footprint and its top the declared height
+- [x] T232 `SlipoverBox` / `SlipoverPathBox`: body inset all round and stopped short, sleeve back out to the declared outline; `foot` keeps the full footprint at the bottom for the sleeve to seat on
+- [x] T233 `MagneticBox`: body stops a lid thickness short so the plate closes flush at the declared height
+- [x] T234 `sliding_catch`: trim the lid's catch bump to the box envelope. It engages sideways in the groove, so losing its crown costs nothing, and leaving it proud made `card_library` 0.04mm too tall
+- [x] T235 Fix `path_cap` / `path_sleeve`, which grew the declared outline outward (`offset_footprint` by a negative distance) instead of insetting the body
+- [x] T236 [P] Write test: every closed box measures exactly its declared size **over its declared footprint**, and nothing but a hinge barrel has any material outside that footprint — in `tests/test_pyboxbuilder/test_closures.py`. Measuring over the footprint is what makes the hinge expressible as a bounded exception rather than a blanket one.
+- [x] T237 Regenerate the cap and magnetic goldens. Note they did **not** fail: the renders use `--viewall`, so a uniformly shorter box looks almost identical and the 2.31 / 1.68 measured difference sits under the 12.0 tolerance. Image goldens cannot police dimensions; T236 can.
+- [x] T238 Give `boxes/earth/earth.py` the sys.path bootstrap every other example carries — without it it fails with a bare `No module named 'pybosl2'` unless the caller has already set the path up
+
+**Checkpoint**: All 13 box types build a closed box exactly the size they were asked for. Emberleaf's player box body is **10.925mm** against the original's 10.93, closing to the declared 98 × 142.5 × 13.125. All six examples export.
+
+### Remaining fidelity gaps (not defects, but not matched either)
+
+Measured against the original, the player box still carries 72,813mm³ of material to the original's 63,815mm³. Three known causes, all cosmetic:
+
+1. The original rounds the body's outer vertical corners and bottom edge (`rounding=` on the `cuboid`); the port's are square.
+2. The pull-out recess is `RoundedBoxAllSides` in the original — a dish with a rounded bottom hulled up to a full-size flat top. The port cuts a straight-walled prism with rounded vertical corners only.
+3. The marker grip notches are `cyl(d=13, rounding=6)` in the original — nearly a lens — against the port's plain cylinders, so the port's read as one fused blob rather than separate notches.
 
 ---
 

@@ -28,39 +28,38 @@ class SlipoverPathBox:
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """A hollow tray on a polygon footprint, for a sleeve to slip over."""
-        from pyboxbuilder.box.features import extrude_footprint, offset_footprint
-        from pyboxbuilder.box.shell import build_shell
+        from pyboxbuilder.box.features import (
+            extrude_footprint, offset_footprint, path_body_metrics,
+        )
 
         path = spec.get("path") or ()
         if not path:
-            return build_shell(spec)
+            from pyboxbuilder.box.types.slipover import SlipoverBox
 
+            return SlipoverBox().build_body(spec)
+
+        # Set in all round and stopping short, so the sleeve that wraps it comes
+        # back out to the declared outline and height.
         wt = spec.get("wall_thickness", 2.0)
         ft = spec.get("floor_thickness", 1.6)
-        outer = extrude_footprint(path, spec["height"])
+        inset, body_height = path_body_metrics(spec)
+
+        body_path = offset_footprint(path, inset)
+        outer = extrude_footprint(body_path, body_height)
         if not spec.get("hollow", True):
             return outer
-        inner = extrude_footprint(offset_footprint(path, wt), spec["height"] - ft, ft)
+        inner = extrude_footprint(
+            offset_footprint(body_path, wt), body_height - ft, ft
+        )
         return outer - inner
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
         """A sleeve following the body's outline, stopping at the foot."""
         from pyboxbuilder.box.features import path_sleeve
-        from pyboxbuilder.box.shell import block
 
-        slip = spec.get("slip", 1.6)
-        foot = spec.get("foot", 0.0)
         path = spec.get("path") or ()
         if not path:
-            lt = spec.get("lid_thickness", 2.0)
-            skirt = spec["height"] - foot
-            outer = block(
-                [spec["width"] + 2 * slip, spec["length"] + 2 * slip, lt + skirt],
-                at=(-slip, -slip, foot),
-            )
-            cavity = block(
-                [spec["width"] + 0.4, spec["length"] + 0.4, skirt],
-                at=(-0.2, -0.2, foot),
-            )
-            return outer - cavity
-        return path_sleeve(spec, path, slip, foot)
+            from pyboxbuilder.box.types.slipover import SlipoverBox
+
+            return SlipoverBox().build_lid(spec)
+        return path_sleeve(spec, path, spec.get("slip", 1.6), spec.get("foot", 0.0))

@@ -28,40 +28,37 @@ class CapPathBox:
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """A hollow tray on a polygon footprint, sized for a cap to fit over."""
-        from pyboxbuilder.box.features import extrude_footprint, offset_footprint
-        from pyboxbuilder.box.shell import build_shell
+        from pyboxbuilder.box.features import (
+            extrude_footprint, offset_footprint, path_body_metrics,
+        )
+        from pyboxbuilder.box.shell import build_shell  # noqa: F401
 
         path = spec.get("path") or ()
         if not path:
-            return build_shell(spec)
+            from pyboxbuilder.box.features import cap_body
 
+            return cap_body(spec)
+
+        # A polygon body is set in all round and stops short, so the cap that
+        # wraps it comes back out to the declared footprint and height.
         wt = spec.get("wall_thickness", 2.0)
         ft = spec.get("floor_thickness", 1.6)
-        outer = extrude_footprint(path, spec["height"])
+        inset, body_height = path_body_metrics(spec)
+
+        body_path = offset_footprint(path, inset)
+        outer = extrude_footprint(body_path, body_height)
         if not spec.get("hollow", True):
             return outer
-        inner = extrude_footprint(offset_footprint(path, wt), spec["height"] - ft, ft)
+        inner = extrude_footprint(
+            offset_footprint(body_path, wt), body_height - ft, ft
+        )
         return outer - inner
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
         """A cap whose skirt follows the same outline as the body."""
-        from pyboxbuilder.box.features import path_cap
-        from pyboxbuilder.box.shell import block
+        from pyboxbuilder.box.features import cap_lid, path_cap
 
         path = spec.get("path") or ()
-        cap_height = spec.get("cap_height", 8.0)
         if not path:
-            lt = spec.get("lid_thickness", 2.0)
-            wt = spec.get("wall_thickness", 2.0)
-            slack = 0.2
-            cap = block(
-                [spec["width"] + 2 * (wt + slack), spec["length"] + 2 * (wt + slack),
-                 lt + cap_height],
-                at=(-(wt + slack), -(wt + slack), spec["height"] - cap_height),
-            )
-            cavity = block(
-                [spec["width"] + 2 * slack, spec["length"] + 2 * slack, cap_height],
-                at=(-slack, -slack, spec["height"] - cap_height),
-            )
-            return cap - cavity
-        return path_cap(spec, path, cap_height)
+            return cap_lid(spec)
+        return path_cap(spec, path, spec.get("cap_height") or min(10.0, spec["height"] / 2))
