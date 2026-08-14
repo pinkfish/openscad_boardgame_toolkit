@@ -27,6 +27,14 @@ FIT_SLACK_MM = 0.2
 PRINT_IN_PLACE_GAP_MM = 0.4
 """Gap between two parts printed as one piece, so they separate."""
 
+_COINCIDENT_EPS_MM = 0.02
+"""How far a cutting solid is backed off a face it would otherwise touch exactly.
+
+Coincident surfaces are the one case CSG cannot decide: the difference keeps a
+zero-width sliver and the face survives, so a cut that is geometrically correct
+measures as if it never ran.
+"""
+
 WIGGLE_MM = 0.2
 """Clearance between two printed parts that have to come apart again.
 
@@ -236,50 +244,98 @@ def sliding_dovetail(spec: dict) -> tuple[float, float]:
 def lead_chamfer_size(spec: dict) -> float:
     """The slight chamfer that lets a lid start into its grooves (FR-002d).
 
+    A **quarter** of the lid's thickness. It was half, which on a 2mm lid takes
+    the leading end down to a 1mm knife edge — enough of a taper to read as a
+    wedge, which is the shape a sliding lid should not have anywhere. A quarter
+    still keeps the lip off the groove floor while the leading face stays
+    recognisably a face.
+
     Args:
         spec: Reads `lid_thickness`; an explicit `lead_chamfer` wins.
 
     Returns:
-        The chamfer depth in mm — half the lid thickness by default.
+        The chamfer depth in mm.
     """
     lt = spec.get("lid_thickness", 2.0)
-    return spec.get("lead_chamfer", lt / 2)
+    return spec.get("lead_chamfer", lt / 4)
 
 
-def _dovetail_prism(
+def lid_corner_rounding(spec: dict) -> float:
+    """The radius on the sliding lid's leading corners (FR-002e4).
+
+    Args:
+        spec: Reads `wall_thickness`; an explicit `lid_corner_rounding` wins.
+
+    Returns:
+        The radius in mm — a quarter of the wall by default, capped at the
+        dovetail's depth so the rounding cannot eat the key that retains the
+        lid.
+    """
+    wt = spec.get("wall_thickness", 2.0)
+    _, bottom_key = sliding_dovetail(spec)
+    radius = spec.get("lid_corner_rounding")
+    if radius is None:
+        radius = wt / 4
+    return max(0.0, min(radius, bottom_key))
+
+
+def _dovetail_solid(
     along_axis: str,
-    along_center: float,
-    along_size: float,
+    bottom_along: tuple[float, float],
+    top_along: tuple[float, float],
     across_center: float,
     bottom_across: float,
     top_across: float,
     height: float,
     z0: float,
+    corner_rounding: float = 0.0,
 ) -> "Bosl2Solid":
-    """A prism dovetailed on its two flanks and square at both ends.
+    """A prism dovetailed on its two flanks and, at the closed end, in depth.
 
-    Only the **across**-axis measurement changes between the bottom and top
-    faces — that taper is the dovetail. The along-axis extent is identical at
-    both faces, so the closed end is a flat wall the lid lands on rather than a
-    wedge it has to be driven under (FR-002e).
+    Both faces are rectangles given by their **along**-axis span and their
+    **across**-axis width. The across width tapers between them — that is the
+    dovetail on the two side walls. The along span may also differ, and when it
+    does the difference is all at the *closed* end: the bottom face reaches
+    further under the stop wall than the top face does, which is the back seat
+    the lid's leading end slides into (FR-002e). The open end is the same at
+    both faces, so the lid finishes flush with the mouth.
+
+    ``corner_rounding`` rounds all four vertical corners, so the pair that goes
+    in first does not snag on the groove mouths (FR-002e4).
+
+    The rounding is uniform rather than per-corner because pybosl2 0.7.8's
+    per-corner ``rounding`` list **translates the whole solid**: a lid asked for
+    ``[0, 0, r, r]`` came out 23mm down the slide axis, its leading end 23mm
+    inside the box and its trailing end hanging that far outside. A scalar (or
+    four equal values) is correct. Rounding all four is no loss anyway — the
+    trailing pair is the exposed end, which the box type rounds again anyway.
     """
     from pybosl2.shapes3d import prismoid
 
+    bottom_size = bottom_along[1] - bottom_along[0]
+    top_size = top_along[1] - top_along[0]
+    bottom_center = (bottom_along[0] + bottom_along[1]) / 2
+    shift_along = (top_along[0] + top_along[1]) / 2 - bottom_center
+
     if along_axis == "x":
         solid = prismoid(
-            [along_size, bottom_across],
-            [along_size, top_across],
+            [bottom_size, bottom_across],
+            [top_size, top_across],
             height=height,
+            shift=[shift_along, 0.0],
+            rounding=corner_rounding,
             **precision_kwargs(),
         )
-        return solid.translate([along_center, across_center, z0])
+        return solid.translate([bottom_center, across_center, z0])
     solid = prismoid(
-        [bottom_across, along_size],
-        [top_across, along_size],
+        [bottom_across, bottom_size],
+        [top_across, top_size],
         height=height,
+        shift=[0.0, shift_along],
+        rounding=corner_rounding,
         **precision_kwargs(),
     )
-    return solid.translate([across_center, along_center, z0])
+    return solid.translate([across_center, bottom_center, z0])
 
 
 def _lead_chamfer(
@@ -287,31 +343,69 @@ def _lead_chamfer(
     lead: float,
     across_min: float,
     across_max: float,
-    z_bottom: float,
+    z_base: float,
     size: float,
+    from_top: bool = False,
+    face_slope: float = 0.0,
 ) -> "Bosl2Solid":
-    """A 45° wedge beveling the lid's leading bottom edge.
+    """A 45° wedge beveling one of the lid's leading horizontal edges.
 
-    ``lead`` is the leading end's coordinate along the slide axis — the face
-    that enters the box first. The wedge is full height ``size`` at that face
-    and tapers to nothing ``size`` further in, across the lid's full width, so
-    the lid starts into the grooves instead of catching on their mouths.
+    ``lead`` is the leading end's coordinate along the slide axis at the face
+    being cut — the end that enters the box first. The wedge is ``size`` deep at
+    that face and tapers to nothing ``size`` away from it, across the lid's full
+    width, so the lid starts into the grooves instead of catching on their
+    mouths.
+
+    Args:
+        along_axis: ``"x"`` or ``"y"`` — the slide axis.
+        lead: The leading face's coordinate along that axis, at ``z_base``.
+        across_min: Low edge of the span to cut, across the slide axis.
+        across_max: High edge of that span.
+        z_base: The face to cut from — the lid's underside, or its top face
+            when ``from_top``.
+        size: The chamfer's depth.
+        from_top: Cut the leading **top** edge instead of the bottom one. The
+            underside chamfer keeps the thin leading lip off the groove floor;
+            the top one keeps the lid's top corner off the wall lip at the
+            mouth. Between them the leading end is eased both ways.
+        face_slope: How far the leading face advances along the slide axis per
+            unit of height — the back seat's taper. Only the ``from_top`` cut
+            needs it: that wedge's inner vertex has to sit **on** the sloped
+            face, because the face leans away from a vertical cut going down,
+            so a vertical one leaves a feather edge hanging off the face
+            instead of taking the corner off it. The underside cut leans the
+            other way and is already behind the face at every height.
+
+    Returns:
+        The wedge to subtract from the lid.
     """
     from pybosl2.shapes3d import prismoid
 
     span = across_max - across_min
     across_center = (across_min + across_max) / 2
+    # The full-width face is at `z_base` and the wedge shrinks to a line `size`
+    # away from it, so the prismoid's tapering end is whichever face is inside.
+    lower, upper = ([0.0, size] if from_top else [size, 0.0])
+    shift = (size / 2 + size * face_slope) if from_top else -size / 2
+    z0 = z_base - size if from_top else z_base
+    offset = (-size * face_slope) if from_top else size / 2
+    # Riding the sloped face exactly makes the cutter's near surface *coincident*
+    # with it, and a coincident subtraction leaves a zero-width sliver that keeps
+    # the original face in the mesh — the cut measured as if it had never
+    # happened. Backing the whole wedge off by a hair puts it clearly outside the
+    # solid, at the cost of that hair off the chamfer.
+    offset -= _COINCIDENT_EPS_MM
     if along_axis == "x":
         solid = prismoid(
-            [size, span], [0.0, span], height=size, shift=[-size / 2, 0.0],
+            [lower, span], [upper, span], height=size, shift=[shift, 0.0],
             **precision_kwargs(),
         )
-        return solid.translate([lead + size / 2, across_center, z_bottom])
+        return solid.translate([lead + offset, across_center, z0])
     solid = prismoid(
-        [span, size], [span, 0.0], height=size, shift=[0.0, -size / 2],
+        [span, lower], [span, upper], height=size, shift=[0.0, shift],
         **precision_kwargs(),
     )
-    return solid.translate([across_center, lead + size / 2, z_bottom])
+    return solid.translate([across_center, lead + offset, z0])
 
 
 def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
@@ -328,25 +422,33 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
     box with a solid wall across the front of its own track — a lid that can be
     dropped in but never slid.
 
-    **Both ends of the channel are square** (FR-002e). The stop wall keeps its
-    full thickness from the channel floor to the channel opening, so the lid
-    slides up to it and lands flat. An earlier pass dovetailed the back as well,
-    which seated the lid's leading end under a lip — a wedge catch, closed by
-    driving the lid's thinnest section under an overhang and opened by springing
-    it back out, which is how a printed part splits along its layers. The
-    dovetail on the two side walls already stops the lid lifting out; the closed
-    end only has to be a stop. If a box needs holding shut, that is a bump catch
-    (:func:`sliding_catch`), not a wedge.
+    **The stop wall carries a dovetail too** (FR-002e), cut to the same depth as
+    the sides: full thickness at the channel opening, half of it at the channel
+    floor. That is a *seat*, not a catch. The lid's leading end is tapered to
+    match, so the two faces stay parallel with the slide clearance between them
+    for the whole travel — the lid slides in freely and lands in the seat — but
+    once home, lifting the back of the lid drives its leading lip straight into
+    the stop wall. Without it the leading end rests on nothing and the lid sits
+    proud at the back.
 
-    The lid is the matching prism — dovetailed on both flanks, square at both
-    ends — cut short by `sliding_slack` on every mating face so it slides freely,
-    with a slight chamfer on its leading end (FR-002c, FR-002d). The lid fills
-    the channel flush with the open end.
+    What must *not* be here is a **wedge catch**: a taper the lid has to be
+    forced past to close and sprung back out to open. Nothing in this geometry
+    interferes at any point in the travel, which is the property to check — a
+    matched taper and a wedge look alike in a render and differ entirely in
+    the hand. Holding the closed lid shut is :func:`sliding_catch`'s job, and
+    that is a bump and dimple.
+
+    The lid is the matching solid, cut short by `sliding_slack` on every mating
+    face so it slides freely, with its two leading corners rounded and its
+    leading edges chamfered so it starts into the grooves rather than snagging
+    on their mouths (FR-002c, FR-002d, FR-002e4). The lid fills the channel
+    flush with the open end.
 
     Args:
         spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
-            `lid_thickness`, and optionally `lead_chamfer` and `sliding_slack`
-            (per-side clearance, default 0.1mm).
+            `lid_thickness`, and optionally `lead_chamfer`,
+            `lid_corner_rounding` and `sliding_slack` (per-side clearance,
+            default 0.1mm).
         along_axis: ``"x"`` to slide along the width, ``"y"`` along the length.
 
     Returns:
@@ -356,6 +458,7 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
     lt = spec.get("lid_thickness", 2.0)
     s = spec.get("sliding_slack", 0.1)
     chamfer = lead_chamfer_size(spec)
+    corner_rounding = lid_corner_rounding(spec)
     top_key, bottom_key = sliding_dovetail(spec)
 
     if along_axis == "x":
@@ -368,28 +471,31 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
     z0 = spec["height"] - lt
     interior_across = across - 2 * wt
 
-    # The lid runs from the stop wall's inner face (less the clearance it needs
-    # to slide up to it) out to the open face, so the closed box is flush. Its
-    # top face is the interior (no key) and its underside reaches `bottom_key`
-    # into each wall, cut short by the clearance on both flanks.
-    lid = _dovetail_prism(
+    # The lid runs from under the stop wall out to the open face, so the closed
+    # box is flush. Its top face is the interior (no key) and its underside
+    # reaches `bottom_key` into each wall and under the stop wall, cut short by
+    # the clearance on every mating face. The leading end's taper matches the
+    # back seat's, so the two faces stay `s` apart for the whole travel.
+    lid = _dovetail_solid(
         along_axis,
-        (along + wt + s) / 2,
-        along - wt - s,
+        (wt - bottom_key + s, along),
+        (wt - top_key + s, along),
         across / 2,
         interior_across + 2 * bottom_key - 2 * s,
         interior_across + 2 * top_key - 2 * s,
         lt,
         z0,
+        corner_rounding=corner_rounding,
     )
 
-    # The channel: the same prism, larger by the clearance and a hair. Its floor
-    # reaches `bottom_key` into each wall, its opening `top_key`, and it runs
-    # from the stop wall out through the open end wall.
-    channel = _dovetail_prism(
+    # The channel: the same solid, larger by the clearance and a hair. Its floor
+    # reaches `bottom_key` into each wall and into the stop wall, its opening
+    # `top_key`, and it runs out through the open end wall. Its corners stay
+    # square — the rounding is the lid's clearance, not a shape they share.
+    channel = _dovetail_solid(
         along_axis,
-        (along + wt) / 2,
-        along - wt + 0.1,
+        (wt - bottom_key - 0.05, along + 0.05),
+        (wt - top_key - 0.05, along + 0.05),
         across / 2,
         interior_across + 2 * bottom_key + 0.1,
         interior_across + 2 * top_key + 0.1,
@@ -397,16 +503,19 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
         z0 - 0.05,
     )
 
-    # A slight chamfer on the leading end's bottom edge eases the lid into the
-    # grooves. The face itself stays square — it is the stop the lid lands on.
+    # Chamfers on the leading end's two horizontal edges ease the lid in: the
+    # underside one keeps the thin leading lip off the groove floor, the top one
+    # keeps the lid's top corner off the wall lip at the mouth.
     if chamfer > 0:
+        flank_min = wt - bottom_key + s
+        flank_max = across - wt + bottom_key - s
         lid = lid - _lead_chamfer(
-            along_axis,
-            wt + s,
-            wt - bottom_key + s,
-            across - wt + bottom_key - s,
-            z0,
-            chamfer,
+            along_axis, wt - bottom_key + s, flank_min, flank_max, z0, chamfer
+        )
+        lid = lid - _lead_chamfer(
+            along_axis, wt - top_key + s, flank_min, flank_max, z0 + lt,
+            chamfer, from_top=True,
+            face_slope=(bottom_key - top_key) / lt if lt else 0.0,
         )
 
     return Closure(body=channel, lid=lid)

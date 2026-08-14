@@ -243,9 +243,14 @@ class SlidingTests(unittest.TestCase):
                 self.assertEqual(top, 0.0)
                 self.assertEqual(bottom, wall / 2)
 
-    def test_the_lead_chamfer_is_half_the_lid_thickness(self) -> None:
-        """FR-002d: the chamfer is slight, and overridable."""
-        self.assertEqual(lead_chamfer_size(SPEC), SPEC["lid_thickness"] / 2)
+    def test_the_lead_chamfer_is_a_quarter_of_the_lid_thickness(self) -> None:
+        """FR-002d: the chamfer is *slight*, and overridable.
+
+        It was half the thickness, which takes a 2mm lid's leading end down to
+        a 1mm knife edge — a taper big enough to read as the wedge a sliding
+        lid should not have anywhere.
+        """
+        self.assertEqual(lead_chamfer_size(SPEC), SPEC["lid_thickness"] / 4)
         self.assertEqual(
             lead_chamfer_size({**SPEC, "lead_chamfer": 0.5}), 0.5
         )
@@ -287,18 +292,14 @@ class SlidingTests(unittest.TestCase):
         self.assertAlmostEqual(opening_w, SPEC["length"] - 2 * wt, delta=0.3)
         self.assertLess(opening_w, floor_w)
 
-    def test_the_stop_end_carries_no_wedge(self) -> None:
-        """SC-048: the channel is the same length at its floor as at its opening.
-
-        This replaces two tests that asserted the opposite — that the back was
-        dovetailed like the sides and the lid tucked under a lip there. That is
-        a wedge catch (FR-002e): closing the lid drove its thinnest section
-        under an overhang and opening it sprung the section back out, which is
-        how a printed part splits along its layers.
-        """
+    def test_the_back_is_dovetailed_like_the_sides(self) -> None:
+        """FR-002e: the stop wall keeps full thickness at the channel opening
+        and half of it at the channel floor, so the lid's leading end has a seat
+        to rest in rather than a flat face to lean on."""
         from pyboxbuilder.box.shell import block
 
         channel = sliding_track(SPEC).body
+        wt = SPEC["wall_thickness"]
         lt = SPEC["lid_thickness"]
         top = channel & block(
             [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
@@ -308,35 +309,87 @@ class SlidingTests(unittest.TestCase):
         )
         (top_x, _, _), _ = bbox(top)
         (bottom_x, _, _), _ = bbox(bottom)
-        self.assertAlmostEqual(
-            top_x, bottom_x, delta=0.02, msg="the stop end must be square, not tapered"
+        self.assertAlmostEqual(top_x - bottom_x, wt / 2, delta=0.1)
+        self.assertGreater(bottom_x, 0.0, "the floor must leave wall behind it")
+
+    def test_the_lid_seats_in_the_back_groove(self) -> None:
+        """The lid's leading end reaches under the stop wall, not up against it."""
+        (x, _, _), _ = bbox(sliding_track(SPEC).lid)
+        self.assertLess(
+            x, SPEC["wall_thickness"], "the lid must reach into the back seat"
         )
 
-    def test_the_lid_lands_flat_on_the_stop_wall(self) -> None:
-        """The lid's leading face is square and stops at the wall, not under it."""
+    def test_the_lid_slides_out_without_interference(self) -> None:
+        """The back seat is a seat, **not a wedge** — nothing has to be forced.
+
+        A matched taper and a wedge catch look alike in a render and differ
+        entirely in the hand, so the assertion is the travel itself: at every
+        point along the slide the lid and the body share no volume. A wedge
+        would show up as interference partway out, where the lid's leading lip
+        has to deform past the stop wall's overhang.
+        """
+        from pyboxbuilder.box.types.sliding import SlidingBox
+
+        box = SlidingBox()
+        spec = {**SPEC, "hollow": True}
+        body = box.build_body(spec)
+        lid = box.build_lid(spec)
+        for step in (0.0, 1.0, 5.0, 25.0, 60.0, SPEC["width"]):
+            with self.subTest(slid=step):
+                self.assertLess(
+                    volume(body & lid.translate([step, 0, 0])), 0.01,
+                    "the lid must slide out freely, deforming nothing",
+                )
+
+    def test_the_seated_lid_cannot_be_lifted_out(self) -> None:
+        """The seat's other half: the closed lid is trapped vertically at the back."""
+        from pyboxbuilder.box.types.sliding import SlidingBox
+
+        box = SlidingBox()
+        spec = {**SPEC, "hollow": True}
+        body = box.build_body(spec)
+        lid = box.build_lid(spec)
+        self.assertGreater(
+            volume(body & lid.translate([0, 0, 0.5])), 1.0,
+            "lifting the lid must drive it into the wall within half a mm",
+        )
+
+    def test_the_lid_corners_are_rounded(self) -> None:
+        """FR-002e4: rounded so they do not snag on the groove mouths."""
+        rounded = sliding_track(SPEC).lid
+        square = sliding_track({**SPEC, "lid_corner_rounding": 0.0}).lid
+        self.assertLess(
+            volume(rounded), volume(square), "the rounding must remove material"
+        )
+
+    def test_the_leading_edges_are_chamfered_top_and_bottom(self) -> None:
+        """Both horizontal edges of the leading end, so it eases in either way.
+
+        Measured against the same lid with the chamfer switched off, because
+        the two chamfers land close to the seat's own taper — comparing heights
+        within one lid cannot tell a chamfer from the slope it sits on.
+        """
         from pyboxbuilder.box.shell import block
 
         lid = sliding_track(SPEC).lid
-        wt = SPEC["wall_thickness"]
+        square = sliding_track({**SPEC, "lead_chamfer": 0.0}).lid
         lt = SPEC["lid_thickness"]
-        (x, _, _), _ = bbox(lid)
-        self.assertGreaterEqual(
-            x, wt - 0.01, "the lid must not reach into the stop wall"
-        )
-        # Square: the leading face is at the same place at the top of the lid as
-        # just above the lead chamfer.
-        upper = lid & block(
-            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
-        )
-        # Above the lead chamfer, which reaches `lead_chamfer_size` up from the
-        # lid's underside and legitimately sets the leading face back there.
-        mid = lid & block(
-            [SPEC["width"], SPEC["length"], 0.01],
-            at=(0, 0, SPEC["height"] - lt / 4),
-        )
-        (upper_x, _, _), _ = bbox(upper)
-        (mid_x, _, _), _ = bbox(mid)
-        self.assertAlmostEqual(upper_x, mid_x, delta=0.02)
+
+        def lead_at(solid, z: float) -> float:
+            slab = solid & block(
+                [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, z)
+            )
+            return bbox(slab)[0][0]
+
+        for name, z in (
+            ("underside", SPEC["height"] - lt + 0.005),
+            ("top face", SPEC["height"] - 0.015),
+        ):
+            with self.subTest(edge=name):
+                self.assertGreater(
+                    lead_at(lid, z), lead_at(square, z) + 0.1,
+                    f"the {name} leading edge must be chamfered back",
+                )
 
     def test_the_sliding_clearance_is_configurable(self) -> None:
         """`sliding_slack` widens the gap between the lid and the groove."""
