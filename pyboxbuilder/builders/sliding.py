@@ -22,3 +22,11 @@ class SlidingBoxBuilder(BoxBuilder):
     """Ratio of top lid layer thickness to total lid thickness."""
     two_layer_vee_shape: bool = False
     """Use vee-shaped interlocking on two-layer lids."""
+    catch_radius: float | None = None
+    """Bump-catch radius, or `None` for a plain sliding lid (FR-002e3).
+
+    A sliding box has no catch by default — the dovetail already stops the lid
+    lifting out, and it can only leave by being slid. Set this to add the
+    bump-and-dimple detent at the outlet (never a wedge at the stop end); a
+    box that wants one as standard is a `SLIDING_CATCH` instead.
+    """

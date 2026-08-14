@@ -864,20 +864,39 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ## Phase 25: Angled dovetail sliding lid (FR-002c–FR-002f)
 
-**Purpose**: The sliding lid's grooves were square slots. The spec asks for an angled dovetail, a dovetailed stop wall, and a configurable slide clearance.
+**Purpose**: The sliding lid's grooves were square slots. The spec asks for an angled dovetail and a configurable slide clearance.
 
-**Goal**: The sliding lid is a **frustum** dovetailed on both long edges **and the back** — **the box interior at the top (width − 2 × wall thickness), reaching half the wall width into each wall at the bottom**, straight at the front — with the matching groove in each wall that leaves half the wall behind it for support, so the lid is trapped on all three closed sides and cannot be lifted out, plus a slight chamfer on its leading end and a configurable clearance (default 0.1mm) so it slides smoothly.
+**Goal**: The sliding lid is dovetailed on both long edges — **the box interior at the top (width − 2 × wall thickness), reaching half the wall width into each wall at the bottom** — with the matching groove in each wall that leaves half the wall behind it for support, so the lid cannot be lifted out, plus a slight chamfer on its leading end and a configurable clearance (default 0.1mm) so it slides smoothly. (This phase also dovetailed **the back**, making the lid a frustum trapped on all three closed sides; Phase 26 reverted that as a wedge catch.)
 
-**Independent Test**: `sliding_dovetail(SPEC) == (0, wall_width / 2)`, the lid's top face is the interior while its underside reaches half a wall into each side, the back is dovetailed exactly like the sides with wall material left behind the groove, and the lid-to-groove clearance is configurable.
+**Independent Test**: `sliding_dovetail(SPEC) == (0, wall_width / 2)`, the lid's top face is the interior while its underside reaches half a wall into each side, wall material is left behind the groove, and the lid-to-groove clearance is configurable. (The back dovetail this phase also added was reverted in Phase 26 — it is a wedge catch.)
 
 - [x] T267 [P] [US2] Write test: the dovetail has no key at the top (interior) and half a wall at the bottom, the lid's top face is the interior and its underside flares out by one wall width, the leading end is chamfered, the groove is wider at its floor than its opening but never reaches the outer face, and the lead chamfer is half the lid thickness — in `tests/test_pyboxbuilder/test_closures.py`
 - [x] T268 [US2] Implement `sliding_dovetail`, `lead_chamfer_size`, the frustum builder and the leading-end chamfer, and rewrite `sliding_track` as a dovetail in `pyboxbuilder/box/features.py`; route `SlidingBox` through the shared `dovetail_track` with its axis-swap in `pyboxbuilder/box/types/sliding.py`. `SlidingCatchBox` and `CardLibraryBox` share `sliding_track`, so they carry the same profile.
 - [x] T271 [US2] Correct the dovetail profile. The first pass was wide at the top (let the lid lift out); a later pass cut the key through to the outer face (no wall behind the groove); another made the flank too steep. The settled profile is **interior at the top, half the wall width at the bottom**, so the groove traps the lid and half the wall stays behind it for support.
-- [x] T272 [P] [US2] Write test: the back is dovetailed exactly like the sides (stop wall full thickness at the top, half thickness at the bottom), the lid's leading end seats there, and `sliding_slack` (clearance, default 0.1mm) is configurable — in `tests/test_pyboxbuilder/test_closures.py`
-- [x] T273 [US2] Make the back dovetailed like the sides and the clearance configurable in `dovetail_track` (`pyboxbuilder/box/features.py`, FR-002e, FR-002f): the lid and channel are now frustums dovetailed on both flanks and the back, straight at the front, cut short by `sliding_slack` on every face and never reaching the outer wall.
+- [x] T272 [P] [US2] Write test: the back is dovetailed exactly like the sides (stop wall full thickness at the top, half thickness at the bottom), the lid's leading end seats there, and `sliding_slack` (clearance, default 0.1mm) is configurable. **The first two assertions were replaced in Phase 26** by their opposite (SC-048); the clearance one stands — in `tests/test_pyboxbuilder/test_closures.py`
+- [x] T273 [US2] Make the back dovetailed like the sides and the clearance configurable in `dovetail_track` (`pyboxbuilder/box/features.py`, FR-002e, FR-002f): the lid and channel are now frustums dovetailed on both flanks and the back, straight at the front, cut short by `sliding_slack` on every face and never reaching the outer wall. **The back dovetail was reverted in Phase 26** — it is a wedge catch, and the clearance half of this task is what survives.
 - [ ] T270 [US2] Regenerate the `sliding_body` golden image in `tests/test_pyboxbuilder/golden/`. Deferred — this machine's PythonSCAD render differs from the committed goldens (every box render comes out ~15% larger, including unchanged types), so a clean single-image regeneration is not possible here; do it in the canonical render environment.
 
-**Checkpoint**: All three sliding types still close with 0.00mm³ of body/lid intersection, and their lids now carry the retaining angled dovetail on all three closed sides with wall material behind the groove and a configurable slide clearance.
+**Checkpoint**: All three sliding types still close with 0.00mm³ of body/lid intersection, and their lids now carry the retaining angled dovetail with wall material behind the groove and a configurable slide clearance.
+
+---
+
+## Phase 26: No wedge catch on a sliding lid — a bump instead (FR-002e, FR-002e1–e3)
+
+**Purpose**: T273 dovetailed the **back** of the channel as well as the sides, so the lid's leading end seated under a lip on the stop wall. That is a wedge catch: the lid has to be driven under the overhang to close and sprung back out to open, and the part doing the flexing is the thinnest section of a printed part at the end of the longest lever. The emberleaf player card box showed it plainly.
+
+**Goal**: Both ends of the channel are square — the dovetail is on the two side walls only — and a sliding box that needs holding shut gets a **bump and dimple** detent at the outlet instead.
+
+**Independent Test**: The channel and the lid are the same length at the channel floor as at the channel opening (no taper along the slide axis); a catch, when asked for, puts a dimple in the wall beside the outlet and a larger-than-the-bump matching bump on the lid.
+
+- [x] T274 [P] [US2] Write test: the channel's and the lid's closed end sits at the **same** coordinate along the slide axis when sliced at the channel floor and at the channel opening (SC-048), and the lid's leading face is square — replacing the two tests that asserted the back taper — in `tests/test_pyboxbuilder/test_closures.py`
+- [x] T275 [US2] Remove the back dovetail from `dovetail_track` in `pyboxbuilder/box/features.py`: the along-axis extent is the same at both faces and the shift is zero, so only the across-axis flanks taper. The stop wall keeps full thickness; the lid's leading face becomes square and its lead chamfer moves with it.
+- [x] T276 [US2] Make `sliding_catch` **slide-axis aware** (FR-002e2) in `pyboxbuilder/box/features.py`. It was hardcoded to X and placed off the raw `width`, so on a box sliding along Y it landed on the wrong pair of walls. It now takes the same `along_axis` as `dovetail_track` and positions from the **outlet** face.
+- [x] T277 [US2] Centre the bump on the lid's dovetail **flank at mid-thickness** rather than on the wall's inner face. The old placement put the sphere's centre 0.4mm outside the lid edge, so the "bump on the lid" was mostly hanging in air beside it.
+- [x] T278 [US2] Let a plain `SlidingBox` opt into a catch via `catch_radius` (FR-002e3), defaulting to **none** — the original toolkit's sliding box has no catch, and making it default-on would leave `SLIDING` and `SLIDING_CATCH` the same type. `SlidingCatchBox` and `CardLibraryBox` keep theirs always on, now on the correct axis.
+- [x] T279 [P] [US2] Write test: a plain sliding box has no catch and gains one from `catch_radius`; the dimple and bump both lie within a wall thickness plus two bump radii of the outlet face and not at the stop end; the dimple is larger than the bump; and the catch follows the slide axis on a box that slides along Y — in `tests/test_pyboxbuilder/test_closures.py`
+
+**Checkpoint**: No sliding type has a taper at either end of its channel; the emberleaf player card box's lid slides up to a flat stop; and a catch, where asked for, clicks at the mouth.
 
 ---
 

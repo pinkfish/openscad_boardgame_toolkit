@@ -161,11 +161,32 @@ class SlidingBox:
 
         return body - dovetail_track(spec, self._along_axis(spec)).body
 
+    def _catch_radius(self, spec: dict) -> float:
+        """The bump catch's radius, or 0 for a plain sliding lid (FR-002e3).
+
+        A plain sliding box has **no** catch by default, as the original
+        toolkit's does: the dovetail already stops the lid lifting out, and
+        defaulting a catch on here would leave nothing to tell `SLIDING` and
+        `SLIDING_CATCH` apart. Setting `catch_radius` turns one on.
+
+        Args:
+            spec: Reads `catch_radius`.
+
+        Returns:
+            The bump radius in mm; ``0`` for no catch.
+        """
+        return spec.get("catch_radius", 0.0) or 0.0
+
     def build_body(self, spec: dict) -> "Bosl2Solid":
         """Build the complete box body with dovetail grooves."""
         body = self._build_shell(spec)
         if spec.get("dovetail", True):
             body = self._cut_lid_channel(body, spec)
+        radius = self._catch_radius(spec)
+        if radius > 0:
+            from pyboxbuilder.box.features import sliding_catch
+
+            body = body - sliding_catch(spec, radius, self._along_axis(spec)).body
         return body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
@@ -174,4 +195,10 @@ class SlidingBox:
 
         closure = dovetail_track(spec, self._along_axis(spec))
         assert closure.lid is not None
-        return closure.lid
+        lid = closure.lid
+        radius = self._catch_radius(spec)
+        if radius > 0:
+            from pyboxbuilder.box.features import sliding_catch
+
+            lid = lid | sliding_catch(spec, radius, self._along_axis(spec)).lid
+        return lid

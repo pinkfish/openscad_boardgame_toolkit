@@ -49,12 +49,12 @@ class CardLibraryBox:
         from pyboxbuilder.box.shell import build_shell
 
         body = build_shell(spec) - sliding_track(spec).body
-        return body - sliding_catch(spec, spec.get("latch_radius", 1.2)).body
+        return body - sliding_catch(spec, spec.get("latch_radius", 1.2), "x").body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
         """The sliding face, latched shut so the cards cannot spill."""
         from pyboxbuilder.box.features import sliding_catch, sliding_track
 
         return sliding_track(spec).lid | sliding_catch(
-            spec, spec.get("latch_radius", 1.2)
+            spec, spec.get("latch_radius", 1.2), "x"
         ).lid

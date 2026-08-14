@@ -246,44 +246,40 @@ def lead_chamfer_size(spec: dict) -> float:
     return spec.get("lead_chamfer", lt / 2)
 
 
-def _dovetail_frustum(
+def _dovetail_prism(
     along_axis: str,
-    bottom_center: tuple[float, float],
-    bottom_size: tuple[float, float],
-    top_center: tuple[float, float],
-    top_size: tuple[float, float],
+    along_center: float,
+    along_size: float,
+    across_center: float,
+    bottom_across: float,
+    top_across: float,
     height: float,
     z0: float,
 ) -> "Bosl2Solid":
-    """A frustum dovetailed on both sides and the back, straight at the front.
+    """A prism dovetailed on its two flanks and square at both ends.
 
-    The bottom and top faces are rectangles described by their ``(along,
-    across)`` centre and size in the slide frame. The top centre is offset
-    toward the open end relative to the bottom centre, which is what keeps the
-    front face vertical while the back and both flanks taper.
+    Only the **across**-axis measurement changes between the bottom and top
+    faces — that taper is the dovetail. The along-axis extent is identical at
+    both faces, so the closed end is a flat wall the lid lands on rather than a
+    wedge it has to be driven under (FR-002e).
     """
     from pybosl2.shapes3d import prismoid
 
-    shift_along = top_center[0] - bottom_center[0]
-    shift_across = top_center[1] - bottom_center[1]
-
     if along_axis == "x":
         solid = prismoid(
-            [bottom_size[0], bottom_size[1]],
-            [top_size[0], top_size[1]],
+            [along_size, bottom_across],
+            [along_size, top_across],
             height=height,
-            shift=[shift_along, shift_across],
             **precision_kwargs(),
         )
-        return solid.translate([bottom_center[0], bottom_center[1], z0])
+        return solid.translate([along_center, across_center, z0])
     solid = prismoid(
-        [bottom_size[1], bottom_size[0]],
-        [top_size[1], top_size[0]],
+        [bottom_across, along_size],
+        [top_across, along_size],
         height=height,
-        shift=[shift_across, shift_along],
         **precision_kwargs(),
     )
-    return solid.translate([bottom_center[1], bottom_center[0], z0])
+    return solid.translate([across_center, along_center, z0])
 
 
 def _lead_chamfer(
@@ -332,15 +328,20 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
     box with a solid wall across the front of its own track — a lid that can be
     dropped in but never slid.
 
-    The back of the channel is dovetailed exactly like the two sides: the stop
-    wall keeps its full thickness at the top and half of it at the bottom, so
-    the lid's leading end seats in a matching back groove instead of butting
-    against a flat wall.
+    **Both ends of the channel are square** (FR-002e). The stop wall keeps its
+    full thickness from the channel floor to the channel opening, so the lid
+    slides up to it and lands flat. An earlier pass dovetailed the back as well,
+    which seated the lid's leading end under a lip — a wedge catch, closed by
+    driving the lid's thinnest section under an overhang and opened by springing
+    it back out, which is how a printed part splits along its layers. The
+    dovetail on the two side walls already stops the lid lifting out; the closed
+    end only has to be a stop. If a box needs holding shut, that is a bump catch
+    (:func:`sliding_catch`), not a wedge.
 
-    The lid is the matching frustum — dovetailed on both sides and the back,
-    straight at the front — cut short by `sliding_slack` on every mating face
-    so it slides freely, with a slight chamfer on its leading end (FR-002c,
-    FR-002d). The lid fills the channel flush with the open end.
+    The lid is the matching prism — dovetailed on both flanks, square at both
+    ends — cut short by `sliding_slack` on every mating face so it slides freely,
+    with a slight chamfer on its leading end (FR-002c, FR-002d). The lid fills
+    the channel flush with the open end.
 
     Args:
         spec: Needs `width`, `length`, `height`; reads `wall_thickness`,
@@ -365,45 +366,47 @@ def dovetail_track(spec: dict, along_axis: str = "x") -> Closure:
         across = spec["width"]
 
     z0 = spec["height"] - lt
-    interior_along = along - 2 * wt
     interior_across = across - 2 * wt
 
-    # The lid: a frustum dovetailed on both sides and the back, straight at the
-    # front. Its top face is the interior (no key) and its underside reaches
-    # `bottom_key` into each wall, cut short by the clearance on every face.
-    lid = _dovetail_frustum(
+    # The lid runs from the stop wall's inner face (less the clearance it needs
+    # to slide up to it) out to the open face, so the closed box is flush. Its
+    # top face is the interior (no key) and its underside reaches `bottom_key`
+    # into each wall, cut short by the clearance on both flanks.
+    lid = _dovetail_prism(
         along_axis,
-        ((along + wt - bottom_key) / 2, across / 2),
-        (interior_along + wt + bottom_key - 2 * s,
-         interior_across + 2 * bottom_key - 2 * s),
-        ((along + wt - top_key) / 2, across / 2),
-        (interior_along + wt + top_key - 2 * s,
-         interior_across + 2 * top_key - 2 * s),
+        (along + wt + s) / 2,
+        along - wt - s,
+        across / 2,
+        interior_across + 2 * bottom_key - 2 * s,
+        interior_across + 2 * top_key - 2 * s,
         lt,
         z0,
     )
 
-    # The channel: the same frustum, larger by the clearance and a hair. Its
-    # floor reaches `bottom_key` into each wall, its opening `top_key`, and its
-    # front runs out through the open end wall.
-    channel = _dovetail_frustum(
+    # The channel: the same prism, larger by the clearance and a hair. Its floor
+    # reaches `bottom_key` into each wall, its opening `top_key`, and it runs
+    # from the stop wall out through the open end wall.
+    channel = _dovetail_prism(
         along_axis,
-        ((along + wt - bottom_key) / 2, across / 2),
-        (interior_along + wt + bottom_key + 0.1,
-         interior_across + 2 * bottom_key + 0.1),
-        ((along + wt - top_key) / 2, across / 2),
-        (interior_along + wt + top_key + 0.1,
-         interior_across + 2 * top_key + 0.1),
+        (along + wt) / 2,
+        along - wt + 0.1,
+        across / 2,
+        interior_across + 2 * bottom_key + 0.1,
+        interior_across + 2 * top_key + 0.1,
         lt + 0.1,
         z0 - 0.05,
     )
 
-    # A slight chamfer on the leading (back) end's bottom edge eases the lid
-    # into the grooves.
+    # A slight chamfer on the leading end's bottom edge eases the lid into the
+    # grooves. The face itself stays square — it is the stop the lid lands on.
     if chamfer > 0:
-        lead = wt - bottom_key + s
         lid = lid - _lead_chamfer(
-            along_axis, lead, lead, across - wt + bottom_key - s, z0, chamfer
+            along_axis,
+            wt + s,
+            wt - bottom_key + s,
+            across - wt + bottom_key - s,
+            z0,
+            chamfer,
         )
 
     return Closure(body=channel, lid=lid)
@@ -418,12 +421,34 @@ def sliding_track(spec: dict) -> Closure:
     return dovetail_track(spec, "x")
 
 
-def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
-    """A detent that clicks the sliding lid shut.
+def sliding_catch(
+    spec: dict, radius: float = 1.0, along_axis: str = "x"
+) -> Closure:
+    """A bump-and-dimple detent that clicks the sliding lid shut (FR-002e1).
 
-    A bump on the lid's leading edge drops into a dimple at the far end of the
-    groove. The dimple is cut a touch larger so the two are not an interference
-    fit — the lid should click, not jam.
+    A pair of bumps on the lid drop into matching dimples in the two groove
+    walls. The dimple is cut a touch larger so the two are not an interference
+    fit — the lid should click, not jam. This is the *only* catch a sliding box
+    gets: a wedge at the stop end would close by driving the lid's thinnest
+    section under an overhang, whereas a bump deflects by its own height, across
+    the lid's thickness (see :func:`dovetail_track`).
+
+    **The catch sits at the outlet**, the mouth the lid enters and leaves by, so
+    it engages in the last few millimetres of travel (FR-002e2). At the closed
+    end instead, the bump would be dragged the whole length of the groove on
+    every open and close — wearing the groove, making a long lid stiff to start,
+    and telling the hand nothing about when the lid is home.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `wall_thickness` and
+            `lid_thickness`.
+        radius: The bump's radius. The dimple is half a fit clearance larger.
+        along_axis: ``"x"`` to slide along the width, ``"y"`` along the length —
+            the same frame :func:`dovetail_track` was given, so the catch lands
+            on the two walls that actually carry the grooves.
+
+    Returns:
+        The dimples to subtract from the body, and the bumps to add to the lid.
     """
     from pybosl2 import sphere
 
@@ -431,20 +456,35 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
 
     wt = spec.get("wall_thickness", 2.0)
     lt = spec.get("lid_thickness", 2.0)
+    s = spec.get("sliding_slack", 0.1)
+    _, bottom_key = sliding_dovetail(spec)
 
-    x = spec["width"] - wt - radius * 2
+    along = spec["width"] if along_axis == "x" else spec["length"]
+    across = spec["length"] if along_axis == "x" else spec["width"]
+
+    # Just inside the outlet face, and on the lid's dovetail flank at
+    # mid-thickness — which is where the lid's own material is. Centring on the
+    # wall's inner face instead leaves the bump hanging beside the lid rather
+    # than on it, because the flank has already leaned in by then.
+    at_along = along - wt - 2 * radius
+    flank = wt - bottom_key / 2 + s
     z = spec["height"] - lt / 2
+
+    def _place(solid, across_pos):
+        if along_axis == "x":
+            return solid.translate([at_along, across_pos, z])
+        return solid.translate([across_pos, at_along, z])
 
     dimple = sphere(radius=radius + FIT_SLACK_MM / 2, **precision_kwargs())
     bump = sphere(radius=radius, **precision_kwargs())
-    bumps = bump.translate([x, wt, z]) | bump.translate([x, spec["length"] - wt, z])
+    bumps = _place(bump, flank) | _place(bump, across - flank)
     # The bump engages sideways in the groove, so trimming its crown at the box's
     # top face costs nothing — and leaving it proud would make the closed box
     # taller than its declared height. The dimple is left untrimmed: it is cut
     # from the body, and opening it slightly at the rim is harmless.
     envelope = block([spec["width"], spec["length"], spec["height"]])
     return Closure(
-        body=dimple.translate([x, wt, z]) | dimple.translate([x, spec["length"] - wt, z]),
+        body=_place(dimple, flank) | _place(dimple, across - flank),
         lid=bumps & envelope,
     )
 

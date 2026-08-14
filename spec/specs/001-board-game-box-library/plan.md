@@ -164,7 +164,25 @@ Both long edges of the lid carry this profile for their whole sliding length, an
 
 The lid's **leading end** — the end that enters the open end first — carries a slight **chamfer** across its underside and dovetail flanks, so the lid starts into the grooves instead of catching on their mouths. The flanks themselves stay square: the chamfer is a lead-in, not a roundover, and it must not shorten the lid's bearing length (FR-044i's square-edges rule is untouched — the chamfer lives only on the face that is first to enter).
 
-The back of the channel is dovetailed **exactly like the two sides** (FR-002e): the stop wall keeps its full thickness at the top and **half of it** at the bottom, so the lid's leading end seats in a matching back groove and the lid is trapped on all three closed sides. The lid and channel are therefore full **frustums** — rectangular top and bottom faces with the top offset toward the open end — dovetailed on both flanks and the back, straight at the front so the lid finishes flush with the opening. The lid is cut smaller than the channel by `sliding_slack` on every mating face — default **0.1mm per side** — so it slides freely rather than binding (FR-002f); a caller can open the gap up for a loose slide or tighten it for a close one without touching the geometry.
+Only the **two side walls** are dovetailed. Both ends of the channel are square: the stop wall keeps its full thickness from the channel floor to the channel opening, the open end runs straight out, and the lid's leading face is square to meet the stop. The lid and channel are therefore prisms tapered across the slide axis only — the along-axis section is a plain rectangle. The lid is cut smaller than the channel by `sliding_slack` on every mating face — default **0.1mm per side** — so it slides freely rather than binding (FR-002f); a caller can open the gap up for a loose slide or tighten it for a close one without touching the geometry.
+
+### No Wedge At The Stop End (FR-002e)
+
+An earlier pass dovetailed the **back** of the channel as well, so the stop wall kept full thickness at the top and half of it at the bottom and the lid's leading end seated under a lip. Seen from the side that is a wedge, and it works like one: closing the lid means driving a tapered leading edge under an overhang, and opening it means springing that edge back out. Two things are wrong with it.
+
+The first is mechanical. The part doing the flexing is the lid's leading lip — the thinnest section of the whole part, at the end of the longest lever — and it is a printed part, so it flexes by opening the bond between layers. A wedge catch on a sliding lid is a hinge that breaks once.
+
+The second is that it is not needed. A dovetail already traps the lid in the only direction it could escape: it cannot be lifted out, only slid, and sliding is a deliberate act. What the closed end contributes is a **stop**, not a catch, and a stop wants to be square so the lid lands on it flat and the box reads as closed.
+
+So the ends carry no taper at all, and the check is a measurement rather than a look: slice the channel at its floor and at its opening, and the closed end of both slices must sit at the **same** coordinate along the slide axis (SC-048). A wedge shows up as those two numbers differing by half a wall.
+
+### If A Sliding Lid Needs Holding Shut, It Is A Bump (FR-002e1, FR-002e2, FR-002e3)
+
+A lid that only needs to not slide out in a bag wants a **detent**, and a detent is a bump and a dimple — a hemisphere on the lid dropping into a slightly larger hemisphere in the wall. The deflection is the bump's own height, a few tenths of a millimetre, taken across the lid's thickness rather than by peeling its leading edge, and it is a click rather than a press-fit because the dimple is cut larger than the bump by the fit clearance.
+
+**The catch belongs at the outlet, not at the stop.** The bump rides on the lid's trailing end and the dimple sits in the wall beside the mouth, so the two meet only in the last few millimetres of travel. Put the catch at the closed end instead and the bump is dragged the whole length of the groove on every open and close — it wears the groove, it makes a long lid stiff to start, and it gives no clue to the hand about when the lid is home. At the mouth, the click happens exactly when the lid is closed.
+
+The catch is generated from the same slide-axis frame as the channel, so it lands on the correct pair of walls whichever way round the box is. It is **off by default** on a plain sliding box — the original toolkit's sliding box has no catch, and a dovetail on its own already holds a lid in — and always on for the sliding-catch and card-library types, which exist for it. Setting a catch radius on a plain sliding box turns it on.
 
 ### Rounding a Lid Without Rounding Away Its Support (FR-044h, FR-044i)
 
@@ -942,7 +960,9 @@ Where each requirement is designed, and where it is verified. Sections named bel
 | SC-002, SC-008 | timed layout/auto-size tests in `test_compartments.py`, `test_packing.py` |
 | SC-003 | `test_closures.py` — zero body/lid intersection for all 11 lidded types |
 | SC-045 | `test_closures.py` — dovetail measures interior over half the wall width, grooves mirror, wall stays behind the groove, leading chamfer, stop end square |
-| SC-046 | `test_closures.py` — the back is dovetailed like the sides, and the clearance is configurable |
+| SC-046, SC-047 | `test_closures.py` — `HingeInsideTests` (a well is clipped clear of the hinge), `SlipoverFingerNotchTests` |
+| SC-048 | `test_closures.py` — the channel and the lid are the same length at the channel floor as at its opening (no wedge at the stop end), and the clearance is configurable |
+| SC-049 | `test_closures.py` — the bump and dimple sit at the outlet, follow the slide axis, straddle the lid's flank, and are absent unless asked for |
 | SC-004, SC-007 | `test_compartments.py` validation cases |
 | SC-005 | `test_packing.py`, `test_guillotine.py` |
 | SC-006 | `test_carve.py`, render tests |

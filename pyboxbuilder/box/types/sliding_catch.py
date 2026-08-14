@@ -44,17 +44,17 @@ class SlidingCatchBox:
         return [Anchor.TOP_RIGHT, Anchor.FRONT_RIGHT, Anchor.BACK_RIGHT]
 
     def build_body(self, spec: dict) -> "Bosl2Solid":
-        """Sliding grooves, plus a dimple at the closed end for the catch."""
+        """Sliding grooves, plus a dimple beside the outlet for the catch."""
         from pyboxbuilder.box.features import sliding_catch, sliding_track
         from pyboxbuilder.box.shell import build_shell
 
         body = build_shell(spec) - sliding_track(spec).body
-        return body - sliding_catch(spec, spec.get("catch_radius", 1.0)).body
+        return body - sliding_catch(spec, spec.get("catch_radius", 1.0), "x").body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
         """The sliding plate with a bump that clicks into the body's dimple."""
         from pyboxbuilder.box.features import sliding_catch, sliding_track
 
         return sliding_track(spec).lid | sliding_catch(
-            spec, spec.get("catch_radius", 1.0)
+            spec, spec.get("catch_radius", 1.0), "x"
         ).lid

@@ -287,12 +287,18 @@ class SlidingTests(unittest.TestCase):
         self.assertAlmostEqual(opening_w, SPEC["length"] - 2 * wt, delta=0.3)
         self.assertLess(opening_w, floor_w)
 
-    def test_the_back_is_dovetailed_like_the_sides(self) -> None:
-        """The stop wall keeps its thickness at the top and half of it at the bottom."""
+    def test_the_stop_end_carries_no_wedge(self) -> None:
+        """SC-048: the channel is the same length at its floor as at its opening.
+
+        This replaces two tests that asserted the opposite — that the back was
+        dovetailed like the sides and the lid tucked under a lip there. That is
+        a wedge catch (FR-002e): closing the lid drove its thinnest section
+        under an overhang and opening it sprung the section back out, which is
+        how a printed part splits along its layers.
+        """
         from pyboxbuilder.box.shell import block
 
         channel = sliding_track(SPEC).body
-        wt = SPEC["wall_thickness"]
         lt = SPEC["lid_thickness"]
         top = channel & block(
             [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
@@ -302,14 +308,35 @@ class SlidingTests(unittest.TestCase):
         )
         (top_x, _, _), _ = bbox(top)
         (bottom_x, _, _), _ = bbox(bottom)
-        # The back tapers by half a wall width from the opening to the floor.
-        self.assertAlmostEqual(top_x - bottom_x, wt / 2, delta=0.1)
-        self.assertGreater(bottom_x, 0.0, "the floor must leave wall behind it")
+        self.assertAlmostEqual(
+            top_x, bottom_x, delta=0.02, msg="the stop end must be square, not tapered"
+        )
 
-    def test_the_lid_tucks_into_the_back_groove(self) -> None:
-        """The lid's leading end sits inside the back wall, not in front of it."""
-        (x, _, _), _ = bbox(sliding_track(SPEC).lid)
-        self.assertLess(x, SPEC["wall_thickness"], "the lid must reach into the back wall")
+    def test_the_lid_lands_flat_on_the_stop_wall(self) -> None:
+        """The lid's leading face is square and stops at the wall, not under it."""
+        from pyboxbuilder.box.shell import block
+
+        lid = sliding_track(SPEC).lid
+        wt = SPEC["wall_thickness"]
+        lt = SPEC["lid_thickness"]
+        (x, _, _), _ = bbox(lid)
+        self.assertGreaterEqual(
+            x, wt - 0.01, "the lid must not reach into the stop wall"
+        )
+        # Square: the leading face is at the same place at the top of the lid as
+        # just above the lead chamfer.
+        upper = lid & block(
+            [SPEC["width"], SPEC["length"], 0.01], at=(0, 0, SPEC["height"] - 0.01)
+        )
+        # Above the lead chamfer, which reaches `lead_chamfer_size` up from the
+        # lid's underside and legitimately sets the leading face back there.
+        mid = lid & block(
+            [SPEC["width"], SPEC["length"], 0.01],
+            at=(0, 0, SPEC["height"] - lt / 4),
+        )
+        (upper_x, _, _), _ = bbox(upper)
+        (mid_x, _, _), _ = bbox(mid)
+        self.assertAlmostEqual(upper_x, mid_x, delta=0.02)
 
     def test_the_sliding_clearance_is_configurable(self) -> None:
         """`sliding_slack` widens the gap between the lid and the groove."""
@@ -331,6 +358,76 @@ class SlidingTests(unittest.TestCase):
         (_, _, _), dimple = bbox(closure.body)
         (_, _, _), bump = bbox(closure.lid)
         self.assertGreater(dimple[2], bump[2])
+
+
+class SlidingBumpCatchTests(unittest.TestCase):
+    """FR-002e1–e3: a sliding lid's catch is a bump at the outlet, not a wedge."""
+
+    def test_the_catch_sits_at_the_outlet_not_the_stop(self) -> None:
+        """SC-049: dragging the bump the length of the groove wears it out."""
+        radius = 1.0
+        outlet = SPEC["width"]  # along_axis "x" leaves through +X
+        for name, solid in (
+            ("dimple", sliding_catch(SPEC, radius, "x").body),
+            ("bump", sliding_catch(SPEC, radius, "x").lid),
+        ):
+            with self.subTest(part=name):
+                (x0, _, _), (dx, _, _) = bbox(solid)
+                centre = x0 + dx / 2
+                self.assertLess(
+                    outlet - centre,
+                    SPEC["wall_thickness"] + 2 * radius + 0.01,
+                    "the catch must engage in the last few mm of travel",
+                )
+
+    def test_the_catch_follows_the_slide_axis(self) -> None:
+        """It was hardcoded to X, so a box sliding along Y got it on the wrong walls."""
+        along_y = sliding_catch(SPEC, 1.0, "y").body
+        (_, y0, _), (_, dy, _) = bbox(along_y)
+        self.assertLess(
+            SPEC["length"] - (y0 + dy / 2),
+            SPEC["wall_thickness"] + 2.0 + 0.01,
+            "sliding along Y must put the catch near the +Y outlet",
+        )
+
+    def test_the_bump_straddles_the_lid_flank(self) -> None:
+        """Half in the lid, half proud of it — which is what makes it a detent.
+
+        It was centred on the *wall's* inner face, but the dovetail flank has
+        already leaned inward by mid-thickness, so the sphere sat 0.4mm outside
+        the lid: too little of it attached, too much of it hanging in the gap.
+        """
+        lid = sliding_track(SPEC).lid
+        bumps = sliding_catch(SPEC, 1.0, "x").lid
+        inside = volume(lid & bumps) / volume(bumps)
+        self.assertGreater(inside, 0.35, "the bump must be solidly on the lid")
+        self.assertLess(inside, 0.65, "the bump must stand proud enough to catch")
+
+    def test_a_plain_sliding_box_has_no_catch(self) -> None:
+        """FR-002e3: SLIDING and SLIDING_CATCH must not be the same type."""
+        from pyboxbuilder.box.types.sliding import SlidingBox
+
+        box = SlidingBox()
+        spec = {**SPEC, "hollow": True}
+        self.assertAlmostEqual(
+            volume(box.build_lid(spec)),
+            volume(box.build_lid({**spec, "catch_radius": 0.0})),
+            delta=0.01,
+        )
+
+    def test_asking_a_sliding_box_for_a_catch_adds_one(self) -> None:
+        from pyboxbuilder.box.types.sliding import SlidingBox
+
+        box = SlidingBox()
+        spec = {**SPEC, "hollow": True}
+        plain = volume(box.build_lid(spec))
+        caught = volume(box.build_lid({**spec, "catch_radius": 1.0}))
+        self.assertGreater(caught, plain, "the bumps must add material to the lid")
+        self.assertLess(
+            volume(box.build_body({**spec, "catch_radius": 1.0})),
+            volume(box.build_body(spec)),
+            "the dimples must take material out of the body",
+        )
 
 
 class FilamentHingeTests(unittest.TestCase):
