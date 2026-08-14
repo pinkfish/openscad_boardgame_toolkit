@@ -155,14 +155,9 @@ def build_compartment_scoop(
     wall_thickness = interior.origin_x if interior.origin_x > 0 else 2.0
     # origin_z is the box floor: the scoop dips a fraction of it so its bottom
     # face is not coplanar with the well floor (which renders as speckle).
-    # A pull-out scoop curves over the scale of the scoop, not a token fillet:
-    # r1 is the cut's own depth, so the edge sweeps down into the well and a
-    # piece can be dragged up the curve (FR-043c1). `_fit_radii` shares the
-    # height with r2 when the two together ask for more than there is.
     scoop = build_scoop(
         width, length, depth, scoop_side,
         wall_thickness=wall_thickness,
-        rounding_radius=depth,
         floor_thickness=interior.origin_z if interior.origin_z > 0 else None,
     )
     return _place(scoop, placement, interior)

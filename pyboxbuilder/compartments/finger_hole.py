@@ -53,11 +53,23 @@ DEFAULT_MOUTH_ROUNDING_MM = 3.0
 """Fallback ``r1`` where nothing better can be derived."""
 
 DEFAULT_TOP_ROUNDING_RATIO = 0.5
-"""``r1`` as a fraction of the throat half-width, when the caller names none.
+"""How far the top roll flares **outward**, as a fraction of the throat half-width.
 
 Derived rather than fixed so the roll stays in proportion: a 3mm constant is
-invisible on a 14mm finger hole and overwhelming on a 4mm one. Half the throat
-gives a roll you can feel on both.
+invisible on a 14mm finger hole and overwhelming on a 4mm one. This is the one
+number that sets how *wide* the scoop's mouth is, so it is also the one to
+leave alone when the width is already right.
+"""
+
+TOP_ROLL_RISE_RATIO = 1.6
+"""How far the top roll reaches **down**, as a multiple of its outward flare.
+
+The roll is an ellipse quadrant, not a circle, because its two extents answer
+different questions: the flare decides how wide the mouth is, and the rise
+decides how gently the top surface turns into the wall. A circle ties them
+together, so the only way to get a gentler curve is a wider cut — which is
+backwards on a shallow wall, where there is height to spare for the curve but
+no width to spare for the mouth.
 """
 
 DEFAULT_EDGE_ROUNDING_MM = 1.0
@@ -100,8 +112,13 @@ rim, so the overshoot removes nothing that was there.
 ARC_SAMPLES = 16
 """Points per quarter-arc in the scoop profile. 16 is smooth at print scale."""
 
-DEFAULT_BOTTOM_ROUNDING_RATIO = 0.5
-"""``r2`` as a fraction of the throat half-width, when the caller names none."""
+DEFAULT_BOTTOM_ROUNDING_RATIO = 0.65
+"""``r2`` as a fraction of the throat half-width, when the caller names none.
+
+Wider than the half it started at: the floor fillet does not change how wide
+the cut is — it lives inside the throat — so it can afford a generous curve,
+and a finger following the wall down wants one.
+"""
 
 MIN_FLAT_BOTTOM_RATIO = 0.25
 """How much of the throat's half-width stays flat, however large ``r2`` is.
@@ -212,9 +229,9 @@ def scoop_profile(
     if bottom_rounding < 0:
         raise ValueError(f"bottom_rounding must be >= 0; got {bottom_rounding}")
 
-    r1, r2 = _fit_radii(radius, height, top_rounding, bottom_rounding)
+    flare, rise, r2 = _fit_radii(radius, height, top_rounding, bottom_rounding)
 
-    ring = scoop_outline(radius, height, r1, r2)
+    ring = scoop_outline(radius, height, flare, r2, rise)
     return shapes2d.polygon([[float(x), float(y)] for x, y in ring])
 
 
@@ -223,28 +240,33 @@ def _fit_radii(
     height: float,
     top_rounding: float,
     bottom_rounding: float | None,
-) -> tuple[float, float]:
-    """Cap r1 and r2 so they fit the scoop they are shaping.
+) -> tuple[float, float, float]:
+    """Size the two rolls to the scoop they are shaping.
 
     Args:
         radius: Half-width of the throat.
         height: Floor to rim.
-        top_rounding: Requested r1.
+        top_rounding: The top roll's outward flare (r1).
         bottom_rounding: Requested r2, or ``None`` to derive it.
 
     Returns:
-        ``(r1, r2)``, each reduced as needed. r2 can never eat the whole
-        half-width — part of the base stays flat (MIN_FLAT_BOTTOM_RATIO) — and
-        the two together can never exceed the height.
+        ``(flare, rise, r2)`` — how far the top roll reaches out, how far it
+        reaches down, and the floor fillet.
+
+    Only the two *vertical* extents compete for the height, so a shallow wall
+    shortens the rise and leaves the flare — and therefore the width of the cut
+    — alone. Scaling the flare too would narrow the mouth on exactly the boxes
+    where a finger has least room to begin with.
     """
     if bottom_rounding is None:
         bottom_rounding = radius * DEFAULT_BOTTOM_ROUNDING_RATIO
-    r1 = max(0.0, top_rounding)
+    flare = max(0.0, top_rounding)
+    rise = flare * TOP_ROLL_RISE_RATIO
     r2 = max(0.0, min(bottom_rounding, radius * (1.0 - MIN_FLAT_BOTTOM_RATIO)))
-    if r1 + r2 > height:
-        scale = height / (r1 + r2)
-        r1, r2 = r1 * scale, r2 * scale
-    return r1, r2
+    if rise + r2 > height:
+        scale = height / (rise + r2)
+        rise, r2 = rise * scale, r2 * scale
+    return flare, rise, r2
 
 
 def floor_bore_outline(
@@ -289,6 +311,42 @@ def floor_bore_outline(
 
     left = [(-x, y) for x, y in reversed(right)]
     return left + right
+
+
+def _elliptical_quarter(
+    centre: tuple[float, float],
+    flare: float,
+    rise: float,
+    samples: int | None = None,
+) -> list[tuple[float, float]]:
+    """The top roll: a quarter ellipse from the wall out to the top face.
+
+    Vertical where it leaves the wall and horizontal where it meets the top
+    face, like a quarter circle, but with the two extents settable apart so a
+    shallow wall can have a gentle curve without a wide mouth.
+
+    Args:
+        centre: The ellipse's centre.
+        flare: Horizontal semi-axis — how far the mouth opens out.
+        rise: Vertical semi-axis — how far down the turn takes.
+        samples: Segments along the arc; ``None`` follows the curve precision.
+
+    Returns:
+        ``[(x, y), ...]`` from the wall to the top face.
+    """
+    if flare <= 0 or rise <= 0:
+        return [(centre[0], centre[1] + rise)]
+    if samples is None:
+        from pyboxbuilder.precision import precision
+
+        samples = max(ARC_SAMPLES, (precision().fn or 0) // 4)
+    points = []
+    for index in range(samples + 1):
+        angle = math.pi + (math.pi / 2) * index / samples
+        points.append(
+            (centre[0] + flare * math.cos(angle), centre[1] - rise * math.sin(angle))
+        )
+    return points
 
 
 def _angle_at(centre: tuple[float, float], point: tuple[float, float]) -> float:
@@ -373,6 +431,7 @@ def scoop_outline(
     height: float,
     top_rounding: float,
     bottom_rounding: float,
+    top_rise: float | None = None,
 ) -> list[tuple[float, float]]:
     """The edge scoop's closed outline, as one ring of points.
 
@@ -386,25 +445,30 @@ def scoop_outline(
     Args:
         radius: Half-width of the straight throat.
         height: Floor to rim.
-        top_rounding: r1, already capped to fit.
+        top_rounding: How far the top roll flares outward, already capped.
         bottom_rounding: r2, already capped to fit.
+        top_rise: How far the top roll reaches down. ``None`` makes it equal to
+            the flare, i.e. a circular quarter-roll.
 
     Returns:
         ``[(x, y), ...]`` closed counter-clockwise, floor at ``y=0``.
     """
-    r1, r2 = top_rounding, bottom_rounding
+    flare, r2 = top_rounding, bottom_rounding
+    rise = flare if top_rise is None else top_rise
     bottom_centre = (radius - r2, r2)
-    top_centre = (radius + r1, height - r1)
-    join_low, join_high = _tangent_join(bottom_centre, r2, top_centre, r1, radius)
+    top_centre = (radius + flare, height - rise)
+    join_low, join_high = _tangent_join(
+        bottom_centre, r2, top_centre, flare, radius
+    )
 
     right: list[tuple[float, float]] = []
-    # r2 rolls the floor into the wall, a straight run carries up to r1, and r1
-    # rolls the wall into the top face. The straight run is the two circles'
-    # **common tangent**, so both joins are tangent by construction rather than
-    # by assuming the run is vertical.
+    # r2 rolls the floor into the wall, a straight run carries up, and the top
+    # roll turns the wall into the top face. The straight run is the two
+    # circles' **common tangent**, so both joins are tangent by construction
+    # rather than by assuming the run is vertical.
     right += _quarter_arc(bottom_centre, r2, -90.0, _angle_at(bottom_centre, join_low))
-    right.append(join_high)
-    right += _quarter_arc(top_centre, r1, _angle_at(top_centre, join_high), 90.0)
+    right.append((radius, height - rise))
+    right += _elliptical_quarter(top_centre, flare, rise)
     # Carry on straight up past the rim. Closing the ring along the top instead
     # would put a **cusp** at each end of the r1 arc: the arc arrives there
     # travelling horizontally outward and the closing edge leaves horizontally
@@ -412,7 +476,7 @@ def scoop_outline(
     # such a corner miters to infinity — measured, a ±15mm profile came back
     # ±55mm. There is no material above the rim, so the overshoot costs nothing
     # and it also guarantees the cut leaves no skin at the top face.
-    right.append((radius + r1, height + RIM_OVERSHOOT_MM))
+    right.append((radius + flare, height + RIM_OVERSHOOT_MM))
 
     left = [(-x, y) for x, y in reversed(right)]
     return left + right

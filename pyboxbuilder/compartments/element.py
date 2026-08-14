@@ -51,6 +51,22 @@ class CompartmentElement:
     """Corner radius for ElementShape.ROUNDED_RECT."""
     label: str | None = None
     """Optional identifier, handy for tests and layout diagnostics."""
+    pull_out: bool = True
+    """Cut a finger pull-out over this slot so the piece can be lifted out.
+
+    A silhouette slot holds its piece snugly by design — that is the point of
+    cutting to the outline — which also means there is nowhere to get a
+    fingertip. The pull-out is a dish across the slot, curved in from the
+    surrounding floor so a finger slides down it and under the piece.
+    """
+    pull_out_depth: float | None = None
+    """How deep the pull-out dish goes below the slot's own floor.
+
+    ``None`` takes **half the piece's depth**, which is enough to get under a
+    piece without letting it drop into the dish and sit crooked.
+    """
+    pull_out_width: float | None = None
+    """Width of the pull-out across the slot. ``None`` uses a fingertip width."""
 
     def __post_init__(self) -> None:
         if self.shape is ElementShape.SVG and not self.shape_file:
@@ -326,11 +342,79 @@ def _svg_region(shape_file: str):
 _SVG_CACHE: dict = {}
 
 
+PULL_OUT_DEPTH_SHARE = 0.5
+"""How deep a pull-out goes, as a share of the piece's depth.
+
+Half gets a fingertip under the piece while leaving the slot deep enough that
+the piece still seats flat in it rather than tipping into the dish.
+"""
+
+DEFAULT_PULL_OUT_WIDTH_MM = 16.0
+"""Fingertip width for a pull-out dish, when the element names none."""
+
+
+def build_pull_out(
+    element: CompartmentElement, default_depth: float
+) -> "Bosl2Solid | None":
+    """The finger dish that lets a piece be lifted out of its slot.
+
+    Cut across the slot and **curved in from the surrounding floor** on both
+    sides, so a finger slides down into it rather than meeting a step. Without
+    it a silhouette slot has no purchase at all: it fits the piece exactly,
+    which is what makes it look right and what makes it impossible to empty.
+
+    Args:
+        element: The slot to cut a pull-out for.
+        default_depth: The owning compartment's depth, used when the element
+            does not set its own.
+
+    Returns:
+        The dish to subtract, or ``None`` when the element declines one.
+
+    Raises:
+        ValueError: If the element has no resolved size.
+    """
+    if not element.pull_out:
+        return None
+
+    from pybosl2 import cuboid
+
+    from pyboxbuilder.rounding import rounding_facets
+
+    width, length = element.footprint
+    depth = element.depth if element.depth is not None else default_depth
+    drop = element.pull_out_depth
+    if drop is None:
+        drop = depth * PULL_OUT_DEPTH_SHARE
+    if drop <= 0:
+        return None
+
+    across = min(element.pull_out_width or DEFAULT_PULL_OUT_WIDTH_MM, max(width, length))
+    # The dish is rounded on every edge, so it curves in from the floor around
+    # it and out of the slot's own walls — no square step anywhere a finger
+    # travels. Its radius is capped by its own smallest dimension.
+    radius = min(drop, across / 2 - 0.01)
+    centre_x = element.offset[0] + width / 2
+    centre_y = element.offset[1] + length / 2
+    z = element.z_offset + depth - drop
+
+    dish = cuboid(
+        [across, length + 2 * drop, drop * 2],
+        rounding=radius,
+        **rounding_facets(),
+    ) if radius > 0 else cuboid([across, length + 2 * drop, drop * 2])
+    return dish.translate([centre_x, centre_y, z])
+
+
 def build_element_pack(
     elements: Iterable[CompartmentElement], default_depth: float
 ) -> "Bosl2Solid | None":
     """Union every element cutout in a pack. Returns None for an empty pack."""
-    return union_all([build_element(e, default_depth) for e in elements])
+    pieces = []
+    for element in elements:
+        pieces.append(build_element(element, default_depth))
+        pieces.append(build_pull_out(element, default_depth))
+    return union_all([p for p in pieces if p is not None])
 
 
 def union_all(solids: list) -> "Bosl2Solid | None":
