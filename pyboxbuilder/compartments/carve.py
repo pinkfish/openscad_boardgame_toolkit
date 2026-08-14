@@ -15,6 +15,8 @@ to subtract it from the body.
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from typing import TYPE_CHECKING, Sequence
 
 from pyboxbuilder.box.interior import Interior
@@ -60,7 +62,8 @@ def build_compartment_well(
     if placement.shape_file:
         well = svg_solid(placement.shape_file, width, length, depth)
     elif rounded_corners > 0:
-        well = cuboid([width, length, depth], rounding=rounded_corners, edges=Anchor.Z)
+        well = cuboid([width, length, depth], rounding=rounded_corners, edges=Anchor.Z,
+                      **precision_kwargs())
     else:
         well = cuboid([width, length, depth])
 

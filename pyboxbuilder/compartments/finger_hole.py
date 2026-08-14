@@ -9,6 +9,8 @@ translations below place a shape's centre.
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from typing import TYPE_CHECKING
 
 from pyboxbuilder.enums import ScoopSide
@@ -50,7 +52,7 @@ def build_wall_scoop(
 
     # Run past both ends so the boolean leaves no skin at the floor or the rim.
     height = comp_depth + 2.0
-    scoop = cylinder(height=height, radius=radius)
+    scoop = cylinder(height=height, radius=radius, **precision_kwargs())
 
     centre = {
         ScoopSide.FRONT: (comp_width / 2, 0.0),
@@ -97,7 +99,7 @@ def build_floor_scoop(
         ScoopSide.RIGHT: (comp_width, comp_length / 2),
     }[side]
 
-    dish = sphere(radius=radius)
+    dish = sphere(radius=radius, **precision_kwargs())
     return dish.translate([centre[0], centre[1], radius])
 
 

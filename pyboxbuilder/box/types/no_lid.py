@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -10,6 +12,7 @@ if TYPE_CHECKING:
 
 
 from pyboxbuilder.box.base import Interior
+from pyboxbuilder.enums import MagnetType, StackableMode
 
 
 class NoLidBox:
@@ -42,9 +45,9 @@ class NoLidBox:
         wt = spec.get("wall_thickness", 2.0)
         stack = spec.get("stackable_thickness") or wt
         fit = spec.get("stackable_fit_offset", 0.1)
-        mode = spec.get("stackable", "inside")
+        mode = spec.get("stackable") or StackableMode.INSIDE
 
-        if mode == "inside":
+        if mode is StackableMode.INSIDE:
             # Carve a recess around the top rim, so the box above nests into it.
             recess_w = spec["width"] - 2 * (wt - fit)
             recess_l = spec["length"] - 2 * (wt - fit)
@@ -77,18 +80,20 @@ class NoLidBox:
         from pybosl2 import cuboid, cylinder
 
         magnet_type = spec.get("magnet_type")
-        if not magnet_type:
+        if magnet_type is None or magnet_type is MagnetType.NONE:
             return body
 
         size = spec.get("magnet_size")
-        depth = size[2] if size and len(size) > 2 else (3.0 if magnet_type == "round" else 2.0)
+        depth = size[2] if size and len(size) > 2 else (
+            3.0 if magnet_type is MagnetType.ROUND else 2.0
+        )
 
         def slot():
             """A fresh solid per side — one handle must not span two branches."""
-            if magnet_type == "round":
+            if magnet_type is MagnetType.ROUND:
                 diameter = size[0] if size else 6.0
                 # Lay the cylinder along Y so it sinks into a front/back wall.
-                return cylinder(height=depth, radius=diameter / 2 + 0.1).rotate([90, 0, 0])
+                return cylinder(height=depth, radius=diameter / 2 + 0.1, **precision_kwargs()).rotate([90, 0, 0])
             w = size[0] if size else 10.0
             l = size[1] if size and len(size) > 1 else 5.0
             return cuboid([w + 0.2, depth, l + 0.2])
@@ -104,7 +109,7 @@ class NoLidBox:
         body = self._build_shell(spec)
         if spec.get("stackable"):
             body = self._add_stackable_rim(body, spec)
-        if spec.get("magnet_type"):
+        if spec.get("magnet_type") not in (None, MagnetType.NONE):
             body = self._add_magnet_slots(body, spec)
         return body
 

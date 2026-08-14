@@ -134,49 +134,144 @@ class Project:
             object.__setattr__(by_label[label], "position", position)
         return arrangement
 
-    def show(self, show_lids: bool = False) -> None:
+    def show(
+        self,
+        show_lids: bool = False,
+        remove_layers: int = 0,
+        fn: int | None = None,
+        fa: float | None = None,
+        fs: float | None = None,
+    ) -> None:
         """Preview the packed box layout interactively.
 
-        Builds every box body at its final packed position and shows the
-        combined solid. Lids are hidden by default (they obscure the layout);
-        pass ``show_lids=True`` to place each lid in its seated position on
-        its body. Used when NOT running inside make (``FROM_MAKE`` unset) — in
-        the PythonSCAD GUI or a Jupyter notebook this renders the layout; the
+        Builds every box body at its final packed position and shows it. Each
+        box is shown as its **own** solid — the preview never unions them,
+        because a union carries one colour and would fuse touching boxes into
+        an indivisible blob, hiding the seams a packing preview exists to
+        show. Used when NOT running inside make (``FROM_MAKE`` unset) — in the
+        PythonSCAD GUI or a Jupyter notebook this renders the layout; the
         make/export flow instead writes 3MF files via ``export()``.
+
+        Writes no files, and generates no layout PDF.
+
+        Args:
+            show_lids: Place each lid in its seated position as well. Off by
+                default because lids cover the compartments and their
+                neighbours. A shown lid is drawn semi-transparent in a lighter
+                shade of its box's colour so it reads as a separate piece.
+            remove_layers: Omit the top N vertical layers of the packed
+                layout, revealing what sits underneath — the live equivalent
+                of the exploded PDF view. A box is removed when its top
+                surface rises above the cut.
+            fn: Fixed facets per circle for every curve in the preview. Drop
+                it low for a fast preview; ``None`` defers to fa/fs.
+            fa: Minimum angle per fragment, in degrees (default 12).
+            fs: Minimum fragment size, in mm (default 2).
+
+        Raises:
+            ValueError: If ``remove_layers`` is negative, or a precision
+                setting is out of range.
         """
+        from pyboxbuilder.precision import use
+
+        with use(fn=fn, fa=fa, fs=fs):
+            pieces = self._preview_pieces(show_lids=show_lids, remove_layers=remove_layers)
+
+        for piece in pieces:
+            solid = piece.solid
+            try:
+                solid = solid.color(piece.color)
+            except (AttributeError, TypeError):
+                pass  # Uncolourable geometry still previews, just uncoloured.
+            solid.show()
+
+    def _preview_pieces(self, show_lids: bool = False, remove_layers: int = 0) -> list:
+        """Build the list of separately-coloured solids :meth:`show` renders.
+
+        Split out from :meth:`show` so the placement, layer filtering and
+        colour assignment can be tested without a render binary.
+
+        Args:
+            show_lids: Include each box's lid, lightened and semi-transparent.
+            remove_layers: Number of top layers to omit.
+
+        Returns:
+            A list of :class:`pyboxbuilder.preview.PreviewPiece`, one per body,
+            lid and spacer — never unioned together.
+
+        Raises:
+            ValueError: If ``remove_layers`` is negative.
+        """
+        from pyboxbuilder.preview import (
+            PreviewPiece, lid_color, remove_top_layers, spacer_color, stable_color,
+        )
+
+        if remove_layers < 0:
+            raise ValueError(f"remove_layers must be >= 0; got {remove_layers}")
+
+        def colour_for(builder) -> "Color":
+            """A box's own colour when it declares one, else a stable hue."""
+            declared = getattr(builder, "color", None)
+            return declared if declared is not None else stable_color(builder.label)
+
+        pieces: list[PreviewPiece] = []
+
         if self.game_box_size is None:
-            # Standalone: line each box up side by side.
-            solids = []
+            # Standalone: no packing, so line the boxes up side by side. There
+            # are no layers and no spacers to filter.
             x = 0.0
             for builder in self._boxes:
+                self._standalone_size(builder)
                 body, lid, size = self._build_box_solids(builder)
                 if body is None:
                     continue
-                # The lid is already at its correct local Z (inside/on the box),
-                # so it gets the same translation as the body.
-                solids.append(body.translate([x, 0.0, 0.0]))
+                colour = colour_for(builder)
+                # The lid is already at its correct local Z (inside/on the
+                # box), so it takes the same translation as the body.
+                pieces.append(PreviewPiece(builder.label, body.translate([x, 0.0, 0.0]), colour, "body"))
                 if show_lids and lid is not None:
-                    solids.append(lid.translate([x, 0.0, 0.0]))
+                    pieces.append(
+                        PreviewPiece(builder.label, lid.translate([x, 0.0, 0.0]), lid_color(colour), "lid")
+                    )
                 x += size[0] + 10.0
-        else:
-            packing = self._resolve_final_layout()
-            pos_by_label = {p.label: p.position for p in packing.placements}
-            solids = []
-            for builder in self._boxes:
-                body, lid, size = self._build_box_solids(builder)
-                if body is None:
-                    continue
-                pos = pos_by_label.get(builder.label, builder.position or (0.0, 0.0, 0.0))
-                solids.append(body.translate(list(pos)))
-                if show_lids and lid is not None:
-                    solids.append(lid.translate(list(pos)))
+            return pieces
 
-        if not solids:
-            return
-        combined = solids[0]
-        for s in solids[1:]:
-            combined = combined | s
-        combined.show()
+        packing = self._resolve_final_layout()
+        placements = list(packing.placements)
+
+        # Spacers complete the picture — without them the preview shows holes
+        # where the insert is actually filled.
+        spacers = self._spacer_placements(packing) if self.generate_spacers else []
+
+        kept = {p.label for p in remove_top_layers(placements + spacers, remove_layers)}
+        pos_by_label = {p.label: p.position for p in placements}
+
+        for builder in self._boxes:
+            if builder.label not in kept:
+                continue
+            body, lid, _size = self._build_box_solids(builder)
+            if body is None:
+                continue
+            pos = list(pos_by_label.get(builder.label, builder.position or (0.0, 0.0, 0.0)))
+            colour = colour_for(builder)
+            pieces.append(PreviewPiece(builder.label, body.translate(pos), colour, "body"))
+            if show_lids and lid is not None:
+                pieces.append(PreviewPiece(builder.label, lid.translate(pos), lid_color(colour), "lid"))
+
+        for spacer in spacers:
+            if spacer.label not in kept:
+                continue
+            body = self._build_spacer_solid(spacer)
+            if body is None:
+                continue
+            pieces.append(
+                PreviewPiece(
+                    spacer.label, body.translate(list(spacer.position)),
+                    spacer_color(spacer.label), "spacer",
+                )
+            )
+
+        return pieces
 
     def _resolve_final_layout(self):
         """Resolve each box's final size and packed position.
@@ -323,7 +418,7 @@ class Project:
                     "box_type", "label", "box_id", "size", "final_size",
                     "expandable", "expandable_width", "expandable_length",
                     "wall_thickness", "floor_thickness", "lid_thickness",
-                    "lid", "finger_holes", "compartments",
+                    "lid", "finger_holes", "compartments", "color",
                 ):
                     continue
                 val = getattr(builder, field_name)
@@ -346,16 +441,165 @@ class Project:
 
         return body, lid, size
 
-    def export(self, out_dir: str | Path) -> ExportResult:
-        """Build, pack, and export all 3MF files + layout PDF."""
+    def _standalone_size(self, builder) -> tuple[float, float, float]:
+        """Resolve a standalone box's size and record it as its ``final_size``.
+
+        Standalone boxes are never packed, so nothing else would set
+        ``final_size``; both :meth:`_export_standalone` and the preview go
+        through here so they cannot disagree about a box's size.
+
+        Args:
+            builder: The box builder to size. An explicit ``size`` wins, with
+                any ``None`` axis filled in from the compartments.
+
+        Returns:
+            The resolved ``(width, length, height)`` in mm.
+
+        Raises:
+            ValueError: If the box has neither an explicit size nor
+                compartments to derive one from.
+        """
+        from pyboxbuilder.compartments.layout import compute_min_box_size
+
+        wt = builder.wall_thickness or self.wall_thickness
+        ft = builder.floor_thickness or self.floor_thickness
+        lt = builder.lid_thickness or self.lid_thickness
+
+        def from_compartments() -> tuple[float, float, float]:
+            return compute_min_box_size(
+                [
+                    (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
+                    for cb in builder.compartments
+                ],
+                wt, ft, lt,
+            )
+
+        if builder.size is not None:
+            size = list(builder.size)
+            if None in size:
+                derived = from_compartments()
+                size = [axis if axis is not None else derived[i] for i, axis in enumerate(size)]
+            size = tuple(size)
+        elif builder.compartments:
+            size = from_compartments()
+        else:
+            raise ValueError(
+                f"Box '{builder.label}' has no explicit size and no "
+                f"compartments — at least one is required."
+            )
+
+        object.__setattr__(builder, "final_size", size)
+        return size
+
+    def _spacer_placements(self, packing) -> list:
+        """Derive the spacer trays that fill the gaps in a packed layout.
+
+        Shared by :meth:`export` and :meth:`show` so a preview shows exactly
+        the spacers an export would write.
+
+        Args:
+            packing: The resolved :class:`BoxPacking` whose placements the
+                leftover space is measured around.
+
+        Returns:
+            The spacer placements, after the sweep → merge → shrink → filter
+            pass (FR-014a/b/c). Empty when no gap survives the minimums.
+        """
+        from pyboxbuilder.packing.spacer import generate_spacer_placements
+
+        # Effective container: subtract the board thickness from the height so
+        # the board area stays reserved rather than being filled with a spacer.
+        effective_container = (
+            self.game_box_size[0],
+            self.game_box_size[1],
+            self.game_box_size[2] - self.board_thickness,
+        )
+        return generate_spacer_placements(
+            effective_container,
+            packing.placements,
+            clearance=self.clearance_slack,
+            min_dim=self.min_spacer_height,
+        )
+
+    def _build_spacer_solid(self, spacer):
+        """Build one spacer tray's geometry in its own local frame.
+
+        Args:
+            spacer: A spacer placement carrying ``label``, ``size`` and an
+                optional rectilinear ``path`` footprint.
+
+        Returns:
+            The built solid, or ``None`` when the geometry could not be built
+            (pybosl2 unavailable, or a degenerate footprint).
+        """
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        try:
+            # An L/T/U-shaped leftover is a PathBox; a plain rectangle is a
+            # NoLidBox tray.
+            spacer_cls = BOX_IMPL_REGISTRY.get(BoxType.PATH if spacer.path else BoxType.NO_LID)
+            if spacer_cls is None:
+                return None
+            return spacer_cls().build_body({
+                "label": spacer.label,
+                "width": spacer.size[0],
+                "length": spacer.size[1],
+                "height": spacer.size[2],
+                "wall_thickness": self.wall_thickness,
+                "floor_thickness": self.floor_thickness,
+                "lid_thickness": 0.0,
+                "path": spacer.path or (),
+            })
+        except Exception:
+            return None
+
+    def export(
+        self,
+        out_dir: str | Path,
+        fn: int | None = None,
+        fa: float | None = None,
+        fs: float | None = None,
+    ) -> ExportResult:
+        """Build, pack, and export all 3MF files + the layout PDF.
+
+        Args:
+            out_dir: Directory to write into; files land under
+                ``{out_dir}/{project name}/mmu/`` and ``.../single/``.
+            fn: Fixed facets per circle for every curve in the exported
+                geometry. ``None`` (the default) defers to fa/fs. Raise it for
+                print-quality curves.
+            fa: Minimum angle per fragment, in degrees (default 12).
+            fs: Minimum fragment size, in mm (default 2).
+
+        Returns:
+            An :class:`ExportResult` listing the files written and skipped.
+
+        Raises:
+            ValueError: If a box cannot be sized, or a precision setting is
+                out of range.
+            PackingError: If the boxes cannot be packed into the game box.
+        """
+        from pyboxbuilder.precision import use
+
+        with use(fn=fn, fa=fa, fs=fs):
+            # Standalone mode: no game box → export each box directly, no packing/PDF
+            if self.game_box_size is None:
+                return self._export_standalone(out_dir)
+            return self._export_packed(out_dir)
+
+    def _export_packed(self, out_dir: str | Path) -> ExportResult:
+        """Export a project that has a game box: pack, spacer, build, write.
+
+        Args:
+            out_dir: Directory to write into.
+
+        Returns:
+            An :class:`ExportResult` listing the files written and skipped.
+        """
         from pyboxbuilder.export.result import ExportResult
         from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY, LIDLESS_BOX_TYPES
         from pyboxbuilder.box.interior import Interior
         from pyboxbuilder.export.exporter import BoxExporter
-
-        # Standalone mode: no game box → export each box directly, no packing/PDF
-        if self.game_box_size is None:
-            return self._export_standalone(out_dir)
 
         exporter = BoxExporter(out_dir, self.name)
 
@@ -600,24 +844,7 @@ class Project:
 
         # 3. Generate and export 3D spacers from gaps in the packed layout.
         # The sweep-merge-shrink pass lives in packing/spacer.py (FR-014a/b/c).
-        from pyboxbuilder.packing.spacer import generate_spacer_placements
-
-        # Effective box container: subtract board thickness from the height so the
-        # board area is reserved (occupied by the game board), not treated as a spacer gap.
-        effective_container = (
-            self.game_box_size[0],
-            self.game_box_size[1],
-            self.game_box_size[2] - self.board_thickness,
-        )
-        if self.generate_spacers:
-            spacer_placements = generate_spacer_placements(
-                effective_container,
-                packing.placements,
-                clearance=self.clearance_slack,
-                min_dim=self.min_spacer_height,
-            )
-        else:
-            spacer_placements = []
+        spacer_placements = self._spacer_placements(packing) if self.generate_spacers else []
         packing.spacer_placements = spacer_placements
 
         # Delete stale spacer files from previous runs (no longer-generated spacers)
@@ -625,29 +852,9 @@ class Project:
 
         # Build and write spacer 3MF files
         for spacer in spacer_placements:
-            body = None
-            try:
-                # An L/T/U-shaped leftover is a PathBox; a plain rectangle is a
-                # NoLidBox tray.
-                spacer_type = BoxType.PATH if spacer.path else BoxType.NO_LID
-                spacer_cls = BOX_IMPL_REGISTRY.get(spacer_type)
-                if spacer_cls is not None:
-                    spec_dict = {
-                        "label": spacer.label,
-                        "width": spacer.size[0],
-                        "length": spacer.size[1],
-                        "height": spacer.size[2],
-                        "wall_thickness": self.wall_thickness,
-                        "floor_thickness": self.floor_thickness,
-                        "lid_thickness": 0.0,
-                        "path": spacer.path or (),
-                    }
-                    body = spacer_cls().build_body(spec_dict)
-            except Exception:
-                body = None
-
             exporter.write_box(
-                spacer.label, body=body, size=spacer.size, has_lid=False,
+                spacer.label, body=self._build_spacer_solid(spacer),
+                size=spacer.size, has_lid=False,
             )
 
         # 4. Generate packing layout PDF
@@ -717,33 +924,7 @@ class Project:
             ft = builder.floor_thickness or self.floor_thickness
             lt = builder.lid_thickness or self.lid_thickness
 
-            if builder.size is not None:
-                size = list(builder.size)
-                if None in size:
-                    from pyboxbuilder.compartments.layout import compute_min_box_size
-                    comp_raw = [
-                        (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
-                        for cb in builder.compartments
-                    ]
-                    min_w, min_l, min_h = compute_min_box_size(comp_raw, wt, ft, lt)
-                    if size[0] is None: size[0] = min_w
-                    if size[1] is None: size[1] = min_l
-                    if size[2] is None: size[2] = min_h
-                size = tuple(size)
-            elif builder.compartments:
-                from pyboxbuilder.compartments.layout import compute_min_box_size
-                comp_raw = [
-                    (cb.label, cb.size[0] if cb.size else 50, cb.size[1] if cb.size else 50, cb.depth or 10)
-                    for cb in builder.compartments
-                ]
-                size = compute_min_box_size(comp_raw, wt, ft, lt)
-            else:
-                raise ValueError(
-                    f"Box '{builder.label}' has no explicit size and no "
-                    f"compartments — at least one is required."
-                )
-
-            object.__setattr__(builder, "final_size", size)
+            size = self._standalone_size(builder)
 
             body = lid = None
             box_cls = BOX_IMPL_REGISTRY.get(builder.box_type)

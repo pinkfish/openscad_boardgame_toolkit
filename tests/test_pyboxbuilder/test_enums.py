@@ -3,7 +3,10 @@
 
 import unittest
 
-from pyboxbuilder.enums import BoxType, LabelMode, PatternType, ScoopSide
+from pyboxbuilder.enums import (
+    BoxType, LabelMode, MagnetType, PatternType, ScoopSide, StackableMode,
+)
+from pyboxbuilder.project import Project
 
 
 class EnumTests(unittest.TestCase):
@@ -40,3 +43,63 @@ class EnumTests(unittest.TestCase):
         self.assertEqual(ScoopSide.BACK.value, "back")
         self.assertEqual(ScoopSide.LEFT.value, "left")
         self.assertEqual(ScoopSide.RIGHT.value, "right")
+
+
+class StackableAndMagnetEnumTests(unittest.TestCase):
+    """T259–T261: type selections are enums, never bare strings."""
+
+    def test_stackable_members(self) -> None:
+        self.assertEqual({m.name for m in StackableMode}, {"INSIDE", "OUTSIDE"})
+        self.assertEqual(StackableMode.INSIDE.value, "inside")
+        self.assertEqual(StackableMode.OUTSIDE.value, "outside")
+
+    def test_magnet_members(self) -> None:
+        self.assertEqual({m.name for m in MagnetType}, {"NONE", "ROUND", "RECT"})
+
+    def test_builder_accepts_the_enums(self) -> None:
+        p = Project("EnumTest")
+        box = p.box(
+            BoxType.NO_LID, "Hex", size=(40, 40, 20),
+            stackable=StackableMode.OUTSIDE, magnet_type=MagnetType.RECT,
+        )
+        self.assertIs(box.stackable, StackableMode.OUTSIDE)
+        self.assertIs(box.magnet_type, MagnetType.RECT)
+
+    def test_builder_defaults_are_none(self) -> None:
+        p = Project("EnumTest")
+        box = p.box(BoxType.NO_LID, "Plain", size=(40, 40, 20))
+        self.assertIsNone(box.stackable)
+        self.assertIsNone(box.magnet_type)
+
+    def test_bare_string_is_rejected(self) -> None:
+        p = Project("EnumTest")
+        for field, value in (("stackable", "inside"), ("magnet_type", "round")):
+            with self.subTest(field=field):
+                with self.assertRaises(TypeError) as caught:
+                    p.box(BoxType.NO_LID, "Hex", size=(40, 40, 20), **{field: value})
+                message = str(caught.exception)
+                self.assertIn("Hex", message)      # names the box
+                self.assertIn(field, message)      # names the field
+                self.assertIn(value, message)      # shows what was passed
+
+    def test_geometry_reads_the_enum(self) -> None:
+        """A stackable box with magnets must differ from a plain one."""
+        from pyboxbuilder.box.types.no_lid import NoLidBox
+
+        base = dict(label="Hex", width=40, length=40, height=20,
+                    wall_thickness=2.0, floor_thickness=2.0, lid_thickness=0.0)
+        plain = repr(NoLidBox().build_body(dict(base)))
+        featured = repr(NoLidBox().build_body(
+            dict(base, stackable=StackableMode.INSIDE, magnet_type=MagnetType.ROUND,
+                 magnet_size=(6, 6, 3))
+        ))
+        self.assertNotEqual(plain, featured)
+
+    def test_magnet_none_means_no_magnets(self) -> None:
+        from pyboxbuilder.box.types.no_lid import NoLidBox
+
+        base = dict(label="Hex", width=40, length=40, height=20,
+                    wall_thickness=2.0, floor_thickness=2.0, lid_thickness=0.0)
+        plain = repr(NoLidBox().build_body(dict(base)))
+        explicit_none = repr(NoLidBox().build_body(dict(base, magnet_type=MagnetType.NONE)))
+        self.assertEqual(plain, explicit_none)

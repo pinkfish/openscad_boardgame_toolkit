@@ -7,6 +7,8 @@ is pure Python; geometry generation delegates to pybosl2.
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -163,7 +165,8 @@ def build_hex_grid(spec: HexGridSpec) -> "Bosl2Solid":
         # Finger hole: circular cutout through the floor (FR-042).
         # Offset from the pillar to the cell edge when both are present.
         if spec.finger_hole_diameter > 0:
-            hole = cylinder(height=spec.height + 1, radius=spec.finger_hole_diameter / 2)
+            hole = cylinder(height=spec.height + 1, radius=spec.finger_hole_diameter / 2,
+                            **precision_kwargs())
             offset_x = spec.circumradius * 0.4 if spec.push_block_height > 0 else 0.0
             hole = hole.translate([offset_x, 0, -0.5])
             hex_cutout = hex_cutout - hole

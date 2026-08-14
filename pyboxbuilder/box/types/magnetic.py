@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -55,7 +57,7 @@ class MagneticBox:
             mx = spec["width"] * (xi + 1) / (nw + 1)
             for yi in range(nl):
                 my = spec["length"] * (yi + 1) / (nl + 1)
-                pocket = cylinder(height=depth, radius=md / 2 + 0.1)
+                pocket = cylinder(height=depth, radius=md / 2 + 0.1, **precision_kwargs())
                 pocket = pocket.translate([mx, my, spec["height"] - depth / 2])
                 body = body - pocket
 

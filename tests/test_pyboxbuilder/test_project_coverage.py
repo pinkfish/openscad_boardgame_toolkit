@@ -54,13 +54,15 @@ class BoxKwargsPropagationTests(unittest.TestCase):
 
     def test_stackable_and_magnet_flags(self) -> None:
         p = Project("KW", game_box_size=(200, 150, 60))
+        from pyboxbuilder.enums import MagnetType, StackableMode
+
         b = p.box(
             BoxType.NO_LID, "A", size=(100, 80, 40),
-            stackable="inside", stackable_thickness=2.0,
-            magnet_type="round", magnet_size=(6.0, 3.0, 3.0),
+            stackable=StackableMode.INSIDE, stackable_thickness=2.0,
+            magnet_type=MagnetType.ROUND, magnet_size=(6.0, 3.0, 3.0),
         )
-        self.assertEqual(b.stackable, "inside")
-        self.assertEqual(b.magnet_type, "round")
+        self.assertIs(b.stackable, StackableMode.INSIDE)
+        self.assertIs(b.magnet_type, MagnetType.ROUND)
 
     def test_lid_kwarg(self) -> None:
         p = Project("KW", game_box_size=(200, 150, 60))

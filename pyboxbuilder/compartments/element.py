@@ -14,6 +14,8 @@ actually built, so the layout maths stays importable without PythonSCAD.
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 import math
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Iterable, Sequence
@@ -268,16 +270,17 @@ def build_element(
         assert element.shape_file is not None
         solid = svg_solid(element.shape_file, w, l, depth)
     elif element.shape is ElementShape.CIRCLE:
-        solid = cylinder(height=depth, radius=base_w / 2)
+        solid = cylinder(height=depth, radius=base_w / 2, **precision_kwargs())
     elif element.shape is ElementShape.HEXAGON:
         # `w` is the flat-to-flat width, as `RegularPolygon(width=...)` reads it.
         solid = regular_prism(
             6, height=depth, radius=w / 2 / math.cos(math.radians(30))
         )
     elif element.shape is ElementShape.SPHERE_SCOOP:
-        solid = sphere(radius=base_w / 2)
+        solid = sphere(radius=base_w / 2, **precision_kwargs())
     elif element.shape is ElementShape.ROUNDED_RECT:
-        solid = cuboid([w, l, depth], rounding=element.corner_radius, edges=Anchor.Z)
+        solid = cuboid([w, l, depth], rounding=element.corner_radius, edges=Anchor.Z,
+                       **precision_kwargs())
     else:
         solid = cuboid([w, l, depth])
 

@@ -701,11 +701,12 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 **Independent Test**: Show a 4-box project with `remove_layers=1` and verify the top layer's boxes are absent from the rendered solid while every lower box is present.
 
-- [ ] T239 Add `remove_layers: int = 0` to `Project.show()` — omit the top N vertical layers of the packed layout (a box is in a removed layer when its top surface sits above the N-th slice), revealing what is underneath, in `pyboxbuilder/project.py`
-- [ ] T240 [P] Assign each box a stable colour for preview: its own body colour when set, otherwise a deterministic pseudo-random hue hashed from its label. View-time only — it must not reach the exported geometry or its material, in `pyboxbuilder/project.py`
-- [ ] T241 [P] Render spacer placements in `show()` too, always in a variant of grey drawn from outside the per-box palette, so dead fill is instantly distinguishable from a real box
-- [ ] T242 [P] Render a shown lid semi-transparent (50% alpha) in a slightly lighter shade of its box's colour, so the lid reads as a separate piece and the box stays visible through it
-- [ ] T243 [P] Write test: `remove_layers` drops exactly the boxes above each slice (0 → all, N → none of the top layer), colours are stable across runs and unique per label, spacers are grey and lids lighter-and-transparent, and `show()` writes no files, in `tests/test_pyboxbuilder/test_show.py`
+- [x] T239a Stop `show()` unioning the bodies — build a list of independently placed, independently coloured solids and show each, so per-box colour, lid translucency and spacer grey survive and touching boxes do not fuse into one blob, in `pyboxbuilder/project.py`
+- [x] T239 Add `remove_layers: int = 0` to `Project.show()` — omit the top N vertical layers of the packed layout (a box is in a removed layer when its top surface sits above the N-th slice), revealing what is underneath, in `pyboxbuilder/project.py`
+- [x] T240 [P] Assign each box a stable colour for preview: its own body colour when set, otherwise a deterministic pseudo-random hue hashed from its label. View-time only — it must not reach the exported geometry or its material, in `pyboxbuilder/project.py`
+- [x] T241 [P] Render spacer placements in `show()` too, always in a variant of grey drawn from outside the per-box palette, so dead fill is instantly distinguishable from a real box
+- [x] T242 [P] Render a shown lid semi-transparent (50% alpha) in a slightly lighter shade of its box's colour, so the lid reads as a separate piece and the box stays visible through it
+- [x] T243 [P] Write test: `remove_layers` drops exactly the boxes above each slice (0 → all, N → none of the top layer), colours are stable across runs and unique per label, spacers are grey and lids lighter-and-transparent, and `show()` writes no files, in `tests/test_pyboxbuilder/test_show.py`
 
 **Checkpoint**: `project.show()` is a usable layout preview, not a monolithic union.
 
@@ -719,9 +720,9 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 **Independent Test**: Export the same box at `fn=8` and `fn=64` and verify the cylinder-derived features change facet count while the box's measured bounding box does not.
 
-- [ ] T244 Add optional `fn`, `fa`, `fs` parameters to `Project.export()` and `Project.show()` and thread them through a single render-context object rather than a parameter on every call, in `pyboxbuilder/project.py`
-- [ ] T245 Consume the context in every geometry call that renders a curve — cylinders/spheres, `cuboid(rounding=)`, fillets and chamfers, finger-scoop and finger-hole profiles, hex and tessellation edges, and lid-pattern curves — in `pyboxbuilder/box/`, `pyboxbuilder/compartments/`, `pyboxbuilder/lid/`
-- [ ] T246 [P] Write test: defaults are `fa=12, fs=2`; an explicit `fn` reaches a scoop, a hex cell and a lid pattern; and no module hardcodes a facet count (grep-style assertion over `pyboxbuilder/`), in `tests/test_pyboxbuilder/test_precision.py`
+- [x] T244 Add optional `fn`, `fa`, `fs` parameters to `Project.export()` and `Project.show()` and thread them through a single render-context object rather than a parameter on every call, in `pyboxbuilder/project.py`
+- [x] T245 Consume the context in every geometry call that renders a curve — cylinders/spheres, `cuboid(rounding=)`, fillets and chamfers, finger-scoop and finger-hole profiles, hex and tessellation edges, and lid-pattern curves — in `pyboxbuilder/box/`, `pyboxbuilder/compartments/`, `pyboxbuilder/lid/`
+- [x] T246 [P] Write test: defaults are `fa=12, fs=2`; an explicit `fn` reaches a scoop, a hex cell and a lid pattern; and no module hardcodes a facet count (grep-style assertion over `pyboxbuilder/`), in `tests/test_pyboxbuilder/test_precision.py`
 
 **Checkpoint**: Precision is one knob, from fast preview to print quality.
 
@@ -771,9 +772,9 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 **Independent Test**: A bare string in either field is a type error under pyright and a `TypeError` at runtime.
 
-- [ ] T259 Add `StackableMode` (`INSIDE`, `OUTSIDE`) and `MagnetType` (`ROUND`, `RECT`, `NONE`) to `pyboxbuilder/enums.py`, and give `ScoopSide` a real default member instead of `None`
-- [ ] T260 Migrate `BoxBuilder`, `box/types/no_lid.py`, the registry and all six example projects that set them; reject a bare string at construction rather than coercing it
-- [ ] T261 [P] Write test: enum members round-trip through builder → box type → geometry, a bare string raises, and `boxes/stackable_hexes` still produces its 8 variants unchanged, in `tests/test_pyboxbuilder/test_enums.py`
+- [x] T259 Add `StackableMode` (`INSIDE`, `OUTSIDE`) and `MagnetType` (`ROUND`, `RECT`, `NONE`) to `pyboxbuilder/enums.py`, and give `ScoopSide` a real default member instead of `None`
+- [x] T260 Migrate `BoxBuilder`, `box/types/no_lid.py`, the registry and all six example projects that set them; reject a bare string at construction rather than coercing it
+- [x] T261 [P] Write test: enum members round-trip through builder → box type → geometry, a bare string raises, and `boxes/stackable_hexes` still produces its 8 variants unchanged, in `tests/test_pyboxbuilder/test_enums.py`
 
 ---
 

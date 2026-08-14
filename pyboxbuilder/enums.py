@@ -88,6 +88,30 @@ class PatternType(Enum):
     GRID = "grid"
 
 
+class StackableMode(Enum):
+    """How a no-lid box's interlocking rim mates with its neighbour (FR-038).
+
+    Both modes stack securely; the choice decides whether the rim sits inside
+    the box above or wraps around the box below.
+    """
+
+    INSIDE = "inside"
+    """A recess in the top rim that the box above nests down into."""
+    OUTSIDE = "outside"
+    """A ridge around the outside that fits over the box below."""
+
+
+class MagnetType(Enum):
+    """Shape of a magnet cavity in a box side wall (FR-039)."""
+
+    NONE = "none"
+    """No magnets."""
+    ROUND = "round"
+    """A cylindrical cavity — e.g. a 6mm diameter x 3mm deep disc magnet."""
+    RECT = "rect"
+    """A box-shaped cavity — e.g. a 10 x 5 x 2mm block magnet."""
+
+
 class ScoopSide(Enum):
     """Finger scoop placement side."""
 

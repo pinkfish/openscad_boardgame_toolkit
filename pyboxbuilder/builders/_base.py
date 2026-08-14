@@ -6,7 +6,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar
 
-from pyboxbuilder.enums import BoxType
+from pybosl2 import Color
+
+from pyboxbuilder.enums import BoxType, MagnetType, StackableMode
 
 if TYPE_CHECKING:
     from pyboxbuilder.lid.builder import LidBuilder
@@ -32,12 +34,12 @@ class BoxBuilder:
     """Box dimensions [W, L, H] in mm. None = auto-compute from compartments."""
     position: tuple[float, float, float] | None = None
     """Manual packing position override [X, Y, Z] in mm."""
-    stackable: str | None = None
-    """Stackable mode for no-lid boxes: 'inside', 'outside', or None."""
+    stackable: StackableMode | None = None
+    """Interlocking rim mode for no-lid boxes; ``None`` means not stackable."""
     stackable_thickness: float | None = None
     """Interlocking rim thickness for stackable boxes."""
-    magnet_type: str | None = None
-    """Magnet slot type: 'round', 'rect', or None (no magnets)."""
+    magnet_type: MagnetType | None = None
+    """Magnet slot shape; ``None`` or :attr:`MagnetType.NONE` means no magnets."""
     magnet_size: tuple[float, float, float] | None = None
     """Magnet slot dimensions [diameter_or_width, length, depth]."""
     final_size: tuple[float, float, float] | None = None
@@ -58,10 +60,37 @@ class BoxBuilder:
     """Per-box lid thickness override."""
     lid: LidBuilder | None = None
     """Lid decoration configuration."""
+    color: Color | None = None
+    """Body colour, as a :class:`pybosl2.Color` (webcolor names welcome).
+
+    Used as the box's material colour on export and as its colour in
+    :meth:`Project.show`. When unset, a preview assigns a stable pseudo-random
+    hue derived from the label so adjacent boxes stay distinguishable; that
+    fallback is view-time only and never reaches the exported geometry.
+    """
     finger_holes: tuple[FingerHoleBuilder, ...] = ()
     """Finger holes on box exterior walls."""
     compartments: tuple[CompartmentBuilder, ...] = ()
     """Interior compartments."""
+
+    def __post_init__(self) -> None:
+        """Reject bare strings where the API takes an enum.
+
+        Type selections are enums throughout, so a stray ``"inside"`` or
+        ``"round"`` is a mistake worth naming at construction rather than a
+        silent no-match deep inside the geometry code.
+
+        Raises:
+            TypeError: If ``stackable`` or ``magnet_type`` is not its enum.
+        """
+        for name, enum_cls in (("stackable", StackableMode), ("magnet_type", MagnetType)):
+            value = getattr(self, name)
+            if value is not None and not isinstance(value, enum_cls):
+                members = ", ".join(f"{enum_cls.__name__}.{m.name}" for m in enum_cls)
+                raise TypeError(
+                    f"Box '{self.label}': {name} must be a {enum_cls.__name__} "
+                    f"({members}) or None; got {value!r}"
+                )
 
     def compartment(
         self,

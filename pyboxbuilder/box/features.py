@@ -13,6 +13,8 @@ at the bed. pybosl2 primitives are centre-anchored, so placement goes through
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -232,8 +234,8 @@ def sliding_catch(spec: dict, radius: float = 1.0) -> Closure:
     x = spec["width"] - wt - radius * 2
     z = spec["height"] - lt / 2
 
-    dimple = sphere(radius=radius + FIT_SLACK_MM / 2)
-    bump = sphere(radius=radius)
+    dimple = sphere(radius=radius + FIT_SLACK_MM / 2, **precision_kwargs())
+    bump = sphere(radius=radius, **precision_kwargs())
     bumps = bump.translate([x, wt, z]) | bump.translate([x, spec["length"] - wt, z])
     # The bump engages sideways in the groove, so trimming its crown at the box's
     # top face costs nothing — and leaving it proud would make the closed box
@@ -298,7 +300,7 @@ def filament_hinge(
         if length <= 0:
             continue
         centre_x = wt + pitch * (index + 0.5)
-        knuckle = cylinder(height=length, radius=radius).rotate([0, 90, 0])
+        knuckle = cylinder(height=length, radius=radius, **precision_kwargs()).rotate([0, 90, 0])
         knuckle = knuckle.translate([centre_x, axis_y, axis_z])
 
         # Each leaf webs back to its own half — the body's below the joint, the
@@ -318,7 +320,7 @@ def filament_hinge(
             )
             body_parts += [knuckle, web]
 
-    pin = cylinder(height=spec["width"] + 2, radius=bore).rotate([0, 90, 0])
+    pin = cylinder(height=spec["width"] + 2, radius=bore, **precision_kwargs()).rotate([0, 90, 0])
     pin = pin.translate([spec["width"] / 2, axis_y, axis_z])
     # Split the barrel at the joint line so the two leaves cannot touch.
     parting = block(

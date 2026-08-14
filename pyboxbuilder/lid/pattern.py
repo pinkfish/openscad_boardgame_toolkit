@@ -8,6 +8,8 @@ the borrowed generators from `pentagon_tilings.py` and `tesselations/`.
 
 from __future__ import annotations
 
+from pyboxbuilder.precision import kwargs as precision_kwargs
+
 from typing import TYPE_CHECKING, Callable
 
 from pyboxbuilder.enums import PatternType
@@ -97,9 +99,10 @@ def _circle_grid_fill(width, length, thickness, spacing):
         cx = xi * spacing
         for yi in range(y_count):
             cy = yi * spacing
-            hole = cylinder(height=thickness * 1.2, radius=r).translate([cx, cy, -0.1])
+            hole = cylinder(height=thickness * 1.2, radius=r,
+                            **precision_kwargs()).translate([cx, cy, -0.1])
             holes = hole if holes is None else holes | hole
-    return holes or cylinder(height=1, radius=1)
+    return holes or cylinder(height=1, radius=1, **precision_kwargs())
 
 
 def _triangle_grid_fill(width, length, thickness, spacing, dense=False):

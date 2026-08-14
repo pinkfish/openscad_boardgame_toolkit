@@ -25,7 +25,9 @@ for _sp in ROOT.glob("venv/*/lib/*/site-packages"):
 
 from pybosl2 import Color
 
-from pyboxbuilder import Project, BoxType, LabelMode, LidBuilder
+from pyboxbuilder import (
+    Project, BoxType, LabelMode, LidBuilder, MagnetType, StackableMode,
+)
 
 # ── Stackable Hex Parameters ──────────────────────────────────────
 stackable_width = 100
@@ -41,7 +43,7 @@ def stackable_hex(
     project: Project,
     label: str,
     divisions: int,
-    magnet_type: str,
+    magnet_type: MagnetType,
     magnet_size: tuple,
 ) -> None:
     """Create a standalone stackable hex box."""
@@ -50,9 +52,9 @@ def stackable_hex(
         label,
         size=(stackable_width, stackable_width, stackable_height),
         wall_thickness=wall_thickness,
-        stackable="inside",            # interlocking rim (FR-038)
+        stackable=StackableMode.INSIDE,  # interlocking rim (FR-038)
         stackable_thickness=2.0,
-        magnet_type=magnet_type,       # round or rect (FR-039)
+        magnet_type=magnet_type,         # round or rect (FR-039)
         magnet_size=magnet_size,
         no_rotate=True,                # hex is rotationally symmetric
     )
@@ -90,9 +92,9 @@ rect_variants = [
 ]
 
 for divisions, label in round_variants:
-    stackable_hex(project, label, divisions, "round", ROUND_MAGNET_SIZE)
+    stackable_hex(project, label, divisions, MagnetType.ROUND, ROUND_MAGNET_SIZE)
 for divisions, label in rect_variants:
-    stackable_hex(project, label, divisions, "rect", RECT_MAGNET_SIZE)
+    stackable_hex(project, label, divisions, MagnetType.RECT, RECT_MAGNET_SIZE)
 
 # ── Export ────────────────────────────────────────────────────────
 if __name__ == "__main__":
