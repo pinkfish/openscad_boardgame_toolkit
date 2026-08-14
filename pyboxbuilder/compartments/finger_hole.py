@@ -507,6 +507,39 @@ def build_wall_scoop(
     )
 
 
+def _roundover_profile(radius: float, steps: int):
+    """A rim profile that **rounds the face over** into the cut.
+
+    ``os_circle`` is the obvious choice and is the wrong shape: its arc is
+    tangent to the cut's wall and meets the end face at 90°, which on a
+    subtractive solid hollows a cove *inside* the wall and leaves the opening
+    at nominal size — a cutout, not a roundover.
+
+    The roundover is the mirrored arc, tangent to the **face**::
+
+        z     = r · (1 - cos a)      # depth from the face
+        inset = r · sin a            # how far the cut has narrowed
+
+    so at the face the cut is a full ``r`` wider (and tangent to the face, so
+    the face flows into it), and by depth ``r`` it has settled onto the wall.
+
+    Args:
+        radius: The fillet radius.
+        steps: Points along the arc.
+
+    Returns:
+        An ``OSProfile`` for :meth:`Path2D.offset_sweep`, whose ``x`` is the
+        inward offset and ``y`` the depth from the face.
+    """
+    from pybosl2.skin import os_profile
+
+    points = []
+    for index in range(steps + 1):
+        angle = (math.pi / 2) * index / steps
+        points.append([radius * math.sin(angle), radius * (1.0 - math.cos(angle))])
+    return os_profile(points)
+
+
 def _sweep_through_wall(
     outline: list,
     comp_width: float,
@@ -567,21 +600,30 @@ def _sweep_through_wall(
     depth = wall_thickness + fudge
     rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
 
-    # BOSL2's own offset_sweep, which lofts between offsets of the outline.
-    # The hand-rolled stand-in chained convex hulls between slices, and a hull
-    # across a U-shaped outline bridges the notch — the fillet came out as a
-    # straight ramp from the bottom of the cut to the top instead of following
-    # its curve.
+    # BOSL2's own offset_sweep, which lofts between offsets of the outline, so
+    # the fillet follows the cut's curve. (A hand-rolled stand-in chained
+    # convex hulls between slices, and a hull across a U-shaped outline bridges
+    # the notch — the fillet came out as a ramp across the opening.)
     from pybosl2.path2d import Path2D
-    from pybosl2.skin import os_circle
 
-    path = Path2D([[float(x), float(y)] for x, y in outline], closed=True)
-    swept = path.offset_sweep(
-        height=depth,
-        bottom=os_circle(-rim) if (round_outer and rim > 0) else None,
-        top=os_circle(-rim) if (round_inner and rim > 0) else None,
-        steps=max(8, rounding_facets()["fn"] // 4),
-    )
+    steps = max(8, rounding_facets()["fn"] // 4)
+    ring = [[float(x), float(y)] for x, y in outline]
+    fillet = rim if (rim > 0 and (round_outer or round_inner)) else 0.0
+
+    if fillet > 0:
+        # The path is the cross-section **at the end face**, and a rim profile
+        # moves it as you travel inward. So the widened outline is the path and
+        # the rim brings it back in: that is what puts the extra material at
+        # the face, where the roundover belongs.
+        path = Path2D(ring, closed=True).offset(delta=fillet)
+        swept = path.offset_sweep(
+            height=depth,
+            bottom=_roundover_profile(fillet, steps) if round_outer else None,
+            top=_roundover_profile(fillet, steps) if round_inner else None,
+            steps=steps,
+        )
+    else:
+        swept = Path2D(ring, closed=True).offset_sweep(height=depth, steps=steps)
     # offset_sweep hands back a VNF; realise it and wrap the native solid so
     # the transforms and booleans below have something to work with.
     from pybosl2.shapes3d.base import CsgSolid

@@ -576,3 +576,57 @@ cuboid([1, 1, 1]).show()
                 box = self.result.boxes[name + "_body"]
                 self.assertLessEqual(box.size[0], 100.5)
                 self.assertLessEqual(box.size[1], 80.5)
+
+
+@unittest.skipUnless(render_available(), "PythonSCAD binary not available")
+class FaceRoundoverTests(unittest.TestCase):
+    """FR-044e: the cut is wider at the face than mid-wall, or it is a cove.
+
+    This is the measurement that separates the two, and it is the one that has
+    caught the mistake three times: a cove and a roundover look equally smooth
+    in a render, and differ only in which surface they are tangent to.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        body = '''
+from pyboxbuilder.compartments.finger_hole import build_wall_scoop
+from pyboxbuilder.enums import ScoopSide
+from pybosl2 import cuboid
+
+# 4mm wall, 2mm face fillet. The wall spans y = -4 .. 0.
+scoop = build_wall_scoop(96, 76, 20, ScoopSide.FRONT, radius=14,
+                         wall_thickness=4, rounding_edge=2.0)
+for y, name in ((-3.9, "at_face"), (-2.0, "mid_wall")):
+    measure(name, scoop & cuboid([300, 0.2, 300]).translate([0, y, 0]))
+
+# With the fillet off there is nothing to widen: the two match.
+square = build_wall_scoop(96, 76, 20, ScoopSide.FRONT, radius=14,
+                          wall_thickness=4, rounding_edge=0.0)
+for y, name in ((-3.9, "square_at_face"), (-2.0, "square_mid_wall")):
+    measure(name, square & cuboid([300, 0.2, 300]).translate([0, y, 0]))
+cuboid([1, 1, 1]).show()
+'''
+        cls.result = measure_python(body)
+        if not cls.result.ok:
+            raise AssertionError(f"measurement run failed: {cls.result.error}")
+
+    def width(self, name: str) -> float:
+        return self.result.boxes[name].size[0]
+
+    def test_the_cut_is_wider_at_the_face(self) -> None:
+        """A cove would make it *narrower* at the face, gouging the inside."""
+        self.assertGreater(
+            self.width("at_face"), self.width("mid_wall") + 1.0,
+            "the fillet hollowed the wall instead of rolling the face in",
+        )
+
+    def test_it_widens_by_about_the_fillet_radius_each_side(self) -> None:
+        self.assertAlmostEqual(
+            self.width("at_face") - self.width("mid_wall"), 4.0, delta=0.5,
+        )
+
+    def test_no_fillet_means_no_widening(self) -> None:
+        self.assertAlmostEqual(
+            self.width("square_at_face"), self.width("square_mid_wall"), delta=0.1,
+        )
