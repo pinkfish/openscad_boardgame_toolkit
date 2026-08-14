@@ -89,7 +89,12 @@ def cap_body(spec: dict) -> "Bosl2Solid":
     from pyboxbuilder.box.shell import block, build_shell
 
     m = cap_metrics(spec)
-    shell = build_shell({**spec, "height": m.body_height})
+    # `interior_top`: the body is already shortened for the cap, so its own top
+    # is the top of the inside — subtracting a lid thickness again would push
+    # every finger hole a lid deeper than it belongs.
+    shell = build_shell({
+        **spec, "height": m.body_height, "interior_top": m.body_height,
+    })
     if m.band_z >= m.body_height:
         return shell  # the cap is taller than the body; nothing to step in
 

@@ -140,7 +140,7 @@ class BoxBuilder:
         side: "ScoopSide",
         *,
         radius: float = 14.0,
-        depth: float = 6.0,
+        depth: float | None = None,
         offset: float = 0.0,
         rounding_radius: float | None = None,
         rounding_edge: float | None = None,
@@ -155,8 +155,9 @@ class BoxBuilder:
         Args:
             side: Which exterior wall to cut.
             radius: Bore radius in mm; 14mm is adult fingertip sizing.
-            depth: How far down from the rim to reach. Capped at the interior
-                depth so the cut cannot open the box's base.
+            depth: How far down from the interior's top to reach. ``None``
+                uses the radius. Capped at the interior depth so the cut
+                cannot open the box's base.
             offset: Shift along the wall from its midpoint, in mm.
             rounding_radius: Mouth flare at the rim; ``None`` uses 3mm.
             rounding_edge: Face fillet; ``None`` uses ``wall_thickness / 2``,
@@ -195,8 +196,13 @@ class FingerHoleBuilder:
     """Which exterior wall the hole is cut through."""
     radius: float = 14.0
     """Bore radius in mm — adult fingertip sizing by default."""
-    depth: float = 6.0
-    """How far down from the rim the cut reaches, capped at the interior depth."""
+    depth: float | None = None
+    """How far down from the interior's top the cut reaches.
+
+    ``None`` uses the radius, which is how the original sizes it: the height of
+    a finger cut follows the finger, not the wall. A fixed default made every
+    hole a shallow nick regardless of how big a finger it was cut for.
+    """
     offset: float = 0.0
     """Shift along the wall from its midpoint, in mm."""
     rounding_radius: float | None = None
@@ -217,5 +223,5 @@ class FingerHoleBuilder:
             raise TypeError(f"finger hole side must be a ScoopSide ({sides}); got {self.side!r}")
         if self.radius <= 0:
             raise ValueError(f"finger hole radius must be > 0; got {self.radius}")
-        if self.depth <= 0:
+        if self.depth is not None and self.depth <= 0:
             raise ValueError(f"finger hole depth must be > 0; got {self.depth}")

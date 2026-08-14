@@ -196,9 +196,9 @@ cuboid([1, 1, 1]).show()
         no_mouth_low, no_mouth_high = self.span("no_mouth", 0)
         self.assertAlmostEqual(no_mouth_high - no_mouth_low, 22.0, delta=0.1)
 
-        # Both on: + 3mm of r1 roll each side.
+        # Both on: r1 defaults to half the throat (5mm here) on each side.
         full_low, full_high = self.span("wt2", 0)
-        self.assertAlmostEqual(full_high - full_low, 28.0, delta=0.1)
+        self.assertAlmostEqual(full_high - full_low, 32.0, delta=0.1)
 
     def test_carved_box_keeps_its_envelope(self) -> None:
         """Cutting the scoop must not enlarge the box or open its base."""
@@ -438,3 +438,94 @@ class FlatBottomTests(unittest.TestCase):
         from pyboxbuilder.compartments.finger_hole import DEFAULT_BOTTOM_ROUNDING_RATIO
 
         self.assertEqual(DEFAULT_BOTTOM_ROUNDING_RATIO, 0.5)
+
+
+class DerivedDefaultTests(unittest.TestCase):
+    """FR-043a2/a3: the defaults have to work with no overrides."""
+
+    def test_r1_scales_with_the_throat(self) -> None:
+        """A fixed r1 is invisible on a big scoop and huge on a small one."""
+        from pyboxbuilder.compartments.finger_hole import (
+            DEFAULT_TOP_ROUNDING_RATIO,
+            scoop_profile,
+        )
+
+        for radius in (4.0, 14.0):
+            with self.subTest(radius=radius):
+                derived = build_wall_scoop(200, 200, 30, ScoopSide.FRONT, radius=radius)
+                explicit = build_wall_scoop(
+                    200, 200, 30, ScoopSide.FRONT, radius=radius,
+                    rounding_radius=radius * DEFAULT_TOP_ROUNDING_RATIO,
+                )
+                self.assertEqual(repr(derived), repr(explicit))
+                self.assertIsNotNone(scoop_profile(radius, 30))
+
+    def test_a_narrow_span_shrinks_both_not_just_r1(self) -> None:
+        """The bug: capping the throat first left r1 at exactly zero."""
+        from pyboxbuilder.compartments.finger_hole import scoop_profile
+
+        span, radius = 20.0, 14.0
+        narrow = build_wall_scoop(span, 40, 30, ScoopSide.FRONT, radius=radius)
+        # r1 zeroed would make it identical to a scoop built with no roll at all.
+        flat = build_wall_scoop(span, 40, 30, ScoopSide.FRONT, radius=radius,
+                                rounding_radius=0.0)
+        self.assertNotEqual(repr(narrow), repr(flat), "the top roll was zeroed")
+        self.assertIsNotNone(scoop_profile(radius, 30))
+
+    def test_hole_height_follows_the_radius(self) -> None:
+        """`depth=None` means "as tall as the finger", not a fixed 6mm."""
+        from pyboxbuilder.builders._base import FingerHoleBuilder
+
+        self.assertIsNone(FingerHoleBuilder(side=ScoopSide.FRONT).depth)
+        self.assertEqual(FingerHoleBuilder(side=ScoopSide.FRONT).radius, 14.0)
+
+
+@unittest.skipUnless(render_available(), "PythonSCAD binary not available")
+class HoleAlignmentTests(unittest.TestCase):
+    """FR-043b1/b2: one call, right place, on every walled type."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        body = '''
+from pyboxbuilder import BoxType, Project, ScoopSide
+from pybosl2 import cuboid
+
+for name in ("no_lid", "sliding", "cap", "slipover"):
+    project = Project("A", game_box_size=(400, 200, 60), generate_spacers=False)
+    box = project.box(BoxType(name), name, size=(100, 80, 40), position=(0, 0, 0))
+    project._resolve_final_layout()
+    plain = project._build_box_solids(box)[0]
+    box.finger_hole(ScoopSide.FRONT)
+    project._resolve_final_layout()
+    holed = project._build_box_solids(box)[0]
+    measure(name + "_removed", plain - holed)
+    measure(name + "_body", holed)
+cuboid([1, 1, 1]).show()
+'''
+        cls.result = measure_python(body)
+        if not cls.result.ok:
+            raise AssertionError(f"measurement run failed: {cls.result.error}")
+
+    def test_every_type_gets_a_real_cut(self) -> None:
+        for name in ("no_lid", "sliding", "cap", "slipover"):
+            with self.subTest(box_type=name):
+                removed = self.result.boxes[name + "_removed"]
+                self.assertGreater(removed.size[0], 10.0, "the cut is a nick, not a scoop")
+                self.assertGreater(removed.size[2], 5.0, "the cut is too shallow to use")
+
+    def test_the_cut_starts_at_the_interior_top_not_the_rim(self) -> None:
+        """On a lidded box the rim is above the interior; the hole follows the
+        interior, so its top stops short of the box's own top."""
+        lidless = self.result.boxes["no_lid_removed"]
+        sliding = self.result.boxes["sliding_removed"]
+        lidless_top = lidless.position[2] + lidless.size[2]
+        sliding_top = sliding.position[2] + sliding.size[2]
+        self.assertLess(sliding_top, lidless_top,
+                        "the lidded box's hole was aligned to the rim")
+
+    def test_no_type_is_enlarged_by_its_hole(self) -> None:
+        for name in ("no_lid", "sliding", "cap", "slipover"):
+            with self.subTest(box_type=name):
+                box = self.result.boxes[name + "_body"]
+                self.assertLessEqual(box.size[0], 100.5)
+                self.assertLessEqual(box.size[1], 80.5)

@@ -40,7 +40,15 @@ MIN_WALL_SCOOP_DEPTH_MM = 8.0
 """Below this a wall notch has nothing to grip, so the floor scoop is used."""
 
 DEFAULT_MOUTH_ROUNDING_MM = 3.0
-"""Flare at the top of a scoop where it meets the rim (the original's default)."""
+"""Fallback ``r1`` where nothing better can be derived."""
+
+DEFAULT_TOP_ROUNDING_RATIO = 0.5
+"""``r1`` as a fraction of the throat half-width, when the caller names none.
+
+Derived rather than fixed so the roll stays in proportion: a 3mm constant is
+invisible on a 14mm finger hole and overwhelming on a 4mm one. Half the throat
+gives a roll you can feel on both.
+"""
 
 DEFAULT_EDGE_ROUNDING_MM = 1.0
 """Fallback face fillet where no wall thickness is known.
@@ -271,7 +279,7 @@ def build_wall_scoop(
     side: ScoopSide,
     radius: float = 12.0,
     wall_thickness: float = 2.0,
-    rounding_radius: float = DEFAULT_MOUTH_ROUNDING_MM,
+    rounding_radius: float | None = None,
     bottom_rounding: float | None = None,
     rounding_edge: float | None = None,
     round_inner: bool = True,
@@ -309,6 +317,8 @@ def build_wall_scoop(
         wall_thickness: Wall the cut passes through. Sets the sweep depth and,
             by default, the face fillet.
         rounding_radius: ``r1`` — how far the mouth rolls out at the rim.
+            ``None`` derives it as half the throat half-width, so the roll
+            stays in proportion to the scoop.
         bottom_rounding: ``r2`` — the fillet from the throat into the flat
             bottom. ``None`` derives it as half the throat width.
         rounding_edge: Fillet where the cut emerges on a face. Defaults to
@@ -333,14 +343,23 @@ def build_wall_scoop(
     """
     if comp_depth <= 0:
         raise ValueError(f"comp_depth must be > 0; got {comp_depth}")
+    if rounding_radius is None:
+        rounding_radius = radius * DEFAULT_TOP_ROUNDING_RATIO
     if wall_thickness <= 0:
         raise ValueError(f"wall_thickness must be > 0; got {wall_thickness}")
 
     span = comp_width if side in (ScoopSide.FRONT, ScoopSide.BACK) else comp_length
-    radius = min(radius, span / 2)
-    # The mouth flare widens the cut by rounding_radius each side; keep the
-    # whole thing inside the compartment's span.
-    rounding_radius = max(0.0, min(rounding_radius, span / 2 - radius))
+
+    # The mouth is `radius + r1` wide on each side, and the two have to share
+    # the span. Capping the throat first and giving r1 whatever is left sounds
+    # equivalent and is not: a throat already at half the span leaves r1 exactly
+    # zero, which silently deletes the top roll — the most visible part of the
+    # scoop — on every narrow compartment. Shrink them together instead, so a
+    # tight span costs both a little rather than costing r1 everything.
+    if radius + rounding_radius > span / 2:
+        scale = (span / 2) / (radius + rounding_radius)
+        radius, rounding_radius = radius * scale, rounding_radius * scale
+    rounding_radius = max(0.0, rounding_radius)
 
     if rounding_edge is None:
         rounding_edge = wall_thickness / 2
@@ -466,7 +485,7 @@ def build_floor_scoop(
     radius: float = 14.0,
     comp_depth: float | None = None,
     wall_thickness: float = 2.0,
-    rounding_radius: float = DEFAULT_MOUTH_ROUNDING_MM,
+    rounding_radius: float | None = None,
     rounding_edge: float | None = None,
     floor_thickness: float | None = None,
 ) -> "Bosl2Solid":
@@ -510,6 +529,8 @@ def build_floor_scoop(
         raise ValueError(f"compartment span must be > 0; got {span}")
 
     radius = min(radius, span / 2)
+    if rounding_radius is None:
+        rounding_radius = radius * DEFAULT_TOP_ROUNDING_RATIO
     depth = comp_depth if comp_depth and comp_depth > 0 else radius
 
     # Parts 1 and 2: the bore, swept through the wall with the same face
@@ -565,7 +586,7 @@ def build_scoop(
     side: ScoopSide,
     radius: float = 12.0,
     wall_thickness: float = 2.0,
-    rounding_radius: float = DEFAULT_MOUTH_ROUNDING_MM,
+    rounding_radius: float | None = None,
     rounding_edge: float | None = None,
     floor_thickness: float | None = None,
 ) -> "Bosl2Solid":
@@ -581,7 +602,7 @@ def build_scoop(
         side: Which wall or edge the scoop sits on.
         radius: Scoop radius in mm.
         wall_thickness: Wall the cut passes through.
-        rounding_radius: Flare at the mouth where the cut meets the rim.
+        rounding_radius: ``r1``; ``None`` derives it from the throat width.
         rounding_edge: Fillet where the cut emerges on a face.
 
     Returns:

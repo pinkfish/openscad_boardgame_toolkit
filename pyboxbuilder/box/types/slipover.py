@@ -50,6 +50,8 @@ class SlipoverBox:
             "width": spec["width"] - 2 * inset,
             "length": spec["length"] - 2 * inset,
             "height": body_height,
+            # Already shortened for the sleeve, so its top is the inside's top.
+            "interior_top": body_height,
             "rounding": mating_rounding(spec),
         }).translate([inset, inset, 0.0])
 

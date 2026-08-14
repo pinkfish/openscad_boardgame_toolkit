@@ -121,9 +121,9 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
     emerges on each face — so it goes through the same builder rather than a
     second implementation that could drift from it.
 
-    Following the original (``no_lid.scad``), each hole hangs from the **rim**
-    rather than rising from the floor: its height is capped at the interior
-    depth so the cut cannot reach the box's base.
+    Following the original (``no_lid.scad``), each hole hangs from the top of
+    the **interior** rather than rising from the floor, and its height is
+    capped at the interior depth so the cut cannot reach the box's base.
 
     Args:
         body: The box body to cut.
@@ -143,12 +143,23 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
     ft = spec.get("floor_thickness", 1.6)
     inner_width = spec["width"] - 2 * wt
     inner_length = spec["length"] - 2 * wt
-    interior_height = spec["height"] - ft
+
+    # Align to the top of the *inside*, not the outer rim. On a lidded box the
+    # lid (or its track) occupies the band above the interior, so a hole hung
+    # from the rim starts inside solid material and reads as a nick in the top
+    # edge rather than as a cut into the well. A type whose body is already
+    # shortened for its lid — cap, slipover — says so with `interior_top`.
+    interior_top = spec.get("interior_top")
+    if interior_top is None:
+        lid_band = 0.0 if spec.get("rim_free") else spec.get("lid_thickness", 0.0)
+        interior_top = spec["height"] - lid_band
+    interior_height = interior_top - ft
 
     for hole in holes:
         radius = getattr(hole, "radius", 14.0)
-        # The scoop hangs from the rim, and never deeper than the interior.
-        reach = min(getattr(hole, "depth", radius) or radius, interior_height)
+        # The cut's height follows the finger unless told otherwise, and never
+        # reaches deeper than the interior.
+        reach = min(getattr(hole, "depth", None) or radius, interior_height)
         scoop = build_wall_scoop(
             inner_width, inner_length, reach, hole.side,
             radius=radius,
@@ -163,7 +174,7 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         body = body - scoop.translate([
             wt + (offset if along_x else 0.0),
             wt + (0.0 if along_x else offset),
-            spec["height"] - reach,
+            interior_top - reach,
         ])
 
     return body

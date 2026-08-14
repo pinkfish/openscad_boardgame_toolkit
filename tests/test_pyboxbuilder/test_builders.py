@@ -76,7 +76,10 @@ class FingerHoleBuilderTests(unittest.TestCase):
         fh = FingerHoleBuilder(side=ScoopSide.LEFT)
         self.assertIs(fh.side, ScoopSide.LEFT)
         self.assertEqual(fh.radius, 14.0)
-        self.assertEqual(fh.depth, 6.0)
+        # `None` means "as tall as the finger" — the height of a finger cut
+        # follows the radius, not a constant (the old 6.0 came from the
+        # original's *wall depth* parameter, a different quantity).
+        self.assertIsNone(fh.depth)
         self.assertEqual(fh.offset, 0.0)
         self.assertIsNone(fh.rounding_radius)
         self.assertIsNone(fh.rounding_edge)
