@@ -116,6 +116,24 @@ if __name__ == "__main__":
 - **`Project.show(show_lids=False)`** is a read-only preview: it resolves the layout (reusing the same `_resolve_final_layout()` packing as `export()`), builds each body, places them at their packed positions, unions them, and calls `.show()`. It does NOT write files, generate spacers, or produce a PDF. `export()` is unchanged and remains the batch path.
 - **Lids are hidden by default** — lids obscure the layout (they cover the compartments and neighbouring boxes), so `show()` renders bodies only. Pass `project.show(show_lids=True)` to also place each lid in its seated position (inside/on its body — `build_lid()` already positions it relative to the box origin, so the lid uses the same translation as the body; no extra Z offset).
 
+### Finger Holes & Box Edge Smoothing
+
+All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch a finger or a card.
+
+1. **Card finger holes (top-to-floor scoop).** A finger cutout on a card box (or any box holding cards) MUST run from the top rim down to the floor, so a finger can reach the last card at the bottom of the stack. The scoop profile is one continuous smooth curve, not a rectangular notch:
+   - The top opening **curves smoothly into the box wall** — no right-angle lip at the rim.
+   - The bottom **curves into the floor**, blending the wall cutout into the box bottom without a sharp corner.
+   - The entire profile is **filleted** — no sharp edges anywhere along the scoop.
+
+2. **Main box edges are smooth.** The outer corners and edges of every box body MUST be rounded/chamfered, not sharp:
+   - The top rim and bottom base edges (the horizontal edges a hand grips).
+   - The vertical corners of the box.
+   - Any other exposed edge that would be touched during use.
+
+3. **Implementation.** Box bodies use pybosl2 `cuboid(..., rounding=...)` for their outer edges; the finger scoop is a `cylinder`/filleted profile subtracted from the wall, blended into the floor (a `rounding` on the subtractive solid so the cut leaves a smooth transition rather than a sharp shadow line). A card finger hole must be deep enough that the finger passes below the top of the lowest card, but must not breach the floor from the outside.
+
+4. **Sliding boxes: chamfer/round on the lower lid-track wall.** On a sliding-lid box the two lid-track walls are asymmetric — one wall sits lower so the lid can slide into its dovetail groove. Where possible, the chamfering/rounding MUST be applied on that lower wall (the one the lid slides over), not the higher wall, so the rounded edge does not interfere with the sliding track. To make this true the lid section SHOULD be rotated to a different side (swap which side the lower track wall is on) — so the smooth edge always lands on the lower, non-track side — **unless the box's length/width offset is too large for the rotation to work well** (a long, narrow card box rotated 90° would waste footprint and the lid would slide along the short axis). In that case keep the original orientation and accept the rounding on whichever side geometry dictates.
+
 ### Source Code (repository root)
 
 ```text
