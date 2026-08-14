@@ -77,12 +77,33 @@ def build_compartment_scoop(
     interior: Interior,
     scoop_side: ScoopSide = ScoopSide.FRONT,
 ) -> "Bosl2Solid":
-    """Build a compartment's finger scoop — the part that pierces a wall."""
+    """Build a compartment's finger scoop — the part that pierces a wall.
+
+    The wall thickness is read off the interior frame (its origin is inset by
+    exactly one wall), because the scoop's face fillets are produced by flaring
+    the sweep's ends and therefore need the sweep to match the wall it crosses.
+
+    Args:
+        placement: The compartment the scoop belongs to.
+        interior: The box interior frame the compartment sits in.
+        scoop_side: Which wall the scoop pierces.
+
+    Returns:
+        The scoop cutout, positioned in the box frame.
+    """
     from pyboxbuilder.compartments.finger_hole import build_scoop
 
     width, length = placement.size
     depth = min(placement.depth, interior.height)
-    return _place(build_scoop(width, length, depth, scoop_side), placement, interior)
+    wall_thickness = interior.origin_x if interior.origin_x > 0 else 2.0
+    # origin_z is the box floor: the scoop dips a fraction of it so its bottom
+    # face is not coplanar with the well floor (which renders as speckle).
+    scoop = build_scoop(
+        width, length, depth, scoop_side,
+        wall_thickness=wall_thickness,
+        floor_thickness=interior.origin_z if interior.origin_z > 0 else None,
+    )
+    return _place(scoop, placement, interior)
 
 
 def _place(

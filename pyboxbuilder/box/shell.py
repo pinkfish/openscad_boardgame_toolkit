@@ -19,6 +19,11 @@ from __future__ import annotations
 
 from typing import Sequence, TYPE_CHECKING
 
+from pyboxbuilder.compartments.finger_hole import (
+    DEFAULT_MOUTH_ROUNDING_MM as DEFAULT_MOUTH_ROUNDING,
+)
+from pyboxbuilder.enums import ScoopSide
+
 if TYPE_CHECKING:
     from pybosl2.shapes3d import Bosl2Solid
 
@@ -62,9 +67,65 @@ def build_shell(spec: dict) -> "Bosl2Solid":
         The box body before any type-specific lid features are added.
     """
     outer = block([spec["width"], spec["length"], spec["height"]])
-    if not spec.get("hollow", True):
-        return outer
-    return outer - interior_block(spec)
+    if spec.get("hollow", True):
+        outer = outer - interior_block(spec)
+    return apply_finger_holes(outer, spec)
+
+
+def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
+    """Cut any exterior finger holes out of a box body (FR-006).
+
+    A hole on the outside of a box is the same cut as a compartment's wall
+    scoop — a bore with a mouth flared into the rim and a fillet where it
+    emerges on each face — so it goes through the same builder rather than a
+    second implementation that could drift from it.
+
+    Following the original (``no_lid.scad``), each hole hangs from the **rim**
+    rather than rising from the floor: its height is capped at the interior
+    depth so the cut cannot reach the box's base.
+
+    Args:
+        body: The box body to cut.
+        spec: Reads `finger_holes` (a sequence of finger-hole builders), plus
+              `width`, `length`, `height`, `wall_thickness`, `floor_thickness`.
+
+    Returns:
+        The body with every hole subtracted; unchanged when there are none.
+    """
+    holes = spec.get("finger_holes") or ()
+    if not holes:
+        return body
+
+    from pyboxbuilder.compartments.finger_hole import build_wall_scoop
+
+    wt = spec.get("wall_thickness", 2.0)
+    ft = spec.get("floor_thickness", 1.6)
+    inner_width = spec["width"] - 2 * wt
+    inner_length = spec["length"] - 2 * wt
+    interior_height = spec["height"] - ft
+
+    for hole in holes:
+        radius = getattr(hole, "radius", 14.0)
+        # The scoop hangs from the rim, and never deeper than the interior.
+        reach = min(getattr(hole, "depth", radius) or radius, interior_height)
+        scoop = build_wall_scoop(
+            inner_width, inner_length, reach, hole.side,
+            radius=radius,
+            wall_thickness=wt,
+            rounding_radius=getattr(hole, "rounding_radius", None)
+            if getattr(hole, "rounding_radius", None) is not None
+            else DEFAULT_MOUTH_ROUNDING,
+            rounding_edge=getattr(hole, "rounding_edge", None),
+        )
+        offset = getattr(hole, "offset", 0.0) or 0.0
+        along_x = hole.side in (ScoopSide.FRONT, ScoopSide.BACK)
+        body = body - scoop.translate([
+            wt + (offset if along_x else 0.0),
+            wt + (0.0 if along_x else offset),
+            spec["height"] - reach,
+        ])
+
+    return body
 
 
 def interior_block(spec: dict) -> "Bosl2Solid":

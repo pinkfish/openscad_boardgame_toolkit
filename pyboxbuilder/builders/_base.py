@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from pybosl2 import Color
 
-from pyboxbuilder.enums import BoxType, MagnetType, StackableMode
+from pyboxbuilder.enums import BoxType, MagnetType, ScoopSide, StackableMode
 
 if TYPE_CHECKING:
     from pyboxbuilder.lid.builder import LidBuilder
@@ -131,11 +131,87 @@ class BoxBuilder:
         object.__setattr__(self, "compartments", self.compartments + (cb,))
         return cb
 
+    def finger_hole(
+        self,
+        side: "ScoopSide",
+        *,
+        radius: float = 14.0,
+        depth: float = 6.0,
+        offset: float = 0.0,
+        rounding_radius: float | None = None,
+        rounding_edge: float | None = None,
+    ) -> "FingerHoleBuilder":
+        """Add a finger hole to one of this box's exterior walls (FR-006).
+
+        The hole hangs from the rim, so a finger reaches in over the wall
+        rather than through its middle, and it is cut with the same smoothing
+        as a compartment scoop: a mouth flared into the rim and a fillet where
+        it emerges on each face of the wall.
+
+        Args:
+            side: Which exterior wall to cut.
+            radius: Bore radius in mm; 14mm is adult fingertip sizing.
+            depth: How far down from the rim to reach. Capped at the interior
+                depth so the cut cannot open the box's base.
+            offset: Shift along the wall from its midpoint, in mm.
+            rounding_radius: Mouth flare at the rim; ``None`` uses 3mm.
+            rounding_edge: Face fillet; ``None`` uses ``wall_thickness / 2``,
+                the largest the wall has room for.
+
+        Returns:
+            The :class:`FingerHoleBuilder` that was added, so it can be
+            inspected; it is already registered on the box.
+
+        Raises:
+            TypeError: If ``side`` is not a :class:`ScoopSide`.
+            ValueError: If ``radius`` or ``depth`` is not positive.
+        """
+        hole = FingerHoleBuilder(
+            side=side,
+            radius=radius,
+            depth=depth,
+            offset=offset,
+            rounding_radius=rounding_radius,
+            rounding_edge=rounding_edge,
+        )
+        object.__setattr__(self, "finger_holes", self.finger_holes + (hole,))
+        return hole
+
 
 @dataclass(frozen=True)
 class FingerHoleBuilder:
-    """Finger hole configuration for a box exterior wall."""
+    """A finger hole on a box's exterior wall (FR-006).
 
-    side: str
+    Cut with the same builder as a compartment's wall scoop, so it gets the
+    same mouth flare and face fillets: see
+    :func:`pyboxbuilder.compartments.finger_hole.build_wall_scoop`.
+    """
+
+    side: ScoopSide
+    """Which exterior wall the hole is cut through."""
     radius: float = 14.0
+    """Bore radius in mm — adult fingertip sizing by default."""
     depth: float = 6.0
+    """How far down from the rim the cut reaches, capped at the interior depth."""
+    offset: float = 0.0
+    """Shift along the wall from its midpoint, in mm."""
+    rounding_radius: float | None = None
+    """Mouth flare where the cut meets the rim; ``None`` uses the default 3mm."""
+    rounding_edge: float | None = None
+    """Fillet where the cut emerges on a face; ``None`` uses ``wall_thickness / 2``."""
+
+    def __post_init__(self) -> None:
+        """Validate the hole.
+
+        Raises:
+            TypeError: If ``side`` is not a :class:`ScoopSide` — a bare string
+                would silently match no wall.
+            ValueError: If ``radius`` or ``depth`` is not positive.
+        """
+        if not isinstance(self.side, ScoopSide):
+            sides = ", ".join(f"ScoopSide.{m.name}" for m in ScoopSide)
+            raise TypeError(f"finger hole side must be a ScoopSide ({sides}); got {self.side!r}")
+        if self.radius <= 0:
+            raise ValueError(f"finger hole radius must be > 0; got {self.radius}")
+        if self.depth <= 0:
+            raise ValueError(f"finger hole depth must be > 0; got {self.depth}")

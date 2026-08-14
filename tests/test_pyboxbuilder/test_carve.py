@@ -107,7 +107,12 @@ class CompartmentCarveTests(unittest.TestCase):
         from pyboxbuilder.compartments.finger_hole import build_floor_scoop, build_scoop
 
         shallow = build_scoop(60.0, 40.0, 4.0, ScoopSide.FRONT, radius=12.0)
-        expected = build_floor_scoop(60.0, 40.0, ScoopSide.FRONT, radius=12.0)
+        # The floor scoop now takes the compartment depth (it sizes the cut and
+        # picks scoop_profile's tangent-blend branch), so the expectation has to
+        # state the same 4mm the routed call passed.
+        expected = build_floor_scoop(
+            60.0, 40.0, ScoopSide.FRONT, radius=12.0, comp_depth=4.0,
+        )
         self.assertEqual(bbox(shallow), bbox(expected))
 
     def test_a_deep_compartment_gets_a_wall_notch(self) -> None:

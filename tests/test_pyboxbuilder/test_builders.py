@@ -69,6 +69,14 @@ class BoxBuilderTests(unittest.TestCase):
 
 class FingerHoleBuilderTests(unittest.TestCase):
     def test_defaults(self) -> None:
-        fh = FingerHoleBuilder(side="left")
+        from pyboxbuilder.enums import ScoopSide
+
+        # `side` is a ScoopSide now, not a bare string (the "no bare strings"
+        # constraint); a string named no wall and silently cut nothing.
+        fh = FingerHoleBuilder(side=ScoopSide.LEFT)
+        self.assertIs(fh.side, ScoopSide.LEFT)
         self.assertEqual(fh.radius, 14.0)
         self.assertEqual(fh.depth, 6.0)
+        self.assertEqual(fh.offset, 0.0)
+        self.assertIsNone(fh.rounding_radius)
+        self.assertIsNone(fh.rounding_edge)

@@ -418,7 +418,7 @@ class Project:
                     "box_type", "label", "box_id", "size", "final_size",
                     "expandable", "expandable_width", "expandable_length",
                     "wall_thickness", "floor_thickness", "lid_thickness",
-                    "lid", "finger_holes", "compartments", "color",
+                    "lid", "compartments", "color",
                 ):
                     continue
                 val = getattr(builder, field_name)
@@ -816,7 +816,7 @@ class Project:
                         "box_type", "label", "box_id", "size", "final_size",
                         "expandable", "expandable_width", "expandable_length",
                         "wall_thickness", "floor_thickness", "lid_thickness",
-                        "lid", "finger_holes", "compartments",
+                        "lid", "compartments",
                     ):
                         val = getattr(builder, field_name)
                         if val is not None:
