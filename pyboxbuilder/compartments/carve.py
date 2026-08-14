@@ -16,7 +16,12 @@ to subtract it from the body.
 from __future__ import annotations
 
 from pyboxbuilder.precision import kwargs as precision_kwargs
-from pyboxbuilder.rounding import round_edges, rounding_facets, vertical_edges
+from pyboxbuilder.rounding import (
+    max_radius,
+    round_edges,
+    rounding_facets,
+    vertical_edges,
+)
 
 from typing import TYPE_CHECKING, Sequence
 
@@ -80,11 +85,12 @@ def build_compartment_well(
         # The two radii differ, and a cuboid carries one, so the floor fillet is
         # built in and the vertical corners are taken off afterwards. Both make
         # the *void* smaller, which is what leaves material as a fillet.
-        if bottom_rounding > 0 and bottom_rounding < min(width, length, depth) / 2:
-            well = cuboid([width, length, depth], rounding=bottom_rounding,
+        size = [width, length, depth]
+        if bottom_rounding > 0 and bottom_rounding <= max_radius(size, Anchor.BOTTOM):
+            well = cuboid(size, rounding=bottom_rounding,
                           edges=Anchor.BOTTOM, **rounding_facets())
         else:
-            well = cuboid([width, length, depth])
+            well = cuboid(size)
         if rounded_corners > 0:
             well = round_edges(
                 well, [width, length, depth], rounded_corners, vertical_edges(),
@@ -153,27 +159,30 @@ a shallow token tray a small one. A box-wide constant gets both wrong.
 def tray_rounding(placement: "CompartmentPlacement", builder: object) -> float:
     """The radius for a tray well's vertical corners and its floor.
 
-    Returns ``0`` for anything whose shape is dictated by what it holds — a
-    card slot, an SVG silhouette, an element pack. Those are game-specific
-    geometry: a card stack needs a flat floor and square corners to sit in,
-    and a silhouette's outline is reproduced as authored (FR-045). Rounding is
-    for the generic wells that hold loose pieces.
+    Rounding is **opt-in**: a well is square unless its builder says it holds
+    loose pieces. That is the right default because most wells are shaped by
+    what they hold — a card slot needs a flat floor and square corners to sit
+    in, a silhouette is reproduced as authored (FR-045), an element pack places
+    its own members — and softening any of those changes a fit rather than
+    improving it. A tray full of tokens is the case that benefits, and it says
+    so.
 
     Args:
         placement: The well being carved.
         builder: Its :class:`CompartmentBuilder`, if it has one. ``None`` (a
-            bare placement) is treated as a tray.
+            bare placement) is square, like any well that has not opted in.
 
     Returns:
         The radius in mm: ``depth × 2/3``, capped so it can neither swallow the
         well's footprint nor exceed its depth.
     """
-    if getattr(builder, "holds_cards", False):
-        return 0.0
-    if getattr(builder, "shape_file", None) or getattr(builder, "elements", ()):
-        return 0.0
-
     explicit = getattr(builder, "rounded_corners", 0.0) or 0.0
+    if explicit <= 0:
+        if not getattr(builder, "holds_pieces", False):
+            return 0.0  # square unless the well is declared a piece tray
+        if getattr(builder, "shape_file", None) or getattr(builder, "elements", ()):
+            return 0.0  # the game dictates this shape; FR-045 keeps it exact
+
     radius = explicit if explicit > 0 else placement.depth * TRAY_ROUNDING_RATIO
 
     width, length = placement.size

@@ -30,6 +30,11 @@ jobs:
           PYBOXBUILDER_EXPORT_FN: "12"
         run: python -m pytest tests/test_pyboxbuilder/ -q
 
+      # Geometry coverage without printable output: builds every example
+      # through the same path `show()` uses, writing no files.
+      - name: Build every example through the preview path
+        run: python -m pytest tests/test_pyboxbuilder/test_ci_smoke.py -q
+
       - name: Type check with pyright
         run: |
           npx --yes pyright pyboxbuilder/ --outputjson || true

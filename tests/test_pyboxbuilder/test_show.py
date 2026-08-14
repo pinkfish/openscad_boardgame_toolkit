@@ -133,27 +133,27 @@ class PreviewPieceTests(unittest.TestCase):
         return p
 
     def test_one_piece_per_box_not_one_union(self) -> None:
-        pieces = self.make_project()._preview_pieces()
+        pieces = self.make_project().preview_pieces()
         self.assertEqual([p.label for p in pieces], ["Cards", "Tokens"])
         self.assertEqual({p.kind for p in pieces}, {"body"})
         self.assertIsNot(pieces[0].solid, pieces[1].solid)
 
     def test_each_box_gets_its_own_colour(self) -> None:
-        pieces = self.make_project()._preview_pieces()
+        pieces = self.make_project().preview_pieces()
         self.assertNotEqual(pieces[0].color.hex, pieces[1].color.hex)
 
     def test_declared_colour_wins_over_the_generated_hue(self) -> None:
         p = Project("ShowTest", game_box_size=(200, 150, 60), generate_spacers=False)
         p.box(BoxType.SLIDING, "Cards", size=(100, 70, 30), position=(0, 0, 0),
               color=Color("darkgreen"))
-        piece = p._preview_pieces()[0]
+        piece = p.preview_pieces()[0]
         self.assertEqual(piece.color.hex, Color("darkgreen").hex)
 
     def test_lids_hidden_by_default_and_lighter_when_shown(self) -> None:
         project = self.make_project()
-        self.assertEqual({p.kind for p in project._preview_pieces()}, {"body"})
+        self.assertEqual({p.kind for p in project.preview_pieces()}, {"body"})
 
-        pieces = project._preview_pieces(show_lids=True)
+        pieces = project.preview_pieces(show_lids=True)
         lids = [p for p in pieces if p.kind == "lid"]
         self.assertTrue(lids, "show_lids=True produced no lid pieces")
         for lid in lids:
@@ -165,18 +165,18 @@ class PreviewPieceTests(unittest.TestCase):
         p = Project("ShowTest", game_box_size=(200, 150, 60), generate_spacers=False)
         p.box(BoxType.SLIDING, "Lower", size=(100, 70, 20), position=(0, 0, 0))
         p.box(BoxType.SLIDING, "Upper", size=(100, 70, 20), position=(0, 0, 20))
-        self.assertEqual({x.label for x in p._preview_pieces()}, {"Lower", "Upper"})
-        self.assertEqual({x.label for x in p._preview_pieces(remove_layers=1)}, {"Lower"})
+        self.assertEqual({x.label for x in p.preview_pieces()}, {"Lower", "Upper"})
+        self.assertEqual({x.label for x in p.preview_pieces(remove_layers=1)}, {"Lower"})
 
     def test_negative_remove_layers_rejected(self) -> None:
         with self.assertRaises(ValueError):
-            self.make_project()._preview_pieces(remove_layers=-1)
+            self.make_project().preview_pieces(remove_layers=-1)
 
     def test_spacers_are_previewed_in_grey(self) -> None:
         """The preview shows the filled layout, spacers included (T241)."""
         p = Project("ShowTest", game_box_size=(200, 150, 40), generate_spacers=True)
         p.box(BoxType.SLIDING, "Cards", size=(100, 70, 30), position=(0, 0, 0))
-        spacers = [x for x in p._preview_pieces() if x.kind == "spacer"]
+        spacers = [x for x in p.preview_pieces() if x.kind == "spacer"]
         self.assertTrue(spacers, "no spacer previewed for the leftover space")
         for piece in spacers:
             r, g, b, _ = piece.color.rgba
@@ -187,7 +187,7 @@ class PreviewPieceTests(unittest.TestCase):
         p = Project("Standalone")
         p.box(BoxType.NO_LID, "HexA", size=(40, 40, 20))
         p.box(BoxType.NO_LID, "HexB", size=(40, 40, 20))
-        pieces = p._preview_pieces()
+        pieces = p.preview_pieces()
         self.assertEqual([x.label for x in pieces], ["HexA", "HexB"])
         self.assertNotEqual(pieces[0].color.hex, pieces[1].color.hex)
 

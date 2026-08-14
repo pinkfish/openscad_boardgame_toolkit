@@ -191,7 +191,7 @@ class Project:
         from pyboxbuilder.precision import use
 
         with use(fn=fn, fa=fa, fs=fs):
-            pieces = self._preview_pieces(show_lids=show_lids, remove_layers=remove_layers)
+            pieces = self.preview_pieces(show_lids=show_lids, remove_layers=remove_layers)
 
         for piece in pieces:
             solid = piece.solid
@@ -201,11 +201,14 @@ class Project:
                 pass  # Uncolourable geometry still previews, just uncoloured.
             solid.show()
 
-    def _preview_pieces(self, show_lids: bool = False, remove_layers: int = 0) -> list:
+    def preview_pieces(self, show_lids: bool = False, remove_layers: int = 0) -> list:
         """Build the list of separately-coloured solids :meth:`show` renders.
 
-        Split out from :meth:`show` so the placement, layer filtering and
-        colour assignment can be tested without a render binary.
+        Public because it is the cheap way to exercise the geometry: it packs
+        the layout and builds every body, lid and spacer, but writes nothing
+        and needs no render binary. A CI pass wants exactly that — the build
+        path without the printable output — where :meth:`export` would spend
+        its time tessellating 3MFs no one is going to print.
 
         Args:
             show_lids: Include each box's lid, lightened and semi-transparent.

@@ -275,31 +275,43 @@ class TrayRoundingTests(unittest.TestCase):
 
         return CompartmentBuilder(label="W", size=(50.0, 40.0), **kwargs)
 
-    def test_default_is_two_thirds_of_the_depth(self) -> None:
+    def test_square_unless_the_well_holds_pieces(self) -> None:
+        """Rounding is opt-in: most wells are shaped by what they hold."""
         from pyboxbuilder.compartments.carve import tray_rounding
 
-        self.assertAlmostEqual(tray_rounding(self.placement(depth=20.0), self.builder()), 40 / 3)
-        self.assertAlmostEqual(tray_rounding(self.placement(depth=6.0), self.builder()), 4.0)
+        self.assertEqual(tray_rounding(self.placement(), self.builder()), 0.0)
+        self.assertEqual(tray_rounding(self.placement(), None), 0.0)
+
+    def test_a_piece_tray_rounds_two_thirds_of_its_depth(self) -> None:
+        from pyboxbuilder.compartments.carve import tray_rounding
+
+        tray = self.builder(holds_pieces=True)
+        self.assertAlmostEqual(tray_rounding(self.placement(depth=20.0), tray), 40 / 3)
+        self.assertAlmostEqual(tray_rounding(self.placement(depth=6.0), tray), 4.0)
 
     def test_scales_with_the_well_not_the_box(self) -> None:
         """A deep well gets a bigger sweep than a shallow one, same box."""
         from pyboxbuilder.compartments.carve import tray_rounding
 
-        deep = tray_rounding(self.placement(depth=24.0), self.builder())
-        shallow = tray_rounding(self.placement(depth=3.0), self.builder())
+        tray = self.builder(holds_pieces=True)
+        deep = tray_rounding(self.placement(depth=24.0), tray)
+        shallow = tray_rounding(self.placement(depth=3.0), tray)
         self.assertGreater(deep, shallow)
 
     def test_capped_by_the_footprint(self) -> None:
         """A narrow slot cannot round more than half its width."""
         from pyboxbuilder.compartments.carve import tray_rounding
 
-        radius = tray_rounding(self.placement(size=(10.0, 40.0), depth=30.0), self.builder())
+        radius = tray_rounding(
+            self.placement(size=(10.0, 40.0), depth=30.0), self.builder(holds_pieces=True)
+        )
         self.assertLessEqual(radius, 5.0)
 
     def test_cards_are_square(self) -> None:
+        """A card slot never opts in, so it stays square by the default."""
         from pyboxbuilder.compartments.carve import tray_rounding
 
-        self.assertEqual(tray_rounding(self.placement(), self.builder(holds_cards=True)), 0.0)
+        self.assertEqual(tray_rounding(self.placement(), self.builder()), 0.0)
 
     def test_silhouettes_and_element_packs_are_square(self) -> None:
         """FR-045: a piece's outline is reproduced as authored, never softened."""
@@ -307,11 +319,16 @@ class TrayRoundingTests(unittest.TestCase):
         from pyboxbuilder.compartments.element import CompartmentElement
         from pyboxbuilder.enums import ElementShape
 
+        # Square even when the well *does* opt in — the shape is not ours to soften.
         self.assertEqual(
-            tray_rounding(self.placement(), self.builder(shape_file="wolf.svg")), 0.0
+            tray_rounding(
+                self.placement(), self.builder(shape_file="wolf.svg", holds_pieces=True)
+            ),
+            0.0,
         )
         pack = self.builder(
-            elements=(CompartmentElement(shape=ElementShape.CIRCLE, size=(10.0, 10.0)),)
+            holds_pieces=True,
+            elements=(CompartmentElement(shape=ElementShape.CIRCLE, size=(10.0, 10.0)),),
         )
         self.assertEqual(tray_rounding(self.placement(), pack), 0.0)
 
@@ -329,8 +346,8 @@ class TrayRoundingTests(unittest.TestCase):
         interior = Interior(width=96, length=76, height=26,
                             origin_x=2, origin_y=2, origin_z=2)
         placement = self.placement()
-        tray = build_contents([placement], interior, {"W": self.builder()})
-        cards = build_contents([placement], interior, {"W": self.builder(holds_cards=True)})
+        tray = build_contents([placement], interior, {"W": self.builder(holds_pieces=True)})
+        cards = build_contents([placement], interior, {"W": self.builder()})
         self.assertNotEqual(repr(tray), repr(cards))
 
 
@@ -415,7 +432,7 @@ class ExportPrecisionTests(unittest.TestCase):
             self.assertEqual(seen[0], export_facets())
 
             seen.clear()
-            project._preview_pieces()
+            project.preview_pieces()
             self.assertTrue(seen, "no geometry was built during preview")
             self.assertIsNone(seen[0], "a preview must not jump to export precision")
         finally:
