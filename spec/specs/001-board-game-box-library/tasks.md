@@ -466,8 +466,8 @@ The port had drifted from `examples/earth_animal_kingdom.scad` on nearly every d
 **Checkpoint**: Lids carry their labels and patterns. A plain sliding lid goes from 8 vertices to 1631 with a framed label and hex pattern; the single-colour variant is engraved instead of raised.
 
 ### Known gaps
-- [ ] T162 `InsetBox`, `SlidingCatchBox`, `CapPathBox`, `SlipoverPathBox`, `CardLibraryBox` and `FilamentHingeBox` still return a plain plate from `build_lid`; only sliding, cap and slipover produce their real mating geometry.
-- [ ] T163 `HingeBox` knuckles are a placeholder — no matching lid knuckles and no pin channel, so the hinge does not yet articulate.
+- [x] T162 `InsetBox`, `SlidingCatchBox`, `CapPathBox`, `SlipoverPathBox`, `CardLibraryBox` and `FilamentHingeBox` still return a plain plate from `build_lid`; only sliding, cap and slipover produce their real mating geometry.
+- [x] T163 `HingeBox` knuckles are a placeholder — no matching lid knuckles and no pin channel, so the hinge does not yet articulate.
 - [x] T173 *(resolved, and the original diagnosis was wrong.)* Irish Gauge yields four spacers where the plan calls for two, and I recorded the extra pair as a footprint L that polygon-path spacers would close. It is not: `spacer_3` and `spacer_4` share a Y span and form an L in the **x-z** plane — a vertical step above `CompanyBox2`. Fusing it would give one part whose upper arm floats, replacing two trays that each sit flat with a single overhanging one. Rectilinear merging now handles genuine footprint L/T/U shapes (T174–T180), and vertical steps stay separate by design (FR-014e), so Irish Gauge stays at four spacers and that is the correct answer.
 
 ---
@@ -601,6 +601,30 @@ With multiple developers:
   1. **Vertex-only sampling.** pymeshlab defaults to `samplevert` at `samplenum=8`. Every vertex of a 10x10x5 box lies exactly on a side face of a 10x10x6 one, so the measured distance was zero for boxes differing by 0.5mm. Now samples faces and edges too, at 10,000 samples.
   2. **One-sided measurement.** Hausdorff is the larger of the two directions and they are not equal — in that example A→B is 0.0 while B→A is 0.5. Both directions are now measured.
 - [x] T212 [P] Write a deterministic test for the Hausdorff branch. It had been exercised only by accident: pymeshlab lives in the project venv, which reaches `sys.path` only once some unrelated test module imports `tests/venv_path.py`, so whether the branch ran at all depended on test ordering. The test now loads pymeshlab from the venv itself and skips only if it is genuinely absent.
+
+---
+
+## Phase 16: Real Mating Lid Geometry (T162, T163)
+
+**Purpose**: Six box types returned a flat plate where their closure should be.
+
+**Goal**: Every lidded type produces a lid that mates with its body — and the body carries the matching half of the same feature.
+
+**Independent Test**: For each of the eleven lidded types, the closed lid and its body share no volume.
+
+- [x] T213 Implement `pyboxbuilder/box/features.py` — the closure features, each returning both halves from one function so they cannot drift apart: `rabbet`, `sliding_track`, `sliding_catch`, `filament_hinge`, and the polygon-footprint `path_cap` / `path_sleeve`
+- [x] T214 `InsetBox`: a ledge cut into the top rim and a plate that drops into it flush, so the box still stacks
+- [x] T215 `SlidingCatchBox`: sliding grooves plus a detent — a bump on the lid dropping into a slightly larger dimple, so it clicks rather than jams
+- [x] T216 `CardLibraryBox`: the same sliding channel with a heavier latch
+- [x] T217 `CapPathBox` and `SlipoverPathBox`: cap and sleeve whose skirts follow a polygon footprint, falling back to the rectangular closure when no path is given
+- [x] T218 `FilamentHingeBox` (T163): interleaved knuckles along the back edge bored for a filament pin, each leaf webbed to its own half
+- [x] T219 Fix the hinge geometry so the two halves are genuinely separate parts. Three defects, each of which fuses lid to body: the lid's plate sat at the rim where the walls already were (1408mm³ of overlap); the pin axis was sunk into the back wall, burying the lid's knuckles in it (154mm³); and the lid's web stood 0.2mm proud of the closed lid.
+- [x] T220 [P] Write test: no lid overlaps its body, for every lidded type; plus per-feature properties — the rabbet is flush, a groove never cuts through its wall, the catch dimple is larger than its bump, the hinge leaves never touch at 3/5/9 knuckles — in `tests/test_pyboxbuilder/test_closures.py`
+- [x] T221 `HingeBox` (T163): the same knuckle hinge with a printed pin. Its body already had knuckles but the lid was a bare plate, so nothing could turn — both halves now interleave on one pin axis.
+- [x] T222 [P] Write test: the hinge lid reaches past the back wall, both halves meet the same pin axis, and the part of the lid over the box footprint is flush at the stated height — the barrel is allowed to stand proud behind the box, as real hinges do
+- [x] T223 Regenerate the golden images for the changed inset, hinge and filament-hinge bodies
+
+**Checkpoint**: All eleven lidded types close with **0.00mm³** of body/lid intersection, measured.
 
 ---
 

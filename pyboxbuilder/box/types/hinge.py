@@ -26,34 +26,44 @@ class HingeBox:
             origin_x=wt, origin_y=wt, origin_z=ft,
         )
 
+    @staticmethod
+    def _body_spec(spec: dict) -> dict:
+        """The body stops a lid's thickness short, so the closed lid seats on it."""
+        lt = spec.get("lid_thickness", 2.0)
+        return {**spec, "height": spec["height"] - lt}
+
+    def _closure(self, spec: dict):
+        """Both halves of the knuckle hinge, on one shared pin axis."""
+        from pyboxbuilder.box.features import filament_hinge
+
+        return filament_hinge(
+            self._body_spec(spec),
+            filament_diameter=spec.get("hinge_pin_diameter", 3.0),
+            knuckles=spec.get("hinge_count", 5),
+            lid_thickness=spec.get("lid_thickness", 2.0),
+        )
+
     def build_body(self, spec: dict) -> "Bosl2Solid":
+        """The shell carrying every other knuckle of the hinge."""
         from pyboxbuilder.box.shell import build_shell
-        from pybosl2 import cylinder
-        wt = spec.get("wall_thickness", 2.0)
 
-        body = build_shell(spec)
-
-        # Hinge knuckles along the back wall, lying on the wall's top edge.
-        hinge_d = spec.get("hinge_diameter", 6.0)
-        hinge_count = spec.get("hinge_count", 3)
-        knuckle_len = spec["width"] / (hinge_count * 2 + 1)
-        spacing = spec["width"] / (hinge_count + 1)
-        for i in range(hinge_count):
-            # A cylinder is centre-anchored and stands on Z; lay it along X and
-            # centre it on the wall so it straddles the outside face.
-            knuckle = cylinder(height=knuckle_len, radius=hinge_d / 2)
-            knuckle = knuckle.rotate([0, 90, 0])
-            knuckle = knuckle.translate([
-                spacing * (i + 1),
-                spec["length"] - wt / 2,
-                spec["height"] - hinge_d / 2,
-            ])
-            body = body | knuckle
-
-        return body
+        body = build_shell(self._body_spec(spec))
+        closure = self._closure(spec)
+        return body if closure.body is None else body | closure.body
 
     def build_lid(self, spec: dict, decoration: object = None) -> "Bosl2Solid":
+        """The lid carrying the interleaving knuckles, bored for the same pin.
+
+        The knuckles alternate along one axis with a print gap between them, so
+        the two halves come off the bed as separate parts and articulate once
+        the pin is fitted.
+        """
         from pyboxbuilder.box.shell import block
-        wt = spec.get("wall_thickness", 2.0)
+
         lt = spec.get("lid_thickness", 2.0)
-        return block([spec["width"], spec["length"], lt], at=(0, 0, spec["height"]))
+        lid = block(
+            [spec["width"], spec["length"], lt],
+            at=(0, 0, self._body_spec(spec)["height"]),
+        )
+        closure = self._closure(spec)
+        return lid if closure.lid is None else lid | closure.lid

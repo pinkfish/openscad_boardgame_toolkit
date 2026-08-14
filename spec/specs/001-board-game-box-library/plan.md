@@ -65,9 +65,10 @@ Every public method, class, function, enum, and dataclass field MUST carry a det
 
 1. **Every public method documented**: no public `def`/`class` ships without a docstring. Private helpers (`_leading_underscore`) are exempt but MUST have descriptive names.
 2. **Detailed docstrings, not one-liners**: docstrings MUST document every parameter (name, type, meaning, valid range, default rationale), the return value (type + meaning), raised exceptions, and a 1–2 line usage example where non-obvious.
-3. **Dataclass fields documented**: every `dataclass` field has a `# comment` or docstring stating its meaning, valid range, and default.
-4. **Auto-generated API docs**: the docstrings feed an API documentation generator (Sphinx/pdoc) — they are the source of truth, not prose separate from the code.
-5. **`py.typed` + full annotations**: every public signature is fully type-annotated so the API docs render accurate parameter types.
+3. **`Args:` and `Returns:` sections are mandatory**: any public method/function that has arguments MUST include an `Args:` section documenting each parameter, and any that returns a value MUST include a `Returns:` section documenting the return type and meaning. A method with both gets both; a method with neither omits both. These sections follow the Google/NumPy docstring style so the API generator renders them as structured parameter/return tables.
+4. **Dataclass fields documented**: every `dataclass` field has a `# comment` or docstring stating its meaning, valid range, and default.
+5. **Auto-generated API docs**: the docstrings feed an API documentation generator (Sphinx/pdoc) — they are the source of truth, not prose separate from the code.
+6. **`py.typed` + full annotations**: every public signature is fully type-annotated so the API docs render accurate parameter types.
 
 ## CI/CD — GitHub Actions
 
