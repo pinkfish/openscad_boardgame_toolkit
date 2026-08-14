@@ -27,7 +27,6 @@ from pyboxbuilder.compartments.finger_hole import (  # noqa: E402
     scoop_profile,
 )
 from pyboxbuilder.enums import ScoopSide  # noqa: E402
-from pyboxbuilder.sweep import offset_sweep  # noqa: E402
 
 
 class ScoopProfileTests(unittest.TestCase):
@@ -49,15 +48,39 @@ class ScoopProfileTests(unittest.TestCase):
                 scoop_profile(*args)
 
 
-class OffsetSweepTests(unittest.TestCase):
-    def test_rim_must_fit_in_the_height(self) -> None:
-        profile = scoop_profile(5, 10, 0)
-        with self.assertRaises(ValueError):
-            offset_sweep(profile, height=1.0, rounding_bottom=-2.0, rounding_top=-2.0)
+class OutlineTests(unittest.TestCase):
+    """The outline is a ring, and it must not close into a cusp."""
 
-    def test_height_must_be_positive(self) -> None:
-        with self.assertRaises(ValueError):
-            offset_sweep(scoop_profile(5, 10, 0), height=0.0)
+    def test_the_outline_overshoots_the_rim(self) -> None:
+        """Closing flush across the top puts a zero-angle cusp at each end of
+        the r1 arc, and offsetting such a corner miters to infinity — measured,
+        a 15mm profile came back at 55mm."""
+        from pyboxbuilder.compartments.finger_hole import (
+            RIM_OVERSHOOT_MM,
+            scoop_outline,
+        )
+
+        height = 30.0
+        ring = scoop_outline(10, height, 5, 5)
+        self.assertAlmostEqual(max(y for _, y in ring), height + RIM_OVERSHOOT_MM)
+
+    def test_the_outline_is_a_closed_ring_around_the_cut(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import scoop_outline
+
+        ring = scoop_outline(10, 30, 5, 5)
+        self.assertGreater(len(ring), 8)
+        # Symmetric about the centre line, and it reaches the full mouth width.
+        self.assertAlmostEqual(min(x for x, _ in ring), -max(x for x, _ in ring))
+        self.assertAlmostEqual(max(x for x, _ in ring), 15.0)
+        self.assertAlmostEqual(min(y for _, y in ring), 0.0)
+
+    def test_the_floor_bore_outline_is_a_bowl(self) -> None:
+        """Its lowest point is a single tangent touch, not a flat run."""
+        from pyboxbuilder.compartments.finger_hole import floor_bore_outline
+
+        ring = floor_bore_outline(10, 30, 3)
+        floor_points = [x for x, y in ring if abs(y) < 1e-6]
+        self.assertLessEqual(len(floor_points), 2, "the bore has a flat bottom")
 
 
 class ScoopSelectionTests(unittest.TestCase):
@@ -263,6 +286,17 @@ measure("removed_left",
         build_shell(dict(base)) - build_shell(dict(base, finger_holes=(Hole(ScoopSide.LEFT),))))
 measure("removed_front",
         build_shell(dict(base)) - build_shell(dict(base, finger_holes=(Hole(ScoopSide.FRONT),))))
+# The same cut on a *lidded* box. `base` has lid_thickness 0, so its interior
+# runs to the rim and a cut reaching 40 is correct there; a 2mm lid moves the
+# interior top to 38 and the cut must follow it. Rounding is off on both so the
+# comparison is not reading a facet-level disagreement between two
+# independently meshed shells.
+_lidless = dict(base, rounding=0, lid_thickness=0.0)
+_lidded = dict(base, rounding=0, lid_thickness=2.0)
+measure("removed_lidless",
+        build_shell(dict(_lidless)) - build_shell(dict(_lidless, finger_holes=(Hole(ScoopSide.FRONT),))))
+measure("removed_lidded",
+        build_shell(dict(_lidded)) - build_shell(dict(_lidded, finger_holes=(Hole(ScoopSide.FRONT),))))
 measure("removed_deep",
         build_shell(dict(base)) - build_shell(dict(base, finger_holes=(Hole(ScoopSide.FRONT, depth=100),))))
 
@@ -297,11 +331,24 @@ cuboid([1, 1, 1]).show()
         self.assertAlmostEqual(front.position[1], 0.0, places=2)
         self.assertAlmostEqual(front.position[1] + front.size[1], 2.0, places=2)
 
-    def test_a_hole_hangs_from_the_rim(self) -> None:
-        """Reaches the rim at the top, and `depth` down from it — plus the dip."""
-        removed = self.box("removed_front")
-        self.assertAlmostEqual(removed.position[2] + removed.size[2], 40.0, places=2)
-        self.assertAlmostEqual(removed.position[2], 40.0 - 6.0 - 0.2, places=2)
+    def test_a_hole_hangs_from_the_interior_top_not_the_rim(self) -> None:
+        """FR-043b1. The spec here has a 2mm lid, so the interior tops out at
+        38 and the cut must stop there rather than at the box's own 40.
+
+        Only the top is asserted: this measures the *difference* of two
+        independently meshed bodies, which can disagree by a facet down in the
+        bottom fillet and report a sliver below the cut.
+        """
+        lidless = self.box("removed_lidless")
+        lidded = self.box("removed_lidded")
+        lidless_top = lidless.position[2] + lidless.size[2]
+        lidded_top = lidded.position[2] + lidded.size[2]
+
+        # No lid: the interior runs to the rim, so the cut reaches it.
+        self.assertAlmostEqual(lidless_top, 40.0, delta=0.05)
+        # 2mm lid: the interior tops out at 38, and the cut stops there rather
+        # than carving through the band the lid seats in.
+        self.assertAlmostEqual(lidded_top, 38.0, delta=0.05)
 
     def test_depth_is_capped_at_the_interior_so_the_base_survives(self) -> None:
         """A hole asked to reach 100mm into a 40mm box stops inside the floor.

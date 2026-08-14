@@ -19,9 +19,6 @@ from __future__ import annotations
 
 from typing import Sequence, TYPE_CHECKING
 
-from pyboxbuilder.compartments.finger_hole import (
-    DEFAULT_MOUTH_ROUNDING_MM as DEFAULT_MOUTH_ROUNDING,
-)
 from pyboxbuilder.enums import ScoopSide
 from pyboxbuilder.precision import kwargs as precision_kwargs
 from pyboxbuilder.rounding import (
@@ -164,10 +161,13 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
             inner_width, inner_length, reach, hole.side,
             radius=radius,
             wall_thickness=wt,
-            rounding_radius=getattr(hole, "rounding_radius", None)
-            if getattr(hole, "rounding_radius", None) is not None
-            else DEFAULT_MOUTH_ROUNDING,
+            # None lets r1 derive from the throat rather than pinning 3mm.
+            rounding_radius=getattr(hole, "rounding_radius", None),
             rounding_edge=getattr(hole, "rounding_edge", None),
+            # Anything above the interior — a lid band, a sliding track — is
+            # material the hole must not cut into, so the outline's rim
+            # overshoot is trimmed off there.
+            top_limit=reach if interior_top < spec["height"] - 1e-9 else None,
         )
         offset = getattr(hole, "offset", 0.0) or 0.0
         along_x = hole.side in (ScoopSide.FRONT, ScoopSide.BACK)

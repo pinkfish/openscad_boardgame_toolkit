@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 
 from pyboxbuilder.enums import ScoopSide
 from pyboxbuilder.precision import kwargs as precision_kwargs
-from pyboxbuilder.sweep import offset_sweep
+from pyboxbuilder.rounding import rounding_facets
 
 if TYPE_CHECKING:
     from pybosl2.shapes2d import Bosl2Shape2D
@@ -79,6 +79,14 @@ _SIDE_SPIN = {
 }
 
 
+RIM_OVERSHOOT_MM = 1.0
+"""How far a scoop's outline continues above the rim.
+
+Keeps the outline free of the zero-angle cusp that closing it flush across the
+top would create, and leaves no skin at the top face. Nothing sits above the
+rim, so the overshoot removes nothing that was there.
+"""
+
 ARC_SAMPLES = 16
 """Points per quarter-arc in the scoop profile. 16 is smooth at print scale."""
 
@@ -101,7 +109,7 @@ def _quarter_arc(
     radius: float,
     start_angle: float,
     end_angle: float,
-    samples: int = ARC_SAMPLES,
+    samples: int | None = None,
 ) -> list[tuple[float, float]]:
     """Sample an arc, endpoints included.
 
@@ -110,13 +118,20 @@ def _quarter_arc(
         radius: Arc radius; ``0`` collapses to the single centre point.
         start_angle: Start angle in degrees.
         end_angle: End angle in degrees.
-        samples: Segments along the arc.
+        samples: Segments along the arc. ``None`` follows the curve precision
+            in force, so an export tessellates these arcs as finely as every
+            other curve rather than pinning a count the caller cannot reach.
 
     Returns:
         ``[(x, y), ...]`` from start to end.
     """
     if radius <= 0:
         return [centre]
+    if samples is None:
+        from pyboxbuilder.precision import precision
+
+        # A quarter arc gets a quarter of the facets a full circle would.
+        samples = max(ARC_SAMPLES, (precision().fn or 0) // 4)
     points = []
     for index in range(samples + 1):
         angle = math.radians(
@@ -187,27 +202,127 @@ def scoop_profile(
     if bottom_rounding < 0:
         raise ValueError(f"bottom_rounding must be >= 0; got {bottom_rounding}")
 
-    # r2 cannot eat the whole half-width: some of the base stays flat so a
-    # piece has something to sit on (see MIN_FLAT_BOTTOM_RATIO). The two arcs
-    # also have to share the height between them without overlapping.
-    r2 = min(bottom_rounding, radius * (1.0 - MIN_FLAT_BOTTOM_RATIO))
-    r1 = top_rounding
+    r1, r2 = _fit_radii(radius, height, top_rounding, bottom_rounding)
+
+    ring = scoop_outline(radius, height, r1, r2)
+    return shapes2d.polygon([[float(x), float(y)] for x, y in ring])
+
+
+def _fit_radii(
+    radius: float,
+    height: float,
+    top_rounding: float,
+    bottom_rounding: float | None,
+) -> tuple[float, float]:
+    """Cap r1 and r2 so they fit the scoop they are shaping.
+
+    Args:
+        radius: Half-width of the throat.
+        height: Floor to rim.
+        top_rounding: Requested r1.
+        bottom_rounding: Requested r2, or ``None`` to derive it.
+
+    Returns:
+        ``(r1, r2)``, each reduced as needed. r2 can never eat the whole
+        half-width — part of the base stays flat (MIN_FLAT_BOTTOM_RATIO) — and
+        the two together can never exceed the height.
+    """
+    if bottom_rounding is None:
+        bottom_rounding = radius * DEFAULT_BOTTOM_ROUNDING_RATIO
+    r1 = max(0.0, top_rounding)
+    r2 = max(0.0, min(bottom_rounding, radius * (1.0 - MIN_FLAT_BOTTOM_RATIO)))
     if r1 + r2 > height:
         scale = height / (r1 + r2)
         r1, r2 = r1 * scale, r2 * scale
+    return r1, r2
 
-    # Right-hand half, walked from the centre of the floor up and outwards.
-    points: list[tuple[float, float]] = [(0.0, 0.0)]
-    # r2: floor into wall — centre inside the material, sweeping 270° to 360°.
-    points += _quarter_arc((radius - r2, r2), r2, -90.0, 0.0)
-    # The straight throat, then r1: wall into the top face, centre outside the
-    # cut so the arc is concave and the top surface rolls into it.
-    points.append((radius, height - r1))
-    points += _quarter_arc((radius + r1, height - r1), r1, 180.0, 90.0)
-    points.append((0.0, height))
 
-    half = shapes2d.polygon([[float(x), float(y)] for x, y in points])
-    return half | half.mirror([1, 0])
+def floor_bore_outline(
+    radius: float,
+    height: float,
+    top_rounding: float = DEFAULT_MOUTH_ROUNDING_MM,
+) -> list[tuple[float, float]]:
+    """The floor finger hole's closed outline, as one ring of points.
+
+    The bore counterpart to :func:`scoop_outline`: a bowl tangent to the floor
+    instead of a flat bottom, carrying the same r1 roll at its rim and the same
+    overshoot above it.
+
+    Args:
+        radius: Bore radius — the widest part of the bowl.
+        height: Floor to rim.
+        top_rounding: r1 at the rim.
+
+    Returns:
+        ``[(x, y), ...]`` closed, floor at ``y=0``.
+
+    Raises:
+        ValueError: If ``radius`` or ``height`` is not positive, or
+            ``top_rounding`` is negative.
+    """
+    if radius <= 0:
+        raise ValueError(f"bore radius must be > 0; got {radius}")
+    if height <= 0:
+        raise ValueError(f"bore height must be > 0; got {height}")
+    if top_rounding < 0:
+        raise ValueError(f"top_rounding must be >= 0; got {top_rounding}")
+
+    r1 = min(top_rounding, max(0.0, height - radius))
+    right: list[tuple[float, float]] = []
+    # The bowl: a quarter of the bore circle, from its lowest point out to the
+    # side, tangent to the floor at the bottom and vertical at the side.
+    right += _quarter_arc((0.0, radius), radius, -90.0, 0.0)
+    right.append((radius, height - r1))
+    if r1 > 0:
+        right += _quarter_arc((radius + r1, height - r1), r1, 180.0, 90.0)
+    right.append((radius + r1, height + RIM_OVERSHOOT_MM))
+
+    left = [(-x, y) for x, y in reversed(right)]
+    return left + right
+
+
+def scoop_outline(
+    radius: float,
+    height: float,
+    top_rounding: float,
+    bottom_rounding: float,
+) -> list[tuple[float, float]]:
+    """The edge scoop's closed outline, as one ring of points.
+
+    Returned as a point ring rather than as 2-D geometry because the ring is
+    what an offset sweep needs: it follows the outline around, so the fillet it
+    lays on each face traces the scoop's own curve. A shape built by unioning
+    two mirrored halves loses that — it is the same region, but the boundary
+    has to be recovered from it, and anything that recovers it convexly (a
+    hull, say) bridges straight across the notch.
+
+    Args:
+        radius: Half-width of the straight throat.
+        height: Floor to rim.
+        top_rounding: r1, already capped to fit.
+        bottom_rounding: r2, already capped to fit.
+
+    Returns:
+        ``[(x, y), ...]`` closed counter-clockwise, floor at ``y=0``.
+    """
+    r1, r2 = top_rounding, bottom_rounding
+    right: list[tuple[float, float]] = []
+    # r2: floor into wall, then the straight throat, then r1 rolling out to the
+    # top face.
+    right += _quarter_arc((radius - r2, r2), r2, -90.0, 0.0)
+    right.append((radius, height - r1))
+    right += _quarter_arc((radius + r1, height - r1), r1, 180.0, 90.0)
+    # Carry on straight up past the rim. Closing the ring along the top instead
+    # would put a **cusp** at each end of the r1 arc: the arc arrives there
+    # travelling horizontally outward and the closing edge leaves horizontally
+    # back inward, so the outline doubles on itself at zero angle. Offsetting
+    # such a corner miters to infinity — measured, a ±15mm profile came back
+    # ±55mm. There is no material above the rim, so the overshoot costs nothing
+    # and it also guarantees the cut leaves no skin at the top face.
+    right.append((radius + r1, height + RIM_OVERSHOOT_MM))
+
+    left = [(-x, y) for x, y in reversed(right)]
+    return left + right
 
 
 def floor_bore_profile(
@@ -287,6 +402,7 @@ def build_wall_scoop(
     breach_floor: bool = False,
     floor_thickness: float | None = None,
     floor_clearance: float | None = None,
+    top_limit: float | None = None,
 ) -> "Bosl2Solid":
     """Build a finger notch through a compartment wall.
 
@@ -370,9 +486,12 @@ def build_wall_scoop(
     depth = wall_thickness + fudge
     rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
 
-    profile = scoop_profile(radius, comp_depth, rounding_radius, bottom_rounding)
+    outline = scoop_outline(
+        radius, comp_depth,
+        *_fit_radii(radius, comp_depth, rounding_radius, bottom_rounding),
+    )
     return _sweep_through_wall(
-        profile, comp_width, comp_length, side,
+        outline, comp_width, comp_length, side,
         comp_depth=comp_depth,
         wall_thickness=wall_thickness,
         rounding_radius=rounding_radius,
@@ -382,13 +501,14 @@ def build_wall_scoop(
         breach_floor=breach_floor,
         floor_thickness=floor_thickness,
         floor_clearance=floor_clearance,
+        top_limit=top_limit,
         span=span,
         radius=radius,
     )
 
 
 def _sweep_through_wall(
-    profile: "Bosl2Shape2D",
+    outline: list,
     comp_width: float,
     comp_length: float,
     side: ScoopSide,
@@ -404,6 +524,7 @@ def _sweep_through_wall(
     breach_floor: bool = False,
     floor_thickness: float | None = None,
     floor_clearance: float | None = None,
+    top_limit: float | None = None,
 ) -> "Bosl2Solid":
     """Sweep a 2-D scoop profile through a wall and place it on a side.
 
@@ -412,7 +533,10 @@ def _sweep_through_wall(
     around them is the same, and duplicating it is how the two drift apart.
 
     Args:
-        profile: The scoop's 2-D side profile, floor at ``y=0``.
+        outline: The scoop's closed 2-D outline as a point ring, floor at
+            ``y=0``. A ring rather than a 2-D shape because the fillet has to
+            follow it around: the sweep offsets the outline itself, so the
+            fillet traces the scoop's own curve on each face.
         comp_width: Compartment footprint width.
         comp_length: Compartment footprint length.
         side: Which wall to cut through.
@@ -427,6 +551,11 @@ def _sweep_through_wall(
         breach_floor: Skip the floor clip entirely.
         floor_thickness: Box floor, sizing the permitted dip below it.
         floor_clearance: Explicit dip below the well floor.
+        top_limit: Height, in the scoop's own frame, above which the cut is
+            trimmed away. Needed when there is material above the cut — the
+            lid band of a lidded box — where the outline's rim overshoot would
+            otherwise carry the cut straight through it. ``None`` (a free rim)
+            keeps the overshoot, which is what leaves no skin at the top face.
 
     Returns:
         The cutout, positioned in the compartment frame.
@@ -438,12 +567,26 @@ def _sweep_through_wall(
     depth = wall_thickness + fudge
     rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
 
-    swept = offset_sweep(
-        profile,
+    # BOSL2's own offset_sweep, which lofts between offsets of the outline.
+    # The hand-rolled stand-in chained convex hulls between slices, and a hull
+    # across a U-shaped outline bridges the notch — the fillet came out as a
+    # straight ramp from the bottom of the cut to the top instead of following
+    # its curve.
+    from pybosl2.path2d import Path2D
+    from pybosl2.skin import os_circle
+
+    path = Path2D([[float(x), float(y)] for x, y in outline], closed=True)
+    swept = path.offset_sweep(
         height=depth,
-        rounding_bottom=-rim if round_outer else 0.0,
-        rounding_top=-rim if round_inner else 0.0,
+        bottom=os_circle(-rim) if (round_outer and rim > 0) else None,
+        top=os_circle(-rim) if (round_inner and rim > 0) else None,
+        steps=max(8, rounding_facets()["fn"] // 4),
     )
+    # offset_sweep hands back a VNF; realise it and wrap the native solid so
+    # the transforms and booleans below have something to work with.
+    from pybosl2.shapes3d.base import CsgSolid
+
+    swept = CsgSolid(swept.polyhedron())
 
     # The profile is built in X-Z and extruded along +Z. Stand it up so the
     # extrusion runs along -Y (into the wall), then shift it so it spans the
@@ -472,6 +615,14 @@ def _sweep_through_wall(
             [0.0, 0.0, reach - dip]
         )
         standing = standing & keep
+
+    if top_limit is not None:
+        from pybosl2 import cuboid
+
+        reach = comp_depth + rounding_radius + rim + RIM_OVERSHOOT_MM + 1.0
+        standing = standing & cuboid(
+            [span * 2 + radius * 4, depth * 4, reach * 2]
+        ).translate([0.0, 0.0, top_limit - reach])
 
     oriented = standing.rotate([0.0, 0.0, _SIDE_SPIN[side]])
     x, y = _SIDE_CENTRES[side](comp_width, comp_length)
@@ -538,7 +689,7 @@ def build_floor_scoop(
     # tangent to the floor — because this is a hole you push a piece up
     # through, not a channel you sweep a finger along.
     cut = _sweep_through_wall(
-        floor_bore_profile(min(radius, span / 2), depth, rounding_radius),
+        floor_bore_outline(min(radius, span / 2), depth, rounding_radius),
         comp_width, comp_length, side,
         comp_depth=depth,
         wall_thickness=wall_thickness,

@@ -88,8 +88,14 @@ class PrecisionReachesGeometryTests(unittest.TestCase):
         )
 
     def test_finger_scoop(self) -> None:
-        with use(fn=37):
-            self.assertIn("37", fn_values(self.scoop()))
+        """The scoop realises to a polyhedron, so its facet count is in its
+        geometry rather than in a `$fn` its source still carries."""
+        from pyboxbuilder.compartments.finger_hole import scoop_outline
+
+        coarse = len(scoop_outline(10, 30, 5, 5))
+        with use(fn=256):
+            fine = len(scoop_outline(10, 30, 5, 5))
+        self.assertGreater(fine, coarse * 2, "precision did not reach the scoop")
 
     def test_hex_cell_finger_hole(self) -> None:
         spec = HexGridSpec(rows=2, cols=2, tile_width=20, height=10,
@@ -102,7 +108,9 @@ class PrecisionReachesGeometryTests(unittest.TestCase):
             self.assertIn("29", fn_values(self.pattern()))
 
     def test_default_emits_fa_and_fs_not_fn(self) -> None:
-        source = emitted(self.scoop())
+        """Checked on a lid pattern: it is still a live CSG tree, whereas the
+        scoop is realised to a polyhedron and no longer carries its own $fa."""
+        source = emitted(self.pattern())
         self.assertIn("$fa = 12", source)
         self.assertIn("$fs = 2", source)
 
