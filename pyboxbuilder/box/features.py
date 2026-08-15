@@ -282,10 +282,9 @@ def cap_finger_cutouts(spec: dict) -> "Bosl2Solid":
         # `corner_catch` takes one half-width for both arms, so the shorter run
         # governs: a cutout that overran its own side would eat into the next
         # corner's.
-        # `corner_catch` centres each arm's sweep **on** the wall it is given,
-        # so at a box corner half of it lies outside the box. What is wanted
-        # here is the body's outer skin — the same step the band above is inset
-        # by — so each corner's cutter moves inward by half that skin.
+        # The indent is exactly as deep as the lid's own offset — the step the
+        # band above it is already set in by — so the recess and the skirt sit
+        # in the same plane and the finger meets one continuous surface.
         parts.append(
             corner_catch(
                 at, towards,
@@ -295,9 +294,7 @@ def cap_finger_cutouts(spec: dict) -> "Bosl2Solid":
                 rounding_edge=m.inset / 2,
                 top_rounding=f.radius,
                 bottom_rounding=f.radius,
-            ).translate([
-                towards[0] * m.inset / 2, towards[1] * m.inset / 2, f.base_z,
-            ])
+            ).translate([0.0, 0.0, f.base_z])
         )
     cutouts = union_all(parts)
     assert cutouts is not None, "four corners always produce a solid"
@@ -927,10 +924,15 @@ def corner_catch(
             # through it.
             top_limit=height,
         )
+        # `build_wall_scoop` puts its wall on the far side of the compartment
+        # origin, so each arm's slab lands at [-wall_thickness, 0] across the
+        # face rather than on the skin the notch is meant to cut. Moving it in
+        # by the wall it was given puts it exactly over that skin: measured, a
+        # cap box's indent was cutting 0.5mm of the 1.15mm it was asked for.
         if side is ScoopSide.FRONT:
-            scoop = scoop.translate([-span / 2, 0.0, 0.0])
+            scoop = scoop.translate([-span / 2, wall_thickness, 0.0])
         else:
-            scoop = scoop.translate([0.0, -span / 2, 0.0])
+            scoop = scoop.translate([wall_thickness, -span / 2, 0.0])
         if towards[0] < 0:
             scoop = scoop.mirror([1, 0, 0])
         if towards[1] < 0:

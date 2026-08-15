@@ -218,7 +218,7 @@ def no_lid_finger_holes(spec: dict):
     height = spec["height"]
 
     radius = min(20.0, min(length, width) / 4.0, height - ft + 1.0)
-    hole_height = min(radius, height - ft + 2.0)
+    hole_height = max(min(radius, height - ft - wt - 1.0), 2)
     rounding_radius = 3.0
 
     if length >= width:

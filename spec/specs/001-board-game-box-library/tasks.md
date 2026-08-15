@@ -973,6 +973,23 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ---
 
+## Phase 30: The corner indent's depth, and the U's two curves (FR-002q, FR-043e)
+
+**Purpose**: Two defects that a render could not show and a measurement did — both in shared scoop helpers, so both were wrong everywhere they were used.
+
+**Goal**: A cap box's indent is exactly the lid's offset deep, and a scoop's floor fillet is sized from the throat radius rather than the rounding radius.
+
+**Independent Test**: Probing inward at mid-cut height, the indent's material begins at the lid offset; changing the rounding radius alone leaves the floor fillet unchanged.
+
+- [x] T299 Move the arm offset into `corner_catch` (FR-002q). `build_wall_scoop` puts its wall on the far side of the compartment origin, so each arm landed at `[-wall, 0]` across the face; the cap box compensated with half a wall, which was half of what it needed — the indent cut 0.5mm of the 1.15mm asked for. Fixing it in `corner_catch` fixes the slipover's notches too, which were shallow for the same reason and had never been measured.
+- [x] T300 Drop the compensating shift in `cap_finger_cutouts` so the indent is exactly the lid's offset deep, and the recess and skirt lie in one plane.
+- [x] T301 Stop splatting `_fit_radii` into `scoop_outline` in `build_wall_scoop` (FR-043e). It returns `(flare, rise, r2)`; `scoop_outline` takes `(top_rounding, bottom_rounding, top_rise)`. The floor fillet was getting the top roll's rise — 1.6x the flare, a function of the *rounding* radius — so both curves of the U were driven by one number. On a 14mm scoop the bottom curve was 7.72mm where it should be 6.28mm.
+- [x] T302 [P] Write test: the indent measures the lid's offset deep (SC-053), and the floor fillet tracks the throat radius while the top roll tracks the rounding radius (SC-054) — in `tests/test_pyboxbuilder/test_closures.py` and `tests/test_pyboxbuilder/test_finger_smoothing.py`
+
+**Checkpoint**: Indents are the depth they claim; the U's two curves are sized from the two quantities that decide them.
+
+---
+
 ## Notes
 
 - [P] tasks = different files, no dependencies

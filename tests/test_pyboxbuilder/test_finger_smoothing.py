@@ -963,3 +963,49 @@ class PullOutRollTests(unittest.TestCase):
         from pyboxbuilder.compartments.finger_hole import _fit_radii
 
         return _fit_radii(radius, height, radius * 0.5, None)
+
+
+class ScoopCurveSourcesTests(unittest.TestCase):
+    """FR-043e/SC-054: the two curves are sized from two different quantities."""
+
+    def fillet(self, radius: float, rounding: float, height: float = 40.0) -> float:
+        """The floor fillet `build_wall_scoop` would actually use.
+
+        Measured on a deep scoop by default, because the two curves do share
+        one budget — the height — and on a shallow one both shrink together.
+        That coupling is real; being sized off the same *radius* was not.
+        """
+        from pyboxbuilder.compartments.finger_hole import _fit_radii
+
+        _, _, r2 = _fit_radii(radius, height, rounding, None)
+        return r2
+
+    def test_the_floor_fillet_ignores_the_rounding_radius(self) -> None:
+        """It was fed the top roll's rise — 1.6x the flare — so both curves of
+        the U moved together with the mouth's flare."""
+        self.assertAlmostEqual(
+            self.fillet(14.0, 7.0), self.fillet(14.0, 3.0), places=6
+        )
+
+    def test_a_shallow_scoop_still_shares_the_height(self) -> None:
+        """The one coupling that is legitimate: both curves compete for the
+        depth available, so on a shallow cut both are scaled back together."""
+        self.assertLess(
+            self.fillet(14.0, 7.0, height=12.0), self.fillet(14.0, 7.0)
+        )
+
+    def test_the_floor_fillet_follows_the_throat_radius(self) -> None:
+        self.assertGreater(self.fillet(20.0, 7.0), self.fillet(10.0, 7.0))
+
+    def test_the_outline_gets_the_fillet_not_the_rise(self) -> None:
+        """The splat that caused it: `_fit_radii` returns (flare, rise, r2) and
+        `scoop_outline` takes (top_rounding, bottom_rounding, top_rise)."""
+        from pyboxbuilder.compartments.finger_hole import (
+            _fit_radii, build_wall_scoop,
+        )
+        from pyboxbuilder.enums import ScoopSide
+
+        flare, rise, r2 = _fit_radii(14.0, 20.0, 7.0, None)
+        self.assertNotAlmostEqual(rise, r2, places=2)
+        # Building must not raise, and must use the same numbers.
+        build_wall_scoop(60.0, 60.0, 20.0, ScoopSide.FRONT, radius=14.0)

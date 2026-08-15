@@ -184,6 +184,16 @@ Making it exact took capping the skirt as well as checking it. The skirt default
 
 **Below that minimum the library raises**, naming the box's height, the minimum, each term of it, and recommending a **slipover** of the same size, which opens by its own corner notches. The alternative — quietly shrinking the radii until they fit — produces a cap box whose lid cannot be removed, and a part that looks finished and cannot be used is worse than one that refused to build.
 
+### Two Bugs In One Shape: The Corner Indent And The U (FR-002q, FR-043e)
+
+Both were invisible in a render and obvious in a measurement, and both came from the same place — a shared helper used at two removes from the geometry it produces.
+
+**The indent was cutting less than half its depth.** `build_wall_scoop` places its wall on the far side of the compartment origin, so each arm of a `corner_catch` lands at `[-wall, 0]` across the face rather than on the skin the notch is meant to cut. The cap box shifted its cutter in by half a wall to compensate, which was half of what it needed: the recess measured 0.5mm of the 1.15mm it asked for. The offset belongs in `corner_catch`, where both callers get it — the slipover sleeve's notches were shallow for the same reason and nobody had measured them. The indent is now exactly the **lid's own offset** deep, so the recess and the skirt lie in the same plane.
+
+**Both curves of the U were the same number.** `build_wall_scoop` splatted `_fit_radii`'s result straight into `scoop_outline`, and the two disagree about order: `_fit_radii` returns `(flare, rise, r2)` while `scoop_outline` takes `(top_rounding, bottom_rounding, top_rise)`. So the floor fillet was fed the top roll's *rise* — 1.6x the flare, and therefore a function of the **rounding** radius — while the real floor fillet was fed in as the rise. On a 14mm scoop the bottom curve came out 7.72mm instead of 6.28mm, and it tracked the mouth's flare rather than the cut's width. `scoop_profile`, five hundred lines up, had the order right all along, which is exactly why a splat was the wrong way to call it.
+
+The rule the fix encodes: **the two curves answer different questions and must be sized from different quantities** — the top roll from the rounding radius, because it decides how wide the mouth is; the floor fillet from the throat radius, because it has to blend into a cut of that width.
+
 ### The Hinge Goes Inside The Box (FR-002c, FR-002d, FR-002e)
 
 The hinge used to stand off the back of the box — `axis_y = length + radius + gap` — and Phase 18 recorded that as the one bounded exception to "a closed box is the size it declares". It is not a good exception: a box with a barrel hanging off it cannot be packed against its neighbours, and nothing tells the packer to reserve the room. The pin axis now sits **inside** the back wall (`axis_y = length - radius`), and is sunk far enough (`height + leaf_thickness - radius`) that the barrel's crown is flush with the closed box's top rather than standing 1mm proud of it. Measured: both hinged types are now exactly their declared size in all three axes, and nothing anywhere reaches outside the footprint.

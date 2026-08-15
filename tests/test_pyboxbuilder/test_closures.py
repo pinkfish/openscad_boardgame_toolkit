@@ -1017,3 +1017,29 @@ class CapCurveGrowthTests(unittest.TestCase):
         self.metrics(height=11.0)  # must not raise
         with self.assertRaises(ValueError):
             self.metrics(height=10.9)
+
+
+class CapIndentDepthTests(unittest.TestCase):
+    """FR-002q/SC-053: the indent is exactly the lid's offset deep."""
+
+    def test_the_indent_matches_the_lid_offset(self) -> None:
+        """It cut 0.5mm of the 1.15mm asked for: `build_wall_scoop` puts its
+        wall on the far side of the compartment origin, so each corner arm
+        landed beside the skin rather than on it."""
+        from pyboxbuilder.box.features import (
+            cap_body, cap_finger_metrics, cap_metrics,
+        )
+        from pyboxbuilder.box.shell import block
+
+        spec = {**SPEC, "hollow": True}
+        m, f = cap_metrics(spec), cap_finger_metrics(spec)
+        body = cap_body(spec)
+        z = f.base_z + f.height / 2
+        depth = None
+        for step in range(60):
+            y = step * 0.05
+            if volume(body & block([6, 0.05, 0.6], at=(2.0, y, z - 0.3))) > 1e-4:
+                depth = y
+                break
+        self.assertIsNotNone(depth, "the indent must cut something")
+        self.assertAlmostEqual(depth, m.inset, delta=0.06)

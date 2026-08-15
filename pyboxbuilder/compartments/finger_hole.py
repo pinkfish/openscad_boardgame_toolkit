@@ -643,10 +643,17 @@ def build_wall_scoop(
     depth = wall_thickness + fudge
     rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
 
-    outline = scoop_outline(
-        radius, comp_depth,
-        *_fit_radii(radius, comp_depth, rounding_radius, bottom_rounding),
+    # Named rather than splatted: `_fit_radii` returns (flare, rise, r2) and
+    # `scoop_outline` takes (top_rounding, bottom_rounding, top_rise), so
+    # `*_fit_radii(...)` fed the top roll's **rise** to the floor fillet and the
+    # floor fillet to the rise. The bottom curve was therefore sized off the
+    # rounding radius (1.6x the top flare) instead of off the throat radius —
+    # both curves of the U driven by the same number, which is exactly what it
+    # looked like. `scoop_profile` had the order right all along.
+    flare, rise, r2 = _fit_radii(
+        radius, comp_depth, rounding_radius, bottom_rounding
     )
+    outline = scoop_outline(radius, comp_depth, flare, r2, rise)
     return _sweep_through_wall(
         outline, comp_width, comp_length, side,
         comp_depth=comp_depth,
