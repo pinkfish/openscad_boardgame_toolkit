@@ -1009,3 +1009,41 @@ class ScoopCurveSourcesTests(unittest.TestCase):
         self.assertNotAlmostEqual(rise, r2, places=2)
         # Building must not raise, and must use the same numbers.
         build_wall_scoop(60.0, 60.0, 20.0, ScoopSide.FRONT, radius=14.0)
+
+
+class ScoopFlareAlignmentTests(unittest.TestCase):
+    """T306/FR-043g: a scoop's solid is taller than the height it was asked for."""
+
+    def test_the_flare_reaches_below_the_outline(self) -> None:
+        """The face fillet is isotropic in the profile plane, so it grows down
+        past the flat bottom exactly as readily as it grows sideways."""
+        from pyboxbuilder.compartments.finger_hole import (
+            build_wall_scoop, scoop_face_flare,
+        )
+        from pyboxbuilder.enums import ScoopSide
+
+        wt = 2.0
+        # Unclipped, so the flare's own reach is what is measured. With the
+        # default floor clip in force it is sliced at the dip instead — which
+        # is correct for a compartment scoop bottoming on the floor, and is
+        # why an exterior hole passes a `floor_clearance` that lets it finish.
+        scoop = build_wall_scoop(
+            76.0, 56.0, 14.0, ScoopSide.FRONT, radius=14.0, wall_thickness=wt,
+            breach_floor=True,
+        )
+        centre, size = scoop.bounds()
+        bottom = centre[2] - size[2] / 2
+        self.assertAlmostEqual(bottom, -scoop_face_flare(wt), delta=0.05)
+
+    def test_the_flare_is_half_the_wall(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import scoop_face_flare
+
+        for wall in (2.0, 3.0, 4.0):
+            with self.subTest(wall=wall):
+                self.assertAlmostEqual(scoop_face_flare(wall), wall / 2, places=6)
+
+    def test_an_explicit_edge_rounding_is_respected(self) -> None:
+        from pyboxbuilder.compartments.finger_hole import scoop_face_flare
+
+        self.assertAlmostEqual(scoop_face_flare(4.0, 0.5), 0.5, places=6)
+        self.assertEqual(scoop_face_flare(2.0, 0.0), 0.0)

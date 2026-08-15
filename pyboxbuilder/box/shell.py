@@ -110,6 +110,25 @@ def _top_anchor():
     return Anchor.TOP
 
 
+def _hole_drop(wall_thickness: float, hole) -> float:
+    """How far an exterior finger hole's cut reaches below its outline.
+
+    The face fillet flares the sweep's end, and the flare is isotropic in the
+    profile plane — it grows down past the flat bottom as readily as sideways —
+    plus the small dip that keeps the cut's bottom face off any plane below it.
+    A caller placing the scoop against something has to add this back, or the
+    hole ends up that much deeper than the reach it was given (T306).
+    """
+    from pyboxbuilder.compartments.finger_hole import (
+        DEFAULT_FLOOR_DIP_MM, scoop_face_flare,
+    )
+
+    return (
+        scoop_face_flare(wall_thickness, getattr(hole, "rounding_edge", None))
+        + DEFAULT_FLOOR_DIP_MM
+    )
+
+
 def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
     """Cut any exterior finger holes out of a box body (FR-006).
 
@@ -170,15 +189,34 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
             # Anything above the interior — a lid band, a sliding track — is
             # material the hole must not cut into, so the outline's rim
             # overshoot is trimmed off there.
-            top_limit=reach if interior_top < spec["height"] - 1e-9 else None,
+            # Trimmed a flare short, because the whole scoop is placed a flare
+            # higher (below): without that the trim lands a flare *above*
+            # `interior_top` and the cut reaches into the lid band it exists to
+            # stay clear of.
+            top_limit=(
+                reach - _hole_drop(wt, hole)
+                if interior_top < spec["height"] - 1e-9
+                else None
+            ),
+            # There is wall below an exterior hole, not floor, so the face
+            # flare can finish instead of being sliced off at the outline's
+            # flat bottom — which is what leaves the wall's sawn cross-section
+            # showing at the base of the cut (FR-043g). Compartment scoops keep
+            # the default clip: they bottom on the floor, and there the flare
+            # has nowhere to go but through it.
+            floor_clearance=_hole_drop(wt, hole),
         )
         offset = getattr(hole, "offset", 0.0) or 0.0
         along_x = hole.side in (ScoopSide.FRONT, ScoopSide.BACK)
+        # The scoop's solid reaches below its outline by the face flare, so
+        # placing it at `interior_top - reach` puts the *outline's* bottom
+        # there and the cut's real bottom a flare lower — the hole ends up
+        # deeper than the reach it was given (T306). Add the flare back.
         body = body - scoop.translate(
             [
                 wt + (offset if along_x else 0.0),
                 wt + (0.0 if along_x else offset),
-                interior_top - reach,
+                interior_top - reach + _hole_drop(wt, hole),
             ]
         )
 

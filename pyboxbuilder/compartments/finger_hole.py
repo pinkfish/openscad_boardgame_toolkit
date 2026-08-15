@@ -544,6 +544,36 @@ def floor_bore_profile(
     return profile
 
 
+def scoop_face_flare(
+    wall_thickness: float, rounding_edge: float | None = None
+) -> float:
+    """How far a wall scoop's face fillet reaches **beyond** its outline (FR-043g).
+
+    The fillet that rolls the cut onto each face is produced by flaring the
+    sweep's end, and the flare is isotropic in the profile plane — it grows
+    downward past the flat bottom exactly as readily as it grows sideways. So
+    the solid `build_wall_scoop` returns is this much taller than the height it
+    was asked for, at each end.
+
+    Callers that place a scoop against something — a floor, an interior top —
+    must add this back, or the cut lands lower than the height they asked for
+    (T306). It is also what the floor clip has to allow for: clipping at the
+    outline's flat bottom slices the flare off mid-curve and leaves the wall's
+    sawn cross-section showing at the base of the scoop.
+
+    Args:
+        wall_thickness: The wall the cut passes through.
+        rounding_edge: Requested face fillet; ``None`` uses ``wall_thickness / 2``.
+
+    Returns:
+        The flare in mm — normally ``wall_thickness / 2``.
+    """
+    if rounding_edge is None:
+        rounding_edge = wall_thickness / 2
+    fudge = 0.03
+    return max(0.0, min(rounding_edge, (wall_thickness + fudge - 0.01) / 2))
+
+
 def build_wall_scoop(
     comp_width: float,
     comp_length: float,
@@ -641,7 +671,7 @@ def build_wall_scoop(
     # plane to resolve. See the note above on why this must not be larger.
     fudge = 0.03
     depth = wall_thickness + fudge
-    rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
+    rim = scoop_face_flare(wall_thickness, rounding_edge)
 
     # Named rather than splatted: `_fit_radii` returns (flare, rise, r2) and
     # `scoop_outline` takes (top_rounding, bottom_rounding, top_rise), so
@@ -762,7 +792,7 @@ def _sweep_through_wall(
 
     fudge = 0.03
     depth = wall_thickness + fudge
-    rim = max(0.0, min(rounding_edge, (depth - 0.01) / 2))
+    rim = scoop_face_flare(wall_thickness, rounding_edge)
 
     # BOSL2's own offset_sweep, which lofts between offsets of the outline, so
     # the fillet follows the cut's curve. (A hand-rolled stand-in chained
