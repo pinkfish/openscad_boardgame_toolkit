@@ -82,6 +82,17 @@ class OutlineTests(unittest.TestCase):
         floor_points = [x for x, y in ring if abs(y) < 1e-6]
         self.assertLessEqual(len(floor_points), 2, "the bore has a flat bottom")
 
+    def test_a_tall_scoop_has_a_straight_vertical_throat(self) -> None:
+        """radius + smoothing << height: the floor and rim circles are joined by
+        their common tangent — a straight vertical run, not a step at either join."""
+        from pyboxbuilder.compartments.finger_hole import scoop_outline
+
+        ring = scoop_outline(10, 30, 3, 3)
+        right = [(x, y) for x, y in ring if x > 1e-6]
+        throat = sorted(y for x, y in right if abs(x - 10.0) < 1e-6)
+        self.assertGreaterEqual(len(throat), 2, "no straight throat")
+        self.assertGreater(throat[-1] - throat[0], 10.0, "the throat collapsed to a point")
+
 
 class ScoopSelectionTests(unittest.TestCase):
     def test_deep_compartment_gets_a_wall_notch(self) -> None:
@@ -412,6 +423,59 @@ class FingerHoleBuilderTests(unittest.TestCase):
             box.finger_hole(ScoopSide.LEFT, depth=-1)
 
 
+class NoLidFingerHoleTests(unittest.TestCase):
+    """FR-047: a no-lid box puts default finger holes in its longer walls."""
+
+    def spec(self, **overrides) -> dict:
+        base = dict(
+            width=100, length=80, height=40,
+            wall_thickness=2.0, floor_thickness=2.0,
+        )
+        base.update(overrides)
+        return base
+
+    def test_the_holes_follow_the_original_sizing(self) -> None:
+        from pyboxbuilder.box.shell import no_lid_finger_holes
+
+        # width 100 > length 80, so the longer side is the width → FRONT/BACK.
+        holes = no_lid_finger_holes(self.spec())
+        self.assertEqual([h.side for h in holes], [ScoopSide.FRONT, ScoopSide.BACK])
+        for hole in holes:
+            self.assertEqual(hole.radius, 20.0)  # min(20, 80/4=20, 40-2+1=39)
+            self.assertEqual(hole.depth, 20.0)   # min(20, 40-2+1=39)
+            self.assertEqual(hole.rounding_radius, 3.0)
+
+    def test_the_longer_dimension_chooses_the_side(self) -> None:
+        from pyboxbuilder.box.shell import no_lid_finger_holes
+
+        holes = no_lid_finger_holes(self.spec(width=80, length=120))
+        self.assertEqual([h.side for h in holes], [ScoopSide.LEFT, ScoopSide.RIGHT])
+
+    def test_a_hole_too_wide_for_its_wall_is_skipped(self) -> None:
+        from pyboxbuilder.box.shell import no_lid_finger_holes
+
+        # radius = 12/4 = 3, mouth = 2*(3+3) = 12 > span 12-4 = 8 → no holes.
+        self.assertEqual(no_lid_finger_holes(self.spec(width=12, length=12, height=10)), ())
+
+    def test_auto_holes_are_added_and_can_be_opted_out(self) -> None:
+        from pyboxbuilder.box.shell import add_no_lid_finger_holes
+
+        spec = self.spec()
+        add_no_lid_finger_holes(spec)
+        self.assertEqual(len(spec["finger_holes"]), 2)
+
+        opted = self.spec(auto_finger_holes=False)
+        add_no_lid_finger_holes(opted)
+        self.assertIsNone(opted.get("finger_holes"))
+
+    def test_explicit_holes_beat_the_automatic_ones(self) -> None:
+        from pyboxbuilder.box.shell import add_no_lid_finger_holes
+
+        spec = self.spec(finger_holes=(object(),))
+        add_no_lid_finger_holes(spec)
+        self.assertEqual(len(spec["finger_holes"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -554,7 +618,10 @@ from pybosl2 import cuboid
 
 for name in ("no_lid", "sliding", "cap", "slipover"):
     project = Project("A", game_box_size=(400, 200, 60), generate_spacers=False)
-    box = project.box(BoxType(name), name, size=(100, 80, 40), position=(0, 0, 0))
+    # auto_finger_holes=False keeps the plain box free of FR-047's default
+    # holes, so `plain - holed` isolates the one explicit finger_hole() call.
+    box = project.box(BoxType(name), name, size=(100, 80, 40), position=(0, 0, 0),
+                      auto_finger_holes=False)
     project._resolve_final_layout()
     plain = project._build_box_solids(box)[0]
     box.finger_hole(ScoopSide.FRONT)

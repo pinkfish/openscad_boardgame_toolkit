@@ -937,3 +937,83 @@ class CapFingerCutoutTests(unittest.TestCase):
         from pyboxbuilder.box.features import cap_lid
 
         self.assertLess(volume(self.body() & cap_lid(dict(SPEC))), 0.01)
+
+
+class SlipoverSleeveTests(unittest.TestCase):
+    """FR-002o/FR-002p: the sleeve is a skin over the body, not a second wall."""
+
+    def parts(self, **overrides):
+        from pyboxbuilder.box.registry import BOX_IMPL_REGISTRY
+
+        spec = {**SPEC, "hollow": True, **overrides}
+        box = BOX_IMPL_REGISTRY[BoxType.SLIPOVER]()
+        return box.build_body(spec), box.build_lid(spec)
+
+    def test_the_sleeve_wall_is_half_the_box_wall(self) -> None:
+        """A full-thickness sleeve is a second wall carrying nothing — it cost
+        the interior two full walls of width across every axis."""
+        from pyboxbuilder.box.features import SLIPOVER_SLEEVE_WALL_SHARE, slipover_metrics
+
+        inset, _ = slipover_metrics(SPEC)
+        wiggle = SPEC.get("size_spacing", 0.2)
+        self.assertAlmostEqual(
+            inset - wiggle,
+            SPEC["wall_thickness"] * SLIPOVER_SLEEVE_WALL_SHARE,
+            places=6,
+        )
+
+    def test_the_sleeve_stops_short_of_the_foot(self) -> None:
+        """FR-002p: a band of body shows all the way round to pull on, rather
+        than the sleeve closing onto the foot in a seam with nothing to grip."""
+        from pyboxbuilder.box.features import (
+            SLIPOVER_GAP_MAX_MM, SLIPOVER_GAP_MIN_MM, slipover_gap,
+        )
+
+        gap = slipover_gap(SPEC)
+        self.assertGreaterEqual(gap, SLIPOVER_GAP_MIN_MM)
+        self.assertLessEqual(gap, SLIPOVER_GAP_MAX_MM)
+        _, sleeve = self.parts()
+        (_, _, z0), _ = bbox(sleeve)
+        self.assertAlmostEqual(z0, SPEC.get("foot", 0.0) + gap, delta=0.02)
+
+    def test_the_gap_is_bounded_both_ways(self) -> None:
+        from pyboxbuilder.box.features import (
+            SLIPOVER_GAP_MAX_MM, SLIPOVER_GAP_MIN_MM, slipover_gap,
+        )
+
+        self.assertEqual(slipover_gap({**SPEC, "height": 8.0}), SLIPOVER_GAP_MIN_MM)
+        self.assertEqual(slipover_gap({**SPEC, "height": 200.0}), SLIPOVER_GAP_MAX_MM)
+
+    def test_the_sleeve_still_does_not_overlap_its_body(self) -> None:
+        body, sleeve = self.parts()
+        self.assertLess(volume(body & sleeve), 0.01)
+
+
+class CapCurveGrowthTests(unittest.TestCase):
+    """FR-002k: 4mm is the floor, not the target."""
+
+    def metrics(self, **overrides):
+        from pyboxbuilder.box.features import cap_finger_metrics
+
+        return cap_finger_metrics({**SPEC, "hollow": True, **overrides})
+
+    def test_a_tall_box_gets_the_wider_curve(self) -> None:
+        from pyboxbuilder.box.features import CAP_FINGER_CURVE_MAX_MM
+
+        self.assertAlmostEqual(
+            self.metrics().radius, CAP_FINGER_CURVE_MAX_MM / 2, places=6
+        )
+
+    def test_a_short_box_falls_back_to_the_floor(self) -> None:
+        from pyboxbuilder.box.features import CAP_FINGER_MIN_RADIUS_MM
+
+        self.assertAlmostEqual(
+            self.metrics(height=11.0).radius, CAP_FINGER_MIN_RADIUS_MM, places=6
+        )
+
+    def test_growing_the_curve_does_not_raise_the_minimum(self) -> None:
+        """The minimum is computed from the floor, so a box that fits 4mm of
+        curve still builds even though a taller one would take 6mm."""
+        self.metrics(height=11.0)  # must not raise
+        with self.assertRaises(ValueError):
+            self.metrics(height=10.9)

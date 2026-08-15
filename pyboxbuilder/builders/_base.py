@@ -74,6 +74,14 @@ class BoxBuilder:
     """
     finger_holes: tuple[FingerHoleBuilder, ...] = ()
     """Finger holes on box exterior walls."""
+    auto_finger_holes: bool = True
+    """Let a lidless box cut its own default finger holes (FR-047).
+
+    Only the no-lid and path types read this: when there are no explicit
+    ``finger_holes``, they add a finger hole to each wall of their longer side,
+    sized after the original. ``False`` opts out and leaves the walls plain.
+    Lidded types ignore it.
+    """
     compartments: tuple[CompartmentBuilder, ...] = ()
     """Interior compartments."""
 

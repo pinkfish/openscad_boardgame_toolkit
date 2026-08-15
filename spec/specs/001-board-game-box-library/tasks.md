@@ -939,6 +939,40 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ---
 
+## Phase 29: Default finger holes on a no-lid box (FR-047)
+
+**Purpose**: An open tray has no lid to grip, so it is lifted by the rim. The original cuts a finger dip into both walls of the longer dimension; that was never wired into the no-lid type.
+
+**Goal**: Every no-lid and path box carries a finger hole in each of its longer walls, sized after the original, skipped when the wall is too short, and opt-out via `auto_finger_holes=False` or an explicit `finger_hole(side)`.
+
+**Independent Test**: `no_lid_finger_holes(spec)` returns two holes with radius `min(20, min(length, width)/4, height - floor + 1)`, height `min(radius, height - 2 + 1)`, rounding 3mm, on the longer side; a wall too short yields none.
+
+- [x] T293 [P] [US2] Write test: the sizing follows the original, the longer dimension picks the side, a hole too wide for its wall is skipped (SC-053), automatic holes are opt-out and yield to explicit ones, and a scoop much taller than `radius + rounding` gets a straight vertical throat (the circles' common tangent) — in `tests/test_pyboxbuilder/test_finger_smoothing.py`
+- [x] T294 [US2] Implement `no_lid_finger_holes` / `add_no_lid_finger_holes` in `pyboxbuilder/box/shell.py` (FR-047) and wire them into `NoLidBox` and `PathBox`, with an `auto_finger_holes` flag on `BoxBuilder`. The default holes are cut by the same `build_wall_scoop` as every other finger cut, and a wall too short for the mouth drops the hole rather than shrinking it.
+
+**Checkpoint**: No-lid trays lift by their longer walls; a short-sided path box goes out sound.
+
+---
+
+## Phase 29: Good defaults as the governing rule, and two slipover corrections (FR-000, FR-002o, FR-002p)
+
+**Purpose**: The spec had no stated position on API simplicity, so each design section argued its defaults locally with nothing to appeal to. It now has one, and it is the rule the rest answer to.
+
+**Goal**: A user describes the game — sizes, contents, labels — and gets printable files, changing no geometric parameter.
+
+**Independent Test**: Every shipped example builds and exports without setting a single geometric override (SC-000).
+
+- [x] T293 Add the governing principle to the spec (FR-000, FR-000a–d) and to the plan as the section every design section answers to: derive don't fix; a feature needing an override does not work; refuse rather than degrade. Success measured by SC-000 — no example sets a geometric override.
+- [x] T294 Switch 1835's two money boxes (9.5mm, 8.5mm) from cap to **slipover**, in `boxes/1835/1835.py` and in `tests/test_pyboxbuilder/test_1835.py`, which builds its own copy of the layout. Both are under the smallest cap box that can carry a corner finger cutout.
+- [x] T295 Halve the slipover sleeve's wall to `wall_thickness / 2` (FR-002o) in `slipover_metrics`. It was a full wall: a second wall carrying nothing, costing the interior two full walls of width across every axis.
+- [x] T296 Stop the sleeve a gap short of the foot (FR-002p): skirt = `height - foot - gap`, gap a quarter of the covered height held between 3mm and 6mm, so there is a band of body to grip all the way round rather than a closed seam.
+- [x] T297 Grow the cap cutout's curve budget from its 4mm floor to 6mm where the box can spare it (FR-002k), computing the minimum box size from the floor so growing it never raises the minimum.
+- [x] T298 Write test: the sleeve's wall is half the box wall, the sleeve stops a gap short of the foot with the gap bounded at 3mm and 6mm, and the cap cutout's curve grows on a tall box while the 11mm minimum holds — in `tests/test_pyboxbuilder/test_closures.py`
+
+**Checkpoint**: Examples build with no geometric overrides; slipover sleeves are half-wall and grippable.
+
+---
+
 ## Notes
 
 - [P] tasks = different files, no dependencies

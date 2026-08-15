@@ -82,9 +82,16 @@ class SlipoverBox:
         slack = spec.get("slip_slack", WIGGLE_MM)
         inset, body_height = slipover_metrics(spec)
 
+        # The sleeve stops a gap short of the foot rather than closing onto it,
+        # leaving a band of body showing all the way round for the fingers to
+        # pull on (FR-002p).
+        from pyboxbuilder.box.features import slipover_gap
+
+        gap = min(slipover_gap(spec), spec["height"] - foot - lt)
+        skirt = spec["height"] - foot - gap
         outer = block(
-            [spec["width"], spec["length"], spec["height"] - foot],
-            at=(0.0, 0.0, foot),
+            [spec["width"], spec["length"], skirt],
+            at=(0.0, 0.0, foot + gap),
         )
         from pyboxbuilder.rounding import mating_rounding, rounded_block, vertical_edges
 
@@ -93,11 +100,11 @@ class SlipoverBox:
             [
                 spec["width"] - 2 * inset + 2 * slack,
                 spec["length"] - 2 * inset + 2 * slack,
-                spec["height"] - foot - lt,
+                skirt - lt,
             ],
             mating_rounding(spec),
             vertical_edges(),
-            at=(inset - slack, inset - slack, foot),
+            at=(inset - slack, inset - slack, foot + gap),
         )
         sleeve = outer - cavity
         return sleeve - self._finger_notches(spec)

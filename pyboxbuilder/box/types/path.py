@@ -33,16 +33,24 @@ class PathBox:
         ft = spec.get("floor_thickness", 1.6)
         path = spec.get("path") or ()
 
-        if not path:
-            from pyboxbuilder.box.shell import build_shell
+        from pyboxbuilder.box.shell import (
+            add_no_lid_finger_holes,
+            apply_finger_holes,
+            build_shell,
+        )
 
+        if not path:
+            add_no_lid_finger_holes(spec)
             return build_shell(spec)
 
         outer = self._extrude(path, spec["height"])
         if not spec.get("hollow", True):
-            return outer
+            add_no_lid_finger_holes(spec)
+            return apply_finger_holes(outer, spec)
         inner = self._extrude(_inset_path(path, wt), spec["height"] - ft)
-        return outer - inner.translate([0.0, 0.0, ft])
+        body = outer - inner.translate([0.0, 0.0, ft])
+        add_no_lid_finger_holes(spec)
+        return apply_finger_holes(body, spec)
 
     @staticmethod
     def _extrude(path, height: float) -> "Bosl2Solid":

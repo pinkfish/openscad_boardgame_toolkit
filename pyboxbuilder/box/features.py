@@ -118,6 +118,15 @@ and a foot. Sized as a total rather than per-radius because it is the total that
 competes with the box's height — a 4mm budget fits boxes an 8mm one refuses.
 """
 
+CAP_FINGER_CURVE_MAX_MM = 6.0
+"""Height the two rolls take when the box can spare it (FR-002k).
+
+4mm is the floor, not the target. Where there is room the pair opens out to 6mm
+— a 3mm roll each — which is a noticeably gentler curve for a fingertip. Growing
+it rather than fixing it is the point: the same cutout suits a 12mm box and a
+60mm one only if it can breathe on the taller one.
+"""
+
 CAP_FINGER_FOOT_MM = 2.0
 """Full-thickness body left below the cutout (FR-002l).
 
@@ -179,18 +188,29 @@ def cap_finger_metrics(spec: dict) -> CapFingerMetrics:
     m = cap_metrics(spec)
     lt = spec.get("lid_thickness", 2.0)
 
-    radius = spec.get("cap_finger_radius")
-    if radius is None:
-        radius = CAP_FINGER_MIN_RADIUS_MM
-    radius = max(radius, CAP_FINGER_MIN_RADIUS_MM)
-
-    # Read down the box: the lid plate, then the skirt it grips by, then the two
-    # rolls, then the foot. That stack is the smallest cap box there can be.
-    curves = max(2 * radius, CAP_FINGER_CURVE_TOTAL_MM)
-    minimum = lt + CAP_FINGER_MIN_SKIRT_MM + curves + CAP_FINGER_FOOT_MM
     # The cut hangs below the skirt, so what it has to spend is everything from
     # there down to the foot.
     available = m.band_z - CAP_FINGER_FOOT_MM
+
+    explicit = spec.get("cap_finger_radius")
+    if explicit is None:
+        # 4mm is the floor, not the target: where the box can spare the height
+        # the pair opens out to 6mm, which is a gentler curve under a fingertip.
+        curves = min(
+            CAP_FINGER_CURVE_MAX_MM, max(CAP_FINGER_CURVE_TOTAL_MM, available)
+        )
+        radius = curves / 2
+    else:
+        radius = max(explicit, CAP_FINGER_MIN_RADIUS_MM)
+        curves = 2 * radius
+
+    # Read down the box: the lid plate, then the skirt it grips by, then the two
+    # rolls at their *floor* size, then the foot. That stack is the smallest cap
+    # box there can be — growing the curve never raises the minimum.
+    minimum = (
+        lt + CAP_FINGER_MIN_SKIRT_MM + CAP_FINGER_CURVE_TOTAL_MM
+        + CAP_FINGER_FOOT_MM
+    )
     if m.cap_height - lt < CAP_FINGER_MIN_SKIRT_MM or available < curves - 1e-9:
         raise ValueError(
             f"cap box {spec.get('label', '')!r} is {spec['height']:.1f}mm tall "
@@ -355,6 +375,38 @@ wall carrying nothing — it costs the interior two full walls of width across
 every axis, and prints a part twice as heavy as the job needs. The same
 reasoning the cap box's skirt already uses.
 """
+
+
+SLIPOVER_GAP_MIN_MM = 3.0
+"""Least body a slipover sleeve leaves showing above the foot (FR-002p)."""
+
+SLIPOVER_GAP_MAX_MM = 6.0
+"""Most body a slipover sleeve leaves showing above the foot (FR-002p).
+
+The gap is where the fingers go, so a wider one takes a wider curve — but it is
+skirt the sleeve gives up to get it, so it stops at 6mm.
+"""
+
+
+def slipover_gap(spec: dict) -> float:
+    """How much body a sleeve leaves exposed above the foot (FR-002p).
+
+    A sleeve that runs all the way down to the foot meets it in a closed seam
+    with nothing to grip. Stopping short leaves a band of the body showing the
+    whole way round, which is what the fingers pull on.
+
+    Args:
+        spec: Needs `height`; reads `foot` and `slipover_gap`.
+
+    Returns:
+        The gap in mm — a quarter of the covered height, held between
+        :data:`SLIPOVER_GAP_MIN_MM` and :data:`SLIPOVER_GAP_MAX_MM`.
+    """
+    explicit = spec.get("slipover_gap")
+    if explicit is not None:
+        return max(0.0, float(explicit))
+    covered = spec["height"] - spec.get("foot", 0.0)
+    return min(SLIPOVER_GAP_MAX_MM, max(SLIPOVER_GAP_MIN_MM, covered / 4))
 
 
 def slipover_metrics(spec: dict) -> tuple[float, float]:

@@ -8,6 +8,22 @@
 
 Build a new strictly-typed PythonSCAD library under `pyboxbuilder/` with a single-import API. The design is fresh — not wrapping the existing box pipeline. Borrowed from the existing codebase: tessellation algorithms (penrose, pentagon families, voronoi), 2D shape generators (coin, hexagon, rounded rects), and pybosl2 CSG primitives. Everything else — the box construction pipeline, lid decoration pipeline, builder API, compartment layout, export, and caching — is designed from scratch to avoid constraints inherited from the legacy codebase.
 
+## The Design Rule Everything Else Answers To: Good Defaults, Not Options (FR-000)
+
+**The user describes the game, not the geometry.** Sizes, what goes in each compartment, a label, a colour — and printable files come out. Every geometric decision below is the library's to make, and it has to make a good one without being asked.
+
+That is a constraint on *this* document as much as on the code. Each design section here settles a number so the user never has to: the finger scoop's two radii, the sliding lid's clearance, the cap box's skirt, the sleeve's wall. Where those sections argue at length about a value, the argument exists precisely so the value can be a default rather than a parameter.
+
+Three rules follow, and they are the ones to check a change against.
+
+**Derive, don't fix.** A default computed from what is already known — the wall thickness, the box's height, the piece being held — stays right across the range of boxes people build. A constant does not: 3mm of roll is invisible on a 14mm finger hole and overwhelming on a 4mm one, which is why `DEFAULT_TOP_ROUNDING_RATIO` is a ratio. Where a constant is genuinely right it is a *floor* or a *cap* on a derived value, not the value itself — the cap box's 4mm curve budget growing to 6mm where there is room, the sleeve's gap held between 3mm and 6mm.
+
+**A feature that needs an override does not work.** If a parameter has to be set before the result is usable, the default is wrong, and the fix goes in the default rather than in the documentation. The measure of this is SC-000: no shipped example sets a geometric override. What the examples set is what the *game* needs. An override an example is forced to add is a bug report against a default.
+
+**Refuse rather than degrade.** When the defaults genuinely cannot give a good part at the size asked for, say so and name the alternative — as a too-short cap box does, pointing at a slipover. That is part of working out of the box. Quietly shrinking a radius until it fits produces a part that looks finished and cannot be used, and the user finds out after printing it.
+
+Overrides still exist for the unusual case, but each is **one named parameter changing one thing**, never a set the user has to keep consistent. Where two values must agree — a lid and the groove it runs in, a skirt and the band it grips — the library derives one from the other and emits both from one function, so there is nothing to keep in step.
+
 ## Technical Context
 
 **Language/Version**: Python 3.12+ with strict type annotations (`py.typed` marker)
@@ -122,6 +138,14 @@ if __name__ == "__main__":
 - **Spacers are shown, always grey.** `show()` MUST also render the spacer boxes at their generated positions so the preview shows the complete filled layout (not just the real boxes). Spacers MUST always use a **variant of grey** for their colour — never the same palette as the real boxes — so a viewer can instantly tell a spacer (dead fill) from a box (holds pieces). The spacer colour is fixed and is not drawn from the per-box pseudo-random palette.
 - **Curve precision (`fn`/`fa`/`fs`).** `export()` (and `show()`) MUST accept optional `fn`, `fa`, and `fs` parameters — the OpenSCAD/BOSL2 tessellation controls — and thread them into **every** geometry call that renders a curve: cylinder/sphere facets (`fn`/`fa`/`fs`), `cuboid(..., rounding=...)`, fillets/chamfers, the finger-scoop and finger-hole profiles, hex/tessellation edges, and lid-pattern curves. Defaults are a sensible balance (e.g. `fa=12, fs=2`, or an explicit `fn` for small radii) but must be overridable so a user can raise precision for print-quality curves or lower it for a fast preview. No geometry call hardcodes its own facet count in a way the caller cannot override.
 
+### The Sleeve Is A Skin, Not A Second Wall (FR-002o, FR-002p)
+
+Two things about a slipover sleeve were costing more than they bought.
+
+**Its wall is half the box's wall.** Everywhere the sleeve touches the body there is already a full wall behind it, so a full-thickness sleeve is a second wall carrying nothing — it took two full walls of width out of the interior across every axis and printed a part twice as heavy as the job needed. The cap box's skirt had this right already.
+
+**It stops short of the foot.** A sleeve that runs all the way down closes onto the foot in a seam with nothing to grip. Leaving a band of body showing the whole way round gives the fingers something to pull on around the entire box, not only at the two corner notches. The skirt is therefore `height - foot - gap`, and the gap is a quarter of the covered height held between **3mm and 6mm**: wider where the box can spare it, because a wider gap takes a wider curve, and capped because every millimetre of gap is a millimetre of skirt given up.
+
 ### Getting A Slipover Sleeve Back Off (FR-002f, FR-002g, FR-002h)
 
 A slipover sleeve is a smooth box with nothing to hold: four covered sides, flush faces, no lip. The original cuts a notch into two **diagonally opposite** corners — diagonal so a pair of fingers pulls along the sleeve's axis instead of twisting it — placed just under the lid plate, where the notch exposes the body's corner for a thumb to push against.
@@ -150,7 +174,7 @@ Corners rather than side-centres, and it is not arbitrary: a finger pushing up i
                                           2mm foot of body below
 ```
 
-The two radii come to **4mm between them** — 2mm rolling in at the top, 2mm rolling out at the bottom — which is why the straight middle is whatever height is left over rather than a size of its own. Stating it as a total rather than per-radius matters, because the total is what competes with the box's height: at 4mm each the profile needed 10mm below the skirt and refused thirteen boxes across three of the examples; at 4mm the pair it refuses two. Below Line B a **2mm foot** of full-thickness body remains: the cut is a recess in the side, not a through-slot, and the corner it is cut into is the corner the box gets stacked and dropped on.
+The two radii come to **4mm between them** — 2mm rolling in at the top, 2mm rolling out at the bottom — which is why the straight middle is whatever height is left over rather than a size of its own. **4mm is the floor, not the target**: where the box can spare the height the pair opens out to 6mm, a 3mm roll each, which is a noticeably gentler curve under a fingertip. Growing it never raises the minimum box size, because the minimum is computed from the floor. This is the derive-don't-fix rule at work — the same cutout suits a 12mm box and a 60mm one only if it can breathe on the taller one. Stating it as a total rather than per-radius matters, because the total is what competes with the box's height: at 4mm each the profile needed 10mm below the skirt and refused thirteen boxes across three of the examples; at 4mm the pair it refuses two. Below Line B a **2mm foot** of full-thickness body remains: the cut is a recess in the side, not a through-slot, and the corner it is cut into is the corner the box gets stacked and dropped on.
 
 **Along the side, each cutout runs between 10mm and a sixth of that side.** Ten is a fingertip. A sixth keeps the band the skirt actually grips — two cutouts per side leaves two thirds of it. Where a sixth is under 10mm the minimum wins, because 10mm is a physical requirement and a sixth is a preference.
 
@@ -344,7 +368,19 @@ All cutouts and outer edges MUST be smooth — no sharp 90° corners that catch 
 
    `pyboxbuilder/sweep.py` provides the `offset_sweep` these need. Its rim arcs are built as a **chained hull** of offset slices, not as stacked prisms: one prism per slice is the obvious approach and what the legacy helper does, but it leaves an eight-step staircase across the fillet, which is visible in a Manifold render at print scale and is not a fillet at all.
 
-   A card finger hole runs the compartment's full depth so a finger reaches the last card at the bottom of the stack; an exterior box hole instead hangs from the rim, capped at the interior depth so it can never open the base.
+    A card finger hole runs the compartment's full depth so a finger reaches the last card at the bottom of the stack; an exterior box hole instead hangs from the rim, capped at the interior depth so it can never open the base.
+
+3a. **A no-lid box puts a finger hole in each of its longer walls by default (FR-047).** An open tray has no lid to grip, so it is lifted by the rim; the original (`no_lid.scad`) cuts a finger dip into both walls of the longer dimension — the length walls when `length > width` — so the tray can be picked up from either end. The sizing follows the original and is a formula on the spec, not a constant:
+
+    - radius = `min(20, min(length, width) / 4, height - floor_thickness + 1)`;
+    - height = `min(finger_hole_size, height - default_floor_thickness + 1)` (`default_floor_thickness` is 2mm);
+    - mouth rounding = 3mm.
+
+    These are the same finger holes the Emberleaf card boxes use, cut through the library's own `pyboxbuilder/compartments/finger_hole.py` (`build_wall_scoop` / `build_scoop`) — **never** the legacy `components.py` `FingerHoleWall`. Reusing the one scoop builder is what keeps this hole identical to every other finger cut in the library: it arrives with the r1 mouth roll, the r2 floor fillet and the face fillets already correct, and it cannot drift from them.
+
+    **A wall too short for the hole is skipped (FR-047).** The hole's mouth is `radius + rounding_radius` wide on each side of centre, and the two of them have to fit inside the wall the hole is cut through. When they do not — a path box with a short side, a tiny tray — the wall goes out with **no** hole rather than one that breaks through into the adjoining walls. The check is `2 × (radius + rounding_radius) > span` on the box's interior dimension, the same bound `build_wall_scoop` uses; the difference is that the default hole is *dropped* there, not shrunk. The automatic holes are opt-out: `auto_finger_holes=False` on the box (or an explicit `finger_hole(side)`) suppresses them, so the lidded types and a caller who wants a plain tray are untouched.
+
+    **A hole much taller than `radius + rounding` gets a straight vertical throat.** The scoop profile joins its floor fillet and rim roll with the two circles' **common tangent** (`circle_circle_tangents` in `_tangent_join`), so a tall hole runs straight down at the throat instead of stepping where the arcs meet — the "intersecting circles" transition the original's `FingerHoleWall` uses for exactly this case.
 
 4. **Sliding boxes: chamfer/round on the lower lid-track wall.** On a sliding-lid box the two lid-track walls are asymmetric — one wall sits lower so the lid can slide into its dovetail groove. Where possible, the chamfering/rounding MUST be applied on that lower wall (the one the lid slides over), not the higher wall, so the rounded edge does not interfere with the sliding track. To make this true the lid section SHOULD be rotated to a different side (swap which side the lower track wall is on) — so the smooth edge always lands on the lower, non-track side — **unless the box's length/width offset is too large for the rotation to work well** (a long, narrow card box rotated 90° would waste footprint and the lid would slide along the short axis). In that case keep the original orientation and accept the rounding on whichever side geometry dictates.
 

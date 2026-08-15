@@ -29,8 +29,9 @@ class NoLidBox:
         )
 
     def _build_shell(self, spec: dict) -> "Bosl2Solid":
-        from pyboxbuilder.box.shell import build_shell
+        from pyboxbuilder.box.shell import add_no_lid_finger_holes, build_shell
 
+        add_no_lid_finger_holes(spec)
         body = build_shell(spec)
         return body
 

@@ -43,16 +43,16 @@ def corner(
         size: The solid's (width, length, height).
         at: Where its minimum corner should end up.
     """
-    return solid.translate([
-        at[0] + size[0] / 2,
-        at[1] + size[1] / 2,
-        at[2] + size[2] / 2,
-    ])
+    return solid.translate(
+        [
+            at[0] + size[0] / 2,
+            at[1] + size[1] / 2,
+            at[2] + size[2] / 2,
+        ]
+    )
 
 
-def block(
-    size: Sequence[float], at: Sequence[float] = (0.0, 0.0, 0.0)
-) -> "Bosl2Solid":
+def block(size: Sequence[float], at: Sequence[float] = (0.0, 0.0, 0.0)) -> "Bosl2Solid":
     """A cuboid of `size` whose minimum corner sits at `at`."""
     from pybosl2 import cuboid
 
@@ -158,7 +158,10 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         # reaches deeper than the interior.
         reach = min(getattr(hole, "depth", None) or radius, interior_height)
         scoop = build_wall_scoop(
-            inner_width, inner_length, reach, hole.side,
+            inner_width,
+            inner_length,
+            reach,
+            hole.side,
             radius=radius,
             wall_thickness=wt,
             # None lets r1 derive from the throat rather than pinning 3mm.
@@ -171,13 +174,85 @@ def apply_finger_holes(body: "Bosl2Solid", spec: dict) -> "Bosl2Solid":
         )
         offset = getattr(hole, "offset", 0.0) or 0.0
         along_x = hole.side in (ScoopSide.FRONT, ScoopSide.BACK)
-        body = body - scoop.translate([
-            wt + (offset if along_x else 0.0),
-            wt + (0.0 if along_x else offset),
-            interior_top - reach,
-        ])
+        body = body - scoop.translate(
+            [
+                wt + (offset if along_x else 0.0),
+                wt + (0.0 if along_x else offset),
+                interior_top - reach,
+            ]
+        )
 
     return body
+
+
+def no_lid_finger_holes(spec: dict):
+    """The finger holes a no-lid box cuts into its longer walls (FR-047).
+
+    An open tray is lifted by the rim, so the original (`no_lid.scad`) puts a
+    finger dip into each wall of the longer dimension. The sizing is a formula
+    on the spec, not a constant:
+
+    - radius = `min(20, min(length, width) / 4, height - floor_thickness + 1)`;
+    - height = `min(radius, height - default_floor_thickness + 1)` (2mm floor);
+    - mouth rounding = 3mm.
+
+    A wall too short for the hole's mouth is skipped: a finger hole wider than
+    the wall it is cut through breaks into the adjoining walls, so the tray goes
+    out with **no** hole rather than a broken one. That is what keeps a path box
+    with a short side sound.
+
+    Args:
+        spec: Needs `width`, `length`, `height`; reads `wall_thickness` and
+            `floor_thickness`.
+
+    Returns:
+        A tuple of `FingerHoleBuilder`s — one per longer wall — or an empty
+        tuple when the holes would not fit.
+    """
+    from pyboxbuilder.builders._base import FingerHoleBuilder
+
+    wt = spec.get("wall_thickness", 2.0)
+    ft = spec.get("floor_thickness", 1.6)
+    width = spec["width"]
+    length = spec["length"]
+    height = spec["height"]
+
+    radius = min(20.0, min(length, width) / 4.0, height - ft + 1.0)
+    hole_height = min(radius, height - ft + 2.0)
+    rounding_radius = 3.0
+
+    if length >= width:
+        sides = (ScoopSide.LEFT, ScoopSide.RIGHT)
+        span = length - 2 * wt
+    else:
+        sides = (ScoopSide.FRONT, ScoopSide.BACK)
+        span = width - 2 * wt
+
+    # The mouth is `radius + rounding_radius` wide on each side of centre; the
+    # two of them have to fit inside the wall the hole is cut through.
+    if 2.0 * (radius + rounding_radius) > span:
+        return ()
+
+    return tuple(
+        FingerHoleBuilder(
+            side=side,
+            radius=radius,
+            depth=hole_height,
+            rounding_radius=rounding_radius,
+        )
+        for side in sides
+    )
+
+
+def add_no_lid_finger_holes(spec: dict) -> None:
+    """Give a no-lid spec its default finger holes, unless it already has some.
+
+    Idempotent on the ``finger_holes`` key: an explicit ``finger_hole(side)``
+    call on the builder wins, and a second call to this is a no-op. A spec that
+    sets ``auto_finger_holes`` to ``False`` opts out entirely.
+    """
+    if spec.get("auto_finger_holes", True) and not spec.get("finger_holes"):
+        spec["finger_holes"] = no_lid_finger_holes(spec)
 
 
 def interior_block(spec: dict) -> "Bosl2Solid":
