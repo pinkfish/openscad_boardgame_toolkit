@@ -184,6 +184,12 @@ Making it exact took capping the skirt as well as checking it. The skirt default
 
 **Below that minimum the library raises**, naming the box's height, the minimum, each term of it, and recommending a **slipover** of the same size, which opens by its own corner notches. The alternative — quietly shrinking the radii until they fit — produces a cap box whose lid cannot be removed, and a part that looks finished and cannot be used is worse than one that refused to build.
 
+### A Lidless Rim Has Two Edges (FR-043f)
+
+`build_shell` rounds the top rim only when `rim_free` — set for the lidless types, because on a lidded box the rim is a sealing surface and its rounding belongs on the lid. That was right, but it only ever rounded the **outer** edge. `interior_block` leaves its top square deliberately, and the comment there gives the reason for a lidded box: the top is the opening.
+
+On an open tray both are wrong. The rim is exposed on both faces, and the inner edge is as much a part of what a hand runs along as the outer one. So when `rim_free` is set and the box is hollow, the interior's top edge takes the same `wall_thickness / 2`. Lidded boxes are untouched.
+
 ### Two Bugs In One Shape: The Corner Indent And The U (FR-002q, FR-043e)
 
 Both were invisible in a render and obvious in a measurement, and both came from the same place — a shared helper used at two removes from the geometry it produces.

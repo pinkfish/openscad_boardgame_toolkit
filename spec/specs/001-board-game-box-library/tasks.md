@@ -990,6 +990,25 @@ Measured against the original, the player box still carries 72,813mm³ of materi
 
 ---
 
+## Phase 31: The lidless rim's inner edge, and the scoop's square base (FR-043f, FR-043g)
+
+**Purpose**: An open tray's rim is exposed on both faces but only the outer edge was rounded; and a wall scoop's flat bottom meets the wall's faces at the wall's sawn cross-section.
+
+**Goal**: Both edges of a lidless rim are rounded by `wall_thickness / 2`, and nothing a finger meets in a scoop is a square edge.
+
+**Independent Test**: A lidless box's inner top edge is rounded by the same radius as its outer one; a lidded box's is not.
+
+- [ ] T303 Round the **inner** top edge of a hollow lidless box by the same radius as the outer one (FR-043f). **Attempted and reverted**: calling `round_edges` over the *interior* envelope is a no-op, and measurably so — the wall material at the inner rim went 7.2mm³ → 7.17mm³. `round_edges` subtracts the sliver between an envelope's sharp edge and its arc, which for the interior envelope lands in the hollow, not in the wall. The inner rim is a convex edge **of the wall**, so it needs a fillet ring subtracted at the interior's top perimeter — a quarter-round tangent to the inner face and to the top face — not an envelope rounding. The outer half of FR-043f already works: `Project` sets `rim_free` for lidless types.
+- [ ] T303a [P] Write test: the inner rim loses wall material to its fillet on a lidless box and does not on a lidded one (SC-055). The probe must straddle the **inner face** at the top; a probe inset into the interior measures empty space in both cases and passes nothing.
+- [ ] T304 [P] Write test: a lidless box's inner top edge is rounded by the body radius and a lidded box's is not (SC-055) — in `tests/test_pyboxbuilder/test_rounding.py`
+- [ ] T305 Round the wall scoop's **flat bottom** where it emerges on each face (FR-043g). The cut's bottom is a horizontal plane through the wall and currently ends in the wall's sawn cross-section: the face fillet follows the U's sides but the base reads as a square shelf, which is also why the dip does not look like a dip. Candidates measured so far: the face fillet not reaching the bottom run of the outline, and `MIN_FLAT_BOTTOM_RATIO` leaving a flat bottom 0.7x the scoop's width so there is little dip to see.
+
+- [ ] T306 A wall scoop's solid is **taller than the height it was asked for**, and its placement ignores the difference. Measured: `build_wall_scoop(..., reach=14, wall_thickness=2)` returns a solid spanning z -0.20..16.00 — 2mm proud at the top (`RIM_OVERSHOOT_MM` plus the `rounding_edge` flare, `wall_thickness / 2`) and 0.20 below (the intended floor dip). `apply_finger_holes` then places it at `interior_top - reach`, which is the *nominal* height, so neither end lands where `reach` says: the top overshoots the rim by 2mm and the bottom sits 0.20 lower than intended. The alignment must add the flare back — raise by `rounding_edge` — so the cut's real extent is what was asked for. Note the `no_lid_finger_holes` radius formula also carries a `+1` (`height - floor_thickness + 1`), which on a box where `reach` is capped by the interior depth puts the cut into the floor before the dip is even added.
+
+**Checkpoint**: Open trays are rounded on both rim edges; finger scoops present no sawn edge. **Not reached** — T303, T305 and T306 are all open.
+
+---
+
 ## Notes
 
 - [P] tasks = different files, no dependencies
